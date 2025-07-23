@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 // Performance page for Offline In-store - based on OfflineInstorePerformance story
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';

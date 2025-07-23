@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 // Performance page for Sponsored Products - based on SponsoredProductsPerformance story
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, MetricCard } from '@/components/ui/card';

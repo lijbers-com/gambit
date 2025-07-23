@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 // Performance page for Digital In-store - based on DigitalInstorePerformance story
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';

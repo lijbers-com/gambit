@@ -298,8 +298,8 @@ export default function DigitalInstorePerformancePage() {
                   columns={[
                     { key: 'name', header: 'Name' },
                     { key: 'id', header: 'ID' },
-                    { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                    { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
+                    { key: 'planned', header: 'Planned', render: row => row.planned?.toLocaleString() || "0" },
+                    { key: 'achieved', header: 'Achieved', render: row => row.achieved?.toLocaleString() || "0" },
                     { key: 'performance', header: 'Performance', render: row => (
                       <Badge variant={getPerformanceBadgeVariant(row.performance)}>
                         {row.performance}
@@ -327,8 +327,8 @@ export default function DigitalInstorePerformancePage() {
                   columns={[
                     { key: 'name', header: 'Name' },
                     { key: 'id', header: 'ID' },
-                    { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                    { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
+                    { key: 'planned', header: 'Planned', render: row => row.planned?.toLocaleString() || "0" },
+                    { key: 'achieved', header: 'Achieved', render: row => row.achieved?.toLocaleString() || "0" },
                     { key: 'performance', header: 'Performance', render: row => (
                       <Badge variant={getPerformanceBadgeVariant(row.performance)}>
                         {row.performance}

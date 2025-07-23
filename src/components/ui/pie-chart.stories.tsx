@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { PieChartComponent } from './pie-chart';
 
 const meta: Meta<typeof PieChartComponent> = {
@@ -52,6 +52,8 @@ export const Default: Story = {
   args: {
     data: chartData,
     config: chartConfig,
+    showLegend: true,
+    className: "h-[300px]",
   },
 };
 

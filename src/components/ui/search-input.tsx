@@ -3,7 +3,7 @@ import { Input } from "./input";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface SearchInputProps extends React.ComponentProps<typeof Input> {}
+export interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, value, onChange, ...props }, ref) => {

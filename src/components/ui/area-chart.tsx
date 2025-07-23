@@ -55,7 +55,6 @@ export function AreaChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
           />
         )}
         {showYAxis && (
@@ -63,7 +62,6 @@ export function AreaChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => `${value}`}
           />
         )}
         {dataKeys.map((key) => (

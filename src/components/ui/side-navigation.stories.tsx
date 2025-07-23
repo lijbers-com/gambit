@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import React from 'react';
 import { SideNavigation, Route } from './side-navigation';
 import { useMenu } from '@/hooks/use-menu';
@@ -22,134 +22,206 @@ type Story = StoryObj<typeof meta>;
 
 const sampleRoutes: Route[] = [
   {
+    id: 0,
+    name: "Home",
+    type: "single",
+    icon: { lucide: "Home" },
+    url: "/"
+  },
+  {
     id: 1,
+    name: "Dashboard",
+    type: "single",
+    icon: { lucide: "LayoutDashboard" },
+    url: "/dashboard"
+  },
+  {
+    id: 2,
     name: "Campaigns",
     type: "parent",
     icon: { lucide: "Table" },
     subitems: [
       {
-        id: 11,
-        name: "Display",
-        url: "/campaigns/display"
-      },
-      {
-        id: 12,
+        id: 20,
         name: "Sponsored products",
         url: "/campaigns/sponsored-products"
       },
       {
-        id: 13,
-        name: "Digital in-store",
-        url: "/campaigns/digital-in-store"
-      },
-      {
-        id: 14,
-        name: "Offline in-store",
-        url: "/campaigns/offline-in-store"
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: "Creatives",
-    type: "parent",
-    icon: { lucide: "ImagePlus" },
-    subitems: [
-      {
         id: 21,
         name: "Display",
-        url: "/creatives/display"
+        url: "/campaigns/display"
       },
       {
         id: 22,
-        name: "Sponsored products",
-        url: "/creatives/sponsored-products"
+        name: "Digital in-store",
+        url: "/campaigns/digital-instore"
       },
       {
         id: 23,
-        name: "Digital in-store",
-        url: "/creatives/digital-in-store"
-      },
-      {
-        id: 24,
-        name: "Offline in-store",
-        url: "/creatives/offline-in-store"
+        name: "Offline instore",
+        url: "/campaigns/offline-instore"
       }
     ]
   },
   {
     id: 3,
-    name: "Calendar",
+    name: "Creatives",
     type: "parent",
-    icon: { lucide: "CalendarDays" },
+    icon: { lucide: "ImagePlus" },
     subitems: [
+      {
+        id: 30,
+        name: "Sponsored products",
+        url: "/creatives/sponsored-products"
+      },
       {
         id: 31,
         name: "Display",
-        url: "/calendar/display"
+        url: "/creatives/display"
       },
       {
         id: 32,
-        name: "Sponsored products",
-        url: "/calendar/sponsored-products"
+        name: "Digital in-store",
+        url: "/creatives/digital-instore"
       },
       {
         id: 33,
-        name: "Digital in-store",
-        url: "/calendar/digital-in-store"
-      },
-      {
-        id: 34,
-        name: "Offline in-store",
-        url: "/calendar/offline-in-store"
+        name: "Offline instore",
+        url: "/creatives/offline-instore"
       }
     ]
   },
   {
     id: 4,
-    name: "Performance",
+    name: "Calendar",
     type: "parent",
-    icon: { lucide: "ChartNoAxesColumn" },
+    icon: { lucide: "CalendarDays" },
     subitems: [
+      {
+        id: 40,
+        name: "Sponsored products",
+        url: "/calendar/sponsored-products"
+      },
       {
         id: 41,
         name: "Display",
-        url: "/performance/display"
+        url: "/calendar/display"
       },
       {
         id: 42,
-        name: "Sponsored products",
-        url: "/performance/sponsored-products"
+        name: "Digital in-store",
+        url: "/calendar/digital-instore"
       },
       {
         id: 43,
-        name: "Digital in-store",
-        url: "/performance/digital-in-store"
-      },
-      {
-        id: 44,
-        name: "Offline in-store",
-        url: "/performance/offline-in-store"
+        name: "Offline instore",
+        url: "/calendar/offline-instore"
       }
     ]
   },
   {
     id: 5,
+    name: "Performance",
+    type: "parent",
+    icon: { lucide: "BarChart3" },
+    subitems: [
+      {
+        id: 50,
+        name: "Sponsored products",
+        url: "/performance/sponsored-products"
+      },
+      {
+        id: 51,
+        name: "Display",
+        url: "/performance/display"
+      },
+      {
+        id: 52,
+        name: "Digital in-store",
+        url: "/performance/digital-instore"
+      },
+      {
+        id: 53,
+        name: "Offline instore",
+        url: "/performance/offline-instore"
+      }
+    ]
+  },
+  {
+    id: 6,
     name: "Yield",
-    url: "/yield",
-    icon: { lucide: "TrendingUp" }
+    type: "parent",
+    icon: { lucide: "TrendingUp" },
+    subitems: [
+      {
+        id: 60,
+        name: "Sponsored products",
+        url: "/yield/sponsored-products"
+      },
+      {
+        id: 61,
+        name: "Display",
+        url: "/yield/display"
+      },
+      {
+        id: 62,
+        name: "Digital in-store",
+        url: "/yield/digital-instore"
+      },
+      {
+        id: 63,
+        name: "Offline instore",
+        url: "/yield/offline-instore"
+      }
+    ]
   }
 ];
+
+export const Primary: Story = {
+  args: {
+    routes: sampleRoutes,
+    user: {
+      name: "John Doe",
+      avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"
+    },
+    onLogout: () => console.log("Logout clicked")
+  },
+  render: (args) => (
+    <div className="flex h-screen">
+      <SideNavigation {...args} />
+      <div className="flex-1 p-8 bg-gray-50 ml-[270px]">
+        <h1 className="text-2xl font-bold mb-4">Navigation Structure</h1>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Main Menu Items:</h3>
+            <ul className="mt-2 space-y-1">
+              <li>🏠 <strong>Home</strong> - Dashboard home page</li>
+              <li>📊 <strong>Dashboard</strong> - Main dashboard view</li>
+              <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
+              <li>🎨 <strong>Creatives</strong> - Creative management with 4 engines</li>
+              <li>📅 <strong>Calendar</strong> - Booking calendar with 4 engines</li>
+              <li>📈 <strong>Performance</strong> - Performance analytics with 4 engines</li>
+              <li>📊 <strong>Yield</strong> - Yield optimization with 4 engines</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Engine Types (Sub-menus):</h3>
+            <ul className="mt-2 space-y-1">
+              <li>• <strong>Sponsored products</strong></li>
+              <li>• <strong>Display</strong></li>
+              <li>• <strong>Digital in-store</strong></li>
+              <li>• <strong>Offline instore</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+};
 
 export const OpenState: Story = {
   args: {
     routes: sampleRoutes,
-    logo: {
-      src: "/next.svg",
-      alt: "Logo",
-      width: 40,
-      height: 40
-    },
     user: {
       name: "John Doe",
       avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"
@@ -170,12 +242,6 @@ export const OpenState: Story = {
 export const CollapsedState: Story = {
   args: {
     routes: sampleRoutes,
-    logo: {
-      src: "/next.svg",
-      alt: "Logo",
-      width: 40,
-      height: 40
-    },
     user: {
       name: "John Doe",
       avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"

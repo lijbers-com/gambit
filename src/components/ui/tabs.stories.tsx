@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/nextjs';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 
 const meta: Meta<typeof Tabs> = {

@@ -1,0 +1,334 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Documentation/Versions" />
+
+# 🔄 Version Management
+
+## Multi-Version Application Strategy
+
+The Gambit platform uses a sophisticated versioning strategy that enables parallel development of different user experience paradigms, feature sets, and experimental workflows while maintaining code consistency and development efficiency.
+
+## 🎯 Versioning Philosophy
+
+### Core Objectives
+
+1. **Enable Rapid Experimentation** - Test different UX approaches without disrupting existing users
+2. **Parallel Development** - Multiple teams can work on different version paradigms simultaneously  
+3. **Risk Mitigation** - New features can be tested in isolation before general release
+4. **User Choice** - Allow users to select the experience that best fits their workflow preferences
+
+### Version Strategy Benefits
+
+- **🚀 Innovation Speed** - Rapid prototyping and testing of new concepts
+- **🛡️ Stability** - Existing users unaffected by experimental features
+- **🎯 Targeted Features** - Specific versions for specific user segments
+- **📊 A/B Testing** - Data-driven decisions on feature adoption
+
+## 📋 Version Categories
+
+### Major Versions (V1, V2, V3, etc.)
+
+Represent fundamental changes in user experience or application architecture:
+
+#### **V1.0 Gambit** - Foundation
+- **Paradigm** - Traditional form-based campaign creation
+- **Target Users** - Power users familiar with advertising platforms
+- **Workflow** - Manual campaign setup with detailed form inputs
+- **Features** - Core campaign management, basic analytics
+
+#### **V2.0 Albert Heijn** - Retailer Integration  
+- **Paradigm** - Retailer-specific integrated workflows
+- **Target Users** - Albert Heijn advertising teams and partners
+- **Workflow** - Streamlined retailer platform integration
+- **Features** - AH-specific branding, localized features, product catalog integration
+
+#### **V3.0 Gambit** - AI Enhancement
+- **Paradigm** - AI-powered conversational campaign creation
+- **Target Users** - All skill levels, from beginners to advanced
+- **Workflow** - Natural language campaign building with AI assistance
+- **Features** - Conversational UI, automated optimization, predictive analytics
+
+### Minor Versions (V2.1, V3.1, etc.)
+
+Incremental improvements within a major version paradigm:
+
+- **UI/UX Refinements** - Polish and usability improvements
+- **Feature Enhancements** - Extended functionality within existing paradigm
+- **Performance Optimizations** - Speed and efficiency improvements
+- **Quality Improvements** - Bug fixes and stability enhancements
+
+## 🎮 Version Selection Experience
+
+### Login Interface
+
+Users select their preferred version and theme combination:
+
+```
+┌─────────────────────────────────────┐
+│            Login Screen             │
+│                                     │
+│  Username: [________________]       │
+│  Password: [________________]       │
+│                                     │
+│  Version:  [V3.1 Gambit      ▼]    │
+│  Theme:    [Gambit Theme     ▼]     │
+│                                     │
+│            [Login Button]           │
+└─────────────────────────────────────┘
+```
+
+### Available Version Combinations
+
+#### ✅ Production-Ready Combinations
+- **V2.0 Albert Heijn + Albert Heijn Theme** - Complete retailer integration
+- **V3.1 Gambit + Gambit Theme** - Latest AI-enhanced universal version
+- **V2.1 Albert Heijn + Albert Heijn Theme** - Enhanced retailer experience
+- **V3.0 Gambit + Delhaize Theme** - AI features with Delhaize branding
+- **V2.0 Gambit + AD USA Theme** - Foundation version for US market
+- **V3.1 Gambit + AB Theme** - Latest features for AB segment
+
+#### 🔄 Cross-Version Theming
+- **Any Version + Gambit Theme** - Universal fallback option
+- **V3.x + Any Theme** - Latest features with any brand identity
+- **V2.x + Multiple Themes** - Stable features across brand variations
+
+## 🔧 Technical Implementation
+
+### Version Configuration System
+
+```typescript
+interface VersionConfig {
+  version: string;
+  displayName: string;
+  features: {
+    aiCampaignBuilder: boolean;
+    advancedAnalytics: boolean;
+    multiEngineSupport: boolean;
+    voiceCommands: boolean;
+    realTimeOptimization: boolean;
+    conversationalInterface: boolean;
+    predictiveInsights: boolean;
+  };
+  uiComponents: string[];
+  workflows: {
+    campaignCreation: 'form-based' | 'conversational-ai' | 'hybrid';
+    optimization: 'manual' | 'semi-automated' | 'fully-automated';
+    reporting: 'basic' | 'advanced' | 'predictive';
+  };
+  availableThemes: string[];
+}
+```
+
+### Version Registry
+
+```typescript
+export const VERSION_REGISTRY: Record<string, VersionConfig> = {
+  'v1.0-gambit': {
+    version: 'V1.0 Gambit',
+    displayName: 'Gambit Foundation',
+    features: {
+      aiCampaignBuilder: false,
+      advancedAnalytics: true,
+      multiEngineSupport: false,
+      voiceCommands: false,
+      realTimeOptimization: false,
+      conversationalInterface: false,
+      predictiveInsights: false,
+    },
+    workflows: {
+      campaignCreation: 'form-based',
+      optimization: 'manual',
+      reporting: 'basic',
+    },
+    availableThemes: ['gambit'],
+  },
+  
+  'v3.1-gambit': {
+    version: 'V3.1 Gambit',
+    displayName: 'Gambit AI Enhanced',
+    features: {
+      aiCampaignBuilder: true,
+      advancedAnalytics: true,
+      multiEngineSupport: true,
+      voiceCommands: true,
+      realTimeOptimization: true,
+      conversationalInterface: true,
+      predictiveInsights: true,
+    },
+    workflows: {
+      campaignCreation: 'conversational-ai',
+      optimization: 'fully-automated',
+      reporting: 'predictive',
+    },
+    availableThemes: ['gambit', 'albert-heijn', 'delhaize', 'ad-usa', 'ab'],
+  },
+  // ... other versions
+};
+```
+
+### Feature Flag Implementation
+
+```typescript
+// Hook for version-aware feature access
+export function useFeatureFlag(feature: keyof VersionConfig['features']): boolean {
+  const { currentVersion } = useVersion();
+  const versionConfig = VERSION_REGISTRY[currentVersion];
+  return versionConfig?.features[feature] ?? false;
+}
+
+// Component usage example
+function CampaignBuilder() {
+  const hasAI = useFeatureFlag('aiCampaignBuilder');
+  const hasVoice = useFeatureFlag('voiceCommands');
+  
+  return (
+    <div>
+      {hasAI && <AICampaignInterface />}
+      {hasVoice && <VoiceCommandButton />}
+      <TraditionalCampaignForm />
+    </div>
+  );
+}
+```
+
+## 📊 Version Comparison Matrix
+
+### Feature Availability by Version
+
+| Feature | V1.0 Gambit | V2.0 Albert Heijn | V2.1 Albert Heijn | V3.0 Gambit | V3.1 Gambit |
+|---------|-------------|-------------------|-------------------|-------------|-------------|
+| **Campaign Management** | ✅ Basic | ✅ Enhanced | ✅ Advanced | ✅ AI-Powered | ✅ AI-Enhanced |
+| **Multi-Engine Support** | ❌ | ✅ Limited | ✅ Full | ✅ Full | ✅ Advanced |
+| **AI Campaign Builder** | ❌ | ❌ | ❌ | ✅ Beta | ✅ Production |
+| **Conversational Interface** | ❌ | ❌ | ❌ | ✅ Basic | ✅ Advanced |
+| **Voice Commands** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Real-time Optimization** | ❌ | ✅ Limited | ✅ Enhanced | ✅ Advanced | ✅ Full |
+| **Predictive Analytics** | ❌ | ❌ | ✅ Basic | ✅ Advanced | ✅ Full |
+| **Advanced Analytics** | ✅ Basic | ✅ Retailer-Specific | ✅ Enhanced | ✅ Predictive | ✅ Real-time |
+| **Custom Themes** | ✅ Gambit Only | ✅ Albert Heijn | ✅ Albert Heijn | ✅ Multi-theme | ✅ All Themes |
+
+### Workflow Differences
+
+#### Campaign Creation Workflows
+
+**V1.0 - Form-Based**
+```
+1. Select campaign type
+2. Fill detailed forms
+3. Upload creatives manually
+4. Set targeting parameters
+5. Configure budgets
+6. Review and launch
+```
+
+**V2.0/2.1 - Retailer-Integrated**
+```
+1. Connect to retailer platform
+2. Import product catalog
+3. Select products/categories
+4. Configure retailer-specific settings
+5. Apply brand guidelines
+6. Launch with platform integration
+```
+
+**V3.0/3.1 - AI-Conversational**
+```
+User: "I want to promote our new organic coffee line 
+       to health-conscious shoppers with a $50k budget"
+
+AI: "I'll create a 360° campaign targeting health & wellness 
+     audiences. Here's your optimized campaign structure..."
+
+1. Natural language input
+2. AI generates campaign structure
+3. User reviews and refines
+4. AI optimizes targeting and budgets
+5. Automated launch and optimization
+```
+
+## 🚀 Version Development Lifecycle
+
+### Development Process
+
+#### 1. Version Planning Phase
+- **Requirements Gathering** - Define version-specific goals and features
+- **User Research** - Validate version concept with target users
+- **Technical Architecture** - Plan implementation within existing system
+- **Feature Flag Strategy** - Determine what features to toggle
+
+#### 2. Implementation Phase
+- **Feature Development** - Build version-specific functionality
+- **Component Library Updates** - Extend Storybook components as needed
+- **Version Configuration** - Add to registry and feature flag system
+- **Integration Testing** - Verify compatibility with all themes
+
+#### 3. Testing and Validation
+- **Version-Specific Testing** - Test all features and workflows
+- **Cross-Version Compatibility** - Ensure no breaking changes
+- **Theme Compatibility** - Verify all theme combinations work
+- **Performance Testing** - Maintain performance standards across versions
+
+#### 4. Release and Monitoring
+- **Staged Rollout** - Gradual release to user segments
+- **Usage Monitoring** - Track version adoption and feature usage
+- **Feedback Collection** - Gather user feedback and satisfaction metrics
+- **Iteration Planning** - Plan next version improvements based on data
+
+### Version States
+
+- **🔬 Development** - Active development and internal testing
+- **🧪 Beta** - Limited user testing and feedback collection
+- **✅ Production** - Full availability to all users
+- **🔧 Maintenance** - Bug fixes and security updates only
+- **⚠️ Deprecated** - Planned for removal, users migrated to newer versions
+- **🚫 Retired** - No longer available for selection
+
+## 📈 Success Metrics and Analytics
+
+### Version Adoption Metrics
+- **User Distribution** - Percentage of users on each version
+- **Feature Usage** - Adoption rates for version-specific features
+- **User Retention** - Version stickiness and switching patterns
+- **Performance Metrics** - Speed and reliability by version
+
+### User Experience Metrics
+- **Task Completion Rates** - Success rates for core workflows by version
+- **Time to Value** - How quickly users achieve goals in each version
+- **User Satisfaction** - NPS and feedback scores by version
+- **Support Tickets** - Help desk volume and issue types by version
+
+### Business Impact Metrics
+- **Campaign Performance** - Advertising effectiveness by version
+- **User Engagement** - Time spent and actions taken by version
+- **Revenue Impact** - Business value generated by version features
+- **Competitive Advantage** - Market differentiation through versioning
+
+## 🎯 Version Strategy Benefits
+
+### For Users
+- **Choice and Control** - Select the experience that fits their workflow
+- **Gradual Adoption** - Move to new features at their own pace
+- **Specialized Experiences** - Versions optimized for specific use cases
+- **Reduced Risk** - Stick with stable versions during critical periods
+
+### For Product Teams
+- **Rapid Innovation** - Test new concepts without disrupting existing users
+- **Data-Driven Decisions** - Compare version performance objectively
+- **Risk Mitigation** - Isolate experimental features from core functionality
+- **User Segmentation** - Serve different user types with appropriate experiences
+
+### For Development
+- **Parallel Development** - Multiple teams can work on different paradigms
+- **Code Reuse** - Shared component library across all versions
+- **Incremental Deployment** - Roll out features gradually and safely
+- **Quality Assurance** - Isolated testing of new functionality
+
+### For Business
+- **Market Differentiation** - Offer unique experiences for different segments
+- **Customer Retention** - Keep existing users happy while innovating
+- **Competitive Advantage** - First-to-market with new UX paradigms
+- **Revenue Growth** - Optimize different versions for different business goals
+
+---
+
+The version management system enables Gambit to be both a stable, reliable platform and a cutting-edge innovation laboratory, serving diverse user needs while maintaining development efficiency and code quality.

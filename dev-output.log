@@ -1,0 +1,672 @@
+
+> gambit@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.5
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.178.101:3000
+
+ ✓ Starting...
+ ✓ Ready in 1263ms
+ ○ Compiling /test-css ...
+ ✓ Compiled /test-css in 2.5s (713 modules)
+ GET /test-css 200 in 2987ms
+ ✓ Compiled in 322ms (317 modules)
+ ✓ Compiled /favicon.ico in 157ms (394 modules)
+ GET /favicon.ico 200 in 213ms
+ GET /test-css 200 in 70ms
+ GET /test-css 200 in 66ms
+ GET /test-css 200 in 68ms
+ GET /favicon.ico 200 in 9ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 899ms (905 modules)
+ GET /login 200 in 1059ms
+ GET /login 200 in 84ms
+ ✓ Compiled / in 297ms (899 modules)
+ GET / 307 in 410ms
+ GET /login 200 in 77ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 2.9s (2885 modules)
+ GET /dashboard 200 in 3091ms
+ GET /dashboard 200 in 14ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1385ms (2913 modules)
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 1073ms
+ GET /test-css 200 in 223ms
+ GET /test-css 200 in 26ms
+ ✓ Compiled in 339ms (1429 modules)
+ GET /test-css 200 in 18ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /test-css 200 in 17ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 53ms
+ ✓ Compiled in 222ms (1429 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /test-css 200 in 16ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 49ms
+ GET /test-css 200 in 22ms
+ ✓ Compiled in 288ms (1429 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /dashboard 200 in 12ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 200 in 46ms
+ GET /test-css 200 in 72ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /test-css 200 in 51ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 93ms
+ ✓ Compiled in 201ms (1429 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /test-css 200 in 17ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /test-css 200 in 47ms
+ GET /dashboard 500 in 49ms
+ ✓ Compiled / in 332ms (1494 modules)
+ GET / 307 in 444ms
+ GET /login 200 in 71ms
+ GET /dashboard 200 in 57ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1158ms (2913 modules)
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 634ms
+ GET /test-css 200 in 191ms
+ GET /test-css 200 in 25ms
+ ✓ Compiled in 390ms (2913 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /test-css 200 in 75ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 184ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 737ms (2913 modules)
+ GET /dashboard 200 in 444ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /test-css 200 in 145ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ GET /dashboard 500 in 113ms
+ ✓ Compiled in 238ms (1429 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /test-css 200 in 120ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ ✓ Compiled in 345ms (1429 modules)
+ GET /dashboard 500 in 221ms
+ GET /test-css 200 in 14ms
+ ✓ Compiled in 304ms (1429 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /test-css 200 in 177ms
+ ⨯ ReferenceError: window is not defined
+    at checkActiveUrl (src/components/ui/navigation-item-with-submenu.tsx:31:8)
+    at eval (src/components/ui/navigation-item-with-submenu.tsx:74:29)
+    at Array.map (<anonymous>)
+    at NavigationItemWithSubmenu (src/components/ui/navigation-item-with-submenu.tsx:69:24)
+  29 |   const checkActiveUrl = (route?: string) =>
+  30 |     route
+> 31 |       ? window.location.pathname.split('/')[1] === route.split('/')[1]
+     |        ^
+  32 |       : false;
+  33 |
+  34 |   useEffect(() => { {
+  digest: '1684812954'
+}
+ ✓ Compiled in 332ms (1429 modules)
+ GET /dashboard 500 in 205ms
+ GET /test-css 200 in 21ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1465ms (2913 modules)
+ GET /dashboard 200 in 371ms
+ GET /test-css 200 in 240ms
+ GET /dashboard 200 in 88ms
+ ○ Compiling /bookings ...
+ ✓ Compiled /bookings in 782ms (2962 modules)
+ ⨯ TypeError: Cannot read properties of undefined (reading 'length')
+    at Viewbar (src/components/ui/viewbar.tsx:38:14)
+  36 |   return (
+  37 |     <div className={cn('flex items-center justify-between w-full gap-4', className)}>
+> 38 |       {labels.length > 0 && (
+     |              ^
+  39 |         <div className="flex gap-3">
+  40 |           {labels.map((l, i) => (
+  41 |             <span {
+  digest: '3528559002'
+}
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /bookings 500 in 996ms
+[ResponseAborted: ]
+[ResponseAborted: ]
+ GET /test-css 200 in 513ms
+ GET /dashboard 200 in 116ms
+ ✓ Compiled /bookings/offline-instore in 390ms (2955 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /bookings/offline-instore 200 in 405ms
+ ⨯ TypeError: Cannot read properties of undefined (reading 'length')
+    at Viewbar (src/components/ui/viewbar.tsx:38:14)
+  36 |   return (
+  37 |     <div className={cn('flex items-center justify-between w-full gap-4', className)}>
+> 38 |       {labels.length > 0 && (
+     |              ^
+  39 |         <div className="flex gap-3">
+  40 |           {labels.map((l, i) => (
+  41 |             <span {
+  digest: '2221695935'
+}
+ GET /dashboard 200 in 99ms
+ ✓ Compiled /bookings/display in 317ms (2962 modules)
+ ⨯ TypeError: Cannot read properties of undefined (reading 'length')
+    at Viewbar (src/components/ui/viewbar.tsx:38:14)
+  36 |   return (
+  37 |     <div className={cn('flex items-center justify-between w-full gap-4', className)}>
+> 38 |       {labels.length > 0 && (
+     |              ^
+  39 |         <div className="flex gap-3">
+  40 |           {labels.map((l, i) => (
+  41 |             <span {
+  digest: '3294542098'
+}
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /bookings/display 500 in 465ms
+[ResponseAborted: ]
+[ResponseAborted: ]
+ GET /dashboard 200 in 96ms
+ ✓ Compiled in 991ms (2976 modules)
+ GET /test-css 200 in 275ms
+ GET /dashboard 200 in 339ms
+ ✓ Compiled in 379ms (1456 modules)
+ GET /dashboard 200 in 19ms
+ GET /test-css 200 in 20ms
+ ✓ Compiled in 641ms (1456 modules)
+ GET /test-css 200 in 20ms
+ GET /dashboard 200 in 215ms
+ ✓ Compiled in 253ms (1456 modules)
+ GET /test-css 200 in 18ms
+ GET /dashboard 200 in 14ms
+ ✓ Compiled in 710ms (2943 modules)
+ GET /test-css 200 in 54ms
+ GET /dashboard 200 in 25ms
+ ✓ Compiled in 645ms (2943 modules)
+ GET /test-css 200 in 45ms
+ GET /dashboard 200 in 20ms
+ ✓ Compiled in 788ms (2943 modules)
+ GET /test-css 200 in 45ms
+ GET /dashboard 200 in 28ms
+ ✓ Compiled in 1129ms (2943 modules)
+ GET /test-css 200 in 59ms
+ GET /dashboard 200 in 22ms
+ ✓ Compiled in 472ms (1457 modules)
+ GET /test-css 200 in 194ms
+ GET /dashboard 200 in 183ms
+ ✓ Compiled in 318ms (1457 modules)
+ GET /test-css 200 in 10ms
+ GET /dashboard 200 in 10ms
+ ✓ Compiled in 191ms (1457 modules)
+ GET /test-css 200 in 42ms
+ GET /dashboard 200 in 48ms
+ ✓ Compiled in 221ms (1457 modules)
+ GET /test-css 200 in 13ms
+ GET /dashboard 200 in 15ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1148ms (1914 modules)
+ ⨯ ReferenceError: Button is not defined
+    at DashboardPage (src/app/(dashboard)/dashboard/page.tsx:52:9)
+  50 |           <p className="text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your campaigns.</p>
+  51 |         </div>
+> 52 |         <Button className="flex items-center gap-2">
+     |         ^
+  53 |           <Plus className="w-4 h-4" />
+  54 |           Create Campaign
+  55 |         </Button> {
+  digest: '542104439'
+}
+ GET /dashboard 500 in 603ms
+ GET /test-css 200 in 254ms
+ ✓ Compiled in 568ms (1914 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /test-css 200 in 317ms
+ GET /dashboard 200 in 314ms
+ ✓ Compiled in 248ms (940 modules)
+ GET /dashboard 200 in 125ms
+ GET /test-css 200 in 126ms
+ ✓ Compiled in 175ms (940 modules)
+ GET /test-css 200 in 13ms
+ GET /dashboard 200 in 15ms
+ ✓ Compiled in 425ms (940 modules)
+ GET /test-css 200 in 153ms
+ ✓ Compiled in 352ms (940 modules)
+ GET /dashboard 200 in 202ms
+ GET /test-css 200 in 50ms
+ GET /dashboard 200 in 53ms
+ ✓ Compiled in 233ms (940 modules)
+ GET /test-css 200 in 103ms
+ GET /dashboard 200 in 173ms
+ ✓ Compiled in 193ms (940 modules)
+ GET /test-css 200 in 14ms
+ GET /dashboard 200 in 16ms
+ ✓ Compiled in 985ms (1914 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 930ms (2233 modules)
+ GET /test-css 500 in 1308ms
+ GET /dashboard 500 in 1308ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ GET /test-css 500 in 228ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ GET /dashboard 500 in 234ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ GET /test-css 500 in 240ms
+ GET /dashboard 500 in 232ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ GET /dashboard 500 in 238ms
+ GET /test-css 500 in 250ms
+ ○ Compiling /_not-found ...
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled /_not-found in 1231ms (2251 modules)
+ GET /login 404 in 1626ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /test-css 500 in 5647ms
+ GET /dashboard 500 in 5673ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1702ms (2253 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /_next/static/webpack/73f3b5d7b2d7e954.webpack.hot-update.json 500 in 1829ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /favicon.ico 200 in 1857ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /_next/static/webpack/73f3b5d7b2d7e954.webpack.hot-update.json 404 in 473ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /dashboard 500 in 43ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /test-css 500 in 67ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1753126698349 404 in 186ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1753126698349 404 in 187ms
+ GET /_next/static/chunks/fallback/main.js?ts=1753126698349 404 in 188ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1753126698349 404 in 188ms
+ GET /_next/static/chunks/fallback/webpack.js?ts=1753126698349 404 in 188ms
+ GET /_next/static/chunks/fallback/webpack.js 404 in 94ms
+ GET /_next/static/chunks/fallback/main.js 404 in 93ms
+ GET /_next/static/chunks/fallback/pages/_app.js 404 in 94ms
+ GET /_next/static/chunks/fallback/react-refresh.js 404 in 94ms
+ GET /_next/static/chunks/fallback/pages/_error.js 404 in 93ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/server-development/1.pack.gz'
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /dashboard 500 in 109ms
+ GET /_next/static/chunks/fallback/webpack.js?ts=1753126872853 404 in 101ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1753126872853 404 in 104ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1753126872853 404 in 105ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1753126872853 404 in 105ms
+ GET /_next/static/chunks/fallback/main.js?ts=1753126872853 404 in 106ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/(dashboard)/dashboard/page.js',
+  page: '/dashboard'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /dashboard 500 in 54ms
+ GET /_next/static/chunks/fallback/webpack.js?ts=1753126877636 404 in 23ms
+ GET /_next/static/chunks/fallback/main.js?ts=1753126877636 404 in 72ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1753126877636 404 in 72ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1753126877636 404 in 72ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1753126877636 404 in 72ms
+ ✓ Compiled in 1335ms (2247 modules)
+ ✓ Compiled in 513ms (2247 modules)
+ ✓ Compiled in 284ms (2247 modules)
+ ✓ Compiled in 163ms (1186 modules)
+ ✓ Compiled in 168ms (1186 modules)
+ ✓ Compiled in 281ms (2247 modules)
+ ✓ Compiled in 458ms (2247 modules)
+ ✓ Compiled in 225ms (1186 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 1271ms (2247 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat '/Users/robertlijbers/Desktop/gambit/.next/cache/webpack/client-development/0.pack.gz'
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1038ms (2251 modules)
+ GET /test-css 404 in 1163ms
+ GET /_next/static/webpack/4787df763055cb01.webpack.hot-update.json 404 in 625ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ GET /test-css 500 in 53ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/app/test-css/page.js',
+  page: '/test-css'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/robertlijbers/Desktop/gambit/.next/server/pages/_document.js'
+}
+ GET /test-css 500 in 59ms
+ GET /_next/static/chunks/fallback/webpack.js?ts=1753127972247 404 in 22ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1753127972247 404 in 63ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1753127972247 404 in 63ms
+ GET /_next/static/chunks/fallback/main.js?ts=1753127972247 404 in 64ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1753127972247 404 in 63ms
+[?25h

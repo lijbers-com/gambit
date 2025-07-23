@@ -70,7 +70,11 @@ const ChartStyle = ({ id, config }: { id: string; config: Record<string, any> })
 
 [data-chart=${id}] {
   ${colorConfig
-    .map(([key]) => `  --color-${key}: hsl(var(--color-${key}));`)
+    .map(([key, itemConfig]) => {
+      const color = itemConfig.theme?.light ?? itemConfig.color
+      return color ? `  --color-${key}: ${color};` : null
+    })
+    .filter(Boolean)
     .join("\n")}
 }
         `,

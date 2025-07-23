@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Table, TableColumn } from './table';
 import { Badge } from './badge';
 import { BadgeCheck } from 'lucide-react';

@@ -21,6 +21,7 @@ export interface BarChartProps {
   showYAxis?: boolean
   stacked?: boolean
   horizontal?: boolean
+  xAxisDataKey?: string
 }
 
 export function BarChartComponent({
@@ -34,6 +35,7 @@ export function BarChartComponent({
   showYAxis = true,
   stacked = false,
   horizontal = false,
+  xAxisDataKey = "month",
 }: BarChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
 
@@ -42,21 +44,18 @@ export function BarChartComponent({
       <BarChart
         accessibilityLayer
         data={data}
-        layout={horizontal ? "horizontal" : "vertical"}
         margin={{
           left: 12,
           right: 12,
         }}
       >
-        {showGrid && <CartesianGrid vertical={!horizontal} horizontal={horizontal} />}
+        {showGrid && <CartesianGrid vertical={false} />}
         {showXAxis && (
           <XAxis
-            dataKey="month"
+            dataKey={xAxisDataKey}
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
-            type={horizontal ? "number" : "category"}
           />
         )}
         {showYAxis && (
@@ -64,8 +63,6 @@ export function BarChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => `${value}`}
-            type={horizontal ? "category" : "number"}
           />
         )}
         {dataKeys.map((key) => (

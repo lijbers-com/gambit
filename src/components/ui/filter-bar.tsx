@@ -12,18 +12,20 @@ export interface FilterBarFilter {
 
 export interface FilterBarProps {
   filters: FilterBarFilter[];
-  searchValue: string;
-  onSearchChange: (value: string) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
   className?: string;
   searchPlaceholder?: string;
+  hideSearch?: boolean;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
   filters,
-  searchValue,
-  onSearchChange,
+  searchValue = "",
+  onSearchChange = () => {},
   className,
   searchPlaceholder = "Search...",
+  hideSearch = false,
 }) => {
   return (
     <div className={cn("flex items-center gap-3 w-full", className)}>
@@ -38,14 +40,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           />
         ))}
       </div>
-      <div className="flex-1" />
-      <div className="w-[300px]">
-        <SearchInput
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={searchPlaceholder}
-        />
-      </div>
+      {!hideSearch && (
+        <>
+          <div className="flex-1" />
+          <div className="w-[300px]">
+            <SearchInput
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={searchPlaceholder}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }; 

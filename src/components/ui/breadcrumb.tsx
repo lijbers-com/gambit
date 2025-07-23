@@ -1,15 +1,38 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
+import { ChevronRight, MoreHorizontal, PanelLeftOpen, PanelLeftClose } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useMenu } from '@/hooks/use-menu'
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ReactNode
+    separator?: React.ReactNode,
+    showNavToggle?: boolean
   }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />)
+>(({ showNavToggle, ...props }, ref) => {
+  const { toggleCollapsed, collapsed } = useMenu();
+  return (
+    <nav ref={ref} aria-label="breadcrumb" {...props} className={cn('breadcrumb flex items-center pl-6', props.className)}>
+      {showNavToggle && (
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="inline-flex items-center justify-center mr-6 p-1 rounded hover:bg-slate-200 focus:outline-none"
+          aria-label="Toggle navigation"
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-5 w-5" />
+          ) : (
+            <PanelLeftClose className="h-5 w-5" />
+          )}
+        </button>
+      )}
+      {props.children}
+    </nav>
+  );
+})
 Breadcrumb.displayName = "Breadcrumb"
 
 const BreadcrumbList = React.forwardRef<
@@ -19,7 +42,7 @@ const BreadcrumbList = React.forwardRef<
   <ol
     ref={ref}
     className={cn(
-      "flex flex-wrap items-center break-words text-sm text-muted-foreground",
+      "flex flex-wrap items-center gap-1 break-words text-sm text-muted-foreground",
       className
     )}
     {...props}

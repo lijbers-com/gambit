@@ -1,263 +1,103 @@
-# Component Management System
+# GAMBIT Component System – General Styles & Color Palette
 
-## 🔴 CRITICAL RULE: All components MUST be documented in Storybook
+## General Styles
 
-**Before using any component, it MUST exist in Storybook with proper documentation.**
+### Typography
+- **Font Family:** Inherit from system (customize in Tailwind config if needed)
+- **Font Sizes:** Responsive, using Tailwind's scale
+- **Font Weights:** Normal, Medium, Bold
+- **Headings:** Use semantic HTML (`h1`–`h6`), styled via Tailwind
 
-## 📁 Directory Structure
+### Spacing
+- **Base Unit:** 4px (Tailwind scale)
+- **Padding/Margin:** Use Tailwind utilities for consistent spacing
+- **Border Radius:** `0.5rem` (8px) by default (`--radius`)
 
-```
-src/components/
-├── ui/                     # All UI components
-│   ├── index.ts           # Export all components
-│   ├── button.tsx         # Component implementation
-│   ├── button.stories.tsx # Storybook documentation
-│   ├── card.tsx
-│   ├── card.stories.tsx
-│   └── ...
-└── README.md              # This file
-```
-
-## 📋 Component Inventory
-
-### ✅ **Currently Available Components**
-
-| Component | Status | Stories | Variants | Notes |
-|-----------|--------|---------|----------|-------|
-| **Button** | ✅ Ready | ✅ Complete | 6 variants, 4 sizes | Primary UI component |
-| **Card** | ✅ Ready | ✅ Complete | Header, Content, Footer | Container component |
-| **Avatar** | ✅ Ready | ✅ Complete | Image, Fallback, Sizes | User representation |
-| **Input** | ✅ Ready | ✅ Complete | Text, Email, Password | Form input |
-| **Label** | ✅ Ready | ✅ Complete | Standard, Required | Form labels |
-
-### 🚧 **Components To Add** (Create when needed)
-
-| Component | Priority | Radix Primitive | Use Case |
-|-----------|----------|-----------------|----------|
-| **Checkbox** | High | `@radix-ui/react-checkbox` | Form controls |
-| **Select** | High | `@radix-ui/react-select` | Dropdown selection |
-| **Dialog** | High | `@radix-ui/react-dialog` | Modal dialogs |
-| **Tooltip** | High | `@radix-ui/react-tooltip` | Contextual help |
-| **Switch** | Medium | `@radix-ui/react-switch` | Toggle controls |
-| **Tabs** | Medium | `@radix-ui/react-tabs` | Content organization |
-| **Dropdown Menu** | Medium | `@radix-ui/react-dropdown-menu` | Context menus |
-| **Progress** | Medium | `@radix-ui/react-progress` | Loading states |
-| **Alert** | Medium | Custom | Notifications |
-| **Separator** | Low | `@radix-ui/react-separator` | Visual dividers |
-| **Accordion** | Low | `@radix-ui/react-accordion` | Collapsible content |
-| **Navigation Menu** | Low | `@radix-ui/react-navigation-menu` | Site navigation |
-| **Popover** | Low | `@radix-ui/react-popover` | Contextual overlays |
-| **Slider** | Low | `@radix-ui/react-slider` | Range inputs |
-| **Toggle** | Low | `@radix-ui/react-toggle` | Binary states |
-| **Radio Group** | Low | `@radix-ui/react-radio-group` | Single selection |
-| **Table** | Low | Custom | Data display |
-| **Calendar** | Low | Custom | Date selection |
-
-## 🔄 Component Creation Workflow
-
-### **Step 1: Check Storybook First**
-```bash
-# Start Storybook
-npm run storybook
-
-# Visit http://localhost:6006
-# Search for the component you need
-```
-
-### **Step 2: If Component Doesn't Exist**
-1. **Create Component** (`src/components/ui/component-name.tsx`)
-2. **Add to Index** (`src/components/ui/index.ts`)
-3. **Create Stories** (`src/components/ui/component-name.stories.tsx`)
-4. **Verify in Storybook**
-
-### **Step 3: Component Template**
-
-```typescript
-// src/components/ui/new-component.tsx
-import * as React from "react"
-import * as RadixComponent from "@radix-ui/react-component"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
-
-const componentVariants = cva(
-  "base-styles",
-  {
-    variants: {
-      variant: {
-        default: "default-styles",
-        secondary: "secondary-styles",
-      },
-      size: {
-        default: "default-size",
-        sm: "small-size",
-        lg: "large-size",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-)
-
-export interface ComponentProps
-  extends React.ComponentPropsWithoutRef<typeof RadixComponent.Root>,
-    VariantProps<typeof componentVariants> {}
-
-const Component = React.forwardRef<
-  React.ElementRef<typeof RadixComponent.Root>,
-  ComponentProps
->(({ className, variant, size, ...props }, ref) => (
-  <RadixComponent.Root
-    ref={ref}
-    className={cn(componentVariants({ variant, size, className }))}
-    {...props}
-  />
-))
-Component.displayName = RadixComponent.Root.displayName
-
-export { Component, componentVariants }
-```
-
-### **Step 4: Stories Template**
-
-```typescript
-// src/components/ui/new-component.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react'
-import { Component } from './new-component'
-
-const meta: Meta<typeof Component> = {
-  title: 'UI/Component',
-  component: Component,
-  parameters: {
-    layout: 'centered',
-  },
-  tags: ['autodocs'],
-  argTypes: {
-    variant: {
-      control: { type: 'select' },
-      options: ['default', 'secondary'],
-    },
-    size: {
-      control: { type: 'select' },
-      options: ['default', 'sm', 'lg'],
-    },
-  },
-}
-
-export default meta
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    children: 'Component content',
-  },
-}
-
-export const Secondary: Story = {
-  args: {
-    variant: 'secondary',
-    children: 'Secondary variant',
-  },
-}
-
-export const Small: Story = {
-  args: {
-    size: 'sm',
-    children: 'Small size',
-  },
-}
-
-export const Large: Story = {
-  args: {
-    size: 'lg',
-    children: 'Large size',
-  },
-}
-```
-
-### **Step 5: Add to Index**
-
-```typescript
-// src/components/ui/index.ts
-export * from "./button"
-export * from "./card"
-export * from "./avatar"
-export * from "./input"
-export * from "./label"
-export * from "./new-component"  // Add your new component
-```
-
-## 🎯 Quality Checklist
-
-Before marking a component as "Ready":
-
-### **Component Implementation**
-- [ ] Uses Radix UI primitive (if available)
-- [ ] Implements CVA for variants
-- [ ] Proper TypeScript interfaces
-- [ ] forwardRef for ref forwarding
-- [ ] Consistent naming conventions
-- [ ] Proper displayName
-
-### **Storybook Documentation**
-- [ ] All variants documented
-- [ ] Interactive controls
-- [ ] Multiple story examples
-- [ ] Proper categorization (`UI/ComponentName`)
-- [ ] Auto-generated docs (`autodocs` tag)
-
-### **Styling & Accessibility**
-- [ ] Uses design tokens (CSS variables)
-- [ ] Responsive design
-- [ ] Dark mode support
-- [ ] Accessibility compliant
-- [ ] Proper focus states
-
-### **Testing**
-- [ ] Component renders in Storybook
-- [ ] All variants work correctly
-- [ ] Interactive elements function
-- [ ] No console errors
-- [ ] Proper TypeScript types
-
-## 🚨 Common Mistakes to Avoid
-
-1. **Using components without Storybook documentation**
-2. **Creating components without proper variants**
-3. **Not using Radix UI primitives when available**
-4. **Inconsistent naming conventions**
-5. **Missing TypeScript interfaces**
-6. **Not testing in Storybook before use**
-7. **Forgetting to add to index.ts**
-
-## 📖 Resources
-
-- [Radix UI Primitives](https://www.radix-ui.com/primitives)
-- [Class Variance Authority](https://cva.style/docs)
-- [Storybook Documentation](https://storybook.js.org/docs)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-
-## 🔍 Component Status Tracking
-
-To check component status:
-
-```bash
-# Check what's in Storybook
-npm run storybook
-
-# Check what's exported
-cat src/components/ui/index.ts
-
-# Check for missing stories
-ls src/components/ui/*.tsx | grep -v stories | while read file; do
-  story_file="${file%.tsx}.stories.tsx"
-  if [ ! -f "$story_file" ]; then
-    echo "Missing story: $story_file"
-  fi
-done
-```
+### Shadows
+- **Card/Popover:** Subtle shadow for elevation
+- **Dropdown:** Slightly stronger shadow
 
 ---
 
-**Remember: If it's not in Storybook, it doesn't exist! 📚** 
+## Color Palette
+
+### Gambit Theme (Default)
+| Token              | Example                | Value         |
+|--------------------|-----------------------|--------------|
+| Background         | ![#fff](https://via.placeholder.com/20/fff/000?text=+) | #fff         |
+| Foreground         | ![#0f172a](https://via.placeholder.com/20/0f172a/fff?text=+) | #0f172a      |
+| Primary            | ![#1e293b](https://via.placeholder.com/20/1e293b/fff?text=+) | #1e293b      |
+| Secondary          | ![#f1f5f9](https://via.placeholder.com/20/f1f5f9/000?text=+) | #f1f5f9      |
+| Accent             | ![#f1f5f9](https://via.placeholder.com/20/f1f5f9/000?text=+) | #f1f5f9      |
+| Muted              | ![#f1f5f9](https://via.placeholder.com/20/f1f5f9/000?text=+) | #f1f5f9      |
+| Border             | ![#e2e8f0](https://via.placeholder.com/20/e2e8f0/000?text=+) | #e2e8f0      |
+| Card               | ![#fff](https://via.placeholder.com/20/fff/000?text=+) | #fff         |
+| Popover            | ![#fff](https://via.placeholder.com/20/fff/000?text=+) | #fff         |
+| Sidenav Background | ![#fff](https://via.placeholder.com/20/fff/000?text=+) | #fff         |
+| Breadcrumb BG      | ![#fff](https://via.placeholder.com/20/fff/000?text=+) | #fff         |
+
+### Albert Heijn Theme
+| Token              | Example                | Value         |
+|--------------------|-----------------------|--------------|
+| Background         | ![#0f172a](https://via.placeholder.com/20/0f172a/fff?text=+) | #0f172a      |
+| Foreground         | ![#f1f5f9](https://via.placeholder.com/20/f1f5f9/000?text=+) | #f1f5f9      |
+| Primary            | ![#f1f5f9](https://via.placeholder.com/20/f1f5f9/000?text=+) | #f1f5f9      |
+| Secondary          | ![#232e3a](https://via.placeholder.com/20/232e3a/fff?text=+) | #232e3a      |
+| Accent             | ![#232e3a](https://via.placeholder.com/20/232e3a/fff?text=+) | #232e3a      |
+| Muted              | ![#232e3a](https://via.placeholder.com/20/232e3a/fff?text=+) | #232e3a      |
+| Border             | ![#232e3a](https://via.placeholder.com/20/232e3a/fff?text=+) | #232e3a      |
+| Card               | ![#0f172a](https://via.placeholder.com/20/0f172a/fff?text=+) | #0f172a      |
+| Popover            | ![#0f172a](https://via.placeholder.com/20/0f172a/fff?text=+) | #0f172a      |
+| Sidenav Background | ![#00ADE6](https://via.placeholder.com/20/00ADE6/fff?text=+) | #00ADE6      |
+| Breadcrumb BG      | ![#00ADE6](https://via.placeholder.com/20/00ADE6/fff?text=+) | #00ADE6      |
+
+---
+
+## Logo Component
+
+### Theme-Based Logo Switching
+The Logo component automatically displays the appropriate logo based on the current theme:
+
+- **Gambit Theme**: Displays `/gambit-logo.svg`
+- **Albert Heijn Theme**: Displays `/ah-logo.svg`
+
+### Theme Detection
+The component detects themes in the following order:
+1. **CSS Custom Property**: `--brand-theme: albert-heijn | gambit`
+2. **Data Attributes**: `data-theme="albert-heijn"` on html or body
+3. **CSS Classes**: `.albert-heijn` or `.ah-theme` on html or body
+4. **Default**: Falls back to Gambit logo
+
+### Usage Examples
+```tsx
+// Auto-detect theme (default)
+<Logo />
+
+// Explicit theme
+<Logo theme="albert-heijn" />
+
+// With click handler for navigation
+<Logo onClick={() => router.push('/')} />
+```
+
+### Logo Specifications
+- **Fixed Size**: All logos are consistently rendered at 40×40 pixels
+- **Gambit Theme**: Original logo colors preserved
+- **Albert Heijn Theme**: Logo displayed in white using CSS filters
+
+### Integration Points
+- **SideNavigation**: Automatically sized logo based on collapsed state
+- **Login Page**: Theme-aware logo switching with manual override
+- **Storybook**: Full documentation and interactive examples
+
+---
+
+## Usage
+- Use Tailwind utility classes for all layout, spacing, and color.
+- Use theme tokens (CSS variables) for custom styles and overrides.
+- For custom themes, extend the `.theme-ah` class in `globals.css`.
+- Use the Logo component for consistent branding across themes.
+
+---
+
+For more details, see the [COMPONENT-SYSTEM.md](../COMPONENT-SYSTEM.md). 

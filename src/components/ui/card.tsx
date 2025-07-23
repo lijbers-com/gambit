@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Badge } from "./badge"
 
 export interface CardWithTabsTab {
   label: string;
@@ -107,7 +108,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn("text-[18px] font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ))
@@ -184,4 +185,72 @@ CardSummaryTitle.displayName = "CardSummaryTitle"
 
 // Usage: <CardSummary><CardHeader><CardSummaryTitle>...</CardSummaryTitle></CardHeader><CardSummaryContent>...</CardSummaryContent></CardSummary>
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle };
+export interface MetricCardProps {
+  label: string;
+  value: string;
+  subMetric?: string;
+  badgeValue?: string;
+  badgeVariant?: "default" | "destructive" | "secondary" | "outline";
+  isSelected?: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
+  ({ 
+    label, 
+    value, 
+    subMetric, 
+    badgeValue, 
+    badgeVariant = "default", 
+    isSelected = false, 
+    onClick, 
+    className,
+    ...props 
+  }, ref) => (
+    <Card
+      ref={ref}
+      className={cn(
+        "cursor-pointer transition-all duration-200 hover:shadow-md",
+        isSelected && "shadow-md relative",
+        className
+      )}
+      onClick={onClick}
+      {...props}
+    >
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-normal text-muted-foreground">
+          {label}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-3xl font-bold text-foreground">
+          {value}
+        </div>
+        {(subMetric || badgeValue) && (
+          <div className="flex items-center justify-between bg-slate-50 rounded-full p-2 px-4 gap-4">
+            {subMetric && (
+              <div className="text-sm text-muted-foreground truncate flex-1 min-w-0">
+                {subMetric}
+              </div>
+            )}
+            {badgeValue && (
+              <Badge variant={badgeVariant} className="text-xs flex-shrink-0">
+                {badgeValue}
+              </Badge>
+            )}
+          </div>
+        )}
+      </CardContent>
+      {/* Arrow pointing down from the selected card */}
+      {isSelected && (
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+          <div className="w-4 h-4 bg-white border-r border-b border-gray-200 rotate-45 shadow-sm"></div>
+        </div>
+      )}
+    </Card>
+  )
+)
+MetricCard.displayName = "MetricCard"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle, MetricCard };

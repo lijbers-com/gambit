@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { LineChartComponent } from './line-chart';
 
 const meta: Meta<typeof LineChartComponent> = {
@@ -37,12 +37,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
+  { month: "Jan", desktop: 186, mobile: 80 },
+  { month: "Feb", desktop: 305, mobile: 200 },
+  { month: "Mar", desktop: 237, mobile: 120 },
+  { month: "Apr", desktop: 73, mobile: 190 },
   { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { month: "Jun", desktop: 214, mobile: 140 },
 ];
 
 const chartConfig = {
@@ -60,6 +60,8 @@ export const Default: Story = {
   args: {
     data: chartData,
     config: chartConfig,
+    showLegend: true,
+    className: "h-[300px]",
   },
 };
 
@@ -68,6 +70,7 @@ export const WithLegend: Story = {
     data: chartData,
     config: chartConfig,
     showLegend: true,
+    className: "h-[300px]",
   },
 };
 
@@ -77,6 +80,7 @@ export const Linear: Story = {
     config: chartConfig,
     curved: false,
     showLegend: true,
+    className: "h-[300px]",
   },
 };
 
@@ -86,6 +90,7 @@ export const WithoutDots: Story = {
     config: chartConfig,
     showDots: false,
     showLegend: true,
+    className: "h-[300px]",
   },
 };
 
@@ -95,6 +100,7 @@ export const WithoutGrid: Story = {
     config: chartConfig,
     showGrid: false,
     showLegend: true,
+    className: "h-[300px]",
   },
 };
 

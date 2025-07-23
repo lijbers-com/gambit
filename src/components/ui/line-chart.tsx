@@ -21,6 +21,7 @@ export interface LineChartProps {
   showYAxis?: boolean
   curved?: boolean
   showDots?: boolean
+  xAxisDataKey?: string
 }
 
 export function LineChartComponent({
@@ -34,6 +35,7 @@ export function LineChartComponent({
   showYAxis = true,
   curved = true,
   showDots = true,
+  xAxisDataKey = "month",
 }: LineChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
 
@@ -50,11 +52,10 @@ export function LineChartComponent({
         {showGrid && <CartesianGrid vertical={false} />}
         {showXAxis && (
           <XAxis
-            dataKey="month"
+            dataKey={xAxisDataKey}
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
           />
         )}
         {showYAxis && (
@@ -62,7 +63,6 @@ export function LineChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => `${value}`}
           />
         )}
         {dataKeys.map((key) => (
@@ -70,9 +70,9 @@ export function LineChartComponent({
             key={key}
             dataKey={key}
             type={curved ? "monotone" : "linear"}
-            stroke={`var(--color-${key})`}
+            stroke={`hsl(var(--chart-1))`}
             strokeWidth={2}
-            dot={showDots ? { fill: `var(--color-${key})` } : false}
+            dot={showDots ? { fill: `hsl(var(--chart-1))` } : false}
           />
         ))}
         {showTooltip && (

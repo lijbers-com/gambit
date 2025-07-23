@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { RadarChartComponent } from './radar-chart';
 
 const meta: Meta<typeof RadarChartComponent> = {
@@ -57,6 +57,8 @@ export const Default: Story = {
   args: {
     data: skillsData,
     config: skillsConfig,
+    showLegend: true,
+    className: "h-[300px]",
   },
 };
 

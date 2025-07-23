@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardWithTabs, CardSummary, CardSummaryContent } from './card';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardWithTabs, CardSummary, CardSummaryContent, MetricCard } from './card';
 import { Button } from './button';
+import { Badge } from './badge';
 import { Table } from './table';
 import { Checkbox } from './checkbox';
 import React from 'react';
@@ -142,4 +143,32 @@ export const Summary: Story = {
       </CardSummaryContent>
     </CardSummary>
   ),
-}; 
+};
+
+export const MetricCardExample: Story = {
+  render: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      {/* Normal state */}
+      <MetricCard
+        label="Add to Cart"
+        value="1,465"
+        subMetric="ATC: 0.44%"
+        badgeValue="-12%"
+        badgeVariant="destructive"
+        isSelected={false}
+      />
+
+      {/* Selected state (shadow + arrow) */}
+      <MetricCard
+        label="Add to Cart"
+        value="1,465"
+        subMetric="ATC: 0.44%"
+        badgeValue="-12%"
+        badgeVariant="destructive"
+        isSelected={true}
+      />
+    </div>
+  ),
+};
+
+ 

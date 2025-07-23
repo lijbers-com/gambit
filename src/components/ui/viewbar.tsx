@@ -35,20 +35,23 @@ const labelColorClass = (color: string = 'default') => {
 export const Viewbar: React.FC<ViewbarProps> = ({ labels, tabs, activeTab, onTabChange, className }) => {
   return (
     <div className={cn('flex items-center justify-between w-full gap-4', className)}>
-      <div className="flex gap-3">
-        {labels.map((l, i) => (
-          <span
-            key={i}
-            className={cn(
-              'inline-block rounded-full px-4 py-1 text-base font-medium',
-              labelColorClass(l.color)
-            )}
-          >
-            {l.label}
-          </span>
-        ))}
-      </div>
-      <Tabs value={activeTab} onValueChange={onTabChange} className="">
+      {labels.length > 0 && (
+        <div className="flex gap-3">
+          {labels.map((l, i) => (
+            <span
+              key={i}
+              className={cn(
+                'inline-block rounded-full px-4 py-1 text-base font-medium',
+                labelColorClass(l.color)
+              )}
+            >
+              {l.label}
+            </span>
+          ))}
+        </div>
+      )}
+      {labels.length === 0 && <div />}
+      <Tabs value={activeTab} onValueChange={onTabChange} className="w-auto">
         <TabsList>
           {tabs.map(tab => (
             <TabsTrigger key={tab.value} value={tab.value} disabled={tab.disabled}>

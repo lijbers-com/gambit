@@ -6,16 +6,17 @@ import { useMenu } from '@/hooks/use-menu';
 
 export const NavigationItem = ({ item }: { item: Route }) => {
   const { collapsed } = useMenu();
-  const checkActiveUrl = (route?: string) =>
-    route
-      ? window.location.pathname.split('/')[1] === route.split('/')[1]
-      : false;
+  const checkActiveUrl = (route?: string) => {
+    if (!route) return false;
+    if (typeof window === 'undefined') return false;
+    return window.location.pathname.split('/')[1] === route.split('/')[1];
+  };
 
   return (
     <a
       className={cn(
         'flex items-center mb-6 pr-2 rounded-md hover:bg-slate-100',
-        checkActiveUrl(item.url) && 'bg-slate-100',
+        checkActiveUrl(item.url) && 'active',
       )}
       href={item.url}
       data-testid={'nav-' + item.id}

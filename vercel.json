@@ -1,0 +1,16 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build && npm run build-storybook",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "routes": [
+    {
+      "src": "/storybook/(.*)",
+      "dest": "/storybook/$1"
+    }
+  ],
+  "public": true,
+  "cleanUrls": true,
+  "trailingSlash": false
+}

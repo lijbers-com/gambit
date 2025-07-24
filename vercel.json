@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build && npm run build-storybook && cp -r storybook-static public/storybook",
+  "buildCommand": "npm run build && npm run build-storybook && rm -rf public/storybook && cp -r storybook-static public/storybook && rm -rf storybook-static",
   "installCommand": "npm install",
   "framework": "nextjs",
   "rewrites": [

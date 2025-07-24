@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build && mkdir -p .storybook-temp && npx storybook build -o .storybook-temp && rm -rf public/storybook && mv .storybook-temp public/storybook",
+  "buildCommand": "./scripts/build-for-vercel.sh",
   "installCommand": "npm install",
   "framework": "nextjs",
   "rewrites": [

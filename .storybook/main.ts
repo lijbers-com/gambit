@@ -16,7 +16,8 @@ const config: StorybookConfig = {
     },
   },
   staticDirs: [
-    "../public"
+    // Temporarily disable for build to avoid circular reference when building to public/storybook
+    // "../public"
   ],
   webpackFinal: async (config) => {
     // ULTRA NUCLEAR: Completely replace all entries to remove Storybook's HMR injection

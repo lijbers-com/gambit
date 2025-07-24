@@ -1,0 +1,19 @@
+/*! ./node_modules/console-browserify/index.js */
+
+/*! @/components/ui/date-picker */
+
+/*! @/components/ui/page-header */
+
+/*! @/components/ui/side-navigation */
+
+/*! @/components/ui/smart-breadcrumbs */
+
+/*! @/hooks/use-menu */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!**********************************************!*\
+  !*** ./src/components/layout/app-layout.tsx ***!
+  \**********************************************/

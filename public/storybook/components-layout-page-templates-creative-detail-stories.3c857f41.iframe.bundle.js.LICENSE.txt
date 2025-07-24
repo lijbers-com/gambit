@@ -1,0 +1,29 @@
+/*! ../../ui/button */
+
+/*! ../../ui/dialog */
+
+/*! ../../ui/filter-bar */
+
+/*! ../../ui/form-section */
+
+/*! ../../ui/input */
+
+/*! ../app-layout */
+
+/*! ../default-routes */
+
+/*! ./node_modules/console-browserify/index.js */
+
+/*! @/components/ui/card */
+
+/*! @/components/ui/table */
+
+/*! __barrel_optimize__?names=Minus!=!lucide-react */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!**************************************************************************!*\
+  !*** ./src/components/layout/page-templates/creative-detail.stories.tsx ***!
+  \**************************************************************************/

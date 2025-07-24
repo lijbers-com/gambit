@@ -1,0 +1,37 @@
+/*! ./breadcrumb */
+
+/*! @/hooks/use-menu */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-slot */
+
+/*! __barrel_optimize__?names=ChevronRight!=!lucide-react */
+
+/*! __barrel_optimize__?names=ChevronRight,MoreHorizontal,PanelLeftClose,PanelLeftOpen!=!lucide-react */
+
+/*! clsx */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! tailwind-merge */
+
+/*! zustand */
+
+/*!**************************!*\
+  !*** ./src/lib/utils.ts ***!
+  \**************************/
+
+/*!*******************************!*\
+  !*** ./src/hooks/use-menu.ts ***!
+  \*******************************/
+
+/*!******************************************!*\
+  !*** ./src/components/ui/breadcrumb.tsx ***!
+  \******************************************/
+
+/*!*******************************************************!*\
+  !*** ./src/components/ui/breadcrumb-mock.stories.tsx ***!
+  \*******************************************************/

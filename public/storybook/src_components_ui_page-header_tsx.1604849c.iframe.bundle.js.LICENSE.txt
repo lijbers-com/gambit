@@ -1,0 +1,13 @@
+/*! @/components/ui/button */
+
+/*! @/components/ui/dropdown-menu */
+
+/*! @/lib/utils */
+
+/*! __barrel_optimize__?names=Download,Edit,MoreHorizontal,Settings,Upload!=!lucide-react */
+
+/*! react/jsx-dev-runtime */
+
+/*!*******************************************!*\
+  !*** ./src/components/ui/page-header.tsx ***!
+  \*******************************************/

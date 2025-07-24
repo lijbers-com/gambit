@@ -1,0 +1,35 @@
+/*! ../../ui/button */
+
+/*! ../../ui/date-picker */
+
+/*! ../../ui/dialog */
+
+/*! ../../ui/filter-bar */
+
+/*! ../../ui/form-section */
+
+/*! ../../ui/input */
+
+/*! ../../ui/search-input */
+
+/*! ../app-layout */
+
+/*! ../default-routes */
+
+/*! ./node_modules/console-browserify/index.js */
+
+/*! @/components/ui/card */
+
+/*! @/components/ui/table */
+
+/*! __barrel_optimize__?names=Minus!=!lucide-react */
+
+/*! __barrel_optimize__?names=format!=!date-fns */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!***************************************************************************!*\
+  !*** ./src/components/layout/page-templates/line-item-detail.stories.tsx ***!
+  \***************************************************************************/

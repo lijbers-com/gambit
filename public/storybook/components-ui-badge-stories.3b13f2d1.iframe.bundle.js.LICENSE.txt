@@ -1,0 +1,27 @@
+/*! ./badge */
+
+/*! @/lib/utils */
+
+/*! __barrel_optimize__?names=AlertTriangle,Check,Circle,Clock,Info,Pause,Play,Settings,Shield,User,X,Zap!=!lucide-react */
+
+/*! class-variance-authority */
+
+/*! clsx */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! tailwind-merge */
+
+/*!**************************!*\
+  !*** ./src/lib/utils.ts ***!
+  \**************************/
+
+/*!*************************************!*\
+  !*** ./src/components/ui/badge.tsx ***!
+  \*************************************/
+
+/*!*********************************************!*\
+  !*** ./src/components/ui/badge.stories.tsx ***!
+  \*********************************************/

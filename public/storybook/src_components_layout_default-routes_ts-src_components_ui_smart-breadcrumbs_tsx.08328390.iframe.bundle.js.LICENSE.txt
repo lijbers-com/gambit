@@ -1,0 +1,29 @@
+/*! ./breadcrumb */
+
+/*! @/hooks/use-menu */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-slot */
+
+/*! __barrel_optimize__?names=ChevronRight,MoreHorizontal,PanelLeftClose,PanelLeftOpen!=!lucide-react */
+
+/*! next/link */
+
+/*! next/navigation */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!******************************************!*\
+  !*** ./src/components/ui/breadcrumb.tsx ***!
+  \******************************************/
+
+/*!*************************************************!*\
+  !*** ./src/components/layout/default-routes.ts ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./src/components/ui/smart-breadcrumbs.tsx ***!
+  \*************************************************/

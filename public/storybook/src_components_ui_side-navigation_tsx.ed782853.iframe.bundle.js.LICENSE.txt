@@ -1,0 +1,63 @@
+/*! ./avatar */
+
+/*! ./logo */
+
+/*! ./navigation-item */
+
+/*! ./navigation-item-with-submenu */
+
+/*! ./node_modules/console-browserify/index.js */
+
+/*! ./render-icon */
+
+/*! @/hooks/use-menu */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-avatar */
+
+/*! __barrel_optimize__?names=Activity,BarChart2,BarChart3,CalendarDays,ChartNoAxesColumn,FileText,Home,ImagePlus,MonitorPlay,PieChart,Settings,Settings2,ShoppingCart,Table,TrendingUp,User,Users!=!lucide-react */
+
+/*! __barrel_optimize__?names=ChevronDown,ChevronRight!=!lucide-react */
+
+/*! next/image */
+
+/*! next/navigation */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! zustand */
+
+/*!*******************************!*\
+  !*** ./src/hooks/use-menu.ts ***!
+  \*******************************/
+
+/*!************************************!*\
+  !*** ./src/components/ui/logo.tsx ***!
+  \************************************/
+
+/*!**************************************!*\
+  !*** ./src/components/ui/avatar.tsx ***!
+  \**************************************/
+
+/*!*******************************************!*\
+  !*** ./src/components/ui/render-icon.tsx ***!
+  \*******************************************/
+
+/*!*********************************************!*\
+  !*** ./.storybook/mocks/next-navigation.js ***!
+  \*********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/components/ui/navigation-item.tsx ***!
+  \***********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/components/ui/side-navigation.tsx ***!
+  \***********************************************/
+
+/*!************************************************************!*\
+  !*** ./src/components/ui/navigation-item-with-submenu.tsx ***!
+  \************************************************************/

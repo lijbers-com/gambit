@@ -1,0 +1,42 @@
+/*! ../createLucideIcon.js */
+
+/*! ./input */
+
+/*! ./label */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-label */
+
+/*! @radix-ui/react-primitive */
+
+/*! class-variance-authority */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! react/jsx-runtime */
+
+/*!*************************************!*\
+  !*** ./src/components/ui/label.tsx ***!
+  \*************************************/
+
+/*!*********************************************!*\
+  !*** ./src/components/ui/label.stories.tsx ***!
+  \*********************************************/
+
+/*!*******************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/x.js ***!
+  \*******************************************************/
+
+/*!***********************************************************!*\
+  !*** ./node_modules/@radix-ui/react-label/dist/index.mjs ***!
+  \***********************************************************/
+
+/**
+ * @license lucide-react v0.525.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */

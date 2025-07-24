@@ -1,0 +1,29 @@
+/*! ../app-layout */
+
+/*! ../default-routes */
+
+/*! @/components/ui/badge */
+
+/*! @/components/ui/calendar-table */
+
+/*! @/components/ui/card */
+
+/*! @/components/ui/date-picker */
+
+/*! @/components/ui/filter-bar */
+
+/*! @/components/ui/right-drawer */
+
+/*! @/components/ui/table */
+
+/*! @/components/ui/viewbar */
+
+/*! __barrel_optimize__?names=differenceInWeeks,getWeek,startOfWeek!=!date-fns */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!****************************************************************************!*\
+  !*** ./src/components/layout/page-templates/bookings-calendar.stories.tsx ***!
+  \****************************************************************************/

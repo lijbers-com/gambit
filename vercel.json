@@ -1,7 +1,6 @@
 {
-  "buildCommand": "./scripts/build-for-vercel.sh",
-  "installCommand": "npm install",
   "framework": "nextjs",
+  "buildCommand": "npm run build && npm run build-storybook && mkdir -p public/storybook && cp -r storybook-static/* public/storybook/",
   "rewrites": [
     {
       "source": "/storybook",

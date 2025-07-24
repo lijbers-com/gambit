@@ -119,11 +119,11 @@ const config: StorybookConfig = {
       });
     }
 
-    // Completely disable HMR
-    config.mode = 'development';
+    // Set production mode for stable JSX runtime
+    config.mode = 'production';
     config.cache = false;
     
-    // Add DefinePlugin to globally disable everything
+    // Add DefinePlugin to globally disable everything and fix JSX runtime
     const webpack = require('webpack');
     if (config.plugins) {
       config.plugins.push(new webpack.DefinePlugin({
@@ -132,7 +132,8 @@ const config: StorybookConfig = {
         '__webpack_hot_middleware_reporter__': JSON.stringify(false),
         'module.hot': JSON.stringify(false),
         '__resourceQuery': JSON.stringify(''),
-        'process.env.WEBPACK_HMR': JSON.stringify(false)
+        'process.env.WEBPACK_HMR': JSON.stringify(false),
+        'process.env.NODE_ENV': JSON.stringify('production')
       }));
       
       // Also add a plugin to completely override HMR behavior

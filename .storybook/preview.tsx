@@ -76,29 +76,29 @@ if (typeof window !== 'undefined') {
 // Themes disabled to avoid compatibility issues
 
 // Provider wrapper for stories that need context
-const withProviders = (Story, context) => {
-  return (
-    <MockRouterContext.Provider value={{
-      push: () => {},
-      replace: () => {},
-      prefetch: () => {},
-      back: () => {},
-      pathname: '/dashboard',
-      route: '/dashboard',
-      query: {},
-      asPath: '/dashboard',
-      isFallback: false,
-      basePath: '',
-      locale: undefined,
-      locales: undefined,
-      defaultLocale: undefined,
-      isReady: true,
-      isPreview: false,
-    }}>
-      <div>
-        <Story {...context} />
-      </div>
-    </MockRouterContext.Provider>
+const withProviders = (Story: any, context: any) => {
+  return React.createElement(
+    MockRouterContext.Provider,
+    {
+      value: {
+        push: () => {},
+        replace: () => {},
+        prefetch: () => {},
+        back: () => {},
+        pathname: '/dashboard',
+        route: '/dashboard',
+        query: {},
+        asPath: '/dashboard',
+        isFallback: false,
+        basePath: '',
+        locale: undefined,
+        locales: undefined,
+        defaultLocale: undefined,
+        isReady: true,
+        isPreview: false,
+      }
+    },
+    React.createElement('div', {}, React.createElement(Story, context))
   );
 };
 

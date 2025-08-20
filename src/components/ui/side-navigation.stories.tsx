@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { SideNavigation, Route } from './side-navigation';
 import { useMenu } from '@/hooks/use-menu';

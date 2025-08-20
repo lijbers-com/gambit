@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
@@ -11,6 +12,7 @@ import { MapChart } from '@/components/ui/map-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 
@@ -386,26 +388,15 @@ const getPerformanceBadgeVariant = (performance: string) => {
 
 export const SponsoredProductsPerformance: Story = {
   render: () => {
-    const [selectedMetric, setSelectedMetric] = useState('repetitions');
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
     
-    // Filter states
-    const [statusFilter, setStatusFilter] = useState<string[]>([]);
-    const [performanceFilter, setPerformanceFilter] = useState<string[]>([]);
-    const [searchValue, setSearchValue] = useState('');
-    
-    // Selection states
-    const [selectedLineItems, setSelectedLineItems] = useState<any[]>([]);
-    const [selectedCreatives, setSelectedCreatives] = useState<any[]>([]);
-    
-    const chartData = getChartData(selectedMetric, 'sponsored-products', timeRange, dateRange);
-    const chartConfig = getChartConfig(selectedMetric);
-    const selectedMetricData = performanceMetrics.find(m => m.id === selectedMetric);
+    // Top filter states
+    const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
+    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>(undefined);
     
     return (
       <AppLayout
@@ -415,15 +406,7 @@ export const SponsoredProductsPerformance: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{}}
         pageHeaderProps={{
-          title: 'Holiday Sale 2024 - Sponsored Products',
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
-              showPresets={true}
-            />
-          ),
+          title: 'Sponsored Products',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -431,155 +414,419 @@ export const SponsoredProductsPerformance: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* Performance Overview Card - Contains Metrics and Chart */}
-          <Card>
-            <CardContent className="space-y-6 pt-6">
-              {/* Metrics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {performanceMetrics.map((metric) => (
-                  <MetricCard
-                    key={metric.id}
-                    label={metric.label}
-                    value={metric.value}
-                    subMetric={metric.subMetric}
-                    badgeValue={metric.badgeValue}
-                    badgeVariant={metric.badgeVariant}
-                    isSelected={selectedMetric === metric.id}
-                    onClick={() => setSelectedMetric(metric.id)}
-                  />
-                ))}
-              </div>
-
-              {/* Chart Section */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">
-                  Achieved {selectedMetricData?.label.toLowerCase() || 'performance'}
-                </h3>
-                <BarChartComponent
-                  data={chartData}
-                  config={chartConfig}
-                  showLegend={true}
-                  showGrid={true}
-                  showTooltip={true}
-                  showXAxis={true}
-                  showYAxis={true}
-                  className="h-80 aspect-auto"
-                  xAxisDataKey="day"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Table Section with Tabs */}
+          {/* Filter Card */}
           <Card>
             <CardHeader>
-              <Viewbar
-                labels={[]}
-                tabs={[
-                  { value: 'line-items', label: 'Line Items' },
-                  { value: 'creatives', label: 'Creatives' },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
+              <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4">
-                <FilterBar
-                  filters={[
-                    {
-                      name: "Status",
-                      options: [
-                        { label: "Active", value: "active" },
-                        { label: "Paused", value: "paused" },
-                        { label: "Draft", value: "draft" },
-                        { label: "Completed", value: "completed" },
-                      ],
-                      selectedValues: statusFilter,
-                      onChange: setStatusFilter,
-                    },
-                    {
-                      name: "Performance",
-                      options: [
-                        { label: "Above 100%", value: "above-100" },
-                        { label: "90-100%", value: "90-100" },
-                        { label: "Below 90%", value: "below-90" },
-                      ],
-                      selectedValues: performanceFilter,
-                      onChange: setPerformanceFilter,
-                    },
-                  ]}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
-                  searchPlaceholder="Search line items, creatives..."
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Advertiser</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Advertisers', value: 'all' },
+                      { label: 'Unilever', value: 'unilever' },
+                      { label: 'Procter & Gamble', value: 'pg' },
+                      { label: 'Nestlé', value: 'nestle' },
+                      { label: 'Coca-Cola', value: 'coca-cola' },
+                    ]}
+                    value={advertiserFilter}
+                    onChange={setAdvertiserFilter}
+                    placeholder="Select advertiser"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Campaign</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'Holiday Sale 2024', value: 'holiday-sale-2024' },
+                      { label: 'Summer Launch 2024', value: 'summer-launch-2024' },
+                      { label: 'Spring Collection 2024', value: 'spring-collection-2024' },
+                      { label: 'Back to School 2024', value: 'back-to-school-2024' },
+                    ]}
+                    value={campaignFilter}
+                    onChange={setCampaignFilter}
+                    placeholder="Select campaign"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Line Items', value: 'all' },
+                      { label: 'Auction line item #1', value: 'auction-1' },
+                      { label: 'Auction line item #2', value: 'auction-2' },
+                      { label: 'Auction line item #3', value: 'auction-3' },
+                      { label: 'Auction line item #4', value: 'auction-4' },
+                    ]}
+                    value={lineItemFilter}
+                    onChange={setLineItemFilter}
+                    placeholder="Select line item"
+                  />
+                </div>
               </div>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsContent value="line-items" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                      { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'creatives', header: 'Creative', render: row => (
-                        <Badge variant="secondary">{row.creatives}</Badge>
-                      )},
-                      { key: 'roas', header: 'ROAS' },
-                    ]}
-                    data={lineItemsData}
-                    rowKey={row => `${row.id}-${row.name}`}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to line item details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedLineItems,
-                      onChange: setSelectedLineItems,
-                      getKey: row => `${row.id}-${row.name}`,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="creatives" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                      { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'lineItems', header: 'Line Items', render: row => (
-                        <Badge variant="secondary">{row.lineItems}</Badge>
-                      )},
-                      { key: 'roas', header: 'ROAS' },
-                    ]}
-                    data={creativesData}
-                    rowKey={row => row.id}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to creative details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedCreatives,
-                      onChange: setSelectedCreatives,
-                      getKey: row => row.id,
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
             </CardContent>
           </Card>
+
+          {/* Dashboard Report Cards */}
+          {/* Top Row - Product Report and Performance Ecom */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Product Report Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Product Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Top 5 Products Performance Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Top 5 Products - Impressions vs Transactions</h4>
+                  <BarChartComponent
+                    data={[
+                      { 
+                        product: 'Dove', 
+                        impressions: 450000, 
+                        transactions: 2847 
+                      },
+                      { 
+                        product: 'Hellmanns', 
+                        impressions: 380000, 
+                        transactions: 2634 
+                      },
+                      { 
+                        product: 'Ben & Jerrys', 
+                        impressions: 320000, 
+                        transactions: 2291 
+                      },
+                      { 
+                        product: 'Axe', 
+                        impressions: 280000, 
+                        transactions: 1923 
+                      },
+                      { 
+                        product: 'Lipton', 
+                        impressions: 220000, 
+                        transactions: 1756 
+                      },
+                    ]}
+                    config={{
+                      impressions: {
+                        label: "Impressions",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      transactions: {
+                        label: "Transactions",
+                        color: "hsl(var(--chart-2))",
+                      },
+                    }}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-64 w-full"
+                    xAxisDataKey="product"
+                  />
+                </div>
+
+                {/* Bottom 5 Products Performance Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Least 5 Performing Products - Impressions vs Transactions</h4>
+                  <BarChartComponent
+                    data={[
+                      { 
+                        product: 'Surf', 
+                        impressions: 85000, 
+                        transactions: 245 
+                      },
+                      { 
+                        product: 'Persil', 
+                        impressions: 92000, 
+                        transactions: 312 
+                      },
+                      { 
+                        product: 'Magnum', 
+                        impressions: 108000, 
+                        transactions: 389 
+                      },
+                      { 
+                        product: 'Knorr', 
+                        impressions: 125000, 
+                        transactions: 456 
+                      },
+                      { 
+                        product: 'Vaseline', 
+                        impressions: 140000, 
+                        transactions: 523 
+                      },
+                    ]}
+                    config={{
+                      impressions: {
+                        label: "Impressions",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      transactions: {
+                        label: "Transactions",
+                        color: "hsl(var(--chart-2))",
+                      },
+                    }}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-64 w-full"
+                    xAxisDataKey="product"
+                  />
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full Product Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Ecom Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Performance Ecom Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Individual Ecommerce Metric Charts - Stacked Vertically */}
+                <div className="space-y-6">
+                  {/* Clicks Chart */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Clicks</h4>
+                    <LineChartComponent
+                      data={[
+                        { day: 'Mon', value: 1250 },
+                        { day: 'Tue', value: 1340 },
+                        { day: 'Wed', value: 1180 },
+                        { day: 'Thu', value: 1420 },
+                        { day: 'Fri', value: 1680 },
+                        { day: 'Sat', value: 1590 },
+                        { day: 'Sun', value: 1480 },
+                      ]}
+                      config={{
+                        value: {
+                          label: "Clicks",
+                          color: "hsl(var(--chart-1))",
+                        },
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      className="h-32 w-full"
+                      xAxisDataKey="day"
+                    />
+                  </div>
+
+                  {/* Add to Cart Chart */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Add to Cart</h4>
+                    <LineChartComponent
+                      data={[
+                        { day: 'Mon', value: 187 },
+                        { day: 'Tue', value: 201 },
+                        { day: 'Wed', value: 165 },
+                        { day: 'Thu', value: 223 },
+                        { day: 'Fri', value: 289 },
+                        { day: 'Sat', value: 267 },
+                        { day: 'Sun', value: 244 },
+                      ]}
+                      config={{
+                        value: {
+                          label: "Add to Cart",
+                          color: "hsl(var(--chart-2))",
+                        },
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      className="h-32 w-full"
+                      xAxisDataKey="day"
+                    />
+                  </div>
+
+
+                  {/* Conversion Chart */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Conversion (%)</h4>
+                    <LineChartComponent
+                      data={[
+                        { day: 'Mon', value: 4.2 },
+                        { day: 'Tue', value: 4.5 },
+                        { day: 'Wed', value: 3.9 },
+                        { day: 'Thu', value: 4.7 },
+                        { day: 'Fri', value: 5.1 },
+                        { day: 'Sat', value: 4.9 },
+                        { day: 'Sun', value: 4.6 },
+                      ]}
+                      config={{
+                        value: {
+                          label: "Conversion (%)",
+                          color: "hsl(var(--chart-4))",
+                        },
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      className="h-32 w-full"
+                      xAxisDataKey="day"
+                    />
+                  </div>
+
+                  {/* Transactions Chart */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Transactions</h4>
+                    <LineChartComponent
+                      data={[
+                        { day: 'Mon', value: 52 },
+                        { day: 'Tue', value: 60 },
+                        { day: 'Wed', value: 46 },
+                        { day: 'Thu', value: 67 },
+                        { day: 'Fri', value: 86 },
+                        { day: 'Sat', value: 78 },
+                        { day: 'Sun', value: 68 },
+                      ]}
+                      config={{
+                        value: {
+                          label: "Transactions",
+                          color: "hsl(var(--chart-5))",
+                        },
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      className="h-32 w-full"
+                      xAxisDataKey="day"
+                    />
+                  </div>
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full Performance Ecom Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Bottom Row - ROAS Report */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* ROAS Report Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">ROAS Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* ROAS metrics grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <MetricCard
+                    label="Overall ROAS"
+                    value="4.25x"
+                    subMetric="All channels"
+                    badgeValue="+12%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Overall IROAS"
+                    value="3.65x"
+                    subMetric="Incremental ROAS"
+                    badgeValue="+18%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Offline ROAS"
+                    value="2.89x"
+                    subMetric="In-store campaigns"
+                    badgeValue="+8%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Online ROAS"
+                    value="5.12x"
+                    subMetric="Digital campaigns"
+                    badgeValue="+22%"
+                    badgeVariant="success"
+                  />
+                </div>
+
+                {/* ROAS Trend Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">ROAS Performance Trend</h4>
+                  <LineChartComponent
+                    data={[
+                      { day: 'Mon', overallRoas: 4.1, overallIroas: 3.4, offlineRoas: 2.8, onlineRoas: 4.9 },
+                      { day: 'Tue', overallRoas: 4.3, overallIroas: 3.6, offlineRoas: 2.9, onlineRoas: 5.1 },
+                      { day: 'Wed', overallRoas: 3.9, overallIroas: 3.2, offlineRoas: 2.7, onlineRoas: 4.8 },
+                      { day: 'Thu', overallRoas: 4.5, overallIroas: 3.8, offlineRoas: 3.1, onlineRoas: 5.3 },
+                      { day: 'Fri', overallRoas: 4.8, overallIroas: 4.1, offlineRoas: 3.2, onlineRoas: 5.6 },
+                      { day: 'Sat', overallRoas: 4.6, overallIroas: 3.9, offlineRoas: 3.0, onlineRoas: 5.4 },
+                      { day: 'Sun', overallRoas: 4.25, overallIroas: 3.65, offlineRoas: 2.89, onlineRoas: 5.12 },
+                    ]}
+                    config={{
+                      overallRoas: {
+                        label: "Overall ROAS",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      overallIroas: {
+                        label: "Overall IROAS",
+                        color: "hsl(var(--chart-2))",
+                      },
+                      offlineRoas: {
+                        label: "Offline ROAS",
+                        color: "hsl(var(--chart-3))",
+                      },
+                      onlineRoas: {
+                        label: "Online ROAS",
+                        color: "hsl(var(--chart-4))",
+                      },
+                    }}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-40 w-full"
+                    xAxisDataKey="day"
+                  />
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full ROAS Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </AppLayout>
     );
@@ -835,98 +1082,15 @@ export const DigitalInstorePerformance: Story = {
     const [performanceFilter, setPerformanceFilter] = useState<string[]>([]);
     const [searchValue, setSearchValue] = useState('');
     
-    // Selection states
-    const [selectedLineItems, setSelectedLineItems] = useState<any[]>([]);
-    const [selectedCreatives, setSelectedCreatives] = useState<any[]>([]);
-    const [selectedStores, setSelectedStores] = useState<any[]>([]);
-    const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
+    // Top filter states (similar to Sponsored Products)
+    const [campaignFilter, setCampaignFilter] = useState<string | undefined>('summer-promotion-2024');
+    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>(undefined);
     
-    // Digital In-store specific filter states (override the default ones)
+    // Digital In-store specific filter states (no longer needed for tables but keeping for reference)
     const [storeTypeFilter, setStoreTypeFilter] = useState<string[]>([]);
     const [playerTypeFilter, setPlayerTypeFilter] = useState<string[]>([]);
-    // Keep performance filter as is
     
-    // Enhanced data with store/player type information for Digital In-store
-    const digitalInstoreLineItemsData = [
-      { id: '1893', name: 'Campaign total', planned: 27000, achieved: 25000, performance: '103.00%', creatives: 2, storeType: 'hypermarket', playerType: 'digital-display', roas: '2.85x' },
-      { id: '1894', name: 'Hypermarket displays', planned: 1300, achieved: 1250, performance: '96.15%', creatives: 2, storeType: 'hypermarket', playerType: 'digital-display', roas: '2.92x' },
-      { id: '1895', name: 'Checkout screens', planned: 1300, achieved: 1350, performance: '103.85%', creatives: 1, storeType: 'supermarket', playerType: 'checkout-screen', roas: '3.15x' },
-      { id: '1896', name: 'Entrance displays', planned: 1300, achieved: 1180, performance: '90.77%', creatives: 3, storeType: 'convenience', playerType: 'entrance-display', roas: '2.68x' },
-      { id: '1897', name: 'Interactive kiosks', planned: 1300, achieved: 1420, performance: '109.23%', creatives: 2, storeType: 'express', playerType: 'interactive-kiosk', roas: '3.47x' },
-      { id: '1898', name: 'Express store displays', planned: 800, achieved: 750, performance: '93.75%', creatives: 1, storeType: 'express', playerType: 'digital-display', roas: '2.54x' },
-      { id: '1899', name: 'Convenience screens', planned: 950, achieved: 920, performance: '96.84%', creatives: 2, storeType: 'convenience', playerType: 'checkout-screen', roas: '2.78x' },
-    ];
-    
-    const digitalInstoreCreativesData = [
-      { id: 'CR-001', name: 'In-store Promotion Banner', planned: 15000, achieved: 14500, performance: '96.67%', lineItems: 3, storeType: 'hypermarket', playerType: 'digital-display', roas: '3.12x' },
-      { id: 'CR-002', name: 'Checkout Animation', planned: 12000, achieved: 10500, performance: '87.50%', lineItems: 2, storeType: 'supermarket', playerType: 'checkout-screen', roas: '2.45x' },
-      { id: 'CR-003', name: 'Welcome Message', planned: 8000, achieved: 8200, performance: '102.50%', lineItems: 4, storeType: 'convenience', playerType: 'entrance-display', roas: '2.89x' },
-      { id: 'CR-004', name: 'Product Finder Interface', planned: 10000, achieved: 11000, performance: '110.00%', lineItems: 2, storeType: 'express', playerType: 'interactive-kiosk', roas: '3.78x' },
-      { id: 'CR-005', name: 'Special Offers Display', planned: 6000, achieved: 5800, performance: '96.67%', lineItems: 1, storeType: 'express', playerType: 'digital-display', roas: '2.67x' },
-    ];
-    
-    // Filter function
-    const filterData = (data: any[], searchValue: string, storeTypeFilter: string[], playerTypeFilter: string[], performanceFilter: string[]) => {
-      return data.filter(item => {
-        // Search filter
-        const matchesSearch = searchValue === '' || 
-          item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-          item.id.toLowerCase().includes(searchValue.toLowerCase());
-        
-        // Store type filter
-        const matchesStoreType = storeTypeFilter.length === 0 || 
-          storeTypeFilter.includes(item.storeType);
-        
-        // Player type filter
-        const matchesPlayerType = playerTypeFilter.length === 0 || 
-          playerTypeFilter.includes(item.playerType);
-        
-        // Performance filter (handles performance, uptime fields)
-        const performanceValue = item.performance ? parseFloat(item.performance.replace('%', '')) :
-                                 item.uptime ? parseFloat(item.uptime.replace('%', '')) : 0;
-        const matchesPerformance = performanceFilter.length === 0 || 
-          performanceFilter.some(filter => {
-            switch (filter) {
-              case 'above-100':
-                return performanceValue > 100;
-              case '90-100':
-                return performanceValue >= 90 && performanceValue <= 100;
-              case 'below-90':
-                return performanceValue < 90;
-              default:
-                return true;
-            }
-          });
-        
-        return matchesSearch && matchesStoreType && matchesPlayerType && matchesPerformance;
-      });
-    };
-    
-    // Digital In-store stores data
-    const digitalInstoreStoresData = [
-      { id: 'ST-001', name: 'Albert Heijn Amsterdam Central', location: 'Amsterdam', screens: 4, plays: 2847, performance: '89.2%', storeType: 'hypermarket', playerType: 'digital-display' },
-      { id: 'ST-002', name: 'Albert Heijn Utrecht CS', location: 'Utrecht', screens: 3, plays: 1923, performance: '92.1%', storeType: 'supermarket', playerType: 'checkout-screen' },
-      { id: 'ST-003', name: 'Albert Heijn Rotterdam Central', location: 'Rotterdam', screens: 5, plays: 3241, performance: '87.6%', storeType: 'hypermarket', playerType: 'digital-display' },
-      { id: 'ST-004', name: 'Albert Heijn Den Haag HS', location: 'Den Haag', screens: 2, plays: 1564, performance: '94.3%', storeType: 'convenience', playerType: 'entrance-display' },
-      { id: 'ST-005', name: 'Albert Heijn Eindhoven CS', location: 'Eindhoven', screens: 3, plays: 2187, performance: '88.9%', storeType: 'express', playerType: 'interactive-kiosk' },
-    ];
-    
-    // Digital In-store players data
-    const digitalInstorePlayersData = [
-      { id: 'PL-001', name: 'Entrance Display', store: 'Amsterdam Central', location: 'Front entrance', plays: 1247, uptime: '98.5%', storeType: 'hypermarket', playerType: 'entrance-display' },
-      { id: 'PL-002', name: 'Checkout Display A', store: 'Amsterdam Central', location: 'Checkout area A', plays: 891, uptime: '95.2%', storeType: 'hypermarket', playerType: 'checkout-screen' },
-      { id: 'PL-003', name: 'Checkout Display B', store: 'Amsterdam Central', location: 'Checkout area B', plays: 709, uptime: '89.1%', storeType: 'hypermarket', playerType: 'checkout-screen' },
-      { id: 'PL-004', name: 'Produce Section', store: 'Utrecht CS', location: 'Produce department', plays: 1156, uptime: '97.8%', storeType: 'supermarket', playerType: 'digital-display' },
-      { id: 'PL-005', name: 'Deli Counter', store: 'Utrecht CS', location: 'Deli department', plays: 767, uptime: '92.3%', storeType: 'supermarket', playerType: 'interactive-kiosk' },
-      { id: 'PL-006', name: 'Main Entrance', store: 'Rotterdam Central', location: 'Main entrance', plays: 1578, uptime: '99.1%', storeType: 'hypermarket', playerType: 'entrance-display' },
-      { id: 'PL-007', name: 'Bakery Section', store: 'Rotterdam Central', location: 'Bakery department', plays: 1003, uptime: '94.7%', storeType: 'hypermarket', playerType: 'digital-display' },
-    ];
-    
-    // Apply filters to data
-    const filteredLineItems = filterData(digitalInstoreLineItemsData, searchValue, storeTypeFilter, playerTypeFilter, performanceFilter);
-    const filteredCreatives = filterData(digitalInstoreCreativesData, searchValue, storeTypeFilter, playerTypeFilter, performanceFilter);
-    const filteredStores = filterData(digitalInstoreStoresData, searchValue, storeTypeFilter, playerTypeFilter, performanceFilter);
-    const filteredPlayers = filterData(digitalInstorePlayersData, searchValue, storeTypeFilter, playerTypeFilter, performanceFilter);
     
     // Map data for Digital In-store
     const mapData = [
@@ -1025,7 +1189,7 @@ export const DigitalInstorePerformance: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{}}
         pageHeaderProps={{
-          title: 'Summer Promotion 2024 - Digital In-store',
+          title: 'Digital Media In Store',
           headerRight: (
             <DateRangePicker
               dateRange={dateRange}
@@ -1041,27 +1205,100 @@ export const DigitalInstorePerformance: Story = {
         }}
       >
         <div className="space-y-6">
+          {/* Filter Card */}
           <Card>
-            <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {digitalInstoreMetrics.map((metric) => (
-                  <MetricCard
-                    key={metric.id}
-                    label={metric.label}
-                    value={metric.value}
-                    subMetric={metric.subMetric}
-                    badgeValue={metric.badgeValue}
-                    badgeVariant={metric.badgeVariant}
-                    isSelected={selectedMetric === metric.id}
-                    onClick={() => setSelectedMetric(metric.id)}
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Advertiser</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Advertisers', value: 'all' },
+                      { label: 'Albert Heijn', value: 'albert-heijn' },
+                      { label: 'Jumbo', value: 'jumbo' },
+                      { label: 'Etos', value: 'etos' },
+                      { label: 'Kruidvat', value: 'kruidvat' },
+                    ]}
+                    value={advertiserFilter}
+                    onChange={setAdvertiserFilter}
+                    placeholder="Select advertiser"
                   />
-                ))}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Campaign</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'Summer Promotion 2024', value: 'summer-promotion-2024' },
+                      { label: 'Back to School 2024', value: 'back-to-school-2024' },
+                      { label: 'Holiday Campaign 2024', value: 'holiday-campaign-2024' },
+                      { label: 'Spring Collection 2024', value: 'spring-collection-2024' },
+                    ]}
+                    value={campaignFilter}
+                    onChange={setCampaignFilter}
+                    placeholder="Select campaign"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Line Items', value: 'all' },
+                      { label: 'Hypermarket displays', value: 'hypermarket-displays' },
+                      { label: 'Checkout screens', value: 'checkout-screens' },
+                      { label: 'Interactive kiosks', value: 'interactive-kiosks' },
+                      { label: 'Entrance displays', value: 'entrance-displays' },
+                    ]}
+                    value={lineItemFilter}
+                    onChange={setLineItemFilter}
+                    placeholder="Select line item"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Plays Report</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <MetricCard
+                  label="Stores"
+                  value="1,247"
+                  subMetric="Coverage: 94%"
+                  badgeValue="+2%"
+                  badgeVariant="success"
+                  isSelected={selectedMetric === 'stores'}
+                  onClick={() => setSelectedMetric('stores')}
+                />
+                <MetricCard
+                  label="Plays"
+                  value="89,432"
+                  subMetric="Rate: 71.7/day"
+                  badgeValue="+8%"
+                  badgeVariant="success"
+                  isSelected={selectedMetric === 'plays'}
+                  onClick={() => setSelectedMetric('plays')}
+                />
+                <MetricCard
+                  label="Completion"
+                  value="87.3%"
+                  subMetric="Duration: 15s avg"
+                  badgeValue="-1%"
+                  badgeVariant="destructive"
+                  isSelected={selectedMetric === 'completion'}
+                  onClick={() => setSelectedMetric('completion')}
+                />
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">
-                  Achieved {selectedMetricData?.label.toLowerCase() || 'performance'}
-                </h3>
                 <BarChartComponent
                   data={chartData}
                   config={chartConfig}
@@ -1074,197 +1311,120 @@ export const DigitalInstorePerformance: Story = {
                   xAxisDataKey="day"
                 />
               </div>
-            </CardContent>
-          </Card>
-
-
-          <Card>
-            <CardHeader>
-              <Viewbar
-                labels={[]}
-                tabs={[
-                  { value: 'line-items', label: 'Line Items' },
-                  { value: 'creatives', label: 'Creatives' },
-                  { value: 'stores', label: 'Stores' },
-                  { value: 'player', label: 'Player' },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <FilterBar
-                  filters={[
-                    {
-                      name: "Store Type",
-                      options: [
-                        { label: "Hypermarket", value: "hypermarket" },
-                        { label: "Supermarket", value: "supermarket" },
-                        { label: "Convenience", value: "convenience" },
-                        { label: "Express", value: "express" },
-                      ],
-                      selectedValues: storeTypeFilter,
-                      onChange: setStoreTypeFilter,
-                    },
-                    {
-                      name: "Player Type",
-                      options: [
-                        { label: "Digital Display", value: "digital-display" },
-                        { label: "Interactive Kiosk", value: "interactive-kiosk" },
-                        { label: "Checkout Screen", value: "checkout-screen" },
-                        { label: "Entrance Display", value: "entrance-display" },
-                      ],
-                      selectedValues: playerTypeFilter,
-                      onChange: setPlayerTypeFilter,
-                    },
-                    {
-                      name: "Performance",
-                      options: [
-                        { label: "Above 100%", value: "above-100" },
-                        { label: "90-100%", value: "90-100" },
-                        { label: "Below 90%", value: "below-90" },
-                      ],
-                      selectedValues: performanceFilter,
-                      onChange: setPerformanceFilter,
-                    },
-                  ]}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
-                  searchPlaceholder="Search stores, players, line items..."
-                />
+              
+              {/* CTA Button */}
+              <div className="pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => alert('Navigate to full Plays Report')}
+                >
+                  View Full Report
+                </Button>
               </div>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsContent value="line-items" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                      { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'creatives', header: 'Creative', render: row => (
-                        <Badge variant="secondary">{row.creatives}</Badge>
-                      )},
-                      { key: 'roas', header: 'ROAS' },
-                    ]}
-                    data={filteredLineItems}
-                    rowKey={row => `${row.id}-${row.name}`}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to line item details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedLineItems,
-                      onChange: setSelectedLineItems,
-                      getKey: row => `${row.id}-${row.name}`,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="creatives" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'planned', header: 'Planned', render: row => row.planned.toLocaleString() },
-                      { key: 'achieved', header: 'Achieved', render: row => row.achieved.toLocaleString() },
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'lineItems', header: 'Line Items', render: row => (
-                        <Badge variant="secondary">{row.lineItems}</Badge>
-                      )},
-                      { key: 'roas', header: 'ROAS' },
-                    ]}
-                    data={filteredCreatives}
-                    rowKey={row => row.id}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to creative details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedCreatives,
-                      onChange: setSelectedCreatives,
-                      getKey: row => row.id,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="stores" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Store Name' },
-                      { key: 'id', header: 'Store ID' },
-                      { key: 'location', header: 'Location' },
-                      { key: 'screens', header: 'Screens', render: row => (
-                        <Badge variant="secondary">{row.screens}</Badge>
-                      )},
-                      { key: 'plays', header: 'Plays', render: row => row.plays.toLocaleString() },
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                    ]}
-                    data={filteredStores}
-                    rowKey={row => row.id}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to store details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedStores,
-                      onChange: setSelectedStores,
-                      getKey: row => row.id,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="player" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Player Name' },
-                      { key: 'id', header: 'Player ID' },
-                      { key: 'store', header: 'Store' },
-                      { key: 'location', header: 'Location' },
-                      { key: 'plays', header: 'Plays', render: row => row.plays.toLocaleString() },
-                      { key: 'uptime', header: 'Uptime', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.uptime)}>
-                          {row.uptime}
-                        </Badge>
-                      )},
-                    ]}
-                    data={filteredPlayers}
-                    rowKey={row => row.id}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to player details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedPlayers,
-                      onChange: setSelectedPlayers,
-                      getKey: row => row.id,
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
             </CardContent>
           </Card>
+
+
+          {/* ROAS Report */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* ROAS Report Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">ROAS Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* ROAS metrics grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <MetricCard
+                    label="Overall ROAS"
+                    value="4.25x"
+                    subMetric="All channels"
+                    badgeValue="+12%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Overall IROAS"
+                    value="3.65x"
+                    subMetric="Incremental ROAS"
+                    badgeValue="+18%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Offline ROAS"
+                    value="2.89x"
+                    subMetric="In-store campaigns"
+                    badgeValue="+8%"
+                    badgeVariant="success"
+                  />
+                  <MetricCard
+                    label="Online ROAS"
+                    value="5.12x"
+                    subMetric="Digital campaigns"
+                    badgeValue="+22%"
+                    badgeVariant="success"
+                  />
+                </div>
+
+                {/* ROAS Trend Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">ROAS Performance Trend</h4>
+                  <LineChartComponent
+                    data={[
+                      { day: 'Mon', overallRoas: 4.1, overallIroas: 3.4, offlineRoas: 2.8, onlineRoas: 4.9 },
+                      { day: 'Tue', overallRoas: 4.3, overallIroas: 3.6, offlineRoas: 2.9, onlineRoas: 5.1 },
+                      { day: 'Wed', overallRoas: 3.9, overallIroas: 3.2, offlineRoas: 2.7, onlineRoas: 4.8 },
+                      { day: 'Thu', overallRoas: 4.5, overallIroas: 3.8, offlineRoas: 3.1, onlineRoas: 5.3 },
+                      { day: 'Fri', overallRoas: 4.8, overallIroas: 4.1, offlineRoas: 3.2, onlineRoas: 5.6 },
+                      { day: 'Sat', overallRoas: 4.6, overallIroas: 3.9, offlineRoas: 3.0, onlineRoas: 5.4 },
+                      { day: 'Sun', overallRoas: 4.25, overallIroas: 3.65, offlineRoas: 2.89, onlineRoas: 5.12 },
+                    ]}
+                    config={{
+                      overallRoas: {
+                        label: "Overall ROAS",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      overallIroas: {
+                        label: "Overall IROAS",
+                        color: "hsl(var(--chart-2))",
+                      },
+                      offlineRoas: {
+                        label: "Offline ROAS",
+                        color: "hsl(var(--chart-3))",
+                      },
+                      onlineRoas: {
+                        label: "Online ROAS",
+                        color: "hsl(var(--chart-4))",
+                      },
+                    }}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-40 w-full"
+                    xAxisDataKey="day"
+                  />
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full ROAS Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Digital In-store Specific Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Netherlands Map Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Store Locations</CardTitle>
+                <CardTitle className="text-lg font-semibold">Demographic Report</CardTitle>
               </CardHeader>
               <CardContent>
                 <MapChart data={mapData} />
@@ -1546,6 +1706,315 @@ export const OfflineInstorePerformance: Story = {
                   />
                 </TabsContent>
               </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  },
+};
+
+export const FullReportView: Story = {
+  render: () => {
+    // Filter states
+    const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
+    const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
+    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: new Date(),
+    });
+
+    // Comprehensive report data
+    const fullReportData = [
+      {
+        id: 'LI-001',
+        name: 'Sponsored Products - Electronics',
+        advertiser: 'Unilever',
+        campaign: 'Holiday Sale 2024',
+        impressions: 2847193,
+        clicks: 8432,
+        spend: 6089.50,
+        conversions: 234,
+        revenue: 18576.80,
+        roas: '3.05x',
+        ctr: '0.30%',
+        cpc: '€0.72',
+        cvr: '2.78%',
+        cpa: '€26.02',
+        status: 'Active',
+        startDate: '2024-11-01',
+        endDate: '2024-12-31',
+      },
+      {
+        id: 'LI-002',
+        name: 'Display Campaign - Home & Garden',
+        advertiser: 'Unilever',
+        campaign: 'Holiday Sale 2024',
+        impressions: 1934567,
+        clicks: 5821,
+        spend: 4234.75,
+        conversions: 156,
+        revenue: 12890.40,
+        roas: '3.04x',
+        ctr: '0.30%',
+        cpc: '€0.73',
+        cvr: '2.68%',
+        cpa: '€27.15',
+        status: 'Active',
+        startDate: '2024-11-01',
+        endDate: '2024-12-31',
+      },
+      {
+        id: 'LI-003',
+        name: 'Video Campaign - Beauty Products',
+        advertiser: 'Procter & Gamble',
+        campaign: 'Spring Collection 2024',
+        impressions: 3456789,
+        clicks: 12045,
+        spend: 8967.25,
+        conversions: 378,
+        revenue: 29456.70,
+        roas: '3.28x',
+        ctr: '0.35%',
+        cpc: '€0.74',
+        cvr: '3.14%',
+        cpa: '€23.72',
+        status: 'Active',
+        startDate: '2024-10-15',
+        endDate: '2024-12-15',
+      },
+      {
+        id: 'LI-004',
+        name: 'Search Campaign - Food & Beverage',
+        advertiser: 'Nestlé',
+        campaign: 'Summer Launch 2024',
+        impressions: 2156784,
+        clicks: 9234,
+        spend: 7123.80,
+        conversions: 287,
+        revenue: 21456.90,
+        roas: '3.01x',
+        ctr: '0.43%',
+        cpc: '€0.77',
+        cvr: '3.11%',
+        cpa: '€24.82',
+        status: 'Paused',
+        startDate: '2024-09-01',
+        endDate: '2024-11-30',
+      },
+      {
+        id: 'LI-005',
+        name: 'Social Media Campaign - Fashion',
+        advertiser: 'Coca-Cola',
+        campaign: 'Back to School 2024',
+        impressions: 4567123,
+        clicks: 15678,
+        spend: 11234.50,
+        conversions: 445,
+        revenue: 34567.80,
+        roas: '3.08x',
+        ctr: '0.34%',
+        cpc: '€0.72',
+        cvr: '2.84%',
+        cpa: '€25.25',
+        status: 'Completed',
+        startDate: '2024-08-01',
+        endDate: '2024-10-31',
+      },
+      {
+        id: 'LI-006',
+        name: 'Retargeting Campaign - Tech Accessories',
+        advertiser: 'Unilever',
+        campaign: 'Holiday Sale 2024',
+        impressions: 1789456,
+        clicks: 6789,
+        spend: 5234.60,
+        conversions: 198,
+        revenue: 15678.90,
+        roas: '2.99x',
+        ctr: '0.38%',
+        cpc: '€0.77',
+        cvr: '2.92%',
+        cpa: '€26.44',
+        status: 'Active',
+        startDate: '2024-11-15',
+        endDate: '2024-12-31',
+      },
+      {
+        id: 'LI-007',
+        name: 'Shopping Campaign - Sports Equipment',
+        advertiser: 'Procter & Gamble',
+        campaign: 'Spring Collection 2024',
+        impressions: 2987654,
+        clicks: 10234,
+        spend: 7890.40,
+        conversions: 312,
+        revenue: 23456.70,
+        roas: '2.97x',
+        ctr: '0.34%',
+        cpc: '€0.77',
+        cvr: '3.05%',
+        cpa: '€25.29',
+        status: 'Active',
+        startDate: '2024-10-01',
+        endDate: '2024-12-31',
+      },
+      {
+        id: 'LI-008',
+        name: 'Brand Awareness - Automotive',
+        advertiser: 'Nestlé',
+        campaign: 'Summer Launch 2024',
+        impressions: 5432109,
+        clicks: 18765,
+        spend: 13567.80,
+        conversions: 523,
+        revenue: 41234.50,
+        roas: '3.04x',
+        ctr: '0.35%',
+        cpc: '€0.72',
+        cvr: '2.79%',
+        cpa: '€25.94',
+        status: 'Active',
+        startDate: '2024-09-15',
+        endDate: '2024-12-15',
+      },
+    ];
+
+    const getStatusBadgeVariant = (status: string) => {
+      switch (status.toLowerCase()) {
+        case 'active':
+          return 'default';
+        case 'paused':
+          return 'secondary';
+        case 'completed':
+          return 'outline';
+        default:
+          return 'secondary';
+      }
+    };
+
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Full Performance Report',
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range"
+              showPresets={true}
+            />
+          ),
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+        }}
+      >
+        <div className="space-y-6">
+          {/* Filter Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Advertiser</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Advertisers', value: 'all' },
+                      { label: 'Unilever', value: 'unilever' },
+                      { label: 'Procter & Gamble', value: 'pg' },
+                      { label: 'Nestlé', value: 'nestle' },
+                      { label: 'Coca-Cola', value: 'coca-cola' },
+                    ]}
+                    value={advertiserFilter}
+                    onChange={setAdvertiserFilter}
+                    placeholder="Select advertiser"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Campaign</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Campaigns', value: 'all' },
+                      { label: 'Holiday Sale 2024', value: 'holiday-sale-2024' },
+                      { label: 'Summer Launch 2024', value: 'summer-launch-2024' },
+                      { label: 'Spring Collection 2024', value: 'spring-collection-2024' },
+                      { label: 'Back to School 2024', value: 'back-to-school-2024' },
+                    ]}
+                    value={campaignFilter}
+                    onChange={setCampaignFilter}
+                    placeholder="Select campaign"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Line Items', value: 'all' },
+                      { label: 'Sponsored Products', value: 'sponsored-products' },
+                      { label: 'Display Campaign', value: 'display' },
+                      { label: 'Video Campaign', value: 'video' },
+                      { label: 'Search Campaign', value: 'search' },
+                      { label: 'Social Media Campaign', value: 'social' },
+                    ]}
+                    value={lineItemFilter}
+                    onChange={setLineItemFilter}
+                    placeholder="Select line item"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Full Report Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table
+                columns={[
+                  { key: 'id', header: 'Line Item ID' },
+                  { key: 'name', header: 'Campaign Name' },
+                  { key: 'advertiser', header: 'Advertiser' },
+                  { key: 'status', header: 'Status', render: row => (
+                    <Badge variant={getStatusBadgeVariant(row.status)}>
+                      {row.status}
+                    </Badge>
+                  )},
+                  { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                  { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                  { key: 'ctr', header: 'CTR' },
+                  { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                  { key: 'cpc', header: 'CPC' },
+                  { key: 'conversions', header: 'Conversions', render: row => row.conversions.toLocaleString() },
+                  { key: 'cvr', header: 'CVR' },
+                  { key: 'cpa', header: 'CPA' },
+                  { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                  { key: 'roas', header: 'ROAS' },
+                  { key: 'startDate', header: 'Start Date' },
+                  { key: 'endDate', header: 'End Date' },
+                ]}
+                data={fullReportData}
+                rowKey={row => row.id}
+                hideActions
+                rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                onRowClick={row => {
+                  console.log('Navigate to line item details for', row.name);
+                }}
+              />
             </CardContent>
           </Card>
         </div>

@@ -13,12 +13,41 @@ Gambit is a retail media platform designed for rapid prototyping and deployment 
 ## Architecture Overview
 
 ### Technology Stack
-- **Framework**: Next.js 15.3.5 with App Router
+- **Framework**: Next.js 15.4.4 with App Router (Latest Version)
+- **React**: 19.1.0 (Latest Version)
 - **UI Library**: Custom components built on shadcn/ui + Radix UI
 - **Styling**: Tailwind CSS with CSS Variables for theming
 - **Documentation**: Storybook 9.0.16
 - **Type Safety**: TypeScript with strict mode
 - **Component Variants**: Class Variance Authority (CVA)
+
+### ⚠️ VERSION COMPATIBILITY NOTES
+
+**Current Versions (Updated to Latest):**
+
+```json
+{
+  "next": "15.4.4",
+  "react": "19.1.0", 
+  "react-dom": "19.1.0"
+}
+```
+
+**Important Configuration Notes:**
+- **Dev Server**: Run without Turbopack for stability (`npx next dev`)
+- **Config format**: Use `next.config.js` (CommonJS format)
+- **CSS Compatibility**: Avoid complex Tailwind selectors with escaped brackets
+- **swcMinify**: Removed (deprecated in Next.js 15)
+
+**Known Compatibility Adjustments:**
+- Use data attributes instead of complex class selectors for CSS targeting
+- Disable Turbopack when encountering CSS parsing issues
+- React 19 hydration: Ensure client/server consistency for dynamic classes
+
+**Migration Notes:**
+- Component library remains fully compatible with latest versions
+- All existing templates work without modifications
+- Performance improvements with React 19's automatic batching
 
 ### Project Structure
 ```

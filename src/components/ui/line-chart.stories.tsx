@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { LineChartComponent } from './line-chart';
 
 const meta: Meta<typeof LineChartComponent> = {

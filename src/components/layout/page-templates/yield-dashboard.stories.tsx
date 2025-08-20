@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';
 import { LineChartComponent } from '@/components/ui/line-chart';

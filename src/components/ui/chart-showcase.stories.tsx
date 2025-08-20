@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { ChartShowcase } from './chart-showcase';
 
 const meta: Meta<typeof ChartShowcase> = {

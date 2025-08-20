@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SmartBreadcrumbs } from './smart-breadcrumbs';
 import { defaultRoutes } from '@/components/layout/default-routes';
 

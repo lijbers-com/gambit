@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbLink } from './breadcrumb';
 import { ChevronRight } from 'lucide-react';
 
@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: () => (
-    <Breadcrumb className="w-full px-6 py-3 relative" showNavToggle={true}>
+    <Breadcrumb namespace="gambit" className="w-full px-6 py-3 relative" showNavToggle={true}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/" className="home">
@@ -46,7 +46,7 @@ export const Default: Story = {
 
 export const WithCustomStyling: Story = {
   render: () => (
-    <Breadcrumb className="w-full px-6 py-3 relative" showNavToggle={true}>
+    <Breadcrumb namespace="gambit" className="w-full px-6 py-3 relative" showNavToggle={true}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/" className="home">
@@ -68,7 +68,7 @@ export const WithCustomStyling: Story = {
 
 export const LongPath: Story = {
   render: () => (
-    <Breadcrumb className="w-full px-6 py-3 relative" showNavToggle={true}>
+    <Breadcrumb namespace="gambit" className="w-full px-6 py-3 relative" showNavToggle={true}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/" className="home">

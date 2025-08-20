@@ -70,6 +70,52 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     'bg-chart-5 text-white border-chart-5',
   ];
 
+  const getThemeColorStyle = (index: number) => {
+    const colorVar = `--chart-${(index % 5) + 1}`;
+    return {
+      backgroundColor: `hsl(var(${colorVar}))`,
+      color: 'white',
+      borderColor: `hsl(var(${colorVar}))`,
+    };
+  };
+
+  // Theme-specific colors for commercial agenda events only
+  const getCommercialAgendaColorStyle = (index: number) => {
+    // Check current theme by looking at the document data-theme attribute
+    const currentTheme = typeof window !== 'undefined' ? 
+      document.documentElement.getAttribute('data-theme') || 'retailMedia' : 'retailMedia';
+    
+    if (currentTheme === 'albertHeijn') {
+      // Albert Heijn blue variations for commercial agenda
+      const ahColors = [
+        'hsl(192, 100%, 45%)', // AH Blue
+        'hsl(192, 70%, 35%)',  // Darker AH Blue
+        'hsl(192, 85%, 55%)',  // Light AH Blue
+        'hsl(192, 60%, 25%)',  // Dark AH Blue
+        'hsl(192, 90%, 65%)',  // Very Light AH Blue
+      ];
+      return {
+        backgroundColor: ahColors[index % ahColors.length],
+        color: 'white',
+        borderColor: ahColors[index % ahColors.length],
+      };
+    } else {
+      // Gambit theme variations for commercial agenda
+      const gambitColors = [
+        'hsl(210, 20%, 21%)',  // Gambit Primary Dark
+        'hsl(210, 15%, 35%)',  // Gambit Secondary
+        'hsl(210, 25%, 45%)',  // Gambit Medium
+        'hsl(210, 30%, 55%)',  // Gambit Light
+        'hsl(210, 35%, 65%)',  // Gambit Very Light
+      ];
+      return {
+        backgroundColor: gambitColors[index % gambitColors.length],
+        color: 'white',
+        borderColor: gambitColors[index % gambitColors.length],
+      };
+    }
+  };
+
   const hasEventInWeek = (weekNum: number) => {
     return retailerEvents.some(event => event.week === weekNum);
   };
@@ -283,10 +329,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                             <Badge 
                               key={event.name}
                               variant="default"
-                              className={cn(
-                                "w-3 h-3 rounded-full p-0 flex items-center justify-center",
-                                colorClass
-                              )}
+                              className="w-3 h-3 rounded-full p-0 flex items-center justify-center border-0"
+                              style={getCommercialAgendaColorStyle(eventIndex)}
                             >
                               <span className="sr-only">{event.name}</span>
                             </Badge>
@@ -359,10 +403,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                               <div style={{ minHeight: 32 }} className="flex items-center justify-center">
                                 <Badge 
                                   variant="default"
-                                  className={cn(
-                                    "w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden",
-                                    chartColors[index % chartColors.length]
-                                  )}
+                                  className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden border-0"
+                                  style={getCommercialAgendaColorStyle(index)}
                                 >
                                   {eventName}
                                 </Badge>

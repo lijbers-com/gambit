@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/lib/router-context';
 import { Suspense, Fragment } from 'react';
 import {
   Breadcrumb,
@@ -14,7 +14,7 @@ import {
   ReadonlyURLSearchParams,
   usePathname,
   useSearchParams,
-} from 'next/navigation';
+} from '@/lib/router-context';
 import { Route } from './side-navigation';
 
 export type BreadcrumbProps = {
@@ -96,7 +96,7 @@ const SmartBreadcrumbsInner = ({
   });
 
   return (
-    <Breadcrumb showNavToggle={showNavToggle} className={`w-full relative ${className || ''}`}>
+    <Breadcrumb namespace={namespace} showNavToggle={showNavToggle} className={`w-full relative ${className || ''}`}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardWithTabs, CardSummary, CardSummaryContent, MetricCard } from './card';
 import { Button } from './button';
 import { Badge } from './badge';
@@ -167,6 +167,107 @@ export const MetricCardExample: Story = {
         badgeVariant="destructive"
         isSelected={true}
       />
+    </div>
+  ),
+};
+
+export const MetricCardWithGraph: Story = {
+  render: () => (
+    <div className="space-y-8">
+      {/* Graph variants with line charts */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Graph Variant - Line Charts</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            label="Impressions"
+            value="2,845,692"
+            subMetric="CTR: 3.2%"
+            badgeValue="+15%"
+            badgeVariant="success"
+            variant="graph"
+            graphData={[
+              { value: 2100000 }, { value: 2300000 }, { value: 2200000 }, { value: 2500000 }, 
+              { value: 2700000 }, { value: 2600000 }, { value: 2845692 }
+            ]}
+            graphColor="#10b981"
+          />
+
+          <MetricCard
+            label="Sales"
+            value="€127,890"
+            subMetric="ROAS: 3.34x"
+            badgeValue="+18%"
+            badgeVariant="success"
+            variant="graph"
+            graphData={[
+              { value: 95000 }, { value: 108000 }, { value: 102000 }, { value: 115000 }, 
+              { value: 122000 }, { value: 118000 }, { value: 127890 }
+            ]}
+            graphColor="#f59e0b"
+          />
+
+          <MetricCard
+            label="Clicks"
+            value="91,062"
+            subMetric="CPC: €0.42"
+            badgeValue="+8%"
+            badgeVariant="success"
+            variant="graph"
+            graphData={[
+              { value: 75000 }, { value: 82000 }, { value: 78000 }, { value: 85000 }, 
+              { value: 88000 }, { value: 86000 }, { value: 91062 }
+            ]}
+            graphColor="#3b82f6"
+          />
+        </div>
+      </div>
+
+      {/* Graph variants with green progress bars */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Graph Variant - Progress Bars</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            label="CTR"
+            value="3.2%"
+            subMetric="Target: 2.5%"
+            badgeValue="+28%"
+            badgeVariant="success"
+            variant="graph"
+          />
+
+          <MetricCard
+            label="ROAS"
+            value="4.2x"
+            subMetric="Target: 3.0x"
+            badgeValue="+40%"
+            badgeVariant="success"
+            variant="graph"
+          />
+
+          <MetricCard
+            label="ATC Rate"
+            value="14.1%"
+            subMetric="Target: 12.0%"
+            badgeValue="+18%"
+            badgeVariant="success"
+            variant="graph"
+          />
+        </div>
+      </div>
+
+      {/* Default variant for comparison */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Default Variant</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            label="Add to Cart"
+            value="12,847"
+            subMetric="CVR: 14.1%"
+            badgeValue="+22%"
+            badgeVariant="success"
+          />
+        </div>
+      </div>
     </div>
   ),
 };

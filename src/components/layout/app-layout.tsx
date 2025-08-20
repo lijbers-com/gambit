@@ -5,8 +5,6 @@ import { SideNavigation, Route } from "@/components/ui/side-navigation";
 import { SmartBreadcrumbs } from "@/components/ui/smart-breadcrumbs";
 import { PageHeader } from "@/components/ui/page-header";
 import { DateRangePicker } from "@/components/ui/date-picker";
-import { Button } from "@/components/ui/button";
-import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { useMenu } from "@/hooks/use-menu";
 import { DateRange } from "react-day-picker";
 
@@ -26,7 +24,6 @@ export interface AppLayoutProps {
   onLogout?: () => void;
   breadcrumbProps?: React.ComponentProps<typeof SmartBreadcrumbs>;
   pageHeaderProps?: React.ComponentProps<typeof PageHeader>;
-  className?: string;
 }
 
 export function AppLayout({
@@ -37,9 +34,8 @@ export function AppLayout({
   onLogout,
   breadcrumbProps,
   pageHeaderProps,
-  className,
 }: AppLayoutProps) {
-  const { toggleCollapsed, collapsed } = useMenu();
+  const { collapsed } = useMenu();
   
   // Diagnostic effect for theme debugging
   useEffect(() => {
@@ -71,7 +67,7 @@ export function AppLayout({
   });
 
   return (
-    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[88px_1fr]' : 'grid-cols-[270px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
+    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[270px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
       {/* Side Navigation */}
       <div className="h-screen">
       <SideNavigation

@@ -9,10 +9,11 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
+import { ChartDataPoint, ChartConfig } from "./chart-types"
 
 export interface BarChartProps {
-  data: any[]
-  config: Record<string, any>
+  data: ChartDataPoint[]
+  config: ChartConfig
   className?: string
   showGrid?: boolean
   showTooltip?: boolean

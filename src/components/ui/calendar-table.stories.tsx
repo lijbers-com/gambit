@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { CalendarTable } from './calendar-table';
 
 const meta: Meta<typeof CalendarTable> = {

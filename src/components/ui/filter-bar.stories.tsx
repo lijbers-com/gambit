@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Meta, StoryObj } from "@storybook/nextjs";
+import { Meta, StoryObj } from "@storybook/react";
 import { FilterBar } from "./filter-bar";
 
 const meta: Meta<typeof FilterBar> = {

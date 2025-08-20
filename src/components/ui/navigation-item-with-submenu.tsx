@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Route } from './side-navigation';
 import { renderIcon } from './render-icon';
 import { useMenu } from '@/hooks/use-menu';
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/lib/router-context';
+import { Link } from '@/lib/router-context';
 
 export const NavigationItemWithSubmenu = ({
   item,
@@ -35,26 +35,26 @@ export const NavigationItemWithSubmenu = ({
   return (
     <>
       <span
-        className="parent flex items-center mb-6 pr-2 rounded-md hover:bg-slate-100 cursor-pointer"
+        className="parent flex items-center mb-6 pr-2 rounded-md transition-colors cursor-pointer"
         onClick={() => toggleSubmenu(itemId)}
         data-testid={'nav-' + itemId}
       >
-        <span className="flex-shrink-0">
+        <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
           {item.icon?.lucide && renderIcon(item.icon.lucide)}
           {item.icon?.url && (
-            <div className="flex justify-center items-center w-10 h-10">
-              <img src={item.icon.url} alt={item.name} width={24} height={24} />
-            </div>
+            <img src={item.icon.url} alt={item.name} width={24} height={24} />
           )}
         </span>
-        <span className={cn(collapsed && 'hidden', 'text-sm')}>
+        <span className={cn(collapsed && 'hidden', 'text-sm ml-2 flex-1')}>
           {item.name}
         </span>
-        {safeOpenSubmenu.includes(itemId) ? (
-          <ChevronDown className="ml-auto" size={16} />
-        ) : (
-          <ChevronRight className="ml-auto" size={16} />
-        )}
+        <span className={cn(collapsed && 'hidden', 'ml-auto')}>
+          {safeOpenSubmenu.includes(itemId) ? (
+            <ChevronDown size={16} />
+          ) : (
+            <ChevronRight size={16} />
+          )}
+        </span>
       </span>
       <div
         className={
@@ -64,19 +64,19 @@ export const NavigationItemWithSubmenu = ({
         {item.subitems?.map((subitem) => (
           <div 
             key={subitem.id}
-            className="flex items-center py-1 pr-2 border-l-2 border-slate-50 leading-6 ml-5 pl-4 hover:border-slate-100"
+            className="flex items-center py-1 pr-2 border-l border-brand-text/20 leading-6 ml-5 pl-4 transition-colors"
           >
-            <a
+            <Link
               className={cn(
                 collapsed && 'hidden',
-                'text-sm leading-6 p-2 rounded-md hover:bg-slate-100 inline-block',
-                subitem.url && pathname === subitem.url && 'bg-slate-100 font-medium text-slate-900',
+                'text-sm leading-6 p-2 rounded-md transition-colors inline-block',
+                subitem.url && pathname === subitem.url && 'active',
               )}
-              href={subitem.url}
+              href={subitem.url || '#'}
               data-testid={`nav-${item.id}-${subitem.id}`}
             >
               {subitem.name}
-            </a>
+            </Link>
           </div>
         ))}
       </div>

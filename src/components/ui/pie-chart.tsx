@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, ResponsiveContainer } from "recharts"
+import { Pie, PieChart, Cell } from "recharts"
 import {
   ChartContainer,
   ChartTooltip,
@@ -9,10 +9,11 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
+import { ChartDataPoint, ChartConfig } from "./chart-types"
 
 export interface PieChartProps {
-  data: any[]
-  config: Record<string, any>
+  data: ChartDataPoint[]
+  config: ChartConfig
   className?: string
   showTooltip?: boolean
   showLegend?: boolean

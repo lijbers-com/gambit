@@ -1,4 +1,5 @@
-import Image from 'next/image';
+import { Image } from '@/lib/router-context';
+import { Link } from '@/lib/router-context';
 import { cn } from '@/lib/utils';
 import { Route } from './side-navigation';
 import { renderIcon } from './render-icon';
@@ -13,23 +14,21 @@ export const NavigationItem = ({ item }: { item: Route }) => {
   };
 
   return (
-    <a
+    <Link
       className={cn(
-        'flex items-center mb-6 pr-2 rounded-md hover:bg-slate-100',
+        'flex items-center mb-6 pr-2 rounded-md transition-colors',
         checkActiveUrl(item.url) && 'active',
       )}
-      href={item.url}
+      href={item.url || '/'}
       data-testid={'nav-' + item.id}
     >
-      <span className="flex-shrink-0">
+      <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
         {item.icon?.lucide && renderIcon(item.icon.lucide)}
         {item.icon?.url && (
-          <div className="flex justify-center items-center w-10 h-10 text-red-500">
-            <Image src={item.icon.url} alt={item.name} width={24} height={24} />
-          </div>
+          <Image src={item.icon.url} alt={item.name} width={24} height={24} />
         )}
       </span>
-      <span className={cn(collapsed && 'hidden', 'text-sm')}>{item.name}</span>
-    </a>
+      <span className={cn(collapsed && 'hidden', 'text-sm ml-2')}>{item.name}</span>
+    </Link>
   );
 }; 

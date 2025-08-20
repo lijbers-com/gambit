@@ -9,10 +9,11 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
+import { ChartDataPoint, ChartConfig } from "./chart-types"
 
 export interface RadarChartProps {
-  data: any[]
-  config: Record<string, any>
+  data: ChartDataPoint[]
+  config: ChartConfig
   className?: string
   showTooltip?: boolean
   showLegend?: boolean

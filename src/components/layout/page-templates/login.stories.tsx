@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,9 +46,6 @@ Each theme includes:
 
 1. **Albert Heijn** - Dutch supermarket chain theme
 2. **Retail Media Platform** - Generic retail media theme
-3. **Tech Store** - Technology retail theme
-4. **Fashion Retail** - Fashion and apparel theme
-5. **Home & Garden** - Home improvement theme
 
 ## Components Used
 
@@ -298,30 +295,6 @@ const themes = {
     title: 'Welcome to Retail Media Platform',
     subtitle: 'Maximize your retail advertising impact',
   },
-  techStore: {
-    name: 'Tech Store',
-    logo: '/next.svg',
-    backgroundImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1920&h=1080&fit=crop',
-    primaryColor: '#3B82F6',
-    title: 'Tech Store Media Network',
-    subtitle: 'Connect with tech-savvy customers',
-  },
-  fashionRetail: {
-    name: 'Fashion Retail',
-    logo: '/next.svg',
-    backgroundImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=1080&fit=crop',
-    primaryColor: '#EC4899',
-    title: 'Fashion Forward Advertising',
-    subtitle: 'Reach style-conscious shoppers',
-  },
-  homeGarden: {
-    name: 'Home & Garden',
-    logo: '/next.svg',
-    backgroundImage: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1920&h=1080&fit=crop',
-    primaryColor: '#059669',
-    title: 'Home & Garden Media Solutions',
-    subtitle: 'Growing your brand naturally',
-  },
 };
 
 // Stories
@@ -333,14 +306,3 @@ export const RetailMediaPlatform: Story = {
   render: () => <LoginTemplate themes={themes} initialTheme="retailMedia" />,
 };
 
-export const TechStore: Story = {
-  render: () => <LoginTemplate themes={themes} initialTheme="techStore" />,
-};
-
-export const FashionRetail: Story = {
-  render: () => <LoginTemplate themes={themes} initialTheme="fashionRetail" />,
-};
-
-export const HomeAndGarden: Story = {
-  render: () => <LoginTemplate themes={themes} initialTheme="homeGarden" />,
-};

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { MapChart } from './map-chart';
 
 const meta: Meta<typeof MapChart> = {

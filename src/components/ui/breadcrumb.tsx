@@ -9,9 +9,10 @@ const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav"> & {
     separator?: React.ReactNode,
-    showNavToggle?: boolean
+    showNavToggle?: boolean,
+    namespace: string
   }
->(({ showNavToggle, ...props }, ref) => {
+>(({ showNavToggle, namespace, ...props }, ref) => {
   const { toggleCollapsed, collapsed } = useMenu();
   return (
     <nav ref={ref} aria-label="breadcrumb" {...props} className={cn('breadcrumb flex items-center pl-6', props.className)}>
@@ -19,7 +20,7 @@ const Breadcrumb = React.forwardRef<
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="inline-flex items-center justify-center mr-6 p-1 rounded hover:bg-slate-200 focus:outline-none"
+          className="inline-flex items-center justify-center mr-6 p-1 rounded transition-colors focus:outline-none"
           aria-label="Toggle navigation"
         >
           {collapsed ? (

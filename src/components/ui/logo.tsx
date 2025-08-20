@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { Image } from '@/lib/router-context';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
@@ -76,8 +76,8 @@ export const Logo = ({
       const htmlTheme = document.documentElement.getAttribute('data-theme');
       const bodyTheme = document.body.getAttribute('data-theme');
       
-      if (htmlTheme === 'albert-heijn' || htmlTheme === 'ah' || 
-          bodyTheme === 'albert-heijn' || bodyTheme === 'ah') {
+      if (htmlTheme === 'albert-heijn' || htmlTheme === 'ah' || htmlTheme === 'albertHeijn' ||
+          bodyTheme === 'albert-heijn' || bodyTheme === 'ah' || bodyTheme === 'albertHeijn') {
         return 'albert-heijn';
       }
 
@@ -141,14 +141,14 @@ export const Logo = ({
   const config = logoConfig[resolvedTheme];
 
   // Determine color filter based on variant and theme
-  const getColorFilter = () => {
-    if (variant === 'original') return '';
-    if (variant === 'white') return 'filter brightness-0 invert';
-    if (variant === 'blue') return 'filter brightness-0 saturate-200 sepia-100 hue-rotate-180 brightness-150';
+  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn', currentVariant: string) => {
+    if (currentVariant === 'original') return '';
+    if (currentVariant === 'white') return 'filter brightness-0 invert';
+    if (currentVariant === 'blue') return 'filter brightness-0 saturate-200 sepia-100 hue-rotate-180 brightness-150';
     
     // Auto variant - use theme-appropriate colors
-    if (variant === 'auto') {
-      if (resolvedTheme === 'albert-heijn') {
+    if (currentVariant === 'auto') {
+      if (currentTheme === 'albert-heijn') {
         return 'filter brightness-0 invert'; // White for AH theme by default
       }
     }
@@ -156,13 +156,20 @@ export const Logo = ({
     return ''; // Original colors for Gambit theme
   };
 
+  // State for client-side color filter to avoid hydration mismatch
+  const [colorFilter, setColorFilter] = useState('');
+
+  useEffect(() => {
+    setColorFilter(getColorFilter(resolvedTheme, variant));
+  }, [variant, resolvedTheme]);
+
   return (
     <div
       className={cn(
         'flex items-center justify-center', 
         // Only apply default size if no custom className with size is provided
         !className?.includes('w-') && !className?.includes('h-') && 'w-10 h-10',
-        getColorFilter(),
+        colorFilter,
         className
       )}
       onClick={onClick}

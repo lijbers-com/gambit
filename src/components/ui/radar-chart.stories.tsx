@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { RadarChartComponent } from './radar-chart';
 
 const meta: Meta<typeof RadarChartComponent> = {

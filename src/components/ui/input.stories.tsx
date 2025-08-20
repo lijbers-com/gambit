@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Input, FileInput } from './input';
 import { Label } from './label';
 import React, { useRef, useState } from 'react';

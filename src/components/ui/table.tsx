@@ -29,7 +29,7 @@ export interface TableRowSelection<T> {
 export interface TableProps<T> {
   columns: TableColumn<T>[];
   data: T[];
-  rowKey: (row: T) => React.Key;
+  rowKey?: (row: T) => React.Key;
   className?: string;
   rowActions?: (row: T) => React.ReactNode;
   hideActions?: boolean;
@@ -39,6 +39,14 @@ export interface TableProps<T> {
 }
 
 export function Table<T>({ columns, data, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection }: TableProps<T>) {
+  // Default rowKey function if not provided
+  const getRowKey = rowKey || ((row: T, index: number) => {
+    // Try to use 'id' property if available, otherwise use index
+    if (row && typeof row === 'object' && 'id' in row) {
+      return (row as any).id;
+    }
+    return index;
+  });
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = React.useState(() =>
     columns.map((col) => ({ key: col.key, visible: true, hideable: col.hideable !== false }))
@@ -174,8 +182,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
       const sortFn = col.sortFn
         ? col.sortFn
         : (a: T, b: T) => {
-            const aVal = (a as any)[col.key];
-            const bVal = (b as any)[col.key];
+            const aVal = (a as Record<string, unknown>)[col.key];
+            const bVal = (b as Record<string, unknown>)[col.key];
             if (aVal === bVal) return 0;
             if (aVal == null) return -1;
             if (bVal == null) return 1;
@@ -223,7 +231,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
           ) : (
             sortedData.map((row, i) => (
               <tr
-                key={rowKey(row)}
+                key={getRowKey(row, i)}
                 className={cn(
                   'bg-white',
                   i !== sortedData.length - 1 && 'border-b border-slate-200',
@@ -239,7 +247,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}
                   >
                     <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>
-                    {col.render ? col.render(row) : (row as any)[col.key]}
+                    {col.render ? col.render(row) : (row as Record<string, unknown>)[col.key]}
                     </div>
                   </td>
                 ))}

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { LineChart, Line, ResponsiveContainer } from 'recharts'
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
@@ -42,10 +43,10 @@ export function CardWithTabs({
             <button
               key={tab.value}
               className={
-                `px-6 py-3 text-sm font-medium border border-b-0 rounded-t-lg focus:outline-none transition-colors ` +
+                `px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors ` +
                 (activeTab === tab.value
-                  ? 'bg-white text-card-foreground border-slate-200 z-10'
-                  : 'bg-transparent text-muted-foreground border-transparent hover:text-card-foreground')
+                  ? 'font-medium bg-white text-card-foreground border-slate-200 z-10'
+                  : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground')
               }
               style={{ position: 'relative', top: 1 }}
               onClick={() => setActiveTab(tab.value)}
@@ -190,10 +191,13 @@ export interface MetricCardProps {
   value: string;
   subMetric?: string;
   badgeValue?: string;
-  badgeVariant?: "default" | "destructive" | "secondary" | "outline";
+  badgeVariant?: "default" | "destructive" | "secondary" | "outline" | "success" | "warning" | "info";
   isSelected?: boolean;
   onClick?: () => void;
   className?: string;
+  variant?: "default" | "graph";
+  graphData?: Array<{ value: number }>;
+  graphColor?: string;
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
@@ -206,6 +210,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     isSelected = false, 
     onClick, 
     className,
+    variant = "default",
+    graphData,
+    graphColor = "#8884d8",
     ...props 
   }, ref) => (
     <Card
@@ -218,28 +225,87 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       onClick={onClick}
       {...props}
     >
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-normal text-muted-foreground">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-normal text-muted-foreground truncate">
           {label}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-3xl font-bold text-foreground">
+      <CardContent className="space-y-3 pb-6 pt-0">
+        <div className="text-3xl font-bold text-foreground truncate">
           {value}
         </div>
-        {(subMetric || badgeValue) && (
-          <div className="flex items-center justify-between bg-slate-50 rounded-full p-2 px-4 gap-4">
-            {subMetric && (
-              <div className="text-sm text-muted-foreground truncate flex-1 min-w-0">
-                {subMetric}
+        {variant === "graph" ? (
+          graphData ? (
+            <div className="space-y-2">
+              <div className="h-10 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData}>
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke={graphColor} 
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 3, stroke: graphColor, strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            )}
-            {badgeValue && (
-              <Badge variant={badgeVariant} className="text-xs flex-shrink-0">
-                {badgeValue}
-              </Badge>
-            )}
-          </div>
+              {(subMetric || badgeValue) && (
+                <div className="flex items-center justify-between">
+                  {subMetric && (
+                    <div className="text-sm text-muted-foreground truncate flex-1 min-w-0">
+                      {subMetric}
+                    </div>
+                  )}
+                  {badgeValue && (
+                    <Badge variant={badgeVariant} className="text-xs flex-shrink-0">
+                      {badgeValue}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {/* Green progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: '75%' }}
+                />
+              </div>
+              {(subMetric || badgeValue) && (
+                <div className="flex items-center justify-between">
+                  {subMetric && (
+                    <div className="text-sm text-muted-foreground truncate flex-1 min-w-0">
+                      {subMetric}
+                    </div>
+                  )}
+                  {badgeValue && (
+                    <Badge variant={badgeVariant} className="text-xs flex-shrink-0">
+                      {badgeValue}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+          (subMetric || badgeValue) && (
+            <div className="flex items-center justify-between bg-slate-50 rounded-full p-2 px-4 gap-4">
+              {subMetric && (
+                <div className="text-sm text-muted-foreground truncate flex-1 min-w-0">
+                  {subMetric}
+                </div>
+              )}
+              {badgeValue && (
+                <Badge variant={badgeVariant} className="text-xs flex-shrink-0">
+                  {badgeValue}
+                </Badge>
+              )}
+            </div>
+          )
         )}
       </CardContent>
       {/* Arrow pointing down from the selected card */}

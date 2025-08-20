@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[data-theme="albertHeijn"],
+html[data-theme="albertHeijn"],
+body[data-theme="albertHeijn"] {
+  /* Albert Heijn Brand-Specific Tokens */
+  --brand-theme: albert-heijn; /* Theme identifier for logo component */
+  --brand-primary: #00ADE6; /* Albert Heijn brand primary */
+  --brand-app-bg: #00ADE6; /* Albert Heijn brand app background */
+  --brand-app-bg-hex: #00ADE6; /* Albert Heijn brand app background (HEX) */
+  --brand-app-text: #ffffff; /* Albert Heijn brand app text */
+  --brand-app-hover: #0086B2; /* Albert Heijn brand app hover */
+  --logo-url: url('/ah-logo.svg');
+  
+  /* Theme-specific chart colors */
+  --chart-1: 201 100% 50%; /* Albert Heijn Blue */
+  --chart-2: 201 100% 35%; /* Albert Heijn Blue Dark */
+  --chart-3: 201 100% 65%; /* Albert Heijn Blue Light */
+  --chart-4: 201 80% 45%; /* Albert Heijn Blue Variant */
+  --chart-5: 201 90% 40%; /* Albert Heijn Blue Accent */
+  
+  /* Keep base theme tokens unchanged for UI consistency */
+  /* Only brand-specific tokens should change */
+}
+
+
+[data-theme="retailMedia"],
+html[data-theme="retailMedia"],
+body[data-theme="retailMedia"] {
+  /* Default (Gambit) Brand-Specific Tokens */
+  --brand-theme: gambit; /* Theme identifier for logo component */
+  --brand-primary: #1e293b; /* Gambit brand primary */
+  --brand-app-bg: #ffffff; /* Gambit brand app background */
+  --brand-app-bg-hex: #ffffff; /* Gambit brand app background (HEX) */
+  --brand-app-text: #0f172a; /* Gambit brand app text */
+  --brand-app-hover: #f1f5f9; /* Gambit brand app hover */
+  --logo-url: url('/gambit-logo.svg');
+  
+  /* Theme-specific chart colors */
+  --chart-1: 258 100% 60%; /* Gambit Purple */
+  --chart-2: 258 80% 45%; /* Gambit Purple Dark */
+  --chart-3: 258 100% 75%; /* Gambit Purple Light */
+  --chart-4: 258 90% 50%; /* Gambit Purple Variant */
+  --chart-5: 258 70% 40%; /* Gambit Purple Accent */
+  
+  /* Keep base theme tokens unchanged for UI consistency */
+  /* Only brand-specific tokens should change */
+}
+
+
+@layer base {
+  :root,
+  body {
+    /* Base color tokens */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    
+    /* Chart color tokens - Default theme (keep consistent across all themes) */
+    --chart-1: 221 83% 53%; /* Blue */
+    --chart-2: 142 76% 36%; /* Green */
+    --chart-3: 32 95% 44%; /* Orange */
+    --chart-4: 262 83% 58%; /* Purple */
+    --chart-5: 346 87% 43%; /* Red */
+    
+    /* Brand-specific tokens */
+    --brand-primary: 222.2 47.4% 11.2%; /* Default brand color */
+    --brand-accent: 210 40% 96.1%; /* Default accent */
+    --brand-app-bg: 0 0% 100%; /* Default app background for navigation and breadcrumbs */
+    --brand-app-text: 222.2 84% 4.9%; /* Default text color for navigation elements */
+    --brand-app-hover: 210 40% 96.1%; /* Default hover state for navigation elements */
+    --logo-url: url('/gambit-logo.svg');
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* SmartBreadcrumbs styles */
+
+.dropdown {
+  height: 64px;
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+}
+
+/* Side Navigation styles */
+.scrollbarHide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbarHide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Use brand tokens for navigation components */
+.side-navigation {
+  background: var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff)) !important;
+  padding-top: 16px !important;
+}
+
+/* Collapsed state: 16px padding */
+.side-navigation.w-\[72px\] {
+  padding-left: 16px !important;  
+  padding-right: 16px !important;
+}
+
+/* Expanded state: 24px padding */
+.side-navigation.min-w-\[270px\] {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+
+.breadcrumb {
+  background: var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff)) !important;
+  color: var(--brand-app-text) !important;
+}
+
+/* Breadcrumb text and icon styling */
+.breadcrumb,
+.breadcrumb a,
+.breadcrumb button,
+.breadcrumb span {
+  color: var(--brand-app-text) !important;
+}
+
+.breadcrumb svg {
+  stroke: var(--brand-app-text) !important;
+}
+
+/* Override link and button colors within brand-specific sections */
+.side-navigation a,
+.side-navigation button,
+.side-navigation span,
+.side-navigation p,
+.side-navigation div {
+  color: var(--brand-app-text) !important;
+}
+
+/* Ensure all SVG icons use brand app text color */
+.side-navigation svg {
+  stroke: var(--brand-app-text) !important;
+  color: var(--brand-app-text) !important;
+}
+
+/* Hover states */
+.side-navigation a:hover,
+.side-navigation button:hover {
+  background: var(--brand-app-hover) !important;
+}
+
+/* Specific targeting for navigation items */
+.side-navigation .text-slate-500,
+.side-navigation .text-slate-700,
+.side-navigation .text-slate-400,
+.side-navigation .text-sm {
+  color: var(--brand-app-text) !important;
+}
+
+/* Icon targeting */
+.side-navigation .w-5.h-5,
+.side-navigation .lucide {
+  stroke: var(--brand-app-text) !important;
+}
+
+/* Make sure all elements inherit brand text color */
+.side-navigation * {
+  color: var(--brand-app-text) !important;
+}
+
+/* Ensure all SVG icons have proper stroke color */
+.side-navigation * svg {
+  stroke: var(--brand-app-text) !important;
+  fill: none !important;
+}
+
+/* Logo container should always be transparent */
+.side-navigation-logo {
+  background: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}

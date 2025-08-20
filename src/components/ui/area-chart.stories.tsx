@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AreaChartComponent } from './area-chart';
 
 const meta: Meta<typeof AreaChartComponent> = {

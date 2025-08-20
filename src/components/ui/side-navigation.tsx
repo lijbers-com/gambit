@@ -1,14 +1,15 @@
 'use client';
 
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage } from './avatar';
 import { NavigationItem } from './navigation-item';
 import { NavigationItemWithSubmenu } from './navigation-item-with-submenu';
 import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
-import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { usePathname } from '@/lib/router-context';
+import { Link } from '@/lib/router-context';
+import { useEffect, useContext } from 'react';
+import { ThemeContext } from '@/contexts/theme-context';
 
 export interface Route {
   id: number;
@@ -48,6 +49,15 @@ export const SideNavigation = ({
   className,
   style,
 }: SideNavigationProps) => {
+  // Use theme from context if available, otherwise default to 'gambit'
+  let theme = 'gambit';
+  try {
+    const themeContext = useContext(ThemeContext);
+    theme = themeContext?.theme || 'gambit';
+  } catch (error) {
+    // ThemeContext not available, use default theme
+    theme = 'gambit';
+  }
   const { collapsed, setOpenSubmenu, openSubmenu } = useMenu();
   const pathname = usePathname();
 
@@ -60,7 +70,7 @@ export const SideNavigation = ({
 
   // Initialize open submenu based on current path
   useEffect(() => {
-    if (!pathname || collapsed) return;
+    if (!pathname) return;
 
     // Find which menu should be open based on current path
     const activeMenuId = routes.find(route => 
@@ -68,18 +78,19 @@ export const SideNavigation = ({
     )?.id.toString();
 
     if (activeMenuId) {
-      // Only update if the menu isn't already open
-      setOpenSubmenu(current => {
-        if (current.includes(activeMenuId)) {
-          return current; // No change needed
-        }
-        return [activeMenuId];
-      });
-    } else {
-      // Clear open submenus if we're not in a submenu section
-      setOpenSubmenu(current => current.length > 0 ? [] : current);
+      // Always set the active menu to open when we're on a submenu page
+      setOpenSubmenu([activeMenuId]);
     }
-  }, [pathname, collapsed, setOpenSubmenu]); // Routes don't need to be a dependency as they don't change
+    // Note: We don't clear submenus when there's no active menu
+    // This allows manual menu opening/closing to persist when not on submenu pages
+  }, [pathname, setOpenSubmenu, routes]);
+
+  // Close all submenus when the navigation is collapsed
+  useEffect(() => {
+    if (collapsed) {
+      setOpenSubmenu([]);
+    }
+  }, [collapsed, setOpenSubmenu]);
 
   // filter all parents that dont have subitems
   const filteredRoutes = routes.filter(
@@ -94,17 +105,19 @@ export const SideNavigation = ({
         'side-navigation', // add this class for targeting
         // Make the sidebar fixed to the left, full height, and above content
         `fixed left-0 top-0 h-screen z-30 flex-shrink-0 text-sm flex flex-col transition-all duration-500 ease-in-out overflow-hidden scrollbar-hide`,
-        collapsed ? 'w-[88px] pt-3 px-6 pb-6' : 'min-w-[270px] pt-3 px-6 pb-6',
+        collapsed ? 'w-[72px]' : 'w-[270px]',
+        'pt-4 px-4 pb-6', // Consistent 16px (px-4) padding for both states
         className
       )}
+      data-collapsed={collapsed}
       style={style}
     >
       {/* Scrollable navigation area */}
       <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-        <div className={cn("flex mb-8", collapsed && "justify-center")}>
-          <a 
+        <div className="flex mb-8">
+          <Link 
             href="/" 
-            className="side-navigation-logo" 
+            className="side-navigation-logo flex-shrink-0 w-10 h-10" // Fixed dimensions for consistent positioning
             style={{ 
               pointerEvents: 'auto',
               background: 'none !important',
@@ -113,7 +126,7 @@ export const SideNavigation = ({
             }}
           >
             <Logo theme="auto" />
-          </a>
+          </Link>
         </div>
 
         {filteredRoutes.map((item, index, arr) => {
@@ -149,14 +162,11 @@ export const SideNavigation = ({
       {/* Sticky avatar at the bottom */}
       <div className="mt-auto">
         {user && (
-          <a
-            className={cn(
-              "flex items-center mb-6 mt-12 pr-2 rounded-md hover:bg-slate-100",
-              collapsed && "justify-center pr-0"
-            )}
+          <Link
+            className="flex items-center mb-6 mt-12 pr-2 rounded-md hover:bg-slate-100"
             href="/profile"
           >
-            <span className={cn("flex-shrink-0", collapsed ? "" : "mr-2")}>
+            <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
               <Avatar>
                 <AvatarImage
                   src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURI(
@@ -165,8 +175,8 @@ export const SideNavigation = ({
                 />
               </Avatar>
             </span>
-            <span className={cn('text-sm transition-opacity duration-300', collapsed && 'hidden')}>Profile</span>
-          </a>
+            <span className={cn('text-sm ml-2 transition-opacity duration-300', collapsed && 'hidden')}>Profile</span>
+          </Link>
         )}
       </div>
     </div>

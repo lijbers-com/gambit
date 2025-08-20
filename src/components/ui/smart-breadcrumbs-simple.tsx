@@ -10,16 +10,18 @@ import {
 } from './breadcrumb';
 
 export type SimpleBreadcrumbProps = {
+  namespace: string;
   showNavToggle?: boolean;
   className?: string;
 };
 
 export const SmartBreadcrumbsSimple = ({
+  namespace,
   showNavToggle = false,
   className,
 }: SimpleBreadcrumbProps) => {
   return (
-    <Breadcrumb showNavToggle={showNavToggle} className={`w-full relative ${className || ''}`}>
+    <Breadcrumb namespace={namespace} showNavToggle={showNavToggle} className={`w-full relative ${className || ''}`}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/">

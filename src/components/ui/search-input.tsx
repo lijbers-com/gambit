@@ -3,10 +3,12 @@ import { Input } from "./input";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+export interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: React.ReactNode;
+}
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ className, value, onChange, ...props }, ref) => {
+  ({ className, value, onChange, icon, ...props }, ref) => {
     const [internalValue, setInternalValue] = React.useState(value ?? "");
     const isControlled = value !== undefined;
     const inputValue = isControlled ? value : internalValue;
@@ -25,7 +27,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     return (
       <div className={cn("relative flex items-center", className)}>
         <span className="absolute left-3 text-muted-foreground">
-          <Search className="w-4 h-4" />
+          {icon || <Search className="w-4 h-4" />}
         </span>
         <Input
           ref={ref}

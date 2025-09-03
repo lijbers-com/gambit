@@ -193,8 +193,8 @@ export const WithCheckboxItems: Story = {
           <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-72 p-1">
-          <div className="sticky top-0 z-10 bg-white px-1 pt-1 pb-2">
+        <DropdownMenuContent className="w-72 p-0">
+          <div className="sticky top-0 z-10 bg-white">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">
                 <Search className="w-4 h-4" />
@@ -204,12 +204,12 @@ export const WithCheckboxItems: Story = {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="pl-9 pr-3 py-1.5 w-full rounded-md bg-muted/30 text-base shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm border-0"
+                className="pl-9 pr-3 py-3 w-full rounded-none bg-muted/30 text-base shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm border-0"
                 style={{ boxShadow: 'none' }}
               />
             </div>
           </div>
-          <div className="max-h-96 overflow-y-auto divide-y divide-transparent">
+          <div className="max-h-96 overflow-y-auto divide-y divide-transparent p-1">
             {filteredOptions.length === 0 ? (
               <div className="px-4 py-6 text-center text-muted-foreground text-sm">No results</div>
             ) : (
@@ -224,7 +224,7 @@ export const WithCheckboxItems: Story = {
                       setChecked(checked.filter(v => v !== opt.value));
                     }
                   }}
-                  className="rounded-md px-2 py-1.5 transition-colors hover:bg-accent focus:bg-accent"
+                  className="rounded-md px-2 py-2.5 mb-1 transition-colors hover:bg-accent focus:bg-accent"
                 >
                   {opt.label}
         </DropdownMenuCheckboxItem>

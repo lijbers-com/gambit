@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
 import { Badge } from './badge';
 
 export interface Booking {
@@ -32,9 +32,11 @@ export interface CalendarTableProps {
   startWeek?: number;
   retailerEvents?: RetailerEvent[];
   showReach?: boolean;
-  displayType?: 'reach' | 'fillRate' | 'revenue' | 'stores' | 'players';
+  displayType?: 'reach' | 'fillRate' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
   className?: string;
   onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: number | string) => void;
+  hideGreyCells?: boolean;
+  hasRetailProductFilter?: boolean;
 }
 
 export const CalendarTable: React.FC<CalendarTableProps> = ({ 
@@ -45,7 +47,9 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   showReach = false,
   displayType = 'reach',
   className,
-  onCellClick
+  onCellClick,
+  hideGreyCells = false,
+  hasRetailProductFilter = false
 }) => {
   const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
   const [isCommercialCalendarOpen, setIsCommercialCalendarOpen] = React.useState(true);
@@ -123,41 +127,67 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   const renderAvailabilityCell = (value: number | string, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
     const hasEvent = hasEventInWeek(weekNumbers[weekIndex]);
     
-    // Determine color based on value
-    let colorClass = "text-slate-700"; // Default
+    // Never show empty cells - always display value or dash
+    // Removed the null check that returned empty cells
+
+    // Format the display value
+    let displayValue: string = '';
+    if (value === null || value === undefined) {
+      displayValue = '—';
+    } else if (typeof value === 'number') {
+      // For numbers, add % sign only for fillRate display type
+      if (displayType === 'fillRate') {
+        displayValue = `${value}%`;
+      } else if (displayType === 'revenue') {
+        // Format revenue with K/M for thousands/millions
+        if (value >= 1000000) {
+          displayValue = `€${(value / 1000000).toFixed(1)}M`;
+        } else if (value >= 1000) {
+          displayValue = `€${Math.round(value / 1000)}K`;
+        } else {
+          displayValue = `€${value}`;
+        }
+      } else if (displayType === 'reach') {
+        // Format reach numbers compactly (300K to 3M range)
+        if (value >= 1000000) {
+          // For millions: show 1 decimal if less than 10M, otherwise round
+          const millions = value / 1000000;
+          displayValue = millions < 10 ? `${millions.toFixed(1)}M` : `${Math.round(millions)}M`;
+        } else if (value >= 100000) {
+          // For hundreds of thousands: round to nearest thousand
+          displayValue = `${Math.round(value / 1000)}K`;
+        } else if (value >= 1000) {
+          // For thousands: show with K
+          displayValue = `${(value / 1000).toFixed(1)}K`;
+        } else {
+          displayValue = value.toString();
+        }
+      } else if (displayType === 'stores') {
+        displayValue = value.toString();
+      } else if (displayType === 'bookedCampaigns') {
+        displayValue = value.toString();
+      } else {
+        // Default formatting for other numeric values
+        if (value >= 1000000) {
+          displayValue = `${(value / 1000000).toFixed(1)}M`;
+        } else if (value >= 1000) {
+          displayValue = `${Math.round(value / 1000)}K`;
+        } else {
+          displayValue = value.toString();
+        }
+      }
+    } else {
+      // For strings, use as-is
+      displayValue = value.toString();
+    }
+    
+    // Use neutral colors for all cells - no highlighting
+    let colorClass = "text-slate-700"; // Neutral color for all cells
     let borderColorClass = "border-b-slate-400";
     let iconColorClass = "text-slate-400";
     
-    if (typeof value === 'number') {
-      if (value > 10) {
-        // Available: 100% to 11% - Green
-        colorClass = "text-green-600";
-        borderColorClass = "border-b-green-600";
-        iconColorClass = "text-green-600";
-      } else if (value >= 0) {
-        // No availability: 10% to 0% - Grey
-        colorClass = "text-slate-500";
-        borderColorClass = "border-b-slate-500";
-        iconColorClass = "text-slate-500";
-      } else {
-        // Overbooked: -1% to -100% - Red
-        colorClass = "text-red-600";
-        borderColorClass = "border-b-red-600";
-        iconColorClass = "text-red-600";
-      }
-    } else if (typeof value === 'string') {
-      if (value.includes('K')) {
-        // For reach values with K, use green
-        colorClass = "text-green-600";
-        borderColorClass = "border-b-green-600";
-        iconColorClass = "text-green-600";
-      } else if (value === 'MC' || value.toLowerCase().includes('multi')) {
-        // Warning: MC (Multi Client) - Orange
-        colorClass = "text-orange-600";
-        borderColorClass = "border-b-orange-600";
-        iconColorClass = "text-orange-600";
-      }
-    }
+    // Removed all color logic - keeping neutral colors for all values
+    // No more red/green/orange highlighting based on values
     
     const handleCellClick = () => {
       if (onCellClick) {
@@ -165,31 +195,34 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       }
     };
 
+    // Show reach icon based on showReach prop
+    const shouldShowIcon = showReach !== false;
+
     return (
       <td 
         key={weekIndex} 
         className={cn(
-          "px-4 py-3 align-middle text-center cursor-pointer hover:bg-slate-50 transition-colors",
-          (colorClass === "text-green-600" || colorClass === "text-orange-600" || colorClass === "text-red-600") && "border-b-2",
-          (colorClass === "text-green-600" || colorClass === "text-orange-600" || colorClass === "text-red-600") && borderColorClass
+          "px-3 py-3 align-middle text-center cursor-pointer hover:bg-slate-50 transition-colors"
+          // Removed thick border and conditional border coloring
         )}
         onClick={handleCellClick}
       >
-        <div className="flex items-center justify-center gap-1" style={{ minHeight: 48 }}>
+        <div className="flex items-center justify-center gap-1">
           <span className={cn(
-            "text-[14px] truncate whitespace-nowrap overflow-hidden",
+            "text-sm font-semibold",
             colorClass
           )}>
-            {value}
+            {displayValue || '—'}
           </span>
-          {(() => {
+          {shouldShowIcon && displayValue && displayValue !== '—' && (() => {
             const IconComponent = displayType === 'reach' ? Eye 
               : displayType === 'fillRate' ? Percent 
               : displayType === 'revenue' ? Euro 
               : displayType === 'stores' ? Store 
               : displayType === 'players' ? TvMinimalPlay 
+              : displayType === 'bookedCampaigns' ? Megaphone
               : Eye;
-            return <IconComponent className={cn("w-4 h-4 flex-shrink-0", iconColorClass)} style={{ minWidth: '16px', minHeight: '16px' }} />;
+            return <IconComponent className={cn("w-4 h-4 flex-shrink-0", iconColorClass)} />;
           })()}
         </div>
       </td>
@@ -254,24 +287,25 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   };
 
   const zonesColumnWidth = '240px';
-  const weekColumnWidth = `max(90px, calc((100% - ${zonesColumnWidth}) / ${weeks}))`; // Minimum 90px, but stretch to fill
+  const weekColumnWidth = '100px'; // Fixed width for week columns
 
   return (
     <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
       {/* Main Table */}
-      <table className="w-full text-[14px] text-slate-700" style={{ minWidth: `calc(${zonesColumnWidth} + ${weeks} * ${weekColumnWidth})`, tableLayout: 'fixed' }}>
+      <table className="w-full text-sm text-slate-700" style={{ minWidth: `${240 + (weeks * 100)}px`, tableLayout: 'fixed' }}>
         <thead className="bg-slate-50">
           <tr>
             <th 
-              className="px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap"
+              className="px-4 py-3 text-left font-medium text-slate-600 tracking-wide whitespace-nowrap"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
+              Zones
             </th>
             {weekNumbers.map(week => (
               <th 
                 key={week} 
-                className="px-4 py-3 text-center font-normal text-slate-500 tracking-wide whitespace-nowrap"
-                style={{ width: weekColumnWidth, minWidth: '90px' }}
+                className="px-4 py-3 text-center font-medium text-slate-600 tracking-wide whitespace-nowrap"
+                style={{ width: weekColumnWidth, minWidth: weekColumnWidth }}
               >
                 Week {week}
               </th>

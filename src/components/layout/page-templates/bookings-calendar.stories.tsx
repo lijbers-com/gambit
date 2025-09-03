@@ -231,13 +231,6 @@ const BookingCalendarTemplate = ({
     }, []);
   };
 
-  const statusVariant = (status: string) => {
-    switch (status) {
-      case 'closed-won': return 'default';
-      case 'in-option': return 'warning';
-      default: return 'outline';
-    }
-  };
   
   // Adjust retailer events to match the actual week range
   const adjustedRetailerEvents = retailerEvents.map(event => ({
@@ -381,12 +374,6 @@ const BookingCalendarTemplate = ({
                   selectedValues: storeType,
                   onChange: setStoreType,
                 },
-                {
-                  name: 'Media product',
-                  options: mediaProductOptions,
-                  selectedValues: mediaProduct,
-                  onChange: setMediaProduct,
-                },
               ]}
               hideSearch={true}
             />
@@ -398,7 +385,11 @@ const BookingCalendarTemplate = ({
               startWeek={startWeek}
               retailerEvents={adjustedRetailerEvents}
               showReach={true}
-              displayType={activeView as 'reach' | 'fillRate' | 'revenue' | 'stores' | 'players'}
+              displayType={
+                activeView === 'bookedCampaigns' ? 'fillRate' : 
+                activeView === 'stores' ? 'stores' : 
+                'reach'
+              }
               onCellClick={handleCellClick}
             />
           </CardContent>
@@ -487,11 +478,6 @@ const BookingCalendarTemplate = ({
                   { key: 'id', header: 'Booking ID' },
                   { key: 'name', header: 'Campaign Name' },
                   { key: 'mediaProductName', header: 'Media Product' },
-                  { 
-                    key: 'status', 
-                    header: 'Status', 
-                    render: row => <Badge variant={statusVariant(row.status)}>{row.status === 'closed-won' ? 'Closed-won' : 'In option'}</Badge> 
-                  },
                   { 
                     key: 'stores', 
                     header: 'Stores', 
@@ -695,8 +681,9 @@ const generalBookingsData = [
   },
   {
     id: '5',
-    name: 'Checkout Display',
-    availability: [60, 45, 30, 15, 5, -20, -35, 40, 55, 70, 25, 90],
+    name: 'Dranken',
+    availability: [820, 750, 680, 620, 570, 520, 480, 800, 730, 670, 710, 840],
+    reachData: [2250000, 1950000, 1550000, 1280000, 980000, 650000, 450000, 1750000, 2150000, 1450000, 1050000, 2550000],
     storeTypes: ['to-go', 'express', 'premium'],
     retailProducts: ['rp-011', 'rp-012', 'rp-013', 'rp-019'],
     bookings: [
@@ -771,10 +758,12 @@ const generalBookingsData = [
 const offlineInstoreBookingsData = [
   {
     id: '1',
-    name: 'End Cap Displays',
-    availability: [90, 70, 35, 15, 5, -5, -20, 80, 55, 40, 25, 85],
+    name: 'No zone',
+    availability: [800, 720, 650, 580, 520, 450, 380, 750, 680, 620, 560, 780],
+    reachData: [2850000, 2400000, 1950000, 1680000, 1420000, 950000, 680000, 2200000, 2750000, 1850000, 1200000, 3000000],
     storeTypes: ['to-go', 'xl', 'express', 'premium'],
     retailProducts: ['rp-001', 'rp-004', 'rp-008', 'rp-016'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-1',
@@ -807,10 +796,12 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '2',
-    name: 'Shelf Talkers',
-    availability: [85, 60, 30, 10, 0, -10, -25, 70, 45, 35, 55, 80],
+    name: 'Zuivel',
+    availability: [850, 780, 710, 640, 580, 520, 460, 820, 750, 690, 730, 860],
+    reachData: [2650000, 2180000, 1780000, 1520000, 1280000, 850000, 580000, 2050000, 2550000, 1650000, 980000, 2850000],
     storeTypes: ['xl', 'premium', 'compact'],
     retailProducts: ['rp-002', 'rp-005', 'rp-009', 'rp-017'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-4',
@@ -843,10 +834,12 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '3',
-    name: 'Floor Graphics',
-    availability: [75, 50, 25, 8, 0, -15, -30, 60, 40, 30, 45, 70],
+    name: 'Vers',
+    availability: [780, 720, 660, 600, 550, 500, 450, 750, 690, 630, 670, 800],
+    reachData: [2450000, 2050000, 1650000, 1380000, 1150000, 750000, 480000, 1850000, 2350000, 1450000, 850000, 2650000],
     storeTypes: ['to-go', 'express', 'compact'],
     retailProducts: ['rp-003', 'rp-007', 'rp-011', 'rp-019'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-7',
@@ -870,10 +863,12 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '4',
-    name: 'Promotional Stands',
-    availability: [65, 40, 20, 5, 0, -20, -35, 55, 35, 25, 50, 75],
+    name: 'Vlees & Vega',
+    availability: [740, 680, 620, 560, 510, 460, 420, 720, 650, 590, 630, 760],
+    reachData: [2250000, 1850000, 1450000, 1180000, 950000, 650000, 380000, 1650000, 2150000, 1250000, 750000, 2450000],
     storeTypes: ['xl', 'premium'],
     retailProducts: ['rp-006', 'rp-010', 'rp-014', 'rp-020'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-9',
@@ -897,10 +892,12 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '5',
-    name: 'In-store Sampling',
-    availability: [80, 55, 30, 12, 2, -8, -18, 65, 50, 35, 40, 85],
+    name: 'Diepvries',
+    availability: [770, 710, 650, 590, 540, 490, 450, 740, 680, 620, 660, 790],
+    reachData: [2150000, 1750000, 1350000, 1080000, 850000, 550000, 320000, 1550000, 1950000, 1150000, 680000, 2350000],
     storeTypes: ['xl', 'premium', 'compact'],
     retailProducts: ['rp-012', 'rp-013', 'rp-015', 'rp-018'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-11',
@@ -924,10 +921,12 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '6',
-    name: 'Window Displays',
-    availability: [70, 45, 22, 7, 0, -12, -28, 58, 38, 28, 48, 78],
+    name: 'Worldfoods',
+    availability: [720, 660, 600, 540, 490, 440, 400, 700, 640, 580, 620, 740],
+    reachData: [1950000, 1550000, 1150000, 880000, 650000, 450000, 300000, 1350000, 1750000, 950000, 580000, 2150000],
     storeTypes: ['premium', 'compact'],
     retailProducts: ['rp-004', 'rp-008', 'rp-016', 'rp-020'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
     bookings: [
       {
         id: 'booking-13',
@@ -948,6 +947,66 @@ const offlineInstoreBookingsData = [
         status: 'in-option',
       },
     ],
+  },
+  {
+    id: '7',
+    name: 'Maaltijdtoevoegingen',
+    availability: [510, 370, 260, 150, 95, 50, 25, 440, 350, 290, 320, 490],
+    reachData: [1150000, 950000, 750000, 580000, 420000, 350000, 300000, 850000, 1050000, 650000, 480000, 1350000],
+    storeTypes: ['to-go', 'xl', 'premium'],
+    retailProducts: ['rp-005', 'rp-009', 'rp-017'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
+  },
+  {
+    id: '8',
+    name: 'Noten, toast, chips etc.',
+    availability: [480, 340, 230, 120, 70, 40, 20, 410, 320, 270, 300, 460],
+    reachData: [950000, 780000, 620000, 480000, 380000, 320000, 300000, 720000, 850000, 550000, 420000, 1150000],
+    storeTypes: ['express', 'compact', 'premium'],
+    retailProducts: ['rp-006', 'rp-010', 'rp-018'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
+  },
+  {
+    id: '9',
+    name: 'Zoetwaren',
+    availability: [520, 380, 270, 140, 85, 45, 22, 450, 360, 300, 340, 500],
+    reachData: [1250000, 1050000, 820000, 650000, 480000, 380000, 320000, 920000, 1150000, 720000, 520000, 1450000],
+    storeTypes: ['to-go', 'express', 'xl'],
+    retailProducts: ['rp-007', 'rp-011', 'rp-019'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
+  },
+  {
+    id: '10',
+    name: 'Ontbijt',
+    availability: [560, 420, 310, 180, 110, 60, 35, 490, 400, 340, 370, 540],
+    reachData: [1450000, 1250000, 980000, 750000, 550000, 420000, 350000, 1080000, 1350000, 820000, 620000, 1650000],
+    storeTypes: ['xl', 'premium', 'compact'],
+    retailProducts: ['rp-008', 'rp-012', 'rp-020'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
+  },
+  {
+    id: '11',
+    name: 'Non Food',
+    availability: [440, 310, 200, 100, 55, 30, 15, 380, 290, 240, 260, 420],
+    reachData: [850000, 680000, 520000, 420000, 350000, 310000, 300000, 620000, 750000, 480000, 380000, 950000],
+    storeTypes: ['premium', 'compact'],
+    retailProducts: ['rp-013', 'rp-014', 'rp-015'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
+  },
+  {
+    id: '12',
+    name: 'To Go',
+    availability: [390, 270, 180, 90, 45, 25, 10, 330, 250, 200, 220, 370],
+    reachData: [750000, 580000, 450000, 380000, 320000, 300000, 300000, 550000, 650000, 420000, 350000, 820000],
+    storeTypes: ['to-go', 'express'],
+    retailProducts: ['rp-016', 'rp-017', 'rp-018'],
+    inventoryTypes: ['package-small', 'package-medium', 'package-large'],
+    bookings: [],
   },
 ];
 
@@ -1522,11 +1581,371 @@ export const GeneralBookingsCalendar: Story = {
   ),
 };
 
+// Specialized component for offline in-store calendar with custom filters
+const OfflineInstoreCalendarTemplate = ({ 
+  bookingsData, 
+  title,
+  mediaProductOptions 
+}: { 
+  bookingsData: any[], 
+  title: string,
+  mediaProductOptions: Array<{ label: string, value: string }>
+}) => {
+  const [inventoryType, setInventoryType] = useState<string[]>([]);
+  const [storeType, setStoreType] = useState<string[]>([]);
+  const [retailProduct, setRetailProduct] = useState<string[]>([]);
+  const [maxStoreAmount, setMaxStoreAmount] = useState<string>('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{
+    mediaProduct: any;
+    weekNumber: number;
+    value: number | string;
+  } | null>(null);
+  const [activeView, setActiveView] = useState('bookedCampaigns');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
+  });
+  
+  const viewTabs = [
+    { value: 'bookedCampaigns', label: 'Booked campaigns' },
+    { value: 'stores', label: 'Available stores' },
+    { value: 'reach', label: 'Available reach' },
+  ];
+  
+  // Calculate weeks to show and start week from date range
+  const getCalendarWeeks = (range: DateRange | undefined) => {
+    if (!range?.from || !range?.to) {
+      // Default to 8 weeks starting from current week
+      const now = new Date();
+      return {
+        startWeek: getWeek(startOfWeek(now, { weekStartsOn: 1 })),
+        numberOfWeeks: 8
+      };
+    }
+    
+    const from = startOfWeek(range.from, { weekStartsOn: 1 });
+    const to = startOfWeek(range.to, { weekStartsOn: 1 });
+    const weeksDiff = differenceInWeeks(to, from) + 1; // +1 to include both start and end weeks
+    
+    return {
+      startWeek: getWeek(from),
+      numberOfWeeks: Math.max(1, Math.min(weeksDiff, 52)) // Limit to between 1 and 52 weeks
+    };
+  };
+  
+  const { startWeek, numberOfWeeks } = getCalendarWeeks(dateRange);
+
+  // Handle cell click to open drawer
+  const handleCellClick = (mediaProduct: any, weekNumber: number, value: number | string) => {
+    setSelectedCell({ mediaProduct, weekNumber, value });
+    setDrawerOpen(true);
+  };
+
+  // Get bookings for the selected week
+  const getBookingsForWeek = () => {
+    if (!selectedCell) return [];
+    
+    return filteredBookingsData.reduce((allBookings: any[], product) => {
+      if (product.bookings) {
+        const weekBookings = product.bookings.filter(booking => 
+          booking.startWeek <= selectedCell.weekNumber && booking.endWeek >= selectedCell.weekNumber
+        );
+        return [...allBookings, ...weekBookings.map(booking => ({
+          ...booking,
+          mediaProductName: product.name
+        }))];
+      }
+      return allBookings;
+    }, []);
+  };
+
+  
+  // Adjust retailer events to match the actual week range
+  const adjustedRetailerEvents = retailerEvents.map(event => ({
+    ...event,
+    week: startWeek + event.week - 1
+  }));
+  
+  // Adjust bookings data to match the actual week range  
+  const adjustedBookingsData = bookingsData.map(product => ({
+    ...product,
+    bookings: product.bookings?.map(booking => ({
+      ...booking,
+      startWeek: startWeek + booking.startWeek - 1,
+      endWeek: startWeek + booking.endWeek - 1,
+    }))
+  }));
+  
+  // Function to calculate availability reduction based on filters
+  const calculateFilteredAvailability = (baseAvailability: number[], product: any, shouldHideGreyCells = false) => {
+    let reductionFactor = 1.0;
+    
+    // Reduce availability if specific filters are applied
+    if (inventoryType.length > 0) {
+      // If specific inventory types are selected, reduce availability by 20%
+      reductionFactor *= 0.8;
+    }
+    
+    if (storeType.length > 0) {
+      // If specific store types are selected, reduce availability by 15%
+      reductionFactor *= 0.85;
+    }
+    
+    if (retailProduct.length > 0) {
+      // If specific retail products are selected, reduce availability by 25%
+      reductionFactor *= 0.75;
+    }
+    
+    // Apply reduction and round to integers, then cap at max store amount if specified
+    return baseAvailability.map(val => {
+      if (typeof val === 'number') {
+        let filteredVal = Math.round(val * reductionFactor);
+        
+        // Apply max store amount cap if specified
+        if (maxStoreAmount && !isNaN(parseInt(maxStoreAmount))) {
+          const maxStores = parseInt(maxStoreAmount);
+          filteredVal = Math.min(filteredVal, maxStores);
+        }
+        
+        
+        return filteredVal;
+      }
+      return val;
+    });
+  };
+
+  // Filter the adjusted bookings data based on selected filters
+  const filteredBookingsData = adjustedBookingsData.filter(product => {
+    // Inventory type filter
+    if (inventoryType.length > 0 && !inventoryType.some(type => product.inventoryTypes?.includes(type))) {
+      return false;
+    }
+    
+    // Store type filter
+    if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
+      return false;
+    }
+    
+    // Retail product filter
+    if (retailProduct.length > 0 && !retailProduct.some(productId => product.retailProducts?.includes(productId))) {
+      return false;
+    }
+    
+    return true;
+  }).map(product => {
+    const shouldHideGreyCells = activeView === 'stores' || activeView === 'reach';
+    return {
+      ...product,
+      availability: calculateFilteredAvailability(product.availability, product, shouldHideGreyCells),
+      reachData: product.reachData ? calculateFilteredAvailability(product.reachData, product, shouldHideGreyCells) : undefined,
+    };
+  });
+  
+  return (
+    <RightDrawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title,
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Select date range"
+              showPresets={true}
+              className="w-[280px]"
+            />
+          ),
+        }}
+      >
+        <Card className="w-full">
+          <CardHeader>
+            <div className="mb-4">
+              <Viewbar
+                tabs={viewTabs}
+                activeTab={activeView}
+                onTabChange={setActiveView}
+                labels={[]}
+              />
+            </div>
+            <FilterBar
+              filters={[
+                {
+                  name: 'Inventory type',
+                  options: [
+                    { label: 'Small Package', value: 'package-small' },
+                    { label: 'Medium Package', value: 'package-medium' },
+                    { label: 'Large Package', value: 'package-large' },
+                  ],
+                  selectedValues: inventoryType,
+                  onChange: setInventoryType,
+                },
+                {
+                  name: 'Store type',
+                  options: [
+                    { label: 'AH DNAH', value: 'ah-dnah' },
+                    { label: 'AH XL', value: 'ah-xl' },
+                  ],
+                  selectedValues: storeType,
+                  onChange: setStoreType,
+                  customInput: {
+                    label: 'Max number of stores',
+                    value: maxStoreAmount,
+                    onChange: setMaxStoreAmount,
+                    placeholder: 'Enter max stores',
+                    type: 'number'
+                  },
+                },
+                {
+                  name: 'Retail Product',
+                  options: [
+                    { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983', description: 'ID: 606983' },
+                    { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124', description: 'ID: 607124' },
+                    { label: 'Red Bull - energy drink original - 250ml', value: '608456', description: 'ID: 608456' },
+                    { label: 'Heineken - premium lager beer - 6x330ml', value: '609782', description: 'ID: 609782' },
+                    { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394', description: 'ID: 610394' },
+                    { label: 'iPhone - 15 pro max - 512GB', value: '611205', description: 'ID: 611205' },
+                    { label: 'Nike - air max 270 - size 42', value: '612816', description: 'ID: 612816' },
+                    { label: 'Adidas - ultraboost 22 - size 43', value: '613427', description: 'ID: 613427' },
+                    { label: 'Nutella - hazelnut spread - 750g', value: '614038', description: 'ID: 614038' },
+                    { label: 'Ben & Jerry\'s - cookie dough - 465ml', value: '614649', description: 'ID: 614649' },
+                  ],
+                  selectedValues: retailProduct,
+                  onChange: setRetailProduct,
+                },
+              ]}
+              hideSearch={true}
+            />
+          </CardHeader>
+          <CardContent>
+            <CalendarTable
+              mediaProducts={filteredBookingsData.map(product => ({
+                ...product,
+                availability: activeView === 'bookedCampaigns' 
+                  ? (product.campaignCounts || product.availability)
+                  : activeView === 'reach'
+                  ? (product.reachData || product.availability)
+                  : product.availability
+              }))}
+              weeks={numberOfWeeks}
+              startWeek={startWeek}
+              retailerEvents={adjustedRetailerEvents}
+              showReach={true}
+              displayType={
+                activeView === 'bookedCampaigns' ? 'bookedCampaigns' : 
+                activeView === 'stores' ? 'stores' : 
+                'reach'
+              }
+              onCellClick={handleCellClick}
+              hideGreyCells={activeView === 'stores' || activeView === 'reach'}
+              hasRetailProductFilter={retailProduct.length > 0}
+            />
+          </CardContent>
+        </Card>
+
+        <RightDrawerContent>
+          <RightDrawerHeader>
+            <RightDrawerTitle>
+              {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
+            </RightDrawerTitle>
+            <RightDrawerDescription>
+              Availability: {selectedCell?.value} | All bookings for this week
+            </RightDrawerDescription>
+          </RightDrawerHeader>
+          <RightDrawerBody>
+            <div className="space-y-6">
+              <Viewbar
+                tabs={viewTabs}
+                activeTab={activeView}
+                onTabChange={setActiveView}
+                labels={[]}
+              />
+              
+              <FilterBar
+                filters={[
+                  {
+                    name: 'Inventory type',
+                    options: [
+                      { label: 'Small', value: 'package-small' },
+                      { label: 'Medium', value: 'package-medium' },
+                      { label: 'Large', value: 'package-large' },
+                    ],
+                    selectedValues: inventoryType,
+                    onChange: setInventoryType,
+                  },
+                  {
+                    name: 'Store type',
+                    options: [
+                      { label: 'AH DNAH', value: 'ah-dnah' },
+                      { label: 'AH XL', value: 'ah-xl' },
+                    ],
+                    selectedValues: storeType,
+                    onChange: setStoreType,
+                  },
+                  {
+                    name: 'Retail Product',
+                    options: [
+                      { label: 'Coca-Cola - coca-cola zero fl - 1 liter (606983)', value: '606983' },
+                      { label: 'Pepsi - pepsi max - 1.5 liter (607124)', value: '607124' },
+                      { label: 'Red Bull - energy drink original - 250ml (608456)', value: '608456' },
+                      { label: 'Heineken - premium lager beer - 6x330ml (609782)', value: '609782' },
+                      { label: 'Samsung - galaxy s24 ultra - 256GB (610394)', value: '610394' },
+                      { label: 'iPhone - 15 pro max - 512GB (611205)', value: '611205' },
+                      { label: 'Nike - air max 270 - size 42 (612816)', value: '612816' },
+                      { label: 'Adidas - ultraboost 22 - size 43 (613427)', value: '613427' },
+                      { label: 'Nutella - hazelnut spread - 750g (614038)', value: '614038' },
+                      { label: 'Ben & Jerry\'s - cookie dough - 465ml (614649)', value: '614649' },
+                    ],
+                    selectedValues: retailProduct,
+                    onChange: setRetailProduct,
+                  },
+                ]}
+                hideSearch={true}
+              />
+              
+              <Table
+                columns={[
+                  { key: 'id', header: 'Booking ID' },
+                  { key: 'name', header: 'Campaign Name' },
+                  { key: 'mediaProductName', header: 'Media Product' },
+                  { 
+                    key: 'stores', 
+                    header: 'Stores', 
+                    render: row => <Badge variant="secondary">{row.stores}</Badge> 
+                  },
+                  { key: 'startWeek', header: 'Start Week' },
+                  { key: 'endWeek', header: 'End Week' },
+                ]}
+                data={getBookingsForWeek()}
+                rowKey={row => row.id}
+              />
+            </div>
+          </RightDrawerBody>
+        </RightDrawerContent>
+      </AppLayout>
+    </RightDrawer>
+  );
+};
+
 export const OfflineInstoreCalendar: Story = {
   name: 'Offline In-store Calendar',
   render: () => (
-    <BookingCalendarTemplate
-      bookingsData={offlineInstoreBookingsData}
+    <OfflineInstoreCalendarTemplate
+      bookingsData={offlineInstoreBookingsData.map(product => ({
+        ...product,
+        storeTypes: ['ah-dnah', 'ah-xl'], // Add sample store types
+        retailProducts: ['606983', '607124', '608456'], // Add sample retail products
+        campaignCounts: [3, 7, 2, 8, 12, 5, 1, 9, 4, 6, 0, 11] // Number of booked campaigns (0-12) for each week
+      }))}
       title="Offline In-store Calendar"
       mediaProductOptions={[
         { label: 'End Cap Displays', value: '1' },

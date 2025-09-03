@@ -7,12 +7,17 @@ import { SearchInput } from '../../ui/search-input';
 import { DatePicker } from '../../ui/date-picker';
 import { Table } from '@/components/ui/table';
 import { Button } from '../../ui/button';
+import { Alert, AlertTitle, AlertDescription } from '../../ui/alert';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../ui/dropdown-menu';
+import { Badge } from '../../ui/badge';
+import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { FilterBar } from '../../ui/filter-bar';
+import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { Minus } from 'lucide-react';
+import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 
@@ -175,14 +180,40 @@ const mockCreatives = [
   { id: 3, name: 'Store Signage', format: 'Digital Signage', status: 'Approved', type: 'Digital In-Store' },
 ];
 
-// Mock data for placement search results
-const mockPlacements = [
-  { id: 1, name: 'Albert Heijn Amsterdam Central', type: 'Store', location: 'Amsterdam', category: 'Grocery' },
-  { id: 2, name: 'Albert Heijn Rotterdam Center', type: 'Store', location: 'Rotterdam', category: 'Grocery' },
-  { id: 3, name: 'Albert Heijn Utrecht Main', type: 'Store', location: 'Utrecht', category: 'Grocery' },
-  { id: 4, name: 'Albert Heijn Den Haag Plaza', type: 'Store', location: 'Den Haag', category: 'Grocery' },
-  { id: 5, name: 'Albert Heijn Eindhoven Center', type: 'Store', location: 'Eindhoven', category: 'Grocery' },
+// Mock data for placement search results - 3 packages per zone
+const zones = [
+  'No zone',
+  'Zuivel',
+  'Vers',
+  'Vlees & Vega',
+  'Diepvries',
+  'Worldfoods',
+  'Maaltijdtoevoegingen',
+  'Noten, toast, chips etc.',
+  'Zoetwaren',
+  'Ontbijt',
+  'Non Food',
+  'To Go'
 ];
+
+const packages = ['Small', 'Medium', 'Large'];
+
+const adSpaces = {
+  'Small': 'Wobbler',
+  'Medium': 'Wobbler, VSB (mini & large), Vloersticker, Koeldeursticker, Makelaarsbord',
+  'Large': 'Wobbler, VSB (mini & large), Vloersticker, Koeldeursticker, Makelaarsbord'
+};
+
+const mockPlacements = zones.flatMap((zone, zoneIndex) => 
+  packages.map((pkg, pkgIndex) => ({
+    id: zoneIndex * 3 + pkgIndex + 1,
+    name: `${zone} - ${pkg} Package`,
+    type: pkg,
+    location: zone,
+    category: 'In-Store Placement',
+    adSpaces: adSpaces[pkg as keyof typeof adSpaces]
+  }))
+);
 
 // Shared component for campaign details sidebar
 const CampaignDetailsSidebar = () => (
@@ -325,18 +356,93 @@ export const Display: Story = {
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [storeAmount, setStoreAmount] = React.useState('');
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
 
-    // Filter placements based on search
+    // Retail products data
+    const retailProducts = [
+      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+      { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
+      { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
+      { id: '612816', name: 'Nike - air max 270 - size 42' },
+      { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
+      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+      { id: '614649', name: 'Ben & Jerry\'s - cookie dough - 465ml' },
+    ];
+
+    // Target filter options (empty for non-OfflineInStore stories)
+    const storeTypeOptions = [
+      { label: 'AH XL', value: 'ah-xl' },
+      { label: 'AH DNAH', value: 'ah-dnah' }
+    ];
+
+    const audienceOptions = [
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
+      { label: 'Young adult', value: 'young-adult' },
+      { label: 'Family with Kids', value: 'family-with-kids' },
+      { label: 'Convenience stores', value: 'convenience-stores' },
+      { label: 'Traditional stores', value: 'traditional-stores' }
+    ];
+
+    // Filter retail products based on search
+    const filteredRetailProducts = retailProducts.filter(product => 
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    // Handle retail product selection
+    const handleRetailProductSelect = (product: any) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    // Handle retail product search change
+    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRetailProductSearch(e.target.value);
+      setShowRetailProductResults(e.target.value.length > 0);
+    };
+
+    // Remove retail product
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Calculate estimated reach based on store amount (average reach per store: ~65)
+    const calculateReach = (stores: string) => {
+      const numStores = parseInt(stores);
+      if (isNaN(numStores) || numStores <= 0) return 0;
+      return Math.round(numStores * 65);
+    };
+
+    // Filter placements based on search and exclude already selected one
     const filteredPlacements = mockPlacements.filter(placement => 
-      placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase())
+      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
+      (!selectedPlacement || selectedPlacement.id !== placement.id)
     );
 
     // Handle placement selection
     const handlePlacementSelect = (placement: any) => {
       setSelectedPlacement(placement);
-      setPlacementSearch(placement.name);
+      setPlacementSearch('');
       setShowPlacementResults(false);
+    };
+
+    // Remove placement
+    const removePlacement = () => {
+      setSelectedPlacement(null);
     };
 
     // Handle placement search change
@@ -344,6 +450,30 @@ export const Display: Story = {
       setPlacementSearch(e.target.value);
       setShowPlacementResults(e.target.value.length > 0);
     };
+
+    // Handle placement input click
+    const handlePlacementClick = () => {
+      setShowPlacementResults(true);
+    };
+
+    // Handle retail product input click
+    const handleRetailProductClick = () => {
+      setShowRetailProductResults(true);
+    };
+
+    // Close dropdowns when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowPlacementResults(false);
+          setShowRetailProductResults(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
       <AppLayout
@@ -384,39 +514,73 @@ export const Display: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="relative">
+                          <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
                             <SearchInput 
                               value={placementSearch}
                               onChange={handlePlacementSearchChange}
+                              onClick={handlePlacementClick}
                               placeholder="Search for placement..." 
                               className="w-full"
+                              icon={<LayoutDashboard className="w-4 h-4" />}
                             />
-                            {showPlacementResults && filteredPlacements.length > 0 && (
+                            {showPlacementResults && (
                               <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.map((placement) => (
+                                {filteredPlacements.length > 0 ? (
+                                  filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
                                     className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {placement.type} • {placement.location} • {placement.category}
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {placement.adSpaces}
                                     </div>
                                   </div>
-                                ))}
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No placements found
+                                  </div>
+                                )}
                               </div>
                             )}
+                          </div>
+
+                          {selectedPlacement && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected placement:</div>
+                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                <div>
+                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {selectedPlacement.adSpaces}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={removePlacement}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-sm text-muted-foreground">
+                            {selectedPlacement 
+                              ? 'Placement selected for this line item'
+                              : 'Search and select a placement for this line item'
+                            }
                           </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
                               <label className="block text-sm font-medium mb-2">Start date*</label>
@@ -437,17 +601,130 @@ export const Display: Story = {
                               />
                             </div>
                           </div>
+                          <div className="text-sm text-muted-foreground">
+                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Retail products">
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <SearchInput 
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={handleRetailProductClick}
+                              placeholder="Search by product name or ID..." 
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {showRetailProductResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRetailProducts.length > 0 ? (
+                                  filteredRetailProducts.map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => handleRetailProductSelect(product)}
+                                  >
+                                    <div className="font-medium text-sm">{product.name}</div>
+                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                  </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected products:</div>
+                              <div className="space-y-1">
+                                {selectedRetailProducts.map(productId => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                      <div>
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                      </div>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => removeRetailProduct(productId)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="text-sm text-muted-foreground">
+                            {selectedRetailProducts.length > 0 
+                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                              : 'Search and select retail products to target for this line item'
+                            }
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Store amount">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
+                            <div className="relative" data-dropdown-container>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Store className="w-4 h-4" />
+                              </span>
+                              <Input 
+                                type="number"
+                                value={storeAmount}
+                                onChange={(e) => setStoreAmount(e.target.value)}
+                                placeholder="Enter number of stores" 
+                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                min="1"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
+                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
+                              : 'Specify how many stores this line item will target'
+                            }
+                          </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this line item
                           </div>
-                          <Button variant="outline" className="w-full">
-                            Add target
-                          </Button>
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                              className="flex-1"
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                              className="flex-1"
+                            />
+                          </div>
                         </div>
                       </FormSection>
 
@@ -513,6 +790,44 @@ export const Display: Story = {
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
                           <div className="font-medium">{lineItemName}</div>
+                        </div>
+                      )}
+                      {selectedPlacement && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Placement</div>
+                          <div className="font-medium">{selectedPlacement.name}</div>
+                        </div>
+                      )}
+                      {(startDate || endDate) && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Runtime</div>
+                          <div className="font-medium">
+                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
+                          </div>
+                        </div>
+                      )}
+                      {selectedRetailProducts.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Retail products</div>
+                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                        </div>
+                      )}
+                      {storeAmount && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="font-medium">{storeAmount} stores</div>
+                        </div>
+                      )}
+                      {selectedStoreTypes.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store types</div>
+                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
+                        </div>
+                      )}
+                      {selectedAudiences.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Audiences</div>
+                          <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
                     </CardSummaryContent>
@@ -566,18 +881,93 @@ export const DigitalInStore: Story = {
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [storeAmount, setStoreAmount] = React.useState('');
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
 
-    // Filter placements based on search
+    // Retail products data
+    const retailProducts = [
+      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+      { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
+      { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
+      { id: '612816', name: 'Nike - air max 270 - size 42' },
+      { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
+      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+      { id: '614649', name: 'Ben & Jerry\'s - cookie dough - 465ml' },
+    ];
+
+    // Target filter options (empty for non-OfflineInStore stories)
+    const storeTypeOptions = [
+      { label: 'AH XL', value: 'ah-xl' },
+      { label: 'AH DNAH', value: 'ah-dnah' }
+    ];
+
+    const audienceOptions = [
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
+      { label: 'Young adult', value: 'young-adult' },
+      { label: 'Family with Kids', value: 'family-with-kids' },
+      { label: 'Convenience stores', value: 'convenience-stores' },
+      { label: 'Traditional stores', value: 'traditional-stores' }
+    ];
+
+    // Filter retail products based on search
+    const filteredRetailProducts = retailProducts.filter(product => 
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    // Handle retail product selection
+    const handleRetailProductSelect = (product: any) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    // Handle retail product search change
+    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRetailProductSearch(e.target.value);
+      setShowRetailProductResults(e.target.value.length > 0);
+    };
+
+    // Remove retail product
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Calculate estimated reach based on store amount (average reach per store: ~65)
+    const calculateReach = (stores: string) => {
+      const numStores = parseInt(stores);
+      if (isNaN(numStores) || numStores <= 0) return 0;
+      return Math.round(numStores * 65);
+    };
+
+    // Filter placements based on search and exclude already selected one
     const filteredPlacements = mockPlacements.filter(placement => 
-      placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase())
+      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
+      (!selectedPlacement || selectedPlacement.id !== placement.id)
     );
 
     // Handle placement selection
     const handlePlacementSelect = (placement: any) => {
       setSelectedPlacement(placement);
-      setPlacementSearch(placement.name);
+      setPlacementSearch('');
       setShowPlacementResults(false);
+    };
+
+    // Remove placement
+    const removePlacement = () => {
+      setSelectedPlacement(null);
     };
 
     // Handle placement search change
@@ -585,6 +975,30 @@ export const DigitalInStore: Story = {
       setPlacementSearch(e.target.value);
       setShowPlacementResults(e.target.value.length > 0);
     };
+
+    // Handle placement input click
+    const handlePlacementClick = () => {
+      setShowPlacementResults(true);
+    };
+
+    // Handle retail product input click
+    const handleRetailProductClick = () => {
+      setShowRetailProductResults(true);
+    };
+
+    // Close dropdowns when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowPlacementResults(false);
+          setShowRetailProductResults(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
       <AppLayout
@@ -625,39 +1039,73 @@ export const DigitalInStore: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="relative">
+                          <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
                             <SearchInput 
                               value={placementSearch}
                               onChange={handlePlacementSearchChange}
+                              onClick={handlePlacementClick}
                               placeholder="Search for placement..." 
                               className="w-full"
+                              icon={<LayoutDashboard className="w-4 h-4" />}
                             />
-                            {showPlacementResults && filteredPlacements.length > 0 && (
+                            {showPlacementResults && (
                               <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.map((placement) => (
+                                {filteredPlacements.length > 0 ? (
+                                  filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
                                     className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {placement.type} • {placement.location} • {placement.category}
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {placement.adSpaces}
                                     </div>
                                   </div>
-                                ))}
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No placements found
+                                  </div>
+                                )}
                               </div>
                             )}
+                          </div>
+
+                          {selectedPlacement && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected placement:</div>
+                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                <div>
+                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {selectedPlacement.adSpaces}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={removePlacement}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-sm text-muted-foreground">
+                            {selectedPlacement 
+                              ? 'Placement selected for this line item'
+                              : 'Search and select a placement for this line item'
+                            }
                           </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
                               <label className="block text-sm font-medium mb-2">Start date*</label>
@@ -678,17 +1126,130 @@ export const DigitalInStore: Story = {
                               />
                             </div>
                           </div>
+                          <div className="text-sm text-muted-foreground">
+                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Retail products">
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <SearchInput 
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={handleRetailProductClick}
+                              placeholder="Search by product name or ID..." 
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {showRetailProductResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRetailProducts.length > 0 ? (
+                                  filteredRetailProducts.map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => handleRetailProductSelect(product)}
+                                  >
+                                    <div className="font-medium text-sm">{product.name}</div>
+                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                  </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected products:</div>
+                              <div className="space-y-1">
+                                {selectedRetailProducts.map(productId => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                      <div>
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                      </div>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => removeRetailProduct(productId)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="text-sm text-muted-foreground">
+                            {selectedRetailProducts.length > 0 
+                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                              : 'Search and select retail products to target for this line item'
+                            }
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Store amount">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
+                            <div className="relative" data-dropdown-container>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Store className="w-4 h-4" />
+                              </span>
+                              <Input 
+                                type="number"
+                                value={storeAmount}
+                                onChange={(e) => setStoreAmount(e.target.value)}
+                                placeholder="Enter number of stores" 
+                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                min="1"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
+                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
+                              : 'Specify how many stores this line item will target'
+                            }
+                          </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this line item
                           </div>
-                          <Button variant="outline" className="w-full">
-                            Add target
-                          </Button>
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                              className="flex-1"
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                              className="flex-1"
+                            />
+                          </div>
                         </div>
                       </FormSection>
 
@@ -754,6 +1315,44 @@ export const DigitalInStore: Story = {
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
                           <div className="font-medium">{lineItemName}</div>
+                        </div>
+                      )}
+                      {selectedPlacement && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Placement</div>
+                          <div className="font-medium">{selectedPlacement.name}</div>
+                        </div>
+                      )}
+                      {(startDate || endDate) && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Runtime</div>
+                          <div className="font-medium">
+                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
+                          </div>
+                        </div>
+                      )}
+                      {selectedRetailProducts.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Retail products</div>
+                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                        </div>
+                      )}
+                      {storeAmount && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="font-medium">{storeAmount} stores</div>
+                        </div>
+                      )}
+                      {selectedStoreTypes.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store types</div>
+                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
+                        </div>
+                      )}
+                      {selectedAudiences.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Audiences</div>
+                          <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
                     </CardSummaryContent>
@@ -807,18 +1406,137 @@ export const OfflineInStore: Story = {
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [storeAmount, setStoreAmount] = React.useState('');
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [showSelectedStoresDialog, setShowSelectedStoresDialog] = React.useState(false);
+    const [showConflictingItemsDialog, setShowConflictingItemsDialog] = React.useState(false);
+    const [conflictingLineItemPriorities, setConflictingLineItemPriorities] = React.useState<{[key: string]: string}>({
+      'line-item-1': 'Medium',
+      'line-item-2': 'Medium'
+    });
+    const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
 
-    // Filter placements based on search
+    // Conflicting line-items data for overbook alert
+    const conflictingLineItems = [
+      { id: 'line-item-1', name: 'Summer Beverage Campaign', stores: 280, currentPriority: conflictingLineItemPriorities['line-item-1'] },
+      { id: 'line-item-2', name: 'Back to School Promotion', stores: 320, currentPriority: conflictingLineItemPriorities['line-item-2'] }
+    ];
+
+    const priorityOptions = ['High', 'Medium', 'Low'];
+
+    const handlePriorityChange = (lineItemId: string, priority: string) => {
+      setConflictingLineItemPriorities(prev => ({
+        ...prev,
+        [lineItemId]: priority
+      }));
+    };
+
+    // Store list data for selected stores dialog
+    const storesList = [
+      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available' },
+      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available' },
+      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available' },
+      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked' },
+      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available' },
+      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available' },
+      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked' },
+      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available' },
+      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available' },
+      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available' },
+    ];
+
+    const handleStoreSelection = (storeId: string, checked: boolean) => {
+      if (checked) {
+        setSelectedStoreIds([...selectedStoreIds, storeId]);
+      } else {
+        setSelectedStoreIds(selectedStoreIds.filter(id => id !== storeId));
+      }
+    };
+
+    // Retail products data
+    const retailProducts = [
+      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+      { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
+      { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
+      { id: '612816', name: 'Nike - air max 270 - size 42' },
+      { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
+      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+      { id: '614649', name: 'Ben & Jerry\'s - cookie dough - 465ml' },
+    ];
+
+    // Target filter options
+    const storeTypeOptions = [
+      { label: 'AH XL', value: 'ah-xl' },
+      { label: 'AH DNAH', value: 'ah-dnah' }
+    ];
+
+    const audienceOptions = [
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
+      { label: 'Young adult', value: 'young-adult' },
+      { label: 'Family with Kids', value: 'family-with-kids' },
+      { label: 'Convenience stores', value: 'convenience-stores' },
+      { label: 'Traditional stores', value: 'traditional-stores' }
+    ];
+
+    // Filter retail products based on search
+    const filteredRetailProducts = retailProducts.filter(product => 
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    // Handle retail product selection
+    const handleRetailProductSelect = (product: any) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    // Handle retail product search change
+    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRetailProductSearch(e.target.value);
+      setShowRetailProductResults(e.target.value.length > 0);
+    };
+
+    // Remove retail product
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Calculate estimated reach based on store amount (average reach per store: ~65)
+    const calculateReach = (stores: string) => {
+      const numStores = parseInt(stores);
+      if (isNaN(numStores) || numStores <= 0) return 0;
+      return Math.round(numStores * 65);
+    };
+
+    // Filter placements based on search and exclude already selected one
     const filteredPlacements = mockPlacements.filter(placement => 
-      placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase())
+      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
+      (!selectedPlacement || selectedPlacement.id !== placement.id)
     );
 
     // Handle placement selection
     const handlePlacementSelect = (placement: any) => {
       setSelectedPlacement(placement);
-      setPlacementSearch(placement.name);
+      setPlacementSearch('');
       setShowPlacementResults(false);
+    };
+
+    // Remove placement
+    const removePlacement = () => {
+      setSelectedPlacement(null);
     };
 
     // Handle placement search change
@@ -826,6 +1544,30 @@ export const OfflineInStore: Story = {
       setPlacementSearch(e.target.value);
       setShowPlacementResults(e.target.value.length > 0);
     };
+
+    // Handle placement input click
+    const handlePlacementClick = () => {
+      setShowPlacementResults(true);
+    };
+
+    // Handle retail product input click
+    const handleRetailProductClick = () => {
+      setShowRetailProductResults(true);
+    };
+
+    // Close dropdowns when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowPlacementResults(false);
+          setShowRetailProductResults(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
       <AppLayout
@@ -866,39 +1608,72 @@ export const OfflineInStore: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="relative">
+                          <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
                             <SearchInput 
                               value={placementSearch}
                               onChange={handlePlacementSearchChange}
+                              onClick={handlePlacementClick}
                               placeholder="Search for placement..." 
                               className="w-full"
+                              icon={<LayoutDashboard className="w-4 h-4" />}
                             />
-                            {showPlacementResults && filteredPlacements.length > 0 && (
+                            {showPlacementResults && (
                               <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.map((placement) => (
+                                {filteredPlacements.length > 0 ? (
+                                  filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
                                     className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {placement.type} • {placement.location} • {placement.category}
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {placement.adSpaces}
                                     </div>
                                   </div>
-                                ))}
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No placements found
+                                  </div>
+                                )}
                               </div>
                             )}
+                          </div>
+
+                          {selectedPlacement && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected placement:</div>
+                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                <div>
+                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {selectedPlacement.adSpaces}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={removePlacement}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-sm text-muted-foreground">
+                            {selectedPlacement 
+                              ? 'Placement selected for this line item'
+                              : 'Search and select a placement for this line item'
+                            }
                           </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
                               <label className="block text-sm font-medium mb-2">Start date*</label>
@@ -919,17 +1694,307 @@ export const OfflineInStore: Story = {
                               />
                             </div>
                           </div>
+                          <div className="text-sm text-muted-foreground">
+                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Retail products">
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <SearchInput 
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={handleRetailProductClick}
+                              placeholder="Search by product name or ID..." 
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {showRetailProductResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRetailProducts.length > 0 ? (
+                                  filteredRetailProducts.map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => handleRetailProductSelect(product)}
+                                  >
+                                    <div className="font-medium text-sm">{product.name}</div>
+                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                  </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected products:</div>
+                              <div className="space-y-1">
+                                {selectedRetailProducts.map(productId => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                      <div>
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                      </div>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => removeRetailProduct(productId)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="text-sm text-muted-foreground">
+                            {selectedRetailProducts.length > 0 
+                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                              : 'Search and select retail products to target for this line item'
+                            }
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Store amount">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
+                            <div className="relative" data-dropdown-container>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Store className="w-4 h-4" />
+                              </span>
+                              <Input 
+                                type="number"
+                                value={storeAmount}
+                                onChange={(e) => setStoreAmount(e.target.value)}
+                                placeholder="Enter number of stores" 
+                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                min="1"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
+                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
+                              : '750 stores available within the run time selected'
+                            }
+                          </div>
+                          {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 750 && (
+                            <>
+                              <Alert variant="warning" className="mt-3">
+                                <AlertTitle>Overbooked</AlertTitle>
+                                <AlertDescription>
+                                  <div className="mb-2">
+                                    You have selected {storeAmount} stores, which exceeds the 750 available stores within the selected run time.
+                                  </div>
+                                  <div className="mb-2">
+                                    There are 2 conflicting line-items booked in the same run time that limit store availability.
+                                  </div>
+                                  <button 
+                                    className="text-orange-600 hover:text-orange-700 underline text-sm font-medium"
+                                    onClick={() => setShowConflictingItemsDialog(true)}
+                                  >
+                                    Resolve conflicts
+                                  </button>
+                                </AlertDescription>
+                              </Alert>
+
+                              <Dialog open={showConflictingItemsDialog} onOpenChange={setShowConflictingItemsDialog}>
+                                <DialogContent className="sm:max-w-3xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Resolve Conflicting Line-Items</DialogTitle>
+                                    <DialogDescription>
+                                      Adjust priorities for line-items running in the same time period. Higher priority items will be allocated stores first.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="mt-4">
+                                    <Table
+                                      columns={[
+                                        { key: 'name', header: 'Line Item' },
+                                        { key: 'stores', header: 'Stores Required' },
+                                        { key: 'priority', header: 'Priority' }
+                                      ]}
+                                      data={[
+                                        {
+                                          name: (
+                                            <div>
+                                              <div className="font-medium">{lineItemName || 'Current Line Item'}</div>
+                                              <div className="text-sm text-muted-foreground">This line item</div>
+                                            </div>
+                                          ),
+                                          stores: `${storeAmount} stores`,
+                                          priority: (
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                  Medium
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent>
+                                                {priorityOptions.map((priority) => (
+                                                  <DropdownMenuItem key={priority}>
+                                                    {priority}
+                                                  </DropdownMenuItem>
+                                                ))}
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          )
+                                        },
+                                        ...conflictingLineItems.map((item) => ({
+                                          name: <div className="font-medium">{item.name}</div>,
+                                          stores: `${item.stores} stores`,
+                                          priority: (
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                  {item.currentPriority}
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent>
+                                                {priorityOptions.map((priority) => (
+                                                  <DropdownMenuItem 
+                                                    key={priority}
+                                                    onClick={() => handlePriorityChange(item.id, priority)}
+                                                  >
+                                                    {priority}
+                                                  </DropdownMenuItem>
+                                                ))}
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          )
+                                        }))
+                                      ]}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                  <DialogFooter>
+                                    <Button variant="outline" onClick={() => setShowConflictingItemsDialog(false)}>
+                                      Cancel
+                                    </Button>
+                                    <Button onClick={() => setShowConflictingItemsDialog(false)}>
+                                      Apply Priorities
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          )}
+                          <div className="flex gap-2 mt-4">
+                            <Button variant="outline">
+                              Bookings calendar
+                            </Button>
+                            <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
+                              <DialogTrigger asChild>
+                                <Button variant="outline">
+                                  Selected store
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                                <DialogHeader>
+                                  <DialogTitle>Selected Stores</DialogTitle>
+                                  <DialogDescription>View and manage the stores selected for this line item.</DialogDescription>
+                                </DialogHeader>
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="outline">
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Upload store list
+                                  </Button>
+                                  <Button variant="outline">
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download store list
+                                  </Button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto min-h-0">
+                                  <Table
+                                    columns={[
+                                      { 
+                                        key: 'select', 
+                                        header: (
+                                          <Checkbox 
+                                            checked={selectedStoreIds.length === storesList.length}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setSelectedStoreIds(storesList.map(s => s.id));
+                                              } else {
+                                                setSelectedStoreIds([]);
+                                              }
+                                            }}
+                                          />
+                                        ),
+                                        width: '50px'
+                                      },
+                                      { key: 'name', header: 'Store Name' },
+                                      { key: 'type', header: 'Type' },
+                                      { key: 'location', header: 'Location' },
+                                      { key: 'reach', header: 'Estimated Reach' },
+                                      { key: 'status', header: 'Status' }
+                                    ]}
+                                    data={storesList.map(store => ({
+                                      select: (
+                                        <Checkbox
+                                          checked={selectedStoreIds.includes(store.id)}
+                                          onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
+                                        />
+                                      ),
+                                      name: store.name,
+                                      type: store.type,
+                                      location: store.location,
+                                      reach: store.reach.toLocaleString(),
+                                      status: (
+                                        <Badge 
+                                          className={store.status === 'available' 
+                                            ? 'bg-green-100 text-green-800 border-green-200' 
+                                            : 'bg-orange-100 text-orange-800 border-orange-200'}
+                                        >
+                                          {store.status === 'available' ? 'Available' : 'Booked'}
+                                        </Badge>
+                                      )
+                                    }))}
+                                    className="w-full"
+                                  />
+                                </div>
+                                <DialogFooter>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline">Close</Button>
+                                  </DialogTrigger>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground">
-                            Add targeting criteria for this line item
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                            />
                           </div>
-                          <Button variant="outline" className="w-full">
-                            Add target
-                          </Button>
                         </div>
                       </FormSection>
 
@@ -995,6 +2060,44 @@ export const OfflineInStore: Story = {
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
                           <div className="font-medium">{lineItemName}</div>
+                        </div>
+                      )}
+                      {selectedPlacement && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Placement</div>
+                          <div className="font-medium">{selectedPlacement.name}</div>
+                        </div>
+                      )}
+                      {(startDate || endDate) && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Runtime</div>
+                          <div className="font-medium">
+                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
+                          </div>
+                        </div>
+                      )}
+                      {selectedRetailProducts.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Retail products</div>
+                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                        </div>
+                      )}
+                      {storeAmount && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="font-medium">{storeAmount} stores</div>
+                        </div>
+                      )}
+                      {selectedStoreTypes.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store types</div>
+                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
+                        </div>
+                      )}
+                      {selectedAudiences.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Audiences</div>
+                          <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
                     </CardSummaryContent>
@@ -1048,18 +2151,91 @@ export const SponsoredProducts: Story = {
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [storeAmount, setStoreAmount] = React.useState('');
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
 
-    // Filter placements based on search
+    // Retail products data
+    const retailProducts = [
+      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+      { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
+      { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
+      { id: '612816', name: 'Nike - air max 270 - size 42' },
+      { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
+      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+      { id: '614649', name: 'Ben & Jerry\'s - cookie dough - 465ml' },
+    ];
+
+    // Target filter options (empty for non-OfflineInStore stories)
+    const storeTypeOptions = [
+      { label: 'AH XL', value: 'ah-xl' },
+      { label: 'AH DNAH', value: 'ah-dnah' }
+    ];
+
+    const audienceOptions = [
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
+      { label: 'Young adult', value: 'young-adult' },
+      { label: 'Family with Kids', value: 'family-with-kids' },
+      { label: 'Convenience stores', value: 'convenience-stores' },
+      { label: 'Traditional stores', value: 'traditional-stores' }
+    ];
+
+    // Filter retail products based on search
+    const filteredRetailProducts = retailProducts.filter(product => 
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    // Handle retail product selection
+    const handleRetailProductSelect = (product: any) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    // Handle retail product search change
+    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRetailProductSearch(e.target.value);
+      setShowRetailProductResults(e.target.value.length > 0);
+    };
+
+    // Remove retail product
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Calculate estimated reach based on store amount (average reach per store: ~65)
+    const calculateReach = (stores: string) => {
+      const numStores = parseInt(stores);
+      if (isNaN(numStores) || numStores <= 0) return 0;
+      return Math.round(numStores * 65);
+    };
+
+    // Filter placements based on search and exclude already selected one
     const filteredPlacements = mockPlacements.filter(placement => 
-      placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase())
+      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
+      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
+      (!selectedPlacement || selectedPlacement.id !== placement.id)
     );
 
     // Handle placement selection
     const handlePlacementSelect = (placement: any) => {
       setSelectedPlacement(placement);
-      setPlacementSearch(placement.name);
+      setPlacementSearch('');
       setShowPlacementResults(false);
+    };
+
+    // Remove placement
+    const removePlacement = () => {
+      setSelectedPlacement(null);
     };
 
     // Handle placement search change
@@ -1067,6 +2243,30 @@ export const SponsoredProducts: Story = {
       setPlacementSearch(e.target.value);
       setShowPlacementResults(e.target.value.length > 0);
     };
+
+    // Handle placement input click
+    const handlePlacementClick = () => {
+      setShowPlacementResults(true);
+    };
+
+    // Handle retail product input click
+    const handleRetailProductClick = () => {
+      setShowRetailProductResults(true);
+    };
+
+    // Close dropdowns when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowPlacementResults(false);
+          setShowRetailProductResults(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
       <AppLayout
@@ -1107,39 +2307,73 @@ export const SponsoredProducts: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="relative">
+                          <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
                             <SearchInput 
                               value={placementSearch}
                               onChange={handlePlacementSearchChange}
+                              onClick={handlePlacementClick}
                               placeholder="Search for placement..." 
                               className="w-full"
+                              icon={<LayoutDashboard className="w-4 h-4" />}
                             />
-                            {showPlacementResults && filteredPlacements.length > 0 && (
+                            {showPlacementResults && (
                               <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.map((placement) => (
+                                {filteredPlacements.length > 0 ? (
+                                  filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
                                     className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {placement.type} • {placement.location} • {placement.category}
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {placement.adSpaces}
                                     </div>
                                   </div>
-                                ))}
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No placements found
+                                  </div>
+                                )}
                               </div>
                             )}
+                          </div>
+
+                          {selectedPlacement && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected placement:</div>
+                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                <div>
+                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {selectedPlacement.adSpaces}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={removePlacement}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-sm text-muted-foreground">
+                            {selectedPlacement 
+                              ? 'Placement selected for this line item'
+                              : 'Search and select a placement for this line item'
+                            }
                           </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
                               <label className="block text-sm font-medium mb-2">Start date*</label>
@@ -1160,17 +2394,130 @@ export const SponsoredProducts: Story = {
                               />
                             </div>
                           </div>
+                          <div className="text-sm text-muted-foreground">
+                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Retail products">
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <SearchInput 
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={handleRetailProductClick}
+                              placeholder="Search by product name or ID..." 
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {showRetailProductResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRetailProducts.length > 0 ? (
+                                  filteredRetailProducts.map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => handleRetailProductSelect(product)}
+                                  >
+                                    <div className="font-medium text-sm">{product.name}</div>
+                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                  </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected products:</div>
+                              <div className="space-y-1">
+                                {selectedRetailProducts.map(productId => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                      <div>
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                      </div>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => removeRetailProduct(productId)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="text-sm text-muted-foreground">
+                            {selectedRetailProducts.length > 0 
+                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                              : 'Search and select retail products to target for this line item'
+                            }
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Store amount">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
+                            <div className="relative" data-dropdown-container>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Store className="w-4 h-4" />
+                              </span>
+                              <Input 
+                                type="number"
+                                value={storeAmount}
+                                onChange={(e) => setStoreAmount(e.target.value)}
+                                placeholder="Enter number of stores" 
+                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                min="1"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
+                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
+                              : 'Specify how many stores this line item will target'
+                            }
+                          </div>
                         </div>
                       </FormSection>
 
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this line item
                           </div>
-                          <Button variant="outline" className="w-full">
-                            Add target
-                          </Button>
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                              className="flex-1"
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                              className="flex-1"
+                            />
+                          </div>
                         </div>
                       </FormSection>
 
@@ -1238,10 +2585,10 @@ export const SponsoredProducts: Story = {
                           <div className="font-medium">{lineItemName}</div>
                         </div>
                       )}
-                      {placementSearch && (
+                      {selectedPlacement && (
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Placement</div>
-                          <div className="font-medium">{placementSearch}</div>
+                          <div className="font-medium">{selectedPlacement.name}</div>
                         </div>
                       )}
                       {(startDate || endDate) && (
@@ -1250,6 +2597,30 @@ export const SponsoredProducts: Story = {
                           <div className="font-medium">
                             {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
                           </div>
+                        </div>
+                      )}
+                      {selectedRetailProducts.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Retail products</div>
+                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                        </div>
+                      )}
+                      {storeAmount && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="font-medium">{storeAmount} stores</div>
+                        </div>
+                      )}
+                      {selectedStoreTypes.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Store types</div>
+                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
+                        </div>
+                      )}
+                      {selectedAudiences.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Audiences</div>
+                          <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
                     </CardSummaryContent>

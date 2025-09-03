@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Popover, PopoverTrigger, PopoverContent } from './popover';
@@ -8,6 +8,7 @@ import { Checkbox } from './checkbox';
 export interface FilterOption {
   label: string;
   value: string;
+  description?: string;
 }
 
 export interface FilterProps {
@@ -16,6 +17,13 @@ export interface FilterProps {
   selectedValues?: string[];
   onChange?: (values: string[]) => void;
   className?: string;
+  customInput?: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    type?: 'text' | 'number';
+  };
 }
 
 export const Filter: React.FC<FilterProps> = ({
@@ -24,6 +32,7 @@ export const Filter: React.FC<FilterProps> = ({
   selectedValues = [],
   onChange,
   className,
+  customInput,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -90,9 +99,9 @@ export const Filter: React.FC<FilterProps> = ({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="p-0 w-72 min-w-[220px] max-w-[400px]">
+      <PopoverContent align="start" className="p-0 w-96 min-w-[300px] max-w-[500px]">
         {showSearch && (
-          <div className="sticky top-0 z-10 bg-white px-3 pt-3 pb-2">
+          <div className="sticky top-0 z-10 bg-white">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">
                 <Search className="w-4 h-4" />
@@ -102,9 +111,35 @@ export const Filter: React.FC<FilterProps> = ({
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="h-9 pl-9 pr-3 w-full rounded-md bg-muted/30 text-base shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm border-0"
+                className="pl-9 pr-3 py-3 w-full rounded-none bg-muted/30 text-base shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm border-0"
                 style={{ boxShadow: 'none' }}
               />
+            </div>
+          </div>
+        )}
+        {customInput && (
+          <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-muted-foreground">
+                <Store className="w-4 h-4" />
+              </span>
+              <input
+                type={customInput.type || 'text'}
+                value={customInput.value}
+                onChange={(e) => customInput.onChange(e.target.value)}
+                placeholder={customInput.placeholder}
+                className="pl-9 pr-10 py-3 w-full rounded-none bg-muted/30 text-base shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                style={{ boxShadow: 'none' }}
+              />
+              {customInput.value && (
+                <button
+                  type="button"
+                  onClick={() => customInput.onChange('')}
+                  className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -118,7 +153,7 @@ export const Filter: React.FC<FilterProps> = ({
               <label
                 key={opt.value}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors hover:bg-accent select-none"
+                  "flex items-start gap-3 rounded-md px-2 py-2.5 mb-1 text-sm cursor-pointer transition-colors hover:bg-accent select-none"
                 )}
                 tabIndex={0}
               >
@@ -126,8 +161,16 @@ export const Filter: React.FC<FilterProps> = ({
                   checked={selectedValues.includes(opt.value)}
                   onCheckedChange={() => handleToggle(opt.value)}
                   tabIndex={-1}
+                  className="mt-0.5"
                 />
-                <span className="truncate">{opt.label}</span>
+                <div className="flex-1 space-y-1">
+                  <span className="truncate block">{opt.label}</span>
+                  {opt.description && (
+                    <span className="text-xs text-muted-foreground block">
+                      {opt.description}
+                    </span>
+                  )}
+                </div>
               </label>
             ))
           )}

@@ -8,6 +8,13 @@ export interface FilterBarFilter {
   options: FilterOption[];
   selectedValues: string[];
   onChange: (values: string[]) => void;
+  customInput?: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    type?: 'text' | 'number';
+  };
 }
 
 export interface FilterBarProps {
@@ -37,6 +44,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             options={filter.options}
             selectedValues={filter.selectedValues}
             onChange={filter.onChange}
+            customInput={filter.customInput}
           />
         ))}
       </div>

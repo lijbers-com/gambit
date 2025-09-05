@@ -319,7 +319,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               <tr className="bg-white border-b border-slate-200">
                 <td className="px-4 py-3 align-middle">
                   <div className="flex items-center gap-3" style={{ minHeight: 48 }}>
-                    <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">Commercial agenda</span>
+                    <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">Events</span>
                     <button
                       onClick={toggleCommercialCalendar}
                       className="ml-auto p-1 rounded-full hover:bg-slate-100 focus:outline-none"

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { MapChart } from '@/components/ui/map-chart';
+import { PieChartComponent } from '@/components/ui/pie-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -1595,6 +1596,112 @@ export const OfflineInstorePerformance: Story = {
                   className="h-80 aspect-auto"
                   xAxisDataKey="day"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audience Report Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Audience Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Audience Breakdown Pie Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Audience Distribution</h4>
+                  <PieChartComponent
+                    data={[
+                      { name: 'Stedelijk', value: 35, percentage: '35%' },
+                      { name: 'Young adult', value: 28, percentage: '28%' },
+                      { name: 'Family with Kids', value: 25, percentage: '25%' },
+                      { name: 'Bonus shoppers', value: 12, percentage: '12%' },
+                    ]}
+                    config={{
+                      'Stedelijk': {
+                        label: "Stedelijk",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      'Young adult': {
+                        label: "Young adult",
+                        color: "hsl(var(--chart-2))",
+                      },
+                      'Family with Kids': {
+                        label: "Family with Kids",
+                        color: "hsl(var(--chart-3))",
+                      },
+                      'Bonus shoppers': {
+                        label: "Bonus shoppers",
+                        color: "hsl(var(--chart-4))",
+                      },
+                    }}
+                    showLegend={true}
+                    showTooltip={true}
+                    className="h-64 w-full"
+                    dataKey="value"
+                    nameKey="name"
+                  />
+                </div>
+
+                {/* Audience Performance Metrics */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-muted-foreground">Audience Performance</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Stedelijk</p>
+                        <p className="text-xs text-muted-foreground">35% of audience</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">€24.5K revenue</p>
+                        <p className="text-xs text-green-600">+12% ROAS</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Young adult</p>
+                        <p className="text-xs text-muted-foreground">28% of audience</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">€19.2K revenue</p>
+                        <p className="text-xs text-green-600">+18% ROAS</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Family with Kids</p>
+                        <p className="text-xs text-muted-foreground">25% of audience</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">€17.8K revenue</p>
+                        <p className="text-xs text-green-600">+8% ROAS</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Bonus shoppers</p>
+                        <p className="text-xs text-muted-foreground">12% of audience</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">€8.1K revenue</p>
+                        <p className="text-xs text-red-600">-3% ROAS</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* CTA Button */}
+              <div className="pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => alert('Navigate to full Audience Report')}
+                >
+                  View Full Report
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -20,6 +20,7 @@ import { DialogFooter } from '../../ui/dialog';
 import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
+import { CalendarTable } from '../../ui/calendar-table';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Line Item Detail',
@@ -610,12 +611,12 @@ export const Display: Story = {
                       <FormSection title="Retail products">
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput 
                               value={retailProductSearch}
                               onChange={handleRetailProductSearchChange}
                               onClick={handleRetailProductClick}
-                              placeholder="Search by product name or ID..." 
+                              placeholder="Select product by name or ID..." 
                               className="w-full"
                               icon={<ScanBarcode className="w-4 h-4" />}
                             />
@@ -1135,12 +1136,12 @@ export const DigitalInStore: Story = {
                       <FormSection title="Retail products">
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput 
                               value={retailProductSearch}
                               onChange={handleRetailProductSearchChange}
                               onClick={handleRetailProductClick}
-                              placeholder="Search by product name or ID..." 
+                              placeholder="Select product by name or ID..." 
                               className="w-full"
                               icon={<ScanBarcode className="w-4 h-4" />}
                             />
@@ -1400,9 +1401,13 @@ export const DigitalInStore: Story = {
 export const OfflineInStore: Story = {
   render: () => {
     const [lineItemName, setLineItemName] = React.useState('');
-    const [placementSearch, setPlacementSearch] = React.useState('');
+    const [selectedLocation, setSelectedLocation] = React.useState<any>(null);
+    const [selectedPackage, setSelectedPackage] = React.useState<any>(null);
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
-    const [showPlacementResults, setShowPlacementResults] = React.useState(false);
+    const [locationSearch, setLocationSearch] = React.useState('');
+    const [packageSearch, setPackageSearch] = React.useState('');
+    const [showLocationResults, setShowLocationResults] = React.useState(false);
+    const [showPackageResults, setShowPackageResults] = React.useState(false);
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
@@ -1420,6 +1425,29 @@ export const OfflineInStore: Story = {
     });
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
 
+    // Location (zone) options with sub-locations
+    const locationOptions = [
+      { id: 'no-zone', name: 'No zone', subLocations: 'General store placement' },
+      { id: 'zuivel', name: 'Zuivel', subLocations: 'Dairy section, refrigerated area' },
+      { id: 'vers', name: 'Vers', subLocations: 'Fresh produce, vegetables, fruits' },
+      { id: 'vlees-vega', name: 'Vlees & Vega', subLocations: 'Meat counter, vegetarian alternatives' },
+      { id: 'diepvries', name: 'Diepvries', subLocations: 'Frozen food aisles, freezer sections' },
+      { id: 'worldfoods', name: 'Worldfoods', subLocations: 'International cuisine, ethnic foods' },
+      { id: 'maaltijdtoevoegingen', name: 'Maaltijdtoevoegingen', subLocations: 'Meal additions, sauces, seasonings' },
+      { id: 'noten-toast-chips', name: 'Noten, toast, chips etc.', subLocations: 'Snacks aisle, nuts, crackers' },
+      { id: 'zoetwaren', name: 'Zoetwaren', subLocations: 'Candy aisle, chocolates, sweets' },
+      { id: 'ontbijt', name: 'Ontbijt', subLocations: 'Breakfast items, cereals, spreads' },
+      { id: 'non-food', name: 'Non Food', subLocations: 'Household items, personal care' },
+      { id: 'to-go', name: 'To Go', subLocations: 'Ready meals, grab-and-go section' },
+    ];
+
+    // Package size options with ad spaces
+    const packageOptions = [
+      { id: 'small', name: 'Small Package', adSpaces: 'Wobbler' },
+      { id: 'medium', name: 'Medium Package', adSpaces: 'Wobbler, VSB (mini & large), Vloersticker' },
+      { id: 'large', name: 'Large Package', adSpaces: 'Wobbler, VSB (mini & large), Vloersticker, Koeldeursticker, Makelaarsbord' },
+    ];
+
     // Conflicting line-items data for overbook alert
     const conflictingLineItems = [
       { id: 'line-item-1', name: 'Summer Beverage Campaign', stores: 280, currentPriority: conflictingLineItemPriorities['line-item-1'] },
@@ -1434,6 +1462,67 @@ export const OfflineInStore: Story = {
         [lineItemId]: priority
       }));
     };
+
+    // Sample data for other line items running in the same time window
+    const runningLineItemsData = [
+      {
+        id: '1',
+        name: 'Summer Beverage Campaign',
+        availability: [85, 72, 90, 68, 76, 82, 88, 94, 79, 73, 86, 91],
+        reachData: [1850000, 1650000, 1950000, 1450000, 1750000, 1850000, 2150000, 2350000, 1950000, 1550000, 2050000, 2250000],
+        storeTypes: ['ah-xl', 'ah-dnah'],
+        retailProducts: ['606983', '607124'],
+        inventoryTypes: ['package-medium', 'package-large'],
+        campaignCounts: [12, 8, 15, 6, 10, 12, 14, 18, 11, 7, 13, 16]
+      },
+      {
+        id: '2', 
+        name: 'Back to School Promotion',
+        availability: [92, 88, 76, 84, 90, 87, 79, 85, 93, 89, 81, 86],
+        reachData: [2150000, 1950000, 1750000, 1850000, 2050000, 1950000, 1750000, 1850000, 2150000, 2050000, 1850000, 1950000],
+        storeTypes: ['ah-xl', 'ah-dnah'],
+        retailProducts: ['608456', '609782'],
+        inventoryTypes: ['package-small', 'package-medium'],
+        campaignCounts: [8, 12, 5, 9, 13, 11, 6, 10, 15, 14, 7, 11]
+      }
+    ];
+
+    // Other line-items in the same location
+    const locationLineItems = [
+      {
+        campaignId: 'LI-2024-001',
+        status: 'closed-won',
+        brand: 'Coca Cola',
+        package: 'Large Package',
+        storeAmount: '450',
+        startDate: '2024-07-15',
+        endDate: '2024-08-15'
+      },
+      {
+        campaignId: 'LI-2024-089',
+        status: 'in-option', 
+        brand: 'Innocent',
+        package: 'Medium Package',
+        storeAmount: '280',
+        startDate: '2024-08-01',
+        endDate: '2024-08-31'
+      },
+      {
+        campaignId: 'LI-2024-156',
+        status: 'closed-won',
+        brand: 'PepsiCo',
+        package: 'Small Package', 
+        storeAmount: '125',
+        startDate: '2024-08-10',
+        endDate: '2024-09-10'
+      }
+    ];
+
+    // Retailer events for the calendar (commercial agenda events)
+    const retailerEventsData = [
+      { id: 'event1', name: 'Summer Sale', start: new Date('2024-08-05'), end: new Date('2024-08-12'), color: '#3B82F6' },
+      { id: 'event2', name: 'Back to School', start: new Date('2024-08-20'), end: new Date('2024-08-31'), color: '#10B981' },
+    ];
 
     // Store list data for selected stores dialog
     const storesList = [
@@ -1519,36 +1608,76 @@ export const OfflineInStore: Story = {
       return Math.round(numStores * 65);
     };
 
-    // Filter placements based on search and exclude already selected one
-    const filteredPlacements = mockPlacements.filter(placement => 
-      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
-      (!selectedPlacement || selectedPlacement.id !== placement.id)
+    // Filter locations based on search
+    const filteredLocations = locationOptions.filter(location => 
+      location.name.toLowerCase().includes(locationSearch.toLowerCase()) ||
+      location.subLocations.toLowerCase().includes(locationSearch.toLowerCase())
     );
 
-    // Handle placement selection
-    const handlePlacementSelect = (placement: any) => {
-      setSelectedPlacement(placement);
-      setPlacementSearch('');
-      setShowPlacementResults(false);
+    // Filter packages based on search
+    const filteredPackages = packageOptions.filter(pkg => 
+      pkg.name.toLowerCase().includes(packageSearch.toLowerCase()) ||
+      pkg.adSpaces.toLowerCase().includes(packageSearch.toLowerCase())
+    );
+
+    // Handle location selection
+    const handleLocationSelect = (location: any) => {
+      setSelectedLocation(location);
+      setLocationSearch('');
+      setShowLocationResults(false);
     };
 
-    // Remove placement
-    const removePlacement = () => {
-      setSelectedPlacement(null);
+    // Handle package selection
+    const handlePackageSelect = (pkg: any) => {
+      setSelectedPackage(pkg);
+      setPackageSearch('');
+      setShowPackageResults(false);
     };
 
-    // Handle placement search change
-    const handlePlacementSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPlacementSearch(e.target.value);
-      setShowPlacementResults(e.target.value.length > 0);
+    // Handle location search change
+    const handleLocationSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setLocationSearch(value);
+      if (selectedLocation && value !== selectedLocation.name) {
+        setSelectedLocation(null);
+      }
+      setShowLocationResults(value.length > 0);
     };
 
-    // Handle placement input click
-    const handlePlacementClick = () => {
-      setShowPlacementResults(true);
+    // Handle package search change
+    const handlePackageSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setPackageSearch(value);
+      if (selectedPackage && value !== selectedPackage.name) {
+        setSelectedPackage(null);
+      }
+      setShowPackageResults(value.length > 0);
     };
+
+    // Handle location input click
+    const handleLocationClick = () => {
+      setShowLocationResults(true);
+    };
+
+    // Handle package input click
+    const handlePackageClick = () => {
+      setShowPackageResults(true);
+    };
+
+    // Handle location and package selection to create placement
+    React.useEffect(() => {
+      if (selectedLocation && selectedPackage) {
+        setSelectedPlacement({
+          name: `${selectedLocation.name} - ${selectedPackage.name}`,
+          type: selectedPackage.name,
+          location: selectedLocation.name,
+          adSpaces: selectedPackage.adSpaces
+        });
+      } else {
+        setSelectedPlacement(null);
+      }
+    }, [selectedLocation, selectedPackage]);
+
 
     // Handle retail product input click
     const handleRetailProductClick = () => {
@@ -1560,7 +1689,8 @@ export const OfflineInStore: Story = {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
         if (!target.closest('[data-dropdown-container]')) {
-          setShowPlacementResults(false);
+          setShowLocationResults(false);
+          setShowPackageResults(false);
           setShowRetailProductResults(false);
         }
       };
@@ -1608,65 +1738,80 @@ export const OfflineInStore: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Find placement*</label>
-                            <SearchInput 
-                              value={placementSearch}
-                              onChange={handlePlacementSearchChange}
-                              onClick={handlePlacementClick}
-                              placeholder="Search for placement..." 
-                              className="w-full"
-                              icon={<LayoutDashboard className="w-4 h-4" />}
-                            />
-                            {showPlacementResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.length > 0 ? (
-                                  filteredPlacements.map((placement) => (
-                                  <div
-                                    key={placement.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                  >
-                                    <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {placement.adSpaces}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative" data-dropdown-container>
+                              <label className="block text-sm font-medium mb-2">Location*</label>
+                              <SearchInput 
+                                value={selectedLocation ? selectedLocation.name : locationSearch}
+                                onChange={handleLocationSearchChange}
+                                onClick={handleLocationClick}
+                                placeholder="Select location..." 
+                                className="w-full"
+                                icon={<MapPin className="w-4 h-4" />}
+                              />
+                              {showLocationResults && (
+                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {filteredLocations.length > 0 ? (
+                                    filteredLocations.map((location) => (
+                                    <div
+                                      key={location.id}
+                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                      onClick={() => handleLocationSelect(location)}
+                                    >
+                                      <div className="font-medium text-sm">{location.name}</div>
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        {location.subLocations}
+                                      </div>
                                     </div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No placements found
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                                    ))
+                                  ) : (
+                                    <div className="p-3 text-center text-sm text-muted-foreground">
+                                      No locations found
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="relative" data-dropdown-container>
+                              <label className="block text-sm font-medium mb-2">Package*</label>
+                              <SearchInput 
+                                value={selectedPackage ? selectedPackage.name : packageSearch}
+                                onChange={handlePackageSearchChange}
+                                onClick={handlePackageClick}
+                                placeholder="Select package..." 
+                                className="w-full"
+                                icon={<LayoutDashboard className="w-4 h-4" />}
+                              />
+                              {showPackageResults && (
+                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {filteredPackages.length > 0 ? (
+                                    filteredPackages.map((pkg) => (
+                                    <div
+                                      key={pkg.id}
+                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                      onClick={() => handlePackageSelect(pkg)}
+                                    >
+                                      <div className="font-medium text-sm">{pkg.name}</div>
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        {pkg.adSpaces}
+                                      </div>
+                                    </div>
+                                    ))
+                                  ) : (
+                                    <div className="p-3 text-center text-sm text-muted-foreground">
+                                      No packages found
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
-                          {selectedPlacement && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
-                                <div>
-                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {selectedPlacement.adSpaces}
-                                  </div>
-                                </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={removePlacement}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
                           <div className="text-sm text-muted-foreground">
-                            {selectedPlacement 
-                              ? 'Placement selected for this line item'
-                              : 'Search and select a placement for this line item'
+                            {selectedLocation && selectedPackage 
+                              ? `${selectedLocation.name} location with ${selectedPackage.name} - ${selectedPackage.adSpaces}`
+                              : 'Select a location and package size for this line item'
                             }
                           </div>
                         </div>
@@ -1703,12 +1848,12 @@ export const OfflineInStore: Story = {
                       <FormSection title="Retail products">
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput 
                               value={retailProductSearch}
                               onChange={handleRetailProductSearchChange}
                               onClick={handleRetailProductClick}
-                              placeholder="Search by product name or ID..." 
+                              placeholder="Select product by name or ID..." 
                               className="w-full"
                               icon={<ScanBarcode className="w-4 h-4" />}
                             />
@@ -1976,6 +2121,60 @@ export const OfflineInStore: Story = {
                               </DialogContent>
                             </Dialog>
                           </div>
+{selectedLocation && (
+  <div className="mt-6 pt-4 border-t border-slate-200">
+    <h4 className="text-sm font-medium mb-3">Other campaigns in this location</h4>
+    <Table
+      columns={[
+        {
+          key: 'campaignId',
+          header: 'Campaign ID',
+          render: (row) => <span className="font-mono text-xs">{row.campaignId}</span>
+        },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (row) => (
+            <Badge 
+              variant={row.status === 'closed-won' ? 'default' : 'secondary'}
+              className="text-xs"
+            >
+              {row.status}
+            </Badge>
+          )
+        },
+        {
+          key: 'brand',
+          header: 'Brand',
+          render: (row) => <span className="font-medium">{row.brand}</span>
+        },
+        {
+          key: 'package',
+          header: 'Package',
+          render: (row) => row.package
+        },
+        {
+          key: 'startDate',
+          header: 'Start Date',
+          render: (row) => <span className="text-xs text-muted-foreground">{row.startDate}</span>
+        },
+        {
+          key: 'endDate',
+          header: 'End Date',
+          render: (row) => <span className="text-xs text-muted-foreground">{row.endDate}</span>
+        },
+        {
+          key: 'storeAmount',
+          header: 'Store Amount',
+          render: (row) => <span className="font-medium">{row.storeAmount}</span>
+        }
+      ]}
+      data={locationLineItems}
+      rowKey={(row) => row.campaignId}
+      hideActions={true}
+    />
+  </div>
+)}
                         </div>
                       </FormSection>
 
@@ -2403,12 +2602,12 @@ export const SponsoredProducts: Story = {
                       <FormSection title="Retail products">
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Search retail products*</label>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput 
                               value={retailProductSearch}
                               onChange={handleRetailProductSearchChange}
                               onClick={handleRetailProductClick}
-                              placeholder="Search by product name or ID..." 
+                              placeholder="Select product by name or ID..." 
                               className="w-full"
                               icon={<ScanBarcode className="w-4 h-4" />}
                             />

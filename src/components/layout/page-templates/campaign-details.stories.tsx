@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '../../ui/button';
 import { LineChartComponent } from '@/components/ui/line-chart';
+import { PieChartComponent } from '@/components/ui/pie-chart';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle } from 'lucide-react';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { DatePicker } from '../../ui/date-picker';
@@ -233,26 +234,303 @@ export const DigitalInstoreInOption: Story = {
     ];
     
     
-    const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {forecastMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <div 
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-          onClick={() => alert('Add custom metric functionality will be implemented')}
-        >
-          <Plus className="h-8 w-8 text-gray-400" />
+    // State for interactive forecast - following the same pattern as SponsoredProductsRunning
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [spendValue, setSpendValue] = useState(41866); // Initial spend value
+    const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
+    const [isDragging, setIsDragging] = useState(false);
+    
+    // Calculate ROAS and Revenue based on spend using inverse relationship
+    const calculateMetrics = (spend: number) => {
+      // ROAS decreases as spend increases (inverse relationship) - scale values to be more visible
+      const maxRoas = 600; // Scale up for visibility
+      const minRoas = 100;
+      const roasRange = maxRoas - minRoas;
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+      const roas = maxRoas - (spendRatio * roasRange); // This will go from 600 down to 100
+      
+      // Revenue increases, creating a crossing point around middle
+      const baseRevenue = 100; // Starting revenue 
+      const maxRevenue = 500; // Max revenue
+      const revenueRange = maxRevenue - baseRevenue;
+      const revenue = baseRevenue + (spendRatio * revenueRange); // This will go from 100 up to 500
+      
+      return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
+    };
+    
+    // Current metrics based on drag position
+    const currentMetrics = calculateMetrics(spendValue);
+    
+    // Updated forecast metrics to match the original design and use proper MetricCard
+const updatedForecastMetrics = [
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: `${(currentMetrics.roas / 100).toFixed(2)}x`, 
+        subMetric: 'Projected return',
+        badgeValue: '+3.8%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'revenue', 
+        label: 'Revenue Forecast', 
+        value: `$${currentMetrics.revenue}K`, 
+        subMetric: 'Total revenue',
+        badgeValue: '+4.2%',
+        badgeVariant: 'success' as const,
+      },      { 
+        id: 'performance', 
+        label: 'Stores Forecast', 
+        value: '350', 
+        subMetric: 'Total coverage',
+        badgeValue: '+5%',
+        badgeVariant: 'success' as const,
+      },
+      {
+        id: 'customer-segments',
+        label: 'Reach Forecast',
+        value: '2.8M',
+        subMetric: 'Total unique users',
+        badgeValue: '+8%',
+        badgeVariant: 'success' as const,
+      },
+    ];    const ForecastSection = () => (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {updatedForecastMetrics.map((metric) => (
+            <MetricCard
+              key={metric.id}
+              label={metric.label}
+              value={metric.value}
+              subMetric={metric.subMetric}
+              badgeValue={metric.badgeValue}
+              badgeVariant={metric.badgeVariant}
+              isSelected={selectedForecastMetric === metric.id}
+              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
+            />
+          ))}
+          <div 
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+            onClick={() => alert('Add custom metric functionality will be implemented')}
+          >
+            <Plus className="h-8 w-8 text-gray-400" />
+          </div>
         </div>
+        
+        {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
+        {(selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
+          <div className="pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">ROAS Forecast</h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              {/* Generate data for LineChart */}
+              <LineChartComponent
+                data={(() => {
+                  const data = [];
+                  for (let spend = 10; spend <= 50; spend += 2) { // 10K to 50K in 2K steps
+                    const metrics = calculateMetrics(spend * 1000);
+                    data.push({
+                      spend: `${spend}K`,
+                      spendValue: spend * 1000,
+                      roas: metrics.roas,
+                      revenue: metrics.revenue,
+                    });
+                  }
+                  return data;
+                })()}
+                config={{
+                  roas: {
+                    label: "ROAS",
+                    color: "hsl(var(--chart-1))", // Theme chart color 1
+                  },
+                  revenue: {
+                    label: "Revenue",  
+                    color: "hsl(var(--chart-2))", // Theme chart color 2
+                  },
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+                xAxisDataKey="spend"
+              />
+              
+              {/* Interactive overlay for dragging */}
+              <div 
+                className="absolute inset-0"
+                style={{ 
+                  cursor: isDragging ? 'ew-resize' : 'crosshair',
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                  
+                  const container = e.currentTarget;
+                  const rect = container.getBoundingClientRect();
+                  
+                  // Account for chart margins - Recharts typically has margins
+                  const chartMarginLeft = rect.width * 0.1; // ~10% left margin
+                  const chartMarginRight = rect.width * 0.05; // ~5% right margin  
+                  const chartWidth = rect.width - chartMarginLeft - chartMarginRight;
+                  
+                  const updateSpend = (clientX: number) => {
+                    const x = clientX - rect.left - chartMarginLeft;
+                    const percentage = Math.max(0, Math.min(100, (x / chartWidth) * 100));
+                    const newSpend = 10000 + (percentage / 100) * 40000;
+                    setSpendValue(Math.round(newSpend));
+                    setDragPosition(percentage);
+                  };
+                  
+                  const handleMouseMove = (e: MouseEvent) => {
+                    updateSpend(e.clientX);
+                  };
+                  
+                  const handleMouseUp = () => {
+                    setIsDragging(false);
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                  
+                  // Set initial position
+                  updateSpend(e.clientX);
+                }}
+              >
+                {/* Vertical indicator line */}
+                <div 
+                  className="absolute top-0 bottom-0 w-px bg-border pointer-events-none"
+                  style={{ 
+                    left: `${10 + (dragPosition * 0.85)}%`, // Account for chart margins
+                    zIndex: 10 
+                  }}
+                >
+                  {/* Spend amount as central element with chevrons */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                    {/* Left chevron */}
+                    <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
+                    
+                    {/* Spend amount */}
+                    <span className="font-medium">
+                      ${(spendValue / 1000).toFixed(0)}K
+                    </span>
+                    
+                    {/* Right chevron */}
+                    <ChevronRight className="w-4 h-4 ml-1 text-primary" />
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Regular chart for other metrics */}
+        {selectedForecastMetric === 'performance' && (
+          <div className="pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">
+                Stores Forecast Trend
+              </h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <LineChartComponent
+                data={[
+                  { day: 'Dec 3', performance: 102.1 },
+                  { day: 'Dec 4', performance: 103.5 },
+                  { day: 'Dec 5', performance: 101.8 },
+                  { day: 'Dec 6', performance: 104.2 },
+                  { day: 'Dec 7', performance: 105.1 },
+                  { day: 'Dec 8', performance: 106.8 },
+                  { day: 'Dec 9', performance: 105.4 },
+                  { day: 'Dec 10', performance: 107.2 },
+                  { day: 'Dec 11', performance: 108.1 },
+                  { day: 'Dec 12', performance: 106.9 },
+                ]}
+                config={{
+                  performance: {
+                    label: "Performance %",
+                    color: "hsl(var(--chart-1))",
+                  },
+                }}
+                showLegend={false}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-52 w-full"
+                xAxisDataKey="day"
+              />
+            </div>
+          </div>
+        )}
+        {/* Reach Forecast pie chart */}
+        {selectedForecastMetric === 'customer-segments' && (
+          <div className="pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">
+                Reach Forecast Analysis
+              </h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <PieChartComponent
+                data={[
+                  { name: 'Urban', value: 45, fill: 'hsl(var(--chart-1))' },
+                  { name: 'Young adults', value: 35, fill: 'hsl(var(--chart-2))' },
+                  { name: 'Family with kids', value: 20, fill: 'hsl(var(--chart-3))' },
+                ]}
+                config={{
+                  Urban: {
+                    label: 'Urban',
+                    color: 'hsl(var(--chart-1))',
+                  },
+                  'Young adults': {
+                    label: 'Young adults',
+                    color: 'hsl(var(--chart-2))',
+                  },
+                  'Family with kids': {
+                    label: 'Family with kids',
+                    color: 'hsl(var(--chart-3))',
+                  },
+                }}
+                showLegend={true}
+                showTooltip={true}
+                className="h-80 w-full"
+                dataKey="value"
+                nameKey="name"
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
     
@@ -573,7 +851,7 @@ export const DigitalInstoreRunning: Story = {
       },
     ];
     
-    const PerformanceSection = () => (
+    const ForecastSection = () => (
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {performanceMetrics.map((metric) => (
           <MetricCard
@@ -701,7 +979,7 @@ export const DigitalInstoreRunning: Story = {
               value: 'line-items',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -756,7 +1034,7 @@ export const DigitalInstoreRunning: Story = {
               value: 'creatives',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -981,26 +1259,262 @@ export const SponsoredProductsInOption: Story = {
     ];
     
     
+    // State for interactive forecast - following the same pattern as SponsoredProductsRunning
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [spendValue, setSpendValue] = useState(41866); // Initial spend value
+    const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
+    const [isDragging, setIsDragging] = useState(false);
+    
+    // Calculate ROAS and Revenue based on spend using inverse relationship
+    const calculateMetrics = (spend: number) => {
+      // ROAS decreases as spend increases (inverse relationship) - scale values to be more visible
+      const maxRoas = 600; // Scale up for visibility
+      const minRoas = 100;
+      const roasRange = maxRoas - minRoas;
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+      const roas = maxRoas - (spendRatio * roasRange); // This will go from 600 down to 100
+      
+      // Revenue increases, creating a crossing point around middle
+      const baseRevenue = 100; // Starting revenue 
+      const maxRevenue = 500; // Max revenue
+      const revenueRange = maxRevenue - baseRevenue;
+      const revenue = baseRevenue + (spendRatio * revenueRange); // This will go from 100 up to 500
+      
+      return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
+    };
+    
+    // Current metrics based on drag position
+    const currentMetrics = calculateMetrics(spendValue);
+    
+    // Updated forecast metrics to match the original design and use proper MetricCard
+    const updatedForecastMetrics = [
+      { 
+        id: 'spend', 
+        label: 'Spend Forecast', 
+        value: `$${currentMetrics.spend.toLocaleString()}`, 
+        subMetric: 'Remaining: $39,263',
+        badgeValue: '+3.5%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: currentMetrics.roas, 
+        subMetric: 'Projected return',
+        badgeValue: '+3.4%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'revenue', 
+        label: 'Revenue Forecast', 
+        value: `$${currentMetrics.revenue.toLocaleString()}`, 
+        subMetric: 'Total revenue',
+        badgeValue: '+4.2%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'competitive', 
+        label: 'Competitive Forecast', 
+        value: 'Medium', 
+        subMetric: 'Avg. competition',
+        badgeValue: '+2%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {forecastMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <div 
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-          onClick={() => alert('Add custom metric functionality will be implemented')}
-        >
-          <Plus className="h-8 w-8 text-gray-400" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {updatedForecastMetrics.map((metric) => (
+            <MetricCard
+              key={metric.id}
+              label={metric.label}
+              value={metric.value}
+              subMetric={metric.subMetric}
+              badgeValue={metric.badgeValue}
+              badgeVariant={metric.badgeVariant}
+              isSelected={selectedForecastMetric === metric.id}
+              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
+            />
+          ))}
+          <div 
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+            onClick={() => alert('Add custom metric functionality will be implemented')}
+          >
+            <Plus className="h-8 w-8 text-gray-400" />
+          </div>
         </div>
+        
+        {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
+        {(selectedForecastMetric === 'spend' || selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
+          <div className="pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Total forecast</h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              {/* Generate data for LineChart */}
+              <LineChartComponent
+                data={(() => {
+                  const data = [];
+                  for (let spend = 10; spend <= 50; spend += 2) { // 10K to 50K in 2K steps
+                    const metrics = calculateMetrics(spend * 1000);
+                    data.push({
+                      spend: `${spend}K`,
+                      spendValue: spend * 1000,
+                      roas: metrics.roas,
+                      revenue: metrics.revenue,
+                    });
+                  }
+                  return data;
+                })()}
+                config={{
+                  roas: {
+                    label: "ROAS",
+                    color: "hsl(var(--chart-1))", // Theme chart color 1
+                  },
+                  revenue: {
+                    label: "Revenue",  
+                    color: "hsl(var(--chart-2))", // Theme chart color 2
+                  },
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+                xAxisDataKey="spend"
+              />
+              
+              {/* Interactive overlay for dragging */}
+              <div 
+                className="absolute inset-0"
+                style={{ 
+                  cursor: isDragging ? 'ew-resize' : 'crosshair',
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                  
+                  const container = e.currentTarget;
+                  const rect = container.getBoundingClientRect();
+                  
+                  // Account for chart margins - Recharts typically has margins
+                  const chartMarginLeft = rect.width * 0.1; // ~10% left margin
+                  const chartMarginRight = rect.width * 0.05; // ~5% right margin  
+                  const chartWidth = rect.width - chartMarginLeft - chartMarginRight;
+                  
+                  const updateSpend = (clientX: number) => {
+                    const x = clientX - rect.left - chartMarginLeft;
+                    const percentage = Math.max(0, Math.min(100, (x / chartWidth) * 100));
+                    const newSpend = 10000 + (percentage / 100) * 40000;
+                    setSpendValue(Math.round(newSpend));
+                    setDragPosition(percentage);
+                  };
+                  
+                  const handleMouseMove = (e: MouseEvent) => {
+                    updateSpend(e.clientX);
+                  };
+                  
+                  const handleMouseUp = () => {
+                    setIsDragging(false);
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                  
+                  // Set initial position
+                  updateSpend(e.clientX);
+                }}
+              >
+                {/* Vertical indicator line */}
+                <div 
+                  className="absolute top-0 bottom-0 w-px bg-border pointer-events-none"
+                  style={{ 
+                    left: `${10 + (dragPosition * 0.85)}%`, // Account for chart margins
+                    zIndex: 10 
+                  }}
+                >
+                  {/* Spend amount as central element with chevrons */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                    {/* Left chevron */}
+                    <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
+                    
+                    {/* Spend amount */}
+                    <span className="font-medium">
+                      ${(spendValue / 1000).toFixed(0)}K
+                    </span>
+                    
+                    {/* Right chevron */}
+                    <ChevronRight className="w-4 h-4 ml-1 text-primary" />
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Regular chart for other metrics */}
+        {selectedForecastMetric === 'competitive' && (
+          <div className="pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">
+                Competitive Analysis by Category
+              </h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <div className="space-y-4">
+                {/* Competitive analysis table with triangles */}
+                <div className="grid grid-cols-1 gap-4">
+                {[
+                  { category: 'Organic Foods', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Beverages', competition: 'Medium', level: 2, color: 'text-yellow-600' },
+                  { category: 'Snacks & Candy', competition: 'High', level: 3, color: 'text-red-600' },
+                  { category: 'Household Items', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Personal Care', competition: 'Medium', level: 2, color: 'text-yellow-600' },
+                  { category: 'Frozen Foods', competition: 'High', level: 3, color: 'text-red-600' },
+                ].map((item) => (
+                  <div key={item.category} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{item.category}</h4>
+                      <p className="text-sm text-gray-500">Competition level: {item.competition}</p>
+                    </div>
+                    <div className={`flex items-center space-x-1 ${item.color}`}>
+                      {Array.from({ length: item.level }, (_, i) => (
+                        <Triangle key={i} className="w-4 h-4 fill-current" />
+                      ))}
+                      {Array.from({ length: 3 - item.level }, (_, i) => (
+                        <Triangle key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+                      ))}
+                      <span className="ml-2 text-sm font-medium">{item.competition}</span>
+                    </div>
+                  </div>
+                ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
     
@@ -1560,7 +2074,7 @@ export const SponsoredProductsRunning: Story = {
     const chartData = getChartData(selectedMetric);
     const selectedMetricData = performanceMetrics.find(m => m.id === selectedMetric);
     
-    const PerformanceSection = () => (
+    const ForecastSection = () => (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {performanceMetrics.map((metric) => (
@@ -1584,11 +2098,12 @@ export const SponsoredProductsRunning: Story = {
         </div>
         
         {/* Interactive Line Chart */}
-        <div className="py-8">
+        <div className="pb-8">
           <h3 className="text-lg font-semibold mb-6">
             {selectedMetricData?.label || 'Performance'} Trend
           </h3>
-          <LineChartComponent
+          <div className="relative bg-white border rounded-lg p-6">
+            <LineChartComponent
             data={chartData}
             config={{
               value: {
@@ -1601,9 +2116,10 @@ export const SponsoredProductsRunning: Story = {
             showTooltip={true}
             showXAxis={true}
             showYAxis={true}
-            className="h-52 w-full"
-            xAxisDataKey="day"
-          />
+              className="h-52 w-full"
+              xAxisDataKey="day"
+            />
+          </div>
         </div>
       </div>
     );
@@ -1713,7 +2229,7 @@ export const SponsoredProductsRunning: Story = {
               value: 'products',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1781,7 +2297,7 @@ export const SponsoredProductsRunning: Story = {
               value: 'keywords',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1841,7 +2357,7 @@ export const SponsoredProductsRunning: Story = {
               value: 'categories',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1901,7 +2417,7 @@ export const SponsoredProductsRunning: Story = {
               value: 'other',
               content: (
                 <div className="space-y-6 mt-6">
-                  <PerformanceSection />
+                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {

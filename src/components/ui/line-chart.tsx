@@ -71,9 +71,9 @@ export function LineChartComponent({
             key={key}
             dataKey={key}
             type={curved ? "monotone" : "linear"}
-            stroke={`hsl(var(--chart-1))`}
+            stroke={config[key]?.color || `hsl(var(--chart-1))`}
             strokeWidth={2}
-            dot={showDots ? { fill: `hsl(var(--chart-1))` } : false}
+            dot={showDots ? { fill: config[key]?.color || `hsl(var(--chart-1))` } : false}
           />
         ))}
         {showTooltip && (

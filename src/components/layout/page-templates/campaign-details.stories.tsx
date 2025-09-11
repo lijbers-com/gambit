@@ -149,6 +149,8 @@ export const DigitalInstoreInOption: Story = {
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -161,6 +163,18 @@ export const DigitalInstoreInOption: Story = {
       { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
       { id: 'LI-005', status: 'In-option', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
     ];
+    
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Approved for launch', description: 'Added approval comment' },
+    ];
+    
     const creativeStatusVariant = (status: string) => {
       switch (status) {
         case 'Approved': return 'success';
@@ -319,19 +333,17 @@ const updatedForecastMetrics = [
         
         {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
         {(selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
-          <div className="pb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">ROAS Forecast</h3>
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setSelectedForecastMetric(null)}
                 aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
               >
                 <X className="w-4 h-4" />
               </Button>
-            </div>
-            <div className="relative bg-white border rounded-lg p-6">
               {/* Generate data for LineChart */}
               <LineChartComponent
                 data={(() => {
@@ -440,21 +452,17 @@ const updatedForecastMetrics = [
         
         {/* Regular chart for other metrics */}
         {selectedForecastMetric === 'performance' && (
-          <div className="pb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">
-                Stores Forecast Trend
-              </h3>
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setSelectedForecastMetric(null)}
                 aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
               >
                 <X className="w-4 h-4" />
               </Button>
-            </div>
-            <div className="relative bg-white border rounded-lg p-6">
               <LineChartComponent
                 data={[
                   { day: 'Dec 3', performance: 102.1 },
@@ -487,21 +495,17 @@ const updatedForecastMetrics = [
         )}
         {/* Reach Forecast pie chart */}
         {selectedForecastMetric === 'customer-segments' && (
-          <div className="pb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">
-                Reach Forecast Analysis
-              </h3>
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setSelectedForecastMetric(null)}
                 aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
               >
                 <X className="w-4 h-4" />
               </Button>
-            </div>
-            <div className="relative bg-white border rounded-lg p-6">
               <PieChartComponent
                 data={[
                   { name: 'Urban', value: 45, fill: 'hsl(var(--chart-1))' },
@@ -549,6 +553,10 @@ const updatedForecastMetrics = [
           onSettings: () => alert('Settings clicked'),
         }}
       >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
         <CardWithTabs
           className="w-full"
           header={
@@ -635,11 +643,15 @@ const updatedForecastMetrics = [
           }
           tabs={[
             {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
               label: 'Line-items',
               value: 'line-items',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -694,7 +706,6 @@ const updatedForecastMetrics = [
               value: 'creatives',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -740,9 +751,62 @@ const updatedForecastMetrics = [
               ),
             },
             {
-              label: 'Details',
-              value: 'details',
-              content: null,
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
             },
           ]}
           action={
@@ -750,6 +814,8 @@ const updatedForecastMetrics = [
               <Button>Add line-item</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
             ) : null
           }
           activeTab={activeTab}
@@ -767,6 +833,8 @@ export const DigitalInstoreRunning: Story = {
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -779,6 +847,18 @@ export const DigitalInstoreRunning: Story = {
       { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
       { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
     ];
+    
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Campaign performing well', description: 'Added performance comment' },
+    ];
+    
     const creativeStatusVariant = (status: string) => {
       switch (status) {
         case 'Approved': return 'success';
@@ -889,6 +969,10 @@ export const DigitalInstoreRunning: Story = {
           onSettings: () => alert('Settings clicked'),
         }}
       >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
         <CardWithTabs
           className="w-full"
           header={
@@ -975,11 +1059,15 @@ export const DigitalInstoreRunning: Story = {
           }
           tabs={[
             {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
               label: 'Line-items',
               value: 'line-items',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1034,7 +1122,6 @@ export const DigitalInstoreRunning: Story = {
               value: 'creatives',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1080,9 +1167,62 @@ export const DigitalInstoreRunning: Story = {
               ),
             },
             {
-              label: 'Details',
-              value: 'details',
-              content: null,
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
             },
           ]}
           action={
@@ -1090,6 +1230,8 @@ export const DigitalInstoreRunning: Story = {
               <Button>Add line-item</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
             ) : null
           }
           activeTab={activeTab}
@@ -1107,6 +1249,8 @@ export const SponsoredProductsInOption: Story = {
     const [competitive, setCompetitive] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -1186,6 +1330,17 @@ export const SponsoredProductsInOption: Story = {
         competitive: 'Medium'
       },
     ];
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Premium Coffee', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for product promotion' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-001', description: 'Added Premium Coffee Beans product' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-002', description: 'Added Organic Tea Selection product' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Targeting Updated', field: 'Search Volume', oldValue: 'Medium', newValue: 'High', description: 'Updated targeting for better reach' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Keywords Updated', field: 'Keywords', oldValue: 'coffee beans', newValue: 'premium coffee beans, organic coffee', description: 'Expanded keyword targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Ready for review', description: 'Added campaign review comment' },
+    ];
+    
     const creativeStatusVariant = (status: string) => {
       switch (status) {
         case 'Approved': return 'success';
@@ -1347,19 +1502,17 @@ export const SponsoredProductsInOption: Story = {
         
         {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
         {(selectedForecastMetric === 'spend' || selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
-          <div className="pb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Total forecast</h3>
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setSelectedForecastMetric(null)}
                 aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
               >
                 <X className="w-4 h-4" />
               </Button>
-            </div>
-            <div className="relative bg-white border rounded-lg p-6">
               {/* Generate data for LineChart */}
               <LineChartComponent
                 data={(() => {
@@ -1468,7 +1621,7 @@ export const SponsoredProductsInOption: Story = {
         
         {/* Regular chart for other metrics */}
         {selectedForecastMetric === 'competitive' && (
-          <div className="pb-8">
+          <div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">
                 Competitive Analysis by Category
@@ -1533,6 +1686,10 @@ export const SponsoredProductsInOption: Story = {
           onSettings: () => alert('Settings clicked'),
         }}
       >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
         <CardWithTabs
           className="w-full"
           header={
@@ -1619,11 +1776,15 @@ export const SponsoredProductsInOption: Story = {
           }
           tabs={[
             {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
               label: 'Products',
               value: 'products',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1680,7 +1841,6 @@ export const SponsoredProductsInOption: Story = {
               value: 'keywords',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1740,7 +1900,6 @@ export const SponsoredProductsInOption: Story = {
               value: 'categories',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1800,7 +1959,6 @@ export const SponsoredProductsInOption: Story = {
               value: 'other',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -1855,9 +2013,62 @@ export const SponsoredProductsInOption: Story = {
               ),
             },
             {
-              label: 'Details',
-              value: 'details',
-              content: null,
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
             },
           ]}
           action={
@@ -1871,6 +2082,8 @@ export const SponsoredProductsInOption: Story = {
               <Button>Add other</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
             ) : null
           }
           activeTab={activeTab}
@@ -1889,6 +2102,8 @@ export const SponsoredProductsRunning: Story = {
     const [competitive, setCompetitive] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -1968,6 +2183,17 @@ export const SponsoredProductsRunning: Story = {
         competitive: 'Medium'
       },
     ];
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Running Campaign', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for active campaign' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Campaign activated and running' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Performance Update', field: 'Metrics', oldValue: '-', newValue: 'CTR: 3.5%', description: 'Daily performance metrics update' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'System', action: 'Spend Alert', field: 'Budget', oldValue: '€100 remaining', newValue: '€13 remaining', description: 'Budget alert triggered' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Bid Adjustment', field: 'Bidding', oldValue: '€0.25', newValue: '€0.28', description: 'Increased bid for better positioning' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'ROAS Update', field: 'Performance', oldValue: '3.8x', newValue: '4.2x', description: 'Improved return on ad spend' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Review', field: 'Notes', oldValue: '-', newValue: 'Performing well, continue current strategy', description: 'Weekly campaign review' },
+    ];
+    
     const creativeStatusVariant = (status: string) => {
       switch (status) {
         case 'Approved': return 'success';
@@ -2098,11 +2324,17 @@ export const SponsoredProductsRunning: Story = {
         </div>
         
         {/* Interactive Line Chart */}
-        <div className="pb-8">
-          <h3 className="text-lg font-semibold mb-6">
-            {selectedMetricData?.label || 'Performance'} Trend
-          </h3>
+        <div>
           <div className="relative bg-white border rounded-lg p-6">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSelectedMetric('impressions')}
+              aria-label="Close chart"
+              className="absolute top-2 right-2 z-10"
+            >
+              <X className="w-4 h-4" />
+            </Button>
             <LineChartComponent
             data={chartData}
             config={{
@@ -2139,6 +2371,10 @@ export const SponsoredProductsRunning: Story = {
           onSettings: () => alert('Settings clicked'),
         }}
       >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
         <CardWithTabs
           className="w-full"
           header={
@@ -2225,11 +2461,15 @@ export const SponsoredProductsRunning: Story = {
           }
           tabs={[
             {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
               label: 'Products',
               value: 'products',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -2297,7 +2537,6 @@ export const SponsoredProductsRunning: Story = {
               value: 'keywords',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -2357,7 +2596,6 @@ export const SponsoredProductsRunning: Story = {
               value: 'categories',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -2417,7 +2655,6 @@ export const SponsoredProductsRunning: Story = {
               value: 'other',
               content: (
                 <div className="space-y-6 mt-6">
-                  <ForecastSection />
                   <FilterBar
                     filters={[
                       {
@@ -2472,9 +2709,62 @@ export const SponsoredProductsRunning: Story = {
               ),
             },
             {
-              label: 'Details',
-              value: 'details',
-              content: null,
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
             },
           ]}
           action={

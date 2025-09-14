@@ -1,0 +1,35 @@
+/*! @/components/ui/button */
+
+/*! @/components/ui/calendar */
+
+/*! @/components/ui/dropdown-menu */
+
+/*! @/components/ui/popover */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-popover */
+
+/*! __barrel_optimize__?names=Calendar,ChevronDown!=!lucide-react */
+
+/*! __barrel_optimize__?names=ChevronDownIcon,ChevronLeftIcon,ChevronRightIcon!=!lucide-react */
+
+/*! __barrel_optimize__?names=endOfMonth,endOfWeek,format,startOfMonth,startOfWeek,subDays,subMonths,subWeeks!=!date-fns */
+
+/*! react */
+
+/*! react-day-picker */
+
+/*! react/jsx-dev-runtime */
+
+/*!***************************************!*\
+  !*** ./src/components/ui/popover.tsx ***!
+  \***************************************/
+
+/*!****************************************!*\
+  !*** ./src/components/ui/calendar.tsx ***!
+  \****************************************/
+
+/*!*******************************************!*\
+  !*** ./src/components/ui/date-picker.tsx ***!
+  \*******************************************/

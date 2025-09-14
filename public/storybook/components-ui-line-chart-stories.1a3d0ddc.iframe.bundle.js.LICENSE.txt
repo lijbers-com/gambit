@@ -1,0 +1,25 @@
+/*! ./line-chart */
+
+/*! @/components/ui/chart */
+
+/*! __barrel_optimize__?names=CartesianGrid,Line,LineChart,XAxis,YAxis!=!recharts */
+
+/*! clsx */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! tailwind-merge */
+
+/*!**************************!*\
+  !*** ./src/lib/utils.ts ***!
+  \**************************/
+
+/*!******************************************!*\
+  !*** ./src/components/ui/line-chart.tsx ***!
+  \******************************************/
+
+/*!**************************************************!*\
+  !*** ./src/components/ui/line-chart.stories.tsx ***!
+  \**************************************************/

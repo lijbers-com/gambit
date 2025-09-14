@@ -1,0 +1,25 @@
+/*! ./pie-chart */
+
+/*! @/components/ui/chart */
+
+/*! __barrel_optimize__?names=Cell,Pie,PieChart!=!recharts */
+
+/*! clsx */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! tailwind-merge */
+
+/*!**************************!*\
+  !*** ./src/lib/utils.ts ***!
+  \**************************/
+
+/*!*****************************************!*\
+  !*** ./src/components/ui/pie-chart.tsx ***!
+  \*****************************************/
+
+/*!*************************************************!*\
+  !*** ./src/components/ui/pie-chart.stories.tsx ***!
+  \*************************************************/

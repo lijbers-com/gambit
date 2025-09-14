@@ -1,0 +1,31 @@
+/*! ./checkbox */
+
+/*! @/lib/utils */
+
+/*! @radix-ui/react-checkbox */
+
+/*! @radix-ui/react-dropdown-menu */
+
+/*! __barrel_optimize__?names=Check!=!lucide-react */
+
+/*! __barrel_optimize__?names=ChevronRight,Circle!=!lucide-react */
+
+/*! clsx */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*! tailwind-merge */
+
+/*!**************************!*\
+  !*** ./src/lib/utils.ts ***!
+  \**************************/
+
+/*!****************************************!*\
+  !*** ./src/components/ui/checkbox.tsx ***!
+  \****************************************/
+
+/*!*********************************************!*\
+  !*** ./src/components/ui/dropdown-menu.tsx ***!
+  \*********************************************/

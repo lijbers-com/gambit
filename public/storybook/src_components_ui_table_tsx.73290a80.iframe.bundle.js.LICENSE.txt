@@ -1,0 +1,15 @@
+/*! ./checkbox */
+
+/*! ./dropdown-menu */
+
+/*! @/lib/utils */
+
+/*! __barrel_optimize__?names=ChevronDown,ChevronUp,MoreHorizontal!=!lucide-react */
+
+/*! react */
+
+/*! react/jsx-dev-runtime */
+
+/*!*************************************!*\
+  !*** ./src/components/ui/table.tsx ***!
+  \*************************************/

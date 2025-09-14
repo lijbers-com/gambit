@@ -1,0 +1,3110 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { AppLayout } from '../app-layout';
+import { CardWithTabs } from '../../ui/card';
+import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
+import { Table } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Button } from '../../ui/button';
+import { LineChartComponent } from '@/components/ui/line-chart';
+import { PieChartComponent } from '@/components/ui/pie-chart';
+import { MapChart } from '@/components/ui/map-chart';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle } from 'lucide-react';
+import { FormSection } from '../../ui/form-section';
+import { Input } from '../../ui/input';
+import { DatePicker } from '../../ui/date-picker';
+import { defaultRoutes } from '../default-routes';
+import React, { useState } from 'react';
+
+const meta: Meta<typeof AppLayout> = {
+  title: 'Page templates/Campaign Details',
+  component: AppLayout,
+  parameters: { 
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component: `
+# Campaign Details Page Template
+
+The Campaign Details page template provides a comprehensive view of individual campaigns with tabbed navigation for different data views. It combines campaign information display with detailed line item and creative management.
+
+## Features
+
+- **Tabbed Interface**: CardWithTabs component for organized content sections
+- **Campaign Information**: Detailed campaign metadata and settings
+- **Line Items Management**: Table view with filtering and actions
+- **Creatives Management**: Table view with filtering and actions
+- **Advanced Filtering**: FilterBar for both line items and creatives
+- **Action Menus**: Dropdown menus for row-level actions
+- **Responsive Design**: Adapts to different screen sizes
+
+## Tab Structure
+
+### Campaign Information Tab
+- **Campaign Details**: Name, advertiser, dates, budget
+- **Settings**: Campaign configuration options
+- **Status**: Current campaign status and approval state
+
+### Line Items Tab
+- **Data Table**: List of all line items in the campaign
+- **Filtering**: Filter by status, type, and other criteria
+- **Actions**: Edit, duplicate, delete line items
+- **Search**: Real-time search across line item names
+- **Status Badges**: Visual indicators for line item status
+
+### Creatives Tab
+- **Data Table**: List of all creatives in the campaign
+- **Filtering**: Filter by format, status, and approval state
+- **Actions**: Edit, duplicate, delete creatives
+- **Search**: Real-time search across creative names
+- **Status Badges**: Visual indicators for creative status
+
+## Data Management
+
+### Line Items
+- **Status Tracking**: Active, Paused, Completed, Draft
+- **Type Classification**: Display, Digital In-Store, Offline In-Store, Sponsored Products
+- **Performance Metrics**: Impressions, clicks, conversions
+- **Date Management**: Start/end dates with proper formatting
+
+### Creatives
+- **Approval Workflow**: Draft, Pending, Approved, Rejected
+- **Format Classification**: Banner, Video, Digital Signage, etc.
+- **Asset Management**: File uploads and asset tracking
+- **Version Control**: Track creative versions and updates
+
+## Action Capabilities
+
+### Line Item Actions
+- **Edit**: Navigate to line item detail page
+- **Duplicate**: Create copy of line item
+- **Delete**: Remove line item from campaign
+- **Pause/Resume**: Toggle line item status
+- **View Performance**: Access performance metrics
+
+### Creative Actions
+- **Edit**: Navigate to creative detail page
+- **Duplicate**: Create copy of creative
+- **Delete**: Remove creative from campaign
+- **Approve/Reject**: Change approval status
+- **Download**: Download creative assets
+
+## Business Rules
+
+1. **Campaign Status**: Controls availability of actions
+2. **User Permissions**: Role-based access to actions
+3. **Data Integrity**: Cascading updates between related entities
+4. **Status Validation**: Proper status transitions
+5. **Asset Management**: File handling and storage
+
+## Filter Options
+
+### Line Items Filters
+- **Status**: Active, Paused, Completed, Draft
+- **Type**: Display, Digital In-Store, Offline In-Store, Sponsored Products
+- **Performance**: Based on metrics thresholds
+
+### Creatives Filters
+- **Status**: Draft, Pending, Approved, Rejected
+- **Format**: Banner, Video, Digital Signage, Wobbler, etc.
+- **Type**: Display, Digital In-Store, Offline In-Store, Sponsored Products
+
+## Usage
+
+This template is ideal for:
+- Campaign management and monitoring
+- Line item and creative oversight
+- Campaign performance analysis
+- Asset management and approval workflows
+- Multi-entity relationship management
+
+## Components Used
+
+- AppLayout (navigation, user management, page header)
+- CardWithTabs (tabbed interface)
+- Card (content containers)
+- Table (data display with actions)
+- FilterBar (filtering and search)
+- Badge (status indicators)
+- Button (actions and navigation)
+- DropdownMenu (action menus)
+- FormSection (organized form layouts)
+- Input (form inputs)
+- DatePicker (date selection)
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+
+export const DigitalInstoreInOption: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [placement, setPlacement] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
+      { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
+      { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Banner', placements: 2 },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
+      { id: 'LI-003', status: 'In-option', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
+      { id: 'LI-005', status: 'In-option', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
+    ];
+    
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Approved for launch', description: 'Added approval comment' },
+    ];
+    
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+    
+    // Forecast metrics for campaign
+    const forecastMetrics = [
+      { 
+        id: 'repetitions', 
+        label: 'Repetitions Forecast', 
+        value: '4,200,000', 
+        subMetric: 'Expected by end date',
+        badgeValue: '+3.5%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'stores', 
+        label: 'Stores Forecast', 
+        value: '350', 
+        subMetric: 'Coverage: 92%',
+        badgeValue: '+2%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'reach', 
+        label: 'Reach Forecast', 
+        value: '2.8M', 
+        subMetric: 'Unique users',
+        badgeValue: '+4.2%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: '3.35x', 
+        subMetric: 'Projected return',
+        badgeValue: '+3.4%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
+    
+    // State for interactive forecast - following the same pattern as SponsoredProductsRunning
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [spendValue, setSpendValue] = useState(41866); // Initial spend value
+    const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
+    const [isDragging, setIsDragging] = useState(false);
+    
+    // Calculate ROAS and Revenue based on spend using inverse relationship
+    const calculateMetrics = (spend: number) => {
+      // ROAS decreases as spend increases (inverse relationship) - scale values to be more visible
+      const maxRoas = 600; // Scale up for visibility
+      const minRoas = 100;
+      const roasRange = maxRoas - minRoas;
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+      const roas = maxRoas - (spendRatio * roasRange); // This will go from 600 down to 100
+      
+      // Revenue increases, creating a crossing point around middle
+      const baseRevenue = 100; // Starting revenue 
+      const maxRevenue = 500; // Max revenue
+      const revenueRange = maxRevenue - baseRevenue;
+      const revenue = baseRevenue + (spendRatio * revenueRange); // This will go from 100 up to 500
+      
+      return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
+    };
+    
+    // Current metrics based on drag position
+    const currentMetrics = calculateMetrics(spendValue);
+    
+    // Updated forecast metrics to match the original design and use proper MetricCard
+const updatedForecastMetrics = [
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: `${(currentMetrics.roas / 100).toFixed(2)}x`, 
+        subMetric: 'Projected return',
+        badgeValue: '+3.8%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'revenue', 
+        label: 'Revenue Forecast', 
+        value: `$${currentMetrics.revenue}K`, 
+        subMetric: 'Total revenue',
+        badgeValue: '+4.2%',
+        badgeVariant: 'success' as const,
+      },      { 
+        id: 'performance', 
+        label: 'Stores Forecast', 
+        value: '350', 
+        subMetric: 'Total coverage',
+        badgeValue: '+5%',
+        badgeVariant: 'success' as const,
+      },
+      {
+        id: 'customer-segments',
+        label: 'Reach Forecast',
+        value: '2.8M',
+        subMetric: 'Total unique users',
+        badgeValue: '+8%',
+        badgeVariant: 'success' as const,
+      },
+    ];    const ForecastSection = () => (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {updatedForecastMetrics.map((metric) => (
+            <MetricCard
+              key={metric.id}
+              label={metric.label}
+              value={metric.value}
+              subMetric={metric.subMetric}
+              badgeValue={metric.badgeValue}
+              badgeVariant={metric.badgeVariant}
+              isSelected={selectedForecastMetric === metric.id}
+              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
+            />
+          ))}
+          <Dialog>
+            <DialogTrigger asChild>
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+              >
+                <Plus className="h-8 w-8 text-gray-400" />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px]">
+              <DialogHeader>
+                <DialogTitle>Select a Metric</DialogTitle>
+                <DialogDescription>
+                  Choose a metric to add to your dashboard. Click on any metric card to select it.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[500px] overflow-y-auto p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Click-Through Rate"
+                    value="2.34%"
+                    subMetric="vs. 2.18% last period"
+                    badgeValue="+7.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CTR selected')}
+                  />
+                  <MetricCard
+                    label="Conversion Rate"
+                    value="4.12%"
+                    subMetric="1,234 conversions"
+                    badgeValue="+12.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Conversion Rate selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Click"
+                    value="$0.58"
+                    subMetric="vs. $0.62 target"
+                    badgeValue="-6.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPC selected')}
+                  />
+                  <MetricCard
+                    label="Viewability Rate"
+                    value="87.3%"
+                    subMetric="Above industry avg"
+                    badgeValue="+5.2%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Viewability selected')}
+                  />
+                  <MetricCard
+                    label="Brand Lift"
+                    value="+18.2%"
+                    subMetric="Awareness increase"
+                    badgeValue="High"
+                    badgeVariant="info"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Brand Lift selected')}
+                  />
+                  <MetricCard
+                    label="Share of Voice"
+                    value="34.7%"
+                    subMetric="In category"
+                    badgeValue="+2.1%"
+                    badgeVariant="secondary"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('SOV selected')}
+                  />
+                  <MetricCard
+                    label="Frequency"
+                    value="3.8x"
+                    subMetric="Avg. per user"
+                    badgeValue="Optimal"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Frequency selected')}
+                  />
+                  <MetricCard
+                    label="Video Completion Rate"
+                    value="68.9%"
+                    subMetric="15s videos"
+                    badgeValue="+9.4%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('VCR selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Acquisition"
+                    value="$24.50"
+                    subMetric="vs. $30 target"
+                    badgeValue="-18.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPA selected')}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
+        {(selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              {/* Generate data for LineChart */}
+              <LineChartComponent
+                data={(() => {
+                  const data = [];
+                  for (let spend = 10; spend <= 50; spend += 2) { // 10K to 50K in 2K steps
+                    const metrics = calculateMetrics(spend * 1000);
+                    data.push({
+                      spend: `${spend}K`,
+                      spendValue: spend * 1000,
+                      roas: metrics.roas,
+                      revenue: metrics.revenue,
+                    });
+                  }
+                  return data;
+                })()}
+                config={{
+                  roas: {
+                    label: "ROAS",
+                    color: "hsl(var(--chart-1))", // Theme chart color 1
+                  },
+                  revenue: {
+                    label: "Revenue",  
+                    color: "hsl(var(--chart-2))", // Theme chart color 2
+                  },
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+                xAxisDataKey="spend"
+                yAxisLabel="Revenue"
+                secondaryYAxis={{
+                  dataKey: "roas",
+                  domain: [0, 700],
+                  label: "ROAS"
+                }}
+              />
+              
+              {/* Interactive overlay for dragging */}
+              <div 
+                className="absolute inset-0"
+                style={{ 
+                  cursor: isDragging ? 'ew-resize' : 'crosshair',
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                  
+                  const container = e.currentTarget;
+                  const rect = container.getBoundingClientRect();
+                  
+                  // Account for chart margins - Recharts typically has margins
+                  const chartMarginLeft = rect.width * 0.1; // ~10% left margin
+                  const chartMarginRight = rect.width * 0.05; // ~5% right margin  
+                  const chartWidth = rect.width - chartMarginLeft - chartMarginRight;
+                  
+                  const updateSpend = (clientX: number) => {
+                    const x = clientX - rect.left - chartMarginLeft;
+                    const percentage = Math.max(0, Math.min(100, (x / chartWidth) * 100));
+                    const newSpend = 10000 + (percentage / 100) * 40000;
+                    setSpendValue(Math.round(newSpend));
+                    setDragPosition(percentage);
+                  };
+                  
+                  const handleMouseMove = (e: MouseEvent) => {
+                    updateSpend(e.clientX);
+                  };
+                  
+                  const handleMouseUp = () => {
+                    setIsDragging(false);
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                  
+                  // Set initial position
+                  updateSpend(e.clientX);
+                }}
+              >
+                {/* Vertical indicator line */}
+                <div 
+                  className="absolute top-0 bottom-0 w-px bg-border pointer-events-none"
+                  style={{ 
+                    left: `${10 + (dragPosition * 0.85)}%`, // Account for chart margins
+                    zIndex: 10 
+                  }}
+                >
+                  {/* Spend amount as central element with chevrons */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                    {/* Left chevron */}
+                    <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
+                    
+                    {/* Spend amount */}
+                    <span className="font-medium">
+                      Spend amount ${(spendValue / 1000).toFixed(0)}K
+                    </span>
+                    
+                    {/* Right chevron */}
+                    <ChevronRight className="w-4 h-4 ml-1 text-primary" />
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Regular chart for other metrics */}
+        {selectedForecastMetric === 'performance' && (
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              <MapChart
+                data={[
+                  // Amsterdam area
+                  { name: 'Amsterdam Central', plays: 5847, x: 48, y: 35 },
+                  { name: 'Amsterdam Zuid', plays: 4239, x: 46, y: 40 },
+                  { name: 'Amsterdam Noord', plays: 3156, x: 50, y: 32 },
+                  
+                  // Rotterdam area
+                  { name: 'Rotterdam Central', plays: 6241, x: 40, y: 55 },
+                  { name: 'Rotterdam Zuid', plays: 2847, x: 42, y: 58 },
+                  
+                  // Den Haag area
+                  { name: 'Den Haag HS', plays: 4156, x: 35, y: 50 },
+                  { name: 'Den Haag Central', plays: 3542, x: 33, y: 52 },
+                  
+                  // Utrecht area
+                  { name: 'Utrecht CS', plays: 5123, x: 52, y: 48 },
+                  { name: 'Utrecht Noord', plays: 2156, x: 54, y: 45 },
+                  
+                  // Eindhoven area
+                  { name: 'Eindhoven CS', plays: 3789, x: 58, y: 70 },
+                  { name: 'Eindhoven Airport', plays: 1923, x: 62, y: 72 },
+                  
+                  // Other major cities
+                  { name: 'Groningen CS', plays: 2456, x: 65, y: 15 },
+                  { name: 'Breda CS', plays: 2789, x: 45, y: 68 },
+                  { name: 'Tilburg CS', plays: 3234, x: 52, y: 65 },
+                  { name: 'Arnhem CS', plays: 2945, x: 68, y: 52 },
+                  { name: 'Haarlem CS', plays: 2567, x: 42, y: 38 },
+                  { name: 'Almere CS', plays: 3456, x: 58, y: 42 },
+                ]}
+                title="Store Performance Map"
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+        {/* Reach Forecast pie chart */}
+        {selectedForecastMetric === 'customer-segments' && (
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              <PieChartComponent
+                data={[
+                  { name: 'Urban', value: 1260000, fill: 'hsl(var(--chart-1))' },
+                  { name: 'Young adults', value: 980000, fill: 'hsl(var(--chart-2))' },
+                  { name: 'Family with kids', value: 560000, fill: 'hsl(var(--chart-3))' },
+                ]}
+                config={{
+                  Urban: {
+                    label: 'Urban',
+                    color: 'hsl(var(--chart-1))',
+                  },
+                  'Young adults': {
+                    label: 'Young adults',
+                    color: 'hsl(var(--chart-2))',
+                  },
+                  'Family with kids': {
+                    label: 'Family with kids',
+                    color: 'hsl(var(--chart-3))',
+                  },
+                }}
+                showLabels={true}
+                showLegend={true}
+                showTooltip={true}
+                className="h-80 w-full"
+                dataKey="value"
+                nameKey="name"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+    
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Digital In-store: Summer Launch (In-Option)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Placement',
+                        options: [
+                          { label: 'Homepage', value: 'Homepage' },
+                          { label: 'Sidebar', value: 'Sidebar' },
+                          { label: 'Footer', value: 'Footer' },
+                          { label: 'Header', value: 'Header' },
+                        ],
+                        selectedValues: placement,
+                        onChange: setPlacement,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'placement', header: 'Placement' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+                      return statusMatch && placementMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Banner', value: 'Banner' },
+                          { label: 'Video', value: 'Video' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+    );
+  },
+};
+
+export const DigitalInstoreRunning: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [placement, setPlacement] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
+      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Banner', placements: 2 },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
+    ];
+    
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Campaign performing well', description: 'Added performance comment' },
+    ];
+    
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+    
+    // Performance metrics for running campaign
+    const performanceMetrics = [
+      { 
+        id: 'repetitions', 
+        label: 'Repetitions', 
+        value: '4,058,317', 
+        subMetric: 'CTR: 2.14%',
+        badgeValue: '+8%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'stores', 
+        label: 'Stores', 
+        value: '343', 
+        subMetric: 'Coverage: 89%',
+        badgeValue: '0%',
+        badgeVariant: 'secondary' as const,
+      },
+      { 
+        id: 'reach', 
+        label: 'Reach', 
+        value: '2.6M', 
+        subMetric: 'Unique users',
+        badgeValue: '+12%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'roas', 
+        label: 'ROAS', 
+        value: '3.24x', 
+        subMetric: 'AOV: €78.50',
+        badgeValue: '+12%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
+    const ForecastSection = () => (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {performanceMetrics.map((metric) => (
+          <MetricCard
+            key={metric.id}
+            label={metric.label}
+            value={metric.value}
+            subMetric={metric.subMetric}
+            badgeValue={metric.badgeValue}
+            badgeVariant={metric.badgeVariant}
+            isSelected={false}
+            onClick={undefined}
+          />
+        ))}
+        <div 
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+          onClick={() => alert('Add custom metric functionality will be implemented')}
+        >
+          <Plus className="h-8 w-8 text-gray-400" />
+        </div>
+      </div>
+    );
+    
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Digital In-store: Summer Launch (Running)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Placement',
+                        options: [
+                          { label: 'Homepage', value: 'Homepage' },
+                          { label: 'Sidebar', value: 'Sidebar' },
+                          { label: 'Footer', value: 'Footer' },
+                          { label: 'Header', value: 'Header' },
+                        ],
+                        selectedValues: placement,
+                        onChange: setPlacement,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'placement', header: 'Placement' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+                      return statusMatch && placementMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Banner', value: 'Banner' },
+                          { label: 'Video', value: 'Video' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+    );
+  },
+};
+
+export const SponsoredProductsInOption: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('products');
+    const [searchVolume, setSearchVolume] = useState<string[]>([]);
+    const [competitive, setCompetitive] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
+      { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
+      { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Banner', placements: 2 },
+    ];
+    const productData = [
+      { 
+        productId: 'P-001', 
+        gtin: '1234567890123', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Premium Coffee Beans 500g', 
+        impressions: '-', 
+        clicks: '-', 
+        addToCart: '-', 
+        avgCPC: '-', 
+        ctr: '-', 
+        atc: '-', 
+        conversion: '-', 
+        sales: '-', 
+        budget: '€500', 
+        spent: '€0', 
+        budgetLeft: '€500', 
+        roas: '-', 
+        extROAS: '-', 
+        iROAS: '-', 
+        startTime: '2024-06-01', 
+        endTime: '2024-06-30',
+        searchVolume: 'High',
+        competitive: 'Medium'
+      },
+      { 
+        productId: 'P-002', 
+        gtin: '2345678901234', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Organic Tea Selection Pack', 
+        impressions: '-', 
+        clicks: '-', 
+        addToCart: '-', 
+        avgCPC: '-', 
+        ctr: '-', 
+        atc: '-', 
+        conversion: '-', 
+        sales: '-', 
+        budget: '€750', 
+        spent: '€0', 
+        budgetLeft: '€750', 
+        roas: '-', 
+        extROAS: '-', 
+        iROAS: '-', 
+        startTime: '2024-07-01', 
+        endTime: '2024-07-31',
+        searchVolume: 'Medium',
+        competitive: 'High'
+      },
+      { 
+        productId: 'P-003', 
+        gtin: '3456789012345', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Artisan Chocolate Bar 200g', 
+        impressions: '-', 
+        clicks: '-', 
+        addToCart: '-', 
+        avgCPC: '-', 
+        ctr: '-', 
+        atc: '-', 
+        conversion: '-', 
+        sales: '-', 
+        budget: '€300', 
+        spent: '€0', 
+        budgetLeft: '€300', 
+        roas: '-', 
+        extROAS: '-', 
+        iROAS: '-', 
+        startTime: '2024-08-10', 
+        endTime: '2024-09-10',
+        searchVolume: 'Low',
+        competitive: 'Medium'
+      },
+    ];
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Premium Coffee', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for product promotion' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-001', description: 'Added Premium Coffee Beans product' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-002', description: 'Added Organic Tea Selection product' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Targeting Updated', field: 'Search Volume', oldValue: 'Medium', newValue: 'High', description: 'Updated targeting for better reach' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Keywords Updated', field: 'Keywords', oldValue: 'coffee beans', newValue: 'premium coffee beans, organic coffee', description: 'Expanded keyword targeting' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Ready for review', description: 'Added campaign review comment' },
+    ];
+    
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+    
+    // Forecast metrics for campaign
+    const forecastMetrics = [
+      { 
+        id: 'searchVolume', 
+        label: 'Search Volume', 
+        value: 'High', 
+        subMetric: '25K+ monthly searches',
+        badgeValue: '▲▲▲',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'competitive', 
+        label: 'Competitive', 
+        value: 'Medium', 
+        subMetric: 'Moderate competition',
+        badgeValue: '▲▲',
+        badgeVariant: 'warning' as const,
+      },
+      { 
+        id: 'reach', 
+        label: 'Reach Forecast', 
+        value: '1.8M', 
+        subMetric: 'Unique shoppers',
+        badgeValue: '+6.2%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: '4.2x', 
+        subMetric: 'Projected return',
+        badgeValue: '+8.5%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
+    
+    // State for interactive forecast - following the same pattern as SponsoredProductsRunning
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [spendValue, setSpendValue] = useState(41866); // Initial spend value
+    const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
+    const [isDragging, setIsDragging] = useState(false);
+    
+    // Calculate ROAS and Revenue based on spend using inverse relationship
+    const calculateMetrics = (spend: number) => {
+      // ROAS decreases as spend increases (inverse relationship) - scale values to be more visible
+      const maxRoas = 600; // Scale up for visibility
+      const minRoas = 100;
+      const roasRange = maxRoas - minRoas;
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+      const roas = maxRoas - (spendRatio * roasRange); // This will go from 600 down to 100
+      
+      // Revenue increases, creating a crossing point around middle
+      const baseRevenue = 100; // Starting revenue 
+      const maxRevenue = 500; // Max revenue
+      const revenueRange = maxRevenue - baseRevenue;
+      const revenue = baseRevenue + (spendRatio * revenueRange); // This will go from 100 up to 500
+      
+      return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
+    };
+    
+    // Current metrics based on drag position
+    const currentMetrics = calculateMetrics(spendValue);
+    
+    // Updated forecast metrics to match the original design and use proper MetricCard
+    const updatedForecastMetrics = [
+      { 
+        id: 'spend', 
+        label: 'Spend Forecast', 
+        value: `$${currentMetrics.spend.toLocaleString()}`, 
+        subMetric: 'Remaining: $39,263',
+        badgeValue: '+3.5%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'roas', 
+        label: 'ROAS Forecast', 
+        value: currentMetrics.roas, 
+        subMetric: 'Projected return',
+        badgeValue: '+3.4%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'revenue', 
+        label: 'Revenue Forecast', 
+        value: `$${currentMetrics.revenue.toLocaleString()}`, 
+        subMetric: 'Total revenue',
+        badgeValue: '+4.2%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'competitive', 
+        label: 'Competitive Forecast', 
+        value: 'Medium', 
+        subMetric: 'Avg. competition',
+        badgeValue: '+2%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
+    const ForecastSection = () => (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {updatedForecastMetrics.map((metric) => (
+            <MetricCard
+              key={metric.id}
+              label={metric.label}
+              value={metric.value}
+              subMetric={metric.subMetric}
+              badgeValue={metric.badgeValue}
+              badgeVariant={metric.badgeVariant}
+              isSelected={selectedForecastMetric === metric.id}
+              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
+            />
+          ))}
+          <Dialog>
+            <DialogTrigger asChild>
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+              >
+                <Plus className="h-8 w-8 text-gray-400" />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px]">
+              <DialogHeader>
+                <DialogTitle>Select a Metric</DialogTitle>
+                <DialogDescription>
+                  Choose a metric to add to your dashboard. Click on any metric card to select it.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[500px] overflow-y-auto p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Click-Through Rate"
+                    value="2.34%"
+                    subMetric="vs. 2.18% last period"
+                    badgeValue="+7.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CTR selected')}
+                  />
+                  <MetricCard
+                    label="Conversion Rate"
+                    value="4.12%"
+                    subMetric="1,234 conversions"
+                    badgeValue="+12.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Conversion Rate selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Click"
+                    value="$0.58"
+                    subMetric="vs. $0.62 target"
+                    badgeValue="-6.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPC selected')}
+                  />
+                  <MetricCard
+                    label="Viewability Rate"
+                    value="87.3%"
+                    subMetric="Above industry avg"
+                    badgeValue="+5.2%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Viewability selected')}
+                  />
+                  <MetricCard
+                    label="Brand Lift"
+                    value="+18.2%"
+                    subMetric="Awareness increase"
+                    badgeValue="High"
+                    badgeVariant="info"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Brand Lift selected')}
+                  />
+                  <MetricCard
+                    label="Share of Voice"
+                    value="34.7%"
+                    subMetric="In category"
+                    badgeValue="+2.1%"
+                    badgeVariant="secondary"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('SOV selected')}
+                  />
+                  <MetricCard
+                    label="Frequency"
+                    value="3.8x"
+                    subMetric="Avg. per user"
+                    badgeValue="Optimal"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Frequency selected')}
+                  />
+                  <MetricCard
+                    label="Video Completion Rate"
+                    value="68.9%"
+                    subMetric="15s videos"
+                    badgeValue="+9.4%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('VCR selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Acquisition"
+                    value="$24.50"
+                    subMetric="vs. $30 target"
+                    badgeValue="-18.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPA selected')}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
+        {(selectedForecastMetric === 'spend' || selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
+          <div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+                className="absolute top-2 right-2 z-10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              {/* Generate data for LineChart */}
+              <LineChartComponent
+                data={(() => {
+                  const data = [];
+                  for (let spend = 10; spend <= 50; spend += 2) { // 10K to 50K in 2K steps
+                    const metrics = calculateMetrics(spend * 1000);
+                    data.push({
+                      spend: `${spend}K`,
+                      spendValue: spend * 1000,
+                      roas: metrics.roas,
+                      revenue: metrics.revenue,
+                    });
+                  }
+                  return data;
+                })()}
+                config={{
+                  roas: {
+                    label: "ROAS",
+                    color: "hsl(var(--chart-1))", // Theme chart color 1
+                  },
+                  revenue: {
+                    label: "Revenue",  
+                    color: "hsl(var(--chart-2))", // Theme chart color 2
+                  },
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+                xAxisDataKey="spend"
+                yAxisLabel="Revenue"
+                secondaryYAxis={{
+                  dataKey: "roas",
+                  domain: [0, 700],
+                  label: "ROAS"
+                }}
+              />
+              
+              {/* Interactive overlay for dragging */}
+              <div 
+                className="absolute inset-0"
+                style={{ 
+                  cursor: isDragging ? 'ew-resize' : 'crosshair',
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                  
+                  const container = e.currentTarget;
+                  const rect = container.getBoundingClientRect();
+                  
+                  // Account for chart margins - Recharts typically has margins
+                  const chartMarginLeft = rect.width * 0.1; // ~10% left margin
+                  const chartMarginRight = rect.width * 0.05; // ~5% right margin  
+                  const chartWidth = rect.width - chartMarginLeft - chartMarginRight;
+                  
+                  const updateSpend = (clientX: number) => {
+                    const x = clientX - rect.left - chartMarginLeft;
+                    const percentage = Math.max(0, Math.min(100, (x / chartWidth) * 100));
+                    const newSpend = 10000 + (percentage / 100) * 40000;
+                    setSpendValue(Math.round(newSpend));
+                    setDragPosition(percentage);
+                  };
+                  
+                  const handleMouseMove = (e: MouseEvent) => {
+                    updateSpend(e.clientX);
+                  };
+                  
+                  const handleMouseUp = () => {
+                    setIsDragging(false);
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                  
+                  // Set initial position
+                  updateSpend(e.clientX);
+                }}
+              >
+                {/* Vertical indicator line */}
+                <div 
+                  className="absolute top-0 bottom-0 w-px bg-border pointer-events-none"
+                  style={{ 
+                    left: `${10 + (dragPosition * 0.85)}%`, // Account for chart margins
+                    zIndex: 10 
+                  }}
+                >
+                  {/* Spend amount as central element with chevrons */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                    {/* Left chevron */}
+                    <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
+                    
+                    {/* Spend amount */}
+                    <span className="font-medium">
+                      Spend amount ${(spendValue / 1000).toFixed(0)}K
+                    </span>
+                    
+                    {/* Right chevron */}
+                    <ChevronRight className="w-4 h-4 ml-1 text-primary" />
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Regular chart for other metrics */}
+        {selectedForecastMetric === 'competitive' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">
+                Competitive Analysis by Category
+              </h3>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedForecastMetric(null)}
+                aria-label="Close chart"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative bg-white border rounded-lg p-6">
+              <div className="space-y-4">
+                {/* Competitive analysis table with triangles */}
+                <div className="grid grid-cols-1 gap-4">
+                {[
+                  { category: 'Organic Foods', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Beverages', competition: 'Medium', level: 2, color: 'text-yellow-600' },
+                  { category: 'Snacks & Candy', competition: 'High', level: 3, color: 'text-red-600' },
+                  { category: 'Household Items', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Personal Care', competition: 'Medium', level: 2, color: 'text-yellow-600' },
+                  { category: 'Frozen Foods', competition: 'High', level: 3, color: 'text-red-600' },
+                ].map((item) => (
+                  <div key={item.category} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{item.category}</h4>
+                      <p className="text-sm text-gray-500">Competition level: {item.competition}</p>
+                    </div>
+                    <div className={`flex items-center space-x-1 ${item.color}`}>
+                      {Array.from({ length: item.level }, (_, i) => (
+                        <Triangle key={i} className="w-4 h-4 fill-current" />
+                      ))}
+                      {Array.from({ length: 3 - item.level }, (_, i) => (
+                        <Triangle key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+                      ))}
+                      <span className="ml-2 text-sm font-medium">{item.competition}</span>
+                    </div>
+                  </div>
+                ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+    
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Sponsored Products: Summer Launch (In-Option)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Products',
+              value: 'products',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Search Volume',
+                        options: [
+                          { label: 'High', value: 'High' },
+                          { label: 'Medium', value: 'Medium' },
+                          { label: 'Low', value: 'Low' },
+                        ],
+                        selectedValues: searchVolume,
+                        onChange: setSearchVolume,
+                      },
+                      {
+                        name: 'Competitive',
+                        options: [
+                          { label: 'High', value: 'High' },
+                          { label: 'Medium', value: 'Medium' },
+                          { label: 'Low', value: 'Low' },
+                        ],
+                        selectedValues: competitive,
+                        onChange: setCompetitive,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search products..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'productId', header: 'Product ID' },
+                      { key: 'gtin', header: 'GTIN' },
+                      { key: 'image', header: 'Image', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
+                      { key: 'productTitle', header: 'Product Title' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString() },
+                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString() },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={productData.filter(row => {
+                      const searchVolumeMatch = searchVolume.length === 0 || searchVolume.includes(row.searchVolume);
+                      const competitiveMatch = competitive.length === 0 || competitive.includes(row.competitive);
+                      return searchVolumeMatch && competitiveMatch;
+                    })}
+                    rowKey={row => row.productId}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Keywords',
+              value: 'keywords',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Match Type',
+                        options: [
+                          { label: 'Exact', value: 'Exact' },
+                          { label: 'Phrase', value: 'Phrase' },
+                          { label: 'Broad', value: 'Broad' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Negative', value: 'Negative' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search keywords..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'keyword', header: 'Keyword' },
+                      { key: 'matchType', header: 'Match Type', render: row => <Badge variant="outline">{row.matchType}</Badge> },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={[
+                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', searchVolume: 'High', competitive: 'Medium' },
+                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€150', spent: '€0', budgetLeft: '€150', roas: '-', searchVolume: 'Medium', competitive: 'High' },
+                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€100', spent: '€0', budgetLeft: '€100', roas: '-', searchVolume: 'Low', competitive: 'Low' },
+                    ]}
+                    rowKey={row => row.keyword}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Categories',
+              value: 'categories',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Category Level',
+                        options: [
+                          { label: 'Level 1', value: 'Level 1' },
+                          { label: 'Level 2', value: 'Level 2' },
+                          { label: 'Level 3', value: 'Level 3' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Excluded', value: 'Excluded' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search categories..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'category', header: 'Category' },
+                      { key: 'level', header: 'Level', render: row => <Badge variant="secondary">{row.level}</Badge> },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={[
+                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€300', spent: '€0', budgetLeft: '€300', roas: '-', searchVolume: 'High', competitive: 'Medium' },
+                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', searchVolume: 'Medium', competitive: 'High' },
+                      { category: 'Organic Products', level: 'Level 1', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€250', spent: '€0', budgetLeft: '€250', roas: '-', searchVolume: 'Medium', competitive: 'Low' },
+                    ]}
+                    rowKey={row => row.category}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Other',
+              value: 'other',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Setting Type',
+                        options: [
+                          { label: 'Targeting', value: 'Targeting' },
+                          { label: 'Bidding', value: 'Bidding' },
+                          { label: 'Schedule', value: 'Schedule' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Inactive', value: 'Inactive' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search settings..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'setting', header: 'Setting' },
+                      { key: 'type', header: 'Type', render: row => <Badge variant="outline">{row.type}</Badge> },
+                      { key: 'value', header: 'Value' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
+                    ]}
+                    data={[
+                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€400', spent: '€0', budgetLeft: '€400', roas: '-', status: 'Active' },
+                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€300', spent: '€0', budgetLeft: '€300', roas: '-', status: 'Active' },
+                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', status: 'Active' },
+                    ]}
+                    rowKey={row => row.setting}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'products' ? (
+              <Button>Add product</Button>
+            ) : activeTab === 'keywords' ? (
+              <Button>Add keyword</Button>
+            ) : activeTab === 'categories' ? (
+              <Button>Add categories</Button>
+            ) : activeTab === 'other' ? (
+              <Button>Add other</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+    );
+  },
+};
+
+export const SponsoredProductsRunning: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('products');
+    const [selectedMetric, setSelectedMetric] = useState('impressions');
+    const [searchVolume, setSearchVolume] = useState<string[]>([]);
+    const [competitive, setCompetitive] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
+      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Banner', placements: 2 },
+    ];
+    const productData = [
+      { 
+        productId: 'P-001', 
+        gtin: '1234567890123', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Premium Coffee Beans 500g', 
+        impressions: '847,592', 
+        clicks: '27,123', 
+        addToCart: '3,864', 
+        avgCPC: '€0.34', 
+        ctr: '3.2%', 
+        atc: '14.2%', 
+        conversion: '2.1%', 
+        sales: '€12,847', 
+        budget: '€500', 
+        spent: '€423', 
+        budgetLeft: '€77', 
+        roas: '3.8x', 
+        extROAS: '4.2x', 
+        iROAS: '3.6x', 
+        startTime: '2024-06-01', 
+        endTime: '2024-06-30',
+        searchVolume: 'High',
+        competitive: 'Medium'
+      },
+      { 
+        productId: 'P-002', 
+        gtin: '2345678901234', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Organic Tea Selection Pack', 
+        impressions: '634,218', 
+        clicks: '18,945', 
+        addToCart: '2,156', 
+        avgCPC: '€0.42', 
+        ctr: '2.9%', 
+        atc: '11.4%', 
+        conversion: '1.8%', 
+        sales: '€8,934', 
+        budget: '€750', 
+        spent: '€612', 
+        budgetLeft: '€138', 
+        roas: '2.9x', 
+        extROAS: '3.1x', 
+        iROAS: '2.8x', 
+        startTime: '2024-07-01', 
+        endTime: '2024-07-31',
+        searchVolume: 'Medium',
+        competitive: 'High'
+      },
+      { 
+        productId: 'P-003', 
+        gtin: '3456789012345', 
+        image: 'https://via.placeholder.com/40x40', 
+        productTitle: 'Artisan Chocolate Bar 200g', 
+        impressions: '234,156', 
+        clicks: '8,234', 
+        addToCart: '1,245', 
+        avgCPC: '€0.28', 
+        ctr: '3.5%', 
+        atc: '15.1%', 
+        conversion: '2.8%', 
+        sales: '€4,567', 
+        budget: '€300', 
+        spent: '€287', 
+        budgetLeft: '€13', 
+        roas: '4.2x', 
+        extROAS: '4.6x', 
+        iROAS: '4.1x', 
+        startTime: '2024-08-10', 
+        endTime: '2024-09-10',
+        searchVolume: 'Low',
+        competitive: 'Medium'
+      },
+    ];
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Running Campaign', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for active campaign' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Campaign activated and running' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Performance Update', field: 'Metrics', oldValue: '-', newValue: 'CTR: 3.5%', description: 'Daily performance metrics update' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'System', action: 'Spend Alert', field: 'Budget', oldValue: '€100 remaining', newValue: '€13 remaining', description: 'Budget alert triggered' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Bid Adjustment', field: 'Bidding', oldValue: '€0.25', newValue: '€0.28', description: 'Increased bid for better positioning' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'ROAS Update', field: 'Performance', oldValue: '3.8x', newValue: '4.2x', description: 'Improved return on ad spend' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Review', field: 'Notes', oldValue: '-', newValue: 'Performing well, continue current strategy', description: 'Weekly campaign review' },
+    ];
+    
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+    
+    // Performance metrics for running campaign
+    const performanceMetrics = [
+      { 
+        id: 'impressions', 
+        label: 'Impressions', 
+        value: '2,845,692', 
+        subMetric: 'CTR: 3.2%',
+        badgeValue: '+15%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'clicks', 
+        label: 'Clicks', 
+        value: '91,062', 
+        subMetric: 'CPC: €0.42',
+        badgeValue: '+8%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'addToCart', 
+        label: 'Add to Cart', 
+        value: '12,847', 
+        subMetric: 'CVR: 14.1%',
+        badgeValue: '+22%',
+        badgeVariant: 'success' as const,
+      },
+      { 
+        id: 'sales', 
+        label: 'Sales', 
+        value: '€127,890', 
+        subMetric: 'ROAS: 3.34x',
+        badgeValue: '+18%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+    
+    // Chart data generation function
+    const getChartData = (selectedMetric: string) => {
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        let value;
+        switch (selectedMetric) {
+          case 'impressions':
+            value = Math.round(280000 + Math.random() * 100000);
+            break;
+          case 'clicks':
+            value = Math.round(8000 + Math.random() * 4000);
+            break;
+          case 'addToCart':
+            value = Math.round(1200 + Math.random() * 600);
+            break;
+          case 'sales':
+            value = Math.round(12000 + Math.random() * 6000);
+            break;
+          default:
+            value = Math.round(1000 + Math.random() * 500);
+        }
+        
+        days.push({ day: dayLabel, value });
+      }
+      return days;
+    };
+
+    const chartData = getChartData(selectedMetric);
+    const selectedMetricData = performanceMetrics.find(m => m.id === selectedMetric);
+    
+    const ForecastSection = () => (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {performanceMetrics.map((metric) => (
+            <MetricCard
+              key={metric.id}
+              label={metric.label}
+              value={metric.value}
+              subMetric={metric.subMetric}
+              badgeValue={metric.badgeValue}
+              badgeVariant={metric.badgeVariant}
+              isSelected={selectedMetric === metric.id}
+              onClick={() => setSelectedMetric(metric.id)}
+            />
+          ))}
+          <Dialog>
+            <DialogTrigger asChild>
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+              >
+                <Plus className="h-8 w-8 text-gray-400" />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px]">
+              <DialogHeader>
+                <DialogTitle>Select a Metric</DialogTitle>
+                <DialogDescription>
+                  Choose a metric to add to your dashboard. Click on any metric card to select it.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[500px] overflow-y-auto p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Click-Through Rate"
+                    value="2.34%"
+                    subMetric="vs. 2.18% last period"
+                    badgeValue="+7.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CTR selected')}
+                  />
+                  <MetricCard
+                    label="Conversion Rate"
+                    value="4.12%"
+                    subMetric="1,234 conversions"
+                    badgeValue="+12.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Conversion Rate selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Click"
+                    value="$0.58"
+                    subMetric="vs. $0.62 target"
+                    badgeValue="-6.5%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPC selected')}
+                  />
+                  <MetricCard
+                    label="Viewability Rate"
+                    value="87.3%"
+                    subMetric="Above industry avg"
+                    badgeValue="+5.2%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Viewability selected')}
+                  />
+                  <MetricCard
+                    label="Brand Lift"
+                    value="+18.2%"
+                    subMetric="Awareness increase"
+                    badgeValue="High"
+                    badgeVariant="info"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Brand Lift selected')}
+                  />
+                  <MetricCard
+                    label="Share of Voice"
+                    value="34.7%"
+                    subMetric="In category"
+                    badgeValue="+2.1%"
+                    badgeVariant="secondary"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('SOV selected')}
+                  />
+                  <MetricCard
+                    label="Frequency"
+                    value="3.8x"
+                    subMetric="Avg. per user"
+                    badgeValue="Optimal"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('Frequency selected')}
+                  />
+                  <MetricCard
+                    label="Video Completion Rate"
+                    value="68.9%"
+                    subMetric="15s videos"
+                    badgeValue="+9.4%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('VCR selected')}
+                  />
+                  <MetricCard
+                    label="Cost Per Acquisition"
+                    value="$24.50"
+                    subMetric="vs. $30 target"
+                    badgeValue="-18.3%"
+                    badgeVariant="success"
+                    className="cursor-pointer hover:ring-2 hover:ring-primary"
+                    onClick={() => console.log('CPA selected')}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {/* Interactive Line Chart */}
+        <div>
+          <div className="relative bg-white border rounded-lg p-6">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSelectedMetric('impressions')}
+              aria-label="Close chart"
+              className="absolute top-2 right-2 z-10"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <LineChartComponent
+            data={chartData}
+            config={{
+              value: {
+                label: selectedMetricData?.label || 'Value',
+                color: "hsl(var(--chart-1))",
+              },
+            }}
+            showLegend={false}
+            showGrid={true}
+            showTooltip={true}
+            showXAxis={true}
+            showYAxis={true}
+              className="h-52 w-full"
+              xAxisDataKey="day"
+            />
+          </div>
+        </div>
+      </div>
+    );
+    
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Sponsored Products: Summer Launch (Running)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+        
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Products',
+              value: 'products',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Search Volume',
+                        options: [
+                          { label: 'High', value: 'High' },
+                          { label: 'Medium', value: 'Medium' },
+                          { label: 'Low', value: 'Low' },
+                        ],
+                        selectedValues: searchVolume,
+                        onChange: setSearchVolume,
+                      },
+                      {
+                        name: 'Competitive',
+                        options: [
+                          { label: 'High', value: 'High' },
+                          { label: 'Medium', value: 'Medium' },
+                          { label: 'Low', value: 'Low' },
+                        ],
+                        selectedValues: competitive,
+                        onChange: setCompetitive,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search products..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'productId', header: 'Product ID' },
+                      { key: 'gtin', header: 'GTIN' },
+                      { key: 'image', header: 'Image', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
+                      { key: 'productTitle', header: 'Product Title' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'addToCart', header: 'Add to Cart' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'atc', header: 'ATC' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'extROAS', header: 'Ext. ROAS' },
+                      { key: 'iROAS', header: 'IROAS' },
+                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString() },
+                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString() },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={productData.filter(row => {
+                      const searchVolumeMatch = searchVolume.length === 0 || searchVolume.includes(row.searchVolume);
+                      const competitiveMatch = competitive.length === 0 || competitive.includes(row.competitive);
+                      return searchVolumeMatch && competitiveMatch;
+                    })}
+                    rowKey={row => row.productId}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Keywords',
+              value: 'keywords',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Match Type',
+                        options: [
+                          { label: 'Exact', value: 'Exact' },
+                          { label: 'Phrase', value: 'Phrase' },
+                          { label: 'Broad', value: 'Broad' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Negative', value: 'Negative' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search keywords..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'keyword', header: 'Keyword' },
+                      { key: 'matchType', header: 'Match Type', render: row => <Badge variant="outline">{row.matchType}</Badge> },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={[
+                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversion: '1.8%', sales: '€4,234', budget: '€200', spent: '€187', budgetLeft: '€13', roas: '2.8x', searchVolume: 'High', competitive: 'Medium' },
+                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversion: '1.5%', sales: '€2,156', budget: '€150', spent: '€143', budgetLeft: '€7', roas: '2.1x', searchVolume: 'Medium', competitive: 'High' },
+                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '89,234', clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversion: '2.2%', sales: '€1,234', budget: '€100', spent: '€95', budgetLeft: '€5', roas: '3.1x', searchVolume: 'Low', competitive: 'Low' },
+                    ]}
+                    rowKey={row => row.keyword}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Categories',
+              value: 'categories',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Category Level',
+                        options: [
+                          { label: 'Level 1', value: 'Level 1' },
+                          { label: 'Level 2', value: 'Level 2' },
+                          { label: 'Level 3', value: 'Level 3' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Excluded', value: 'Excluded' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search categories..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'category', header: 'Category' },
+                      { key: 'level', header: 'Level', render: row => <Badge variant="secondary">{row.level}</Badge> },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
+                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                    ]}
+                    data={[
+                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '456,789', clicks: '12,345', avgCPC: '€0.35', ctr: '2.7%', conversion: '1.9%', sales: '€5,678', budget: '€300', spent: '€278', budgetLeft: '€22', roas: '3.2x', searchVolume: 'High', competitive: 'Medium' },
+                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '234,567', clicks: '6,789', avgCPC: '€0.41', ctr: '2.9%', conversion: '1.6%', sales: '€3,456', budget: '€200', spent: '€189', budgetLeft: '€11', roas: '2.8x', searchVolume: 'Medium', competitive: 'High' },
+                      { category: 'Organic Products', level: 'Level 1', impressions: '345,678', clicks: '8,912', avgCPC: '€0.33', ctr: '2.6%', conversion: '2.1%', sales: '€4,567', budget: '€250', spent: '€234', budgetLeft: '€16', roas: '3.5x', searchVolume: 'Medium', competitive: 'Low' },
+                    ]}
+                    rowKey={row => row.category}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Other',
+              value: 'other',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Setting Type',
+                        options: [
+                          { label: 'Targeting', value: 'Targeting' },
+                          { label: 'Bidding', value: 'Bidding' },
+                          { label: 'Schedule', value: 'Schedule' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Active', value: 'Active' },
+                          { label: 'Inactive', value: 'Inactive' },
+                        ],
+                        selectedValues: [],
+                        onChange: () => {},
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search settings..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'setting', header: 'Setting' },
+                      { key: 'type', header: 'Type', render: row => <Badge variant="outline">{row.type}</Badge> },
+                      { key: 'value', header: 'Value' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'sales', header: 'Sales' },
+                      { key: 'budget', header: 'Budget' },
+                      { key: 'spent', header: 'Spent' },
+                      { key: 'budgetLeft', header: 'Budget Left' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
+                    ]}
+                    data={[
+                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '567,890', clicks: '14,567', avgCPC: '€0.36', ctr: '2.6%', conversion: '1.8%', sales: '€6,789', budget: '€400', spent: '€387', budgetLeft: '€13', roas: '3.1x', status: 'Active' },
+                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '456,789', clicks: '11,234', avgCPC: '€0.39', ctr: '2.5%', conversion: '1.7%', sales: '€5,234', budget: '€300', spent: '€289', budgetLeft: '€11', roas: '2.9x', status: 'Active' },
+                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '234,567', clicks: '6,789', avgCPC: '€0.34', ctr: '2.9%', conversion: '2.0%', sales: '€3,456', budget: '€200', spent: '€192', budgetLeft: '€8', roas: '3.4x', status: 'Active' },
+                    ]}
+                    rowKey={row => row.setting}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'products' ? (
+              <Button>Add product</Button>
+            ) : activeTab === 'keywords' ? (
+              <Button>Add keyword</Button>
+            ) : activeTab === 'categories' ? (
+              <Button>Add categories</Button>
+            ) : activeTab === 'other' ? (
+              <Button>Add other</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+    );
+  },
+}; 

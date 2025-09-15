@@ -67,8 +67,8 @@ export function RadarChartComponent({
             key={key}
             name={config[key].label}
             dataKey={key}
-            stroke={`var(--color-${key})`}
-            fill={`var(--color-${key})`}
+            stroke={config[key]?.color || `hsl(var(--chart-1))`}
+            fill={config[key]?.color || `hsl(var(--chart-1))`}
             fillOpacity={0.1}
             strokeWidth={2}
           />

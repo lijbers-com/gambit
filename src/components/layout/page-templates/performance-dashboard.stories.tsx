@@ -20,16 +20,16 @@ import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Performance Dashboard',
+  title: 'Page templates/Insights Dashboard',
   component: AppLayout,
   parameters: { 
     layout: 'fullscreen',
     docs: {
       description: {
         component: `
-# Performance Dashboard Page Template
+# Insights Dashboard Page Template
 
-The Performance Dashboard provides comprehensive performance analytics with interactive metric cards, dynamic charts, and detailed performance tables. It serves as the main analytics interface for campaign performance monitoring.
+The Insights Dashboard provides comprehensive performance analytics with interactive metric cards, dynamic charts, and detailed performance tables. It serves as the main analytics interface for campaign performance monitoring.
 
 ## Features
 

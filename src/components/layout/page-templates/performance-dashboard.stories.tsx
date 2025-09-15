@@ -10,6 +10,8 @@ import { BarChartComponent } from '@/components/ui/bar-chart';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { MapChart } from '@/components/ui/map-chart';
 import { PieChartComponent } from '@/components/ui/pie-chart';
+import { RadarChartComponent } from '@/components/ui/radar-chart';
+import { FunnelChartComponent } from '@/components/ui/funnel-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -387,7 +389,7 @@ const getPerformanceBadgeVariant = (performance: string) => {
   return 'destructive';
 };
 
-export const SponsoredProductsPerformance: Story = {
+export const GeneralInsights: Story = {
   render: () => {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -398,6 +400,101 @@ export const SponsoredProductsPerformance: Story = {
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
     const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>(undefined);
+    const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
+    
+    // IROAS selected metric state
+    const [selectedIroasMetric, setSelectedIroasMetric] = useState<string>('revenue');
+    
+    // Function to get IROAS chart data based on selected metric
+    const getIroasChartData = (metric: string) => {
+      switch (metric) {
+        case 'revenue':
+          return [
+            { day: 'Mon', incrementalRevenue: 144000, organicRevenue: 198000 },
+            { day: 'Tue', incrementalRevenue: 157000, organicRevenue: 201000 },
+            { day: 'Wed', incrementalRevenue: 130000, organicRevenue: 195000 },
+            { day: 'Thu', incrementalRevenue: 173000, organicRevenue: 205000 },
+            { day: 'Fri', incrementalRevenue: 202000, organicRevenue: 210000 },
+            { day: 'Sat', incrementalRevenue: 187000, organicRevenue: 208000 },
+            { day: 'Sun', incrementalRevenue: 167000, organicRevenue: 203000 },
+          ];
+        case 'spend':
+          return [
+            { day: 'Mon', mediaSpend: 42000, efficiency: 3.4 },
+            { day: 'Tue', mediaSpend: 44000, efficiency: 3.6 },
+            { day: 'Wed', mediaSpend: 41000, efficiency: 3.2 },
+            { day: 'Thu', mediaSpend: 46000, efficiency: 3.8 },
+            { day: 'Fri', mediaSpend: 49000, efficiency: 4.1 },
+            { day: 'Sat', mediaSpend: 48000, efficiency: 3.9 },
+            { day: 'Sun', mediaSpend: 45000, efficiency: 3.65 },
+          ];
+        case 'iroas':
+          return [
+            { day: 'Mon', overallIroas: 3.4, sponsoredIroas: 4.0, displayIroas: 2.8, digitalInstoreIroas: 3.2, offlineInstoreIroas: 2.9 },
+            { day: 'Tue', overallIroas: 3.6, sponsoredIroas: 4.2, displayIroas: 3.0, digitalInstoreIroas: 3.4, offlineInstoreIroas: 3.1 },
+            { day: 'Wed', overallIroas: 3.2, sponsoredIroas: 3.8, displayIroas: 2.6, digitalInstoreIroas: 3.0, offlineInstoreIroas: 2.7 },
+            { day: 'Thu', overallIroas: 3.8, sponsoredIroas: 4.4, displayIroas: 3.2, digitalInstoreIroas: 3.6, offlineInstoreIroas: 3.3 },
+            { day: 'Fri', overallIroas: 4.1, sponsoredIroas: 4.8, displayIroas: 3.4, digitalInstoreIroas: 3.9, offlineInstoreIroas: 3.5 },
+            { day: 'Sat', overallIroas: 3.9, sponsoredIroas: 4.5, displayIroas: 3.3, digitalInstoreIroas: 3.7, offlineInstoreIroas: 3.4 },
+            { day: 'Sun', overallIroas: 3.65, sponsoredIroas: 4.2, displayIroas: 3.1, digitalInstoreIroas: 3.5, offlineInstoreIroas: 3.2 },
+          ];
+        default:
+          return [];
+      }
+    };
+
+    // Function to get IROAS chart config based on selected metric
+    const getIroasChartConfig = (metric: string) => {
+      switch (metric) {
+        case 'revenue':
+          return {
+            incrementalRevenue: {
+              label: "Incremental Revenue (IROAS)",
+              color: "hsl(var(--chart-1))",
+            },
+            organicRevenue: {
+              label: "Organic Revenue",
+              color: "hsl(var(--chart-2))",
+            },
+          };
+        case 'spend':
+          return {
+            mediaSpend: {
+              label: "Media Spend (€)",
+              color: "hsl(var(--chart-1))",
+            },
+            efficiency: {
+              label: "Efficiency Ratio",
+              color: "hsl(var(--chart-2))",
+            },
+          };
+        case 'iroas':
+          return {
+            overallIroas: {
+              label: "Overall IROAS",
+              color: "hsl(var(--chart-1))",
+            },
+            displayIroas: {
+              label: "Display IROAS",
+              color: "hsl(var(--chart-2))",
+            },
+            sponsoredIroas: {
+              label: "Sponsored Products IROAS",
+              color: "hsl(var(--chart-3))",
+            },
+            digitalInstoreIroas: {
+              label: "Digital In-store IROAS",
+              color: "hsl(var(--chart-4))",
+            },
+            offlineInstoreIroas: {
+              label: "Offline In-store IROAS",
+              color: "hsl(var(--chart-5))",
+            },
+          };
+        default:
+          return {};
+      }
+    };
     
     return (
       <AppLayout
@@ -421,7 +518,7 @@ export const SponsoredProductsPerformance: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Advertiser</label>
                   <Input
@@ -467,6 +564,22 @@ export const SponsoredProductsPerformance: Story = {
                     value={lineItemFilter}
                     onChange={setLineItemFilter}
                     placeholder="Select line item"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Engine</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Engines', value: 'all' },
+                      { label: 'Display', value: 'display' },
+                      { label: 'Sponsored Products', value: 'sponsored-products' },
+                      { label: 'Digital In-store', value: 'digital-instore' },
+                      { label: 'Offline In-store', value: 'offline-instore' },
+                    ]}
+                    value={engineFilter}
+                    onChange={setEngineFilter}
+                    placeholder="Select engine"
                   />
                 </div>
               </div>
@@ -596,128 +709,75 @@ export const SponsoredProductsPerformance: Story = {
               </CardContent>
             </Card>
 
-            {/* Performance Ecom Card */}
+            {/* E-commerce Funnel Report Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Performance Ecom Report</CardTitle>
+                <CardTitle className="text-lg font-semibold">E-commerce Funnel Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Individual Ecommerce Metric Charts - Stacked Vertically */}
-                <div className="space-y-6">
-                  {/* Clicks Chart */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Clicks</h4>
-                    <LineChartComponent
+              <CardContent className="space-y-4">
+                {/* Total Conversion Rate at Top */}
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">Total CR%</div>
+                  <div className="text-3xl font-bold">0.87%</div>
+                  <div className="text-sm text-red-500">↓ 17.3%</div>
+                </div>
+
+                {/* Funnel Chart with Side Metrics */}
+                <div className="flex items-start">
+                  {/* Left Side Metrics */}
+                  <div className="w-32 h-96 flex flex-col justify-between py-4 text-left">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Item Views</div>
+                      <div className="text-lg font-bold">8,598</div>
+                      <div className="text-xs text-green-500">↑ 19.4%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Add To Cart CR%</div>
+                      <div className="text-lg font-bold">4.8%</div>
+                      <div className="text-xs text-green-500">↑ 12.9%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Checkout CR%</div>
+                      <div className="text-lg font-bold">141.9%</div>
+                      <div className="text-xs text-green-500">↑ 200.4%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Purchase CR%</div>
+                      <div className="text-lg font-bold">12.7%</div>
+                      <div className="text-xs text-red-500">↓ 77.0%</div>
+                    </div>
+                  </div>
+
+                  {/* Funnel Chart */}
+                  <div className="flex-1">
+                    <FunnelChartComponent
                       data={[
-                        { day: 'Mon', value: 1250 },
-                        { day: 'Tue', value: 1340 },
-                        { day: 'Wed', value: 1180 },
-                        { day: 'Thu', value: 1420 },
-                        { day: 'Fri', value: 1680 },
-                        { day: 'Sat', value: 1590 },
-                        { day: 'Sun', value: 1480 },
+                        { name: 'Impressions', value: 1147000, percentage: 100 },
+                        { name: 'Clicks', value: 9940, percentage: 0.87 },
+                        { name: 'Add to Cart', value: 477, percentage: 4.8 },
+                        { name: 'Sales', value: 61, percentage: 12.7 },
                       ]}
                       config={{
-                        value: {
-                          label: "Clicks",
+                        'Impressions': {
+                          label: "Impressions",
                           color: "hsl(var(--chart-1))",
                         },
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      className="h-32 w-full"
-                      xAxisDataKey="day"
-                    />
-                  </div>
-
-                  {/* Add to Cart Chart */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Add to Cart</h4>
-                    <LineChartComponent
-                      data={[
-                        { day: 'Mon', value: 187 },
-                        { day: 'Tue', value: 201 },
-                        { day: 'Wed', value: 165 },
-                        { day: 'Thu', value: 223 },
-                        { day: 'Fri', value: 289 },
-                        { day: 'Sat', value: 267 },
-                        { day: 'Sun', value: 244 },
-                      ]}
-                      config={{
-                        value: {
-                          label: "Add to Cart",
+                        'Clicks': {
+                          label: "Clicks",
                           color: "hsl(var(--chart-2))",
                         },
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      className="h-32 w-full"
-                      xAxisDataKey="day"
-                    />
-                  </div>
-
-
-                  {/* Conversion Chart */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Conversion (%)</h4>
-                    <LineChartComponent
-                      data={[
-                        { day: 'Mon', value: 4.2 },
-                        { day: 'Tue', value: 4.5 },
-                        { day: 'Wed', value: 3.9 },
-                        { day: 'Thu', value: 4.7 },
-                        { day: 'Fri', value: 5.1 },
-                        { day: 'Sat', value: 4.9 },
-                        { day: 'Sun', value: 4.6 },
-                      ]}
-                      config={{
-                        value: {
-                          label: "Conversion (%)",
+                        'Add to Cart': {
+                          label: "Add to Cart",
+                          color: "hsl(var(--chart-3))",
+                        },
+                        'Sales': {
+                          label: "Sales",
                           color: "hsl(var(--chart-4))",
                         },
                       }}
-                      showLegend={false}
-                      showGrid={true}
                       showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      className="h-32 w-full"
-                      xAxisDataKey="day"
-                    />
-                  </div>
-
-                  {/* Transactions Chart */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 text-muted-foreground">Transactions</h4>
-                    <LineChartComponent
-                      data={[
-                        { day: 'Mon', value: 52 },
-                        { day: 'Tue', value: 60 },
-                        { day: 'Wed', value: 46 },
-                        { day: 'Thu', value: 67 },
-                        { day: 'Fri', value: 86 },
-                        { day: 'Sat', value: 78 },
-                        { day: 'Sun', value: 68 },
-                      ]}
-                      config={{
-                        value: {
-                          label: "Transactions",
-                          color: "hsl(var(--chart-5))",
-                        },
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      className="h-32 w-full"
-                      xAxisDataKey="day"
+                      showLabels={false}
+                      className="h-96 w-full"
                     />
                   </div>
                 </div>
@@ -726,7 +786,7 @@ export const SponsoredProductsPerformance: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full Performance Ecom Report')}
+                    onClick={() => alert('Navigate to full E-commerce Funnel Report')}
                   >
                     View Full Report
                   </Button>
@@ -735,75 +795,85 @@ export const SponsoredProductsPerformance: Story = {
             </Card>
           </div>
 
-          {/* Bottom Row - ROAS Report */}
-          <div className="grid grid-cols-1 gap-6">
-            {/* ROAS Report Card */}
+          {/* Bottom Row - Audience Report and Goal Report */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Audience Report Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">ROAS Report</CardTitle>
+                <CardTitle className="text-lg font-semibold">Audience Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* ROAS metrics grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <MetricCard
-                    label="Overall ROAS"
-                    value="4.25x"
-                    subMetric="All channels"
-                    badgeValue="+12%"
-                    badgeVariant="success"
-                  />
-                  <MetricCard
-                    label="Overall IROAS"
-                    value="3.65x"
-                    subMetric="Incremental ROAS"
-                    badgeValue="+18%"
-                    badgeVariant="success"
-                  />
-                  <MetricCard
-                    label="Offline ROAS"
-                    value="2.89x"
-                    subMetric="In-store campaigns"
-                    badgeValue="+8%"
-                    badgeVariant="success"
-                  />
-                  <MetricCard
-                    label="Online ROAS"
-                    value="5.12x"
-                    subMetric="Digital campaigns"
-                    badgeValue="+22%"
-                    badgeVariant="success"
+              <CardContent className="space-y-6">
+                {/* Audience Pie Chart */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Audience Distribution</h4>
+                  <PieChartComponent
+                    data={[
+                      { name: 'Young Professionals', value: 35 },
+                      { name: 'Families', value: 28 },
+                      { name: 'Students', value: 22 },
+                      { name: 'Seniors', value: 15 },
+                    ]}
+                    config={{
+                      'Young Professionals': {
+                        label: "Young Professionals",
+                        color: "hsl(var(--chart-1))",
+                      },
+                      'Families': {
+                        label: "Families",
+                        color: "hsl(var(--chart-2))",
+                      },
+                      'Students': {
+                        label: "Students",
+                        color: "hsl(var(--chart-3))",
+                      },
+                      'Seniors': {
+                        label: "Seniors",
+                        color: "hsl(var(--chart-4))",
+                      },
+                    }}
+                    showLabels={true}
+                    showLegend={true}
+                    showTooltip={true}
+                    className="h-64 w-full"
+                    dataKey="value"
+                    nameKey="name"
                   />
                 </div>
 
-                {/* ROAS Trend Chart */}
+                {/* Customer Lifetime Value by Audience Bar Chart */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">ROAS Performance Trend</h4>
-                  <LineChartComponent
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Customer Lifetime Value by Audience</h4>
+                  <BarChartComponent
                     data={[
-                      { day: 'Mon', overallRoas: 4.1, overallIroas: 3.4, offlineRoas: 2.8, onlineRoas: 4.9 },
-                      { day: 'Tue', overallRoas: 4.3, overallIroas: 3.6, offlineRoas: 2.9, onlineRoas: 5.1 },
-                      { day: 'Wed', overallRoas: 3.9, overallIroas: 3.2, offlineRoas: 2.7, onlineRoas: 4.8 },
-                      { day: 'Thu', overallRoas: 4.5, overallIroas: 3.8, offlineRoas: 3.1, onlineRoas: 5.3 },
-                      { day: 'Fri', overallRoas: 4.8, overallIroas: 4.1, offlineRoas: 3.2, onlineRoas: 5.6 },
-                      { day: 'Sat', overallRoas: 4.6, overallIroas: 3.9, offlineRoas: 3.0, onlineRoas: 5.4 },
-                      { day: 'Sun', overallRoas: 4.25, overallIroas: 3.65, offlineRoas: 2.89, onlineRoas: 5.12 },
+                      { 
+                        audience: 'Young Prof.', 
+                        clv: 1250,
+                        avgOrderValue: 85
+                      },
+                      { 
+                        audience: 'Families', 
+                        clv: 890,
+                        avgOrderValue: 120
+                      },
+                      { 
+                        audience: 'Students', 
+                        clv: 340,
+                        avgOrderValue: 45
+                      },
+                      { 
+                        audience: 'Seniors', 
+                        clv: 780,
+                        avgOrderValue: 65
+                      },
                     ]}
                     config={{
-                      overallRoas: {
-                        label: "Overall ROAS",
+                      clv: {
+                        label: "Customer Lifetime Value (€)",
                         color: "hsl(var(--chart-1))",
                       },
-                      overallIroas: {
-                        label: "Overall IROAS",
+                      avgOrderValue: {
+                        label: "Avg Order Value (€)",
                         color: "hsl(var(--chart-2))",
-                      },
-                      offlineRoas: {
-                        label: "Offline ROAS",
-                        color: "hsl(var(--chart-3))",
-                      },
-                      onlineRoas: {
-                        label: "Online ROAS",
-                        color: "hsl(var(--chart-4))",
                       },
                     }}
                     showLegend={true}
@@ -811,8 +881,8 @@ export const SponsoredProductsPerformance: Story = {
                     showTooltip={true}
                     showXAxis={true}
                     showYAxis={true}
-                    className="h-40 w-full"
-                    xAxisDataKey="day"
+                    className="h-64 w-full"
+                    xAxisDataKey="audience"
                   />
                 </div>
                 
@@ -820,7 +890,202 @@ export const SponsoredProductsPerformance: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full ROAS Report')}
+                    onClick={() => alert('Navigate to full Audience Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Goal Report Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Goal Report</CardTitle>
+              </CardHeader>
+              <CardContent className="h-96 flex flex-col">
+                {/* Goal Contribution Radar Charts */}
+                <div className="flex-1 flex flex-col">
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Engine Performance by Goal</h4>
+                  <div className="flex-1 grid grid-cols-2 gap-16">
+                    {/* Sponsored Products Radar */}
+                    <div>
+                      <h5 className="text-xs font-medium mb-2 text-center">Sponsored Products</h5>
+                      <RadarChartComponent
+                        data={[
+                          { subject: 'Awareness', 'Sponsored products': 25 },
+                          { subject: 'Consideration', 'Sponsored products': 35 },
+                          { subject: 'Intent', 'Sponsored products': 40 },
+                          { subject: 'Purchase', 'Sponsored products': 50 },
+                          { subject: 'Retention', 'Sponsored products': 30 },
+                        ]}
+                        config={{
+                          'Sponsored products': {
+                            label: "Sponsored Products",
+                            color: "hsl(var(--chart-1))",
+                          },
+                        }}
+                        showTooltip={true}
+                        className="h-full w-full"
+                      />
+                    </div>
+
+                    {/* Display Radar */}
+                    <div>
+                      <h5 className="text-xs font-medium mb-2 text-center">Display</h5>
+                      <RadarChartComponent
+                        data={[
+                          { subject: 'Awareness', 'Display': 45 },
+                          { subject: 'Consideration', 'Display': 30 },
+                          { subject: 'Intent', 'Display': 20 },
+                          { subject: 'Purchase', 'Display': 15 },
+                          { subject: 'Retention', 'Display': 12 },
+                        ]}
+                        config={{
+                          'Display': {
+                            label: "Display",
+                            color: "hsl(var(--chart-2))",
+                          },
+                        }}
+                        showTooltip={true}
+                        className="h-full w-full"
+                      />
+                    </div>
+
+                    {/* Digital In-store Radar */}
+                    <div>
+                      <h5 className="text-xs font-medium mb-2 text-center">Digital In-store</h5>
+                      <RadarChartComponent
+                        data={[
+                          { subject: 'Awareness', 'Digital in-store': 20 },
+                          { subject: 'Consideration', 'Digital in-store': 25 },
+                          { subject: 'Intent', 'Digital in-store': 25 },
+                          { subject: 'Purchase', 'Digital in-store': 20 },
+                          { subject: 'Retention', 'Digital in-store': 22 },
+                        ]}
+                        config={{
+                          'Digital in-store': {
+                            label: "Digital In-store",
+                            color: "hsl(var(--chart-3))",
+                          },
+                        }}
+                        showTooltip={true}
+                        className="h-full w-full"
+                      />
+                    </div>
+
+                    {/* Offline In-store Radar */}
+                    <div>
+                      <h5 className="text-xs font-medium mb-2 text-center">Offline In-store</h5>
+                      <RadarChartComponent
+                        data={[
+                          { subject: 'Awareness', 'Offline in-store': 10 },
+                          { subject: 'Consideration', 'Offline in-store': 10 },
+                          { subject: 'Intent', 'Offline in-store': 15 },
+                          { subject: 'Purchase', 'Offline in-store': 15 },
+                          { subject: 'Retention', 'Offline in-store': 18 },
+                        ]}
+                        config={{
+                          'Offline in-store': {
+                            label: "Offline In-store",
+                            color: "hsl(var(--chart-4))",
+                          },
+                        }}
+                        showTooltip={true}
+                        className="h-full w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* CTA Button */}
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full Goal Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Full Width IROAS Report */}
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">IROAS Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Revenue, Spend and IROAS Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Total Revenue"
+                    value="€2.4M"
+                    subMetric="Last 30 days"
+                    badgeValue="+15.3%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'revenue'}
+                    onClick={() => setSelectedIroasMetric('revenue')}
+                  />
+                  <MetricCard
+                    label="Total Spend"
+                    value="€650K"
+                    subMetric="Media investment"
+                    badgeValue="+8.7%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'spend'}
+                    onClick={() => setSelectedIroasMetric('spend')}
+                  />
+                  <MetricCard
+                    label="Overall IROAS"
+                    value="3.65x"
+                    subMetric="Incremental return"
+                    badgeValue="+18%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'iroas'}
+                    onClick={() => setSelectedIroasMetric('iroas')}
+                  />
+                </div>
+
+                {/* Dynamic Chart based on selected metric */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+                    {selectedIroasMetric === 'revenue' && 'Incremental vs Organic Revenue'}
+                    {selectedIroasMetric === 'spend' && 'Media Spend & Efficiency'}
+                    {selectedIroasMetric === 'iroas' && 'IROAS Performance by Channel'}
+                  </h4>
+                  <LineChartComponent
+                    data={getIroasChartData(selectedIroasMetric)}
+                    config={getIroasChartConfig(selectedIroasMetric)}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-64 w-full"
+                    xAxisDataKey="day"
+                    yAxisLabel={
+                      selectedIroasMetric === 'revenue' ? 'Revenue (€)' :
+                      selectedIroasMetric === 'spend' ? 'Spend (€)' :
+                      'IROAS'
+                    }
+                    secondaryYAxis={
+                      selectedIroasMetric === 'spend' ? {
+                        dataKey: 'efficiency',
+                        domain: [0, 5],
+                        label: 'Efficiency'
+                      } : undefined
+                    }
+                  />
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full IROAS Report')}
                   >
                     View Full Report
                   </Button>
@@ -1827,6 +2092,7 @@ export const FullReportView: Story = {
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
     const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
@@ -2031,7 +2297,7 @@ export const FullReportView: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Advertiser</label>
                   <Input
@@ -2081,6 +2347,22 @@ export const FullReportView: Story = {
                     placeholder="Select line item"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Engine</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Engines', value: 'all' },
+                      { label: 'Display', value: 'display' },
+                      { label: 'Sponsored Products', value: 'sponsored-products' },
+                      { label: 'Digital In-store', value: 'digital-instore' },
+                      { label: 'Offline In-store', value: 'offline-instore' },
+                    ]}
+                    value={engineFilter}
+                    onChange={setEngineFilter}
+                    placeholder="Select engine"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -2093,8 +2375,8 @@ export const FullReportView: Story = {
             <CardContent>
               <Table
                 columns={[
-                  { key: 'id', header: 'Line Item ID' },
-                  { key: 'name', header: 'Campaign Name' },
+                  { key: 'id', header: 'Line Item ID', hideable: false },
+                  { key: 'name', header: 'Campaign Name', hideable: false },
                   { key: 'advertiser', header: 'Advertiser' },
                   { key: 'status', header: 'Status', render: row => (
                     <Badge variant={getStatusBadgeVariant(row.status)}>
@@ -2116,7 +2398,6 @@ export const FullReportView: Story = {
                 ]}
                 data={fullReportData}
                 rowKey={row => row.id}
-                hideActions
                 rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
                 onRowClick={row => {
                   console.log('Navigate to line item details for', row.name);

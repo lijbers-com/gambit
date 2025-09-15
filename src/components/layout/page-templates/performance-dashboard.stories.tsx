@@ -2410,3 +2410,453 @@ export const FullReportView: Story = {
     );
   },
 };
+
+export const ProductReportView: Story = {
+  render: () => {
+    // Filter states
+    const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
+    const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
+    const [brandFilter, setBrandFilter] = useState<string | undefined>(undefined);
+    const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: new Date(),
+    });
+
+    // Product-specific report data
+    const productReportData = [
+      {
+        id: 'PRD-001',
+        productName: 'Dove Body Wash Original',
+        brand: 'Dove',
+        category: 'Personal Care',
+        advertiser: 'Unilever',
+        sku: 'DV-BW-250ML-ORG',
+        impressions: 4850000,
+        clicks: 14550,
+        spend: 8950.75,
+        addToCart: 2847,
+        purchases: 634,
+        revenue: 31750.40,
+        units: 1268,
+        roas: '3.55x',
+        ctr: '0.30%',
+        cpc: '€0.62',
+        cartRate: '19.6%',
+        conversionRate: '4.4%',
+        cpa: '€14.12',
+        aov: '€50.08',
+        status: 'Active',
+        stockLevel: 'High',
+        margin: '42%'
+      },
+      {
+        id: 'PRD-002',
+        productName: 'Hellmanns Real Mayonnaise 400g',
+        brand: 'Hellmanns',
+        category: 'Food & Beverage',
+        advertiser: 'Unilever',
+        sku: 'HM-MAYO-400G-REAL',
+        impressions: 3800000,
+        clicks: 13680,
+        spend: 7234.60,
+        addToCart: 2634,
+        purchases: 789,
+        revenue: 23670.60,
+        units: 1578,
+        roas: '3.27x',
+        ctr: '0.36%',
+        cpc: '€0.53',
+        cartRate: '19.2%',
+        conversionRate: '5.8%',
+        cpa: '€9.17',
+        aov: '€30.00',
+        status: 'Active',
+        stockLevel: 'Medium',
+        margin: '38%'
+      },
+      {
+        id: 'PRD-003',
+        productName: 'Ben & Jerrys Cookie Dough 465ml',
+        brand: 'Ben & Jerrys',
+        category: 'Food & Beverage',
+        advertiser: 'Unilever',
+        sku: 'BJ-CD-465ML',
+        impressions: 3200000,
+        clicks: 11520,
+        spend: 6890.25,
+        addToCart: 2291,
+        purchases: 573,
+        revenue: 22920.00,
+        units: 573,
+        roas: '3.33x',
+        ctr: '0.36%',
+        cpc: '€0.60',
+        cartRate: '19.9%',
+        conversionRate: '5.0%',
+        cpa: '€12.02',
+        aov: '€40.00',
+        status: 'Active',
+        stockLevel: 'Low',
+        margin: '45%'
+      },
+      {
+        id: 'PRD-004',
+        productName: 'Axe Dark Temptation Body Spray',
+        brand: 'Axe',
+        category: 'Personal Care',
+        advertiser: 'Unilever',
+        sku: 'AX-DT-150ML',
+        impressions: 2800000,
+        clicks: 9520,
+        spend: 5456.80,
+        addToCart: 1923,
+        purchases: 385,
+        revenue: 15015.00,
+        units: 1155,
+        roas: '2.75x',
+        ctr: '0.34%',
+        cpc: '€0.57',
+        cartRate: '20.2%',
+        conversionRate: '4.0%',
+        cpa: '€14.17',
+        aov: '€39.00',
+        status: 'Active',
+        stockLevel: 'High',
+        margin: '40%'
+      },
+      {
+        id: 'PRD-005',
+        productName: 'Lipton Yellow Label Tea 100bags',
+        brand: 'Lipton',
+        category: 'Food & Beverage',
+        advertiser: 'Unilever',
+        sku: 'LP-YL-100BAG',
+        impressions: 2200000,
+        clicks: 8580,
+        spend: 4567.40,
+        addToCart: 1756,
+        purchases: 439,
+        revenue: 10536.00,
+        units: 1317,
+        roas: '2.31x',
+        ctr: '0.39%',
+        cpc: '€0.53',
+        cartRate: '20.5%',
+        conversionRate: '5.1%',
+        cpa: '€10.40',
+        aov: '€24.00',
+        status: 'Active',
+        stockLevel: 'High',
+        margin: '35%'
+      },
+      {
+        id: 'PRD-006',
+        productName: 'Magnum Classic Ice Cream 4pk',
+        brand: 'Magnum',
+        category: 'Food & Beverage',
+        advertiser: 'Unilever',
+        sku: 'MG-CLASSIC-4PK',
+        impressions: 1080000,
+        clicks: 3240,
+        spend: 2890.50,
+        addToCart: 389,
+        purchases: 97,
+        revenue: 4365.00,
+        units: 97,
+        roas: '1.51x',
+        ctr: '0.30%',
+        cpc: '€0.89',
+        cartRate: '12.0%',
+        conversionRate: '3.0%',
+        cpa: '€29.80',
+        aov: '€45.00',
+        status: 'Paused',
+        stockLevel: 'Medium',
+        margin: '48%'
+      },
+      {
+        id: 'PRD-007',
+        productName: 'Knorr Chicken Stock Cubes 12pk',
+        brand: 'Knorr',
+        category: 'Food & Beverage',
+        advertiser: 'Unilever',
+        sku: 'KN-CHK-12CUBE',
+        impressions: 1250000,
+        clicks: 4375,
+        spend: 3234.75,
+        addToCart: 456,
+        purchases: 152,
+        revenue: 4560.00,
+        units: 456,
+        roas: '1.41x',
+        ctr: '0.35%',
+        cpc: '€0.74',
+        cartRate: '10.4%',
+        conversionRate: '3.5%',
+        cpa: '€21.28',
+        aov: '€30.00',
+        status: 'Active',
+        stockLevel: 'High',
+        margin: '33%'
+      },
+      {
+        id: 'PRD-008',
+        productName: 'Vaseline Intensive Care Lotion 400ml',
+        brand: 'Vaseline',
+        category: 'Personal Care',
+        advertiser: 'Unilever',
+        sku: 'VS-IC-400ML',
+        impressions: 1400000,
+        clicks: 4900,
+        spend: 3567.20,
+        addToCart: 523,
+        purchases: 131,
+        revenue: 3930.00,
+        units: 262,
+        roas: '1.10x',
+        ctr: '0.35%',
+        cpc: '€0.73',
+        cartRate: '10.7%',
+        conversionRate: '2.7%',
+        cpa: '€27.23',
+        aov: '€30.00',
+        status: 'Active',
+        stockLevel: 'Medium',
+        margin: '40%'
+      },
+      {
+        id: 'PRD-009',
+        productName: 'Surf Excel Liquid Detergent 1L',
+        brand: 'Surf',
+        category: 'Home Care',
+        advertiser: 'Unilever',
+        sku: 'SF-LIQ-1L',
+        impressions: 850000,
+        clicks: 2550,
+        spend: 2345.80,
+        addToCart: 245,
+        purchases: 61,
+        revenue: 1830.00,
+        units: 122,
+        roas: '0.78x',
+        ctr: '0.30%',
+        cpc: '€0.92',
+        cartRate: '9.6%',
+        conversionRate: '2.4%',
+        cpa: '€38.46',
+        aov: '€30.00',
+        status: 'Paused',
+        stockLevel: 'Low',
+        margin: '25%'
+      },
+      {
+        id: 'PRD-010',
+        productName: 'Persil Bio Washing Powder 2kg',
+        brand: 'Persil',
+        category: 'Home Care',
+        advertiser: 'Unilever',
+        sku: 'PS-BIO-2KG',
+        impressions: 920000,
+        clicks: 2944,
+        spend: 2567.90,
+        addToCart: 312,
+        purchases: 78,
+        revenue: 2340.00,
+        units: 78,
+        roas: '0.91x',
+        ctr: '0.32%',
+        cpc: '€0.87',
+        cartRate: '10.6%',
+        conversionRate: '2.6%',
+        cpa: '€32.92',
+        aov: '€30.00',
+        status: 'Active',
+        stockLevel: 'Medium',
+        margin: '28%'
+      }
+    ];
+
+    const getStatusBadgeVariant = (status: string) => {
+      switch (status.toLowerCase()) {
+        case 'active':
+          return 'default';
+        case 'paused':
+          return 'secondary';
+        case 'completed':
+          return 'outline';
+        default:
+          return 'secondary';
+      }
+    };
+
+    const getStockBadgeVariant = (stockLevel: string) => {
+      switch (stockLevel.toLowerCase()) {
+        case 'high':
+          return 'default';
+        case 'medium':
+          return 'secondary';
+        case 'low':
+          return 'destructive';
+        default:
+          return 'secondary';
+      }
+    };
+
+    return (
+      <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Product Performance Report',
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range"
+              showPresets={true}
+            />
+          ),
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+        }}
+      >
+        <div className="space-y-6">
+          {/* Filter Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Advertiser</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Advertisers', value: 'all' },
+                      { label: 'Unilever', value: 'unilever' },
+                      { label: 'Procter & Gamble', value: 'pg' },
+                      { label: 'Nestlé', value: 'nestle' },
+                      { label: 'Coca-Cola', value: 'coca-cola' },
+                    ]}
+                    value={advertiserFilter}
+                    onChange={setAdvertiserFilter}
+                    placeholder="Select advertiser"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Categories', value: 'all' },
+                      { label: 'Personal Care', value: 'personal-care' },
+                      { label: 'Food & Beverage', value: 'food-beverage' },
+                      { label: 'Home Care', value: 'home-care' },
+                      { label: 'Health & Wellness', value: 'health-wellness' },
+                    ]}
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    placeholder="Select category"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Brand</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Brands', value: 'all' },
+                      { label: 'Dove', value: 'dove' },
+                      { label: 'Hellmanns', value: 'hellmanns' },
+                      { label: 'Ben & Jerrys', value: 'ben-jerrys' },
+                      { label: 'Axe', value: 'axe' },
+                      { label: 'Lipton', value: 'lipton' },
+                      { label: 'Magnum', value: 'magnum' },
+                      { label: 'Knorr', value: 'knorr' },
+                      { label: 'Vaseline', value: 'vaseline' },
+                      { label: 'Surf', value: 'surf' },
+                      { label: 'Persil', value: 'persil' },
+                    ]}
+                    value={brandFilter}
+                    onChange={setBrandFilter}
+                    placeholder="Select brand"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Engine</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Engines', value: 'all' },
+                      { label: 'Display', value: 'display' },
+                      { label: 'Sponsored Products', value: 'sponsored-products' },
+                      { label: 'Digital In-store', value: 'digital-instore' },
+                      { label: 'Offline In-store', value: 'offline-instore' },
+                    ]}
+                    value={engineFilter}
+                    onChange={setEngineFilter}
+                    placeholder="Select engine"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Product Performance Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Performance Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table
+                columns={[
+                  { key: 'productName', header: 'Product Name', hideable: false },
+                  { key: 'brand', header: 'Brand', hideable: false },
+                  { key: 'category', header: 'Category' },
+                  { key: 'sku', header: 'SKU' },
+                  { key: 'status', header: 'Status', render: row => (
+                    <Badge variant={getStatusBadgeVariant(row.status)}>
+                      {row.status}
+                    </Badge>
+                  )},
+                  { key: 'stockLevel', header: 'Stock', render: row => (
+                    <Badge variant={getStockBadgeVariant(row.stockLevel)}>
+                      {row.stockLevel}
+                    </Badge>
+                  )},
+                  { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                  { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                  { key: 'ctr', header: 'CTR' },
+                  { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                  { key: 'cpc', header: 'CPC' },
+                  { key: 'addToCart', header: 'Add to Cart', render: row => row.addToCart.toLocaleString() },
+                  { key: 'cartRate', header: 'Cart Rate' },
+                  { key: 'purchases', header: 'Purchases', render: row => row.purchases.toLocaleString() },
+                  { key: 'conversionRate', header: 'Conv. Rate' },
+                  { key: 'cpa', header: 'CPA' },
+                  { key: 'units', header: 'Units Sold', render: row => row.units.toLocaleString() },
+                  { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                  { key: 'aov', header: 'AOV' },
+                  { key: 'roas', header: 'ROAS' },
+                  { key: 'margin', header: 'Margin %' },
+                ]}
+                data={productReportData}
+                rowKey={row => row.id}
+                rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                onRowClick={row => {
+                  console.log('Navigate to product details for', row.productName);
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  },
+};

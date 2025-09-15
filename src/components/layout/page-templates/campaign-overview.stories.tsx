@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
@@ -104,7 +105,8 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
       return statusMatch && advertiserMatch;
     });
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -169,6 +171,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
           </CardContent>
         </Card>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 });

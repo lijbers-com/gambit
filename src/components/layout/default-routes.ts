@@ -3,20 +3,6 @@ import { Route } from '@/components/ui/side-navigation';
 export const defaultRoutes: Route[] = [
   {
     id: 0,
-    name: "Home",
-    type: "single" as const,
-    icon: { lucide: "Home" },
-    url: "/"
-  },
-  {
-    id: 1,
-    name: "Dashboard",
-    type: "single" as const,
-    icon: { lucide: "LayoutDashboard" },
-    url: "/dashboard"
-  },
-  {
-    id: 2,
     name: "Campaigns",
     type: "parent" as const,
     icon: { lucide: "Table" },
@@ -48,7 +34,7 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 3,
+    id: 1,
     name: "Creatives",
     type: "parent" as const,
     icon: { lucide: "ImagePlus" },
@@ -80,7 +66,7 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 4,
+    id: 2,
     name: "Calendar",
     type: "parent" as const,
     icon: { lucide: "CalendarDays" },
@@ -112,7 +98,7 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 5,
+    id: 3,
     name: "Insights",
     type: "parent" as const,
     icon: { lucide: "BarChart3" },
@@ -144,7 +130,7 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 6,
+    id: 4,
     name: "Yield",
     type: "parent" as const,
     icon: { lucide: "TrendingUp" },
@@ -174,5 +160,50 @@ export const defaultRoutes: Route[] = [
         url: "/yield/offline-instore",
       },
     ],
+  },
+  {
+    id: 5,
+    name: "AdGenie chats",
+    type: "title" as const,
+  },
+  {
+    id: 6,
+    name: "New chat",
+    type: "single" as const,
+    icon: { lucide: "MessageSquare" },
+    url: "/chats/new",
+  },
+  {
+    id: 7,
+    name: "Configuration",
+    type: "title" as const,
+  },
+  {
+    id: 8,
+    name: "Display config",
+    type: "single" as const,
+    icon: { lucide: "MonitorSpeaker" },
+    url: "/configuration/display",
+  },
+  {
+    id: 9,
+    name: "Sponsored products config",
+    type: "single" as const,
+    icon: { lucide: "ListStart" },
+    url: "/configuration/sponsored-products",
+  },
+  {
+    id: 10,
+    name: "Digital in-store config",
+    type: "single" as const,
+    icon: { lucide: "MonitorPlay" },
+    url: "/configuration/digital-instore",
+  },
+  {
+    id: 11,
+    name: "Offline in-store config",
+    type: "single" as const,
+    icon: { lucide: "Store" },
+    url: "/configuration/offline-instore",
   },
 ];

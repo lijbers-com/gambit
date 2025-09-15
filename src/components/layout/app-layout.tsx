@@ -67,7 +67,7 @@ export function AppLayout({
   });
 
   return (
-    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[270px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
+    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
       {/* Side Navigation */}
       <div className="h-screen">
       <SideNavigation

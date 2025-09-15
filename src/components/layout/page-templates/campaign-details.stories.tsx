@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
@@ -654,7 +655,8 @@ const updatedForecastMetrics = [
     );
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -938,6 +940,7 @@ const updatedForecastMetrics = [
           onTabChange={setActiveTab}
         />
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1071,7 +1074,8 @@ export const DigitalInstoreRunning: Story = {
     );
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -1355,6 +1359,7 @@ export const DigitalInstoreRunning: Story = {
           onTabChange={setActiveTab}
         />
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1894,7 +1899,8 @@ export const SponsoredProductsInOption: Story = {
     );
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -2313,6 +2319,7 @@ export const SponsoredProductsInOption: Story = {
           onTabChange={setActiveTab}
         />
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -2679,7 +2686,8 @@ export const SponsoredProductsRunning: Story = {
     );
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -3105,6 +3113,7 @@ export const SponsoredProductsRunning: Story = {
           onTabChange={setActiveTab}
         />
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 }; 

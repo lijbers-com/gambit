@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
@@ -420,13 +421,13 @@ export const GeneralInsights: Story = {
           ];
         case 'spend':
           return [
-            { day: 'Mon', mediaSpend: 42000, efficiency: 3.4 },
-            { day: 'Tue', mediaSpend: 44000, efficiency: 3.6 },
-            { day: 'Wed', mediaSpend: 41000, efficiency: 3.2 },
-            { day: 'Thu', mediaSpend: 46000, efficiency: 3.8 },
-            { day: 'Fri', mediaSpend: 49000, efficiency: 4.1 },
-            { day: 'Sat', mediaSpend: 48000, efficiency: 3.9 },
-            { day: 'Sun', mediaSpend: 45000, efficiency: 3.65 },
+            { day: 'Mon', mediaSpend: 42000 },
+            { day: 'Tue', mediaSpend: 44000 },
+            { day: 'Wed', mediaSpend: 41000 },
+            { day: 'Thu', mediaSpend: 46000 },
+            { day: 'Fri', mediaSpend: 49000 },
+            { day: 'Sat', mediaSpend: 48000 },
+            { day: 'Sun', mediaSpend: 45000 },
           ];
         case 'iroas':
           return [
@@ -463,10 +464,6 @@ export const GeneralInsights: Story = {
               label: "Media Spend (€)",
               color: "hsl(var(--chart-1))",
             },
-            efficiency: {
-              label: "Efficiency Ratio",
-              color: "hsl(var(--chart-2))",
-            },
           };
         case 'iroas':
           return {
@@ -497,7 +494,8 @@ export const GeneralInsights: Story = {
     };
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -585,6 +583,82 @@ export const GeneralInsights: Story = {
               </div>
             </CardContent>
           </Card>
+
+          {/* Full Width IROAS Report */}
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">IROAS Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Revenue, Spend and IROAS Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <MetricCard
+                    label="Total Revenue"
+                    value="€2.4M"
+                    subMetric="Last 30 days"
+                    badgeValue="+15.3%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'revenue'}
+                    onClick={() => setSelectedIroasMetric('revenue')}
+                  />
+                  <MetricCard
+                    label="Total Spend"
+                    value="€650K"
+                    subMetric="Media investment"
+                    badgeValue="+8.7%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'spend'}
+                    onClick={() => setSelectedIroasMetric('spend')}
+                  />
+                  <MetricCard
+                    label="Overall IROAS"
+                    value="3.65x"
+                    subMetric="Incremental return"
+                    badgeValue="+18%"
+                    badgeVariant="success"
+                    isSelected={selectedIroasMetric === 'iroas'}
+                    onClick={() => setSelectedIroasMetric('iroas')}
+                  />
+                </div>
+
+                {/* Dynamic Chart based on selected metric */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+                    {selectedIroasMetric === 'revenue' && 'Incremental vs Organic Revenue'}
+                    {selectedIroasMetric === 'spend' && 'Media Spend'}
+                    {selectedIroasMetric === 'iroas' && 'IROAS Performance by Channel'}
+                  </h4>
+                  <LineChartComponent
+                    data={getIroasChartData(selectedIroasMetric)}
+                    config={getIroasChartConfig(selectedIroasMetric)}
+                    showLegend={true}
+                    showGrid={true}
+                    showTooltip={true}
+                    showXAxis={true}
+                    showYAxis={true}
+                    className="h-64 w-full"
+                    xAxisDataKey="day"
+                    yAxisLabel={
+                      selectedIroasMetric === 'revenue' ? 'Revenue (€)' :
+                      selectedIroasMetric === 'spend' ? 'Spend (€)' :
+                      'IROAS'
+                    }
+                  />
+                </div>
+                
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('Navigate to full IROAS Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Dashboard Report Cards */}
           {/* Top Row - Product Report and Performance Ecom */}
@@ -1010,91 +1084,9 @@ export const GeneralInsights: Story = {
               </CardContent>
             </Card>
           </div>
-
-          {/* Full Width IROAS Report */}
-          <div className="mb-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">IROAS Report</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Revenue, Spend and IROAS Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <MetricCard
-                    label="Total Revenue"
-                    value="€2.4M"
-                    subMetric="Last 30 days"
-                    badgeValue="+15.3%"
-                    badgeVariant="success"
-                    isSelected={selectedIroasMetric === 'revenue'}
-                    onClick={() => setSelectedIroasMetric('revenue')}
-                  />
-                  <MetricCard
-                    label="Total Spend"
-                    value="€650K"
-                    subMetric="Media investment"
-                    badgeValue="+8.7%"
-                    badgeVariant="success"
-                    isSelected={selectedIroasMetric === 'spend'}
-                    onClick={() => setSelectedIroasMetric('spend')}
-                  />
-                  <MetricCard
-                    label="Overall IROAS"
-                    value="3.65x"
-                    subMetric="Incremental return"
-                    badgeValue="+18%"
-                    badgeVariant="success"
-                    isSelected={selectedIroasMetric === 'iroas'}
-                    onClick={() => setSelectedIroasMetric('iroas')}
-                  />
-                </div>
-
-                {/* Dynamic Chart based on selected metric */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
-                    {selectedIroasMetric === 'revenue' && 'Incremental vs Organic Revenue'}
-                    {selectedIroasMetric === 'spend' && 'Media Spend & Efficiency'}
-                    {selectedIroasMetric === 'iroas' && 'IROAS Performance by Channel'}
-                  </h4>
-                  <LineChartComponent
-                    data={getIroasChartData(selectedIroasMetric)}
-                    config={getIroasChartConfig(selectedIroasMetric)}
-                    showLegend={true}
-                    showGrid={true}
-                    showTooltip={true}
-                    showXAxis={true}
-                    showYAxis={true}
-                    className="h-64 w-full"
-                    xAxisDataKey="day"
-                    yAxisLabel={
-                      selectedIroasMetric === 'revenue' ? 'Revenue (€)' :
-                      selectedIroasMetric === 'spend' ? 'Spend (€)' :
-                      'IROAS'
-                    }
-                    secondaryYAxis={
-                      selectedIroasMetric === 'spend' ? {
-                        dataKey: 'efficiency',
-                        domain: [0, 5],
-                        label: 'Efficiency'
-                      } : undefined
-                    }
-                  />
-                </div>
-                
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => alert('Navigate to full IROAS Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1159,7 +1151,8 @@ export const DisplayPerformance: Story = {
     const selectedMetricData = displayMetrics.find(m => m.id === selectedMetric);
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -1329,6 +1322,7 @@ export const DisplayPerformance: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1448,7 +1442,8 @@ export const DigitalInstorePerformance: Story = {
     const selectedMetricData = digitalInstoreMetrics.find(m => m.id === selectedMetric);
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -1742,6 +1737,7 @@ export const DigitalInstorePerformance: Story = {
           </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1806,7 +1802,8 @@ export const OfflineInstorePerformance: Story = {
     const selectedMetricData = offlineInstoreMetrics.find(m => m.id === selectedMetric);
     
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -2082,6 +2079,7 @@ export const OfflineInstorePerformance: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -2268,7 +2266,8 @@ export const FullReportView: Story = {
     };
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -2407,6 +2406,7 @@ export const FullReportView: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -2611,14 +2611,15 @@ export const ProductReportView: Story = {
     };
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{}}
         pageHeaderProps={{
-          title: 'Multi-Report Dashboard',
+          title: 'Reports',
           headerRight: (
             <DateRangePicker
               dateRange={dateRange}
@@ -2634,200 +2635,424 @@ export const ProductReportView: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* Tabbed Reports Card */}
-          <Card>
-            <CardHeader>
-              <Viewbar
-                labels={[]}
-                tabs={[
-                  { value: 'product-report', label: 'Product Report' },
-                  { value: 'audience-report', label: 'Audience Report' },
-                  { value: 'iroas-report', label: 'IROAS Report' },
-                  { value: 'ecom-funnel-report', label: 'Ecom Funnel Report' },
-                  { value: 'goal-report', label: 'Goal Report' },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
-            </CardHeader>
-            <CardContent>
-              {/* FilterBar above all tables */}
-              <div className="mb-4">
-                <FilterBar
-                  filters={[
-                    {
-                      name: "Status",
-                      options: [
-                        { label: "Active", value: "active" },
-                        { label: "Paused", value: "paused" },
-                        { label: "Completed", value: "completed" },
-                      ],
-                      selectedValues: statusFilter,
-                      onChange: setStatusFilter,
-                    },
-                    {
-                      name: "Category",
-                      options: [
-                        { label: "Personal Care", value: "personal-care" },
-                        { label: "Food & Beverage", value: "food-beverage" },
-                        { label: "Home Care", value: "home-care" },
-                      ],
-                      selectedValues: categoryFilter,
-                      onChange: setCategoryFilter,
-                    },
-                    {
-                      name: "Brand",
-                      options: [
-                        { label: "Dove", value: "dove" },
-                        { label: "Hellmanns", value: "hellmanns" },
-                        { label: "Ben & Jerrys", value: "ben-jerrys" },
-                        { label: "Axe", value: "axe" },
-                        { label: "Lipton", value: "lipton" },
-                      ],
-                      selectedValues: brandFilter,
-                      onChange: setBrandFilter,
-                    },
-                    {
-                      name: "Engine",
-                      options: [
-                        { label: "Display", value: "display" },
-                        { label: "Sponsored Products", value: "sponsored-products" },
-                        { label: "Digital In-store", value: "digital-instore" },
-                        { label: "Offline In-store", value: "offline-instore" },
-                      ],
-                      selectedValues: engineFilter,
-                      onChange: setEngineFilter,
-                    },
-                  ]}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
-                  searchPlaceholder="Search reports..."
-                />
-              </div>
-
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                {/* Product Report Tab */}
-                <TabsContent value="product-report" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'productName', header: 'Product Name', hideable: false },
-                      { key: 'brand', header: 'Brand', hideable: false },
-                      { key: 'category', header: 'Category' },
-                      { key: 'sku', header: 'SKU' },
-                      { key: 'status', header: 'Status', render: row => (
-                        <Badge variant={getStatusBadgeVariant(row.status)}>
-                          {row.status}
-                        </Badge>
-                      )},
-                      { key: 'stockLevel', header: 'Stock', render: row => (
-                        <Badge variant={getStockBadgeVariant(row.stockLevel)}>
-                          {row.stockLevel}
-                        </Badge>
-                      )},
-                      { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
-                      { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
-                      { key: 'cpc', header: 'CPC' },
-                      { key: 'addToCart', header: 'Add to Cart', render: row => row.addToCart.toLocaleString() },
-                      { key: 'cartRate', header: 'Cart Rate' },
-                      { key: 'purchases', header: 'Purchases', render: row => row.purchases.toLocaleString() },
-                      { key: 'conversionRate', header: 'Conv. Rate' },
-                      { key: 'cpa', header: 'CPA' },
-                      { key: 'units', header: 'Units Sold', render: row => row.units.toLocaleString() },
-                      { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
-                      { key: 'aov', header: 'AOV' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'margin', header: 'Margin %' },
-                    ]}
-                    data={productReportData}
-                    rowKey={row => row.id}
-                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                    onRowClick={row => console.log('Navigate to product details for', row.productName)}
-                  />
-                </TabsContent>
-
-                {/* Audience Report Tab */}
-                <TabsContent value="audience-report" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'segment', header: 'Audience Segment', hideable: false },
-                      { key: 'percentage', header: 'Share %', hideable: false },
-                      { key: 'age', header: 'Age Range' },
-                      { key: 'gender', header: 'Gender' },
-                      { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
-                      { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
-                      { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
-                      { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
-                      { key: 'roas', header: 'ROAS' },
-                    ]}
-                    data={audienceReportData}
-                    rowKey={row => row.id}
-                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                    onRowClick={row => console.log('Navigate to audience details for', row.segment)}
-                  />
-                </TabsContent>
-
-                {/* IROAS Report Tab */}
-                <TabsContent value="iroas-report" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'engine', header: 'Engine', hideable: false },
-                      { key: 'incrementalRevenue', header: 'Incremental Revenue', render: row => `€${row.incrementalRevenue.toLocaleString()}` },
-                      { key: 'organicRevenue', header: 'Organic Revenue', render: row => `€${row.organicRevenue.toLocaleString()}` },
-                      { key: 'totalRevenue', header: 'Total Revenue', render: row => `€${row.totalRevenue.toLocaleString()}` },
-                      { key: 'mediaSpend', header: 'Media Spend', render: row => `€${row.mediaSpend.toLocaleString()}` },
-                      { key: 'iroas', header: 'IROAS' },
-                    ]}
-                    data={iroasReportData}
-                    rowKey={row => row.id}
-                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                    onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
-                  />
-                </TabsContent>
-
-                {/* Ecom Funnel Report Tab */}
-                <TabsContent value="ecom-funnel-report" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'step', header: 'Funnel Step', hideable: false },
-                      { key: 'value', header: 'Volume', render: row => row.value.toLocaleString() },
-                      { key: 'percentage', header: 'Percentage' },
-                      { key: 'dropOff', header: 'Drop Off' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'cartRate', header: 'Cart Rate' },
-                      { key: 'convRate', header: 'Conv Rate' },
-                      { key: 'aov', header: 'AOV' },
-                    ]}
-                    data={ecomFunnelData}
-                    rowKey={row => row.id}
-                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                    onRowClick={row => console.log('Navigate to funnel details for', row.step)}
-                  />
-                </TabsContent>
-
-                {/* Goal Report Tab */}
-                <TabsContent value="goal-report" className="mt-0">
-                  <Table
-                    columns={[
-                      { key: 'goal', header: 'Goal', hideable: false },
-                      { key: 'sponsored', header: 'Sponsored Products', render: row => `${row.sponsored}%` },
-                      { key: 'display', header: 'Display', render: row => `${row.display}%` },
-                      { key: 'digitalInstore', header: 'Digital In-store', render: row => `${row.digitalInstore}%` },
-                      { key: 'offlineInstore', header: 'Offline In-store', render: row => `${row.offlineInstore}%` },
-                      { key: 'total', header: 'Total Score', render: row => `${row.total}%` },
-                    ]}
-                    data={goalReportData}
-                    rowKey={row => row.id}
-                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                    onRowClick={row => console.log('Navigate to goal details for', row.goal)}
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          {/* Multi-Report Dashboard with CardWithTabs */}
+          <CardWithTabs
+            tabs={[
+              {
+                value: 'product-report',
+                label: 'Product Report',
+                content: (
+                  <div>
+                    {/* FilterBar above table */}
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Category",
+                            options: [
+                              { label: "Personal Care", value: "personal-care" },
+                              { label: "Food & Beverage", value: "food-beverage" },
+                              { label: "Home Care", value: "home-care" },
+                            ],
+                            selectedValues: categoryFilter,
+                            onChange: setCategoryFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Engine",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search reports..."
+                      />
+                    </div>
+                    <Table
+                      columns={[
+                        { key: 'productName', header: 'Product Name', hideable: false },
+                        { key: 'brand', header: 'Brand', hideable: false },
+                        { key: 'category', header: 'Category' },
+                        { key: 'sku', header: 'SKU' },
+                        { key: 'status', header: 'Status', render: row => (
+                          <Badge variant={getStatusBadgeVariant(row.status)}>
+                            {row.status}
+                          </Badge>
+                        )},
+                        { key: 'stockLevel', header: 'Stock', render: row => (
+                          <Badge variant={getStockBadgeVariant(row.stockLevel)}>
+                            {row.stockLevel}
+                          </Badge>
+                        )},
+                        { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                        { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                        { key: 'ctr', header: 'CTR' },
+                        { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                        { key: 'cpc', header: 'CPC' },
+                        { key: 'addToCart', header: 'Add to Cart', render: row => row.addToCart.toLocaleString() },
+                        { key: 'cartRate', header: 'Cart Rate' },
+                        { key: 'purchases', header: 'Purchases', render: row => row.purchases.toLocaleString() },
+                        { key: 'conversionRate', header: 'Conv. Rate' },
+                        { key: 'cpa', header: 'CPA' },
+                        { key: 'units', header: 'Units Sold', render: row => row.units.toLocaleString() },
+                        { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                        { key: 'aov', header: 'AOV' },
+                        { key: 'roas', header: 'ROAS' },
+                        { key: 'margin', header: 'Margin %' },
+                      ]}
+                      data={productReportData}
+                      rowKey={row => row.id}
+                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      onRowClick={row => console.log('Navigate to product details for', row.productName)}
+                    />
+                  </div>
+                )
+              },
+              {
+                value: 'audience-report',
+                label: 'Audience Report',
+                content: (
+                  <div>
+                    {/* FilterBar above table */}
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Category",
+                            options: [
+                              { label: "Personal Care", value: "personal-care" },
+                              { label: "Food & Beverage", value: "food-beverage" },
+                              { label: "Home Care", value: "home-care" },
+                            ],
+                            selectedValues: categoryFilter,
+                            onChange: setCategoryFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Engine",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search reports..."
+                      />
+                    </div>
+                    <Table
+                      columns={[
+                        { key: 'segment', header: 'Audience Segment', hideable: false },
+                        { key: 'percentage', header: 'Share %', hideable: false },
+                        { key: 'age', header: 'Age Range' },
+                        { key: 'gender', header: 'Gender' },
+                        { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                        { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                        { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                        { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                        { key: 'roas', header: 'ROAS' },
+                      ]}
+                      data={audienceReportData}
+                      rowKey={row => row.id}
+                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      onRowClick={row => console.log('Navigate to audience details for', row.segment)}
+                    />
+                  </div>
+                )
+              },
+              {
+                value: 'iroas-report',
+                label: 'IROAS Report',
+                content: (
+                  <div>
+                    {/* FilterBar above table */}
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Category",
+                            options: [
+                              { label: "Personal Care", value: "personal-care" },
+                              { label: "Food & Beverage", value: "food-beverage" },
+                              { label: "Home Care", value: "home-care" },
+                            ],
+                            selectedValues: categoryFilter,
+                            onChange: setCategoryFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Engine",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search reports..."
+                      />
+                    </div>
+                    <Table
+                      columns={[
+                        { key: 'engine', header: 'Engine', hideable: false },
+                        { key: 'incrementalRevenue', header: 'Incremental Revenue', render: row => `€${row.incrementalRevenue.toLocaleString()}` },
+                        { key: 'organicRevenue', header: 'Organic Revenue', render: row => `€${row.organicRevenue.toLocaleString()}` },
+                        { key: 'totalRevenue', header: 'Total Revenue', render: row => `€${row.totalRevenue.toLocaleString()}` },
+                        { key: 'mediaSpend', header: 'Media Spend', render: row => `€${row.mediaSpend.toLocaleString()}` },
+                        { key: 'iroas', header: 'IROAS' },
+                      ]}
+                      data={iroasReportData}
+                      rowKey={row => row.id}
+                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
+                    />
+                  </div>
+                )
+              },
+              {
+                value: 'ecom-funnel-report',
+                label: 'Ecom Funnel Report',
+                content: (
+                  <div>
+                    {/* FilterBar above table */}
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Category",
+                            options: [
+                              { label: "Personal Care", value: "personal-care" },
+                              { label: "Food & Beverage", value: "food-beverage" },
+                              { label: "Home Care", value: "home-care" },
+                            ],
+                            selectedValues: categoryFilter,
+                            onChange: setCategoryFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Engine",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search reports..."
+                      />
+                    </div>
+                    <Table
+                      columns={[
+                        { key: 'step', header: 'Funnel Step', hideable: false },
+                        { key: 'value', header: 'Volume', render: row => row.value.toLocaleString() },
+                        { key: 'percentage', header: 'Percentage' },
+                        { key: 'dropOff', header: 'Drop Off' },
+                        { key: 'ctr', header: 'CTR' },
+                        { key: 'cartRate', header: 'Cart Rate' },
+                        { key: 'convRate', header: 'Conv Rate' },
+                        { key: 'aov', header: 'AOV' },
+                      ]}
+                      data={ecomFunnelData}
+                      rowKey={row => row.id}
+                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      onRowClick={row => console.log('Navigate to funnel details for', row.step)}
+                    />
+                  </div>
+                )
+              },
+              {
+                value: 'goal-report',
+                label: 'Goal Report',
+                content: (
+                  <div>
+                    {/* FilterBar above table */}
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Category",
+                            options: [
+                              { label: "Personal Care", value: "personal-care" },
+                              { label: "Food & Beverage", value: "food-beverage" },
+                              { label: "Home Care", value: "home-care" },
+                            ],
+                            selectedValues: categoryFilter,
+                            onChange: setCategoryFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Engine",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search reports..."
+                      />
+                    </div>
+                    <Table
+                      columns={[
+                        { key: 'goal', header: 'Goal', hideable: false },
+                        { key: 'sponsored', header: 'Sponsored Products', render: row => `${row.sponsored}%` },
+                        { key: 'display', header: 'Display', render: row => `${row.display}%` },
+                        { key: 'digitalInstore', header: 'Digital In-store', render: row => `${row.digitalInstore}%` },
+                        { key: 'offlineInstore', header: 'Offline In-store', render: row => `${row.offlineInstore}%` },
+                        { key: 'total', header: 'Total Score', render: row => `${row.total}%` },
+                      ]}
+                      data={goalReportData}
+                      rowKey={row => row.id}
+                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      onRowClick={row => console.log('Navigate to goal details for', row.goal)}
+                    />
+                  </div>
+                )
+              },
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            action={
+              <Button variant="default" size="default">
+                Build Report
+              </Button>
+            }
+          />
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 interface MenuContextType {
   expandedItems: string[];
   activeItem: string;
   collapsed: boolean;
+  showText: boolean;
   openSubmenu: string[];
   toggleExpanded: (item: string) => void;
   isExpanded: (item: string) => boolean;
@@ -22,6 +23,7 @@ export function MenuContextProvider({ children }: { children: React.ReactNode })
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [activeItem, setActiveItem] = useState<string>('');
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [showText, setShowText] = useState<boolean>(true);
   const [openSubmenu, setOpenSubmenu] = useState<string[]>([]);
 
   const toggleExpanded = useCallback((item: string) => {
@@ -48,10 +50,25 @@ export function MenuContextProvider({ children }: { children: React.ReactNode })
     setCollapsed(prev => !prev);
   }, []);
 
+  // Handle text visibility with animation delay
+  useEffect(() => {
+    if (collapsed) {
+      // Hide text immediately when collapsing
+      setShowText(false);
+    } else {
+      // Show text after animation completes when expanding (500ms duration)
+      const timer = setTimeout(() => {
+        setShowText(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [collapsed]);
+
   const contextValue: MenuContextType = {
     expandedItems,
     activeItem,
     collapsed,
+    showText,
     openSubmenu,
     toggleExpanded,
     isExpanded,

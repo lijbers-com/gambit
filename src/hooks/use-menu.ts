@@ -1,29 +1,20 @@
-import { useState, useCallback, useContext } from 'react';
-
-// Dynamic import to check if context is available
-let MenuContextModule: any = null;
-try {
-  MenuContextModule = require('@/contexts/menu-context');
-} catch {
-  // Context not available
-}
+import { useState, useCallback, useContext, useEffect } from 'react';
+import { MenuContext } from '@/contexts/menu-context';
 
 export function useMenu() {
-  // Try to use context if available
+  // Try to use context first
   let contextValue: any = null;
-  if (MenuContextModule?.MenuContext) {
-    try {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      contextValue = useContext(MenuContextModule.MenuContext);
-    } catch {
-      // Context provider not found
-    }
+  try {
+    contextValue = useContext(MenuContext);
+  } catch {
+    // Context provider not found, will use fallback
   }
 
   // Local state as fallback
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [activeItem, setActiveItem] = useState<string>('');
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [showText, setShowText] = useState<boolean>(true);
   const [openSubmenu, setOpenSubmenu] = useState<string[]>([]);
 
   const toggleExpanded = useCallback((item: string) => {
@@ -50,11 +41,26 @@ export function useMenu() {
     setCollapsed(prev => !prev);
   }, []);
 
+  // Handle text visibility with animation delay (fallback only)
+  useEffect(() => {
+    if (contextValue) return; // Skip if using context
+    
+    if (collapsed) {
+      // Hide text immediately when collapsing
+      setShowText(false);
+    } else {
+      // Show text after animation completes when expanding (500ms duration)
+      const timer = setTimeout(() => {
+        setShowText(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [collapsed, contextValue]);
+
   // Return context value if available, otherwise return local state
   if (contextValue) {
     return contextValue;
   }
-
   return {
     expandedItems,
     activeItem,
@@ -63,6 +69,7 @@ export function useMenu() {
     setActive,
     isActive,
     collapsed,
+    showText,
     setCollapsed,
     toggleCollapsed,
     openSubmenu,

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { CalendarTable } from '@/components/ui/calendar-table';
@@ -1566,18 +1567,20 @@ const sponsoredProductBookingsData = [
 export const GeneralBookingsCalendar: Story = {
   name: 'General Bookings Calendar',
   render: () => (
-    <BookingCalendarTemplate
-      bookingsData={generalBookingsData}
-      title="Bookings Calendar"
-      mediaProductOptions={[
-        { label: 'Digital Display - Homepage', value: '1' },
-        { label: 'In-Store Digital - Entrance', value: '2' },
-        { label: 'Sponsored Products', value: '3' },
-        { label: 'Audio Announcements', value: '4' },
-        { label: 'Checkout Display', value: '5' },
-        { label: 'Parking Lot Digital', value: '6' },
-      ]}
-    />
+    <MenuContextProvider>
+      <BookingCalendarTemplate
+        bookingsData={generalBookingsData}
+        title="Bookings Calendar"
+        mediaProductOptions={[
+          { label: 'Digital Display - Homepage', value: '1' },
+          { label: 'In-Store Digital - Entrance', value: '2' },
+          { label: 'Sponsored Products', value: '3' },
+          { label: 'Audio Announcements', value: '4' },
+          { label: 'Checkout Display', value: '5' },
+          { label: 'Parking Lot Digital', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
   ),
 };
 
@@ -1939,76 +1942,84 @@ const OfflineInstoreCalendarTemplate = ({
 export const OfflineInstoreCalendar: Story = {
   name: 'Offline In-store Calendar',
   render: () => (
-    <OfflineInstoreCalendarTemplate
-      bookingsData={offlineInstoreBookingsData.map(product => ({
-        ...product,
-        storeTypes: ['ah-dnah', 'ah-xl'], // Add sample store types
-        retailProducts: ['606983', '607124', '608456'], // Add sample retail products
-        campaignCounts: [3, 7, 2, 8, 12, 5, 1, 9, 4, 6, 0, 11] // Number of booked campaigns (0-12) for each week
-      }))}
-      title="Offline In-store Calendar"
-      mediaProductOptions={[
-        { label: 'End Cap Displays', value: '1' },
-        { label: 'Shelf Talkers', value: '2' },
-        { label: 'Floor Graphics', value: '3' },
-        { label: 'Promotional Stands', value: '4' },
-        { label: 'In-store Sampling', value: '5' },
-        { label: 'Window Displays', value: '6' },
-      ]}
-    />
+    <MenuContextProvider>
+      <OfflineInstoreCalendarTemplate
+        bookingsData={offlineInstoreBookingsData.map(product => ({
+          ...product,
+          storeTypes: ['ah-dnah', 'ah-xl'], // Add sample store types
+          retailProducts: ['606983', '607124', '608456'], // Add sample retail products
+          campaignCounts: [3, 7, 2, 8, 12, 5, 1, 9, 4, 6, 0, 11] // Number of booked campaigns (0-12) for each week
+        }))}
+        title="Offline In-store Calendar"
+        mediaProductOptions={[
+          { label: 'End Cap Displays', value: '1' },
+          { label: 'Shelf Talkers', value: '2' },
+          { label: 'Floor Graphics', value: '3' },
+          { label: 'Promotional Stands', value: '4' },
+          { label: 'In-store Sampling', value: '5' },
+          { label: 'Window Displays', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
   ),
 };
 
 export const DigitalInstoreCalendar: Story = {
   name: 'Digital In-store Calendar',
   render: () => (
-    <BookingCalendarTemplate
-      bookingsData={digitalInstoreBookingsData}
-      title="Digital In-store Calendar"
-      mediaProductOptions={[
-        { label: 'Digital Screens - Entrance', value: '1' },
-        { label: 'Interactive Kiosks', value: '2' },
-        { label: 'Smart Shelf Displays', value: '3' },
-        { label: 'Checkout Digital Screens', value: '4' },
-        { label: 'Audio System', value: '5' },
-        { label: 'Digital Wayfinding', value: '6' },
-      ]}
-    />
+    <MenuContextProvider>
+      <BookingCalendarTemplate
+        bookingsData={digitalInstoreBookingsData}
+        title="Digital In-store Calendar"
+        mediaProductOptions={[
+          { label: 'Digital Screens - Entrance', value: '1' },
+          { label: 'Interactive Kiosks', value: '2' },
+          { label: 'Smart Shelf Displays', value: '3' },
+          { label: 'Checkout Digital Screens', value: '4' },
+          { label: 'Audio System', value: '5' },
+          { label: 'Digital Wayfinding', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
   ),
 };
 
 export const DisplayCalendar: Story = {
   name: 'Display Calendar',
   render: () => (
-    <BookingCalendarTemplate
-      bookingsData={displayBookingsData}
-      title="Display Calendar"
-      mediaProductOptions={[
-        { label: 'Digital Billboards', value: '1' },
-        { label: 'Static Billboards', value: '2' },
-        { label: 'Building Wraps', value: '3' },
-        { label: 'Transit Displays', value: '4' },
-        { label: 'Street Furniture', value: '5' },
-        { label: 'LED Screens', value: '6' },
-      ]}
-    />
+    <MenuContextProvider>
+      <BookingCalendarTemplate
+        bookingsData={displayBookingsData}
+        title="Display Calendar"
+        mediaProductOptions={[
+          { label: 'Digital Billboards', value: '1' },
+          { label: 'Static Billboards', value: '2' },
+          { label: 'Building Wraps', value: '3' },
+          { label: 'Transit Displays', value: '4' },
+          { label: 'Street Furniture', value: '5' },
+          { label: 'LED Screens', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
   ),
 };
 
 export const SponsoredProductCalendar: Story = {
   name: 'Sponsored Product Calendar',
   render: () => (
-    <BookingCalendarTemplate
-      bookingsData={sponsoredProductBookingsData}
-      title="Sponsored Product Calendar"
-      mediaProductOptions={[
-        { label: 'Featured Product Placement', value: '1' },
-        { label: 'Search Sponsored Results', value: '2' },
-        { label: 'Category Sponsorship', value: '3' },
-        { label: 'Recommendation Engine', value: '4' },
-        { label: 'Email Newsletter Sponsorship', value: '5' },
-        { label: 'App Banner Placement', value: '6' },
-      ]}
-    />
+    <MenuContextProvider>
+      <BookingCalendarTemplate
+        bookingsData={sponsoredProductBookingsData}
+        title="Sponsored Product Calendar"
+        mediaProductOptions={[
+          { label: 'Featured Product Placement', value: '1' },
+          { label: 'Search Sponsored Results', value: '2' },
+          { label: 'Category Sponsorship', value: '3' },
+          { label: 'Recommendation Engine', value: '4' },
+          { label: 'Email Newsletter Sponsorship', value: '5' },
+          { label: 'App Banner Placement', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
   ),
 };

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';
 import { LineChartComponent } from '@/components/ui/line-chart';
@@ -785,7 +786,8 @@ export const YieldDashboard: Story = {
     const seasonalityData = getSeasonalityData(seasonalityComparisonYears);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
@@ -864,6 +866,7 @@ export const YieldDashboard: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -882,7 +885,8 @@ export const SponsoredProductsYield: Story = {
     const selectedMetricData = sponsoredProductsYieldMetrics.find(metric => metric.id === selectedMetric);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
@@ -1013,6 +1017,7 @@ export const SponsoredProductsYield: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1031,7 +1036,8 @@ export const DisplayYield: Story = {
     const selectedMetricData = displayYieldMetrics.find(metric => metric.id === selectedMetric);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
@@ -1162,6 +1168,7 @@ export const DisplayYield: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1180,7 +1187,8 @@ export const DigitalInstoreYield: Story = {
     const selectedMetricData = digitalInstoreYieldMetrics.find(metric => metric.id === selectedMetric);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
@@ -1311,6 +1319,7 @@ export const DigitalInstoreYield: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -1329,7 +1338,8 @@ export const OfflineInstoreYield: Story = {
     const selectedMetricData = offlineInstoreYieldMetrics.find(metric => metric.id === selectedMetric);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
@@ -1460,6 +1470,7 @@ export const OfflineInstoreYield: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { defaultRoutes } from '../default-routes';
+import { MenuContextProvider } from '@/contexts/menu-context';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Dashboard',
@@ -76,4 +77,9 @@ export const Dashboard: Story = {
       </Card>
     ),
   },
+  render: (args) => (
+    <MenuContextProvider>
+      <AppLayout {...args} />
+    </MenuContextProvider>
+  ),
 }; 

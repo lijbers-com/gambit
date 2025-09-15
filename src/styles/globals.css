@@ -134,10 +134,10 @@ body[data-theme="retailMedia"] {
   display: none !important;
 }
 
-/* Expanded state: 24px padding */
+/* Expanded state: 16px padding */
 .side-navigation[data-collapsed="false"] {
-  padding-left: 24px !important;
-  padding-right: 24px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
 }
 
 .breadcrumb {
@@ -208,4 +208,41 @@ body[data-theme="retailMedia"] {
   background: none !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+/* Custom scrollbar for side navigation */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  /* Add padding-right to push content away from scrollbar */
+  padding-right: 8px;
+  /* Add margin-right to move scrollbar into the padding area */
+  margin-right: -4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  /* Position track closer to edge */
+  margin-right: 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+  border: none;
+  /* Add right margin to position thumb closer to edge */
+  margin-right: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.5);
+}
+
+/* Position scrollbar closer to the right edge */
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
 }

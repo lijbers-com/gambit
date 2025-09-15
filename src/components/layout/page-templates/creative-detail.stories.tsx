@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { FormSection } from '../../ui/form-section';
@@ -291,7 +292,8 @@ export const Display: Story = {
     const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -490,6 +492,7 @@ export const Display: Story = {
           </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -507,7 +510,8 @@ export const DigitalInStore: Story = {
     const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -725,6 +729,7 @@ export const DigitalInStore: Story = {
           </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };
@@ -739,7 +744,8 @@ export const OfflineInStore: Story = {
     const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
 
     return (
-      <AppLayout
+      <MenuContextProvider>
+        <AppLayout
         routes={defaultRoutes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -924,6 +930,7 @@ export const OfflineInStore: Story = {
           </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
     );
   },
 };

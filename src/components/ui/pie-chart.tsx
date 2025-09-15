@@ -39,7 +39,7 @@ export function PieChartComponent({
   labelPosition = "outside",
 }: PieChartProps) {
   const renderCustomLabel = (entry: any) => {
-    return entry[dataKey];
+    return `${entry[dataKey]}%`;
   };
 
   return (

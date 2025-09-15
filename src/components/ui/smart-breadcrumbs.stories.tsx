@@ -131,7 +131,7 @@ export const DeepPath: Story = {
     routes: defaultRoutes,
     passQueryParameters: true,
   },
-  render: (args) => <MockedSmartBreadcrumbs {...args} mockPath="/performance/sponsored-products" />,
+  render: (args) => <MockedSmartBreadcrumbs {...args} mockPath="/insights/sponsored-products" />,
 };
 
 export const YieldManagement: Story = {

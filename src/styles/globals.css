@@ -124,13 +124,18 @@ body[data-theme="retailMedia"] {
 }
 
 /* Collapsed state: 16px padding */
-.side-navigation.w-\[72px\] {
+.side-navigation[data-collapsed="true"] {
   padding-left: 16px !important;  
   padding-right: 16px !important;
 }
 
+/* Hide text elements when collapsed */
+.side-navigation[data-collapsed="true"] .hidden {
+  display: none !important;
+}
+
 /* Expanded state: 24px padding */
-.side-navigation.min-w-\[270px\] {
+.side-navigation[data-collapsed="false"] {
   padding-left: 24px !important;
   padding-right: 24px !important;
 }
@@ -187,8 +192,8 @@ body[data-theme="retailMedia"] {
   stroke: var(--brand-app-text) !important;
 }
 
-/* Make sure all elements inherit brand text color */
-.side-navigation * {
+/* Make sure all elements inherit brand text color - but respect visibility */
+.side-navigation *:not(.hidden) {
   color: var(--brand-app-text) !important;
 }
 

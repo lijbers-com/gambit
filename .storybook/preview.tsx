@@ -3,6 +3,7 @@ import "../src/styles/globals.css";
 import * as React from 'react';
 import { ThemeProvider } from "../src/contexts/theme-context";
 import { RouterProvider } from "../src/lib/router-context";
+import { MenuContextProvider } from "../src/contexts/menu-context";
 
 // Theme wrapper component that can use hooks
 const ThemeWrapper: React.FC<{ theme: string; children: React.ReactNode }> = ({ theme, children }) => {
@@ -19,7 +20,9 @@ const ThemeWrapper: React.FC<{ theme: string; children: React.ReactNode }> = ({ 
     <div data-theme={theme} style={{ height: '100%' }}>
       <RouterProvider>
         <ThemeProvider>
-          {children}
+          <MenuContextProvider>
+            {children}
+          </MenuContextProvider>
         </ThemeProvider>
       </RouterProvider>
     </div>

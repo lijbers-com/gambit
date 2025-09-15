@@ -113,7 +113,7 @@ export const defaultRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "Performance",
+    name: "Insights",
     type: "parent" as const,
     icon: { lucide: "BarChart3" },
     subitems: [
@@ -121,25 +121,25 @@ export const defaultRoutes: Route[] = [
         id: 50,
         name: "Sponsored products",
         type: "single" as const,
-        url: "/performance/sponsored-products",
+        url: "/insights/sponsored-products",
       },
       {
         id: 51,
         name: "Display",
         type: "single" as const,
-        url: "/performance/display",
+        url: "/insights/display",
       },
       {
         id: 52,
         name: "Digital in-store",
         type: "single" as const,
-        url: "/performance/digital-instore",
+        url: "/insights/digital-instore",
       },
       {
         id: 53,
         name: "Offline instore",
         type: "single" as const,
-        url: "/performance/offline-instore",
+        url: "/insights/offline-instore",
       },
     ],
   },

@@ -6,7 +6,7 @@ import { renderIcon } from './render-icon';
 import { useMenu } from '@/hooks/use-menu';
 
 export const NavigationItem = ({ item }: { item: Route }) => {
-  const { collapsed } = useMenu();
+  const { collapsed, showText } = useMenu();
   const checkActiveUrl = (route?: string) => {
     if (!route) return false;
     if (typeof window === 'undefined') return false;
@@ -16,7 +16,7 @@ export const NavigationItem = ({ item }: { item: Route }) => {
   return (
     <Link
       className={cn(
-        'flex items-center mb-6 pr-2 rounded-md transition-colors',
+        'flex items-center mb-4 pr-2 rounded-md transition-colors',
         checkActiveUrl(item.url) && 'active',
       )}
       href={item.url || '/'}
@@ -28,7 +28,7 @@ export const NavigationItem = ({ item }: { item: Route }) => {
           <Image src={item.icon.url} alt={item.name} width={24} height={24} />
         )}
       </span>
-      <span className={cn(collapsed && 'hidden', 'text-sm ml-2')}>{item.name}</span>
+      <span className={cn(!showText && 'hidden', 'text-sm ml-2')}>{item.name}</span>
     </Link>
   );
 }; 

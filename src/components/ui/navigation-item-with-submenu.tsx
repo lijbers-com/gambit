@@ -11,7 +11,7 @@ export const NavigationItemWithSubmenu = ({
 }: {
   item: Route;
 }) => {
-  const { collapsed, setCollapsed, openSubmenu, setOpenSubmenu } = useMenu();
+  const { collapsed, showText, setCollapsed, openSubmenu, setOpenSubmenu } = useMenu();
   const pathname = usePathname();
   const itemId = item.id.toString();
   
@@ -35,7 +35,7 @@ export const NavigationItemWithSubmenu = ({
   return (
     <>
       <span
-        className="parent flex items-center mb-6 pr-2 rounded-md transition-colors cursor-pointer"
+        className="parent flex items-center mb-4 pr-2 rounded-md transition-colors cursor-pointer"
         onClick={() => toggleSubmenu(itemId)}
         data-testid={'nav-' + itemId}
       >
@@ -45,10 +45,10 @@ export const NavigationItemWithSubmenu = ({
             <img src={item.icon.url} alt={item.name} width={24} height={24} />
           )}
         </span>
-        <span className={cn(collapsed && 'hidden', 'text-sm ml-2 flex-1')}>
+        <span className={cn(!showText && 'hidden', 'text-sm ml-2 flex-1')}>
           {item.name}
         </span>
-        <span className={cn(collapsed && 'hidden', 'ml-auto')}>
+        <span className={cn(!showText && 'hidden', 'ml-auto')}>
           {safeOpenSubmenu.includes(itemId) ? (
             <ChevronDown size={16} />
           ) : (
@@ -58,7 +58,7 @@ export const NavigationItemWithSubmenu = ({
       </span>
       <div
         className={
-          safeOpenSubmenu.includes(itemId) ? 'block mb-6 mt-[-16px]' : 'hidden'
+          safeOpenSubmenu.includes(itemId) ? 'block mb-4 mt-[-16px]' : 'hidden'
         }
       >
         {item.subitems?.map((subitem) => (
@@ -68,7 +68,7 @@ export const NavigationItemWithSubmenu = ({
           >
             <Link
               className={cn(
-                collapsed && 'hidden',
+                !showText && 'hidden',
                 'text-sm leading-6 p-2 rounded-md transition-colors inline-block',
                 subitem.url && pathname === subitem.url && 'active',
               )}

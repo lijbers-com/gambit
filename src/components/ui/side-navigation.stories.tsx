@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { SideNavigation, Route } from './side-navigation';
 import { useMenu } from '@/hooks/use-menu';
+import { MenuContext } from '@/contexts/menu-context';
 
 const meta: Meta<typeof SideNavigation> = {
   title: 'UI/SideNavigation',
@@ -23,20 +24,6 @@ type Story = StoryObj<typeof meta>;
 const sampleRoutes: Route[] = [
   {
     id: 0,
-    name: "Home",
-    type: "single",
-    icon: { lucide: "Home" },
-    url: "/"
-  },
-  {
-    id: 1,
-    name: "Dashboard",
-    type: "single",
-    icon: { lucide: "LayoutDashboard" },
-    url: "/dashboard"
-  },
-  {
-    id: 2,
     name: "Campaigns",
     type: "parent",
     icon: { lucide: "Table" },
@@ -64,7 +51,7 @@ const sampleRoutes: Route[] = [
     ]
   },
   {
-    id: 3,
+    id: 1,
     name: "Creatives",
     type: "parent",
     icon: { lucide: "ImagePlus" },
@@ -92,7 +79,7 @@ const sampleRoutes: Route[] = [
     ]
   },
   {
-    id: 4,
+    id: 2,
     name: "Calendar",
     type: "parent",
     icon: { lucide: "CalendarDays" },
@@ -120,7 +107,7 @@ const sampleRoutes: Route[] = [
     ]
   },
   {
-    id: 5,
+    id: 3,
     name: "Insights",
     type: "parent",
     icon: { lucide: "BarChart3" },
@@ -148,7 +135,7 @@ const sampleRoutes: Route[] = [
     ]
   },
   {
-    id: 6,
+    id: 4,
     name: "Yield",
     type: "parent",
     icon: { lucide: "TrendingUp" },
@@ -174,6 +161,51 @@ const sampleRoutes: Route[] = [
         url: "/yield/offline-instore"
       }
     ]
+  },
+  {
+    id: 5,
+    name: "AdGenie chats",
+    type: "title"
+  },
+  {
+    id: 6,
+    name: "New chat",
+    type: "single",
+    icon: { lucide: "MessageSquare" },
+    url: "/chats/new"
+  },
+  {
+    id: 7,
+    name: "Configuration",
+    type: "title"
+  },
+  {
+    id: 8,
+    name: "Display config",
+    type: "single",
+    icon: { lucide: "MonitorSpeaker" },
+    url: "/configuration/display"
+  },
+  {
+    id: 9,
+    name: "Sponsored products config",
+    type: "single",
+    icon: { lucide: "ListStart" },
+    url: "/configuration/sponsored-products"
+  },
+  {
+    id: 10,
+    name: "Digital in-store config",
+    type: "single",
+    icon: { lucide: "MonitorPlay" },
+    url: "/configuration/digital-instore"
+  },
+  {
+    id: 11,
+    name: "Offline in-store config",
+    type: "single",
+    icon: { lucide: "Store" },
+    url: "/configuration/offline-instore"
   }
 ];
 
@@ -189,19 +221,33 @@ export const Primary: Story = {
   render: (args) => (
     <div className="flex h-screen">
       <SideNavigation {...args} />
-      <div className="flex-1 p-8 bg-gray-50 ml-[270px]">
+      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
         <h1 className="text-2xl font-bold mb-4">Navigation Structure</h1>
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Main Menu Items:</h3>
             <ul className="mt-2 space-y-1">
-              <li>🏠 <strong>Home</strong> - Dashboard home page</li>
-              <li>📊 <strong>Dashboard</strong> - Main dashboard view</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management with 4 engines</li>
               <li>📅 <strong>Calendar</strong> - Booking calendar with 4 engines</li>
               <li>📈 <strong>Insights</strong> - Performance analytics with 4 engines</li>
               <li>📊 <strong>Yield</strong> - Yield optimization with 4 engines</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mt-4">Configuration Section:</h3>
+            <ul className="mt-2 space-y-1">
+              <li>⚙️ <strong>Display config</strong> - Display engine configuration</li>
+              <li>⚙️ <strong>Sponsored products config</strong> - Sponsored products engine configuration</li>
+              <li>⚙️ <strong>Digital in-store config</strong> - Digital in-store engine configuration</li>
+              <li>⚙️ <strong>Offline in-store config</strong> - Offline in-store engine configuration</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mt-4">AdGenie Chats Section:</h3>
+            <ul className="mt-2 space-y-1">
+              <li>💬 <strong>Chats</strong> - Chat management</li>
+              <li className="ml-4">• New chat</li>
             </ul>
           </div>
           <div>
@@ -231,7 +277,7 @@ export const OpenState: Story = {
   render: (args) => (
     <div className="flex h-screen">
       <SideNavigation {...args} />
-      <div className="flex-1 p-8 bg-gray-50 ml-[270px]">
+      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
         <h1 className="text-2xl font-bold mb-4">Open State</h1>
         <p>Side navigation is open with full width (270px minimum) showing labels and icons.</p>
       </div>
@@ -270,25 +316,48 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
     return (
       <div
         className={`fixed left-0 top-0 h-screen z-30 flex-shrink-0 text-sm flex flex-col transition-all duration-500 ease-in-out overflow-hidden scrollbar-hide ${
-          collapsed ? 'w-[72px]' : 'w-[270px]'
+          collapsed ? 'w-[72px]' : 'w-[285px]'
         } pt-4 px-4 pb-6 side-navigation`}
         data-collapsed={collapsed}
         style={{ background: 'var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff))' }}
       >
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-          <div className="flex mb-8">
-            <a 
-              href="/" 
-              className="side-navigation-logo flex-shrink-0 w-10 h-10"
-            >
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="8" fill="#8B5CF6"/>
-                <path d="M12 16h16v2H12v-2zm0 6h16v2H12v-2z" fill="white"/>
-              </svg>
-            </a>
-          </div>
+        {/* Fixed logo area */}
+        <div className="flex mb-8">
+          <a 
+            href="/" 
+            className="side-navigation-logo flex-shrink-0 w-10 h-10"
+          >
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="8" fill="#8B5CF6"/>
+              <path d="M12 16h16v2H12v-2zm0 6h16v2H12v-2z" fill="white"/>
+            </svg>
+          </a>
+        </div>
 
-          {filteredRoutes.map((item: any) => {
+        {/* Scrollable navigation area */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
+          {filteredRoutes.map((item: any, index: number, arr: any[]) => {
+            // Handle title types
+            if (item.type === 'title') {
+              const nextItem = arr[index + 1];
+              const isNextMainType = nextItem?.type === undefined;
+              const isNextParentWithSubitems = nextItem?.type === 'parent' && (nextItem.subitems?.length ?? 0) > 0;
+              const shouldShowTitle = !collapsed && (isNextMainType || isNextParentWithSubitems);
+              
+              if (shouldShowTitle) {
+                return (
+                  <p key={item.id} className={`mb-4 mt-8 transition-opacity duration-300 ${
+                    item.name === "Configuration" || item.name === "AdGenie chats" 
+                      ? "text-xs text-muted-foreground" 
+                      : "text-muted-foreground"
+                  }`}>
+                    {item.name}
+                  </p>
+                );
+              }
+              return null;
+            }
+            
             if (item.type === 'parent' && item.subitems?.length > 0) {
               return (
                 <div key={item.id} className="flex items-center mb-6 pr-2 rounded-md transition-colors cursor-pointer">
@@ -323,6 +392,17 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
                         <polyline points="16,7 22,7 22,13"/>
                       </svg>
                     )}
+                    {item.icon?.lucide === 'Settings' && (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                    {item.icon?.lucide === 'MessageSquare' && (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                    )}
                   </span>
                   <span className={`text-sm ml-2 flex-1 ${collapsed ? 'hidden' : ''}`}>
                     {item.name}
@@ -336,7 +416,7 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
               );
             }
             
-            if (!item.type && item.url) {
+            if ((!item.type || item.type === 'single') && item.url) {
               return (
                 <a
                   key={item.id}
@@ -356,6 +436,17 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
                         <rect width="7" height="5" x="14" y="3" rx="1"/>
                         <rect width="7" height="9" x="14" y="12" rx="1"/>
                         <rect width="7" height="5" x="3" y="16" rx="1"/>
+                      </svg>
+                    )}
+                    {item.icon?.lucide === 'Settings' && (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                    {item.icon?.lucide === 'MessageSquare' && (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                       </svg>
                     )}
                   </span>
@@ -387,7 +478,7 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
   return (
     <div className="flex flex-col h-screen">
       {/* Breadcrumb with toggle button */}
-      <div className={`breadcrumb flex items-center pl-6 h-16 border-b transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[270px]'}`}>
+      <div className={`breadcrumb flex items-center pl-6 h-16 border-b transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[285px]'}`}>
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
@@ -409,9 +500,9 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
 
       <div className="flex flex-1">
         <DemoSideNavigation />
-        <div className={`flex-1 p-8 bg-gray-50 transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[270px]'}`}>
+        <div className={`flex-1 p-8 bg-gray-50 transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[285px]'}`}>
           <h1 className="text-2xl font-bold mb-4">
-            {collapsed ? 'Collapsed State (72px)' : 'Expanded State (270px)'}
+            {collapsed ? 'Collapsed State (72px)' : 'Expanded State (285px)'}
           </h1>
           <p>
             {collapsed 
@@ -423,7 +514,7 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
               <strong>Current State: {collapsed ? 'Collapsed' : 'Expanded'}</strong>
             </p>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Width: {collapsed ? '72px' : '270px'}</li>
+              <li>• Width: {collapsed ? '72px' : '285px'}</li>
               <li>• Icons: Always visible</li>
               <li>• Text labels: {collapsed ? 'Hidden' : 'Visible'}</li>
               <li>• Submenu chevrons: {collapsed ? 'Hidden' : 'Visible'}</li>
@@ -445,5 +536,60 @@ export const CollapsedState: Story = {
     },
     onLogout: () => console.log("Logout clicked")
   },
-  render: (args) => <InteractiveCollapsedDemo args={args} />,
+  render: (args) => {
+    // Custom context provider that forces collapsed state
+    const CollapsedMenuProvider = ({ children }: { children: React.ReactNode }) => {
+      const [expandedItems] = React.useState<string[]>([]);
+      const [activeItem] = React.useState<string>('');
+      const [collapsed] = React.useState<boolean>(true); // Force collapsed
+      const [showText] = React.useState<boolean>(false); // Force text hidden
+      const [openSubmenu, setOpenSubmenu] = React.useState<string[]>([]);
+
+      const contextValue = {
+        expandedItems,
+        activeItem,
+        collapsed,
+        showText,
+        openSubmenu,
+        toggleExpanded: () => {},
+        isExpanded: () => false,
+        setActive: () => {},
+        isActive: () => false,
+        setCollapsed: () => {}, // No-op since we force collapsed
+        toggleCollapsed: () => {}, // No-op since we force collapsed
+        setOpenSubmenu,
+      };
+
+      return (
+        <MenuContext.Provider value={contextValue}>
+          {children}
+        </MenuContext.Provider>
+      );
+    };
+
+    return (
+      <CollapsedMenuProvider>
+        <div className="flex h-screen">
+          <SideNavigation {...args} />
+          <div className="flex-1 p-8 bg-gray-50 ml-[72px]">
+            <h1 className="text-2xl font-bold mb-4">Collapsed State (72px)</h1>
+            <p>Side navigation is collapsed showing only icons. Text labels and section titles are hidden.</p>
+            <div className="mt-4 p-4 bg-blue-50 rounded-md">
+              <p className="text-sm text-blue-800 mb-2">
+                <strong>Collapsed State Features:</strong>
+              </p>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Width: 72px</li>
+                <li>• Icons: Visible</li>
+                <li>• Text labels: Hidden</li>
+                <li>• Section titles: Hidden</li>
+                <li>• Submenu chevrons: Hidden</li>
+                <li>• Logo: Same as expanded state</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </CollapsedMenuProvider>
+    );
+  },
 }; 

@@ -8,7 +8,7 @@ import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
 import { usePathname } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
-import { useEffect, useContext } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import { ThemeContext } from '@/contexts/theme-context';
 
 export interface Route {
@@ -58,7 +58,7 @@ export const SideNavigation = ({
     // ThemeContext not available, use default theme
     theme = 'gambit';
   }
-  const { collapsed, setOpenSubmenu, openSubmenu } = useMenu();
+  const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
   const pathname = usePathname();
 
   // Ensure openSubmenu is initialized as an array
@@ -105,47 +105,54 @@ export const SideNavigation = ({
         'side-navigation', // add this class for targeting
         // Make the sidebar fixed to the left, full height, and above content
         `fixed left-0 top-0 h-screen z-30 flex-shrink-0 text-sm flex flex-col transition-all duration-500 ease-in-out overflow-hidden scrollbar-hide`,
-        collapsed ? 'w-[72px]' : 'w-[270px]',
+        collapsed ? 'w-[72px]' : 'w-[285px]',
         'pt-4 px-4 pb-6', // Consistent 16px (px-4) padding for both states
         className
       )}
       data-collapsed={collapsed}
       style={style}
     >
-      {/* Scrollable navigation area */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-        <div className="flex mb-8">
-          <Link 
-            href="/" 
-            className="side-navigation-logo flex-shrink-0 w-10 h-10" // Fixed dimensions for consistent positioning
-            style={{ 
-              pointerEvents: 'auto',
-              background: 'none !important',
-              boxShadow: 'none !important',
-              outline: 'none !important'
-            }}
-          >
-            <Logo theme="auto" />
-          </Link>
-        </div>
+      {/* Fixed logo area */}
+      <div className="flex mb-8">
+        <Link 
+          href="/" 
+          className="side-navigation-logo flex-shrink-0 w-10 h-10" // Fixed dimensions for consistent positioning
+          style={{ 
+            pointerEvents: 'auto',
+            background: 'none !important',
+            boxShadow: 'none !important',
+            outline: 'none !important'
+          }}
+        >
+          <Logo theme="auto" />
+        </Link>
+      </div>
 
+      {/* Scrollable navigation area */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
         {filteredRoutes.map((item, index, arr) => {
           const nextItem = arr[index + 1];
           const isTitleType = item.type === 'title';
-          const isNextMainType = nextItem?.type === undefined;
+          const isNextMainType = nextItem?.type === undefined || nextItem?.type === 'single';
           const isNextParentWithSubitems =
             nextItem?.type === 'parent' &&
             (nextItem.subitems?.length ?? 0) > 0;
 
           const shouldShowTitle =
             isTitleType &&
-            !collapsed &&
+            showText &&
             (isNextMainType || isNextParentWithSubitems);
 
           return (
             <div key={item.id}>
               {shouldShowTitle && (
-                <p className="text-slate-500 mb-6 mt-12 transition-opacity duration-300">{item.name}</p>
+                <p className={cn(
+                  "mb-4 mt-8 transition-opacity duration-300",
+                  // Apply different styling for Configuration and AdGenie chats sections
+                  item.name === "Configuration" || item.name === "AdGenie chats" 
+                    ? "text-xs text-muted-foreground" 
+                    : "text-muted-foreground"
+                )}>{item.name}</p>
               )}
 
               {item.type === 'parent' &&
@@ -153,7 +160,7 @@ export const SideNavigation = ({
                   <NavigationItemWithSubmenu item={item} />
                 )}
 
-              {!item.type && item.url && <NavigationItem item={item} />}
+              {(!item.type || item.type === 'single') && item.url && <NavigationItem item={item} />}
             </div>
           );
         })}
@@ -163,7 +170,7 @@ export const SideNavigation = ({
       <div className="mt-auto">
         {user && (
           <Link
-            className="flex items-center mb-6 mt-12 pr-2 rounded-md hover:bg-slate-100"
+            className="flex items-center mb-4 mt-8 pr-2 rounded-md hover:bg-slate-100"
             href="/profile"
           >
             <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
@@ -175,7 +182,7 @@ export const SideNavigation = ({
                 />
               </Avatar>
             </span>
-            <span className={cn('text-sm ml-2 transition-opacity duration-300', collapsed && 'hidden')}>Profile</span>
+            <span className={cn('text-sm ml-2 transition-opacity duration-300', !showText && 'hidden')}>Profile</span>
           </Link>
         )}
       </div>

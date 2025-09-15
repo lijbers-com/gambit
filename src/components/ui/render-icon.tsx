@@ -20,6 +20,11 @@ import {
   CalendarDays,
   ChartNoAxesColumn,
   LayoutDashboard,
+  MessageSquare,
+  MonitorSpeaker,
+  ListStart,
+  MonitorPlay,
+  Store,
 } from 'lucide-react';
 
 export const renderIcon = (icon: string) => {
@@ -45,6 +50,11 @@ export const renderIcon = (icon: string) => {
     CalendarDays,
     ChartNoAxesColumn,
     LayoutDashboard,
+    MessageSquare,
+    MonitorSpeaker,
+    ListStart,
+    MonitorPlay,
+    Store,
   };
   const IconComponent = icons[icon as keyof typeof icons];
   return IconComponent ? <IconComponent className="p-2" size={40} /> : null;

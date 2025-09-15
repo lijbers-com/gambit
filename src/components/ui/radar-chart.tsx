@@ -41,9 +41,9 @@ export function RadarChartComponent({
       <RadarChart
         data={data}
         margin={{
-          top: 20,
+          top: 40,
           right: 80,
-          bottom: 20,
+          bottom: 40,
           left: 80,
         }}
         outerRadius={outerRadius}

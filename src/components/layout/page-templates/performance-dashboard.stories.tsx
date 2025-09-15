@@ -2414,16 +2414,18 @@ export const FullReportView: Story = {
 export const ProductReportView: Story = {
   render: () => {
     // Filter states
-    const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
-    const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
-    const [brandFilter, setBrandFilter] = useState<string | undefined>(undefined);
-    const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
+    const [statusFilter, setStatusFilter] = useState<string[]>([]);
+    const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+    const [brandFilter, setBrandFilter] = useState<string[]>([]);
+    const [engineFilter, setEngineFilter] = useState<string[]>([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [activeTab, setActiveTab] = useState('product-report');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
 
-    // Product-specific report data
+    // Report data for all tabs
     const productReportData = [
       {
         id: 'PRD-001',
@@ -2549,132 +2551,37 @@ export const ProductReportView: Story = {
         status: 'Active',
         stockLevel: 'High',
         margin: '35%'
-      },
-      {
-        id: 'PRD-006',
-        productName: 'Magnum Classic Ice Cream 4pk',
-        brand: 'Magnum',
-        category: 'Food & Beverage',
-        advertiser: 'Unilever',
-        sku: 'MG-CLASSIC-4PK',
-        impressions: 1080000,
-        clicks: 3240,
-        spend: 2890.50,
-        addToCart: 389,
-        purchases: 97,
-        revenue: 4365.00,
-        units: 97,
-        roas: '1.51x',
-        ctr: '0.30%',
-        cpc: '€0.89',
-        cartRate: '12.0%',
-        conversionRate: '3.0%',
-        cpa: '€29.80',
-        aov: '€45.00',
-        status: 'Paused',
-        stockLevel: 'Medium',
-        margin: '48%'
-      },
-      {
-        id: 'PRD-007',
-        productName: 'Knorr Chicken Stock Cubes 12pk',
-        brand: 'Knorr',
-        category: 'Food & Beverage',
-        advertiser: 'Unilever',
-        sku: 'KN-CHK-12CUBE',
-        impressions: 1250000,
-        clicks: 4375,
-        spend: 3234.75,
-        addToCart: 456,
-        purchases: 152,
-        revenue: 4560.00,
-        units: 456,
-        roas: '1.41x',
-        ctr: '0.35%',
-        cpc: '€0.74',
-        cartRate: '10.4%',
-        conversionRate: '3.5%',
-        cpa: '€21.28',
-        aov: '€30.00',
-        status: 'Active',
-        stockLevel: 'High',
-        margin: '33%'
-      },
-      {
-        id: 'PRD-008',
-        productName: 'Vaseline Intensive Care Lotion 400ml',
-        brand: 'Vaseline',
-        category: 'Personal Care',
-        advertiser: 'Unilever',
-        sku: 'VS-IC-400ML',
-        impressions: 1400000,
-        clicks: 4900,
-        spend: 3567.20,
-        addToCart: 523,
-        purchases: 131,
-        revenue: 3930.00,
-        units: 262,
-        roas: '1.10x',
-        ctr: '0.35%',
-        cpc: '€0.73',
-        cartRate: '10.7%',
-        conversionRate: '2.7%',
-        cpa: '€27.23',
-        aov: '€30.00',
-        status: 'Active',
-        stockLevel: 'Medium',
-        margin: '40%'
-      },
-      {
-        id: 'PRD-009',
-        productName: 'Surf Excel Liquid Detergent 1L',
-        brand: 'Surf',
-        category: 'Home Care',
-        advertiser: 'Unilever',
-        sku: 'SF-LIQ-1L',
-        impressions: 850000,
-        clicks: 2550,
-        spend: 2345.80,
-        addToCart: 245,
-        purchases: 61,
-        revenue: 1830.00,
-        units: 122,
-        roas: '0.78x',
-        ctr: '0.30%',
-        cpc: '€0.92',
-        cartRate: '9.6%',
-        conversionRate: '2.4%',
-        cpa: '€38.46',
-        aov: '€30.00',
-        status: 'Paused',
-        stockLevel: 'Low',
-        margin: '25%'
-      },
-      {
-        id: 'PRD-010',
-        productName: 'Persil Bio Washing Powder 2kg',
-        brand: 'Persil',
-        category: 'Home Care',
-        advertiser: 'Unilever',
-        sku: 'PS-BIO-2KG',
-        impressions: 920000,
-        clicks: 2944,
-        spend: 2567.90,
-        addToCart: 312,
-        purchases: 78,
-        revenue: 2340.00,
-        units: 78,
-        roas: '0.91x',
-        ctr: '0.32%',
-        cpc: '€0.87',
-        cartRate: '10.6%',
-        conversionRate: '2.6%',
-        cpa: '€32.92',
-        aov: '€30.00',
-        status: 'Active',
-        stockLevel: 'Medium',
-        margin: '28%'
       }
+    ];
+
+    const audienceReportData = [
+      { id: 'AUD-001', segment: 'Stedelijk', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: '25-34', gender: 'Mixed' },
+      { id: 'AUD-002', segment: 'Young adult', impressions: 1480000, clicks: 6100, spend: 3600.75, revenue: 15230.60, roas: '4.23x', percentage: '28%', age: '18-24', gender: 'Mixed' },
+      { id: 'AUD-003', segment: 'Family with Kids', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: '28-45', gender: 'Female' },
+      { id: 'AUD-004', segment: 'Bonus shoppers', impressions: 635000, clicks: 2100, spend: 1450.30, revenue: 4890.20, roas: '3.37x', percentage: '12%', age: '45+', gender: 'Mixed' }
+    ];
+
+    const iroasReportData = [
+      { id: 'ENG-001', engine: 'Overall', incrementalRevenue: 2400000, mediaSpend: 650000, iroas: '3.65x', organicRevenue: 980000, totalRevenue: 3380000 },
+      { id: 'ENG-002', engine: 'Display', incrementalRevenue: 680000, mediaSpend: 180000, iroas: '3.78x', organicRevenue: 280000, totalRevenue: 960000 },
+      { id: 'ENG-003', engine: 'Sponsored Products', incrementalRevenue: 950000, mediaSpend: 245000, iroas: '3.88x', organicRevenue: 410000, totalRevenue: 1360000 },
+      { id: 'ENG-004', engine: 'Digital In-store', incrementalRevenue: 420000, mediaSpend: 125000, iroas: '3.36x', organicRevenue: 160000, totalRevenue: 580000 },
+      { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '3.50x', organicRevenue: 130000, totalRevenue: 480000 }
+    ];
+
+    const ecomFunnelData = [
+      { id: 'STEP-001', step: 'Impressions', value: 15240000, percentage: '100%', dropOff: '0%', ctr: '0.32%', engine: 'All' },
+      { id: 'STEP-002', step: 'Clicks', value: 48850, percentage: '0.32%', dropOff: '99.68%', cartRate: '18.7%', engine: 'All' },
+      { id: 'STEP-003', step: 'Add to Cart', value: 9135, percentage: '0.06%', dropOff: '81.3%', convRate: '4.2%', engine: 'All' },
+      { id: 'STEP-004', step: 'Purchases', value: 384, percentage: '0.003%', dropOff: '95.8%', aov: '€45.60', engine: 'All' }
+    ];
+
+    const goalReportData = [
+      { id: 'GOAL-001', goal: 'Awareness', sponsored: 25, display: 45, digitalInstore: 20, offlineInstore: 10, total: 100 },
+      { id: 'GOAL-002', goal: 'Consideration', sponsored: 35, display: 30, digitalInstore: 25, offlineInstore: 10, total: 100 },
+      { id: 'GOAL-003', goal: 'Intent', sponsored: 40, display: 20, digitalInstore: 25, offlineInstore: 15, total: 100 },
+      { id: 'GOAL-004', goal: 'Purchase', sponsored: 50, display: 15, digitalInstore: 20, offlineInstore: 15, total: 100 },
+      { id: 'GOAL-005', goal: 'Retention', sponsored: 30, display: 12, digitalInstore: 22, offlineInstore: 18, total: 82 }
     ];
 
     const getStatusBadgeVariant = (status: string) => {
@@ -2711,7 +2618,7 @@ export const ProductReportView: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{}}
         pageHeaderProps={{
-          title: 'Product Performance Report',
+          title: 'Multi-Report Dashboard',
           headerRight: (
             <DateRangePicker
               dateRange={dateRange}
@@ -2727,132 +2634,196 @@ export const ProductReportView: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* Filter Card */}
+          {/* Tabbed Reports Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Filters</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Advertiser</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'All Advertisers', value: 'all' },
-                      { label: 'Unilever', value: 'unilever' },
-                      { label: 'Procter & Gamble', value: 'pg' },
-                      { label: 'Nestlé', value: 'nestle' },
-                      { label: 'Coca-Cola', value: 'coca-cola' },
-                    ]}
-                    value={advertiserFilter}
-                    onChange={setAdvertiserFilter}
-                    placeholder="Select advertiser"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'All Categories', value: 'all' },
-                      { label: 'Personal Care', value: 'personal-care' },
-                      { label: 'Food & Beverage', value: 'food-beverage' },
-                      { label: 'Home Care', value: 'home-care' },
-                      { label: 'Health & Wellness', value: 'health-wellness' },
-                    ]}
-                    value={categoryFilter}
-                    onChange={setCategoryFilter}
-                    placeholder="Select category"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Brand</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'All Brands', value: 'all' },
-                      { label: 'Dove', value: 'dove' },
-                      { label: 'Hellmanns', value: 'hellmanns' },
-                      { label: 'Ben & Jerrys', value: 'ben-jerrys' },
-                      { label: 'Axe', value: 'axe' },
-                      { label: 'Lipton', value: 'lipton' },
-                      { label: 'Magnum', value: 'magnum' },
-                      { label: 'Knorr', value: 'knorr' },
-                      { label: 'Vaseline', value: 'vaseline' },
-                      { label: 'Surf', value: 'surf' },
-                      { label: 'Persil', value: 'persil' },
-                    ]}
-                    value={brandFilter}
-                    onChange={setBrandFilter}
-                    placeholder="Select brand"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Engine</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'All Engines', value: 'all' },
-                      { label: 'Display', value: 'display' },
-                      { label: 'Sponsored Products', value: 'sponsored-products' },
-                      { label: 'Digital In-store', value: 'digital-instore' },
-                      { label: 'Offline In-store', value: 'offline-instore' },
-                    ]}
-                    value={engineFilter}
-                    onChange={setEngineFilter}
-                    placeholder="Select engine"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Product Performance Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Performance Report</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table
-                columns={[
-                  { key: 'productName', header: 'Product Name', hideable: false },
-                  { key: 'brand', header: 'Brand', hideable: false },
-                  { key: 'category', header: 'Category' },
-                  { key: 'sku', header: 'SKU' },
-                  { key: 'status', header: 'Status', render: row => (
-                    <Badge variant={getStatusBadgeVariant(row.status)}>
-                      {row.status}
-                    </Badge>
-                  )},
-                  { key: 'stockLevel', header: 'Stock', render: row => (
-                    <Badge variant={getStockBadgeVariant(row.stockLevel)}>
-                      {row.stockLevel}
-                    </Badge>
-                  )},
-                  { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
-                  { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
-                  { key: 'ctr', header: 'CTR' },
-                  { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
-                  { key: 'cpc', header: 'CPC' },
-                  { key: 'addToCart', header: 'Add to Cart', render: row => row.addToCart.toLocaleString() },
-                  { key: 'cartRate', header: 'Cart Rate' },
-                  { key: 'purchases', header: 'Purchases', render: row => row.purchases.toLocaleString() },
-                  { key: 'conversionRate', header: 'Conv. Rate' },
-                  { key: 'cpa', header: 'CPA' },
-                  { key: 'units', header: 'Units Sold', render: row => row.units.toLocaleString() },
-                  { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
-                  { key: 'aov', header: 'AOV' },
-                  { key: 'roas', header: 'ROAS' },
-                  { key: 'margin', header: 'Margin %' },
+              <Viewbar
+                labels={[]}
+                tabs={[
+                  { value: 'product-report', label: 'Product Report' },
+                  { value: 'audience-report', label: 'Audience Report' },
+                  { value: 'iroas-report', label: 'IROAS Report' },
+                  { value: 'ecom-funnel-report', label: 'Ecom Funnel Report' },
+                  { value: 'goal-report', label: 'Goal Report' },
                 ]}
-                data={productReportData}
-                rowKey={row => row.id}
-                rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
-                onRowClick={row => {
-                  console.log('Navigate to product details for', row.productName);
-                }}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
               />
+            </CardHeader>
+            <CardContent>
+              {/* FilterBar above all tables */}
+              <div className="mb-4">
+                <FilterBar
+                  filters={[
+                    {
+                      name: "Status",
+                      options: [
+                        { label: "Active", value: "active" },
+                        { label: "Paused", value: "paused" },
+                        { label: "Completed", value: "completed" },
+                      ],
+                      selectedValues: statusFilter,
+                      onChange: setStatusFilter,
+                    },
+                    {
+                      name: "Category",
+                      options: [
+                        { label: "Personal Care", value: "personal-care" },
+                        { label: "Food & Beverage", value: "food-beverage" },
+                        { label: "Home Care", value: "home-care" },
+                      ],
+                      selectedValues: categoryFilter,
+                      onChange: setCategoryFilter,
+                    },
+                    {
+                      name: "Brand",
+                      options: [
+                        { label: "Dove", value: "dove" },
+                        { label: "Hellmanns", value: "hellmanns" },
+                        { label: "Ben & Jerrys", value: "ben-jerrys" },
+                        { label: "Axe", value: "axe" },
+                        { label: "Lipton", value: "lipton" },
+                      ],
+                      selectedValues: brandFilter,
+                      onChange: setBrandFilter,
+                    },
+                    {
+                      name: "Engine",
+                      options: [
+                        { label: "Display", value: "display" },
+                        { label: "Sponsored Products", value: "sponsored-products" },
+                        { label: "Digital In-store", value: "digital-instore" },
+                        { label: "Offline In-store", value: "offline-instore" },
+                      ],
+                      selectedValues: engineFilter,
+                      onChange: setEngineFilter,
+                    },
+                  ]}
+                  searchValue={searchValue}
+                  onSearchChange={setSearchValue}
+                  searchPlaceholder="Search reports..."
+                />
+              </div>
+
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                {/* Product Report Tab */}
+                <TabsContent value="product-report" className="mt-0">
+                  <Table
+                    columns={[
+                      { key: 'productName', header: 'Product Name', hideable: false },
+                      { key: 'brand', header: 'Brand', hideable: false },
+                      { key: 'category', header: 'Category' },
+                      { key: 'sku', header: 'SKU' },
+                      { key: 'status', header: 'Status', render: row => (
+                        <Badge variant={getStatusBadgeVariant(row.status)}>
+                          {row.status}
+                        </Badge>
+                      )},
+                      { key: 'stockLevel', header: 'Stock', render: row => (
+                        <Badge variant={getStockBadgeVariant(row.stockLevel)}>
+                          {row.stockLevel}
+                        </Badge>
+                      )},
+                      { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                      { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                      { key: 'cpc', header: 'CPC' },
+                      { key: 'addToCart', header: 'Add to Cart', render: row => row.addToCart.toLocaleString() },
+                      { key: 'cartRate', header: 'Cart Rate' },
+                      { key: 'purchases', header: 'Purchases', render: row => row.purchases.toLocaleString() },
+                      { key: 'conversionRate', header: 'Conv. Rate' },
+                      { key: 'cpa', header: 'CPA' },
+                      { key: 'units', header: 'Units Sold', render: row => row.units.toLocaleString() },
+                      { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                      { key: 'aov', header: 'AOV' },
+                      { key: 'roas', header: 'ROAS' },
+                      { key: 'margin', header: 'Margin %' },
+                    ]}
+                    data={productReportData}
+                    rowKey={row => row.id}
+                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                    onRowClick={row => console.log('Navigate to product details for', row.productName)}
+                  />
+                </TabsContent>
+
+                {/* Audience Report Tab */}
+                <TabsContent value="audience-report" className="mt-0">
+                  <Table
+                    columns={[
+                      { key: 'segment', header: 'Audience Segment', hideable: false },
+                      { key: 'percentage', header: 'Share %', hideable: false },
+                      { key: 'age', header: 'Age Range' },
+                      { key: 'gender', header: 'Gender' },
+                      { key: 'impressions', header: 'Impressions', render: row => row.impressions.toLocaleString() },
+                      { key: 'clicks', header: 'Clicks', render: row => row.clicks.toLocaleString() },
+                      { key: 'spend', header: 'Spend', render: row => `€${row.spend.toLocaleString()}` },
+                      { key: 'revenue', header: 'Revenue', render: row => `€${row.revenue.toLocaleString()}` },
+                      { key: 'roas', header: 'ROAS' },
+                    ]}
+                    data={audienceReportData}
+                    rowKey={row => row.id}
+                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                    onRowClick={row => console.log('Navigate to audience details for', row.segment)}
+                  />
+                </TabsContent>
+
+                {/* IROAS Report Tab */}
+                <TabsContent value="iroas-report" className="mt-0">
+                  <Table
+                    columns={[
+                      { key: 'engine', header: 'Engine', hideable: false },
+                      { key: 'incrementalRevenue', header: 'Incremental Revenue', render: row => `€${row.incrementalRevenue.toLocaleString()}` },
+                      { key: 'organicRevenue', header: 'Organic Revenue', render: row => `€${row.organicRevenue.toLocaleString()}` },
+                      { key: 'totalRevenue', header: 'Total Revenue', render: row => `€${row.totalRevenue.toLocaleString()}` },
+                      { key: 'mediaSpend', header: 'Media Spend', render: row => `€${row.mediaSpend.toLocaleString()}` },
+                      { key: 'iroas', header: 'IROAS' },
+                    ]}
+                    data={iroasReportData}
+                    rowKey={row => row.id}
+                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                    onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
+                  />
+                </TabsContent>
+
+                {/* Ecom Funnel Report Tab */}
+                <TabsContent value="ecom-funnel-report" className="mt-0">
+                  <Table
+                    columns={[
+                      { key: 'step', header: 'Funnel Step', hideable: false },
+                      { key: 'value', header: 'Volume', render: row => row.value.toLocaleString() },
+                      { key: 'percentage', header: 'Percentage' },
+                      { key: 'dropOff', header: 'Drop Off' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'cartRate', header: 'Cart Rate' },
+                      { key: 'convRate', header: 'Conv Rate' },
+                      { key: 'aov', header: 'AOV' },
+                    ]}
+                    data={ecomFunnelData}
+                    rowKey={row => row.id}
+                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                    onRowClick={row => console.log('Navigate to funnel details for', row.step)}
+                  />
+                </TabsContent>
+
+                {/* Goal Report Tab */}
+                <TabsContent value="goal-report" className="mt-0">
+                  <Table
+                    columns={[
+                      { key: 'goal', header: 'Goal', hideable: false },
+                      { key: 'sponsored', header: 'Sponsored Products', render: row => `${row.sponsored}%` },
+                      { key: 'display', header: 'Display', render: row => `${row.display}%` },
+                      { key: 'digitalInstore', header: 'Digital In-store', render: row => `${row.digitalInstore}%` },
+                      { key: 'offlineInstore', header: 'Offline In-store', render: row => `${row.offlineInstore}%` },
+                      { key: 'total', header: 'Total Score', render: row => `${row.total}%` },
+                    ]}
+                    data={goalReportData}
+                    rowKey={row => row.id}
+                    rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                    onRowClick={row => console.log('Navigate to goal details for', row.goal)}
+                  />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>

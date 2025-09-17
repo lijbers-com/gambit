@@ -39,6 +39,7 @@ export interface SideNavigationProps {
   onLogout?: () => void;
   className?: string;
   style?: React.CSSProperties;
+  theme?: string;
 }
 
 export const SideNavigation = ({
@@ -48,15 +49,18 @@ export const SideNavigation = ({
   onLogout,
   className,
   style,
+  theme: themeProp,
 }: SideNavigationProps) => {
-  // Use theme from context if available, otherwise default to 'gambit'
-  let theme = 'gambit';
-  try {
-    const themeContext = useContext(ThemeContext);
-    theme = themeContext?.theme || 'gambit';
-  } catch (error) {
-    // ThemeContext not available, use default theme
-    theme = 'gambit';
+  // Use theme from props first, then context, otherwise default to 'gambit'
+  let theme = themeProp || 'gambit';
+  if (!themeProp) {
+    try {
+      const themeContext = useContext(ThemeContext);
+      theme = themeContext?.theme || 'gambit';
+    } catch (error) {
+      // ThemeContext not available, use default theme
+      theme = 'gambit';
+    }
   }
   const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
   const pathname = usePathname();
@@ -92,11 +96,32 @@ export const SideNavigation = ({
     }
   }, [collapsed, setOpenSubmenu]);
 
-  // filter all parents that dont have subitems
+  // filter all parents that dont have subitems and theme-specific items
   const filteredRoutes = routes.filter(
-    (item) =>
-      item.type !== 'parent' ||
-      (item.subitems && item.subitems.length > 0),
+    (item) => {
+      // Filter out parents without subitems
+      if (item.type === 'parent' && (!item.subitems || item.subitems.length === 0)) {
+        return false;
+      }
+      
+      // Filter out Albert Heijn theme-specific exclusions
+      if (theme === 'albert-heijn' || theme === 'albertHeijn') {
+        // Hide Yield menu item
+        if (item.name === 'Yield') {
+          return false;
+        }
+        // Hide Configuration section and all its items
+        if (item.name === 'Configuration' || 
+            item.name === 'Display config' ||
+            item.name === 'Sponsored products config' ||
+            item.name === 'Digital in-store config' ||
+            item.name === 'Offline in-store config') {
+          return false;
+        }
+      }
+      
+      return true;
+    }
   );
 
   return (

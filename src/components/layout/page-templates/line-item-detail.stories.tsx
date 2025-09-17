@@ -364,6 +364,7 @@ export const Display: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
     const retailProducts = [
@@ -680,7 +681,32 @@ export const Display: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store amount">
+                      <FormSection title="Store targets">
+                        <div className="space-y-4 min-w-0">
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Location"
+                              options={locationOptions}
+                              selectedValues={selectedLocations}
+                              onChange={setSelectedLocations}
+                            />
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                            />
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Stores">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -817,7 +843,7 @@ export const Display: Story = {
                       )}
                       {storeAmount && (
                         <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="text-[14px] text-muted-foreground">Stores</div>
                           <div className="font-medium">{storeAmount} stores</div>
                         </div>
                       )}
@@ -833,9 +859,16 @@ export const Display: Story = {
                           <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
+                      {selectedInventory.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Inventory</div>
+                          <div className="font-medium">{selectedInventory.length} selected</div>
+                        </div>
+                      )}
                     </CardSummaryContent>
                   </CardSummary>
                   
+                  {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
                       <CardSummaryTitle>Creatives</CardSummaryTitle>
@@ -862,6 +895,7 @@ export const Display: Story = {
                       })}
                     </CardSummaryContent>
                   </CardSummary>
+                  */}
                   
                   <CampaignDetailsSidebar />
                 </div>
@@ -891,6 +925,7 @@ export const DigitalInStore: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
     const retailProducts = [
@@ -1207,7 +1242,32 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store amount">
+                      <FormSection title="Store targets">
+                        <div className="space-y-4 min-w-0">
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Location"
+                              options={locationOptions}
+                              selectedValues={selectedLocations}
+                              onChange={setSelectedLocations}
+                            />
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                            />
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Stores">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -1344,7 +1404,7 @@ export const DigitalInStore: Story = {
                       )}
                       {storeAmount && (
                         <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="text-[14px] text-muted-foreground">Stores</div>
                           <div className="font-medium">{storeAmount} stores</div>
                         </div>
                       )}
@@ -1360,9 +1420,16 @@ export const DigitalInStore: Story = {
                           <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
+                      {selectedInventory.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Inventory</div>
+                          <div className="font-medium">{selectedInventory.length} selected</div>
+                        </div>
+                      )}
                     </CardSummaryContent>
                   </CardSummary>
                   
+                  {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
                       <CardSummaryTitle>Creatives</CardSummaryTitle>
@@ -1389,6 +1456,7 @@ export const DigitalInStore: Story = {
                       })}
                     </CardSummaryContent>
                   </CardSummary>
+                  */}
                   
                   <CampaignDetailsSidebar />
                 </div>
@@ -1406,13 +1474,12 @@ export const DigitalInStore: Story = {
 export const OfflineInStore: Story = {
   render: () => {
     const [lineItemName, setLineItemName] = React.useState('');
-    const [selectedLocation, setSelectedLocation] = React.useState<any>(null);
-    const [selectedPackage, setSelectedPackage] = React.useState<any>(null);
+    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
+    const [selectedInventory, setSelectedInventory] = React.useState<any[]>([]);
+    const [inventorySearch, setInventorySearch] = React.useState('');
+    const [showInventoryResults, setShowInventoryResults] = React.useState(false);
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
-    const [locationSearch, setLocationSearch] = React.useState('');
-    const [packageSearch, setPackageSearch] = React.useState('');
-    const [showLocationResults, setShowLocationResults] = React.useState(false);
-    const [showPackageResults, setShowPackageResults] = React.useState(false);
+    // Removed location search state - using Filter component instead
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
@@ -1430,27 +1497,30 @@ export const OfflineInStore: Story = {
     });
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
 
-    // Location (zone) options with sub-locations
+    // Location options for Filter component
     const locationOptions = [
-      { id: 'no-zone', name: 'No zone', subLocations: 'General store placement' },
-      { id: 'zuivel', name: 'Zuivel', subLocations: 'Dairy section, refrigerated area' },
-      { id: 'vers', name: 'Vers', subLocations: 'Fresh produce, vegetables, fruits' },
-      { id: 'vlees-vega', name: 'Vlees & Vega', subLocations: 'Meat counter, vegetarian alternatives' },
-      { id: 'diepvries', name: 'Diepvries', subLocations: 'Frozen food aisles, freezer sections' },
-      { id: 'worldfoods', name: 'Worldfoods', subLocations: 'International cuisine, ethnic foods' },
-      { id: 'maaltijdtoevoegingen', name: 'Maaltijdtoevoegingen', subLocations: 'Meal additions, sauces, seasonings' },
-      { id: 'noten-toast-chips', name: 'Noten, toast, chips etc.', subLocations: 'Snacks aisle, nuts, crackers' },
-      { id: 'zoetwaren', name: 'Zoetwaren', subLocations: 'Candy aisle, chocolates, sweets' },
-      { id: 'ontbijt', name: 'Ontbijt', subLocations: 'Breakfast items, cereals, spreads' },
-      { id: 'non-food', name: 'Non Food', subLocations: 'Household items, personal care' },
-      { id: 'to-go', name: 'To Go', subLocations: 'Ready meals, grab-and-go section' },
+      { label: 'No zone', value: 'no-zone', description: 'General store placement' },
+      { label: 'Zuivel', value: 'zuivel', description: 'Dairy section, refrigerated area' },
+      { label: 'Vers', value: 'vers', description: 'Fresh produce, vegetables, fruits' },
+      { label: 'Vlees & Vega', value: 'vlees-vega', description: 'Meat counter, vegetarian alternatives' },
+      { label: 'Diepvries', value: 'diepvries', description: 'Frozen food aisles, freezer sections' },
+      { label: 'Worldfoods', value: 'worldfoods', description: 'International cuisine, ethnic foods' },
+      { label: 'Maaltijdtoevoegingen', value: 'maaltijdtoevoegingen', description: 'Meal additions, sauces, seasonings' },
+      { label: 'Noten, toast, chips etc.', value: 'noten-toast-chips', description: 'Snacks aisle, nuts, crackers' },
+      { label: 'Zoetwaren', value: 'zoetwaren', description: 'Candy aisle, chocolates, sweets' },
+      { label: 'Ontbijt', value: 'ontbijt', description: 'Breakfast items, cereals, spreads' },
+      { label: 'Non Food', value: 'non-food', description: 'Household items, personal care' },
+      { label: 'To Go', value: 'to-go', description: 'Ready meals, grab-and-go section' },
     ];
 
-    // Package size options with ad spaces
-    const packageOptions = [
-      { id: 'small', name: 'Small Package', adSpaces: 'Wobbler' },
-      { id: 'medium', name: 'Medium Package', adSpaces: 'Wobbler, VSB (mini & large), Vloersticker' },
-      { id: 'large', name: 'Large Package', adSpaces: 'Wobbler, VSB (mini & large), Vloersticker, Koeldeursticker, Makelaarsbord' },
+    // Inventory options with detailed information
+    const inventoryOptions = [
+      { id: 'wobbler', name: 'Wobbler', description: 'Shelf-edge promotional wobbler', dimensions: '10x15cm', locations: 'All shelving areas' },
+      { id: 'vsb-mini', name: 'VSB (Mini)', description: 'Mini shelf barker', dimensions: '5x8cm', locations: 'Product shelves' },
+      { id: 'vsb-large', name: 'VSB (Large)', description: 'Large shelf barker', dimensions: '15x20cm', locations: 'End caps, prime shelving' },
+      { id: 'vloersticker', name: 'Vloersticker', description: 'Floor decal sticker', dimensions: '30x40cm', locations: 'High-traffic floor areas' },
+      { id: 'koeldeursticker', name: 'Koeldeursticker', description: 'Cooler door sticker', dimensions: '20x25cm', locations: 'Refrigerated sections' },
+      { id: 'makelaarsbord', name: 'Makelaarsbord', description: 'Standing promotional board', dimensions: '60x80cm', locations: 'Store entrance, aisles' },
     ];
 
     // Conflicting line-items data for overbook alert
@@ -1613,75 +1683,59 @@ export const OfflineInStore: Story = {
       return Math.round(numStores * 65);
     };
 
-    // Filter locations based on search
-    const filteredLocations = locationOptions.filter(location => 
-      location.name.toLowerCase().includes(locationSearch.toLowerCase()) ||
-      location.subLocations.toLowerCase().includes(locationSearch.toLowerCase())
+    // Filter inventory based on search and exclude already selected items
+    const filteredInventoryOptions = inventoryOptions.filter(inventory => 
+      (inventory.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+       inventory.description.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+       inventory.locations.toLowerCase().includes(inventorySearch.toLowerCase())) &&
+      !selectedInventory.some(selected => selected.id === inventory.id)
     );
 
-    // Filter packages based on search
-    const filteredPackages = packageOptions.filter(pkg => 
-      pkg.name.toLowerCase().includes(packageSearch.toLowerCase()) ||
-      pkg.adSpaces.toLowerCase().includes(packageSearch.toLowerCase())
-    );
-
-    // Handle location selection
-    const handleLocationSelect = (location: any) => {
-      setSelectedLocation(location);
-      setLocationSearch('');
-      setShowLocationResults(false);
+    // Handle inventory search change
+    const handleInventorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInventorySearch(e.target.value);
+      setShowInventoryResults(e.target.value.length > 0);
     };
 
-    // Handle package selection
-    const handlePackageSelect = (pkg: any) => {
-      setSelectedPackage(pkg);
-      setPackageSearch('');
-      setShowPackageResults(false);
+    // Handle inventory input click
+    const handleInventoryClick = () => {
+      setShowInventoryResults(true);
     };
 
-    // Handle location search change
-    const handleLocationSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setLocationSearch(value);
-      if (selectedLocation && value !== selectedLocation.name) {
-        setSelectedLocation(null);
+    // Handle inventory selection
+    const handleInventorySelect = (inventory: any) => {
+      if (!selectedInventory.some(item => item.id === inventory.id)) {
+        setSelectedInventory([...selectedInventory, inventory]);
       }
-      setShowLocationResults(value.length > 0);
+      setInventorySearch('');
+      setShowInventoryResults(false);
     };
 
-    // Handle package search change
-    const handlePackageSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setPackageSearch(value);
-      if (selectedPackage && value !== selectedPackage.name) {
-        setSelectedPackage(null);
-      }
-      setShowPackageResults(value.length > 0);
+    // Remove inventory item
+    const removeInventoryItem = (inventoryId: string) => {
+      setSelectedInventory(selectedInventory.filter(item => item.id !== inventoryId));
     };
 
-    // Handle location input click
-    const handleLocationClick = () => {
-      setShowLocationResults(true);
-    };
-
-    // Handle package input click
-    const handlePackageClick = () => {
-      setShowPackageResults(true);
-    };
-
-    // Handle location and package selection to create placement
+    // Handle placement creation based on locations and inventory
     React.useEffect(() => {
-      if (selectedLocation && selectedPackage) {
+      if (selectedLocations.length > 0 && selectedInventory.length > 0) {
+        const locationLabels = selectedLocations
+          .map(value => locationOptions.find(opt => opt.value === value)?.label)
+          .filter(Boolean)
+          .join(', ');
+        const inventoryLabels = selectedInventory
+          .map(item => item.name)
+          .join(', ');
         setSelectedPlacement({
-          name: `${selectedLocation.name} - ${selectedPackage.name}`,
-          type: selectedPackage.name,
-          location: selectedLocation.name,
-          adSpaces: selectedPackage.adSpaces
+          name: `${locationLabels} - ${inventoryLabels}`,
+          type: 'Custom Inventory',
+          location: locationLabels,
+          adSpaces: inventoryLabels
         });
       } else {
         setSelectedPlacement(null);
       }
-    }, [selectedLocation, selectedPackage]);
+    }, [selectedLocations, selectedInventory]);
 
 
     // Handle retail product input click
@@ -1694,8 +1748,7 @@ export const OfflineInStore: Story = {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
         if (!target.closest('[data-dropdown-container]')) {
-          setShowLocationResults(false);
-          setShowPackageResults(false);
+          setShowInventoryResults(false);
           setShowRetailProductResults(false);
         }
       };
@@ -1744,80 +1797,68 @@ export const OfflineInStore: Story = {
                       
                       <FormSection title="Placement">
                         <div className="space-y-4 min-w-0">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="relative" data-dropdown-container>
-                              <label className="block text-sm font-medium mb-2">Location*</label>
-                              <SearchInput 
-                                value={selectedLocation ? selectedLocation.name : locationSearch}
-                                onChange={handleLocationSearchChange}
-                                onClick={handleLocationClick}
-                                placeholder="Select location..." 
-                                className="w-full"
-                                icon={<MapPin className="w-4 h-4" />}
-                              />
-                              {showLocationResults && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                  {filteredLocations.length > 0 ? (
-                                    filteredLocations.map((location) => (
-                                    <div
-                                      key={location.id}
-                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                      onClick={() => handleLocationSelect(location)}
-                                    >
-                                      <div className="font-medium text-sm">{location.name}</div>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        {location.subLocations}
-                                      </div>
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Find inventory*</label>
+                            <SearchInput 
+                              value={inventorySearch}
+                              onChange={handleInventorySearchChange}
+                              onClick={handleInventoryClick}
+                              placeholder="Search for inventory..." 
+                              className="w-full"
+                              icon={<LayoutDashboard className="w-4 h-4" />}
+                            />
+                            {showInventoryResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredInventoryOptions.length > 0 ? (
+                                  filteredInventoryOptions.map((inventory) => (
+                                  <div
+                                    key={inventory.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => handleInventorySelect(inventory)}
+                                  >
+                                    <div className="font-medium text-sm">{inventory.name}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {inventory.description} • {inventory.dimensions}
                                     </div>
-                                    ))
-                                  ) : (
-                                    <div className="p-3 text-center text-sm text-muted-foreground">
-                                      No locations found
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="relative" data-dropdown-container>
-                              <label className="block text-sm font-medium mb-2">Package*</label>
-                              <SearchInput 
-                                value={selectedPackage ? selectedPackage.name : packageSearch}
-                                onChange={handlePackageSearchChange}
-                                onClick={handlePackageClick}
-                                placeholder="Select package..." 
-                                className="w-full"
-                                icon={<LayoutDashboard className="w-4 h-4" />}
-                              />
-                              {showPackageResults && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                  {filteredPackages.length > 0 ? (
-                                    filteredPackages.map((pkg) => (
-                                    <div
-                                      key={pkg.id}
-                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                      onClick={() => handlePackageSelect(pkg)}
-                                    >
-                                      <div className="font-medium text-sm">{pkg.name}</div>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        {pkg.adSpaces}
-                                      </div>
-                                    </div>
-                                    ))
-                                  ) : (
-                                    <div className="p-3 text-center text-sm text-muted-foreground">
-                                      No packages found
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                                  </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">
+                                    No inventory found
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
 
+                          {selectedInventory.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected inventory:</div>
+                              <div className="space-y-1">
+                                {selectedInventory.map(inventory => (
+                                  <div key={inventory.id} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                    <div>
+                                      <div className="text-sm font-medium">{inventory.name}</div>
+                                      <div className="text-xs text-muted-foreground">{inventory.description}</div>
+                                    </div>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => removeInventoryItem(inventory.id)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="text-sm text-muted-foreground">
-                            {selectedLocation && selectedPackage 
-                              ? `${selectedLocation.name} location with ${selectedPackage.name} - ${selectedPackage.adSpaces}`
-                              : 'Select a location and package size for this line item'
+                            {selectedInventory.length > 0
+                              ? 'Inventory selected for this line item'
+                              : 'Search and select inventory items for this line item'
                             }
                           </div>
                         </div>
@@ -1921,7 +1962,32 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store amount">
+                      <FormSection title="Store targets">
+                        <div className="space-y-4 min-w-0">
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Location"
+                              options={locationOptions}
+                              selectedValues={selectedLocations}
+                              onChange={setSelectedLocations}
+                            />
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                            />
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Stores">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -2127,7 +2193,7 @@ export const OfflineInStore: Story = {
                               </DialogContent>
                             </Dialog>
                           </div>
-{selectedLocation && (
+{selectedLocations.length > 0 && (
   <div className="mt-6 pt-4 border-t border-slate-200">
     <h4 className="text-sm font-medium mb-3">Other campaigns in this location</h4>
     <Table
@@ -2171,7 +2237,7 @@ export const OfflineInStore: Story = {
         },
         {
           key: 'storeAmount',
-          header: 'Store Amount',
+          header: 'Stores',
           render: (row) => <span className="font-medium">{row.storeAmount}</span>
         }
       ]}
@@ -2184,25 +2250,8 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Target">
-                        <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
 
+                      {/* Creatives FormSection - temporarily hidden, can be easily restored later
                       <FormSection title="Creatives">
                         {selectedCreatives.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
@@ -2244,11 +2293,12 @@ export const OfflineInStore: Story = {
                           onSelectionChange={setSelectedCreatives} 
                         />
                       </FormSection>
+                      */}
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
-                        <Button>Submit for approval</Button>
+                        {/* <Button>Submit for approval</Button> */}
                       </div>
                     </CardContent>
                   </Card>
@@ -2267,10 +2317,15 @@ export const OfflineInStore: Story = {
                           <div className="font-medium">{lineItemName}</div>
                         </div>
                       )}
-                      {selectedPlacement && (
+                      {selectedLocations.length > 0 && (
                         <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Placement</div>
-                          <div className="font-medium">{selectedPlacement.name}</div>
+                          <div className="text-[14px] text-muted-foreground">Locations</div>
+                          <div className="font-medium">
+                            {selectedLocations.map(locationValue => {
+                              const location = locationOptions.find(opt => opt.value === locationValue);
+                              return location?.label;
+                            }).filter(Boolean).join(', ')}
+                          </div>
                         </div>
                       )}
                       {(startDate || endDate) && (
@@ -2289,7 +2344,7 @@ export const OfflineInStore: Story = {
                       )}
                       {storeAmount && (
                         <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="text-[14px] text-muted-foreground">Stores</div>
                           <div className="font-medium">{storeAmount} stores</div>
                         </div>
                       )}
@@ -2305,9 +2360,16 @@ export const OfflineInStore: Story = {
                           <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
+                      {selectedInventory.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Inventory</div>
+                          <div className="font-medium">{selectedInventory.length} selected</div>
+                        </div>
+                      )}
                     </CardSummaryContent>
                   </CardSummary>
                   
+                  {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
                       <CardSummaryTitle>Creatives</CardSummaryTitle>
@@ -2322,7 +2384,7 @@ export const OfflineInStore: Story = {
                               <span className="font-medium">{creative.name}</span>
                             </div>
                             <div className="text-[14px]">
-                              <span className="text-muted-foreground">Line item: </span>
+                              <span className="text-[14px] text-muted-foreground">Line item: </span>
                               {isLinked ? (
                                 <span className="font-medium">{lineItemName || 'Unnamed Line Item'}</span>
                               ) : (
@@ -2334,6 +2396,7 @@ export const OfflineInStore: Story = {
                       })}
                     </CardSummaryContent>
                   </CardSummary>
+                  */}
                   
                   <CampaignDetailsSidebar />
                 </div>
@@ -2361,6 +2424,9 @@ export const SponsoredProducts: Story = {
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
     const retailProducts = [
@@ -2677,7 +2743,32 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store amount">
+                      <FormSection title="Store targets">
+                        <div className="space-y-4 min-w-0">
+                          <div className="flex gap-3">
+                            <Filter
+                              name="Location"
+                              options={locationOptions}
+                              selectedValues={selectedLocations}
+                              onChange={setSelectedLocations}
+                            />
+                            <Filter
+                              name="Store type"
+                              options={storeTypeOptions}
+                              selectedValues={selectedStoreTypes}
+                              onChange={setSelectedStoreTypes}
+                            />
+                            <Filter
+                              name="Audience"
+                              options={audienceOptions}
+                              selectedValues={selectedAudiences}
+                              onChange={setSelectedAudiences}
+                            />
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Stores">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -2814,7 +2905,7 @@ export const SponsoredProducts: Story = {
                       )}
                       {storeAmount && (
                         <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store amount</div>
+                          <div className="text-[14px] text-muted-foreground">Stores</div>
                           <div className="font-medium">{storeAmount} stores</div>
                         </div>
                       )}
@@ -2830,9 +2921,16 @@ export const SponsoredProducts: Story = {
                           <div className="font-medium">{selectedAudiences.length} selected</div>
                         </div>
                       )}
+                      {selectedInventory.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[14px] text-muted-foreground">Inventory</div>
+                          <div className="font-medium">{selectedInventory.length} selected</div>
+                        </div>
+                      )}
                     </CardSummaryContent>
                   </CardSummary>
                   
+                  {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
                       <CardSummaryTitle>Creatives</CardSummaryTitle>
@@ -2859,6 +2957,7 @@ export const SponsoredProducts: Story = {
                       })}
                     </CardSummaryContent>
                   </CardSummary>
+                  */}
                   
                   <CampaignDetailsSidebar />
                 </div>

@@ -15,6 +15,11 @@ const meta: Meta<typeof SideNavigation> = {
     className: {
       control: { type: 'text' },
     },
+    theme: {
+      control: { type: 'select' },
+      options: ['gambit', 'albert-heijn', 'albertHeijn'],
+      description: 'Theme variant for testing theme-based filtering',
+    },
   },
 };
 
@@ -176,32 +181,39 @@ const sampleRoutes: Route[] = [
   },
   {
     id: 7,
+    name: "New campaign",
+    type: "single",
+    icon: { lucide: "MessageSquare" },
+    url: "/chats/new-campaign"
+  },
+  {
+    id: 8,
     name: "Configuration",
     type: "title"
   },
   {
-    id: 8,
+    id: 9,
     name: "Display config",
     type: "single",
     icon: { lucide: "MonitorSpeaker" },
     url: "/configuration/display"
   },
   {
-    id: 9,
+    id: 10,
     name: "Sponsored products config",
     type: "single",
     icon: { lucide: "ListStart" },
     url: "/configuration/sponsored-products"
   },
   {
-    id: 10,
+    id: 11,
     name: "Digital in-store config",
     type: "single",
     icon: { lucide: "MonitorPlay" },
     url: "/configuration/digital-instore"
   },
   {
-    id: 11,
+    id: 12,
     name: "Offline in-store config",
     type: "single",
     icon: { lucide: "Store" },

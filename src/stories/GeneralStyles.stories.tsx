@@ -93,6 +93,15 @@ const GeneralStylesPage = () => (
           <ColorSwatch label="Brand App Hover" color="#004A36" token="--brand-app-hover" />
         </div>
       </div>
+      <div>
+        <h4 style={{ marginBottom: '1rem', fontSize: '14px', fontWeight: '600' }}>Delhaize</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ColorSwatch label="Brand Primary" color="#CE1230" token="--brand-primary" />
+          <ColorSwatch label="Brand App BG" color="#CE1230" token="--brand-app-bg" />
+          <ColorSwatch label="Brand App Text" color="#ffffff" token="--brand-app-text" />
+          <ColorSwatch label="Brand App Hover" color="#A30E26" token="--brand-app-hover" />
+        </div>
+      </div>
     </div>
     
     <h3>Chart Color Tokens</h3>
@@ -126,6 +135,16 @@ const GeneralStylesPage = () => (
           <ColorSwatch label="Chart 3" color="#458A4C" token="--chart-3" />
           <ColorSwatch label="Chart 4" color="#C0E187" token="--chart-4" />
           <ColorSwatch label="Chart 5" color="#86B547" token="--chart-5" />
+        </div>
+      </div>
+      <div>
+        <h4 style={{ marginBottom: '1rem', fontSize: '14px', fontWeight: '600' }}>Delhaize Theme</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ColorSwatch label="Chart 1" color="hsl(350, 85%, 49%)" token="--chart-1" />
+          <ColorSwatch label="Chart 2" color="hsl(350, 85%, 35%)" token="--chart-2" />
+          <ColorSwatch label="Chart 3" color="hsl(350, 85%, 65%)" token="--chart-3" />
+          <ColorSwatch label="Chart 4" color="hsl(350, 75%, 45%)" token="--chart-4" />
+          <ColorSwatch label="Chart 5" color="hsl(350, 70%, 40%)" token="--chart-5" />
         </div>
       </div>
     </div>

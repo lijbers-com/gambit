@@ -61,6 +61,7 @@ const preview: Preview = {
           { value: 'retailMedia', title: 'Gambit Theme' },
           { value: 'albertHeijn', title: 'Albert Heijn Theme' },
           { value: 'adusa', title: 'ADUSA Theme' },
+          { value: 'delhaize', title: 'Delhaize Theme' },
         ],
         dynamicTitle: true,
       },

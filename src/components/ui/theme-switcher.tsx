@@ -19,6 +19,7 @@ export function ThemeSwitcher() {
     { id: 'gambit', name: 'Gambit', description: 'Purple corporate theme' },
     { id: 'albert-heijn', name: 'Albert Heijn', description: 'Blue retail theme' },
     { id: 'adusa', name: 'ADUSA', description: 'ADUSA retail theme' },
+    { id: 'delhaize', name: 'Delhaize', description: 'Red retail theme' },
   ];
 
   return (

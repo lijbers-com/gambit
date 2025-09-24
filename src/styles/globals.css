@@ -60,14 +60,37 @@ body[data-theme="adusa"] {
   --brand-app-text: #ffffff; /* Green brand app text */
   --brand-app-hover: #004A36; /* Green brand app hover (darker) */
   --logo-url: url('/adusa-logo.svg');
-  
+
   /* Theme-specific chart colors */
   --chart-1: 98 56% 51%; /* ADUSA Green #5AC542 */
   --chart-2: 182 42% 24%; /* ADUSA Dark Green #235455 */
   --chart-3: 130 35% 41%; /* ADUSA Medium Green #458A4C */
   --chart-4: 76 65% 71%; /* ADUSA Light Green #C0E187 */
   --chart-5: 86 40% 49%; /* ADUSA Olive Green #86B547 */
-  
+
+  /* Keep base theme tokens unchanged for UI consistency */
+  /* Only brand-specific tokens should change */
+}
+
+[data-theme="delhaize"],
+html[data-theme="delhaize"],
+body[data-theme="delhaize"] {
+  /* Delhaize Theme Brand-Specific Tokens */
+  --brand-theme: delhaize; /* Theme identifier for logo component */
+  --brand-primary: #CE1230; /* Delhaize brand primary */
+  --brand-app-bg: #CE1230; /* Delhaize brand app background */
+  --brand-app-bg-hex: #CE1230; /* Delhaize brand app background (HEX) */
+  --brand-app-text: #ffffff; /* Delhaize brand app text */
+  --brand-app-hover: #A30E26; /* Delhaize brand app hover (darker) */
+  --logo-url: url('/delhaize-logo.svg');
+
+  /* Theme-specific chart colors - using variations of #CE1230 */
+  --chart-1: 350 85% 49%; /* Delhaize Red #CE1230 */
+  --chart-2: 350 85% 35%; /* Delhaize Red Dark */
+  --chart-3: 350 85% 65%; /* Delhaize Red Light */
+  --chart-4: 350 75% 45%; /* Delhaize Red Variant */
+  --chart-5: 350 70% 40%; /* Delhaize Red Accent */
+
   /* Keep base theme tokens unchanged for UI consistency */
   /* Only brand-specific tokens should change */
 }

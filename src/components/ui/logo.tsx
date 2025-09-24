@@ -9,7 +9,7 @@ export interface LogoProps {
    * Theme type that determines which logo to display
    * @default 'auto'
    */
-  theme?: 'gambit' | 'albert-heijn' | 'adusa' | 'auto';
+  theme?: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'auto';
   /**
    * Color variant for the logo
    * @default 'auto' - uses theme-appropriate colors
@@ -44,7 +44,7 @@ export const Logo = ({
   className,
   onClick,
 }: LogoProps) => {
-  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn' | 'adusa'>('gambit');
+  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn' | 'adusa' | 'delhaize'>('gambit');
 
   useEffect(() => {
     if (theme !== 'auto') {
@@ -67,6 +67,10 @@ export const Logo = ({
         return 'adusa';
       }
 
+      if (brandTheme === 'delhaize') {
+        return 'delhaize';
+      }
+
       // Check if Albert Heijn CSS variables are present (indicating AH theme is active)
       const brandAppBgHex = getComputedStyle(document.documentElement)
         .getPropertyValue('--brand-app-bg-hex')
@@ -80,6 +84,10 @@ export const Logo = ({
         return 'adusa';
       }
 
+      if (brandAppBgHex === '#CE1230') {
+        return 'delhaize';
+      }
+
       // Check data attributes on html or body
       const htmlTheme = document.documentElement.getAttribute('data-theme');
       const bodyTheme = document.body.getAttribute('data-theme');
@@ -91,6 +99,10 @@ export const Logo = ({
       
       if (htmlTheme === 'adusa' || bodyTheme === 'adusa') {
         return 'adusa';
+      }
+
+      if (htmlTheme === 'delhaize' || bodyTheme === 'delhaize') {
+        return 'delhaize';
       }
 
       // Check class names - including the actual theme-ah class used in the app
@@ -119,7 +131,12 @@ export const Logo = ({
       // Check for ADUSA classes
       const hasADUSAClass = document.documentElement.classList.contains('adusa') ||
                            document.body.classList.contains('adusa');
-      
+
+      // Check for Delhaize classes
+      const hasDelhaizeClass = document.documentElement.classList.contains('delhaize') ||
+                              document.body.classList.contains('delhaize');
+
+      if (hasDelhaizeClass) return 'delhaize';
       if (hasADUSAClass) return 'adusa';
       return hasAHClass ? 'albert-heijn' : 'gambit';
     };
@@ -157,20 +174,24 @@ export const Logo = ({
       src: '/adusa-logo.svg',
       alt: alt || 'ADUSA Logo',
     },
+    'delhaize': {
+      src: '/delhaize-logo.svg',
+      alt: alt || 'Delhaize Logo',
+    },
   };
 
   const config = logoConfig[resolvedTheme];
 
   // Determine color filter based on variant and theme
-  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn' | 'adusa', currentVariant: string) => {
+  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize', currentVariant: string) => {
     if (currentVariant === 'original') return '';
     if (currentVariant === 'white') return 'filter brightness-0 invert';
     if (currentVariant === 'blue') return 'filter brightness-0 saturate-200 sepia-100 hue-rotate-180 brightness-150';
     
     // Auto variant - use theme-appropriate colors
     if (currentVariant === 'auto') {
-      if (currentTheme === 'albert-heijn' || currentTheme === 'adusa') {
-        return 'filter brightness-0 invert'; // White for AH and ADUSA themes by default
+      if (currentTheme === 'albert-heijn' || currentTheme === 'adusa' || currentTheme === 'delhaize') {
+        return 'filter brightness-0 invert'; // White for AH, ADUSA, and Delhaize themes by default
       }
     }
     

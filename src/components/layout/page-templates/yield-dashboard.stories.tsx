@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardTitle, CardContent, MetricCard } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -16,6 +16,8 @@ import { Filter } from '@/components/ui/filter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
+import { Input } from '@/components/ui/input';
+import { FilterBar } from '@/components/ui/filter-bar';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Yield Dashboard',
@@ -83,38 +85,38 @@ This template is ideal for:
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Mock data for general yield revenue dashboard
-const generalYieldRevenueMetrics = [
-  { 
-    id: 'offline-instore-revenue', 
-    label: 'Offline In-store', 
-    value: '€127.8M', 
-    subMetric: 'Fill: 86.9%',
-    badgeValue: '+47.3%',
+// Mock data for general fill rate metrics
+const generalFillRateMetrics = [
+  {
+    id: 'sponsored-products-fill',
+    label: 'Sponsored Products',
+    value: '99.2%',
+    subMetric: 'Target: 95%',
+    badgeValue: '+4.2%',
     badgeVariant: 'success' as const,
   },
-  { 
-    id: 'digital-instore-revenue', 
-    label: 'Digital In-store', 
-    value: '€108.6M', 
-    subMetric: 'Fill: 91.4%',
-    badgeValue: '+52.1%',
+  {
+    id: 'display-fill',
+    label: 'Display',
+    value: '96.7%',
+    subMetric: 'Target: 90%',
+    badgeValue: '+7.4%',
     badgeVariant: 'success' as const,
   },
-  { 
-    id: 'display-revenue', 
-    label: 'Display', 
-    value: '€94.7M', 
-    subMetric: 'Fill: 96.7%',
-    badgeValue: '+67.8%',
+  {
+    id: 'digital-instore-fill',
+    label: 'Digital In-store',
+    value: '91.4%',
+    subMetric: 'Target: 85%',
+    badgeValue: '+6.8%',
     badgeVariant: 'success' as const,
   },
-  { 
-    id: 'sponsored-products-revenue', 
-    label: 'Sponsored Products', 
-    value: '€78.3M', 
-    subMetric: 'Fill: 99.2%',
-    badgeValue: '+84.2%',
+  {
+    id: 'offline-instore-fill',
+    label: 'Offline In-store',
+    value: '86.9%',
+    subMetric: 'Target: 80%',
+    badgeValue: '+8.6%',
     badgeVariant: 'success' as const,
   },
 ];
@@ -506,11 +508,11 @@ const mergeSeasonalityData = (currentData: any[], selectedYears: string[]) => {
 // Function to filter data based on date range
 const getFilteredFillRateData = (dateRange: DateRange | undefined, selectedYears: string[] = []) => {
   let currentData = fullYearFillRateData;
-  
+
   if (dateRange?.from && dateRange?.to) {
     const fromMonth = dateRange.from.getMonth();
     const toMonth = dateRange.to.getMonth();
-    
+
     if (fromMonth <= toMonth) {
       currentData = fullYearFillRateData.slice(fromMonth, toMonth + 1);
     } else {
@@ -518,8 +520,95 @@ const getFilteredFillRateData = (dateRange: DateRange | undefined, selectedYears
       currentData = [...fullYearFillRateData.slice(fromMonth), ...fullYearFillRateData.slice(0, toMonth + 1)];
     }
   }
-  
+
   return selectedYears.length > 0 ? mergeMultipleYearsData(currentData, selectedYears) : currentData;
+};
+
+// Function to get single engine fill rate data
+const getSingleEngineFillRateData = (engineId: string, dateRange: DateRange | undefined) => {
+  const engineMapping: { [key: string]: string } = {
+    'sponsored-products-fill': 'sponsoredProducts',
+    'display-fill': 'display',
+    'digital-instore-fill': 'digitalInstore',
+    'offline-instore-fill': 'offlineInstore'
+  };
+
+  const engineKey = engineMapping[engineId] || 'sponsoredProducts';
+  const fullData = getFilteredFillRateData(dateRange, []);
+
+  // Transform data to have only the selected engine and add target
+  return fullData.map(item => ({
+    name: item.name,
+    fillRate: item[engineKey as keyof typeof item],
+    target: engineKey === 'sponsoredProducts' ? 92.0 :
+            engineKey === 'display' ? 85.0 :
+            engineKey === 'digitalInstore' ? 80.0 : 75.0
+  }));
+};
+
+// Function to filter fill rate metrics based on engine filter
+const getFilteredFillRateMetrics = (engineFilter: string | undefined) => {
+  if (!engineFilter || engineFilter === 'all') {
+    return generalFillRateMetrics;
+  }
+
+  const engineMapping: { [key: string]: string } = {
+    'sponsored-products': 'sponsored-products-fill',
+    'display': 'display-fill',
+    'digital-instore': 'digital-instore-fill',
+    'offline-instore': 'offline-instore-fill'
+  };
+
+  const targetMetricId = engineMapping[engineFilter];
+  return generalFillRateMetrics.filter(metric => metric.id === targetMetricId);
+};
+
+// Function to filter chart data based on engine filter
+const getFilteredChartData = (
+  selectedMetric: string | null,
+  engineFilter: string | undefined,
+  dateRange: DateRange | undefined,
+  fillRateComparisonYears: string[]
+) => {
+  if (selectedMetric) {
+    return getSingleEngineFillRateData(selectedMetric, dateRange);
+  }
+
+  const baseData = getFilteredFillRateData(dateRange, fillRateComparisonYears);
+
+  if (!engineFilter || engineFilter === 'all') {
+    return baseData;
+  }
+
+  // Filter to show only specific engine
+  const engineMapping: { [key: string]: string } = {
+    'sponsored-products': 'sponsoredProducts',
+    'display': 'display',
+    'digital-instore': 'digitalInstore',
+    'offline-instore': 'offlineInstore'
+  };
+
+  const engineKey = engineMapping[engineFilter];
+  if (!engineKey) return baseData;
+
+  // Transform data to show only selected engine
+  return baseData.map(item => ({
+    name: item.name,
+    [engineKey]: item[engineKey as keyof typeof item]
+  }));
+};
+
+// Function to filter inventory data based on channel filter
+const getFilteredInventoryData = (channelFilter: string | undefined) => {
+  if (!channelFilter || channelFilter === 'all') {
+    return channelReportData;
+  }
+
+  // Filter to show only selected channel across all engines
+  return channelReportData.map(item => ({
+    engine: item.engine,
+    [channelFilter]: item[channelFilter as keyof typeof item] || 0
+  }));
 };
 
 // Function to get seasonality data with optional comparison years
@@ -682,6 +771,255 @@ const seasonalityChartConfig = {
   },
 };
 
+// Mock data for Revenue Report
+const revenueReportMetrics = [
+  {
+    id: 'total-revenue',
+    label: 'Total Revenue',
+    value: '€2.4M',
+    subMetric: 'This month',
+    badgeValue: '+15.3%',
+    badgeVariant: 'success' as const,
+  },
+  {
+    id: 'avg-cpm',
+    label: 'Average CPM',
+    value: '€12.45',
+    subMetric: 'Cost per mille',
+    badgeValue: '-2.1%',
+    badgeVariant: 'destructive' as const,
+  },
+  {
+    id: 'revenue-per-position',
+    label: 'Revenue per Position',
+    value: '€4.67',
+    subMetric: 'Average',
+    badgeValue: '+8.7%',
+    badgeVariant: 'success' as const,
+  },
+];
+
+const revenueChartData = [
+  { name: 'Jan', revenue: 187000, target: 180000 },
+  { name: 'Feb', revenue: 201000, target: 190000 },
+  { name: 'Mar', revenue: 195000, target: 200000 },
+  { name: 'Apr', revenue: 223000, target: 210000 },
+  { name: 'May', revenue: 234000, target: 220000 },
+  { name: 'Jun', revenue: 218000, target: 215000 },
+];
+
+const revenueChartConfig = {
+  revenue: {
+    label: 'Revenue',
+    color: 'hsl(var(--chart-1))',
+  },
+  target: {
+    label: 'Target',
+    color: 'hsl(var(--chart-2))',
+  },
+};
+
+// Mock data for Market Index Report - Top 5 best and worst performing products
+const marketIndexData = [
+  // Top 5 Best Performing
+  {
+    product: 'Search Ads',
+    performance: 'best',
+    listPrice: 85,
+    seasonality: 15,
+    marketIndex: 25,
+    discount: -10,
+    total: 115,
+  },
+  {
+    product: 'Display Banners',
+    performance: 'best',
+    listPrice: 70,
+    seasonality: 20,
+    marketIndex: 18,
+    discount: -5,
+    total: 103,
+  },
+  {
+    product: 'Video Ads',
+    performance: 'best',
+    listPrice: 90,
+    seasonality: 12,
+    marketIndex: -8,
+    discount: -12,
+    total: 82,
+  },
+  {
+    product: 'Native Ads',
+    performance: 'best',
+    listPrice: 65,
+    seasonality: 8,
+    marketIndex: 22,
+    discount: -15,
+    total: 80,
+  },
+  {
+    product: 'In-store Digital',
+    performance: 'best',
+    listPrice: 55,
+    seasonality: 18,
+    marketIndex: 12,
+    discount: -8,
+    total: 77,
+  },
+  // Top 5 Worst Performing
+  {
+    product: 'Shelf Talkers',
+    performance: 'worst',
+    listPrice: 45,
+    seasonality: -5,
+    marketIndex: -12,
+    discount: -3,
+    total: 25,
+  },
+  {
+    product: 'Floor Graphics',
+    performance: 'worst',
+    listPrice: 38,
+    seasonality: -8,
+    marketIndex: -15,
+    discount: -2,
+    total: 13,
+  },
+  {
+    product: 'Window Clings',
+    performance: 'worst',
+    listPrice: 42,
+    seasonality: -10,
+    marketIndex: -18,
+    discount: -4,
+    total: 10,
+  },
+  {
+    product: 'Aisle Headers',
+    performance: 'worst',
+    listPrice: 35,
+    seasonality: -12,
+    marketIndex: -20,
+    discount: -1,
+    total: 2,
+  },
+  {
+    product: 'Cart Ads',
+    performance: 'worst',
+    listPrice: 30,
+    seasonality: -15,
+    marketIndex: -25,
+    discount: 0,
+    total: -10,
+  },
+];
+
+const marketIndexChartConfig = {
+  listPrice: {
+    label: 'List Price',
+    color: 'hsl(var(--chart-1))',
+  },
+  seasonality: {
+    label: 'Seasonality',
+    color: 'hsl(var(--chart-2))',
+  },
+  marketIndex: {
+    label: 'Market Index',
+    color: 'hsl(var(--chart-3))',
+  },
+  discount: {
+    label: 'Discount',
+    color: 'hsl(var(--chart-4))',
+  },
+};
+
+// Mock data for Channel Report - Inventory distribution by engine
+const channelReportData = [
+  {
+    engine: 'Sponsored Products',
+    managed: 45,
+    selfService: 35,
+    unsold: 8,
+    programmatic: 7,
+    marketing: 5,
+  },
+  {
+    engine: 'Display',
+    managed: 40,
+    selfService: 25,
+    unsold: 15,
+    programmatic: 12,
+    marketing: 8,
+  },
+  {
+    engine: 'Digital In-store',
+    managed: 50,
+    selfService: 20,
+    unsold: 12,
+    programmatic: 10,
+    marketing: 8,
+  },
+  {
+    engine: 'Offline In-store',
+    managed: 60,
+    selfService: 15,
+    unsold: 18,
+    programmatic: 2,
+    marketing: 5,
+  },
+];
+
+const channelReportMetrics = [
+  {
+    id: 'managed-inventory',
+    label: 'Managed',
+    value: '48.8%',
+    subMetric: 'Average across engines',
+    badgeValue: '+2.3%',
+    badgeVariant: 'success' as const,
+  },
+  {
+    id: 'self-service',
+    label: 'Self Service',
+    value: '23.8%',
+    subMetric: 'User managed',
+    badgeValue: '+1.1%',
+    badgeVariant: 'success' as const,
+  },
+  {
+    id: 'unsold-inventory',
+    label: 'Unsold',
+    value: '13.3%',
+    subMetric: 'Available inventory',
+    badgeValue: '-1.8%',
+    badgeVariant: 'success' as const,
+  },
+];
+
+const channelChartConfig = {
+  managed: {
+    label: 'Managed',
+    color: 'hsl(var(--chart-1))',
+  },
+  selfService: {
+    label: 'Self Service',
+    color: 'hsl(var(--chart-2))',
+  },
+  unsold: {
+    label: 'Unsold',
+    color: 'hsl(var(--chart-3))',
+  },
+  programmatic: {
+    label: 'Programmatic',
+    color: 'hsl(var(--chart-4))',
+  },
+  marketing: {
+    label: 'Marketing',
+    color: 'hsl(var(--chart-5))',
+  },
+};
+
 // Mock data for positions tables
 const sponsoredProductsPositionsData = [
   { id: 'SP-001', name: 'Search Results Top', fillRate: '99.2%', totalPositions: 1200, filledPositions: 1190, revenue: '€4,567', roas: '3.24x' },
@@ -771,19 +1109,34 @@ const YearComparisonFilter = ({
 
 export const YieldDashboard: Story = {
   render: () => {
-    const [selectedMetric, setSelectedMetric] = useState('sponsored-products-revenue');
+    const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(2024, 0, 1), // January 1, 2024
       to: new Date(2024, 11, 31), // December 31, 2024
     });
-    
+
+    // Filter states
+    const [engineFilter, setEngineFilter] = useState<string | undefined>('all');
+    const [retailMediaProductFilter, setRetailMediaProductFilter] = useState<string | undefined>('all');
+    const [adSpaceFilter, setAdSpaceFilter] = useState<string | undefined>('all');
+    const [channelFilter, setChannelFilter] = useState<string | undefined>('all');
+
     // Separate comparison years state for each chart
     const [fillRateComparisonYears, setFillRateComparisonYears] = useState<string[]>([]);
     const [seasonalityComparisonYears, setSeasonalityComparisonYears] = useState<string[]>([]);
 
-    const selectedMetricData = generalYieldRevenueMetrics.find(metric => metric.id === selectedMetric);
-    const filteredFillRateData = getFilteredFillRateData(dateRange, fillRateComparisonYears);
+    // Get filtered data based on current filter selections
+    const filteredFillRateMetrics = getFilteredFillRateMetrics(engineFilter);
+
+    // Reset selected metric if it's not available in filtered results
+    const isSelectedMetricValid = selectedMetric ? filteredFillRateMetrics.some(metric => metric.id === selectedMetric) : true;
+    const validSelectedMetric = isSelectedMetricValid ? selectedMetric : null;
+    const selectedMetricData = validSelectedMetric ? filteredFillRateMetrics.find(metric => metric.id === validSelectedMetric) : null;
+
+    // Get chart data based on selection and filters
+    const fillRateChartData = getFilteredChartData(selectedMetric, engineFilter, dateRange, fillRateComparisonYears);
     const seasonalityData = getSeasonalityData(seasonalityComparisonYears);
+    const filteredInventoryData = getFilteredInventoryData(channelFilter);
 
     return (
       <MenuContextProvider>
@@ -809,11 +1162,265 @@ export const YieldDashboard: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* Revenue Overview Card */}
+          {/* Filter Card */}
           <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                {generalYieldRevenueMetrics.map((metric) => (
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Engine</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Engines', value: 'all' },
+                      { label: 'Display', value: 'display' },
+                      { label: 'Sponsored Products', value: 'sponsored-products' },
+                      { label: 'Digital In-store', value: 'digital-instore' },
+                      { label: 'Offline In-store', value: 'offline-instore' },
+                    ]}
+                    value={engineFilter}
+                    onChange={setEngineFilter}
+                    placeholder="Select engine"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Retail Media Product</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Products', value: 'all' },
+                      { label: 'Search Ads', value: 'search-ads' },
+                      { label: 'Display Banners', value: 'display-banners' },
+                      { label: 'Video Ads', value: 'video-ads' },
+                      { label: 'Native Ads', value: 'native-ads' },
+                      { label: 'In-store Digital', value: 'instore-digital' },
+                      { label: 'Shelf Talkers', value: 'shelf-talkers' },
+                    ]}
+                    value={retailMediaProductFilter}
+                    onChange={setRetailMediaProductFilter}
+                    placeholder="Select media product"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Ad Space</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Spaces', value: 'all' },
+                      { label: 'Homepage Hero', value: 'homepage-hero' },
+                      { label: 'Search Results Top', value: 'search-results-top' },
+                      { label: 'Search Results Side', value: 'search-results-side' },
+                      { label: 'Category Page Header', value: 'category-header' },
+                      { label: 'Product Detail Page', value: 'pdp' },
+                      { label: 'Shopping Cart', value: 'cart' },
+                      { label: 'Checkout', value: 'checkout' },
+                      { label: 'In-store Entrance', value: 'instore-entrance' },
+                      { label: 'Aisle End Caps', value: 'aisle-endcaps' },
+                    ]}
+                    value={adSpaceFilter}
+                    onChange={setAdSpaceFilter}
+                    placeholder="Select ad space"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Channel</label>
+                  <Input
+                    dropdown
+                    options={[
+                      { label: 'All Channels', value: 'all' },
+                      { label: 'Managed', value: 'managed' },
+                      { label: 'Marketing', value: 'marketing' },
+                      { label: 'Programmatic', value: 'programmatic' },
+                      { label: 'Self Service', value: 'selfService' },
+                      { label: 'Unsold', value: 'unsold' },
+                    ]}
+                    value={channelFilter}
+                    onChange={setChannelFilter}
+                    placeholder="Select channel"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Fill Rate Report */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Fill Rate Report</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {filteredFillRateMetrics.map((metric) => (
+                  <MetricCard
+                    key={metric.id}
+                    label={metric.label}
+                    value={metric.value}
+                    subMetric={metric.subMetric}
+                    badgeValue={metric.badgeValue}
+                    badgeVariant={metric.badgeVariant}
+                    isSelected={selectedMetric === metric.id}
+                    onClick={() => setSelectedMetric(selectedMetric === metric.id ? null : metric.id)}
+                  />
+                ))}
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-3 text-muted-foreground">
+                  {selectedMetricData ? `${selectedMetricData.label} Fill Rate Trend` : 'Fill Rate Trend by Engine'}
+                </h4>
+                {!selectedMetric && (
+                  <YearComparisonFilter
+                    selectedYears={fillRateComparisonYears}
+                    onYearsChange={setFillRateComparisonYears}
+                  />
+                )}
+                <div className="w-full">
+                  <LineChartComponent
+                    data={fillRateChartData}
+                    config={selectedMetric ? fillRateChartConfig : fillRateTrendChartConfig}
+                    xAxisDataKey="name"
+                    className="h-[300px] w-full"
+                  />
+                </div>
+              </div>
+              {/* CTA Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => alert('Navigate to full Fill Rate Report')}
+                >
+                  View Full Report
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+
+          {/* Seasonality Report */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Seasonality Report</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h4 className="text-sm font-medium mb-3 text-muted-foreground">Seasonality Index by Week</h4>
+                <YearComparisonFilter
+                  selectedYears={seasonalityComparisonYears}
+                  onYearsChange={setSeasonalityComparisonYears}
+                />
+                <div className="w-full">
+                  <BarChartComponent
+                    data={seasonalityData}
+                    config={seasonalityChartConfig}
+                    xAxisDataKey="name"
+                    className="h-[300px] w-full"
+                  />
+                </div>
+              </div>
+              {/* CTA Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => alert('Navigate to full Seasonality Report')}
+                >
+                  View Full Report
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Channel and Retail Media Product Reports - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Inventory Report */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Inventory Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Inventory Distribution by Engine</h4>
+                  <div className="w-full">
+                    <BarChartComponent
+                      data={filteredInventoryData}
+                      config={channelChartConfig}
+                      xAxisDataKey="engine"
+                      className="h-[350px] w-full"
+                      stacked={true}
+                      showLegend={true}
+                    />
+                  </div>
+                </div>
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => alert('Navigate to full Inventory Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Retail Media Product Report */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Retail Media Product Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-3 text-muted-foreground">Top 5 Best Performing Products</h4>
+                    <div className="w-full">
+                      <BarChartComponent
+                        data={marketIndexData.filter(item => item.performance === 'best')}
+                        config={marketIndexChartConfig}
+                        xAxisDataKey="product"
+                        className="h-[200px] w-full"
+                        horizontal={true}
+                        stacked={true}
+                        showLegend={true}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-3 text-muted-foreground">Top 5 Worst Performing Products</h4>
+                    <div className="w-full">
+                      <BarChartComponent
+                        data={marketIndexData.filter(item => item.performance === 'worst')}
+                        config={marketIndexChartConfig}
+                        xAxisDataKey="product"
+                        className="h-[200px] w-full"
+                        horizontal={true}
+                        stacked={true}
+                        showLegend={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* CTA Button */}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => alert('Navigate to full Retail Media Product Report')}
+                  >
+                    View Full Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Revenue Report - Full Width Below */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Revenue Report</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {revenueReportMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
                     label={metric.label}
@@ -826,41 +1433,24 @@ export const YieldDashboard: Story = {
                 ))}
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-4">Fill Rate Trend by Engine</h3>
-                <YearComparisonFilter
-                  selectedYears={fillRateComparisonYears}
-                  onYearsChange={setFillRateComparisonYears}
-                />
+                <h4 className="text-sm font-medium mb-3 text-muted-foreground">Revenue Trend</h4>
                 <div className="w-full">
                   <LineChartComponent
-                    data={filteredFillRateData}
-                    config={fillRateTrendChartConfig}
+                    data={revenueChartData}
+                    config={revenueChartConfig}
                     xAxisDataKey="name"
-                    className="h-[300px] w-full"
+                    className="h-[250px] w-full"
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-
-          {/* Seasonality Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Seasonality Index</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <YearComparisonFilter
-                selectedYears={seasonalityComparisonYears}
-                onYearsChange={setSeasonalityComparisonYears}
-              />
-              <div className="w-full">
-                <BarChartComponent
-                  data={seasonalityData}
-                  config={seasonalityChartConfig}
-                  xAxisDataKey="name"
-                  className="h-[300px] w-full"
-                />
+              {/* CTA Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => alert('Navigate to full Revenue Report')}
+                >
+                  View Full Report
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -1470,6 +2060,833 @@ export const OfflineInstoreYield: Story = {
           </Card>
         </div>
       </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+export const YieldReportView: Story = {
+  render: () => {
+    // Filter states
+    const [engineFilter, setEngineFilter] = useState<string[]>([]);
+    const [retailMediaProductFilter, setRetailMediaProductFilter] = useState<string[]>([]);
+    const [adSpaceFilter, setAdSpaceFilter] = useState<string[]>([]);
+    const [channelFilter, setChannelFilter] = useState<string[]>([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [activeTab, setActiveTab] = useState('fill-rate-report');
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: new Date(),
+    });
+
+    // Comprehensive filter options
+    const engineOptions = [
+      { label: "Display", value: "display" },
+      { label: "Sponsored Products", value: "sponsored-products" },
+      { label: "Digital In-store", value: "digital-instore" },
+      { label: "Offline In-store", value: "offline-instore" },
+    ];
+
+    const channelOptions = [
+      { label: "Managed", value: "managed" },
+      { label: "Self Service", value: "self-service" },
+      { label: "Programmatic", value: "programmatic" },
+      { label: "Marketing", value: "marketing" },
+      { label: "Unsold", value: "unsold" },
+    ];
+
+    const retailMediaProductOptions = [
+      { label: "Search Ads", value: "search-ads" },
+      { label: "Display Banners", value: "display-banners" },
+      { label: "Video Ads", value: "video-ads" },
+      { label: "Native Ads", value: "native-ads" },
+      { label: "In-store Digital", value: "instore-digital" },
+      { label: "Shelf Talkers", value: "shelf-talkers" },
+      { label: "Floor Graphics", value: "floor-graphics" },
+      { label: "Window Clings", value: "window-clings" },
+    ];
+
+    const adSpaceOptions = [
+      { label: "Homepage Hero", value: "homepage-hero" },
+      { label: "Search Results Top", value: "search-results-top" },
+      { label: "Search Results Side", value: "search-results-side" },
+      { label: "Category Page Header", value: "category-header" },
+      { label: "Product Detail Page", value: "pdp" },
+      { label: "Shopping Cart", value: "cart" },
+      { label: "Checkout", value: "checkout" },
+      { label: "Entrance Digital Screen", value: "entrance-screen" },
+      { label: "Aisle End Caps", value: "aisle-endcaps" },
+      { label: "Shelf Edge", value: "shelf-edge" },
+    ];
+
+    // Enhanced data per retail media product
+    const fillRateReportData = [
+      // Search Ads across different engines and positions
+      {
+        id: 'FR-001', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+        channel: 'Managed', adSpace: 'Search Results Top', fillRate: '99.2%',
+        revenue: '€45,678', impressions: '2,450,000', clicks: '7,350', ctr: '0.30%'
+      },
+      {
+        id: 'FR-002', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+        channel: 'Self Service', adSpace: 'Search Results Side', fillRate: '97.8%',
+        revenue: '€32,145', impressions: '1,800,000', clicks: '5,400', ctr: '0.30%'
+      },
+      {
+        id: 'FR-003', engine: 'Display', retailProduct: 'Search Ads',
+        channel: 'Programmatic', adSpace: 'Search Results Top', fillRate: '94.5%',
+        revenue: '€18,234', impressions: '1,200,000', clicks: '2,400', ctr: '0.20%'
+      },
+
+      // Display Banners across different placements
+      {
+        id: 'FR-004', engine: 'Display', retailProduct: 'Display Banners',
+        channel: 'Managed', adSpace: 'Homepage Hero', fillRate: '96.7%',
+        revenue: '€28,904', impressions: '3,500,000', clicks: '8,750', ctr: '0.25%'
+      },
+      {
+        id: 'FR-005', engine: 'Display', retailProduct: 'Display Banners',
+        channel: 'Self Service', adSpace: 'Category Page Header', fillRate: '95.2%',
+        revenue: '€17,800', impressions: '2,200,000', clicks: '5,500', ctr: '0.25%'
+      },
+      {
+        id: 'FR-006', engine: 'Display', retailProduct: 'Display Banners',
+        channel: 'Programmatic', adSpace: 'Product Detail Page', fillRate: '93.8%',
+        revenue: '€12,300', impressions: '1,640,000', clicks: '3,280', ctr: '0.20%'
+      },
+
+      // Video Ads
+      {
+        id: 'FR-007', engine: 'Digital In-store', retailProduct: 'Video Ads',
+        channel: 'Managed', adSpace: 'Entrance Digital Screen', fillRate: '91.4%',
+        revenue: '€18,901', impressions: '1,200,000', clicks: '2,400', ctr: '0.20%'
+      },
+      {
+        id: 'FR-008', engine: 'Digital In-store', retailProduct: 'Video Ads',
+        channel: 'Marketing', adSpace: 'Aisle End Caps', fillRate: '89.7%',
+        revenue: '€14,560', impressions: '980,000', clicks: '1,960', ctr: '0.20%'
+      },
+
+      // Native Ads
+      {
+        id: 'FR-009', engine: 'Sponsored Products', retailProduct: 'Native Ads',
+        channel: 'Self Service', adSpace: 'Product Detail Page', fillRate: '88.9%',
+        revenue: '€15,678', impressions: '1,400,000', clicks: '4,200', ctr: '0.30%'
+      },
+      {
+        id: 'FR-010', engine: 'Display', retailProduct: 'Native Ads',
+        channel: 'Programmatic', adSpace: 'Shopping Cart', fillRate: '87.3%',
+        revenue: '€9,876', impressions: '890,000', clicks: '1,780', ctr: '0.20%'
+      },
+
+      // In-store Digital
+      {
+        id: 'FR-011', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+        channel: 'Managed', adSpace: 'Entrance Digital Screen', fillRate: '92.1%',
+        revenue: '€22,456', impressions: '1,500,000', clicks: '3,000', ctr: '0.20%'
+      },
+      {
+        id: 'FR-012', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+        channel: 'Self Service', adSpace: 'Aisle End Caps', fillRate: '90.3%',
+        revenue: '€13,789', impressions: '920,000', clicks: '1,840', ctr: '0.20%'
+      },
+
+      // Shelf Talkers
+      {
+        id: 'FR-013', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+        channel: 'Managed', adSpace: 'Shelf Edge', fillRate: '86.9%',
+        revenue: '€4,689', impressions: '350,000', clicks: '700', ctr: '0.20%'
+      },
+      {
+        id: 'FR-014', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+        channel: 'Self Service', adSpace: 'Shelf Edge', fillRate: '84.2%',
+        revenue: '€3,480', impressions: '280,000', clicks: '560', ctr: '0.20%'
+      },
+
+      // Floor Graphics
+      {
+        id: 'FR-015', engine: 'Offline In-store', retailProduct: 'Floor Graphics',
+        channel: 'Marketing', adSpace: 'Aisle End Caps', fillRate: '82.6%',
+        revenue: '€2,520', impressions: '220,000', clicks: '440', ctr: '0.20%'
+      },
+
+      // Window Clings
+      {
+        id: 'FR-016', engine: 'Offline In-store', retailProduct: 'Window Clings',
+        channel: 'Managed', adSpace: 'Entrance Digital Screen', fillRate: '80.1%',
+        revenue: '€1,920', impressions: '180,000', clicks: '360', ctr: '0.20%'
+      },
+    ];
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={defaultRoutes}
+          logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
+          user={{
+            name: 'John Doe',
+            email: 'john@albertheijn.nl',
+            avatar: '/placeholder-avatar.jpg',
+          }}
+          breadcrumbProps={{}}
+          pageHeaderProps={{
+            title: "Yield Reports",
+            subtitle: "Comprehensive view of all yield performance reports",
+            headerRight: (
+              <DateRangePicker
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                placeholder="Pick a date range"
+                showPresets={true}
+              />
+            ),
+          }}
+        >
+          <div className="space-y-6">
+            <CardWithTabs
+              tabs={[
+                {
+                  value: 'fill-rate-report',
+                  label: 'Fill Rate Report',
+                  content: (
+                    <div>
+                      <div className="mb-4 mt-6">
+                        <FilterBar
+                          filters={[
+                            {
+                              name: "Engine",
+                              options: engineOptions,
+                              selectedValues: engineFilter,
+                              onChange: setEngineFilter,
+                            },
+                            {
+                              name: "Channel",
+                              options: channelOptions,
+                              selectedValues: channelFilter,
+                              onChange: setChannelFilter,
+                            },
+                            {
+                              name: "Retail Product",
+                              options: retailMediaProductOptions,
+                              selectedValues: retailMediaProductFilter,
+                              onChange: setRetailMediaProductFilter,
+                            },
+                            {
+                              name: "Ad Space",
+                              options: adSpaceOptions,
+                              selectedValues: adSpaceFilter,
+                              onChange: setAdSpaceFilter,
+                            },
+                          ]}
+                          searchValue={searchValue}
+                          onSearchChange={setSearchValue}
+                          searchPlaceholder="Search fill rate data..."
+                        />
+                      </div>
+                      <Table
+                        columns={[
+                          { key: 'engine', header: 'Engine', hideable: false },
+                          { key: 'retailProduct', header: 'Retail Product' },
+                          { key: 'channel', header: 'Channel' },
+                          { key: 'adSpace', header: 'Ad Space' },
+                          { key: 'fillRate', header: 'Fill Rate', render: (row) => (
+                            <Badge variant={getPerformanceBadgeVariant(row.fillRate)}>
+                              {row.fillRate}
+                            </Badge>
+                          )},
+                          { key: 'revenue', header: 'Revenue' },
+                          { key: 'impressions', header: 'Impressions' },
+                          { key: 'clicks', header: 'Clicks' },
+                          { key: 'ctr', header: 'CTR' },
+                        ]}
+                        data={fillRateReportData}
+                        rowKey={(row) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row) => console.log('Navigate to details for', row.retailProduct)}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  value: 'seasonality-report',
+                  label: 'Seasonality Report',
+                  content: (
+                    <div>
+                      <div className="mb-4 mt-6">
+                        <FilterBar
+                          filters={[
+                            {
+                              name: "Engine",
+                              options: engineOptions,
+                              selectedValues: engineFilter,
+                              onChange: setEngineFilter,
+                            },
+                            {
+                              name: "Retail Product",
+                              options: retailMediaProductOptions,
+                              selectedValues: retailMediaProductFilter,
+                              onChange: setRetailMediaProductFilter,
+                            },
+                          ]}
+                          searchValue={searchValue}
+                          onSearchChange={setSearchValue}
+                          searchPlaceholder="Search seasonality data..."
+                        />
+                      </div>
+                      <Table
+                        columns={[
+                          { key: 'engine', header: 'Engine', hideable: false },
+                          { key: 'retailProduct', header: 'Retail Product' },
+                          { key: 'week', header: 'Week' },
+                          { key: 'month', header: 'Month' },
+                          { key: 'seasonalityIndex', header: 'Seasonality Index' },
+                          { key: 'demandMultiplier', header: 'Demand Multiplier' },
+                          { key: 'priceMultiplier', header: 'Price Multiplier' },
+                          { key: 'fillRateImpact', header: 'Fill Rate Impact' },
+                          { key: 'revenueImpact', header: 'Revenue Impact' },
+                        ]}
+                        data={[
+                          // Search Ads seasonality
+                          {
+                            id: 'SR-001', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+                            week: 'Week 1', month: 'January', seasonalityIndex: 78,
+                            demandMultiplier: '0.78x', priceMultiplier: '0.85x', fillRateImpact: '-15%', revenueImpact: '-22%'
+                          },
+                          {
+                            id: 'SR-002', engine: 'Display', retailProduct: 'Search Ads',
+                            week: 'Week 14', month: 'April', seasonalityIndex: 118,
+                            demandMultiplier: '1.18x', priceMultiplier: '1.25x', fillRateImpact: '+18%', revenueImpact: '+28%'
+                          },
+                          {
+                            id: 'SR-003', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+                            week: 'Week 27', month: 'July', seasonalityIndex: 88,
+                            demandMultiplier: '0.88x', priceMultiplier: '0.92x', fillRateImpact: '-8%', revenueImpact: '-12%'
+                          },
+                          {
+                            id: 'SR-004', engine: 'Display', retailProduct: 'Search Ads',
+                            week: 'Week 52', month: 'December', seasonalityIndex: 210,
+                            demandMultiplier: '2.10x', priceMultiplier: '1.85x', fillRateImpact: '+95%', revenueImpact: '+110%'
+                          },
+
+                          // Display Banners seasonality
+                          {
+                            id: 'SR-005', engine: 'Display', retailProduct: 'Display Banners',
+                            week: 'Week 8', month: 'February', seasonalityIndex: 82,
+                            demandMultiplier: '0.82x', priceMultiplier: '0.88x', fillRateImpact: '-12%', revenueImpact: '-18%'
+                          },
+                          {
+                            id: 'SR-006', engine: 'Display', retailProduct: 'Display Banners',
+                            week: 'Week 46', month: 'November', seasonalityIndex: 165,
+                            demandMultiplier: '1.65x', priceMultiplier: '1.45x', fillRateImpact: '+45%', revenueImpact: '+65%'
+                          },
+
+                          // Video Ads seasonality
+                          {
+                            id: 'SR-007', engine: 'Digital In-store', retailProduct: 'Video Ads',
+                            week: 'Week 21', month: 'May', seasonalityIndex: 95,
+                            demandMultiplier: '0.95x', priceMultiplier: '0.98x', fillRateImpact: '-3%', revenueImpact: '-5%'
+                          },
+                          {
+                            id: 'SR-008', engine: 'Digital In-store', retailProduct: 'Video Ads',
+                            week: 'Week 48', month: 'December', seasonalityIndex: 195,
+                            demandMultiplier: '1.95x', priceMultiplier: '1.75x', fillRateImpact: '+75%', revenueImpact: '+95%'
+                          },
+
+                          // Native Ads seasonality
+                          {
+                            id: 'SR-009', engine: 'Sponsored Products', retailProduct: 'Native Ads',
+                            week: 'Week 35', month: 'August', seasonalityIndex: 85,
+                            demandMultiplier: '0.85x', priceMultiplier: '0.90x', fillRateImpact: '-10%', revenueImpact: '-15%'
+                          },
+                          {
+                            id: 'SR-010', engine: 'Display', retailProduct: 'Native Ads',
+                            week: 'Week 43', month: 'October', seasonalityIndex: 135,
+                            demandMultiplier: '1.35x', priceMultiplier: '1.28x', fillRateImpact: '+28%', revenueImpact: '+35%'
+                          },
+
+                          // In-store Digital seasonality
+                          {
+                            id: 'SR-011', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+                            week: 'Week 16', month: 'April', seasonalityIndex: 112,
+                            demandMultiplier: '1.12x', priceMultiplier: '1.18x', fillRateImpact: '+12%', revenueImpact: '+18%'
+                          },
+                          {
+                            id: 'SR-012', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+                            week: 'Week 51', month: 'December', seasonalityIndex: 188,
+                            demandMultiplier: '1.88x', priceMultiplier: '1.65x', fillRateImpact: '+65%', revenueImpact: '+88%'
+                          },
+
+                          // Shelf Talkers seasonality
+                          {
+                            id: 'SR-013', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+                            week: 'Week 6', month: 'February', seasonalityIndex: 72,
+                            demandMultiplier: '0.72x', priceMultiplier: '0.82x', fillRateImpact: '-18%', revenueImpact: '-28%'
+                          },
+                          {
+                            id: 'SR-014', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+                            week: 'Week 49', month: 'December', seasonalityIndex: 145,
+                            demandMultiplier: '1.45x', priceMultiplier: '1.35x', fillRateImpact: '+35%', revenueImpact: '+45%'
+                          },
+                        ]}
+                        rowKey={(row) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row) => console.log('Navigate to seasonality details for', row.retailProduct, row.week)}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  value: 'inventory-report',
+                  label: 'Inventory Report',
+                  content: (
+                    <div>
+                      <div className="mb-4 mt-6">
+                        <FilterBar
+                          filters={[
+                            {
+                              name: "Engine",
+                              options: engineOptions,
+                              selectedValues: engineFilter,
+                              onChange: setEngineFilter,
+                            },
+                            {
+                              name: "Channel",
+                              options: channelOptions,
+                              selectedValues: channelFilter,
+                              onChange: setChannelFilter,
+                            },
+                            {
+                              name: "Retail Product",
+                              options: retailMediaProductOptions,
+                              selectedValues: retailMediaProductFilter,
+                              onChange: setRetailMediaProductFilter,
+                            },
+                          ]}
+                          searchValue={searchValue}
+                          onSearchChange={setSearchValue}
+                          searchPlaceholder="Search inventory data..."
+                        />
+                      </div>
+                      <Table
+                        columns={[
+                          { key: 'engine', header: 'Engine', hideable: false },
+                          { key: 'retailProduct', header: 'Retail Product' },
+                          { key: 'channel', header: 'Channel' },
+                          { key: 'inventoryShare', header: 'Inventory Share %' },
+                          { key: 'totalPositions', header: 'Total Positions' },
+                          { key: 'filledPositions', header: 'Filled Positions' },
+                          { key: 'revenue', header: 'Revenue' },
+                          { key: 'avgCPM', header: 'Avg CPM' },
+                          { key: 'utilizationRate', header: 'Utilization Rate' },
+                        ]}
+                        data={[
+                          // Sponsored Products inventory
+                          {
+                            id: 'IR-001', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+                            channel: 'Managed', inventoryShare: '45%', totalPositions: 1200, filledPositions: 1190,
+                            revenue: '€45,678', avgCPM: '€12.45', utilizationRate: '99.2%'
+                          },
+                          {
+                            id: 'IR-002', engine: 'Sponsored Products', retailProduct: 'Search Ads',
+                            channel: 'Self Service', inventoryShare: '35%', totalPositions: 980, filledPositions: 958,
+                            revenue: '€32,145', avgCPM: '€8.90', utilizationRate: '97.8%'
+                          },
+                          {
+                            id: 'IR-003', engine: 'Sponsored Products', retailProduct: 'Native Ads',
+                            channel: 'Self Service', inventoryShare: '12%', totalPositions: 340, filledPositions: 302,
+                            revenue: '€15,678', avgCPM: '€15.20', utilizationRate: '88.9%'
+                          },
+
+                          // Display inventory
+                          {
+                            id: 'IR-004', engine: 'Display', retailProduct: 'Display Banners',
+                            channel: 'Managed', inventoryShare: '40%', totalPositions: 800, filledPositions: 774,
+                            revenue: '€28,904', avgCPM: '€18.30', utilizationRate: '96.7%'
+                          },
+                          {
+                            id: 'IR-005', engine: 'Display', retailProduct: 'Display Banners',
+                            channel: 'Self Service', inventoryShare: '25%', totalPositions: 500, filledPositions: 476,
+                            revenue: '€17,800', avgCPM: '€14.50', utilizationRate: '95.2%'
+                          },
+                          {
+                            id: 'IR-006', engine: 'Display', retailProduct: 'Display Banners',
+                            channel: 'Programmatic', inventoryShare: '15%', totalPositions: 300, filledPositions: 281,
+                            revenue: '€12,300', avgCPM: '€10.20', utilizationRate: '93.8%'
+                          },
+                          {
+                            id: 'IR-007', engine: 'Display', retailProduct: 'Native Ads',
+                            channel: 'Programmatic', inventoryShare: '12%', totalPositions: 220, filledPositions: 192,
+                            revenue: '€9,876', avgCPM: '€11.80', utilizationRate: '87.3%'
+                          },
+
+                          // Digital In-store inventory
+                          {
+                            id: 'IR-008', engine: 'Digital In-store', retailProduct: 'Video Ads',
+                            channel: 'Managed', inventoryShare: '50%', totalPositions: 150, filledPositions: 137,
+                            revenue: '€18,901', avgCPM: '€25.60', utilizationRate: '91.4%'
+                          },
+                          {
+                            id: 'IR-009', engine: 'Digital In-store', retailProduct: 'Video Ads',
+                            channel: 'Marketing', inventoryShare: '20%', totalPositions: 60, filledPositions: 54,
+                            revenue: '€14,560', avgCPM: '€22.40', utilizationRate: '89.7%'
+                          },
+                          {
+                            id: 'IR-010', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+                            channel: 'Managed', inventoryShare: '25%', totalPositions: 80, filledPositions: 74,
+                            revenue: '€22,456', avgCPM: '€28.90', utilizationRate: '92.1%'
+                          },
+                          {
+                            id: 'IR-011', engine: 'Digital In-store', retailProduct: 'In-store Digital',
+                            channel: 'Self Service', inventoryShare: '15%', totalPositions: 45, filledPositions: 41,
+                            revenue: '€13,789', avgCPM: '€24.10', utilizationRate: '90.3%'
+                          },
+
+                          // Offline In-store inventory
+                          {
+                            id: 'IR-012', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+                            channel: 'Managed', inventoryShare: '60%', totalPositions: 45, filledPositions: 39,
+                            revenue: '€4,689', avgCPM: '€32.40', utilizationRate: '86.9%'
+                          },
+                          {
+                            id: 'IR-013', engine: 'Offline In-store', retailProduct: 'Shelf Talkers',
+                            channel: 'Self Service', inventoryShare: '25%', totalPositions: 20, filledPositions: 17,
+                            revenue: '€3,480', avgCPM: '€28.60', utilizationRate: '84.2%'
+                          },
+                          {
+                            id: 'IR-014', engine: 'Offline In-store', retailProduct: 'Floor Graphics',
+                            channel: 'Marketing', inventoryShare: '8%', totalPositions: 15, filledPositions: 12,
+                            revenue: '€2,520', avgCPM: '€35.20', utilizationRate: '82.6%'
+                          },
+                          {
+                            id: 'IR-015', engine: 'Offline In-store', retailProduct: 'Window Clings',
+                            channel: 'Managed', inventoryShare: '5%', totalPositions: 10, filledPositions: 8,
+                            revenue: '€1,920', avgCPM: '€38.40', utilizationRate: '80.1%'
+                          },
+                        ]}
+                        rowKey={(row) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row) => console.log('Navigate to inventory details for', row.engine, row.retailProduct)}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  value: 'retail-media-product-report',
+                  label: 'Retail Media Product Report',
+                  content: (
+                    <div>
+                      <div className="mb-4 mt-6">
+                        <FilterBar
+                          filters={[
+                            {
+                              name: "Engine",
+                              options: engineOptions,
+                              selectedValues: engineFilter,
+                              onChange: setEngineFilter,
+                            },
+                            {
+                              name: "Channel",
+                              options: channelOptions,
+                              selectedValues: channelFilter,
+                              onChange: setChannelFilter,
+                            },
+                            {
+                              name: "Retail Product",
+                              options: retailMediaProductOptions,
+                              selectedValues: retailMediaProductFilter,
+                              onChange: setRetailMediaProductFilter,
+                            },
+                            {
+                              name: "Ad Space",
+                              options: adSpaceOptions,
+                              selectedValues: adSpaceFilter,
+                              onChange: setAdSpaceFilter,
+                            },
+                          ]}
+                          searchValue={searchValue}
+                          onSearchChange={setSearchValue}
+                          searchPlaceholder="Search retail media products..."
+                        />
+                      </div>
+                      <Table
+                        columns={[
+                          { key: 'retailProduct', header: 'Retail Product', hideable: false },
+                          { key: 'engine', header: 'Engine' },
+                          { key: 'channel', header: 'Channel' },
+                          { key: 'adSpace', header: 'Ad Space' },
+                          { key: 'listPrice', header: 'List Price' },
+                          { key: 'seasonality', header: 'Seasonality' },
+                          { key: 'marketIndex', header: 'Market Index' },
+                          { key: 'discount', header: 'Discount' },
+                          { key: 'finalPrice', header: 'Final Price' },
+                          { key: 'performance', header: 'Performance' },
+                          { key: 'revenue', header: 'Revenue' },
+                          { key: 'impressions', header: 'Impressions' },
+                          { key: 'ctr', header: 'CTR' },
+                        ]}
+                        data={[
+                          // Search Ads performance across engines
+                          {
+                            id: 'RMP-001', retailProduct: 'Search Ads', engine: 'Sponsored Products', channel: 'Managed',
+                            adSpace: 'Search Results Top', listPrice: '€85', seasonality: '+15%', marketIndex: '+25%',
+                            discount: '-10%', finalPrice: '€115', performance: 'Excellent', revenue: '€45,678',
+                            impressions: '2,500,000', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RMP-002', retailProduct: 'Search Ads', engine: 'Sponsored Products', channel: 'Self Service',
+                            adSpace: 'Search Results Side', listPrice: '€70', seasonality: '+10%', marketIndex: '+18%',
+                            discount: '-5%', finalPrice: '€93', performance: 'Good', revenue: '€32,145',
+                            impressions: '1,800,000', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RMP-003', retailProduct: 'Search Ads', engine: 'Display', channel: 'Programmatic',
+                            adSpace: 'Search Results Top', listPrice: '€60', seasonality: '+5%', marketIndex: '+12%',
+                            discount: '0%', finalPrice: '€77', performance: 'Good', revenue: '€18,234',
+                            impressions: '1,200,000', ctr: '0.20%'
+                          },
+
+                          // Display Banners performance
+                          {
+                            id: 'RMP-004', retailProduct: 'Display Banners', engine: 'Display', channel: 'Managed',
+                            adSpace: 'Homepage Hero', listPrice: '€120', seasonality: '+20%', marketIndex: '+30%',
+                            discount: '-15%', finalPrice: '€157', performance: 'Excellent', revenue: '€28,904',
+                            impressions: '3,500,000', ctr: '0.25%'
+                          },
+                          {
+                            id: 'RMP-005', retailProduct: 'Display Banners', engine: 'Display', channel: 'Self Service',
+                            adSpace: 'Category Page Header', listPrice: '€90', seasonality: '+15%', marketIndex: '+20%',
+                            discount: '-8%', finalPrice: '€117', performance: 'Good', revenue: '€17,800',
+                            impressions: '2,200,000', ctr: '0.25%'
+                          },
+                          {
+                            id: 'RMP-006', retailProduct: 'Display Banners', engine: 'Display', channel: 'Programmatic',
+                            adSpace: 'Product Detail Page', listPrice: '€75', seasonality: '+8%', marketIndex: '+15%',
+                            discount: '-3%', finalPrice: '€95', performance: 'Average', revenue: '€12,300',
+                            impressions: '1,640,000', ctr: '0.20%'
+                          },
+
+                          // Video Ads performance
+                          {
+                            id: 'RMP-007', retailProduct: 'Video Ads', engine: 'Digital In-store', channel: 'Managed',
+                            adSpace: 'Entrance Digital Screen', listPrice: '€200', seasonality: '+25%', marketIndex: '+40%',
+                            discount: '-20%', finalPrice: '€292', performance: 'Excellent', revenue: '€18,901',
+                            impressions: '1,200,000', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RMP-008', retailProduct: 'Video Ads', engine: 'Digital In-store', channel: 'Marketing',
+                            adSpace: 'Aisle End Caps', listPrice: '€150', seasonality: '+18%', marketIndex: '+25%',
+                            discount: '-12%', finalPrice: '€199', performance: 'Good', revenue: '€14,560',
+                            impressions: '980,000', ctr: '0.20%'
+                          },
+
+                          // Native Ads performance
+                          {
+                            id: 'RMP-009', retailProduct: 'Native Ads', engine: 'Sponsored Products', channel: 'Self Service',
+                            adSpace: 'Product Detail Page', listPrice: '€45', seasonality: '+8%', marketIndex: '+12%',
+                            discount: '-2%', finalPrice: '€63', performance: 'Average', revenue: '€15,678',
+                            impressions: '1,400,000', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RMP-010', retailProduct: 'Native Ads', engine: 'Display', channel: 'Programmatic',
+                            adSpace: 'Shopping Cart', listPrice: '€35', seasonality: '+5%', marketIndex: '+8%',
+                            discount: '0%', finalPrice: '€48', performance: 'Below Average', revenue: '€9,876',
+                            impressions: '890,000', ctr: '0.20%'
+                          },
+
+                          // In-store Digital performance
+                          {
+                            id: 'RMP-011', retailProduct: 'In-store Digital', engine: 'Digital In-store', channel: 'Managed',
+                            adSpace: 'Entrance Digital Screen', listPrice: '€180', seasonality: '+22%', marketIndex: '+35%',
+                            discount: '-18%', finalPrice: '€251', performance: 'Excellent', revenue: '€22,456',
+                            impressions: '1,500,000', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RMP-012', retailProduct: 'In-store Digital', engine: 'Digital In-store', channel: 'Self Service',
+                            adSpace: 'Aisle End Caps', listPrice: '€140', seasonality: '+15%', marketIndex: '+22%',
+                            discount: '-10%', finalPrice: '€177', performance: 'Good', revenue: '€13,789',
+                            impressions: '920,000', ctr: '0.20%'
+                          },
+
+                          // Shelf Talkers performance
+                          {
+                            id: 'RMP-013', retailProduct: 'Shelf Talkers', engine: 'Offline In-store', channel: 'Managed',
+                            adSpace: 'Shelf Edge', listPrice: '€25', seasonality: '+5%', marketIndex: '+8%',
+                            discount: '-2%', finalPrice: '€31', performance: 'Average', revenue: '€4,689',
+                            impressions: '350,000', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RMP-014', retailProduct: 'Shelf Talkers', engine: 'Offline In-store', channel: 'Self Service',
+                            adSpace: 'Shelf Edge', listPrice: '€20', seasonality: '+3%', marketIndex: '+5%',
+                            discount: '0%', finalPrice: '€28', performance: 'Below Average', revenue: '€3,480',
+                            impressions: '280,000', ctr: '0.20%'
+                          },
+
+                          // Floor Graphics performance
+                          {
+                            id: 'RMP-015', retailProduct: 'Floor Graphics', engine: 'Offline In-store', channel: 'Marketing',
+                            adSpace: 'Aisle End Caps', listPrice: '€15', seasonality: '+2%', marketIndex: '+3%',
+                            discount: '0%', finalPrice: '€20', performance: 'Poor', revenue: '€2,520',
+                            impressions: '220,000', ctr: '0.20%'
+                          },
+
+                          // Window Clings performance
+                          {
+                            id: 'RMP-016', retailProduct: 'Window Clings', engine: 'Offline In-store', channel: 'Managed',
+                            adSpace: 'Entrance Digital Screen', listPrice: '€12', seasonality: '+1%', marketIndex: '+2%',
+                            discount: '0%', finalPrice: '€15', performance: 'Poor', revenue: '€1,920',
+                            impressions: '180,000', ctr: '0.20%'
+                          },
+                        ]}
+                        rowKey={(row) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row) => console.log('Navigate to product details for', row.retailProduct)}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  value: 'revenue-report',
+                  label: 'Revenue Report',
+                  content: (
+                    <div>
+                      <div className="mb-4 mt-6">
+                        <FilterBar
+                          filters={[
+                            {
+                              name: "Engine",
+                              options: engineOptions,
+                              selectedValues: engineFilter,
+                              onChange: setEngineFilter,
+                            },
+                            {
+                              name: "Channel",
+                              options: channelOptions,
+                              selectedValues: channelFilter,
+                              onChange: setChannelFilter,
+                            },
+                            {
+                              name: "Retail Product",
+                              options: retailMediaProductOptions,
+                              selectedValues: retailMediaProductFilter,
+                              onChange: setRetailMediaProductFilter,
+                            },
+                          ]}
+                          searchValue={searchValue}
+                          onSearchChange={setSearchValue}
+                          searchPlaceholder="Search revenue data..."
+                        />
+                      </div>
+                      <Table
+                        columns={[
+                          { key: 'engine', header: 'Engine', hideable: false },
+                          { key: 'retailProduct', header: 'Retail Product' },
+                          { key: 'channel', header: 'Channel' },
+                          { key: 'month', header: 'Month' },
+                          { key: 'totalRevenue', header: 'Total Revenue' },
+                          { key: 'targetRevenue', header: 'Target Revenue' },
+                          { key: 'variance', header: 'Variance' },
+                          { key: 'avgCPM', header: 'Avg CPM' },
+                          { key: 'fillRate', header: 'Fill Rate' },
+                          { key: 'impressions', header: 'Impressions' },
+                          { key: 'clicks', header: 'Clicks' },
+                          { key: 'ctr', header: 'CTR' },
+                        ]}
+                        data={[
+                          // Sponsored Products revenue
+                          {
+                            id: 'RR-001', engine: 'Sponsored Products', retailProduct: 'Search Ads', channel: 'Managed',
+                            month: 'January', totalRevenue: '€187,000', targetRevenue: '€180,000', variance: '+3.9%',
+                            avgCPM: '€12.45', fillRate: '99.2%', impressions: '4,500,000', clicks: '13,500', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RR-002', engine: 'Sponsored Products', retailProduct: 'Search Ads', channel: 'Self Service',
+                            month: 'January', totalRevenue: '€132,000', targetRevenue: '€125,000', variance: '+5.6%',
+                            avgCPM: '€8.90', fillRate: '97.8%', impressions: '3,200,000', clicks: '9,600', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RR-003', engine: 'Sponsored Products', retailProduct: 'Native Ads', channel: 'Self Service',
+                            month: 'February', totalRevenue: '€78,400', targetRevenue: '€80,000', variance: '-2.0%',
+                            avgCPM: '€15.20', fillRate: '88.9%', impressions: '2,100,000', clicks: '6,300', ctr: '0.30%'
+                          },
+
+                          // Display revenue
+                          {
+                            id: 'RR-004', engine: 'Display', retailProduct: 'Display Banners', channel: 'Managed',
+                            month: 'February', totalRevenue: '€201,000', targetRevenue: '€190,000', variance: '+5.8%',
+                            avgCPM: '€18.30', fillRate: '96.7%', impressions: '3,800,000', clicks: '11,400', ctr: '0.30%'
+                          },
+                          {
+                            id: 'RR-005', engine: 'Display', retailProduct: 'Display Banners', channel: 'Self Service',
+                            month: 'March', totalRevenue: '€156,000', targetRevenue: '€160,000', variance: '-2.5%',
+                            avgCPM: '€14.50', fillRate: '95.2%', impressions: '3,100,000', clicks: '7,750', ctr: '0.25%'
+                          },
+                          {
+                            id: 'RR-006', engine: 'Display', retailProduct: 'Display Banners', channel: 'Programmatic',
+                            month: 'March', totalRevenue: '€98,400', targetRevenue: '€95,000', variance: '+3.6%',
+                            avgCPM: '€10.20', fillRate: '93.8%', impressions: '2,800,000', clicks: '5,600', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-007', engine: 'Display', retailProduct: 'Native Ads', channel: 'Programmatic',
+                            month: 'April', totalRevenue: '€67,800', targetRevenue: '€70,000', variance: '-3.1%',
+                            avgCPM: '€11.80', fillRate: '87.3%', impressions: '1,890,000', clicks: '3,780', ctr: '0.20%'
+                          },
+
+                          // Digital In-store revenue
+                          {
+                            id: 'RR-008', engine: 'Digital In-store', retailProduct: 'Video Ads', channel: 'Managed',
+                            month: 'April', totalRevenue: '€223,000', targetRevenue: '€210,000', variance: '+6.2%',
+                            avgCPM: '€25.60', fillRate: '91.4%', impressions: '1,200,000', clicks: '2,400', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-009', engine: 'Digital In-store', retailProduct: 'Video Ads', channel: 'Marketing',
+                            month: 'May', totalRevenue: '€145,600', targetRevenue: '€140,000', variance: '+4.0%',
+                            avgCPM: '€22.40', fillRate: '89.7%', impressions: '980,000', clicks: '1,960', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-010', engine: 'Digital In-store', retailProduct: 'In-store Digital', channel: 'Managed',
+                            month: 'May', totalRevenue: '€224,560', targetRevenue: '€220,000', variance: '+2.1%',
+                            avgCPM: '€28.90', fillRate: '92.1%', impressions: '1,500,000', clicks: '3,000', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-011', engine: 'Digital In-store', retailProduct: 'In-store Digital', channel: 'Self Service',
+                            month: 'June', totalRevenue: '€137,890', targetRevenue: '€135,000', variance: '+2.1%',
+                            avgCPM: '€24.10', fillRate: '90.3%', impressions: '920,000', clicks: '1,840', ctr: '0.20%'
+                          },
+
+                          // Offline In-store revenue
+                          {
+                            id: 'RR-012', engine: 'Offline In-store', retailProduct: 'Shelf Talkers', channel: 'Managed',
+                            month: 'June', totalRevenue: '€46,890', targetRevenue: '€45,000', variance: '+4.2%',
+                            avgCPM: '€32.40', fillRate: '86.9%', impressions: '350,000', clicks: '700', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-013', engine: 'Offline In-store', retailProduct: 'Shelf Talkers', channel: 'Self Service',
+                            month: 'July', totalRevenue: '€34,800', targetRevenue: '€36,000', variance: '-3.3%',
+                            avgCPM: '€28.60', fillRate: '84.2%', impressions: '280,000', clicks: '560', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-014', engine: 'Offline In-store', retailProduct: 'Floor Graphics', channel: 'Marketing',
+                            month: 'August', totalRevenue: '€25,200', targetRevenue: '€25,000', variance: '+0.8%',
+                            avgCPM: '€35.20', fillRate: '82.6%', impressions: '220,000', clicks: '440', ctr: '0.20%'
+                          },
+                          {
+                            id: 'RR-015', engine: 'Offline In-store', retailProduct: 'Window Clings', channel: 'Managed',
+                            month: 'September', totalRevenue: '€19,200', targetRevenue: '€20,000', variance: '-4.0%',
+                            avgCPM: '€38.40', fillRate: '80.1%', impressions: '180,000', clicks: '360', ctr: '0.20%'
+                          },
+                        ]}
+                        rowKey={(row) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row) => console.log('Navigate to revenue details for', row.engine, row.retailProduct)}
+                      />
+                    </div>
+                  )
+                },
+              ]}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
+        </AppLayout>
       </MenuContextProvider>
     );
   },

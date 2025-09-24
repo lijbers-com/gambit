@@ -9,7 +9,7 @@ export interface LogoProps {
    * Theme type that determines which logo to display
    * @default 'auto'
    */
-  theme?: 'gambit' | 'albert-heijn' | 'auto';
+  theme?: 'gambit' | 'albert-heijn' | 'adusa' | 'auto';
   /**
    * Color variant for the logo
    * @default 'auto' - uses theme-appropriate colors
@@ -44,7 +44,7 @@ export const Logo = ({
   className,
   onClick,
 }: LogoProps) => {
-  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn'>('gambit');
+  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn' | 'adusa'>('gambit');
 
   useEffect(() => {
     if (theme !== 'auto') {
@@ -62,6 +62,10 @@ export const Logo = ({
       if (brandTheme === 'albert-heijn' || brandTheme === 'ah') {
         return 'albert-heijn';
       }
+      
+      if (brandTheme === 'adusa') {
+        return 'adusa';
+      }
 
       // Check if Albert Heijn CSS variables are present (indicating AH theme is active)
       const brandAppBgHex = getComputedStyle(document.documentElement)
@@ -71,6 +75,10 @@ export const Logo = ({
       if (brandAppBgHex === '#00ADE6') {
         return 'albert-heijn';
       }
+      
+      if (brandAppBgHex === '#00644C') {
+        return 'adusa';
+      }
 
       // Check data attributes on html or body
       const htmlTheme = document.documentElement.getAttribute('data-theme');
@@ -79,6 +87,10 @@ export const Logo = ({
       if (htmlTheme === 'albert-heijn' || htmlTheme === 'ah' || htmlTheme === 'albertHeijn' ||
           bodyTheme === 'albert-heijn' || bodyTheme === 'ah' || bodyTheme === 'albertHeijn') {
         return 'albert-heijn';
+      }
+      
+      if (htmlTheme === 'adusa' || bodyTheme === 'adusa') {
+        return 'adusa';
       }
 
       // Check class names - including the actual theme-ah class used in the app
@@ -104,6 +116,11 @@ export const Logo = ({
         });
       }
 
+      // Check for ADUSA classes
+      const hasADUSAClass = document.documentElement.classList.contains('adusa') ||
+                           document.body.classList.contains('adusa');
+      
+      if (hasADUSAClass) return 'adusa';
       return hasAHClass ? 'albert-heijn' : 'gambit';
     };
 
@@ -136,20 +153,24 @@ export const Logo = ({
       src: '/ah-logo.svg',
       alt: alt || 'Albert Heijn Logo',
     },
+    'adusa': {
+      src: '/adusa-logo.svg',
+      alt: alt || 'ADUSA Logo',
+    },
   };
 
   const config = logoConfig[resolvedTheme];
 
   // Determine color filter based on variant and theme
-  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn', currentVariant: string) => {
+  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn' | 'adusa', currentVariant: string) => {
     if (currentVariant === 'original') return '';
     if (currentVariant === 'white') return 'filter brightness-0 invert';
     if (currentVariant === 'blue') return 'filter brightness-0 saturate-200 sepia-100 hue-rotate-180 brightness-150';
     
     // Auto variant - use theme-appropriate colors
     if (currentVariant === 'auto') {
-      if (currentTheme === 'albert-heijn') {
-        return 'filter brightness-0 invert'; // White for AH theme by default
+      if (currentTheme === 'albert-heijn' || currentTheme === 'adusa') {
+        return 'filter brightness-0 invert'; // White for AH and ADUSA themes by default
       }
     }
     

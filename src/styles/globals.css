@@ -49,6 +49,29 @@ body[data-theme="retailMedia"] {
   /* Only brand-specific tokens should change */
 }
 
+[data-theme="adusa"],
+html[data-theme="adusa"],
+body[data-theme="adusa"] {
+  /* ADUSA Theme Brand-Specific Tokens */
+  --brand-theme: adusa; /* Theme identifier for logo component */
+  --brand-primary: #00644C; /* Green brand primary */
+  --brand-app-bg: #00644C; /* Green brand app background */
+  --brand-app-bg-hex: #00644C; /* Green brand app background (HEX) */
+  --brand-app-text: #ffffff; /* Green brand app text */
+  --brand-app-hover: #004A36; /* Green brand app hover (darker) */
+  --logo-url: url('/adusa-logo.svg');
+  
+  /* Theme-specific chart colors */
+  --chart-1: 98 56% 51%; /* ADUSA Green #5AC542 */
+  --chart-2: 182 42% 24%; /* ADUSA Dark Green #235455 */
+  --chart-3: 130 35% 41%; /* ADUSA Medium Green #458A4C */
+  --chart-4: 76 65% 71%; /* ADUSA Light Green #C0E187 */
+  --chart-5: 86 40% 49%; /* ADUSA Olive Green #86B547 */
+  
+  /* Keep base theme tokens unchanged for UI consistency */
+  /* Only brand-specific tokens should change */
+}
+
 
 @layer base {
   :root,

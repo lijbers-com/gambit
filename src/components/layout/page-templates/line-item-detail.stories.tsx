@@ -351,6 +351,14 @@ const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: {
 // Display Line Item Detail Story
 export const Display: Story = {
   render: () => {
+    // Location options for targeting
+    const locationOptions = [
+      { label: 'Amsterdam', value: 'amsterdam' },
+      { label: 'Rotterdam', value: 'rotterdam' },
+      { label: 'Den Haag', value: 'den-haag' },
+      { label: 'Utrecht', value: 'utrecht' },
+      { label: 'Eindhoven', value: 'eindhoven' }
+    ];
     const [lineItemName, setLineItemName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
@@ -364,6 +372,7 @@ export const Display: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
@@ -385,6 +394,7 @@ export const Display: Story = {
       { label: 'AH XL', value: 'ah-xl' },
       { label: 'AH DNAH', value: 'ah-dnah' }
     ];
+
 
     const audienceOptions = [
       { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
@@ -912,6 +922,14 @@ export const Display: Story = {
 // Digital In-Store Line Item Detail Story
 export const DigitalInStore: Story = {
   render: () => {
+    // Location options for targeting
+    const locationOptions = [
+      { label: 'Amsterdam', value: 'amsterdam' },
+      { label: 'Rotterdam', value: 'rotterdam' },
+      { label: 'Den Haag', value: 'den-haag' },
+      { label: 'Utrecht', value: 'utrecht' },
+      { label: 'Eindhoven', value: 'eindhoven' }
+    ];
     const [lineItemName, setLineItemName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
@@ -925,6 +943,7 @@ export const DigitalInStore: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
@@ -946,6 +965,7 @@ export const DigitalInStore: Story = {
       { label: 'AH XL', value: 'ah-xl' },
       { label: 'AH DNAH', value: 'ah-dnah' }
     ];
+
 
     const audienceOptions = [
       { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
@@ -1640,6 +1660,7 @@ export const OfflineInStore: Story = {
       { label: 'AH XL', value: 'ah-xl' },
       { label: 'AH DNAH', value: 'ah-dnah' }
     ];
+
 
     const audienceOptions = [
       { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
@@ -2413,6 +2434,14 @@ export const OfflineInStore: Story = {
 // Sponsored Products Line Item Detail Story
 export const SponsoredProducts: Story = {
   render: () => {
+    // Location options for targeting
+    const locationOptions = [
+      { label: 'Amsterdam', value: 'amsterdam' },
+      { label: 'Rotterdam', value: 'rotterdam' },
+      { label: 'Den Haag', value: 'den-haag' },
+      { label: 'Utrecht', value: 'utrecht' },
+      { label: 'Eindhoven', value: 'eindhoven' }
+    ];
     const [lineItemName, setLineItemName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
@@ -2426,6 +2455,7 @@ export const SponsoredProducts: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
@@ -2447,6 +2477,7 @@ export const SponsoredProducts: Story = {
       { label: 'AH XL', value: 'ah-xl' },
       { label: 'AH DNAH', value: 'ah-dnah' }
     ];
+
 
     const audienceOptions = [
       { label: 'Matig Stedelijk', value: 'matig-stedelijk' },

@@ -84,6 +84,15 @@ const GeneralStylesPage = () => (
           <ColorSwatch label="Brand App Hover" color="#0086B2" token="--brand-app-hover" />
         </div>
       </div>
+      <div>
+        <h4 style={{ marginBottom: '1rem', fontSize: '14px', fontWeight: '600' }}>ADUSA</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ColorSwatch label="Brand Primary" color="#00644C" token="--brand-primary" />
+          <ColorSwatch label="Brand App BG" color="#00644C" token="--brand-app-bg" />
+          <ColorSwatch label="Brand App Text" color="#ffffff" token="--brand-app-text" />
+          <ColorSwatch label="Brand App Hover" color="#004A36" token="--brand-app-hover" />
+        </div>
+      </div>
     </div>
     
     <h3>Chart Color Tokens</h3>
@@ -107,6 +116,16 @@ const GeneralStylesPage = () => (
           <ColorSwatch label="Chart 3" color="hsl(192, 100%, 55%)" token="--chart-3" />
           <ColorSwatch label="Chart 4" color="hsl(39, 100%, 50%)" token="--chart-4" />
           <ColorSwatch label="Chart 5" color="hsl(150, 60%, 45%)" token="--chart-5" />
+        </div>
+      </div>
+      <div>
+        <h4 style={{ marginBottom: '1rem', fontSize: '14px', fontWeight: '600' }}>ADUSA Theme</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ColorSwatch label="Chart 1" color="#5AC542" token="--chart-1" />
+          <ColorSwatch label="Chart 2" color="#235455" token="--chart-2" />
+          <ColorSwatch label="Chart 3" color="#458A4C" token="--chart-3" />
+          <ColorSwatch label="Chart 4" color="#C0E187" token="--chart-4" />
+          <ColorSwatch label="Chart 5" color="#86B547" token="--chart-5" />
         </div>
       </div>
     </div>

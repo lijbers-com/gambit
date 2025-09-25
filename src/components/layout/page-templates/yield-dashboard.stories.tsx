@@ -4,7 +4,6 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
-import { PieChartComponent } from '@/components/ui/pie-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import React, { useState } from 'react';
@@ -1449,107 +1448,6 @@ export const YieldDashboard: Story = {
                 <Button
                   variant="outline"
                   onClick={() => alert('Navigate to full Revenue Report')}
-                >
-                  View Full Report
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Audience Report Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Audience Report</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Audience Pie Chart */}
-              <div>
-                <h4 className="text-sm font-medium mb-3 text-muted-foreground">Audience Distribution</h4>
-                <PieChartComponent
-                  data={[
-                    { name: 'Young Professionals', value: 35 },
-                    { name: 'Families', value: 28 },
-                    { name: 'Students', value: 22 },
-                    { name: 'Seniors', value: 15 },
-                  ]}
-                  config={{
-                    'Young Professionals': {
-                      label: "Young Professionals",
-                      color: "hsl(var(--chart-1))",
-                    },
-                    'Families': {
-                      label: "Families",
-                      color: "hsl(var(--chart-2))",
-                    },
-                    'Students': {
-                      label: "Students",
-                      color: "hsl(var(--chart-3))",
-                    },
-                    'Seniors': {
-                      label: "Seniors",
-                      color: "hsl(var(--chart-4))",
-                    },
-                  }}
-                  showLabels={true}
-                  showLegend={true}
-                  showTooltip={true}
-                  className="h-64 w-full"
-                  dataKey="value"
-                  nameKey="name"
-                />
-              </div>
-
-              {/* Customer Lifetime Value by Audience Bar Chart */}
-              <div>
-                <h4 className="text-sm font-medium mb-3 text-muted-foreground">Customer Lifetime Value by Audience</h4>
-                <BarChartComponent
-                  data={[
-                    {
-                      audience: 'Young Prof.',
-                      clv: 1250,
-                      avgOrderValue: 85
-                    },
-                    {
-                      audience: 'Families',
-                      clv: 890,
-                      avgOrderValue: 120
-                    },
-                    {
-                      audience: 'Students',
-                      clv: 340,
-                      avgOrderValue: 45
-                    },
-                    {
-                      audience: 'Seniors',
-                      clv: 780,
-                      avgOrderValue: 65
-                    },
-                  ]}
-                  config={{
-                    clv: {
-                      label: "Customer Lifetime Value (€)",
-                      color: "hsl(var(--chart-1))",
-                    },
-                    avgOrderValue: {
-                      label: "Avg Order Value (€)",
-                      color: "hsl(var(--chart-2))",
-                    },
-                  }}
-                  showLegend={true}
-                  showGrid={true}
-                  showTooltip={true}
-                  showXAxis={true}
-                  showYAxis={true}
-                  className="h-64 w-full"
-                  xAxisDataKey="audience"
-                />
-              </div>
-
-              {/* CTA Button */}
-              <div className="pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => alert('Navigate to full Audience Report')}
                 >
                   View Full Report
                 </Button>

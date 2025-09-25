@@ -1272,7 +1272,7 @@ export const YieldDashboard: Story = {
               <CardTitle className="text-lg font-semibold">Fill Rate Report</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {filteredFillRateMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}

@@ -1272,6 +1272,7 @@ export const YieldDashboard: Story = {
                     config={fillRateChartConfig}
                     xAxisDataKey="name"
                     className="h-[300px] w-full"
+                    yAxisDomain={[60, 100]}
                   />
                 </div>
               </div>

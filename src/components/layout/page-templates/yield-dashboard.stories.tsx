@@ -586,37 +586,13 @@ const getFilteredFillRateMetrics = (engineFilter: string | undefined) => {
 
 // Function to filter chart data based on engine filter
 const getFilteredChartData = (
-  selectedMetric: string | null,
+  selectedMetric: string,
   engineFilter: string | undefined,
   dateRange: DateRange | undefined,
   fillRateComparisonYears: string[]
 ) => {
-  if (selectedMetric) {
-    return getSingleEngineFillRateData(selectedMetric, dateRange);
-  }
-
-  const baseData = getFilteredFillRateData(dateRange, fillRateComparisonYears);
-
-  if (!engineFilter || engineFilter === 'all') {
-    return baseData;
-  }
-
-  // Filter to show only specific engine
-  const engineMapping: { [key: string]: string } = {
-    'sponsored-products': 'sponsoredProducts',
-    'display': 'display',
-    'digital-instore': 'digitalInstore',
-    'offline-instore': 'offlineInstore'
-  };
-
-  const engineKey = engineMapping[engineFilter];
-  if (!engineKey) return baseData;
-
-  // Transform data to show only selected engine
-  return baseData.map(item => ({
-    name: item.name,
-    [engineKey]: item[engineKey as keyof typeof item]
-  }));
+  // Always return single engine data since a metric is always selected
+  return getSingleEngineFillRateData(selectedMetric, dateRange);
 };
 
 // Function to filter inventory data based on channel filter
@@ -1149,13 +1125,13 @@ export const YieldDashboard: Story = {
     // Get filtered data based on current filter selections
     const filteredFillRateMetrics = getFilteredFillRateMetrics(engineFilter);
 
-    // Reset selected metric if it's not available in filtered results
-    const isSelectedMetricValid = selectedMetric ? filteredFillRateMetrics.some(metric => metric.id === selectedMetric) : true;
-    const validSelectedMetric = isSelectedMetricValid ? selectedMetric : null;
-    const selectedMetricData = validSelectedMetric ? filteredFillRateMetrics.find(metric => metric.id === validSelectedMetric) : null;
+    // Reset selected metric if it's not available in filtered results, fallback to general-fill-rate
+    const isSelectedMetricValid = selectedMetric ? filteredFillRateMetrics.some(metric => metric.id === selectedMetric) : false;
+    const validSelectedMetric = isSelectedMetricValid ? selectedMetric : 'general-fill-rate';
+    const selectedMetricData = filteredFillRateMetrics.find(metric => metric.id === validSelectedMetric) || filteredFillRateMetrics[0];
 
     // Get chart data based on selection and filters
-    const fillRateChartData = getFilteredChartData(selectedMetric, engineFilter, dateRange, fillRateComparisonYears);
+    const fillRateChartData = getFilteredChartData(validSelectedMetric, engineFilter, dateRange, fillRateComparisonYears);
     const seasonalityData = getSeasonalityData(seasonalityComparisonYears);
     const filteredInventoryData = getFilteredInventoryData(channelFilter);
 
@@ -1282,24 +1258,18 @@ export const YieldDashboard: Story = {
                     badgeValue={metric.badgeValue}
                     badgeVariant={metric.badgeVariant}
                     isSelected={selectedMetric === metric.id}
-                    onClick={() => setSelectedMetric(selectedMetric === metric.id ? null : metric.id)}
+                    onClick={() => setSelectedMetric(metric.id)}
                   />
                 ))}
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-3 text-muted-foreground">
-                  {selectedMetricData ? `${selectedMetricData.label} Fill Rate Trend` : 'Fill Rate Trend by Engine'}
+                  {selectedMetricData ? `${selectedMetricData.label} Fill Rate Trend` : 'Fill Rate Trend'}
                 </h4>
-                {!selectedMetric && (
-                  <YearComparisonFilter
-                    selectedYears={fillRateComparisonYears}
-                    onYearsChange={setFillRateComparisonYears}
-                  />
-                )}
                 <div className="w-full">
                   <LineChartComponent
                     data={fillRateChartData}
-                    config={selectedMetric ? fillRateChartConfig : fillRateTrendChartConfig}
+                    config={fillRateChartConfig}
                     xAxisDataKey="name"
                     className="h-[300px] w-full"
                   />

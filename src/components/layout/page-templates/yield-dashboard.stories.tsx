@@ -88,6 +88,14 @@ type Story = StoryObj<typeof meta>;
 // Mock data for general fill rate metrics
 const generalFillRateMetrics = [
   {
+    id: 'general-fill-rate',
+    label: 'General Fill Rate',
+    value: '93.6%',
+    subMetric: 'All Engines Combined',
+    badgeValue: '+6.2%',
+    badgeVariant: 'success' as const,
+  },
+  {
     id: 'sponsored-products-fill',
     label: 'Sponsored Products',
     value: '99.2%',
@@ -526,6 +534,20 @@ const getFilteredFillRateData = (dateRange: DateRange | undefined, selectedYears
 
 // Function to get single engine fill rate data
 const getSingleEngineFillRateData = (engineId: string, dateRange: DateRange | undefined) => {
+  const fullData = getFilteredFillRateData(dateRange, []);
+
+  // Handle General Fill Rate - show combined average
+  if (engineId === 'general-fill-rate') {
+    return fullData.map(item => {
+      const avgFillRate = (item.sponsoredProducts + item.display + item.digitalInstore + item.offlineInstore) / 4;
+      return {
+        name: item.name,
+        fillRate: Number(avgFillRate.toFixed(1)),
+        target: 88.0 // Overall target for general fill rate
+      };
+    });
+  }
+
   const engineMapping: { [key: string]: string } = {
     'sponsored-products-fill': 'sponsoredProducts',
     'display-fill': 'display',
@@ -534,7 +556,6 @@ const getSingleEngineFillRateData = (engineId: string, dateRange: DateRange | un
   };
 
   const engineKey = engineMapping[engineId] || 'sponsoredProducts';
-  const fullData = getFilteredFillRateData(dateRange, []);
 
   // Transform data to have only the selected engine and add target
   return fullData.map(item => ({
@@ -1109,7 +1130,7 @@ const YearComparisonFilter = ({
 
 export const YieldDashboard: Story = {
   render: () => {
-    const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+    const [selectedMetric, setSelectedMetric] = useState<string | null>('general-fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(2024, 0, 1), // January 1, 2024
       to: new Date(2024, 11, 31), // December 31, 2024

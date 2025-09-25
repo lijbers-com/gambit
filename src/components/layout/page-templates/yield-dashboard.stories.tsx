@@ -91,7 +91,7 @@ const generalFillRateMetrics = [
     id: 'general-fill-rate',
     label: 'General Fill Rate',
     value: '93.6%',
-    subMetric: 'All Engines Combined',
+    subMetric: 'Target: 88%',
     badgeValue: '+6.2%',
     badgeVariant: 'success' as const,
   },

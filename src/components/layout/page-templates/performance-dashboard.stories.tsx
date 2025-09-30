@@ -502,7 +502,7 @@ export const GeneralInsights: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{}}
         pageHeaderProps={{
-          title: 'Sponsored Products',
+          title: 'Insights Dashboard',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),

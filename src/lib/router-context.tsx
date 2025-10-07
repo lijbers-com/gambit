@@ -66,13 +66,16 @@ Link.displayName = 'Link';
 // Simple Image component replacement
 export const Image = React.forwardRef<
   HTMLImageElement,
-  React.ImgHTMLAttributes<HTMLImageElement> & { 
+  React.ImgHTMLAttributes<HTMLImageElement> & {
     width?: number | string;
     height?: number | string;
+    priority?: boolean;
   }
->(({ width, height, style, ...props }, ref) => {
+>(({ width, height, style, priority, ...props }, ref) => {
+  // priority is a Next.js Image prop, not a valid HTML img attribute
+  // We'll ignore it when rendering a regular img element
   return (
-    <img 
+    <img
       ref={ref}
       style={{ width, height, ...style }}
       {...props}

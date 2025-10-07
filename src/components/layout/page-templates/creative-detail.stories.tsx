@@ -298,7 +298,7 @@ export const Display: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Creative Detail - Display',
           onEdit: () => alert('Edit clicked'),
@@ -516,7 +516,7 @@ export const DigitalInStore: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Creative Detail - Digital In-Store',
           onEdit: () => alert('Edit clicked'),
@@ -750,7 +750,7 @@ export const OfflineInStore: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Creative Detail - Offline In-Store',
           onEdit: () => alert('Edit clicked'),

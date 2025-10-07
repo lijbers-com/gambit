@@ -369,7 +369,7 @@ export const Chat: Story = {
     logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
     user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
     onLogout: () => alert('Logout clicked'),
-    breadcrumbProps: {},
+    breadcrumbProps: { namespace: '' },
     pageHeaderProps: {
       title: 'AdGenie Chat',
       subtitle: 'AI-powered conversational interface for campaign management',

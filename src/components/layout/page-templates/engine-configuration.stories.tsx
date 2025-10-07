@@ -202,7 +202,7 @@ const createEngineConfigurationStory = (
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: `${engineTitle} Configuration`,
           subtitle: `Manage ${engineType} engine configuration settings and rules`,

@@ -500,7 +500,7 @@ export const GeneralInsights: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Insights Dashboard',
           onEdit: () => alert('Edit clicked'),
@@ -631,7 +631,7 @@ export const GeneralInsights: Story = {
                   </h4>
                   <LineChartComponent
                     data={getIroasChartData(selectedIroasMetric)}
-                    config={getIroasChartConfig(selectedIroasMetric)}
+                    config={getIroasChartConfig(selectedIroasMetric) as any}
                     showLegend={true}
                     showGrid={true}
                     showTooltip={true}
@@ -1157,7 +1157,7 @@ export const DisplayPerformance: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Spring Collection 2024 - Display Campaign',
           headerRight: (
@@ -1448,7 +1448,7 @@ export const DigitalInstorePerformance: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Digital Media In Store',
           headerRight: (
@@ -1808,7 +1808,7 @@ export const OfflineInstorePerformance: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Back to School 2024 - Offline In-store',
           headerRight: (
@@ -2272,7 +2272,7 @@ export const FullReportView: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Full Performance Report',
           headerRight: (
@@ -2617,7 +2617,7 @@ export const ProductReportView: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Reports',
           headerRight: (

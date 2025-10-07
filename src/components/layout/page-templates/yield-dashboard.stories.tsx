@@ -478,7 +478,7 @@ const mergeMultipleYearsData = (currentData: any[], selectedYears: string[]) => 
   let mergedData = currentData;
   
   selectedYears.forEach(year => {
-    const yearData = historicalFillRateData[year as keyof typeof historicalFillRateData];
+    const yearData = historicalFillRateData[year as unknown as keyof typeof historicalFillRateData];
     if (yearData) {
       mergedData = mergedData.map((current, index) => ({
         ...current,
@@ -1131,7 +1131,7 @@ export const YieldDashboard: Story = {
     const selectedMetricData = filteredFillRateMetrics.find(metric => metric.id === validSelectedMetric) || filteredFillRateMetrics[0];
 
     // Get chart data based on selection and filters
-    const fillRateChartData = getFilteredChartData(validSelectedMetric, engineFilter, dateRange, fillRateComparisonYears);
+    const fillRateChartData = getFilteredChartData(validSelectedMetric as string, engineFilter, dateRange, fillRateComparisonYears);
     const seasonalityData = getSeasonalityData(seasonalityComparisonYears);
     const filteredInventoryData = getFilteredInventoryData(channelFilter);
 
@@ -1142,10 +1142,9 @@ export const YieldDashboard: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
-          email: 'john@albertheijn.nl',
           avatar: '/placeholder-avatar.jpg',
         }}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: "Yield Overview",
           headerRight: (
@@ -1272,7 +1271,6 @@ export const YieldDashboard: Story = {
                     config={fillRateChartConfig}
                     xAxisDataKey="name"
                     className="h-[300px] w-full"
-                    yAxisDomain={[60, 100]}
                   />
                 </div>
               </div>
@@ -1473,10 +1471,9 @@ export const SponsoredProductsYield: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
-          email: 'john@albertheijn.nl',
           avatar: '/placeholder-avatar.jpg',
         }}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: "Sponsored Products Yield",
           headerRight: (
@@ -1624,10 +1621,9 @@ export const DisplayYield: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
-          email: 'john@albertheijn.nl',
           avatar: '/placeholder-avatar.jpg',
         }}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: "Display Yield",
           headerRight: (
@@ -1775,10 +1771,9 @@ export const DigitalInstoreYield: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
-          email: 'john@albertheijn.nl',
           avatar: '/placeholder-avatar.jpg',
         }}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: "Digital In-store Yield",
           headerRight: (
@@ -1926,10 +1921,9 @@ export const OfflineInstoreYield: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
-          email: 'john@albertheijn.nl',
           avatar: '/placeholder-avatar.jpg',
         }}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: "Offline In-store Yield",
           headerRight: (
@@ -2216,10 +2210,9 @@ export const YieldReportView: Story = {
           logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
           user={{
             name: 'John Doe',
-            email: 'john@albertheijn.nl',
-            avatar: '/placeholder-avatar.jpg',
+              avatar: '/placeholder-avatar.jpg',
           }}
-          breadcrumbProps={{}}
+          breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: "Yield Reports",
             subtitle: "Comprehensive view of all yield performance reports",

@@ -495,7 +495,7 @@ export const Display: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Line Item Detail - Display',
           onEdit: () => alert('Edit clicked'),
@@ -1066,7 +1066,7 @@ export const DigitalInStore: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Line Item Detail - Digital In-Store',
           onEdit: () => alert('Edit clicked'),
@@ -1785,7 +1785,7 @@ export const OfflineInStore: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Line Item Detail - Offline In-Store',
           onEdit: () => alert('Edit clicked'),
@@ -2173,8 +2173,7 @@ export const OfflineInStore: Story = {
                                               }
                                             }}
                                           />
-                                        ),
-                                        width: '50px'
+                                        )
                                       },
                                       { key: 'name', header: 'Store Name' },
                                       { key: 'type', header: 'Type' },
@@ -2578,7 +2577,7 @@ export const SponsoredProducts: Story = {
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: 'Line Item Detail - Sponsored Products',
           onEdit: () => alert('Edit clicked'),

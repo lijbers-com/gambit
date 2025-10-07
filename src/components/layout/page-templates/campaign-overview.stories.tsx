@@ -79,10 +79,10 @@ type Story = StoryObj<typeof meta>;
 
 
 const campaignData = [
-  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, start: '2024-06-01', end: '2024-06-30' },
-  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, start: '2024-07-01', end: '2024-07-31' },
-  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, start: '2024-08-10', end: '2024-09-10' },
-  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, start: '2024-11-01', end: '2024-11-30' },
+  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products'] },
+  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store'] },
+  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products'] },
+  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store'] },
 ];
 
 const statusVariant = (status: string) => {
@@ -160,6 +160,13 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                 { key: 'advertiser', header: 'Advertiser' },
                 { key: 'name', header: 'Name' },
+                { key: 'engines', header: 'Engine', render: row => (
+                  <div className="flex flex-wrap gap-1">
+                    {row.engines.map((engine, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">{engine}</Badge>
+                    ))}
+                  </div>
+                )},
                 { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
                 { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
                 { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },

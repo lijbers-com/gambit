@@ -159,13 +159,6 @@ const sampleRoutes: Route[] = [
     url: "/chats/new"
   },
   {
-    id: 7,
-    name: "New campaign",
-    type: "single",
-    icon: { lucide: "MessageSquare" },
-    url: "/chats/new-campaign"
-  },
-  {
     id: 8,
     name: "Configuration",
     type: "title"

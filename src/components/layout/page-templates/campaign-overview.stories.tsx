@@ -161,9 +161,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'advertiser', header: 'Advertiser' },
                 { key: 'name', header: 'Name' },
                 { key: 'engines', header: 'Engine', render: row => (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-nowrap gap-1 whitespace-nowrap">
                     {row.engines.map((engine, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">{engine}</Badge>
+                      <Badge key={index} variant="outline" className="text-xs whitespace-nowrap">{engine}</Badge>
                     ))}
                   </div>
                 )},

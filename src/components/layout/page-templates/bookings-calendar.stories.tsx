@@ -220,10 +220,10 @@ const BookingCalendarTemplate = ({
     
     return filteredBookingsData.reduce((allBookings: any[], product) => {
       if (product.bookings) {
-        const weekBookings = product.bookings.filter(booking => 
+        const weekBookings = product.bookings.filter((booking: any) =>
           booking.startWeek <= selectedCell.weekNumber && booking.endWeek >= selectedCell.weekNumber
         );
-        return [...allBookings, ...weekBookings.map(booking => ({
+        return [...allBookings, ...weekBookings.map((booking: any) => ({
           ...booking,
           mediaProductName: product.name
         }))];
@@ -242,7 +242,7 @@ const BookingCalendarTemplate = ({
   // Adjust bookings data to match the actual week range  
   const adjustedBookingsData = bookingsData.map(product => ({
     ...product,
-    bookings: product.bookings?.map(booking => ({
+    bookings: product.bookings?.map((booking: any) => ({
       ...booking,
       startWeek: startWeek + booking.startWeek - 1,
       endWeek: startWeek + booking.endWeek - 1,
@@ -272,7 +272,7 @@ const BookingCalendarTemplate = ({
     }
     
     // Status filter - check if any bookings match the status filter
-    const hasMatchingBookings = product.bookings?.some(booking => 
+    const hasMatchingBookings = product.bookings?.some((booking: any) =>
       status.length === 0 || status.includes(booking.status || '')
     );
     
@@ -282,7 +282,7 @@ const BookingCalendarTemplate = ({
     if (status.length > 0 && product.bookings) {
       return {
         ...product,
-        bookings: product.bookings.filter(booking => 
+        bookings: product.bookings.filter((booking: any) =>
           status.includes(booking.status || '')
         )
       };
@@ -297,7 +297,7 @@ const BookingCalendarTemplate = ({
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title,
           onEdit: () => alert('Edit clicked'),
@@ -1651,10 +1651,10 @@ const OfflineInstoreCalendarTemplate = ({
     
     return filteredBookingsData.reduce((allBookings: any[], product) => {
       if (product.bookings) {
-        const weekBookings = product.bookings.filter(booking => 
+        const weekBookings = product.bookings.filter((booking: any) =>
           booking.startWeek <= selectedCell.weekNumber && booking.endWeek >= selectedCell.weekNumber
         );
-        return [...allBookings, ...weekBookings.map(booking => ({
+        return [...allBookings, ...weekBookings.map((booking: any) => ({
           ...booking,
           mediaProductName: product.name
         }))];
@@ -1673,7 +1673,7 @@ const OfflineInstoreCalendarTemplate = ({
   // Adjust bookings data to match the actual week range  
   const adjustedBookingsData = bookingsData.map(product => ({
     ...product,
-    bookings: product.bookings?.map(booking => ({
+    bookings: product.bookings?.map((booking: any) => ({
       ...booking,
       startWeek: startWeek + booking.startWeek - 1,
       endWeek: startWeek + booking.endWeek - 1,
@@ -1752,7 +1752,7 @@ const OfflineInstoreCalendarTemplate = ({
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title,
           onEdit: () => alert('Edit clicked'),

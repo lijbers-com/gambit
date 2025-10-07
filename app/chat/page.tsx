@@ -10,7 +10,7 @@ export default function ChatPage() {
     logo: { src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 },
     user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
     onLogout: () => console.log('Logout clicked'),
-    breadcrumbProps: {},
+    breadcrumbProps: { namespace: '' },
     pageHeaderProps: {
       title: 'AdGenie Chat',
       subtitle: 'AI-powered conversational interface for campaign management',
@@ -29,5 +29,5 @@ export default function ChatPage() {
     return <div>Chat Interface</div>;
   }
 
-  return <Component {...chatArgs} />;
+  return <>{Component(chatArgs, {} as any)}</>;
 }

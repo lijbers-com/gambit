@@ -9,19 +9,23 @@ export default function CreativeDetailPage() {
   const params = useParams();
   const type = params.type as string;
 
-  let Component;
+  let Component: (() => React.JSX.Element) | null = null;
   switch (type) {
     case 'display':
-      Component = CreativeDisplay.render || (() => <div>Display Creative Detail</div>);
+      Component = CreativeDisplay.render as () => React.JSX.Element;
       break;
     case 'digital-instore':
-      Component = CreativeDigital.render || (() => <div>Digital In-store Creative Detail</div>);
+      Component = CreativeDigital.render as () => React.JSX.Element;
       break;
     case 'offline-instore':
-      Component = CreativeOffline.render || (() => <div>Offline In-store Creative Detail</div>);
+      Component = CreativeOffline.render as () => React.JSX.Element;
       break;
     default:
-      Component = () => <div>Creative Detail</div>;
+      Component = null;
+  }
+
+  if (!Component) {
+    return <div>Creative Detail</div>;
   }
 
   return <Component />;

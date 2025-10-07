@@ -11,7 +11,6 @@ export default function InsightsPage() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      // Check for "Full report" button/link clicks
       if (target.textContent?.includes('Full report') || target.textContent?.includes('full report')) {
         e.preventDefault();
         e.stopPropagation();
@@ -23,6 +22,11 @@ export default function InsightsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = GeneralInsights.render || (() => <div>Insights Dashboard</div>);
+  const Component = GeneralInsights.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Insights Dashboard</div>;
+  }
+
   return <Component />;
 }

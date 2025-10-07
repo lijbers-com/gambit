@@ -252,7 +252,7 @@ export const DigitalInstoreInOption: Story = {
     
     
     // State for interactive forecast - following the same pattern as SponsoredProductsRunning
-    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState<string | null>('spend');
     const [spendValue, setSpendValue] = useState(41866); // Initial spend value
     const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
     const [isDragging, setIsDragging] = useState(false);
@@ -318,7 +318,7 @@ const updatedForecastMetrics = [
             <MetricCard
               key={metric.id}
               label={metric.label}
-              value={metric.value}
+              value={String(metric.value)}
               subMetric={metric.subMetric}
               badgeValue={metric.badgeValue}
               badgeVariant={metric.badgeVariant}
@@ -661,7 +661,7 @@ const updatedForecastMetrics = [
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Digital In-store: Summer Launch (In-Option)',
           onEdit: () => alert('Edit clicked'),
@@ -1179,7 +1179,7 @@ export const DigitalInstoreRunning: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Digital In-store: Summer Launch (Running)',
           onEdit: () => alert('Edit clicked'),
@@ -1697,7 +1697,7 @@ export const OfflineInstoreRunning: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline In-store: Summer Launch (Running)',
           onEdit: () => alert('Edit clicked'),
@@ -2217,7 +2217,7 @@ export const DisplayRunning: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display: Summer Launch (Running)',
           onEdit: () => alert('Edit clicked'),
@@ -2736,7 +2736,7 @@ export const OfflineInstoreInOption: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline In-store: Summer Launch (In-option)',
           onEdit: () => alert('Edit clicked'),
@@ -3255,7 +3255,7 @@ export const DisplayInOption: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display: Summer Launch (In-option)',
           onEdit: () => alert('Edit clicked'),
@@ -3714,7 +3714,7 @@ export const SponsoredProductsInOption: Story = {
     
     
     // State for interactive forecast - following the same pattern as SponsoredProductsRunning
-    const [selectedForecastMetric, setSelectedForecastMetric] = useState('spend');
+    const [selectedForecastMetric, setSelectedForecastMetric] = useState<string | null>('spend');
     const [spendValue, setSpendValue] = useState(41866); // Initial spend value
     const [dragPosition, setDragPosition] = useState(50); // Position as percentage (0-100)
     const [isDragging, setIsDragging] = useState(false);
@@ -3783,7 +3783,7 @@ export const SponsoredProductsInOption: Story = {
             <MetricCard
               key={metric.id}
               label={metric.label}
-              value={metric.value}
+              value={String(metric.value)}
               subMetric={metric.subMetric}
               badgeValue={metric.badgeValue}
               badgeVariant={metric.badgeVariant}
@@ -4082,7 +4082,7 @@ export const SponsoredProductsInOption: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored Products: Summer Launch (In-Option)',
           onEdit: () => alert('Edit clicked'),
@@ -4714,7 +4714,7 @@ export const SponsoredProductsRunning: Story = {
             <MetricCard
               key={metric.id}
               label={metric.label}
-              value={metric.value}
+              value={String(metric.value)}
               subMetric={metric.subMetric}
               badgeValue={metric.badgeValue}
               badgeVariant={metric.badgeVariant}
@@ -4869,7 +4869,7 @@ export const SponsoredProductsRunning: Story = {
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored Products: Summer Launch (Running)',
           onEdit: () => alert('Edit clicked'),

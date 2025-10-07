@@ -26,6 +26,11 @@ export default function DisplayCampaignsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = Display.render || (() => <div>Display Campaigns</div>);
+  const Component = Display.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Display Campaigns</div>;
+  }
+
   return <Component />;
 }

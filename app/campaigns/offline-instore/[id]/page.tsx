@@ -41,6 +41,11 @@ export default function OfflineInstoreCampaignDetailsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = OfflineInstoreRunning.render || (() => <div>Offline In-store Campaign Details</div>);
+  const Component = OfflineInstoreRunning.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Offline In-store Campaign Details</div>;
+  }
+
   return <Component />;
 }

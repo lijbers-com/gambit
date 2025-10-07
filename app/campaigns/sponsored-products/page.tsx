@@ -8,7 +8,6 @@ export default function SponsoredProductsCampaignsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Override table row clicks to navigate to campaign details
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const row = target.closest('tr');
@@ -27,6 +26,11 @@ export default function SponsoredProductsCampaignsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = SponsoredProducts.render || (() => <div>Sponsored Products Campaigns</div>);
+  const Component = SponsoredProducts.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Sponsored Products Campaigns</div>;
+  }
+
   return <Component />;
 }

@@ -32,6 +32,11 @@ export default function CreativesOverviewPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = CreativeOverview.render || (() => <div>Creative Overview</div>);
+  const Component = CreativeOverview.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Creative Overview</div>;
+  }
+
   return <Component />;
 }

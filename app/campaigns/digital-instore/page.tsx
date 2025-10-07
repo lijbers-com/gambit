@@ -4,7 +4,7 @@ import { DigitalInStore } from '@/components/layout/page-templates/campaign-over
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function DigitalInstoreCampaignsPage() {
+export default function DigitalInStoreCampaignsPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +26,11 @@ export default function DigitalInstoreCampaignsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = DigitalInStore.render || (() => <div>Digital In-store Campaigns</div>);
+  const Component = DigitalInStore.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Digital In-store Campaigns</div>;
+  }
+
   return <Component />;
 }

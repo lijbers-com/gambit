@@ -3,6 +3,11 @@
 import { OfflineInstoreCalendar } from '@/components/layout/page-templates/bookings-calendar.stories';
 
 export default function OfflineInstoreCalendarPage() {
-  const Component = OfflineInstoreCalendar.render || (() => <div>Offline In-store Calendar</div>);
+  const Component = OfflineInstoreCalendar.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Offline In-store Calendar</div>;
+  }
+
   return <Component />;
 }

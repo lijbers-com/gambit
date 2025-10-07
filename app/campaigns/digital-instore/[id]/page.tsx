@@ -41,6 +41,11 @@ export default function DigitalInstoreCampaignDetailsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = DigitalInstoreRunning.render || (() => <div>Digital In-store Campaign Details</div>);
+  const Component = DigitalInstoreRunning.render as () => React.JSX.Element;
+
+  if (!Component) {
+    return <div>Digital In-store Campaign Details</div>;
+  }
+
   return <Component />;
 }

@@ -111,7 +111,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{}}
+        breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: `Campaigns - ${engineTitle}`,
           subtitle: `Monitor ${engineType} campaign performance and manage your advertising initiatives`,

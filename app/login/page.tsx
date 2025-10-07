@@ -28,7 +28,11 @@ export default function LoginPage() {
   }, [router]);
 
   // Get the render function from the story
-  const LoginComponent = RetailMediaPlatform.render || (() => <div>Login Component</div>);
+  const LoginComponent = RetailMediaPlatform.render as () => React.JSX.Element;
+
+  if (!LoginComponent) {
+    return <div>Login Component</div>;
+  }
 
   return <LoginComponent />;
 }

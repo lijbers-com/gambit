@@ -33,8 +33,8 @@ export function FunnelChartComponent({
     if (index === 0) return item; // Keep first item as is
     
     // Calculate a minimum width for visibility (e.g., 5% of the first value)
-    const minWidth = data[0][dataKey] * 0.05;
-    const normalizedValue = Math.max(item[dataKey], minWidth);
+    const minWidth = Number(data[0][dataKey]) * 0.05;
+    const normalizedValue = Math.max(Number(item[dataKey]), minWidth);
     
     return {
       ...item,
@@ -44,7 +44,7 @@ export function FunnelChartComponent({
   });
 
   const renderCustomLabel = (entry: any) => {
-    const percentage = entry.percentage || Math.round((entry.originalValue || entry[dataKey]) / data[0][dataKey] * 100);
+    const percentage = entry.percentage || Math.round(Number(entry.originalValue || entry[dataKey]) / Number(data[0][dataKey]) * 100);
     const value = entry.originalValue || entry[dataKey];
     return `${entry[nameKey]}: ${value.toLocaleString()} (${percentage}%)`;
   };
@@ -53,7 +53,7 @@ export function FunnelChartComponent({
     if (props.active && props.payload && props.payload.length) {
       const data = props.payload[0].payload;
       const value = data.originalValue || data[dataKey];
-      const percentage = data.percentage || Math.round((value / normalizedData[0].originalValue || normalizedData[0][dataKey]) * 100);
+      const percentage = data.percentage || Math.round((Number(value) / Number(normalizedData[0].originalValue || normalizedData[0][dataKey])) * 100);
       
       return (
         <div className="bg-white p-2 border rounded shadow">
@@ -72,11 +72,10 @@ export function FunnelChartComponent({
           data={normalizedData}
           dataKey={dataKey}
           nameKey={nameKey}
-          labelLine={false}
-          label={showLabels ? renderCustomLabel : undefined}
+          label={false}
         >
           {normalizedData.map((entry, index) => {
-            const key = entry[nameKey] || entry.name
+            const key = String(entry[nameKey] || entry.name || `item-${index}`)
             const color = config[key]?.color || `hsl(${index * 45}, 70%, 50%)`
             return <Cell key={`cell-${index}`} fill={color} />
           })}

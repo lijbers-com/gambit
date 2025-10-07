@@ -153,8 +153,8 @@ const statusVariant = (status: string) => {
   }
 };
 
-export const Default: Story = {
-  render: () => (
+export const Default = {
+  render: (() => (
     <div className="p-8">
       <RightDrawer>
         <RightDrawerTrigger asChild>
@@ -200,11 +200,11 @@ export const Default: Story = {
         </RightDrawerContent>
       </RightDrawer>
     </div>
-  ),
+  )),
 };
 
-export const WithViewBarAndFilters: Story = {
-  render: () => {
+export const WithViewBarAndFilters = {
+  render: (() => {
     const [activeView, setActiveView] = useState('campaigns');
     const [filters, setFilters] = useState(filterOptions);
 
@@ -241,14 +241,14 @@ export const WithViewBarAndFilters: Story = {
                 <Table
                   columns={[
                     { key: 'id', header: 'ID' },
-                    { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
+                    { key: 'status', header: 'Status', render: (row: any) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                     { key: 'brand', header: 'Brand' },
                     { key: 'mediaProduct', header: 'Media Product' },
-                    { key: 'planned', header: 'Planned', render: row => <Badge variant="secondary">{row.planned}</Badge> },
-                    { key: 'booked', header: 'Booked', render: row => <Badge variant="secondary">{row.booked}</Badge> },
+                    { key: 'planned', header: 'Planned', render: (row: any) => <Badge variant="secondary">{row.planned}</Badge> },
+                    { key: 'booked', header: 'Booked', render: (row: any) => <Badge variant="secondary">{row.booked}</Badge> },
                   ]}
                   data={tableData}
-                  rowKey={row => row.id}
+                  rowKey={(row: any) => row.id}
                 />
               </div>
             </RightDrawerBody>
@@ -256,11 +256,11 @@ export const WithViewBarAndFilters: Story = {
         </RightDrawer>
       </div>
     );
-  },
+  }),
 };
 
-export const WithScrollableContent: Story = {
-  render: () => (
+export const WithScrollableContent = {
+  render: (() => (
     <div className="p-8">
       <RightDrawer>
         <RightDrawerTrigger asChild>
@@ -289,11 +289,11 @@ export const WithScrollableContent: Story = {
         </RightDrawerContent>
       </RightDrawer>
     </div>
-  ),
+  )),
 };
 
-export const WithoutCloseButton: Story = {
-  render: () => (
+export const WithoutCloseButton = {
+  render: (() => (
     <div className="p-8">
       <RightDrawer>
         <RightDrawerTrigger asChild>
@@ -321,11 +321,11 @@ export const WithoutCloseButton: Story = {
         </RightDrawerContent>
       </RightDrawer>
     </div>
-  ),
+  )),
 };
 
-export const FullExample: Story = {
-  render: () => {
+export const FullExample = {
+  render: (() => {
     const [activeView, setActiveView] = useState('campaigns');
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [brandFilter, setBrandFilter] = useState<string[]>([]);
@@ -402,27 +402,23 @@ export const FullExample: Story = {
                     { 
                       key: 'status', 
                       header: 'Status', 
-                      render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> 
+                      render: (row: any) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> 
                     },
                     { key: 'brand', header: 'Brand' },
                     { key: 'mediaProduct', header: 'Media Product' },
                     { 
                       key: 'planned', 
                       header: 'Planned', 
-                      render: row => <Badge variant="secondary">{row.planned}</Badge> 
+                      render: (row: any) => <Badge variant="secondary">{row.planned}</Badge> 
                     },
-                    { 
-                      key: 'booked', 
-                      header: row => (
-                        <div className="flex items-center gap-1">
-                          Booked
-                        </div>
-                      ), 
-                      render: row => <Badge variant="secondary">{row.booked}</Badge> 
+                    {
+                      key: 'booked',
+                      header: 'Booked',
+                      render: (row: any) => <Badge variant="secondary">{row.booked}</Badge>
                     },
                   ]}
                   data={tableData}
-                  rowKey={row => row.id}
+                  rowKey={(row: any) => row.id}
                 />
                 
                 {/* See all button */}
@@ -437,5 +433,5 @@ export const FullExample: Story = {
         </RightDrawer>
       </div>
     );
-  },
+  }),
 };

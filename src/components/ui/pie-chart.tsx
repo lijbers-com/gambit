@@ -55,10 +55,9 @@ export function PieChartComponent({
           dataKey={dataKey}
           nameKey={nameKey}
           label={showLabels ? renderCustomLabel : undefined}
-          labelLine={false}
         >
           {data.map((entry, index) => {
-            const key = entry[nameKey] || entry.name
+            const key = String(entry[nameKey] || entry.name || `item-${index}`)
             const color = config[key]?.color || `hsl(${index * 45}, 70%, 50%)`
             return <Cell key={`cell-${index}`} fill={color} />
           })}

@@ -105,7 +105,7 @@ const mockMediaProducts = [
         startWeek: 1,
         endWeek: 3,
         stores: 500,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-1',
@@ -113,7 +113,7 @@ const mockMediaProducts = [
         startWeek: 2,
         endWeek: 2,
         stores: 400,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-2',
@@ -121,7 +121,7 @@ const mockMediaProducts = [
         startWeek: 3,
         endWeek: 5,
         stores: 600,
-        variant: 'warning',
+        variant: 'warning' as const,
       },
       {
         id: 'booking-9',
@@ -129,7 +129,7 @@ const mockMediaProducts = [
         startWeek: 4,
         endWeek: 6,
         stores: 450,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-3',
@@ -137,7 +137,7 @@ const mockMediaProducts = [
         startWeek: 6,
         endWeek: 8,
         stores: 400,
-        variant: 'default',
+        variant: 'default' as const,
       },
     ],
   },
@@ -152,7 +152,7 @@ const mockMediaProducts = [
         startWeek: 1,
         endWeek: 3,
         stores: 300,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-6',
@@ -160,7 +160,7 @@ const mockMediaProducts = [
         startWeek: 2,
         endWeek: 4,
         stores: 250,
-        variant: 'warning',
+        variant: 'warning' as const,
       },
       {
         id: 'booking-10',
@@ -168,7 +168,7 @@ const mockMediaProducts = [
         startWeek: 3,
         endWeek: 5,
         stores: 200,
-        variant: 'default',
+        variant: 'default' as const,
       },
     ],
   },
@@ -183,7 +183,7 @@ const mockMediaProducts = [
         startWeek: 4,
         endWeek: 6,
         stores: 500,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-7',
@@ -191,7 +191,7 @@ const mockMediaProducts = [
         startWeek: 5,
         endWeek: 7,
         stores: 400,
-        variant: 'warning',
+        variant: 'warning' as const,
       },
       {
         id: 'booking-8',
@@ -199,7 +199,7 @@ const mockMediaProducts = [
         startWeek: 6,
         endWeek: 8,
         stores: 350,
-        variant: 'default',
+        variant: 'default' as const,
       },
     ],
   },
@@ -214,7 +214,7 @@ const mockMediaProducts = [
         startWeek: 2,
         endWeek: 4,
         stores: 150,
-        variant: 'warning',
+        variant: 'warning' as const,
       },
       {
         id: 'booking-12',
@@ -222,7 +222,7 @@ const mockMediaProducts = [
         startWeek: 3,
         endWeek: 6,
         stores: 180,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-13',
@@ -230,7 +230,7 @@ const mockMediaProducts = [
         startWeek: 5,
         endWeek: 7,
         stores: 220,
-        variant: 'default',
+        variant: 'default' as const,
       },
     ],
   },
@@ -249,7 +249,7 @@ const mockReachData = [
         startWeek: 2,
         endWeek: 4,
         stores: 400,
-        variant: 'default',
+        variant: 'default' as const,
       },
       {
         id: 'booking-2',
@@ -257,7 +257,7 @@ const mockReachData = [
         startWeek: 5,
         endWeek: 6,
         stores: 350,
-        variant: 'warning',
+        variant: 'warning' as const,
       },
       {
         id: 'booking-3',
@@ -265,7 +265,7 @@ const mockReachData = [
         startWeek: 7,
         endWeek: 8,
         stores: 400,
-        variant: 'default',
+        variant: 'default' as const,
       },
     ],
   },
@@ -302,7 +302,7 @@ const mockRetailerEvents = [
 
 export const Default: Story = {
   args: {
-    mediaProducts: mockMediaProducts,
+    mediaProducts: mockMediaProducts as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -312,7 +312,7 @@ export const Default: Story = {
 
 export const WithReach: Story = {
   args: {
-    mediaProducts: mockReachData,
+    mediaProducts: mockReachData as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -322,7 +322,7 @@ export const WithReach: Story = {
 
 export const WithRetailerEvents: Story = {
   args: {
-    mediaProducts: mockReachData,
+    mediaProducts: mockReachData as any,
     weeks: 8,
     startWeek: 1,
     retailerEvents: mockRetailerEvents,
@@ -333,7 +333,7 @@ export const WithRetailerEvents: Story = {
 
 export const FillRateView: Story = {
   args: {
-    mediaProducts: mockMediaProducts,
+    mediaProducts: mockMediaProducts as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -343,7 +343,7 @@ export const FillRateView: Story = {
 
 export const RevenueView: Story = {
   args: {
-    mediaProducts: mockReachData,
+    mediaProducts: mockReachData as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -353,7 +353,7 @@ export const RevenueView: Story = {
 
 export const StoresView: Story = {
   args: {
-    mediaProducts: mockMediaProducts,
+    mediaProducts: mockMediaProducts as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -363,7 +363,7 @@ export const StoresView: Story = {
 
 export const PlayersView: Story = {
   args: {
-    mediaProducts: mockMediaProducts,
+    mediaProducts: mockMediaProducts as any,
     weeks: 8,
     startWeek: 1,
     showReach: true,
@@ -390,7 +390,7 @@ export const ManyWeeks: Story = {
             startWeek: 1,
             endWeek: 4,
             stores: 800,
-            variant: 'default',
+            variant: 'default' as const,
           },
           {
             id: 'booking-2',
@@ -398,7 +398,7 @@ export const ManyWeeks: Story = {
             startWeek: 7,
             endWeek: 9,
             stores: 600,
-            variant: 'warning',
+            variant: 'warning' as const,
           },
         ],
       },
@@ -431,7 +431,7 @@ export const WithHighlightedEvents: Story = {
     mediaProducts: mockReachData.map(product => ({
       ...product,
       isHighlighted: product.availability.map((_, i) => i >= 3),
-    })),
+    })) as any,
     weeks: 6,
     startWeek: 1,
     retailerEvents: [
@@ -447,7 +447,7 @@ export const WithHighlightedEvents: Story = {
 
 export const CustomStartWeek: Story = {
   args: {
-    mediaProducts: mockMediaProducts,
+    mediaProducts: mockMediaProducts as any,
     weeks: 6,
     startWeek: 48,
     retailerEvents: [

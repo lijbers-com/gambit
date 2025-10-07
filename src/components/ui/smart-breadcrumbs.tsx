@@ -11,11 +11,16 @@ import {
   BreadcrumbSeparator,
 } from './breadcrumb';
 import {
-  ReadonlyURLSearchParams,
   usePathname,
   useSearchParams,
 } from '@/lib/router-context';
+
 import { Route } from './side-navigation';
+
+type ReadonlyURLSearchParams = {
+  get: (key: string) => string | null;
+  forEach: (callback: (value: string, key: string) => void) => void;
+};
 
 export type BreadcrumbProps = {
   namespace: string;

@@ -42,6 +42,9 @@ export function useSearchParams() {
   const { query } = useContext(RouterContext);
   return {
     get: (key: string) => query[key] || null,
+    forEach: (callback: (value: string, key: string) => void) => {
+      Object.entries(query).forEach(([key, value]) => callback(value, key));
+    },
   };
 }
 

@@ -78,17 +78,26 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Row selection logic
   let selectionCol: TableColumn<T> | undefined;
   if (rowSelection) {
-    const getKey = rowSelection.getKey || rowKey;
+    const getKey = rowSelection.getKey || rowKey || ((_: T, index: number) => index);
     const allVisibleKeys = data.map(getKey);
     const allSelected = allVisibleKeys.length > 0 && allVisibleKeys.every(k => rowSelection.selectedKeys.includes(k));
     const someSelected = allVisibleKeys.some(k => rowSelection.selectedKeys.includes(k));
+
+    // Create a simple wrapper to get key from row only
+    const getRowKey = (row: T) => {
+      const index = data.indexOf(row);
+      return getKey(row, index);
+    };
     selectionCol = {
       key: '__select',
       header: (
         <Checkbox
           checked={allSelected}
           ref={el => {
-            if (el) (el as HTMLButtonElement).indeterminate = !allSelected && someSelected;
+            if (el) {
+              const checkbox = el.querySelector('input[type="checkbox"]') as HTMLInputElement;
+              if (checkbox) checkbox.indeterminate = !allSelected && someSelected;
+            }
           }}
           onCheckedChange={checked => {
             if (checked) {
@@ -103,12 +112,12 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
       ),
       render: row => (
         <Checkbox
-          checked={rowSelection.selectedKeys.includes(getKey(row))}
+          checked={rowSelection.selectedKeys.includes(getRowKey(row))}
           onCheckedChange={checked => {
             if (checked) {
-              rowSelection.onChange(Array.from(new Set([...rowSelection.selectedKeys, getKey(row)])));
+              rowSelection.onChange(Array.from(new Set([...rowSelection.selectedKeys, getRowKey(row)])));
             } else {
-              rowSelection.onChange(rowSelection.selectedKeys.filter(k => k !== getKey(row)));
+              rowSelection.onChange(rowSelection.selectedKeys.filter(k => k !== getRowKey(row)));
             }
           }}
         />
@@ -247,7 +256,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}
                   >
                     <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>
-                    {col.render ? col.render(row) : (row as Record<string, unknown>)[col.key]}
+                    {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
                     </div>
                   </td>
                 ))}

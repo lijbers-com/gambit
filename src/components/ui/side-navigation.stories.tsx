@@ -58,30 +58,9 @@ const sampleRoutes: Route[] = [
   {
     id: 1,
     name: "Creatives",
-    type: "parent",
+    type: "single",
     icon: { lucide: "ImagePlus" },
-    subitems: [
-      {
-        id: 30,
-        name: "Sponsored products",
-        url: "/creatives/sponsored-products"
-      },
-      {
-        id: 31,
-        name: "Display",
-        url: "/creatives/display"
-      },
-      {
-        id: 32,
-        name: "Digital in-store",
-        url: "/creatives/digital-instore"
-      },
-      {
-        id: 33,
-        name: "Offline instore",
-        url: "/creatives/offline-instore"
-      }
-    ]
+    url: "/creatives"
   },
   {
     id: 2,

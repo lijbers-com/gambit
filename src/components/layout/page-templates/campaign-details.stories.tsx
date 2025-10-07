@@ -2206,6 +2206,846 @@ export const DisplayRunning: Story = {
   },
 };
 
+export const OfflineInstoreInOption: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [placement, setPlacement] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Print', placements: 2 },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
+      { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Shelf Talker', placements: 1 },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31' },
+      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30' },
+      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31' },
+    ];
+
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-09 16:20:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offline In-store: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-09 16:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€75,000', description: 'Initial budget allocation' },
+      { id: 'LOG-003', timestamp: '2024-12-10 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap line item for approval' },
+      { id: 'LOG-004', timestamp: '2024-12-10 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Print creative uploaded for review' },
+      { id: 'LOG-005', timestamp: '2024-12-10 11:30:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-006', timestamp: '2024-12-10 14:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 25-45', newValue: 'Urban 18-45', description: 'Expanded age targeting for approval' },
+      { id: 'LOG-007', timestamp: '2024-12-10 16:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting client approval for placements', description: 'Added status comment' },
+    ];
+
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+
+    // Performance metrics for in-option campaign (forecasted)
+    const performanceMetrics = [
+      {
+        id: 'projected-impressions',
+        label: 'Projected Impressions',
+        value: '1,200,000',
+        subMetric: 'Est. Footfall: 8.5%',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'stores',
+        label: 'Target Stores',
+        value: '220',
+        subMetric: 'Coverage: 57%',
+        badgeValue: 'Planned',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'projected-reach',
+        label: 'Projected Reach',
+        value: '950K',
+        subMetric: 'Unique visitors',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'target-roas',
+        label: 'Target ROAS',
+        value: '2.50x',
+        subMetric: 'Target AOV: €60',
+        badgeValue: 'Goal',
+        badgeVariant: 'secondary' as const,
+      },
+    ];
+
+    const ForecastSection = () => (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {performanceMetrics.map((metric) => (
+          <MetricCard
+            key={metric.id}
+            label={metric.label}
+            value={metric.value}
+            subMetric={metric.subMetric}
+            badgeValue={metric.badgeValue}
+            badgeVariant={metric.badgeVariant}
+            isSelected={false}
+            onClick={undefined}
+          />
+        ))}
+        <div
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+          onClick={() => alert('Add custom metric functionality will be implemented')}
+        >
+          <Plus className="h-8 w-8 text-gray-400" />
+        </div>
+      </div>
+    );
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Offline In-store: Summer Launch (In-option)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Placement',
+                        options: [
+                          { label: 'End Cap', value: 'End Cap' },
+                          { label: 'Shelf Edge', value: 'Shelf Edge' },
+                          { label: 'Floor Stand', value: 'Floor Stand' },
+                          { label: 'Aisle Header', value: 'Aisle Header' },
+                          { label: 'Checkout', value: 'Checkout' },
+                        ],
+                        selectedValues: placement,
+                        onChange: setPlacement,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'placement', header: 'Placement' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+                      return statusMatch && placementMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Print', value: 'Print' },
+                          { label: 'Poster', value: 'Poster' },
+                          { label: 'Shelf Talker', value: 'Shelf Talker' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+
+export const DisplayInOption: Story = {
+  render: () => {
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [placement, setPlacement] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const creativeData = [
+      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3 },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
+      { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0 },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
+      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30' },
+      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31' },
+    ];
+
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-09 15:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Display: Summer Launch', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€100,000', description: 'Initial budget allocation for display campaign' },
+      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold placement for approval' },
+      { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Display banner creative uploaded for review' },
+      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
+      { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop only', newValue: 'Multi-device 18-45', description: 'Expanded device and demographic targeting' },
+      { id: 'LOG-007', timestamp: '2024-12-10 16:20:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting creative approval and placement confirmation', description: 'Added client feedback status' },
+    ];
+
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const ellipsisMenu = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Copy</DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+
+    // Performance metrics for in-option campaign (forecasted)
+    const performanceMetrics = [
+      {
+        id: 'projected-impressions',
+        label: 'Projected Impressions',
+        value: '5,200,000',
+        subMetric: 'Est. Viewability: 65%',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'projected-clicks',
+        label: 'Projected Clicks',
+        value: '78,000',
+        subMetric: 'Est. CTR: 1.5%',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'projected-reach',
+        label: 'Projected Reach',
+        value: '2.1M',
+        subMetric: 'Target frequency: 2.5',
+        badgeValue: 'Goal',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'target-roas',
+        label: 'Target ROAS',
+        value: '3.50x',
+        subMetric: 'Target CPA: €28',
+        badgeValue: 'Goal',
+        badgeVariant: 'secondary' as const,
+      },
+    ];
+
+    const ForecastSection = () => (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {performanceMetrics.map((metric) => (
+          <MetricCard
+            key={metric.id}
+            label={metric.label}
+            value={metric.value}
+            subMetric={metric.subMetric}
+            badgeValue={metric.badgeValue}
+            badgeVariant={metric.badgeVariant}
+            isSelected={false}
+            onClick={undefined}
+          />
+        ))}
+        <div
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+          onClick={() => alert('Add custom metric functionality will be implemented')}
+        >
+          <Plus className="h-8 w-8 text-gray-400" />
+        </div>
+      </div>
+    );
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+        routes={defaultRoutes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{}}
+        pageHeaderProps={{
+          title: 'Display: Summer Launch (In-option)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: null,
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Placement',
+                        options: [
+                          { label: 'Above The Fold', value: 'Above The Fold' },
+                          { label: 'Sidebar', value: 'Sidebar' },
+                          { label: 'Native Feed', value: 'Native Feed' },
+                          { label: 'Interstitial', value: 'Interstitial' },
+                          { label: 'Bottom Banner', value: 'Bottom Banner' },
+                        ],
+                        selectedValues: placement,
+                        onChange: setPlacement,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'placement', header: 'Placement' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+                      return statusMatch && placementMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Display Banner', value: 'Display Banner' },
+                          { label: 'Video', value: 'Video' },
+                          { label: 'Rich Media', value: 'Rich Media' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Dates Modified', value: 'Dates Modified' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+
 export const SponsoredProductsInOption: Story = {
   render: () => {
     const [activeTab, setActiveTab] = useState('products');

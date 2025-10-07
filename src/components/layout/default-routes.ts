@@ -36,34 +36,9 @@ export const defaultRoutes: Route[] = [
   {
     id: 1,
     name: "Creatives",
-    type: "parent" as const,
+    type: "single" as const,
     icon: { lucide: "ImagePlus" },
-    subitems: [
-      {
-        id: 30,
-        name: "Sponsored products",
-        type: "single" as const,
-        url: "/creatives/sponsored-products",
-      },
-      {
-        id: 31,
-        name: "Display",
-        type: "single" as const,
-        url: "/creatives/display",
-      },
-      {
-        id: 32,
-        name: "Digital in-store",
-        type: "single" as const,
-        url: "/creatives/digital-instore",
-      },
-      {
-        id: 33,
-        name: "Offline instore",
-        type: "single" as const,
-        url: "/creatives/offline-instore",
-      },
-    ],
+    url: "/creatives",
   },
   {
     id: 2,
@@ -172,13 +147,6 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "MessageSquare" },
     url: "/chats/new",
-  },
-  {
-    id: 7,
-    name: "New campaign",
-    type: "single" as const,
-    icon: { lucide: "MessageSquare" },
-    url: "/chats/new-campaign",
   },
   {
     id: 8,

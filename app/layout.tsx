@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { NavigationWrapper } from './components/navigation-wrapper';
+import { AppLayoutWrapper } from './components/app-layout-wrapper';
 
 export const metadata: Metadata = {
   title: 'Gambit - Retail Media Platform',
@@ -18,7 +20,11 @@ export default function RootLayout({
       <body>
         <MenuContextProvider>
           <ThemeProvider>
-            {children}
+            <NavigationWrapper>
+              <AppLayoutWrapper>
+                {children}
+              </AppLayoutWrapper>
+            </NavigationWrapper>
           </ThemeProvider>
         </MenuContextProvider>
       </body>

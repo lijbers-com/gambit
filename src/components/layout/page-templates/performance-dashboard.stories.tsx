@@ -651,7 +651,7 @@ export const GeneralInsights: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full IROAS Report')}
+                    onClick={() => console.log('Navigate to full IROAS Report')}
                   >
                     View Full Report
                   </Button>
@@ -775,7 +775,7 @@ export const GeneralInsights: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full Product Report')}
+                    onClick={() => console.log('Navigate to full Product Report')}
                   >
                     View Full Report
                   </Button>
@@ -860,7 +860,7 @@ export const GeneralInsights: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full E-commerce Funnel Report')}
+                    onClick={() => console.log('Navigate to full E-commerce Funnel Report')}
                   >
                     View Full Report
                   </Button>
@@ -964,7 +964,7 @@ export const GeneralInsights: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full Audience Report')}
+                    onClick={() => console.log('Navigate to full Audience Report')}
                   >
                     View Full Report
                   </Button>
@@ -1076,7 +1076,7 @@ export const GeneralInsights: Story = {
                 <div className="mt-4">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full Goal Report')}
+                    onClick={() => console.log('Navigate to full Goal Report')}
                   >
                     View Full Report
                   </Button>
@@ -1577,7 +1577,7 @@ export const DigitalInstorePerformance: Story = {
               <div className="pt-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => alert('Navigate to full Plays Report')}
+                  onClick={() => console.log('Navigate to full Plays Report')}
                 >
                   View Full Report
                 </Button>
@@ -1671,7 +1671,7 @@ export const DigitalInstorePerformance: Story = {
                 <div className="pt-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('Navigate to full ROAS Report')}
+                    onClick={() => console.log('Navigate to full ROAS Report')}
                   >
                     View Full Report
                   </Button>
@@ -1960,7 +1960,7 @@ export const OfflineInstorePerformance: Story = {
               <div className="pt-4">
                 <Button 
                   variant="outline" 
-                  onClick={() => alert('Navigate to full Audience Report')}
+                  onClick={() => console.log('Navigate to full Audience Report')}
                 >
                   View Full Report
                 </Button>

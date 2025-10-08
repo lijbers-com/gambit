@@ -218,8 +218,8 @@ export const CreativeOverview: Story = {
                 { key: 'name', header: 'Name' },
                 { key: 'campaign', header: 'Campaign' },
                 { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
-                { key: 'created', header: 'Created', render: row => new Date(row.created).toLocaleDateString() },
-                { key: 'updated', header: 'Updated', render: row => new Date(row.updated).toLocaleDateString() },
+                { key: 'created', header: 'Created', render: row => new Date(row.created).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                { key: 'updated', header: 'Updated', render: row => new Date(row.updated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
               ]}
               data={filteredCreativeData}
               rowKey={row => row.id}

@@ -174,6 +174,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
               ]}
               data={filteredCampaignData}
               rowKey={row => row.id}
+              onRowClick={(row) => console.log(`Navigating to campaign: ${row.name} (${row.id})`)}
             />
           </CardContent>
         </Card>

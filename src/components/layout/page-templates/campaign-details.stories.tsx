@@ -806,8 +806,8 @@ const updatedForecastMetrics = [
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -815,6 +815,7 @@ const updatedForecastMetrics = [
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -864,6 +865,7 @@ const updatedForecastMetrics = [
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -908,7 +910,7 @@ const updatedForecastMetrics = [
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -922,6 +924,7 @@ const updatedForecastMetrics = [
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -1324,8 +1327,8 @@ export const DigitalInstoreRunning: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -1333,6 +1336,7 @@ export const DigitalInstoreRunning: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -1382,6 +1386,7 @@ export const DigitalInstoreRunning: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -1426,7 +1431,7 @@ export const DigitalInstoreRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -1440,6 +1445,7 @@ export const DigitalInstoreRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -1843,8 +1849,8 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -1852,6 +1858,7 @@ export const OfflineInstoreRunning: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -1902,6 +1909,7 @@ export const OfflineInstoreRunning: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -1946,7 +1954,7 @@ export const OfflineInstoreRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -1960,6 +1968,7 @@ export const OfflineInstoreRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -2363,8 +2372,8 @@ export const DisplayRunning: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -2372,6 +2381,7 @@ export const DisplayRunning: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -2422,6 +2432,7 @@ export const DisplayRunning: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -2466,7 +2477,7 @@ export const DisplayRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -2480,6 +2491,7 @@ export const DisplayRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -2882,8 +2894,8 @@ export const OfflineInstoreInOption: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -2891,6 +2903,7 @@ export const OfflineInstoreInOption: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -2941,6 +2954,7 @@ export const OfflineInstoreInOption: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -2985,7 +2999,7 @@ export const OfflineInstoreInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -2999,6 +3013,7 @@ export const OfflineInstoreInOption: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -3401,8 +3416,8 @@ export const DisplayInOption: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString() },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString() },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -3410,6 +3425,7 @@ export const DisplayInOption: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to line-item detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -3460,6 +3476,7 @@ export const DisplayInOption: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -3504,7 +3521,7 @@ export const DisplayInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -3518,6 +3535,7 @@ export const DisplayInOption: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -4227,8 +4245,8 @@ export const SponsoredProductsInOption: Story = {
                       { key: 'budget', header: 'Budget' },
                       { key: 'spent', header: 'Spent' },
                       { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString() },
-                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString() },
+                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
                       { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
                     ]}
@@ -4458,7 +4476,7 @@ export const SponsoredProductsInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -4472,6 +4490,7 @@ export const SponsoredProductsInOption: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -5025,8 +5044,8 @@ export const SponsoredProductsRunning: Story = {
                       { key: 'roas', header: 'ROAS' },
                       { key: 'extROAS', header: 'Ext. ROAS' },
                       { key: 'iROAS', header: 'IROAS' },
-                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString() },
-                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString() },
+                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
                       { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
                     ]}
@@ -5256,7 +5275,7 @@ export const SponsoredProductsRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString() },
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
                       { key: 'user', header: 'User' },
                       { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
                       { key: 'field', header: 'Field' },
@@ -5270,6 +5289,7 @@ export const SponsoredProductsRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),

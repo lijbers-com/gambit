@@ -1278,7 +1278,7 @@ export const YieldDashboard: Story = {
               <div className="pt-2">
                 <Button
                   variant="outline"
-                  onClick={() => alert('Navigate to full Fill Rate Report')}
+                  onClick={() => console.log('Navigate to full Fill Rate Report')}
                 >
                   View Full Report
                 </Button>
@@ -1312,7 +1312,7 @@ export const YieldDashboard: Story = {
               <div className="pt-2">
                 <Button
                   variant="outline"
-                  onClick={() => alert('Navigate to full Seasonality Report')}
+                  onClick={() => console.log('Navigate to full Seasonality Report')}
                 >
                   View Full Report
                 </Button>
@@ -1345,7 +1345,7 @@ export const YieldDashboard: Story = {
                 <div className="pt-2">
                   <Button
                     variant="outline"
-                    onClick={() => alert('Navigate to full Inventory Report')}
+                    onClick={() => console.log('Navigate to full Inventory Report')}
                   >
                     View Full Report
                   </Button>
@@ -1394,7 +1394,7 @@ export const YieldDashboard: Story = {
                 <div className="pt-2">
                   <Button
                     variant="outline"
-                    onClick={() => alert('Navigate to full Retail Media Product Report')}
+                    onClick={() => console.log('Navigate to full Retail Media Product Report')}
                   >
                     View Full Report
                   </Button>
@@ -1437,7 +1437,7 @@ export const YieldDashboard: Story = {
               <div className="pt-2">
                 <Button
                   variant="outline"
-                  onClick={() => alert('Navigate to full Revenue Report')}
+                  onClick={() => console.log('Navigate to full Revenue Report')}
                 >
                   View Full Report
                 </Button>

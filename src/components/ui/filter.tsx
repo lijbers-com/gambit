@@ -74,6 +74,7 @@ export const Filter: React.FC<FilterProps> = ({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           className={cn(
             'inline-flex items-center gap-2',

@@ -270,6 +270,7 @@ const LineItemsDialog = ({ selectedLineItems, onSelectionChange }: {
               },
               getKey: row => row.id,
             }}
+            onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
             hideActions
           />
         </div>

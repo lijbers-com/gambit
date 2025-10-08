@@ -334,6 +334,7 @@ const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: {
               },
               getKey: row => row.id,
             }}
+            onRowClick={(row) => window.location.href = `/campaigns/digital-instore/creative/${row.id}`}
             hideActions
           />
         </div>

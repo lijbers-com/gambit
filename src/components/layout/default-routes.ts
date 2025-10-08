@@ -80,27 +80,15 @@ export const defaultRoutes: Route[] = [
     subitems: [
       {
         id: 50,
-        name: "Sponsored products",
+        name: "Dashboard",
         type: "single" as const,
-        url: "/insights/sponsored-products",
+        url: "/insights",
       },
       {
         id: 51,
-        name: "Display",
+        name: "Full report",
         type: "single" as const,
-        url: "/insights/display",
-      },
-      {
-        id: 52,
-        name: "Digital in-store",
-        type: "single" as const,
-        url: "/insights/digital-instore",
-      },
-      {
-        id: 53,
-        name: "Offline instore",
-        type: "single" as const,
-        url: "/insights/offline-instore",
+        url: "/insights/report",
       },
     ],
   },
@@ -112,27 +100,15 @@ export const defaultRoutes: Route[] = [
     subitems: [
       {
         id: 60,
-        name: "Sponsored products",
+        name: "Dashboard",
         type: "single" as const,
-        url: "/yield/sponsored-products",
+        url: "/yield",
       },
       {
         id: 61,
-        name: "Display",
+        name: "Full report",
         type: "single" as const,
-        url: "/yield/display",
-      },
-      {
-        id: 62,
-        name: "Digital in-store",
-        type: "single" as const,
-        url: "/yield/digital-instore",
-      },
-      {
-        id: 63,
-        name: "Offline instore",
-        type: "single" as const,
-        url: "/yield/offline-instore",
+        url: "/yield/report",
       },
     ],
   },

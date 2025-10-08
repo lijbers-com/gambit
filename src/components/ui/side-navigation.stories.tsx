@@ -98,23 +98,13 @@ const sampleRoutes: Route[] = [
     subitems: [
       {
         id: 50,
-        name: "Sponsored products",
-        url: "/insights/sponsored-products"
+        name: "Dashboard",
+        url: "/insights"
       },
       {
         id: 51,
-        name: "Display",
-        url: "/insights/display"
-      },
-      {
-        id: 52,
-        name: "Digital in-store",
-        url: "/insights/digital-instore"
-      },
-      {
-        id: 53,
-        name: "Offline instore",
-        url: "/insights/offline-instore"
+        name: "Full report",
+        url: "/insights/report"
       }
     ]
   },
@@ -126,23 +116,13 @@ const sampleRoutes: Route[] = [
     subitems: [
       {
         id: 60,
-        name: "Sponsored products",
-        url: "/yield/sponsored-products"
+        name: "Dashboard",
+        url: "/yield"
       },
       {
         id: 61,
-        name: "Display",
-        url: "/yield/display"
-      },
-      {
-        id: 62,
-        name: "Digital in-store",
-        url: "/yield/digital-instore"
-      },
-      {
-        id: 63,
-        name: "Offline instore",
-        url: "/yield/offline-instore"
+        name: "Full report",
+        url: "/yield/report"
       }
     ]
   },

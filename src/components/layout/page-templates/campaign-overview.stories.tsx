@@ -5,7 +5,9 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { defaultRoutes } from '../default-routes';
+import { addDays } from 'date-fns';
 import * as React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -192,4 +194,218 @@ export const Display: Story = createCampaignOverviewStory('display', 'Display');
 
 export const DigitalInStore: Story = createCampaignOverviewStory('digital in-store', 'Digital In-Store');
 
-export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline Instore'); 
+export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline Instore');
+
+// Campaign data for the card view
+const campaignSummaryData = [
+  {
+    title: 'Holiday Sale Campaign',
+    badge: { text: 'Best ROAS', variant: 'default' as const },
+    goal: 'performance-transaction',
+    estimatedRoas: '4.8x',
+    budget: '$15,000',
+    usedBudget: '$9,200',
+    totalPrice: '$17,500',
+    budgetUsagePercentage: 61,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+    ],
+    dateRange: {
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 29),
+    },
+    features: [],
+  },
+  {
+    title: 'Summer Launch Campaign',
+    badge: { text: 'High CTR', variant: 'secondary' as const },
+    goal: 'brand-awareness',
+    estimatedRoas: '3.2x',
+    budget: '$8,500',
+    usedBudget: '$2,100',
+    totalPrice: '$9,200',
+    budgetUsagePercentage: 25,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+    ],
+    dateRange: {
+      from: new Date('2024-07-01'),
+      to: addDays(new Date('2024-07-01'), 30),
+    },
+    features: [],
+  },
+  {
+    title: 'Back to School Campaign',
+    badge: { text: 'In Option', variant: 'outline' as const },
+    goal: 'customer-acquisition',
+    estimatedRoas: '5.1x',
+    budget: '$12,000',
+    usedBudget: '$4,800',
+    totalPrice: '$13,500',
+    budgetUsagePercentage: 40,
+    engines: [
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+    ],
+    dateRange: {
+      from: new Date('2024-08-10'),
+      to: addDays(new Date('2024-08-10'), 31),
+    },
+    features: [],
+  },
+  {
+    title: 'Black Friday Campaign',
+    badge: { text: 'Paused', variant: 'destructive' as const },
+    goal: 'performance-transaction',
+    estimatedRoas: '6.2x',
+    budget: '$25,000',
+    usedBudget: '$22,800',
+    totalPrice: '$28,000',
+    budgetUsagePercentage: 91,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+    ],
+    dateRange: {
+      from: new Date('2024-11-01'),
+      to: addDays(new Date('2024-11-01'), 29),
+    },
+    features: [],
+  },
+  {
+    title: 'New Year Campaign',
+    badge: { text: 'Ready', variant: 'secondary' as const },
+    goal: 'retargeting',
+    estimatedRoas: '4.5x',
+    budget: '$18,000',
+    usedBudget: '$1,200',
+    totalPrice: '$19,500',
+    budgetUsagePercentage: 7,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+    ],
+    dateRange: {
+      from: new Date('2025-01-01'),
+      to: addDays(new Date('2025-01-01'), 31),
+    },
+    features: [],
+  },
+];
+
+export const FullFunnelOverview: Story = {
+  render: () => {
+    const [status, setStatus] = React.useState<string[]>([]);
+    const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={defaultRoutes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Campaigns - Card View',
+            subtitle: 'Monitor campaign performance with detailed campaign summary cards',
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+          }}
+        >
+          <Card className="w-full">
+            <CardHeader>
+              <FilterBar
+                filters={[
+                  {
+                    name: 'Status',
+                    options: [
+                      { label: 'Running', value: 'running' },
+                      { label: 'Ready', value: 'ready' },
+                      { label: 'In option', value: 'in-option' },
+                      { label: 'Paused', value: 'paused' },
+                    ],
+                    selectedValues: status,
+                    onChange: setStatus,
+                  },
+                  {
+                    name: 'Advertiser',
+                    options: [
+                      { label: 'Acme Media', value: 'acme-media' },
+                      { label: 'BrandX', value: 'brandx' },
+                      { label: 'MediaWorks', value: 'mediaworks' },
+                      { label: 'AdPartners', value: 'adpartners' },
+                    ],
+                    selectedValues: advertiser,
+                    onChange: setAdvertiser,
+                  },
+                ]}
+                searchValue={''}
+                onSearchChange={() => {}}
+                searchPlaceholder="Search campaigns..."
+              />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {campaignSummaryData.map((campaign, index) => (
+                <CampaignSummary
+                  key={index}
+                  layout="horizontal"
+                  title={campaign.title}
+                  badge={campaign.badge}
+                  goal={campaign.goal}
+                  estimatedRoas={campaign.estimatedRoas}
+                  budget={campaign.budget}
+                  usedBudget={campaign.usedBudget}
+                  totalPrice={campaign.totalPrice}
+                  budgetUsagePercentage={campaign.budgetUsagePercentage}
+                  engines={campaign.engines}
+                  dateRange={campaign.dateRange}
+                  features={campaign.features}
+                  onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                  onAddToCart={() => console.log(`Add to cart: ${campaign.title}`)}
+                  className="w-full"
+                />
+              ))}
+            </CardContent>
+          </Card>
+        </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+# Campaign Card View
+
+This variant replaces the traditional table view with horizontal CampaignSummary cards, providing a more detailed and visually rich representation of campaign data.
+
+## Features
+
+- **Detailed Campaign Cards**: Each campaign is displayed as a horizontal CampaignSummary component
+- **Rich Information Display**: Shows budget usage, ROAS, engines used, and date ranges
+- **Interactive Elements**: Each card includes Edit and Add to Cart actions
+- **Visual Status Indicators**: Color-coded badges for campaign status
+- **Budget Usage Visualization**: Progress bars showing budget utilization
+- **Media Products Display**: Table format showing budget and ROAS per engine
+
+## Use Cases
+
+- Campaign management with detailed oversight
+- Visual campaign performance monitoring
+- Quick access to campaign editing and actions
+- Better understanding of budget allocation per engine
+- Enhanced campaign comparison view
+
+This view provides much more detailed information per campaign compared to the table view, making it ideal for campaign managers who need comprehensive campaign insights at a glance.
+        `,
+      },
+    },
+  },
+}; 

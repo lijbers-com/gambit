@@ -158,3 +158,95 @@ export const defaultRoutes: Route[] = [
     url: "/configuration/offline-instore",
   },
 ];
+
+// Extended routes for breadcrumb navigation (detail pages)
+export const extendedRoutes: Route[] = [
+  ...defaultRoutes,
+  // Campaign detail routes
+  {
+    id: 200,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/sponsored-products/[id]",
+    pattern: "/campaigns/sponsored-products/*",
+  },
+  {
+    id: 201,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/display/[id]",
+    pattern: "/campaigns/display/*",
+  },
+  {
+    id: 202,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/digital-instore/[id]",
+    pattern: "/campaigns/digital-instore/*",
+  },
+  {
+    id: 203,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/offline-instore/[id]",
+    pattern: "/campaigns/offline-instore/*",
+  },
+  // Line-item detail routes
+  {
+    id: 210,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/sponsored-products/line-item/[lineItemId]",
+    pattern: "/campaigns/sponsored-products/line-item/*",
+  },
+  {
+    id: 211,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/display/line-item/[lineItemId]",
+    pattern: "/campaigns/display/line-item/*",
+  },
+  {
+    id: 212,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/digital-instore/line-item/[lineItemId]",
+    pattern: "/campaigns/digital-instore/line-item/*",
+  },
+  {
+    id: 213,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/offline-instore/line-item/[lineItemId]",
+    pattern: "/campaigns/offline-instore/line-item/*",
+  },
+  // Creative detail routes
+  {
+    id: 220,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/sponsored-products/creative/[creativeId]",
+    pattern: "/campaigns/sponsored-products/creative/*",
+  },
+  {
+    id: 221,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/display/creative/[creativeId]",
+    pattern: "/campaigns/display/creative/*",
+  },
+  {
+    id: 222,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/digital-instore/creative/[creativeId]",
+    pattern: "/campaigns/digital-instore/creative/*",
+  },
+  {
+    id: 223,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/offline-instore/creative/[creativeId]",
+    pattern: "/campaigns/offline-instore/creative/*",
+  },
+];

@@ -15,12 +15,13 @@ export interface Route {
   id: number;
   name: string;
   url?: string;
-  type?: 'parent' | 'title' | 'single';
+  type?: 'parent' | 'title' | 'single' | 'hidden';
   icon?: {
     lucide?: string;
     url?: string;
   };
   subitems?: Route[];
+  pattern?: string; // For breadcrumb matching with dynamic routes
 }
 
 export interface SideNavigationProps {

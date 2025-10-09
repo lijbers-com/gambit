@@ -100,6 +100,25 @@ import { CampaignSummary } from '@/components/ui/campaign-summary';
       control: 'object',
       description: 'Array of campaign features with toggle states',
     },
+    layout: {
+      control: 'select',
+      options: ['vertical', 'horizontal'],
+      description: 'Layout orientation for the campaign summary',
+    },
+    usedBudget: {
+      control: 'text',
+      description: 'Amount of budget already used',
+    },
+    totalPrice: {
+      control: 'text',
+      description: 'Total price for the campaign',
+    },
+    budgetUsagePercentage: {
+      control: 'number',
+      description: 'Percentage of budget used (0-100)',
+      min: 0,
+      max: 100,
+    },
   },
 };
 
@@ -150,4 +169,104 @@ const defaultProps = {
 
 export const Default: Story = {
   args: defaultProps,
+};
+
+export const Horizontal: Story = {
+  args: {
+    ...defaultProps,
+    layout: 'horizontal',
+    usedBudget: '$3,200',
+    totalPrice: '$5,800',
+    budgetUsagePercentage: 64,
+  },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: `
+# Horizontal Campaign Summary
+
+The horizontal variant provides a wider layout that displays campaign information in a three-column format:
+
+- **Left Column**: Core campaign settings (Goal, Audience, Run time)
+- **Middle Column**: Engines and Features displayed in line-item style tables with headers and organized rows
+- **Right Column**: Metrics and action buttons
+
+## Key Features
+
+- **Line-Item Style Engines**: Engines are displayed in a structured table format similar to line items, with clear headers and organized rows
+- **Table Layout**: Each engine shows in a dedicated row with proper spacing and hover effects
+- **Enhanced Visual Hierarchy**: Better organization of information with clear column separation
+- **Responsive Design**: Adapts to wider screens while maintaining usability
+
+## Use Cases
+
+- Dashboard views where more horizontal space is available
+- Desktop applications with wide screens
+- Administrative interfaces requiring quick access to all campaign details
+- Situations where the campaign summary needs to integrate with other horizontal elements
+
+The horizontal layout maintains all the interactive functionality of the vertical version while providing a more structured, table-like presentation of engines and features.
+        `,
+      },
+    },
+  },
+};
+
+export const HorizontalHighBudgetUsage: Story = {
+  args: {
+    ...defaultProps,
+    layout: 'horizontal',
+    usedBudget: '$4,600',
+    totalPrice: '$5,800',
+    budgetUsagePercentage: 92,
+  },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: `
+# High Budget Usage Example
+
+This variant demonstrates the horizontal layout with high budget usage (92%). The progress bar changes color to red when budget usage exceeds 80%, providing a visual warning that the campaign is nearing its budget limit.
+
+The Campaign Summary panel shows:
+- Used Budget: $4,600
+- Total Price: $5,800
+- Budget Usage: 92% (displayed in red)
+
+This helps campaign managers quickly identify campaigns that need immediate attention or budget adjustment.
+        `,
+      },
+    },
+  },
+};
+
+export const HorizontalLowBudgetUsage: Story = {
+  args: {
+    ...defaultProps,
+    layout: 'horizontal',
+    usedBudget: '$1,200',
+    totalPrice: '$5,800',
+    budgetUsagePercentage: 24,
+  },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: `
+# Low Budget Usage Example
+
+This variant shows the horizontal layout with low budget usage (24%). The progress bar displays in green when budget usage is below 50%, indicating healthy budget utilization with plenty of room for continued spending.
+
+The Campaign Summary panel shows:
+- Used Budget: $1,200
+- Total Price: $5,800
+- Budget Usage: 24% (displayed in green)
+
+This helps campaign managers identify campaigns that may benefit from optimization to improve performance.
+        `,
+      },
+    },
+  },
 };

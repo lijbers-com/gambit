@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
+import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
@@ -1176,22 +1177,32 @@ export const DigitalInstoreRunning: Story = {
     );
     
     return (
-      <MenuContextProvider>
-        <AppLayout
-        routes={defaultRoutes}
-        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
-        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-        onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{ namespace: '' }}
-        pageHeaderProps={{
-          title: 'Digital In-store: Summer Launch (Running)',
-          onEdit: () => alert('Edit clicked'),
-          onExport: () => alert('Export clicked'),
-          onImport: () => alert('Import clicked'),
-          onSettings: () => alert('Settings clicked'),
-          headerRight: null,
-        }}
+      <BreadcrumbProvider
+        entities={[
+          {
+            id: 'C-001',
+            name: 'Summer Launch',
+            type: 'campaign',
+            campaignType: 'digital-instore',
+          },
+        ]}
       >
+        <MenuContextProvider>
+          <AppLayout
+          routes={defaultRoutes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Digital In-store: Summer Launch (Running)',
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+            headerRight: null,
+          }}
+        >
         <div className="mb-8">
           <ForecastSection />
         </div>
@@ -1465,6 +1476,7 @@ export const DigitalInstoreRunning: Story = {
         />
       </AppLayout>
       </MenuContextProvider>
+      </BreadcrumbProvider>
     );
   },
 };

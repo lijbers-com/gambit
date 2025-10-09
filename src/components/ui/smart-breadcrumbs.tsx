@@ -14,7 +14,8 @@ import {
   usePathname,
   useSearchParams,
 } from '@/lib/router-context';
-
+import { useBreadcrumbOptional } from '@/contexts/breadcrumb-context';
+import { extendedRoutes } from '@/components/layout/default-routes';
 import { Route } from './side-navigation';
 
 type ReadonlyURLSearchParams = {
@@ -41,15 +42,40 @@ const SmartBreadcrumbsInner = ({
 }: BreadcrumbProps) => {
   const pathName = usePathname();
   const searchParams = useSearchParams();
-  
+  const breadcrumbContext = useBreadcrumbOptional();
+
   // Handle cases where hooks return null (like in Storybook)
   const pathNames = pathName ? pathName.split('/').filter(Boolean) : [];
   const onHomepage = pathNames.length === 0;
 
+  // Use extended routes for better breadcrumb matching
+  const allRoutes = routes.length > 0 ? routes : extendedRoutes;
+
   // Function to get proper name from routes configuration
   const getRouteLabel = (path: string, fullPath: string): string => {
+    // Handle dynamic routes with breadcrumb context
+    if (breadcrumbContext) {
+      // Campaign detail pages
+      if (fullPath.match(/^\/campaigns\/[^/]+\/[^/]+$/)) {
+        const campaignId = path;
+        return breadcrumbContext.getCampaignName(campaignId);
+      }
+
+      // Line-item detail pages
+      if (fullPath.match(/^\/campaigns\/[^/]+\/line-item\/[^/]+$/)) {
+        const lineItemId = path;
+        return breadcrumbContext.getLineItemName(lineItemId);
+      }
+
+      // Creative detail pages
+      if (fullPath.match(/^\/campaigns\/[^/]+\/creative\/[^/]+$/)) {
+        const creativeId = path;
+        return breadcrumbContext.getCreativeName(creativeId);
+      }
+    }
+
     // Check direct routes first
-    for (const route of routes) {
+    for (const route of allRoutes) {
       if (route.url === fullPath) {
         return route.name;
       }
@@ -61,13 +87,17 @@ const SmartBreadcrumbsInner = ({
           }
         }
       }
+      // Check pattern matching for dynamic routes
+      if (route.pattern && fullPath.match(route.pattern.replace('*', '.*'))) {
+        return route.name;
+      }
     }
-    
+
     // If no exact match found, check parent routes for section names
     const pathSegments = fullPath.split('/').filter(Boolean);
     if (pathSegments.length >= 1) {
       const parentPath = `/${pathSegments[0]}`;
-      for (const route of routes) {
+      for (const route of allRoutes) {
         if (route.subitems && route.subitems.some(sub => sub.url?.startsWith(parentPath))) {
           if (pathSegments.length === 1) {
             return route.name;
@@ -75,7 +105,7 @@ const SmartBreadcrumbsInner = ({
         }
       }
     }
-    
+
     // Fallback to formatted path segment
     return formatLabel(path);
   };

@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { ArrowUp, Plus } from 'lucide-react';
+import { SearchInput } from '@/components/ui/search-input';
+import { FormSection } from '@/components/ui/form-section';
+import { ArrowUp, Plus, ScanBarcode } from 'lucide-react';
 import { addDays } from 'date-fns';
 
 interface Message {
@@ -13,6 +15,7 @@ interface Message {
   timestamp: Date;
   isTyping?: boolean;
   showCampaigns?: boolean;
+  showRetailProducts?: boolean;
 }
 
 export const ChatInterface = () => {
@@ -22,8 +25,24 @@ export const ChatInterface = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [retailProductSearch, setRetailProductSearch] = useState('');
+  const [isRetailProductDropdownOpen, setIsRetailProductDropdownOpen] = useState(false);
+  const [selectedRetailProducts, setSelectedRetailProducts] = useState<string[]>([]);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Retail products data from line-item template
+  const retailProducts = [
+    { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+    { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+    { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+    { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+    { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
+    { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
+    { id: '612816', name: 'Nike - air max 270 - size 42' },
+    { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
+    { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+  ];
 
   // Check if we're in a menu context and get collapsed state
   React.useEffect(() => {
@@ -55,6 +74,58 @@ export const ChatInterface = () => {
     }
   }, [isStarted, isAITyping]);
 
+  // Retail products handlers
+  const handleRetailProductSearchChange = (value: string) => {
+    setRetailProductSearch(value);
+    setIsRetailProductDropdownOpen(value.length > 0);
+  };
+
+  const handleRetailProductClick = () => {
+    setIsRetailProductDropdownOpen(true);
+  };
+
+  const handleRetailProductSelect = (productId: string) => {
+    if (!selectedRetailProducts.includes(productId)) {
+      setSelectedRetailProducts([...selectedRetailProducts, productId]);
+    }
+    setRetailProductSearch('');
+    setIsRetailProductDropdownOpen(false);
+  };
+
+  const handleRetailProductRemove = (productId: string) => {
+    setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+  };
+
+  const generateKeywordsForProducts = () => {
+    if (selectedRetailProducts.length === 0) return;
+
+    const selectedProductNames = selectedRetailProducts.map(id =>
+      retailProducts.find(p => p.id === id)?.name || ''
+    );
+
+    // Simulate AI generating keywords based on selected products
+    const keywordResponse = {
+      id: Date.now() + Math.random(),
+      text: `Great! I've generated keyword suggestions for your selected products: ${selectedProductNames.join(', ')}. Here are some high-performing keyword recommendations:
+
+**Broad Keywords:**
+• ${selectedProductNames[0]?.split(' - ')[0] || 'Product'} alternatives
+• Best ${selectedProductNames[0]?.split(' - ')[1] || 'products'}
+• ${selectedProductNames[0]?.split(' - ')[0] || 'Brand'} deals
+
+**Long-tail Keywords:**
+• "Buy ${selectedProductNames[0]?.toLowerCase() || 'product'} online"
+• "${selectedProductNames[0]?.split(' - ')[0] || 'Brand'} ${selectedProductNames[0]?.split(' - ')[1] || 'product'} review"
+• "Best price ${selectedProductNames[0]?.toLowerCase() || 'product'}"
+
+These keywords are optimized for your product selection and should help improve your campaign performance.`,
+      isUser: false,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, keywordResponse]);
+  };
+
   const simulateAIResponse = (userMessage: string) => {
     setIsAITyping(true);
 
@@ -70,6 +141,14 @@ export const ChatInterface = () => {
           isUser: false,
           timestamp: new Date(),
           showCampaigns: true
+        };
+      } else if (userMessage.toLowerCase().includes("keyword") || userMessage.toLowerCase().includes("suggested keywords")) {
+        aiResponse = {
+          id: Date.now() + Math.random(),
+          text: "I'd be happy to help you generate targeted keyword suggestions! To provide the most relevant keywords, please select the retail products you'd like to target in your campaign:",
+          isUser: false,
+          timestamp: new Date(),
+          showRetailProducts: true
         };
       } else {
         const responses = [
@@ -365,6 +444,98 @@ export const ChatInterface = () => {
                         onEdit={() => console.log('Edit campaign 3')}
                         onAddToCart={() => console.log('Add campaign 3 to cart')}
                       />
+                    </div>
+                  )}
+
+                  {/* Retail Products Selector */}
+                  {message.showRetailProducts && (
+                    <div className="mt-4">
+                      <FormSection title="Retail products">
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
+                            <SearchInput
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={handleRetailProductClick}
+                              placeholder="Select product by name or ID..."
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {isRetailProductDropdownOpen && (
+                              <div className="absolute z-50 w-full bg-white border border-input rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                                {retailProducts
+                                  .filter(product =>
+                                    retailProductSearch === '' ||
+                                    product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+                                    product.id.includes(retailProductSearch)
+                                  )
+                                  .filter(product => !selectedRetailProducts.includes(product.id))
+                                  .map(product => (
+                                    <div
+                                      key={product.id}
+                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                      onClick={() => handleRetailProductSelect(product.id)}
+                                    >
+                                      <div className="text-sm font-medium">{product.name}</div>
+                                      <div className="text-xs text-gray-500">ID: {product.id}</div>
+                                    </div>
+                                  ))}
+                                {retailProducts.filter(product =>
+                                  (retailProductSearch === '' ||
+                                   product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+                                   product.id.includes(retailProductSearch)) &&
+                                  !selectedRetailProducts.includes(product.id)
+                                ).length === 0 && (
+                                  <div className="px-3 py-2 text-sm text-gray-500">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Selected products */}
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium">Selected products ({selectedRetailProducts.length})</label>
+                              <div className="space-y-2 max-h-32 overflow-y-auto">
+                                {selectedRetailProducts.map(productId => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                      <div className="flex-1">
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-gray-500">ID: {product.id}</div>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleRetailProductRemove(productId)}
+                                        className="ml-2 h-6 w-6 p-0"
+                                      >
+                                        ×
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Generate Keywords Button */}
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="pt-4">
+                              <Button
+                                onClick={generateKeywordsForProducts}
+                                className="w-full"
+                              >
+                                Generate Keywords for Selected Products
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </FormSection>
                     </div>
                   )}
                 </div>

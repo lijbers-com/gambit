@@ -396,6 +396,7 @@ export const GeneralInsights: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     
     // Top filter states
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
@@ -586,11 +587,11 @@ export const GeneralInsights: Story = {
 
           {/* Full Width IROAS Report */}
           <div className="mb-6">
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">IROAS Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="flex-1 flex flex-col space-y-6">
                 {/* Revenue, Spend and IROAS Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <MetricCard
@@ -646,17 +647,18 @@ export const GeneralInsights: Story = {
                     }
                   />
                 </div>
-                
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full IROAS Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full IROAS Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
           </div>
 
@@ -664,11 +666,11 @@ export const GeneralInsights: Story = {
           {/* Top Row - Product Report and Performance Ecom */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Product Report Card */}
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Product Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="flex-1 flex flex-col space-y-6">
                 {/* Top 5 Products Performance Chart */}
                 <div>
                   <h4 className="text-sm font-medium mb-3 text-muted-foreground">Top 5 Products - Impressions vs Transactions</h4>
@@ -771,65 +773,56 @@ export const GeneralInsights: Story = {
                   />
                 </div>
                 
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full Product Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full Product Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
 
             {/* E-commerce Funnel Report Card */}
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">E-commerce Funnel Report</CardTitle>
+                <CardTitle className="text-lg font-semibold">Funnel Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Total Conversion Rate at Top */}
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground">Total CR%</div>
-                  <div className="text-3xl font-bold">0.87%</div>
-                  <div className="text-sm text-red-500">↓ 17.3%</div>
-                </div>
-
-                {/* Funnel Chart with Side Metrics */}
-                <div className="flex items-start">
-                  {/* Left Side Metrics */}
-                  <div className="w-32 h-96 flex flex-col justify-between py-4 text-left">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Item Views</div>
-                      <div className="text-lg font-bold">8,598</div>
-                      <div className="text-xs text-green-500">↑ 19.4%</div>
+              <CardContent className="flex-1 flex flex-col space-y-4">
+                {/* Column-based Funnel Structure */}
+                <div className="space-y-6">
+                  {/* Top Row - Column Headers and Values */}
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground mb-2">Impressions</div>
+                      <div className="text-2xl font-bold">54,740</div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Add To Cart CR%</div>
-                      <div className="text-lg font-bold">4.8%</div>
-                      <div className="text-xs text-green-500">↑ 12.9%</div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground mb-2">Clicks</div>
+                      <div className="text-2xl font-bold">3,403</div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Checkout CR%</div>
-                      <div className="text-lg font-bold">141.9%</div>
-                      <div className="text-xs text-green-500">↑ 200.4%</div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground mb-2">Add to Cart</div>
+                      <div className="text-2xl font-bold">934</div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Purchase CR%</div>
-                      <div className="text-lg font-bold">12.7%</div>
-                      <div className="text-xs text-red-500">↓ 77.0%</div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground mb-2">Purchases</div>
+                      <div className="text-2xl font-bold">715</div>
                     </div>
                   </div>
 
                   {/* Funnel Chart */}
-                  <div className="flex-1">
+                  <div className="h-64">
                     <FunnelChartComponent
                       data={[
-                        { name: 'Impressions', value: 1147000, percentage: 100 },
-                        { name: 'Clicks', value: 9940, percentage: 0.87 },
-                        { name: 'Add to Cart', value: 477, percentage: 4.8 },
-                        { name: 'Sales', value: 61, percentage: 12.7 },
+                        { name: 'Impressions', value: 54740 },
+                        { name: 'Clicks', value: 3403 },
+                        { name: 'Add to Cart', value: 934 },
+                        { name: 'Purchases', value: 715 },
                       ]}
                       config={{
                         'Impressions': {
@@ -844,39 +837,49 @@ export const GeneralInsights: Story = {
                           label: "Add to Cart",
                           color: "hsl(var(--chart-3))",
                         },
-                        'Sales': {
-                          label: "Sales",
+                        'Purchases': {
+                          label: "Purchases",
                           color: "hsl(var(--chart-4))",
                         },
                       }}
                       showTooltip={true}
-                      showLabels={false}
-                      className="h-96 w-full"
+                      showLabels={true}
+                      orientation="horizontal"
+                      className="h-full w-full"
                     />
+                  </div>
+
+                  {/* Bottom Row - Total Conversion Rate */}
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground">Total CR%</div>
+                    <div className="text-2xl font-bold">0.87%</div>
+                    <div className="text-sm text-green-600">↑ 17.3%</div>
                   </div>
                 </div>
                 
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full E-commerce Funnel Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full E-commerce Funnel Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
           </div>
 
           {/* Bottom Row - Audience Report and Goal Report */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Audience Report Card */}
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Audience Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="flex-1 flex flex-col space-y-6">
                 {/* Audience Pie Chart */}
                 <div>
                   <h4 className="text-sm font-medium mb-3 text-muted-foreground">Audience Distribution</h4>
@@ -919,23 +922,23 @@ export const GeneralInsights: Story = {
                   <h4 className="text-sm font-medium mb-3 text-muted-foreground">Customer Lifetime Value by Audience</h4>
                   <BarChartComponent
                     data={[
-                      { 
-                        audience: 'Young Prof.', 
+                      {
+                        audience: 'Young Prof.',
                         clv: 1250,
                         avgOrderValue: 85
                       },
-                      { 
-                        audience: 'Families', 
+                      {
+                        audience: 'Families',
                         clv: 890,
                         avgOrderValue: 120
                       },
-                      { 
-                        audience: 'Students', 
+                      {
+                        audience: 'Students',
                         clv: 340,
                         avgOrderValue: 45
                       },
-                      { 
-                        audience: 'Seniors', 
+                      {
+                        audience: 'Seniors',
                         clv: 780,
                         avgOrderValue: 65
                       },
@@ -959,35 +962,36 @@ export const GeneralInsights: Story = {
                     xAxisDataKey="audience"
                   />
                 </div>
-                
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full Audience Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full Audience Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
 
             {/* Goal Report Card */}
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Goal Report</CardTitle>
               </CardHeader>
-              <CardContent className="h-96 flex flex-col">
+              <CardContent className="flex-1 flex flex-col p-6">
                 {/* Goal Contribution Radar Charts */}
-                <div className="flex-1 flex flex-col">
-                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Engine Performance by Goal</h4>
-                  <div className="flex-1 grid grid-cols-2 gap-16">
-                    {/* Sponsored Products Radar */}
-                    <div>
-                      <h5 className="text-xs font-medium mb-2 text-center">Sponsored Products</h5>
+                <h4 className="text-sm font-medium mb-4 text-muted-foreground">Engine Performance by Goal</h4>
+                <div className="grid grid-cols-2 gap-6 h-full">
+                  {/* Sponsored Products Radar */}
+                  <div className="flex flex-col">
+                    <h5 className="text-sm font-medium mb-3 text-center">Sponsored Products</h5>
+                    <div className="flex-1">
                       <RadarChartComponent
                         data={[
-                          { subject: 'Awareness', 'Sponsored products': 25 },
+                          { subject: 'Retention', 'Sponsored products': 30 },
                           { subject: 'Consideration', 'Sponsored products': 35 },
                           { subject: 'Intent', 'Sponsored products': 40 },
                           { subject: 'Purchase', 'Sponsored products': 50 },
@@ -1003,13 +1007,15 @@ export const GeneralInsights: Story = {
                         className="h-full w-full"
                       />
                     </div>
+                  </div>
 
-                    {/* Display Radar */}
-                    <div>
-                      <h5 className="text-xs font-medium mb-2 text-center">Display</h5>
+                  {/* Display Radar */}
+                  <div className="flex flex-col">
+                    <h5 className="text-sm font-medium mb-3 text-center">Display</h5>
+                    <div className="flex-1">
                       <RadarChartComponent
                         data={[
-                          { subject: 'Awareness', 'Display': 45 },
+                          { subject: 'Retention', 'Display': 12 },
                           { subject: 'Consideration', 'Display': 30 },
                           { subject: 'Intent', 'Display': 20 },
                           { subject: 'Purchase', 'Display': 15 },
@@ -1025,13 +1031,15 @@ export const GeneralInsights: Story = {
                         className="h-full w-full"
                       />
                     </div>
+                  </div>
 
-                    {/* Digital In-store Radar */}
-                    <div>
-                      <h5 className="text-xs font-medium mb-2 text-center">Digital In-store</h5>
+                  {/* Digital In-store Radar */}
+                  <div className="flex flex-col">
+                    <h5 className="text-sm font-medium mb-3 text-center">Digital In-store</h5>
+                    <div className="flex-1">
                       <RadarChartComponent
                         data={[
-                          { subject: 'Awareness', 'Digital in-store': 20 },
+                          { subject: 'Retention', 'Digital in-store': 22 },
                           { subject: 'Consideration', 'Digital in-store': 25 },
                           { subject: 'Intent', 'Digital in-store': 25 },
                           { subject: 'Purchase', 'Digital in-store': 20 },
@@ -1047,13 +1055,15 @@ export const GeneralInsights: Story = {
                         className="h-full w-full"
                       />
                     </div>
+                  </div>
 
-                    {/* Offline In-store Radar */}
-                    <div>
-                      <h5 className="text-xs font-medium mb-2 text-center">Offline In-store</h5>
+                  {/* Offline In-store Radar */}
+                  <div className="flex flex-col">
+                    <h5 className="text-sm font-medium mb-3 text-center">Offline In-store</h5>
+                    <div className="flex-1">
                       <RadarChartComponent
                         data={[
-                          { subject: 'Awareness', 'Offline in-store': 10 },
+                          { subject: 'Retention', 'Offline in-store': 18 },
                           { subject: 'Consideration', 'Offline in-store': 10 },
                           { subject: 'Intent', 'Offline in-store': 15 },
                           { subject: 'Purchase', 'Offline in-store': 15 },
@@ -1071,17 +1081,18 @@ export const GeneralInsights: Story = {
                     </div>
                   </div>
                 </div>
-                
-                {/* CTA Button */}
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full Goal Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full Goal Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
           </div>
         </div>
@@ -1100,6 +1111,7 @@ export const DisplayPerformance: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -1164,8 +1176,11 @@ export const DisplayPerformance: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
           onEdit: () => alert('Edit clicked'),
@@ -1176,7 +1191,7 @@ export const DisplayPerformance: Story = {
       >
         <div className="space-y-6">
           <Card>
-            <CardContent className="space-y-6 pt-6">
+            <CardContent className="flex flex-col h-full space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {displayMetrics.map((metric) => (
                   <MetricCard
@@ -1336,6 +1351,7 @@ export const DigitalInstorePerformance: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -1455,8 +1471,11 @@ export const DigitalInstorePerformance: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
           onEdit: () => alert('Edit clicked'),
@@ -1524,11 +1543,11 @@ export const DigitalInstorePerformance: Story = {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Plays Report</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="flex-1 flex flex-col space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <MetricCard
                   label="Stores"
@@ -1573,27 +1592,29 @@ export const DigitalInstorePerformance: Story = {
                 />
               </div>
               
-              {/* CTA Button */}
-              <div className="pt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => console.log('Navigate to full Plays Report')}
-                >
-                  View Full Report
-                </Button>
-              </div>
             </CardContent>
+
+            {/* CTA Footer */}
+            <div className="p-6 pt-0">
+              <Button
+                variant="outline"
+                onClick={() => console.log('Navigate to full Plays Report')}
+                className="w-full"
+              >
+                View Full Report
+              </Button>
+            </div>
           </Card>
 
 
           {/* ROAS Report */}
           <div className="grid grid-cols-1 gap-6">
             {/* ROAS Report Card */}
-            <Card>
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">ROAS Report</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex-1 flex flex-col space-y-4">
                 {/* ROAS metrics grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <MetricCard
@@ -1667,16 +1688,18 @@ export const DigitalInstorePerformance: Story = {
                   />
                 </div>
                 
-                {/* CTA Button */}
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => console.log('Navigate to full ROAS Report')}
-                  >
-                    View Full Report
-                  </Button>
-                </div>
               </CardContent>
+
+              {/* CTA Footer */}
+              <div className="p-6 pt-0">
+                <Button
+                  variant="outline"
+                  onClick={() => console.log('Navigate to full ROAS Report')}
+                  className="w-full"
+                >
+                  View Full Report
+                </Button>
+              </div>
             </Card>
           </div>
 
@@ -1751,6 +1774,7 @@ export const OfflineInstorePerformance: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -1815,8 +1839,11 @@ export const OfflineInstorePerformance: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
           onEdit: () => alert('Edit clicked'),
@@ -1826,8 +1853,8 @@ export const OfflineInstorePerformance: Story = {
         }}
       >
         <div className="space-y-6">
-          <Card>
-            <CardContent className="space-y-6 pt-6">
+          <Card className="h-full flex flex-col">
+            <CardContent className="flex-1 flex flex-col space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {offlineInstoreMetrics.map((metric) => (
                   <MetricCard
@@ -1955,17 +1982,18 @@ export const OfflineInstorePerformance: Story = {
                   </div>
                 </div>
               </div>
-              
-              {/* CTA Button */}
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => console.log('Navigate to full Audience Report')}
-                >
-                  View Full Report
-                </Button>
-              </div>
             </CardContent>
+
+            {/* CTA Footer */}
+            <div className="p-6 pt-0">
+              <Button
+                variant="outline"
+                onClick={() => console.log('Navigate to full Audience Report')}
+                className="w-full"
+              >
+                View Full Report
+              </Button>
+            </div>
           </Card>
 
           <Card>
@@ -2095,6 +2123,7 @@ export const FullReportView: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Comprehensive report data
     const fullReportData = [
@@ -2279,8 +2308,11 @@ export const FullReportView: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
           onEdit: () => alert('Edit clicked'),
@@ -2424,6 +2456,7 @@ export const ProductReportView: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Report data for all tabs
     const productReportData = [
@@ -2624,8 +2657,11 @@ export const ProductReportView: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
           onEdit: () => alert('Edit clicked'),

@@ -290,7 +290,7 @@ const themes = {
   retailMedia: {
     name: 'Retail Media Platform',
     logo: '/gambit-logo.svg',
-    backgroundImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920&h=1080&fit=crop',
+    backgroundImage: '/Gambit_background.svg',
     primaryColor: '#10B981',
     title: 'Welcome to Retail Media Platform',
     subtitle: 'Maximize your retail advertising impact',

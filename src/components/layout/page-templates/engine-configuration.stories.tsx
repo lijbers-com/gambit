@@ -181,6 +181,7 @@ const createEngineConfigurationStory = (
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -210,7 +211,10 @@ const createEngineConfigurationStory = (
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
               showPresets={true}
             />
           ),

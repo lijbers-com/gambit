@@ -37,7 +37,18 @@ export interface DateRangePickerProps {
   disabled?: boolean
   className?: string
   showPresets?: boolean
+  showConversionWindow?: boolean
+  conversionWindow?: number
+  onConversionWindowChange?: (days: number) => void
 }
+
+// Conversion window options
+const conversionWindowOptions = [
+  { label: "7 days", value: 7 },
+  { label: "14 days", value: 14 },
+  { label: "21 days", value: 21 },
+  { label: "28 days", value: 28 },
+]
 
 // Preset definitions
 const presets = [
@@ -149,6 +160,9 @@ export function DateRangePicker({
   disabled = false,
   className,
   showPresets = false,
+  showConversionWindow = false,
+  conversionWindow,
+  onConversionWindowChange,
 }: DateRangePickerProps) {
   const formatDateRange = (range: DateRange | undefined) => {
     if (!range || !range.from) return placeholder
@@ -231,6 +245,32 @@ export function DateRangePicker({
               initialFocus
             />
           </div>
+          {showConversionWindow && (
+            <div className="border-t p-3 flex-shrink-0">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Conversion Window
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {conversionWindowOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => onConversionWindowChange?.(option.value)}
+                      className={cn(
+                        "px-3 py-2 text-sm rounded-md border transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        conversionWindow === option.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>

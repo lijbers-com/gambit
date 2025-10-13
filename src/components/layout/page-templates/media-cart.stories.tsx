@@ -134,6 +134,7 @@ export const MediaCart: Story = {
   render: () => {
     const [goal, setGoal] = React.useState(campaignData.goal);
     const [dateRange, setDateRange] = React.useState(campaignData.dateRange);
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
 
     return (
       <MenuContextProvider>
@@ -189,9 +190,12 @@ export const MediaCart: Story = {
                               <DateRangePicker
                                 dateRange={dateRange}
                                 onDateRangeChange={setDateRange}
-                                placeholder="Select campaign dates"
+                                placeholder="Select campaign dates with conversion window"
                                 className="w-full bg-slate-50 border-slate-200"
                                 showPresets={true}
+                                showConversionWindow={true}
+                                conversionWindow={conversionWindow}
+                                onConversionWindowChange={setConversionWindow}
                               />
                             </div>
                           </div>

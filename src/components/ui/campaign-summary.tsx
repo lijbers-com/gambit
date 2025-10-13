@@ -48,6 +48,8 @@ export interface CampaignSummaryProps {
   onEngineToggle?: (engineId: string, enabled: boolean) => void;
   onFeatureToggle?: (featureId: string, enabled: boolean) => void;
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
+  conversionWindow?: number;
+  onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
   onAddToCart?: () => void;
   className?: string;
@@ -76,6 +78,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onEngineToggle,
     onFeatureToggle,
     onDateRangeChange,
+    conversionWindow,
+    onConversionWindowChange,
     onEdit,
     onAddToCart,
     className,
@@ -217,9 +221,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <DateRangePicker
                   dateRange={dateRange}
                   onDateRangeChange={onDateRangeChange}
-                  placeholder="Select campaign dates"
+                  placeholder="Select campaign dates with conversion window"
                   className="bg-slate-50 border-slate-200"
                   showPresets={true}
+                  showConversionWindow={true}
+                  conversionWindow={conversionWindow}
+                  onConversionWindowChange={onConversionWindowChange}
                 />
               </div>
 

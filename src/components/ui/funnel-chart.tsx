@@ -17,6 +17,7 @@ export interface FunnelChartProps {
   showLabels?: boolean
   dataKey?: string
   nameKey?: string
+  orientation?: 'vertical' | 'horizontal'
 }
 
 export function FunnelChartComponent({
@@ -27,6 +28,7 @@ export function FunnelChartComponent({
   showLabels = true,
   dataKey = "value",
   nameKey = "name",
+  orientation = "vertical",
 }: FunnelChartProps) {
   // Normalize the data to prevent segments from becoming too small
   const normalizedData = data.map((item, index) => {
@@ -64,6 +66,44 @@ export function FunnelChartComponent({
     }
     return null;
   };
+
+  if (orientation === 'horizontal') {
+    // Custom horizontal funnel implementation since Recharts doesn't support it
+    const maxValue = Math.max(...normalizedData.map(item => Number(item[dataKey])));
+
+    return (
+      <ChartContainer config={config} className={className}>
+        <div className="flex items-center justify-center h-full w-full">
+          <div className="flex items-center space-x-1 w-full max-w-4xl">
+            {normalizedData.map((entry, index) => {
+              const key = String(entry[nameKey] || entry.name || `item-${index}`);
+              const value = Number(entry.originalValue || entry[dataKey]);
+              const percentage = (value / maxValue) * 100;
+              const color = config[key]?.color || `hsl(${index * 45}, 70%, 50%)`;
+
+              // Calculate trapezoid shape for funnel effect
+              const leftHeight = index === 0 ? 100 : (percentage * 0.8 + 20);
+              const rightHeight = index === normalizedData.length - 1 ? 20 : (percentage * 0.6 + 10);
+
+              return (
+                <div
+                  key={key}
+                  className="relative flex-1 transition-all duration-200 hover:opacity-80"
+                  style={{
+                    height: '120px',
+                    background: `linear-gradient(to right, ${color}, ${color})`,
+                    clipPath: `polygon(0 ${100 - leftHeight/2}%, 100% ${100 - rightHeight/2}%, 100% ${100 - rightHeight/2 + rightHeight}%, 0 ${100 - leftHeight/2 + leftHeight}%)`,
+                    minWidth: `${Math.max(percentage * 0.8, 10)}px`
+                  }}
+                  title={`${entry[nameKey]}: ${value.toLocaleString()}`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </ChartContainer>
+    );
+  }
 
   return (
     <ChartContainer config={config} className={className}>

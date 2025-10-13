@@ -36,6 +36,7 @@ export const WithHeaderRight: Story = {
       from: new Date(),
       to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader Title"
@@ -44,8 +45,11 @@ export const WithHeaderRight: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range"
+            placeholder="Pick a date range with conversion window"
             showPresets={true}
+            showConversionWindow={true}
+            conversionWindow={conversionWindow}
+            onConversionWindowChange={setConversionWindow}
           />
         }
       />
@@ -60,6 +64,7 @@ export const WithDropdownActions: Story = {
       from: new Date(),
       to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader with Actions"
@@ -68,8 +73,11 @@ export const WithDropdownActions: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range"
+            placeholder="Pick a date range with conversion window"
             showPresets={true}
+            showConversionWindow={true}
+            conversionWindow={conversionWindow}
+            onConversionWindowChange={setConversionWindow}
           />
         }
         onEdit={() => alert('Edit clicked')}
@@ -88,6 +96,7 @@ export const WithoutOptionsMenu: Story = {
       from: new Date(),
       to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader without Options"
@@ -96,8 +105,11 @@ export const WithoutOptionsMenu: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range"
+            placeholder="Pick a date range with conversion window"
             showPresets={true}
+            showConversionWindow={true}
+            conversionWindow={conversionWindow}
+            onConversionWindowChange={setConversionWindow}
           />
         }
         showOptionsMenu={false}

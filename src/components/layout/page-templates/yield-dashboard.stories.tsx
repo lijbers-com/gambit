@@ -1111,6 +1111,7 @@ export const YieldDashboard: Story = {
       from: new Date(2024, 0, 1), // January 1, 2024
       to: new Date(2024, 11, 31), // December 31, 2024
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Filter states
     const [engineFilter, setEngineFilter] = useState<string | undefined>('all');
@@ -1151,8 +1152,11 @@ export const YieldDashboard: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
         }}
@@ -1458,6 +1462,7 @@ export const SponsoredProductsYield: Story = {
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(), // today
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
     const [selectedPositions, setSelectedPositions] = useState<React.Key[]>([]);
     const [selectedMedia, setSelectedMedia] = useState<React.Key[]>([]);
@@ -1480,8 +1485,11 @@ export const SponsoredProductsYield: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
         }}
@@ -1608,6 +1616,7 @@ export const DisplayYield: Story = {
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(), // today
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
     const [selectedPositions, setSelectedPositions] = useState<React.Key[]>([]);
     const [selectedMedia, setSelectedMedia] = useState<React.Key[]>([]);
@@ -1630,8 +1639,11 @@ export const DisplayYield: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
         }}
@@ -1758,6 +1770,7 @@ export const DigitalInstoreYield: Story = {
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(), // today
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('stores');
     const [selectedPositions, setSelectedPositions] = useState<React.Key[]>([]);
     const [selectedMedia, setSelectedMedia] = useState<React.Key[]>([]);
@@ -1780,8 +1793,11 @@ export const DigitalInstoreYield: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
         }}
@@ -1908,6 +1924,7 @@ export const OfflineInstoreYield: Story = {
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(), // today
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
     const [selectedPositions, setSelectedPositions] = useState<React.Key[]>([]);
     const [selectedMedia, setSelectedMedia] = useState<React.Key[]>([]);
@@ -1930,8 +1947,11 @@ export const OfflineInstoreYield: Story = {
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Pick a date range"
+              placeholder="Pick a date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
             />
           ),
         }}
@@ -2063,6 +2083,7 @@ export const YieldReportView: Story = {
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
     });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Comprehensive filter options
     const engineOptions = [

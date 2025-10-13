@@ -215,11 +215,61 @@ export const RangePickerDisabled: Story = {
   },
 };
 
+export const RangePickerWithConversionWindow: Story = {
+  render: () => {
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
+    return (
+      <div className="space-y-4">
+        <DateRangePicker
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          placeholder="Pick a date range with conversion window"
+          showPresets={true}
+          showConversionWindow={true}
+          conversionWindow={conversionWindow}
+          onConversionWindowChange={setConversionWindow}
+        />
+        <div className="text-sm text-muted-foreground space-y-1">
+          <div>Selected range: {dateRange?.from?.toLocaleDateString()} - {dateRange?.to?.toLocaleDateString()}</div>
+          <div>Conversion window: {conversionWindow} days</div>
+        </div>
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+# Date Range Picker with Conversion Window
+
+This variant combines presets with conversion window options. The conversion window appears below the calendar months and allows users to select 7, 14, 21, or 28 days for attribution window settings.
+
+## Features
+
+- **Preset Selection**: Quick date range selections
+- **Two Month Calendar**: Side-by-side month view
+- **Conversion Window**: 4 button options (7, 14, 21, 28 days)
+- **Visual Feedback**: Selected conversion window is highlighted
+- **Responsive Layout**: Conversion window buttons adapt to container width
+
+## Use Cases
+
+- Campaign attribution settings
+- Analytics reporting windows
+- Performance measurement periods
+- ROI calculation timeframes
+        `,
+      },
+    },
+  },
+};
+
 export const ComparisonShowcase: Story = {
   render: () => {
     const [singleDate, setSingleDate] = useState<Date>();
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    
+
     return (
       <div className="space-y-6">
         <div className="space-y-2">
@@ -230,7 +280,7 @@ export const ComparisonShowcase: Story = {
             placeholder="Select a single date"
           />
         </div>
-        
+
                  <div className="space-y-2">
            <h3 className="text-lg font-semibold">Range Date Picker</h3>
            <DateRangePicker
@@ -239,7 +289,7 @@ export const ComparisonShowcase: Story = {
              placeholder="Select a date range"
            />
          </div>
-         
+
          <div className="space-y-2">
            <h3 className="text-lg font-semibold">Range Date Picker with Presets</h3>
            <DateRangePicker

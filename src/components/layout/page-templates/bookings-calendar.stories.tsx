@@ -177,6 +177,7 @@ const BookingCalendarTemplate = ({
     from: new Date(),
     to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
   });
+  const [conversionWindow, setConversionWindow] = useState<number>(14);
   
   const viewTabs = [
     { value: 'reach', label: 'Reach' },
@@ -308,8 +309,11 @@ const BookingCalendarTemplate = ({
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Select date range"
+              placeholder="Select date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
               className="w-[280px]"
             />
           ),
@@ -1609,6 +1613,7 @@ const OfflineInstoreCalendarTemplate = ({
     from: new Date(),
     to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
   });
+  const [conversionWindow, setConversionWindow] = useState<number>(14);
   
   const viewTabs = [
     { value: 'bookedCampaigns', label: 'Booked campaigns' },
@@ -1763,8 +1768,11 @@ const OfflineInstoreCalendarTemplate = ({
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
-              placeholder="Select date range"
+              placeholder="Select date range with conversion window"
               showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
               className="w-[280px]"
             />
           ),

@@ -65,6 +65,7 @@ export function AppLayout({
     from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
     to: new Date(), // today
   });
+  const [conversionWindow, setConversionWindow] = useState<number>(14);
 
   return (
     <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
@@ -104,8 +105,11 @@ export function AppLayout({
                 <DateRangePicker
                   dateRange={dateRange}
                   onDateRangeChange={setDateRange}
-                  placeholder="Select date range"
+                  placeholder="Select date range with conversion window"
                   showPresets={true}
+                  showConversionWindow={true}
+                  conversionWindow={conversionWindow}
+                  onConversionWindowChange={setConversionWindow}
                   className="w-[280px]"
                 />
               )

@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { DateRangePicker } from '../../ui/date-picker';
+import { DateRange } from 'react-day-picker';
 import { Button } from '../../ui/button';
 import { Table } from '../../ui/table';
 import { Badge } from '../../ui/badge';
@@ -133,7 +134,7 @@ const campaignData = {
 export const MediaCart: Story = {
   render: () => {
     const [goal, setGoal] = React.useState(campaignData.goal);
-    const [dateRange, setDateRange] = React.useState(campaignData.dateRange);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>(campaignData.dateRange);
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
 
     return (

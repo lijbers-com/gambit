@@ -359,6 +359,7 @@ export const FullFunnelOverview: Story = {
                   title={campaign.title}
                   badge={campaign.badge}
                   goal={campaign.goal}
+                  audience="retail-shoppers"
                   estimatedRoas={campaign.estimatedRoas}
                   budget={campaign.budget}
                   usedBudget={campaign.usedBudget}

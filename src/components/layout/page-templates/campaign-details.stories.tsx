@@ -925,7 +925,7 @@ const updatedForecastMetrics = [
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to log detail: ${row.action} (${row.id})`)}
                   />
                 </div>
               ),
@@ -3547,7 +3547,7 @@ export const DisplayInOption: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to log detail: ${row.action} (${row.id})`)}
                   />
                 </div>
               ),
@@ -4502,7 +4502,7 @@ export const SponsoredProductsInOption: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to log detail: ${row.action} (${row.id})`)}
                   />
                 </div>
               ),
@@ -5301,7 +5301,7 @@ export const SponsoredProductsRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to log detail: ${row.action} (${row.id})`)}
                   />
                 </div>
               ),

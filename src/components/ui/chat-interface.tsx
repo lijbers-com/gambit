@@ -75,7 +75,8 @@ export const ChatInterface = () => {
   }, [isStarted, isAITyping]);
 
   // Retail products handlers
-  const handleRetailProductSearchChange = (value: string) => {
+  const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     setRetailProductSearch(value);
     setIsRetailProductDropdownOpen(value.length > 0);
   };

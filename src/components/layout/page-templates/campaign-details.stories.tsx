@@ -877,6 +877,17 @@ const updatedForecastMetrics = [
                       { key: 'name', header: 'Name' },
                       { key: 'format', header: 'Format' },
                       { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={creativeData.filter(row => {
                       const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
@@ -1909,10 +1920,21 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'id', header: 'Line-item ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -1964,6 +1986,17 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'name', header: 'Name' },
                       { key: 'format', header: 'Format' },
                       { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={creativeData.filter(row => {
                       const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
@@ -2069,16 +2102,16 @@ export const DisplayRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Display Banner', placements: 4 },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2 },
-      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Rich Media', placements: 3 },
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Display Banner', placements: 4, totalSkuConversions: '3,245', totalSkuConversionRate: '2.8%', totalSkuUnits: '5,678', totalSkuRevenue: '$98,450', totalSkuRoas: '4.2x', onlineSkuConversions: '2,271', onlineSkuUnits: '3,975', onlineSkuRevenue: '$68,915', instoreSkuConversions: '974', instoreSkuUnits: '1,703', instoreSkuRevenue: '$29,535' },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2, totalSkuConversions: '1,867', totalSkuConversionRate: '3.4%', totalSkuUnits: '3,234', totalSkuRevenue: '$67,890', totalSkuRoas: '4.8x', onlineSkuConversions: '1,307', onlineSkuUnits: '2,264', onlineSkuRevenue: '$47,523', instoreSkuConversions: '560', instoreSkuUnits: '970', instoreSkuRevenue: '$20,367' },
+      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Rich Media', placements: 3, totalSkuConversions: '2,456', totalSkuConversionRate: '3.1%', totalSkuUnits: '4,123', totalSkuRevenue: '$89,670', totalSkuRoas: '4.6x', onlineSkuConversions: '1,719', onlineSkuUnits: '2,886', onlineSkuRevenue: '$62,769', instoreSkuConversions: '737', instoreSkuUnits: '1,237', instoreSkuRevenue: '$26,901' },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
     ];
 
     const logData = [
@@ -2448,10 +2481,21 @@ export const DisplayRunning: Story = {
                       { key: 'id', header: 'Line-item ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -2503,6 +2547,17 @@ export const DisplayRunning: Story = {
                       { key: 'name', header: 'Name' },
                       { key: 'format', header: 'Format' },
                       { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={creativeData.filter(row => {
                       const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
@@ -3146,16 +3201,16 @@ export const DisplayInOption: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
-      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3 },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
-      { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0 },
+      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3, totalSkuConversions: '1,245', totalSkuConversionRate: '2.1%', totalSkuUnits: '2,134', totalSkuRevenue: '$42,680', totalSkuRoas: '3.5x', onlineSkuConversions: '871', onlineSkuUnits: '1,494', onlineSkuRevenue: '$29,876', instoreSkuConversions: '374', instoreSkuUnits: '640', instoreSkuRevenue: '$12,804' },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1, totalSkuConversions: '2,867', totalSkuConversionRate: '3.6%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.9x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
+      { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0, totalSkuConversions: '0', totalSkuConversionRate: '0%', totalSkuUnits: '0', totalSkuRevenue: '$0', totalSkuRoas: '0x', onlineSkuConversions: '0', onlineSkuUnits: '0', onlineSkuRevenue: '$0', instoreSkuConversions: '0', instoreSkuUnits: '0', instoreSkuRevenue: '$0' },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
+      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.7x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
+      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '4.1x', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
     ];
 
     const logData = [
@@ -3524,10 +3579,21 @@ export const DisplayInOption: Story = {
                       { key: 'id', header: 'Line-item ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -3579,6 +3645,17 @@ export const DisplayInOption: Story = {
                       { key: 'name', header: 'Name' },
                       { key: 'format', header: 'Format' },
                       { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
                     data={creativeData.filter(row => {
                       const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);

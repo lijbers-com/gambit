@@ -16,7 +16,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle } from 'lucide-react';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
-import { DatePicker } from '../../ui/date-picker';
+import { DateRangePicker, DatePicker } from '../../ui/date-picker';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import React, { useState } from 'react';
 
@@ -155,17 +157,22 @@ export const DigitalInstoreInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
       { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Banner', placements: 2 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'In-option', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'In-option', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'In-option', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'In-option', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
     
     const logData = [
@@ -669,7 +676,17 @@ const updatedForecastMetrics = [
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -809,6 +826,7 @@ const updatedForecastMetrics = [
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -958,17 +976,22 @@ export const DigitalInstoreRunning: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Banner', placements: 2 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
     ];
     
     const logData = [
@@ -1200,7 +1223,17 @@ export const DigitalInstoreRunning: Story = {
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
-            headerRight: null,
+            headerRight: (
+              <DateRangePicker
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                placeholder="Pick a date range with conversion window"
+                showPresets={true}
+                showConversionWindow={true}
+                conversionWindow={conversionWindow}
+                onConversionWindowChange={setConversionWindow}
+              />
+            ),
           }}
         >
         <div className="mb-8">
@@ -1340,6 +1373,7 @@ export const DigitalInstoreRunning: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -1490,17 +1524,22 @@ export const OfflineInstoreRunning: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Print', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Shelf Talker', placements: 2 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
 
     const logData = [
@@ -1722,7 +1761,17 @@ export const OfflineInstoreRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -1863,6 +1912,7 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -2013,17 +2063,22 @@ export const DisplayRunning: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Display Banner', placements: 4 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2 },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Rich Media', placements: 3 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
     ];
 
     const logData = [
@@ -2245,7 +2300,17 @@ export const DisplayRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -2386,6 +2451,7 @@ export const DisplayRunning: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -2536,17 +2602,22 @@ export const OfflineInstoreInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Print', placements: 2 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
       { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Shelf Talker', placements: 1 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
 
     const logData = [
@@ -2767,7 +2838,17 @@ export const OfflineInstoreInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -2908,6 +2989,7 @@ export const OfflineInstoreInOption: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -3058,17 +3140,22 @@ export const DisplayInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
       { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0 },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31' },
-      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30' },
-      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31' },
+      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
     ];
 
     const logData = [
@@ -3289,7 +3376,17 @@ export const DisplayInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -3430,6 +3527,7 @@ export const DisplayInOption: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -3580,6 +3678,11 @@ export const SponsoredProductsInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -4119,7 +4222,17 @@ export const SponsoredProductsInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">
@@ -4542,6 +4655,11 @@ export const SponsoredProductsRunning: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -4907,7 +5025,17 @@ export const SponsoredProductsRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: null,
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
         }}
       >
         <div className="mb-8">

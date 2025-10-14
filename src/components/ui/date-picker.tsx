@@ -46,7 +46,6 @@ export interface DateRangePickerProps {
 const conversionWindowOptions = [
   { label: "7 days", value: 7 },
   { label: "14 days", value: 14 },
-  { label: "21 days", value: 21 },
   { label: "28 days", value: 28 },
 ]
 
@@ -251,21 +250,17 @@ export function DateRangePicker({
                 <label className="text-sm font-medium text-foreground">
                   Conversion Window
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {conversionWindowOptions.map((option) => (
-                    <button
+                    <Button
                       key={option.value}
+                      size="sm"
+                      variant={conversionWindow === option.value ? "default" : "outline"}
                       onClick={() => onConversionWindowChange?.(option.value)}
-                      className={cn(
-                        "px-3 py-2 text-sm rounded-md border transition-colors",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        conversionWindow === option.value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border"
-                      )}
+                      className="text-xs"
                     >
                       {option.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

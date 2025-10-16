@@ -8,8 +8,11 @@ import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
 import { usePathname } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
-import { useEffect, useContext, useState } from 'react';
+import { useEffect, useContext, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { ThemeContext } from '@/contexts/theme-context';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
+import { User, Bell, Building2, LogOut, Info } from 'lucide-react';
 
 export interface Route {
   id: number;
@@ -52,6 +55,8 @@ export const SideNavigation = ({
   style,
   theme: themeProp,
 }: SideNavigationProps) => {
+  const router = useRouter();
+
   // Use theme from props first, then context, otherwise default to 'gambit'
   let theme = themeProp || 'gambit';
   if (!themeProp) {
@@ -195,21 +200,60 @@ export const SideNavigation = ({
       {/* Sticky avatar at the bottom */}
       <div className="mt-auto">
         {user && (
-          <Link
-            className="flex items-center mb-4 mt-8 pr-2 rounded-md hover:bg-slate-100"
-            href="/profile"
-          >
-            <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-              <Avatar>
-                <AvatarImage
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURI(
-                    user.name || 'profile',
-                  )}&size=32`}
-                />
-              </Avatar>
-            </span>
-            <span className={cn('text-sm ml-2 transition-opacity duration-300', !showText && 'hidden')}>Profile</span>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center mb-4 mt-8 pr-2 rounded-md hover:bg-slate-100 w-full text-left relative z-50"
+                style={{ pointerEvents: 'auto' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURI(
+                        user.name || 'profile',
+                      )}&size=32`}
+                    />
+                  </Avatar>
+                </span>
+                <span className={cn('text-sm ml-2 transition-opacity duration-300', !showText && 'hidden')}>{user.name || 'Profile'}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
+              <DropdownMenuItem onClick={() => {
+                router.push('/profile');
+              }}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                router.push('/notifications');
+              }}>
+                <Bell className="mr-2 h-4 w-4" />
+                <span>Notifications</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                // Placeholder for organisation functionality
+              }}>
+                <Building2 className="mr-2 h-4 w-4" />
+                <span>My Organisation</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                // Placeholder for information functionality
+              }}>
+                <Info className="mr-2 h-4 w-4" />
+                <span>Information</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                router.push('/login');
+              }}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </div>

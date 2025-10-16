@@ -12,6 +12,12 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
       const target = e.target as HTMLElement;
       const link = target.closest('a');
 
+
+      // Don't handle clicks on dropdown triggers in side navigation
+      if (target.closest('button[aria-haspopup="menu"]')) {
+        return;
+      }
+
       if (!link) return;
 
       const href = link.getAttribute('href');
@@ -61,9 +67,12 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/configuration/digital-instore': '/configuration/digital-instore',
         '/configuration/offline-instore': '/configuration/offline-instore',
 
+        // Profile and notifications
+        '/profile': '/profile',
+        '/notifications': '/notifications',
+
         // Root
-        '/': '/login',
-        '/profile': '/login', // Redirect profile to login for now
+        '/': '/login'
       };
 
       const mappedRoute = routeMap[href] || href;
@@ -94,7 +103,6 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
       if (target.closest('button[aria-label*="collapse"]') ||
           target.closest('button[aria-label*="expand"]')) {
         // The MenuContext should handle this, but we can add additional logic if needed
-        console.log('Menu toggle clicked');
       }
     };
 

@@ -9,7 +9,7 @@ import { Logo } from './logo';
 import { usePathname } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
 import { useEffect, useContext, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/router-context';
 import { ThemeContext } from '@/contexts/theme-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { User, Bell, Building2, LogOut, Info } from 'lucide-react';

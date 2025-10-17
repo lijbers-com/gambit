@@ -6,12 +6,23 @@ interface RouterContextType {
   pathname: string;
   push: (path: string) => void;
   query: Record<string, string>;
+  // Next.js App Router compatibility methods
+  replace: (path: string) => void;
+  back: () => void;
+  forward: () => void;
+  refresh: () => void;
+  prefetch: (path: string) => Promise<void>;
 }
 
 const RouterContext = createContext<RouterContextType>({
   pathname: '/',
   push: () => {},
   query: {},
+  replace: () => {},
+  back: () => {},
+  forward: () => {},
+  refresh: () => {},
+  prefetch: async () => {},
 });
 
 export function RouterProvider({ children }: { children: React.ReactNode }) {
@@ -22,8 +33,41 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
     setPathname(path);
   };
 
+  const replace = (path: string) => {
+    setPathname(path);
+  };
+
+  const back = () => {
+    // Mock implementation - in Storybook we don't have real navigation history
+    console.log('Mock router: back()');
+  };
+
+  const forward = () => {
+    // Mock implementation
+    console.log('Mock router: forward()');
+  };
+
+  const refresh = () => {
+    // Mock implementation
+    console.log('Mock router: refresh()');
+  };
+
+  const prefetch = async (path: string) => {
+    // Mock implementation
+    console.log('Mock router: prefetch()', path);
+  };
+
   return (
-    <RouterContext.Provider value={{ pathname, push, query }}>
+    <RouterContext.Provider value={{
+      pathname,
+      push,
+      query,
+      replace,
+      back,
+      forward,
+      refresh,
+      prefetch
+    }}>
       {children}
     </RouterContext.Provider>
   );

@@ -131,3 +131,4 @@ export const Image = React.forwardRef<
 });
 
 Image.displayName = 'Image';
+

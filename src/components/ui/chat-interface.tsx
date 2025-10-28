@@ -155,7 +155,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
 
     // Generate keyword suggestions based on product names
     const generateKeywords = () => {
-      const keywords = [];
+      const keywords: { keyword: string; volume: string; competitive: string; }[] = [];
       selectedProductNames.forEach((productName) => {
         const parts = productName.split(' - ');
         const brand = parts[0] || '';

@@ -2,11 +2,24 @@ import { Route } from '@/components/ui/side-navigation';
 
 export const defaultRoutes: Route[] = [
   {
+    id: 99,
+    name: "Media wallet",
+    type: "single" as const,
+    icon: { lucide: "WalletCards" },
+    url: "/campaigns",
+  },
+  {
     id: 0,
     name: "Campaigns",
     type: "parent" as const,
     icon: { lucide: "Table" },
     subitems: [
+      {
+        id: 19,
+        name: "All",
+        type: "single" as const,
+        url: "/campaigns",
+      },
       {
         id: 20,
         name: "Sponsored products",
@@ -114,7 +127,7 @@ export const defaultRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "AdGenie chats",
+    name: "Campaign Intelligence",
     type: "title" as const,
   },
   {

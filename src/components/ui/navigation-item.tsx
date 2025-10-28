@@ -1,5 +1,5 @@
 import { Image } from '@/lib/router-context';
-import { Link } from '@/lib/router-context';
+import { Link, usePathname } from '@/lib/router-context';
 import { cn } from '@/lib/utils';
 import { Route } from './side-navigation';
 import { renderIcon } from './render-icon';
@@ -7,10 +7,13 @@ import { useMenu } from '@/hooks/use-menu';
 
 export const NavigationItem = ({ item }: { item: Route }) => {
   const { collapsed, showText } = useMenu();
+  const pathname = usePathname();
+
   const checkActiveUrl = (route?: string) => {
     if (!route) return false;
-    if (typeof window === 'undefined') return false;
-    return window.location.pathname.split('/')[1] === route.split('/')[1];
+    // Use pathname from router context instead of window.location
+    // This ensures consistent behavior during SSR and client-side rendering
+    return pathname.split('/')[1] === route.split('/')[1];
   };
 
   return (

@@ -26,6 +26,7 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
       // Map the navigation routes based on your structure
       const routeMap: Record<string, string> = {
         // Campaigns
+        '/campaigns': '/campaigns',
         '/campaigns/sponsored-products': '/campaigns/sponsored-products',
         '/campaigns/display': '/campaigns/display',
         '/campaigns/digital-instore': '/campaigns/digital-instore',

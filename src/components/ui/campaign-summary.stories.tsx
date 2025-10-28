@@ -138,6 +138,7 @@ const defaultProps = {
     { label: 'Lead generation', value: 'lead-generation' },
     { label: 'Customer acquisition', value: 'customer-acquisition' },
     { label: 'Retargeting', value: 'retargeting' },
+    { label: 'Full funnel', value: 'full-funnel' },
   ],
   audience: 'ah-bonus',
   estimatedRoas: '4.8x',
@@ -151,10 +152,7 @@ const defaultProps = {
     from: new Date('2023-12-31'),
     to: addDays(new Date('2023-12-31'), 31),
   },
-  features: [
-    { id: 'auto-bidding', label: 'Auto bidding', enabled: true },
-    { id: 'goal-based', label: 'Goal-Based Media placement', enabled: true },
-  ],
+  features: [],
   onGoalChange: (goal: string) => console.log('Goal changed:', goal),
   onAudienceChange: (audience: string) => console.log('Audience changed:', audience),
   onBudgetChange: (budget: string) => console.log('Budget changed:', budget),
@@ -178,6 +176,12 @@ export const Horizontal: Story = {
     usedBudget: '$3,200',
     totalPrice: '$5,800',
     budgetUsagePercentage: 64,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'offline', name: 'Offline in-store', enabled: true },
+    ],
   },
   parameters: {
     layout: 'fullscreen',
@@ -220,6 +224,12 @@ export const HorizontalHighBudgetUsage: Story = {
     usedBudget: '$4,600',
     totalPrice: '$5,800',
     budgetUsagePercentage: 92,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'offline', name: 'Offline in-store', enabled: true },
+    ],
   },
   parameters: {
     layout: 'fullscreen',
@@ -249,6 +259,12 @@ export const HorizontalLowBudgetUsage: Story = {
     usedBudget: '$1,200',
     totalPrice: '$5,800',
     budgetUsagePercentage: 24,
+    engines: [
+      { id: 'display', name: 'Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'offline', name: 'Offline in-store', enabled: true },
+    ],
   },
   parameters: {
     layout: 'fullscreen',

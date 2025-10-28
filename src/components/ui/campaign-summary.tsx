@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader } from './card';
+import { Card, CardContent, CardHeader, MetricCard } from './card';
 import { Badge } from './badge';
 import { Input } from './input';
 import { Label } from './label';
@@ -10,6 +10,9 @@ import { Switch } from './switch';
 import { Button } from './button';
 import { DateRangePicker } from './date-picker';
 import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { Slider } from './slider';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info } from 'lucide-react';
 
 export interface CampaignEngine {
   id: string;
@@ -39,6 +42,7 @@ export interface CampaignSummaryProps {
   totalPrice?: string;
   budgetUsagePercentage?: number;
   engines: CampaignEngine[];
+  placements?: number;
   dateRange?: DateRange;
   features: CampaignFeature[];
   layout?: 'vertical' | 'horizontal';
@@ -48,6 +52,7 @@ export interface CampaignSummaryProps {
   onEngineToggle?: (engineId: string, enabled: boolean) => void;
   onFeatureToggle?: (featureId: string, enabled: boolean) => void;
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
+  onEngineBudgetChange?: (engineId: string, budget: string) => void;
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
@@ -69,6 +74,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     totalPrice,
     budgetUsagePercentage,
     engines,
+    placements,
     dateRange,
     features,
     layout = 'vertical',
@@ -78,6 +84,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onEngineToggle,
     onFeatureToggle,
     onDateRangeChange,
+    onEngineBudgetChange,
     conversionWindow,
     onConversionWindowChange,
     onEdit,
@@ -88,6 +95,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Internal state for switches when callbacks are not provided
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
+    const [isCollapsed, setIsCollapsed] = React.useState(true);
+    const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
+    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
+    const [autoTargeting, setAutoTargeting] = React.useState(true);
+    const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
 
     // Update internal state when props change
     React.useEffect(() => {
@@ -127,114 +139,397 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Use controlled or internal state
     const currentEngines = onEngineToggle ? engines : internalEngines;
     const currentFeatures = onFeatureToggle ? features : internalFeatures;
+
+    // Media proposition icons mapping
+    const mediaPropositionIcons = {
+      'Display': MonitorSpeaker,
+      'Sponsored products': ListStart,
+      'Digital in-store': MonitorPlay,
+      'Offline in-store': Store,
+    };
+
+    // Handle engine budget change
+    const handleEngineBudgetChange = (engineId: string, value: string) => {
+      const newBudget = `$${value}`;
+      setEngineBudgets(prev => ({
+        ...prev,
+        [engineId]: newBudget
+      }));
+      
+      if (onEngineBudgetChange) {
+        onEngineBudgetChange(engineId, newBudget);
+      }
+    };
+
+    // Get current budget for an engine
+    const getEngineBudget = (engineId: string) => {
+      return engineBudgets[engineId] || (engineId === 'offline' ? '$0' : '$1,667');
+    };
+
+    // Calculate ROAS based on budget (higher budget = higher ROAS with some variation)
+    const calculateEngineROAS = (engineId: string) => {
+      if (engineId === 'offline') return '0x';
+
+      const budget = parseFloat(getEngineBudget(engineId).replace(/[^0-9.]/g, '')) || 0;
+
+      if (budget === 0) return '0x';
+
+      // Engine-specific base ROAS values (distinct for demo purposes)
+      const engineBaseROAS = {
+        'display': 2.5,
+        'sponsored': 4.8,
+        'digital': 3.2,
+        'offline': 0
+      };
+
+      const baseROAS = engineBaseROAS[engineId as keyof typeof engineBaseROAS] || 3.0;
+
+      return `${baseROAS.toFixed(1)}x`;
+    };
+
+    // Calculate total budget from all engines
+    const calculateTotalBudget = () => {
+      const total = currentEngines.reduce((sum, engine) => {
+        const budget = getEngineBudget(engine.id);
+        const amount = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
+        return sum + amount;
+      }, 0);
+      return `$${total.toLocaleString()}`;
+    };
+
+    // Calculate weighted average ROAS across all engines
+    const calculateTotalROAS = () => {
+      let totalBudget = 0;
+      let weightedROAS = 0;
+      
+      currentEngines.forEach(engine => {
+        const budget = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
+        const roas = parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0;
+        
+        totalBudget += budget;
+        weightedROAS += budget * roas;
+      });
+      
+      if (totalBudget === 0) return '0.0x';
+      
+      const averageROAS = weightedROAS / totalBudget;
+      return `${averageROAS.toFixed(1)}x`;
+    };
+
+    // Update main budget and input when engine budgets change
+    React.useEffect(() => {
+      const totalBudget = calculateTotalBudget();
+      const totalBudgetValue = totalBudget.replace(/[^0-9.]/g, '');
+      setTotalBudgetInput(totalBudgetValue);
+      if (onBudgetChange) {
+        onBudgetChange(totalBudget);
+      }
+    }, [engineBudgets, currentEngines]);
+
+    // Distribute budget based on Auto Budget Optimization setting
+    React.useEffect(() => {
+      if (autoBudgetOptimization) {
+        // Calculate total budget
+        const total = currentEngines.reduce((sum, engine) => {
+          const budget = getEngineBudget(engine.id);
+          const amount = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
+          return sum + amount;
+        }, 0);
+
+        // Get ROAS values for each engine
+        const roasValues: { [key: string]: number } = {};
+        let totalRoasWeight = 0;
+
+        currentEngines.forEach(engine => {
+          if (engine.id === 'offline') {
+            roasValues[engine.id] = 0;
+          } else {
+            const roas = parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0;
+            roasValues[engine.id] = roas;
+            totalRoasWeight += roas;
+          }
+        });
+
+        // Distribute budget based on ROAS weights
+        if (totalRoasWeight > 0) {
+          const newBudgets: { [key: string]: string } = {};
+          currentEngines.forEach(engine => {
+            if (engine.id === 'offline') {
+              newBudgets[engine.id] = '$0';
+            } else {
+              const roasWeight = roasValues[engine.id] / totalRoasWeight;
+              const allocatedBudget = Math.round(total * roasWeight);
+              newBudgets[engine.id] = `$${allocatedBudget}`;
+            }
+          });
+          setEngineBudgets(newBudgets);
+        }
+      } else {
+        // When turned off, distribute evenly
+        const total = currentEngines.reduce((sum, engine) => {
+          const budget = getEngineBudget(engine.id);
+          const amount = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
+          return sum + amount;
+        }, 0);
+
+        const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+        const perEngine = enabledEngines.length > 0 ? total / enabledEngines.length : 0;
+
+        const newBudgets: { [key: string]: string } = {};
+        currentEngines.forEach(engine => {
+          if (engine.id === 'offline') {
+            newBudgets[engine.id] = '$0';
+          } else if (engine.enabled) {
+            newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+          } else {
+            newBudgets[engine.id] = '$0';
+          }
+        });
+
+        setEngineBudgets(newBudgets);
+      }
+    }, [autoBudgetOptimization]);
     return (
       <Card ref={ref} className={cn(
         'w-full',
-        layout === 'vertical' ? 'max-w-md mx-auto' : '',
+        layout === 'vertical' ? 'max-w-md mx-auto relative mt-4 overflow-visible' : '',
         className
       )} {...props}>
-        <CardHeader className="space-y-4">
+        {/* Floating badge for vertical layout */}
+        {layout === 'vertical' && badge && (
+          <Badge
+            variant={badge.variant || 'default'}
+            className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white border-slate-800 z-50"
+          >
+            {badge.text}
+          </Badge>
+        )}
+        
+        <CardHeader
+          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-2' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-slate-50' : ''}` : ''}`}
+          onClick={layout !== 'vertical' ? () => setIsCollapsed(!isCollapsed) : undefined}
+        >
           {/* Title and Badges Row */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             {/* Title - Left Aligned */}
-            <h2 className="text-xl font-semibold text-foreground leading-tight">
-              {title}
-            </h2>
-
-            {/* Badges - Right Aligned */}
-            <div className="flex gap-2">
-              {badge && (
-                <Badge
-                  variant={badge.variant || 'default'}
-                  className="bg-slate-800 text-white border-slate-800"
-                >
-                  {badge.text}
-                </Badge>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-foreground leading-tight">
+                {title}
+              </h2>
+              {layout === 'vertical' && (
+                <div className="mt-2">
+                  <Badge variant="success" className="text-sm font-medium">
+                    Est. ROAS {calculateTotalROAS()}
+                  </Badge>
+                </div>
               )}
-              <Badge variant="outline">
-                In-option
-              </Badge>
             </div>
+
+            {/* Badges and Collapse Button - Right Aligned (horizontal layout only) */}
+            {layout !== 'vertical' && (
+              <div className="flex items-start gap-2">
+                {badge && (
+                  <Badge
+                    variant={badge.variant || 'default'}
+                    className="bg-slate-800 text-white border-slate-800"
+                  >
+                    {badge.text}
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  In-option
+                </Badge>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCollapsed(!isCollapsed);
+                  }}
+                  className="p-1 hover:bg-slate-100 rounded-md transition-colors"
+                >
+                  {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Subtitle and Summary Row - Only when collapsed (horizontal layout only) */}
+          {layout !== 'vertical' && isCollapsed && (
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                {goal.replace(/-/g, ' ')} • {budget} • {dateRange ?
+                  `${dateRange.from?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${dateRange.to?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}` :
+                  'No dates selected'
+                }
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground text-right">
+                  ROAS {calculateTotalROAS()}{usedBudget ? ` • Used ${usedBudget}` : ''}
+                </div>
+                {/* Spacer to match the chevron button width + gap */}
+                <div className="w-[28px]"></div>
+              </div>
+            </div>
+          )}
         </CardHeader>
 
-        <CardContent className={layout === 'vertical' ? 'space-y-6' : 'p-6'}>
-          {layout === 'vertical' ? (
-            // Vertical Layout (original)
-            <>
-              {/* Goal Section */}
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">
-                  Goal
-                </Label>
-                <Input
-                  dropdown
-                  options={goalOptions || [
-                    { label: 'Performance on transaction', value: 'performance-transaction' },
-                    { label: 'Brand awareness', value: 'brand-awareness' },
-                    { label: 'Lead generation', value: 'lead-generation' },
-                    { label: 'Customer acquisition', value: 'customer-acquisition' },
-                    { label: 'Retargeting', value: 'retargeting' },
-                  ]}
-                  value={goal}
-                  onChange={onGoalChange || (() => {})}
-                  placeholder="Select goal"
-                  className="bg-slate-50 border-slate-200"
-                />
+        {(layout === 'vertical' || !isCollapsed) && (
+          <CardContent className={layout === 'vertical' ? 'space-y-6' : 'p-6'}>
+            {layout === 'vertical' ? (
+            // Vertical Layout (updated to match horizontal)
+            <div className="space-y-6">
+              {/* Goal, Budget, and Runtime Section */}
+              <div className="space-y-4">
+                {/* Goal Section */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Goal</Label>
+                  <Input
+                    dropdown
+                    options={goalOptions || [
+                      { label: 'Performance on transaction', value: 'performance-transaction' },
+                      { label: 'Brand awareness', value: 'brand-awareness' },
+                      { label: 'Lead generation', value: 'lead-generation' },
+                      { label: 'Customer acquisition', value: 'customer-acquisition' },
+                      { label: 'Retargeting', value: 'retargeting' },
+                      { label: 'Full funnel', value: 'full-funnel' },
+                    ]}
+                    value={goal}
+                    onChange={onGoalChange || (() => {})}
+                    placeholder="Select goal"
+                    className="bg-slate-50 border-slate-200"
+                  />
+                </div>
+
+                {/* Total Budget Section */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Total budget</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="number"
+                      value={totalBudgetInput}
+                      onChange={(e) => {
+                        // Update the input state directly
+                        setTotalBudgetInput(e.target.value);
+
+                        // When main budget changes, distribute equally among enabled engines
+                        const newTotal = parseFloat(e.target.value) || 0;
+                        const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+                        const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
+
+                        const newBudgets: { [key: string]: string } = {};
+                        currentEngines.forEach(engine => {
+                          if (engine.id === 'offline') {
+                            newBudgets[engine.id] = '$0';
+                          } else if (engine.enabled) {
+                            newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+                          } else {
+                            newBudgets[engine.id] = '$0';
+                          }
+                        });
+
+                        setEngineBudgets(newBudgets);
+                        onBudgetChange?.(`$${e.target.value}`);
+                      }}
+                      className="w-full h-9 bg-slate-50 border border-slate-200 pl-10 py-1 rounded-md focus:outline-none focus:border-slate-300 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                      placeholder="Enter budget amount"
+                    />
+                  </div>
+                </div>
+
+                {/* Run Time Section */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Run time</Label>
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onDateRangeChange={onDateRangeChange}
+                    placeholder="Select campaign dates"
+                    className="bg-slate-50 border-slate-200"
+                    showPresets={true}
+                  />
+                </div>
               </div>
 
-              {/* Metrics Section */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {estimatedRoas}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Est. ROAS</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">
-                    {budget}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Budget</div>
-                </div>
-              </div>
-
-              {/* Engines Section */}
+              {/* Media Propositions Table */}
               <div className="space-y-3">
-                <Label className="text-sm text-muted-foreground">Engines:</Label>
-                <ul className="space-y-1">
-                  {currentEngines.map((engine) => (
-                    <li key={engine.id} className="flex items-center justify-between">
-                      <span className="text-sm text-foreground">• {engine.name}</span>
-                      <Switch
-                        checked={engine.enabled}
-                        onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                <Label className="text-sm text-muted-foreground">Media proposition</Label>
+                <div className="overflow-x-auto bg-white border border-slate-200 rounded-lg">
+                  <table className="min-w-full text-sm text-slate-700 table-fixed">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '200px', minWidth: '200px' }}>
+                          Media proposition
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '120px', minWidth: '120px' }}>
+                          Budget
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
+                          Est. ROAS
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {currentEngines.map((engine, index) => (
+                        <tr key={engine.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3 align-middle" style={{ width: '200px', minWidth: '200px' }}>
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              {(() => {
+                                const IconComponent = mediaPropositionIcons[engine.name as keyof typeof mediaPropositionIcons];
+                                return IconComponent ? <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : null;
+                              })()}
+                              <span className="text-sm font-medium text-foreground truncate">{engine.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 align-middle text-center" style={{ width: '120px', minWidth: '120px' }}>
+                            <div className="relative w-20 mx-auto">
+                              <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <input
+                                type="number"
+                                value={getEngineBudget(engine.id).replace(/[^0-9.]/g, '')}
+                                onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
+                                disabled={autoBudgetOptimization}
+                                className="w-full text-center text-sm pl-6 pr-2 py-1 h-8 border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                placeholder="0"
+                              />
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
+                            <span className={`text-sm font-medium whitespace-nowrap ${engine.id === 'offline' ? 'text-muted-foreground' : 'text-green-600'}`}>
+                              {calculateEngineROAS(engine.id)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {/* Run Time Section */}
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Run time:</Label>
-                <DateRangePicker
-                  dateRange={dateRange}
-                  onDateRangeChange={onDateRangeChange}
-                  placeholder="Select campaign dates with conversion window"
-                  className="bg-slate-50 border-slate-200"
-                  showPresets={true}
-                  showConversionWindow={true}
-                  conversionWindow={conversionWindow}
-                  onConversionWindowChange={onConversionWindowChange}
-                />
+              {/* Optimization Switches */}
+              <div className="space-y-3 pt-4 pb-4">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={autoBudgetOptimization}
+                    onCheckedChange={setAutoBudgetOptimization}
+                  />
+                  <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={autoTargeting}
+                    onCheckedChange={setAutoTargeting}
+                  />
+                  <span className="text-sm text-foreground">Auto Targeting</span>
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </div>
               </div>
+
 
 
               {/* Features Section - only show if there are features */}
               {currentFeatures.length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-sm text-muted-foreground">Features:</Label>
+                  <Label className="text-sm text-muted-foreground">Features</Label>
                   <div className="space-y-3">
                     {currentFeatures.map((feature) => (
                       <div key={feature.id} className="flex items-center justify-between">
@@ -248,31 +543,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </div>
                 </div>
               )}
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={onEdit}
-                  className="w-full"
-                >
-                  Edit
-                </Button>
-                <Button
-                  onClick={onAddToCart}
-                  className="w-full"
-                >
-                  Add to cart
-                </Button>
-              </div>
-            </>
+            </div>
           ) : (
             // Horizontal Layout
             <div className="grid grid-cols-12 gap-6">
               {/* Left Column - Main Content */}
               <div className="col-span-9 space-y-4">
-                {/* Top Row - Goal and Runtime on one line */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Top Row - Goal, Budget, and Runtime together */}
+                <div className="grid grid-cols-3 gap-4">
                   {/* Goal Section */}
                   <div className="space-y-2">
                     <Label className="text-sm text-muted-foreground">Goal</Label>
@@ -284,12 +562,50 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         { label: 'Lead generation', value: 'lead-generation' },
                         { label: 'Customer acquisition', value: 'customer-acquisition' },
                         { label: 'Retargeting', value: 'retargeting' },
+                        { label: 'Full funnel', value: 'full-funnel' },
                       ]}
                       value={goal}
                       onChange={onGoalChange || (() => {})}
                       placeholder="Select goal"
                       className="bg-slate-50 border-slate-200"
                     />
+                  </div>
+
+                  {/* Budget Section */}
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Total budget</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="number"
+                        value={totalBudgetInput}
+                        onChange={(e) => {
+                          // Update the input state directly
+                          setTotalBudgetInput(e.target.value);
+
+                          // When main budget changes, distribute equally among enabled engines
+                          const newTotal = parseFloat(e.target.value) || 0;
+                          const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+                          const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
+
+                          const newBudgets: { [key: string]: string } = {};
+                          currentEngines.forEach(engine => {
+                            if (engine.id === 'offline') {
+                              newBudgets[engine.id] = '$0';
+                            } else if (engine.enabled) {
+                              newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+                            } else {
+                              newBudgets[engine.id] = '$0';
+                            }
+                          });
+
+                          setEngineBudgets(newBudgets);
+                          onBudgetChange?.(`$${e.target.value}`);
+                        }}
+                        className="w-full h-9 bg-slate-50 border border-slate-200 pl-10 py-1 rounded-md focus:outline-none focus:border-slate-300 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                        placeholder="Enter budget amount"
+                      />
+                    </div>
                   </div>
 
                   {/* Run Time Section */}
@@ -307,78 +623,144 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
                 {/* Bottom Section - Engines (Line Item Style) */}
                 <div className="space-y-3">
-                  <div className="border rounded-lg overflow-hidden bg-white">
-                    <div className="border-b bg-slate-50 px-4 py-2">
-                      <div className="grid grid-cols-3 gap-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        <span>Media products</span>
-                        <span className="text-center">Budget</span>
-                        <span className="text-center">Est. ROAS</span>
-                      </div>
-                    </div>
-                    <div className="divide-y">
-                      {currentEngines.map((engine) => (
-                        <div key={engine.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
-                          <div className="grid grid-cols-3 gap-4 items-center">
-                            <span className="text-sm font-medium text-foreground">{engine.name}</span>
-                            <div className="text-center">
-                              <span className="text-sm font-medium text-foreground">$1,667</span>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-sm font-medium text-green-600">4.8x</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="overflow-x-auto bg-white border border-slate-200 rounded-lg">
+                    <table className="min-w-full text-sm text-slate-700 table-fixed">
+                      <thead>
+                        <tr className="border-b bg-slate-50">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '200px', minWidth: '200px' }}>
+                            Media proposition
+                          </th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '120px', minWidth: '120px' }}>
+                            Budget
+                          </th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
+                            Est. ROAS
+                          </th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {currentEngines.map((engine, index) => (
+                          <tr key={engine.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-4 py-3 align-middle" style={{ width: '200px', minWidth: '200px' }}>
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                {(() => {
+                                  const IconComponent = mediaPropositionIcons[engine.name as keyof typeof mediaPropositionIcons];
+                                  return IconComponent ? <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : null;
+                                })()}
+                                <span className="text-sm font-medium text-foreground truncate">{engine.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 align-middle text-center" style={{ width: '120px', minWidth: '120px' }}>
+                              <div className="relative w-20 mx-auto">
+                                <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <input
+                                  type="number"
+                                  value={getEngineBudget(engine.id).replace(/[^0-9.]/g, '')}
+                                  onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
+                                  disabled={autoBudgetOptimization}
+                                  className="w-full text-center text-sm pl-6 pr-2 py-1 h-8 border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                  placeholder="0"
+                                />
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
+                              <span className={`text-sm font-medium whitespace-nowrap ${engine.id === 'offline' ? 'text-muted-foreground' : 'text-green-600'}`}>
+                                {calculateEngineROAS(engine.id)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => console.log(`Edit ${engine.name} engine`)}
+                                className="whitespace-nowrap"
+                              >
+                                Edit
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Campaign Metrics Row */}
+                <div className="grid grid-cols-3 gap-4 pt-4">
+                  <MetricCard
+                    label="Reach"
+                    value="2.5M"
+                    subMetric="Unique users"
+                  />
+                  <MetricCard
+                    label="ROAS"
+                    value={estimatedRoas}
+                    subMetric="Estimated return"
+                  />
+                  <MetricCard
+                    label="Sales"
+                    value="$45.2K"
+                    subMetric="+15% vs last period"
+                    badgeValue="+15%"
+                    badgeVariant="success"
+                  />
+                </div>
+
+                {/* Optimization Switches */}
+                <div className="flex gap-6 pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={autoBudgetOptimization}
+                      onCheckedChange={setAutoBudgetOptimization}
+                    />
+                    <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={autoTargeting}
+                      onCheckedChange={setAutoTargeting}
+                    />
+                    <span className="text-sm text-foreground">Auto Targeting</span>
+                    <Info className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </div>
 
               {/* Right Column - Summary */}
-              <div className="col-span-3 space-y-4">
+              <div className="col-span-3 space-y-2">
+                {/* Campaign Summary Title - aligned with other titles */}
+                <Label className="text-sm text-muted-foreground">Summary</Label>
+                
                 {/* Summary Card */}
                 <div className="border rounded-lg p-4 bg-white">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Campaign Summary</h3>
 
-                  {/* ROAS and Budget Grid */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-green-600">
-                        {estimatedRoas}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Est. ROAS</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-foreground">
-                        {budget}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Budget</div>
+                  {/* Budget Set */}
+                  <div className="space-y-3 pb-3">
+                    <div className="flex justify-between items-center py-0.5">
+                      <span className="text-sm text-muted-foreground">Budget set</span>
+                      <span className="text-sm font-medium">{budget}</span>
                     </div>
                   </div>
 
-                  {/* Budget Usage Details */}
-                  <div className="space-y-3 border-t pt-3">
+                  {/* Budget Metrics Group */}
+                  <div className="space-y-3 border-t pt-3 pb-3">
                     {/* Used Budget */}
                     {usedBudget && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">Used Budget</span>
+                      <div className="flex justify-between items-center py-0.5">
+                        <span className="text-sm text-muted-foreground">Used Budget</span>
                         <span className="text-sm font-medium">{usedBudget}</span>
-                      </div>
-                    )}
-
-                    {/* Total Price */}
-                    {totalPrice && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">Total Price</span>
-                        <span className="text-sm font-medium">{totalPrice}</span>
                       </div>
                     )}
 
                     {/* Budget Usage Progress */}
                     {budgetUsagePercentage !== undefined && (
-                      <div className="space-y-2">
+                      <div className="space-y-2 py-0.5">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-muted-foreground">Budget Usage</span>
+                          <span className="text-sm text-muted-foreground">Budget Usage</span>
                           <span className="text-sm font-medium">{budgetUsagePercentage}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -394,6 +776,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       </div>
                     )}
                   </div>
+
+                  {/* Price Group */}
+                  {totalPrice && (
+                    <div className="border-t pt-3">
+                      <div className="flex justify-between items-center py-0.5">
+                        <span className="text-sm text-muted-foreground">Total Spend</span>
+                        <span className="text-sm font-medium">{totalPrice}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -402,19 +794,25 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
           {/* Action Buttons - Bottom, Left Aligned for all layouts */}
           <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={onEdit}
-            >
-              Edit
-            </Button>
-            <Button
-              onClick={onAddToCart}
-            >
-              Add to cart
-            </Button>
+            {layout === 'horizontal' && (
+              <Button
+                variant="outline"
+                onClick={onEdit}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                3 recommendations
+              </Button>
+            )}
+            {onAddToCart && (
+              <Button
+                onClick={onAddToCart}
+              >
+                Add to cart
+              </Button>
+            )}
           </div>
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
     );
   }

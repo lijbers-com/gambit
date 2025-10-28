@@ -81,10 +81,10 @@ type Story = StoryObj<typeof meta>;
 
 
 const campaignData = [
-  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products'] },
-  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store'] },
-  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products'] },
-  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store'] },
+  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, placements: 12, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products'] },
+  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, placements: 8, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store'] },
+  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, placements: 15, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products'] },
+  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, placements: 20, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store'] },
 ];
 
 const statusVariant = (status: string) => {
@@ -171,6 +171,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 )},
                 { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
                 { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
+                { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
                 { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                 { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
               ]}
@@ -207,10 +208,12 @@ const campaignSummaryData = [
     usedBudget: '$9,200',
     totalPrice: '$17,500',
     budgetUsagePercentage: 61,
+    placements: 12,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
       { id: 'sponsored', name: 'Sponsored products', enabled: true },
       { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'offline', name: 'Offline in-store', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-06-01'),
@@ -227,6 +230,7 @@ const campaignSummaryData = [
     usedBudget: '$2,100',
     totalPrice: '$9,200',
     budgetUsagePercentage: 25,
+    placements: 8,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
       { id: 'digital', name: 'Digital in-store', enabled: true },
@@ -246,6 +250,7 @@ const campaignSummaryData = [
     usedBudget: '$4,800',
     totalPrice: '$13,500',
     budgetUsagePercentage: 40,
+    placements: 15,
     engines: [
       { id: 'sponsored', name: 'Sponsored products', enabled: true },
       { id: 'digital', name: 'Digital in-store', enabled: true },
@@ -265,10 +270,12 @@ const campaignSummaryData = [
     usedBudget: '$22,800',
     totalPrice: '$28,000',
     budgetUsagePercentage: 91,
+    placements: 20,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
       { id: 'sponsored', name: 'Sponsored products', enabled: true },
       { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'offline', name: 'Offline in-store', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-11-01'),
@@ -285,6 +292,7 @@ const campaignSummaryData = [
     usedBudget: '$1,200',
     totalPrice: '$19,500',
     budgetUsagePercentage: 7,
+    placements: 14,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
       { id: 'sponsored', name: 'Sponsored products', enabled: true },
@@ -297,10 +305,11 @@ const campaignSummaryData = [
   },
 ];
 
-export const FullFunnelOverview: Story = {
+export const Campaigns360: Story = {
   render: () => {
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
 
     return (
       <MenuContextProvider>
@@ -311,8 +320,8 @@ export const FullFunnelOverview: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Campaigns - Card View',
-            subtitle: 'Monitor campaign performance with detailed campaign summary cards',
+            title: 'All campaigns',
+            subtitle: 'Complete overview of all your campaigns across all advertising engines',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -352,27 +361,36 @@ export const FullFunnelOverview: Story = {
               />
             </CardHeader>
             <CardContent className="space-y-6">
-              {campaignSummaryData.map((campaign, index) => (
-                <CampaignSummary
-                  key={index}
-                  layout="horizontal"
-                  title={campaign.title}
-                  badge={campaign.badge}
-                  goal={campaign.goal}
-                  audience="retail-shoppers"
-                  estimatedRoas={campaign.estimatedRoas}
-                  budget={campaign.budget}
-                  usedBudget={campaign.usedBudget}
-                  totalPrice={campaign.totalPrice}
-                  budgetUsagePercentage={campaign.budgetUsagePercentage}
-                  engines={campaign.engines}
-                  dateRange={campaign.dateRange}
-                  features={campaign.features}
-                  onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
-                  onAddToCart={() => console.log(`Add to cart: ${campaign.title}`)}
-                  className="w-full"
-                />
-              ))}
+              {campaignSummaryData.map((campaign, index) => {
+                const currentBudget = campaignBudgets[campaign.title] || campaign.budget;
+                return (
+                  <CampaignSummary
+                    key={index}
+                    layout="horizontal"
+                    title={campaign.title}
+                    goal={campaign.goal}
+                    audience="retail-shoppers"
+                    estimatedRoas={campaign.estimatedRoas}
+                    budget={currentBudget}
+                    usedBudget={campaign.usedBudget}
+                    totalPrice={campaign.totalPrice}
+                    budgetUsagePercentage={campaign.budgetUsagePercentage}
+                    engines={campaign.engines}
+                    placements={campaign.placements}
+                    dateRange={campaign.dateRange}
+                    features={campaign.features}
+                    onBudgetChange={(newBudget) => {
+                      setCampaignBudgets(prev => ({
+                        ...prev,
+                        [campaign.title]: newBudget
+                      }));
+                      console.log(`Budget updated for ${campaign.title}: ${newBudget}`);
+                    }}
+                    onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                    className="w-full"
+                  />
+                );
+              })}
             </CardContent>
           </Card>
         </AppLayout>
@@ -383,28 +401,38 @@ export const FullFunnelOverview: Story = {
     docs: {
       description: {
         story: `
-# Campaign Card View
+# 360 Campaigns
 
-This variant replaces the traditional table view with horizontal CampaignSummary cards, providing a more detailed and visually rich representation of campaign data.
+Get a complete overview of all your campaigns across all advertising engines with interactive budget management capabilities.
 
 ## Features
 
-- **Detailed Campaign Cards**: Each campaign is displayed as a horizontal CampaignSummary component
+- **Comprehensive Campaign Cards**: Each campaign is displayed as a horizontal CampaignSummary component with full details
+- **Interactive Budget Adjustment**: Click on any budget to open a dropdown with:
+  - Direct input field for precise budget entry
+  - Slider control for quick adjustments ($1,000 - $50,000 range)
+  - Real-time budget updates
+- **Multi-Engine Support**: Shows campaigns across Display, Sponsored Products, Digital In-Store, and Offline In-Store
 - **Rich Information Display**: Shows budget usage, ROAS, engines used, and date ranges
-- **Interactive Elements**: Each card includes Edit and Add to Cart actions
-- **Visual Status Indicators**: Color-coded badges for campaign status
-- **Budget Usage Visualization**: Progress bars showing budget utilization
-- **Media Products Display**: Table format showing budget and ROAS per engine
+- **Visual Status Indicators**: Color-coded badges for campaign status (Running, Ready, In Option, Paused)
+- **Budget Usage Visualization**: Progress bars showing budget utilization with color indicators
+- **Media Products Display**: Detailed breakdown showing budget and ROAS per advertising engine
+
+## Interactive Elements
+
+- **Budget Adjustment**: Click on any budget amount to adjust it using the dropdown with slider
+- **Edit Campaign**: Quick access to campaign editing functionality
+- **Add to Cart**: Easy campaign selection for bulk operations
 
 ## Use Cases
 
-- Campaign management with detailed oversight
+- 360-degree campaign management across all advertising channels
+- Real-time budget optimization and reallocation
 - Visual campaign performance monitoring
-- Quick access to campaign editing and actions
-- Better understanding of budget allocation per engine
-- Enhanced campaign comparison view
+- Cross-engine campaign comparison and analysis
+- Budget planning and adjustment workflows
 
-This view provides much more detailed information per campaign compared to the table view, making it ideal for campaign managers who need comprehensive campaign insights at a glance.
+This 360 Campaigns view provides complete visibility and control over your entire advertising portfolio, making it ideal for campaign managers who need to manage budgets and performance across multiple advertising engines simultaneously.
         `,
       },
     },

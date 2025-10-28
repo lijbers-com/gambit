@@ -25,6 +25,7 @@ import {
   ListStart,
   MonitorPlay,
   Store,
+  WalletCards,
 } from 'lucide-react';
 
 export const renderIcon = (icon: string) => {
@@ -55,6 +56,7 @@ export const renderIcon = (icon: string) => {
     ListStart,
     MonitorPlay,
     Store,
+    WalletCards,
   };
   const IconComponent = icons[icon as keyof typeof icons];
   return IconComponent ? <IconComponent className="p-2" size={40} /> : null;

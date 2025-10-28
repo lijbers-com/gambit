@@ -31,4 +31,5 @@ export * from "./filter-bar";
 export * from "./search-input";
 export * from './tabs';
 export * from './viewbar';
-export { Alert, AlertTitle, AlertDescription } from './alert'; 
+export { Alert, AlertTitle, AlertDescription } from './alert';
+export * from './slider'; 

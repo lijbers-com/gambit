@@ -379,10 +379,10 @@ const NotificationCenterContent = () => {
                   {/* Badge and text */}
                   <div className="ml-4 flex-1">
                     <div className="flex items-start gap-3">
-                      <Badge variant={activity.status as any} className="mt-0.5">
+                      <Badge variant={activity.status as any} className="mt-0.5 flex-shrink-0 whitespace-nowrap min-w-0">
                         {activity.type}
                       </Badge>
-                      <p className="text-sm text-foreground">
+                      <p className="text-sm text-foreground flex-1 min-w-0">
                         {activity.entityType === 'ai' ? (
                           <>
                             {activity.description.split(`"${activity.entityName}"`)[0]}

@@ -28,11 +28,23 @@ type Story = StoryObj<typeof meta>;
 
 const sampleRoutes: Route[] = [
   {
+    id: 99,
+    name: "Media wallet",
+    type: "single",
+    icon: { lucide: "WalletCards" },
+    url: "/campaigns"
+  },
+  {
     id: 0,
     name: "Campaigns",
     type: "parent",
     icon: { lucide: "Table" },
     subitems: [
+      {
+        id: 19,
+        name: "All",
+        url: "/campaigns"
+      },
       {
         id: 20,
         name: "Sponsored products",
@@ -128,7 +140,7 @@ const sampleRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "AdGenie chats",
+    name: "CampaignAI chats",
     type: "title"
   },
   {
@@ -191,6 +203,7 @@ export const Primary: Story = {
           <div>
             <h3 className="text-lg font-semibold">Main Menu Items:</h3>
             <ul className="mt-2 space-y-1">
+              <li>💳 <strong>Media wallet</strong> - Media order management</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management with 4 engines</li>
               <li>📅 <strong>Calendar</strong> - Booking calendar with 4 engines</li>
@@ -208,7 +221,7 @@ export const Primary: Story = {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mt-4">AdGenie Chats Section:</h3>
+            <h3 className="text-lg font-semibold mt-4">CampaignAI Chats Section:</h3>
             <ul className="mt-2 space-y-1">
               <li>💬 <strong>Chats</strong> - Chat management</li>
               <li className="ml-4">• New chat</li>
@@ -311,7 +324,7 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
               if (shouldShowTitle) {
                 return (
                   <p key={item.id} className={`mb-4 mt-8 transition-opacity duration-300 ${
-                    item.name === "Configuration" || item.name === "AdGenie chats" 
+                    item.name === "Configuration" || item.name === "CampaignAI chats" 
                       ? "text-xs text-muted-foreground" 
                       : "text-muted-foreground"
                   }`}>
@@ -388,6 +401,13 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
                   href={item.url}
                 >
                   <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                    {item.icon?.lucide === 'WalletCards' && (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"/>
+                        <path d="M3 11h3c.8 0 1.6.3 2.1.9l1.1.9c1.6 1.6 4.1 1.6 5.7 0l1.1-.9c.5-.5 1.3-.9 2.1-.9H21"/>
+                      </svg>
+                    )}
                     {item.icon?.lucide === 'Home' && (
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

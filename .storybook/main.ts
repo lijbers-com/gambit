@@ -1,5 +1,6 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from 'vite';
+import { resolve } from 'path';
 
 const config: StorybookConfig = {
   stories: [
@@ -25,6 +26,14 @@ const config: StorybookConfig = {
       // Add dependencies to pre-optimization
       optimizeDeps: {
         include: ['@radix-ui/react-dialog', '@radix-ui/react-slot'],
+      },
+      resolve: {
+        alias: {
+          'next/navigation': resolve(__dirname, '../src/lib/router-context.tsx'),
+          'next/router': resolve(__dirname, '../src/lib/router-context.tsx'),
+          'next/link': resolve(__dirname, '../src/lib/router-context.tsx'),
+          'next/image': resolve(__dirname, '../src/lib/router-context.tsx'),
+        },
       },
     });
   },

@@ -2,15 +2,20 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { SearchInput } from '@/components/ui/search-input';
 import { FormSection } from '@/components/ui/form-section';
-import { ArrowUp, Plus, ScanBarcode } from 'lucide-react';
+import { MetricCard } from '@/components/ui/card';
+import { LineChartComponent } from '@/components/ui/line-chart';
+import { ArrowUp, Plus, ScanBarcode, Table, ImagePlus, FileText, Building2, MoreHorizontal, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Sparkles, MessageSquare } from 'lucide-react';
 import { addDays } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Filter, FilterOption } from '@/components/ui/filter';
 
-interface Message {
+export interface Message {
   id: number;
-  text: string;
+  text: string | React.ReactNode;
   isUser: boolean;
   timestamp: Date;
   isTyping?: boolean;
@@ -18,16 +23,22 @@ interface Message {
   showRetailProducts?: boolean;
 }
 
-export const ChatInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export interface ChatInterfaceProps {
+  initialMessages?: Message[];
+}
+
+export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {}) => {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
-  const [isStarted, setIsStarted] = useState(false);
+  const [isStarted, setIsStarted] = useState(initialMessages.length > 0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [retailProductSearch, setRetailProductSearch] = useState('');
   const [isRetailProductDropdownOpen, setIsRetailProductDropdownOpen] = useState(false);
   const [selectedRetailProducts, setSelectedRetailProducts] = useState<string[]>([]);
+  const [activeContexts, setActiveContexts] = useState<string[]>([]);
+  const [contextSelections, setContextSelections] = useState<Record<string, string[]>>({});
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -43,6 +54,44 @@ export const ChatInterface = () => {
     { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
     { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
   ];
+
+  // Context data for filter selection
+  const contextData: Record<string, FilterOption[]> = {
+    campaign: [
+      { label: 'Summer Sale 2024', value: 'camp-001', description: 'Sponsored Products • Active' },
+      { label: 'Q1 Brand Awareness', value: 'camp-002', description: 'Display • Completed' },
+      { label: 'Holiday Special', value: 'camp-003', description: 'Digital In-Store • Active' },
+      { label: 'Spring Collection', value: 'camp-004', description: 'Sponsored Products • Draft' },
+      { label: 'Back to School', value: 'camp-005', description: 'Display • Scheduled' },
+    ],
+    creative: [
+      { label: 'Product Banner - Red', value: 'crea-001', description: '1200x628 • Active' },
+      { label: 'Hero Image - Blue', value: 'crea-002', description: '1920x1080 • Active' },
+      { label: 'Mobile Ad - Green', value: 'crea-003', description: '640x1136 • Draft' },
+      { label: 'Video Ad 30s', value: 'crea-004', description: 'MP4 • Review' },
+      { label: 'Carousel Set', value: 'crea-005', description: '5 images • Active' },
+    ],
+    'line-item': [
+      { label: 'Premium Placement', value: 'line-001', description: 'Budget: $5,000 • Active' },
+      { label: 'Standard Display', value: 'line-002', description: 'Budget: $2,500 • Active' },
+      { label: 'Mobile Only', value: 'line-003', description: 'Budget: $1,500 • Paused' },
+      { label: 'Weekend Boost', value: 'line-004', description: 'Budget: $3,000 • Scheduled' },
+      { label: 'Retargeting Campaign', value: 'line-005', description: 'Budget: $4,000 • Active' },
+    ],
+    advertiser: [
+      { label: 'Coca-Cola Company', value: 'adv-001', description: 'Active campaigns: 12' },
+      { label: 'Unilever', value: 'adv-002', description: 'Active campaigns: 8' },
+      { label: 'Procter & Gamble', value: 'adv-003', description: 'Active campaigns: 15' },
+      { label: 'Nike Inc.', value: 'adv-004', description: 'Active campaigns: 6' },
+      { label: 'Samsung Electronics', value: 'adv-005', description: 'Active campaigns: 10' },
+    ],
+    other: [
+      { label: 'Product Category', value: 'other-001', description: 'Beverages' },
+      { label: 'Target Audience', value: 'other-002', description: 'Age 25-40' },
+      { label: 'Geographic Region', value: 'other-003', description: 'Netherlands' },
+      { label: 'Budget Range', value: 'other-004', description: '$1,000 - $5,000' },
+    ],
+  };
 
   // Check if we're in a menu context and get collapsed state
   React.useEffect(() => {
@@ -104,27 +153,219 @@ export const ChatInterface = () => {
       retailProducts.find(p => p.id === id)?.name || ''
     );
 
-    // Simulate AI generating keywords based on selected products
+    // Generate keyword suggestions based on product names
+    const generateKeywords = () => {
+      const keywords = [];
+      selectedProductNames.forEach((productName) => {
+        const parts = productName.split(' - ');
+        const brand = parts[0] || '';
+        const productType = parts[1] || '';
+
+        // Generate variations
+        if (brand && productType) {
+          keywords.push({
+            keyword: `${brand.toLowerCase()} ${productType.toLowerCase()}`,
+            volume: 'high',
+            competitive: 'Medium'
+          });
+          keywords.push({
+            keyword: `${productType.toLowerCase()}`,
+            volume: 'medium',
+            competitive: 'High'
+          });
+          keywords.push({
+            keyword: `best ${productType.toLowerCase()}`,
+            volume: 'medium',
+            competitive: 'Medium'
+          });
+        }
+      });
+      return keywords.slice(0, 6); // Limit to 6 keywords
+    };
+
+    const keywords = generateKeywords();
+
+    // Create keyword placements UI component
+    const KeywordPlacementsContent = () => (
+      <div className="mt-4">
+        <div className="bg-white rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <h3 className="text-lg font-semibold">Keywords placements</h3>
+            <button className="text-muted-foreground hover:text-foreground">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01"/>
+              </svg>
+            </button>
+          </div>
+          <div className="space-y-4">
+            {keywords.map((kw, index) => (
+              <div key={index} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+                <div>
+                  <div className="font-medium text-base mb-1 capitalize">{kw.keyword}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Volume: {kw.volume} <span className="mx-2">|</span> Competitive: {kw.competitive}
+                  </div>
+                </div>
+                <Button
+                  size="icon"
+                  className="bg-foreground hover:bg-foreground/90 text-background flex-shrink-0"
+                  onClick={() => console.log('Add keyword:', kw.keyword)}
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    // Simulate AI generating keywords
     const keywordResponse = {
       id: Date.now() + Math.random(),
-      text: `Great! I've generated keyword suggestions for your selected products: ${selectedProductNames.join(', ')}. Here are some high-performing keyword recommendations:
-
-**Broad Keywords:**
-• ${selectedProductNames[0]?.split(' - ')[0] || 'Product'} alternatives
-• Best ${selectedProductNames[0]?.split(' - ')[1] || 'products'}
-• ${selectedProductNames[0]?.split(' - ')[0] || 'Brand'} deals
-
-**Long-tail Keywords:**
-• "Buy ${selectedProductNames[0]?.toLowerCase() || 'product'} online"
-• "${selectedProductNames[0]?.split(' - ')[0] || 'Brand'} ${selectedProductNames[0]?.split(' - ')[1] || 'product'} review"
-• "Best price ${selectedProductNames[0]?.toLowerCase() || 'product'}"
-
-These keywords are optimized for your product selection and should help improve your campaign performance.`,
+      text: (
+        <>
+          <p className="text-sm mb-4">
+            Great! I've generated keyword suggestions for your selected products: {selectedProductNames.join(', ')}.
+          </p>
+          <KeywordPlacementsContent />
+        </>
+      ),
       isUser: false,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, keywordResponse]);
+  };
+
+  const createSpendAnalysisContent = () => {
+    const calculateMetrics = (spend: number) => {
+      const maxRoas = 600;
+      const minRoas = 100;
+      const roasRange = maxRoas - minRoas;
+      const spendRatio = (spend - 10000) / 40000;
+      const roas = maxRoas - (spendRatio * roasRange);
+
+      const baseRevenue = 100;
+      const maxRevenue = 500;
+      const revenueRange = maxRevenue - baseRevenue;
+      const revenue = baseRevenue + (spendRatio * revenueRange);
+
+      return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
+    };
+
+    const generateForecastData = () => {
+      const data = [];
+      for (let spend = 10; spend <= 50; spend += 2) {
+        const metrics = calculateMetrics(spend * 1000);
+        data.push({
+          spend: `${spend}K`,
+          spendValue: spend * 1000,
+          roas: metrics.roas,
+          revenue: metrics.revenue,
+        });
+      }
+      return data;
+    };
+
+    const forecastData = generateForecastData();
+
+    const forecastConfig = {
+      roas: {
+        label: "ROAS",
+        color: "hsl(var(--chart-1))",
+      },
+      revenue: {
+        label: "Revenue",
+        color: "hsl(var(--chart-2))",
+      },
+    };
+
+    return (
+      <>
+        <p className="text-sm mb-4">Based on your campaign performance, I recommend increasing your spend. Here's why:</p>
+
+        {/* Metric cards */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <MetricCard
+            label="ROAS Performance"
+            value="4.2x"
+            subMetric="Above target (3.0x)"
+            badgeValue="+40%"
+            badgeVariant="success"
+          />
+          <MetricCard
+            label="Budget Usage"
+            value="95%"
+            subMetric="Near depletion"
+            badgeValue="High demand"
+            badgeVariant="warning"
+          />
+          <MetricCard
+            label="Opportunity Cost"
+            value="$12.5K"
+            subMetric="Potential lost revenue"
+            badgeValue="High"
+            badgeVariant="destructive"
+          />
+        </div>
+
+        {/* Forecast Chart */}
+        <div className="mb-4">
+          <p className="text-sm font-medium mb-3">Spend vs Performance Forecast</p>
+          <div className="bg-white rounded-lg p-4">
+            <LineChartComponent
+              data={forecastData}
+              config={forecastConfig}
+              showLegend={true}
+              showGrid={true}
+              showTooltip={true}
+              showXAxis={true}
+              showYAxis={true}
+              className="h-[300px] w-full"
+              xAxisDataKey="spend"
+              yAxisLabel="Revenue"
+              secondaryYAxis={{
+                dataKey: "roas",
+                domain: [0, 700],
+                label: "ROAS"
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3 text-sm">
+          <p><strong>Key insights:</strong></p>
+          <ul className="space-y-2 ml-4">
+            <li className="flex items-start gap-2">
+              <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+              <span><strong>High ROAS:</strong> Your campaign is generating $4.20 for every $1 spent, which is 40% above your target of 3.0x</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+              <span><strong>Budget Constraint:</strong> You've used 95% of your allocated budget with 2 weeks remaining in the campaign period</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <TrendingUp className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <span><strong>Growth Potential:</strong> Based on current conversion rates, increasing spend by $15K could generate an additional $63K in revenue</span>
+            </li>
+          </ul>
+
+          <p className="pt-2"><strong>Recommendation:</strong> Increase your campaign budget by $15,000 to capitalize on the high performance and avoid missing out on potential revenue during the remaining campaign period.</p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 mt-4 pt-4">
+          <Button>
+            Increase Budget
+          </Button>
+          <Button variant="outline">
+            Show Campaign Details
+          </Button>
+        </div>
+      </>
+    );
   };
 
   const simulateAIResponse = (userMessage: string) => {
@@ -134,8 +375,15 @@ These keywords are optimized for your product selection and should help improve 
     setTimeout(() => {
       let aiResponse;
 
-      // Check if user wants to create sponsored products campaign
-      if (userMessage.toLowerCase().includes("create a new sponsored products campaign")) {
+      // Check if user wants budget recommendation
+      if (userMessage.toLowerCase().includes("budget recommendation")) {
+        aiResponse = {
+          id: Date.now() + Math.random(),
+          text: createSpendAnalysisContent(),
+          isUser: false,
+          timestamp: new Date()
+        };
+      } else if (userMessage.toLowerCase().includes("create a new sponsored products campaign")) {
         aiResponse = {
           id: Date.now() + Math.random(),
           text: "Based on your requirements, I've generated 3 sponsored products campaign proposals with different optimization strategies. Each targets different goals and budget allocations:",
@@ -153,7 +401,7 @@ These keywords are optimized for your product selection and should help improve 
         };
       } else {
         const responses = [
-          "Thanks for your message! I'm AdGenie AI, here to help with your campaign management. What specific aspect would you like to explore?",
+          "Thanks for your message! I'm CampaignAI, here to help with your campaign management. What specific aspect would you like to explore?",
           "Great question! Let me analyze that for you. I can help optimize your campaigns, track performance, and suggest improvements.",
           "I understand you're looking for campaign insights. Based on current data, I can provide recommendations for better ROI.",
           "That's an interesting point about your advertising strategy. Let me break down some optimization opportunities for you.",
@@ -224,6 +472,58 @@ These keywords are optimized for your product selection and should help improve 
     handleSend();
   };
 
+  const handleNotificationClick = (notificationType: string) => {
+    if (!isStarted) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsStarted(true);
+        setIsAnimating(false);
+      }, 600);
+    }
+
+    // Create user message based on notification type
+    let userMessage = '';
+    if (notificationType === 'budget-recommendation') {
+      userMessage = 'Show me budget recommendation for Summer Sale campaign';
+    } else if (notificationType === 'ctr-optimization') {
+      userMessage = 'How can I improve CTR for Spring Sale campaign?';
+    } else if (notificationType === 'timing-optimization') {
+      userMessage = 'Tell me more about Banner_Summer_v2 engagement timing';
+    }
+
+    const newMessage = {
+      id: Date.now(),
+      text: userMessage,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+
+    // Simulate AI response
+    setTimeout(() => {
+      simulateAIResponse(userMessage);
+    }, isStarted ? 500 : 1100);
+  };
+
+  const handleContextSelect = (type: string) => {
+    if (!activeContexts.includes(type)) {
+      setActiveContexts([...activeContexts, type]);
+      setContextSelections({ ...contextSelections, [type]: [] });
+    }
+  };
+
+  const handleFilterChange = (type: string, values: string[]) => {
+    setContextSelections({ ...contextSelections, [type]: values });
+  };
+
+  const handleRemoveContext = (type: string) => {
+    setActiveContexts(activeContexts.filter(t => t !== type));
+    const newSelections = { ...contextSelections };
+    delete newSelections[type];
+    setContextSelections(newSelections);
+  };
+
   // Single container structure that handles all states
   return (
     <>
@@ -245,38 +545,83 @@ These keywords are optimized for your product selection and should help improve 
             <div className="w-full max-w-[800px]">
               {/* Input field */}
               <div className="mb-8">
-                <div className="flex items-end border border-input rounded-xl bg-white shadow-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring w-full px-1">
-                  <textarea
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ask a question..."
-                    className="flex-1 border-0 focus:outline-none text-base px-3 py-4 resize-none min-h-[48px] max-h-[120px] bg-transparent"
-                    disabled={isAnimating}
-                    rows={1}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-1 h-8 w-8 text-muted-foreground hover:text-foreground mb-2"
-                    disabled={isAnimating}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    onClick={handleSend}
-                    disabled={!inputValue.trim() || isAnimating}
-                    size="icon"
-                    className="mr-2 h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 mb-2"
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </Button>
+                <div className="flex flex-col border border-input rounded-xl bg-white shadow-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring w-full p-3">
+                  <div className="flex items-center gap-2">
+                    <textarea
+                      ref={inputRef}
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Ask a question..."
+                      className="flex-1 border-0 focus:outline-none text-base resize-none min-h-[24px] max-h-[120px] bg-transparent"
+                      disabled={isAnimating}
+                      rows={1}
+                    />
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-foreground"
+                        disabled={isAnimating}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem onSelect={() => handleContextSelect('campaign')}>
+                        <Table className="mr-2 h-4 w-4" />
+                        <span>Campaign</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleContextSelect('creative')}>
+                        <ImagePlus className="mr-2 h-4 w-4" />
+                        <span>Creative</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleContextSelect('line-item')}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>Line-item</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleContextSelect('advertiser')}>
+                        <Building2 className="mr-2 h-4 w-4" />
+                        <span>Advertiser</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={() => handleContextSelect('other')}>
+                        <MoreHorizontal className="mr-2 h-4 w-4" />
+                        <span>Other</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                        <Button
+                          onClick={handleSend}
+                          disabled={!inputValue.trim() || isAnimating}
+                          size="icon"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-100"
+                        >
+                          <ArrowUp className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {activeContexts.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {activeContexts.map((type) => (
+                          <Filter
+                            key={type}
+                            name={`Select ${type}`}
+                            options={contextData[type] || []}
+                            selectedValues={contextSelections[type] || []}
+                            onChange={(values) => handleFilterChange(type, values)}
+                            className="text-sm"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
               {/* Suggestion cards below input */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                 <Button
                   variant="outline"
                   className="text-left p-4 h-auto justify-start hover:bg-accent hover:text-accent-foreground"
@@ -310,13 +655,78 @@ These keywords are optimized for your product selection and should help improve 
                 <Button
                   variant="outline"
                   className="text-left p-4 h-auto justify-start hover:bg-accent hover:text-accent-foreground"
-                  onClick={() => handleSuggestionClick("Analyze my competitor performance")}
+                  onClick={() => handleSuggestionClick("Show me budget recommendation for Summer Sale campaign")}
                 >
                   <div>
-                    <div className="font-medium text-foreground">Competitor Analysis</div>
-                    <div className="text-sm text-muted-foreground">Analyze competitor performance</div>
+                    <div className="font-medium text-foreground">Budget recommendation Summer Sale</div>
+                    <div className="text-sm text-muted-foreground">Opportunity: $12.5K potential lost revenue</div>
                   </div>
                 </Button>
+              </div>
+
+              {/* AI Notifications Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-foreground">AI Notifications</h3>
+                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+                    View all
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {/* AI Notification 1 */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => handleNotificationClick('ctr-optimization')}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      AI Insight
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
+                    </p>
+                  </div>
+
+                  {/* AI Notification 2 */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => handleNotificationClick('timing-optimization')}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      AI Insight
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
+                    </p>
+                  </div>
+
+                  {/* AI Notification 3 - Budget Recommendation */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => handleNotificationClick('budget-recommendation')}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      Budget Alert
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -332,7 +742,7 @@ These keywords are optimized for your product selection and should help improve 
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                      className={`${message.isUser ? 'max-w-[70%]' : 'max-w-[85%]'} rounded-2xl px-4 py-3 ${
                         message.isUser
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground'
@@ -344,12 +754,10 @@ These keywords are optimized for your product selection and should help improve 
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Campaign proposals */}
-                  {message.showCampaigns && (
-                    <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      {/* Campaign proposals inside reply card */}
+                      {message.showCampaigns && (
+                        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Campaign 1 - Performance focused */}
                       <CampaignSummary
                         title="Performance Campaign"
@@ -413,45 +821,13 @@ These keywords are optimized for your product selection and should help improve 
                         onEdit={() => console.log('Edit campaign 2')}
                         onAddToCart={() => console.log('Add campaign 2 to cart')}
                       />
+                        </div>
+                      )}
 
-                      {/* Campaign 3 - Lead generation */}
-                      <CampaignSummary
-                        title="Lead Generation Campaign"
-                        badge={{ text: "High Conversion", variant: "outline" }}
-                        goal="lead-generation"
-                        goalOptions={[
-                          { label: 'Performance on transaction', value: 'performance-transaction' },
-                          { label: 'Brand awareness', value: 'brand-awareness' },
-                          { label: 'Lead generation', value: 'lead-generation' }
-                        ]}
-                        audience="premium"
-                        audienceOptions={[
-                          { label: 'Premium customers', value: 'premium' },
-                          { label: 'Loyal customers', value: 'loyal' },
-                          { label: 'High-value customers', value: 'high-value' }
-                        ]}
-                        estimatedRoas="5.1x"
-                        budget="$3,500"
-                        engines={[
-                          { id: 'display', name: 'Display', enabled: false },
-                          { id: 'sponsored', name: 'Sponsored products', enabled: true },
-                          { id: 'digital', name: 'Digital in-store', enabled: false }
-                        ]}
-                        dateRange={{
-                          from: new Date('2024-01-15'),
-                          to: addDays(new Date('2024-01-15'), 21)
-                        }}
-                        features={[]}
-                        onEdit={() => console.log('Edit campaign 3')}
-                        onAddToCart={() => console.log('Add campaign 3 to cart')}
-                      />
-                    </div>
-                  )}
-
-                  {/* Retail Products Selector */}
-                  {message.showRetailProducts && (
-                    <div className="mt-4">
-                      <FormSection title="Retail products">
+                      {/* Retail Products Selector inside reply card */}
+                      {message.showRetailProducts && (
+                        <div className="mt-4">
+                          <FormSection title="Retail products" className="bg-white rounded-lg">
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Select retail products*</label>
@@ -529,16 +905,17 @@ These keywords are optimized for your product selection and should help improve 
                             <div className="pt-4">
                               <Button
                                 onClick={generateKeywordsForProducts}
-                                className="w-full"
                               >
                                 Generate Keywords for Selected Products
                               </Button>
                             </div>
                           )}
                         </div>
-                      </FormSection>
+                          </FormSection>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               ))}
 
@@ -547,7 +924,7 @@ These keywords are optimized for your product selection and should help improve 
                 <div className="flex justify-start mb-4">
                   <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-3 max-w-[70%]">
                     <div className="flex items-center space-x-1">
-                      <div className="text-sm">AdGenie AI is typing</div>
+                      <div className="text-sm">CampaignAI is typing</div>
                       <div className="flex space-x-1 ml-2">
                         <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
                         <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
@@ -577,36 +954,81 @@ These keywords are optimized for your product selection and should help improve 
             marginRight: 'auto',
           }}
         >
-          <div className="flex items-end border border-input rounded-xl bg-white shadow-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring w-full px-1">
-            <textarea
-              ref={inputRef}
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask a follow-up question..."
-              className="flex-1 border-0 focus:outline-none text-base px-3 py-4 resize-none min-h-[48px] max-h-[120px] bg-transparent"
-              disabled={isAnimating || isAITyping}
-              rows={1}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="mr-1 h-8 w-8 text-muted-foreground hover:text-foreground mb-2"
-              disabled={isAnimating || isAITyping}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            <Button
-              onClick={handleSend}
-              disabled={!inputValue.trim() || isAnimating || isAITyping}
-              size="icon"
-              className="mr-2 h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 mb-2"
-            >
-              <ArrowUp className="w-4 h-4" />
-            </Button>
+          <div className="flex flex-col border border-input rounded-xl bg-white shadow-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring w-full p-3">
+            <div className="flex items-center gap-2">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask a follow-up question..."
+                className="flex-1 border-0 focus:outline-none text-base resize-none min-h-[24px] max-h-[120px] bg-transparent"
+                disabled={isAnimating || isAITyping}
+                rows={1}
+              />
+              <div className="flex items-center gap-1 flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                  disabled={isAnimating || isAITyping}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onSelect={() => handleContextSelect('campaign')}>
+                  <Table className="mr-2 h-4 w-4" />
+                  <span>Campaign</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleContextSelect('creative')}>
+                  <ImagePlus className="mr-2 h-4 w-4" />
+                  <span>Creative</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleContextSelect('line-item')}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Line-item</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleContextSelect('advertiser')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  <span>Advertiser</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => handleContextSelect('other')}>
+                  <MoreHorizontal className="mr-2 h-4 w-4" />
+                  <span>Other</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+                  <Button
+                    onClick={handleSend}
+                    disabled={!inputValue.trim() || isAnimating || isAITyping}
+                    size="icon"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-100"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              {activeContexts.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {activeContexts.map((type) => (
+                    <Filter
+                      key={type}
+                      name={`Select ${type}`}
+                      options={contextData[type] || []}
+                      selectedValues={contextSelections[type] || []}
+                      onChange={(values) => handleFilterChange(type, values)}
+                      className="text-sm"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </>
   );

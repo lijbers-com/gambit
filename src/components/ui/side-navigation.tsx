@@ -6,13 +6,25 @@ import { NavigationItem } from './navigation-item';
 import { NavigationItemWithSubmenu } from './navigation-item-with-submenu';
 import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
-import { usePathname } from '@/lib/router-context';
+import { usePathname as usePathnameContext } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
 import { useEffect, useContext, useState, useRef } from 'react';
-import { useRouter } from '@/lib/router-context';
+import { useRouter as useRouterContext } from '@/lib/router-context';
 import { ThemeContext } from '@/contexts/theme-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { User, Bell, Building2, LogOut, Info } from 'lucide-react';
+
+// Try to import Next.js router, fallback to our custom router if not available
+let useRouterNext: (() => any) | null = null;
+let usePathnameNext: (() => string) | null = null;
+
+try {
+  const nextNav = require('next/navigation');
+  useRouterNext = nextNav.useRouter;
+  usePathnameNext = nextNav.usePathname;
+} catch (e) {
+  // Next.js not available (we're in Storybook)
+}
 
 export interface Route {
   id: number;
@@ -55,7 +67,12 @@ export const SideNavigation = ({
   style,
   theme: themeProp,
 }: SideNavigationProps) => {
-  const router = useRouter();
+  // Use Next.js router if available (in Next.js app), otherwise use our custom router (in Storybook)
+  const router = useRouterNext ? useRouterNext() : useRouterContext();
+  const pathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
+
+  console.log('[SideNav] Router initialized:', router);
+  console.log('[SideNav] Using Next.js router:', !!useRouterNext);
 
   // Use theme from props first, then context, otherwise default to 'gambit'
   let theme = themeProp || 'gambit';
@@ -69,7 +86,6 @@ export const SideNavigation = ({
     }
   }
   const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
-  const pathname = usePathname();
 
   // Ensure openSubmenu is initialized as an array
   useEffect(() => {
@@ -179,9 +195,9 @@ export const SideNavigation = ({
               {shouldShowTitle && (
                 <p className={cn(
                   "mb-4 mt-8 transition-opacity duration-300",
-                  // Apply different styling for Configuration and AdGenie chats sections
-                  item.name === "Configuration" || item.name === "AdGenie chats" 
-                    ? "text-xs text-muted-foreground" 
+                  // Apply different styling for Configuration and Campaign Intelligence sections
+                  item.name === "Configuration" || item.name === "Campaign Intelligence"
+                    ? "text-xs text-muted-foreground"
                     : "text-muted-foreground"
                 )}>{item.name}</p>
               )}
@@ -222,31 +238,43 @@ export const SideNavigation = ({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
-              <DropdownMenuItem onClick={() => {
+              <DropdownMenuItem onSelect={() => {
+                console.log('[Menu] Profile clicked');
                 router.push('/profile');
               }}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                router.push('/notifications');
+              <DropdownMenuItem onSelect={(e) => {
+                console.log('[Menu] Notifications clicked');
+                console.log('[Menu] Router object:', router);
+                console.log('[Menu] Calling router.push with /notifications');
+                try {
+                  router.push('/notifications');
+                  console.log('[Menu] router.push called successfully');
+                } catch (error) {
+                  console.error('[Menu] Error calling router.push:', error);
+                }
               }}>
                 <Bell className="mr-2 h-4 w-4" />
                 <span>Notifications</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
+              <DropdownMenuItem onSelect={() => {
+                console.log('[Menu] My Organisation clicked');
                 // Placeholder for organisation functionality
               }}>
                 <Building2 className="mr-2 h-4 w-4" />
                 <span>My Organisation</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
+              <DropdownMenuItem onSelect={() => {
+                console.log('[Menu] Information clicked');
                 // Placeholder for information functionality
               }}>
                 <Info className="mr-2 h-4 w-4" />
                 <span>Information</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
+              <DropdownMenuItem onSelect={() => {
+                console.log('[Menu] Logout clicked');
                 router.push('/login');
               }}>
                 <LogOut className="mr-2 h-4 w-4" />

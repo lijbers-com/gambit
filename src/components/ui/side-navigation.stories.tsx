@@ -197,11 +197,6 @@ const sampleRoutes: Route[] = [
 export const Primary: Story = {
   args: {
     routes: sampleRoutes,
-    user: {
-      name: "John Doe",
-      avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"
-    },
-    onLogout: () => console.log("Logout clicked")
   },
   render: (args) => (
     <div className="flex h-screen">
@@ -255,11 +250,6 @@ export const Primary: Story = {
 export const OpenState: Story = {
   args: {
     routes: sampleRoutes,
-    user: {
-      name: "John Doe",
-      avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"
-    },
-    onLogout: () => console.log("Logout clicked")
   },
   render: (args) => (
     <div className="flex h-screen">
@@ -524,11 +514,6 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
 export const CollapsedState: Story = {
   args: {
     routes: sampleRoutes,
-    user: {
-      name: "John Doe",
-      avatar: "https://ui-avatars.com/api/?name=John+Doe&size=32"
-    },
-    onLogout: () => console.log("Logout clicked")
   },
   render: (args) => {
     // Custom context provider that forces collapsed state
@@ -667,11 +652,6 @@ const advertiserRoutes: Route[] = [
 export const AdvertiserView: Story = {
   args: {
     routes: advertiserRoutes,
-    user: {
-      name: "Jane Smith",
-      avatar: "https://ui-avatars.com/api/?name=Jane+Smith&size=32"
-    },
-    onLogout: () => console.log("Logout clicked")
   },
   render: (args) => (
     <div className="flex h-screen">

@@ -4,6 +4,7 @@ import { ChevronRight, MoreHorizontal, PanelLeftOpen, PanelLeftClose } from "luc
 
 import { cn } from "@/lib/utils"
 import { useMenu } from '@/hooks/use-menu'
+import { Button } from './button'
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
@@ -17,10 +18,11 @@ const Breadcrumb = React.forwardRef<
   return (
     <nav ref={ref} aria-label="breadcrumb" {...props} className={cn('breadcrumb flex items-center pl-6', props.className)}>
       {showNavToggle && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={toggleCollapsed}
-          className="inline-flex items-center justify-center mr-6 p-1 rounded transition-colors focus:outline-none"
+          className="h-9 w-9 mr-4"
           aria-label="Toggle navigation"
         >
           {collapsed ? (
@@ -28,7 +30,7 @@ const Breadcrumb = React.forwardRef<
           ) : (
             <PanelLeftClose className="h-5 w-5" />
           )}
-        </button>
+        </Button>
       )}
       {props.children}
     </nav>

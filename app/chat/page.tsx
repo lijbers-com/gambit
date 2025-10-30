@@ -2,14 +2,18 @@
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { ChatInterface } from '@/components/ui/chat-interface';
-import { defaultRoutes } from '@/components/layout/default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useTheme } from '@/contexts/theme-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
 
 export default function ChatPage() {
+  const { theme } = useTheme();
+  const routes = getRoutesForTheme(theme);
+
   return (
     <MenuContextProvider>
       <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => console.log('Logout clicked')}

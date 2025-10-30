@@ -102,6 +102,15 @@ const GeneralStylesPage = () => (
           <ColorSwatch label="Brand App Hover" color="#A30E26" token="--brand-app-hover" />
         </div>
       </div>
+      <div>
+        <h4 style={{ marginBottom: '1rem', fontSize: '14px', fontWeight: '600' }}>Alfa Beta</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ColorSwatch label="Brand Primary" color="#0066CC" token="--brand-primary" />
+          <ColorSwatch label="Brand App BG" color="#ffffff" token="--brand-app-bg" />
+          <ColorSwatch label="Brand App Text" color="#0f172a" token="--brand-app-text" />
+          <ColorSwatch label="Brand App Hover" color="#f1f5f9" token="--brand-app-hover" />
+        </div>
+      </div>
     </div>
     
     <h3>Chart Color Tokens</h3>

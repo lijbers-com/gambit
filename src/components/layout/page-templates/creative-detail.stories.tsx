@@ -13,6 +13,8 @@ import { FilterBar } from '../../ui/filter-bar';
 import { DialogFooter } from '../../ui/dialog';
 import { Minus } from 'lucide-react';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Creative Detail',
@@ -288,6 +290,9 @@ const LineItemsDialog = ({ selectedLineItems, onSelectionChange }: {
 // Display Creative Detail Story
 export const Display: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [creativeName, setCreativeName] = React.useState('');
     const [creativeFormat, setCreativeFormat] = React.useState('');
     const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
@@ -295,7 +300,7 @@ export const Display: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -502,6 +507,9 @@ export const Display: Story = {
 // Digital In-Store Creative Detail Story
 export const DigitalInStore: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [creativeName, setCreativeName] = React.useState('');
     const [creativeFormat, setCreativeFormat] = React.useState('');
     const [displayFormat, setDisplayFormat] = React.useState('');
@@ -513,7 +521,7 @@ export const DigitalInStore: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -738,6 +746,9 @@ export const DigitalInStore: Story = {
 // Offline In-Store Creative Detail Story
 export const OfflineInStore: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [creativeName, setCreativeName] = React.useState('');
     const [creativeFormat, setCreativeFormat] = React.useState('');
     const [creativeType, setCreativeType] = React.useState('');
@@ -747,7 +758,7 @@ export const OfflineInStore: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

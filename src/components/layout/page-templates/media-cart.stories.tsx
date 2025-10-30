@@ -11,6 +11,8 @@ import { Table } from '../../ui/table';
 import { Badge } from '../../ui/badge';
 import { CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { addDays } from 'date-fns';
 import * as React from 'react';
 
@@ -133,6 +135,9 @@ const campaignData = {
 
 export const MediaCart: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [goal, setGoal] = React.useState(campaignData.goal);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(campaignData.dateRange);
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
@@ -140,7 +145,7 @@ export const MediaCart: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-          routes={defaultRoutes}
+          routes={routes}
           logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
           onLogout={() => alert('Logout clicked')}

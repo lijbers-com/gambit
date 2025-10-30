@@ -21,6 +21,8 @@ import { DialogFooter } from '../../ui/dialog';
 import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { CalendarTable } from '../../ui/calendar-table';
 
 const meta: Meta<typeof AppLayout> = {
@@ -352,6 +354,9 @@ const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: {
 // Display Line Item Detail Story
 export const Display: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -492,7 +497,7 @@ export const Display: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -923,6 +928,9 @@ export const Display: Story = {
 // Digital In-Store Line Item Detail Story
 export const DigitalInStore: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -1063,7 +1071,7 @@ export const DigitalInStore: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -1494,6 +1502,9 @@ export const DigitalInStore: Story = {
 // Offline In-Store Line Item Detail Story
 export const OfflineInStore: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [lineItemName, setLineItemName] = React.useState('');
     const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory, setSelectedInventory] = React.useState<any[]>([]);
@@ -1782,7 +1793,7 @@ export const OfflineInStore: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -2434,6 +2445,9 @@ export const OfflineInStore: Story = {
 // Sponsored Products Line Item Detail Story
 export const SponsoredProducts: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -2574,7 +2588,7 @@ export const SponsoredProducts: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

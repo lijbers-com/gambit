@@ -6,7 +6,8 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { defaultRoutes } from '@/components/layout/default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useTheme } from '@/contexts/theme-context';
 import { addDays } from 'date-fns';
 
 // Campaign data for the card view
@@ -118,6 +119,8 @@ const campaignSummaryData = [
 ];
 
 export default function AllCampaignsPage() {
+  const { theme } = useTheme();
+  const routes = getRoutesForTheme(theme);
   const [status, setStatus] = React.useState<string[]>([]);
   const [advertiser, setAdvertiser] = React.useState<string[]>([]);
   const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
@@ -125,7 +128,7 @@ export default function AllCampaignsPage() {
   return (
     <MenuContextProvider>
       <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

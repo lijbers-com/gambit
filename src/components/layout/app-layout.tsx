@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { SideNavigation, Route } from "@/components/ui/side-navigation";
 import { SmartBreadcrumbs } from "@/components/ui/smart-breadcrumbs";
 import { PageHeader } from "@/components/ui/page-header";
+import { HeaderActions } from "@/components/ui/header-actions";
 import { DateRangePicker } from "@/components/ui/date-picker";
 import { useMenu } from "@/hooks/use-menu";
 import { DateRange } from "react-day-picker";
@@ -74,8 +75,6 @@ export function AppLayout({
       <SideNavigation
         routes={routes}
         logo={logo}
-        user={user}
-        onLogout={onLogout}
         className="h-full"
         style={{ background: 'var(--brand-app-bg-hex)' }}
       />
@@ -84,16 +83,17 @@ export function AppLayout({
       <div className="flex flex-col min-w-0 h-screen overflow-x-hidden">
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Breadcrumb */}
+          {/* Breadcrumb & Header Actions */}
           <div style={{ background: 'var(--brand-app-bg-hex)' }}>
-            <div className="flex items-center">
+            <div className="flex items-center justify-between">
               <SmartBreadcrumbs
                 namespace="gambit"
                 routes={routes}
                 showNavToggle={true}
-                className="w-full py-3 relative bg-white"
+                className="flex-1 py-3 relative"
                 {...breadcrumbProps}
               />
+              <HeaderActions className="pr-6" />
             </div>
           </div>
           {/* Page Header */}

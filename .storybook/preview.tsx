@@ -4,16 +4,24 @@ import * as React from 'react';
 import { ThemeProvider } from "../src/contexts/theme-context";
 import { RouterProvider } from "../src/lib/router-context";
 import { MenuContextProvider } from "../src/contexts/menu-context";
+import { StorybookThemeProvider } from "../src/contexts/storybook-theme-context";
 
 // Theme wrapper component that can use hooks
 const ThemeWrapper: React.FC<{ theme: string; children: React.ReactNode }> = ({ theme, children }) => {
   React.useEffect(() => {
+    // Apply theme to document elements for CSS variables to work
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-theme', theme);
-    
-    // Also update any theme-specific classes
+
+    // Clear any existing theme classes
     document.documentElement.className = '';
     document.body.className = '';
+
+    // Dispatch event for toolbar theme changes
+    window.dispatchEvent(new CustomEvent('toolbar-theme-change', { detail: theme }));
+
+    // Log theme changes for debugging
+    console.log('Storybook theme changed to:', theme);
   }, [theme]);
 
   return (
@@ -21,7 +29,9 @@ const ThemeWrapper: React.FC<{ theme: string; children: React.ReactNode }> = ({ 
       <RouterProvider>
         <ThemeProvider>
           <MenuContextProvider>
-            {children}
+            <StorybookThemeProvider initialTheme={theme}>
+              {children}
+            </StorybookThemeProvider>
           </MenuContextProvider>
         </ThemeProvider>
       </RouterProvider>
@@ -32,7 +42,7 @@ const ThemeWrapper: React.FC<{ theme: string; children: React.ReactNode }> = ({ 
 // Provider wrapper for stories with ThemeProvider and theme application
 const withTheme = (Story: any, context: any) => {
   const theme = context.globals.theme || 'retailMedia';
-  
+
   return React.createElement(ThemeWrapper, { theme }, React.createElement(Story, context));
 };
 
@@ -62,6 +72,7 @@ const preview: Preview = {
           { value: 'albertHeijn', title: 'Albert Heijn Theme' },
           { value: 'adusa', title: 'ADUSA Theme' },
           { value: 'delhaize', title: 'Delhaize Theme' },
+          { value: 'alfaBeta', title: 'Alfa Beta Theme' },
         ],
         dynamicTitle: true,
       },

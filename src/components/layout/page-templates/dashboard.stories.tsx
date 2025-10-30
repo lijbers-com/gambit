@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { ChatInterface } from '@/components/ui/chat-interface';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import React, { useState } from 'react';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { MessageSquare, TrendingUp, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -56,28 +58,34 @@ type Story = StoryObj<typeof meta>;
 
 
 export const Chat: Story = {
-  args: {
-    routes: defaultRoutes,
-    logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
-    user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
-    onLogout: () => alert('Logout clicked'),
-    breadcrumbProps: { namespace: '' },
-    pageHeaderProps: {
-      title: 'CampaignAI Chat',
-      subtitle: 'AI-powered conversational interface for campaign management',
-      headerRight: null,
-      onEdit: () => alert('Edit clicked'),
-      onExport: () => alert('Export clicked'),
-      onImport: () => alert('Import clicked'),
-      onSettings: () => alert('Settings clicked'),
-    },
-    children: <ChatInterface />,
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'CampaignAI Chat',
+            subtitle: 'AI-powered conversational interface for campaign management',
+            headerRight: null,
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+          }}
+        >
+          <ChatInterface />
+        </AppLayout>
+      </MenuContextProvider>
+    );
   },
-  render: (args) => (
-    <MenuContextProvider>
-      <AppLayout {...args} />
-    </MenuContextProvider>
-  ),
 };
 
 // Enhanced ChatInterface that shows the spend analysis example
@@ -294,28 +302,34 @@ const ChatInterfaceWithSpendAnalysis = () => {
 };
 
 export const ChatWithSpendAnalysis: Story = {
-  args: {
-    routes: defaultRoutes,
-    logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
-    user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
-    onLogout: () => alert('Logout clicked'),
-    breadcrumbProps: { namespace: '' },
-    pageHeaderProps: {
-      title: 'CampaignAI Chat',
-      subtitle: 'AI-powered conversational interface for campaign management',
-      headerRight: null,
-      onEdit: () => alert('Edit clicked'),
-      onExport: () => alert('Export clicked'),
-      onImport: () => alert('Import clicked'),
-      onSettings: () => alert('Settings clicked'),
-    },
-    children: <ChatInterfaceWithSpendAnalysis />,
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'CampaignAI Chat',
+            subtitle: 'AI-powered conversational interface for campaign management',
+            headerRight: null,
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+          }}
+        >
+          <ChatInterfaceWithSpendAnalysis />
+        </AppLayout>
+      </MenuContextProvider>
+    );
   },
-  render: (args) => (
-    <MenuContextProvider>
-      <AppLayout {...args} />
-    </MenuContextProvider>
-  ),
 };
 
 // ChatInterface for New Campaign example
@@ -340,28 +354,34 @@ const ChatInterfaceWithNewCampaign = () => {
 };
 
 export const ChatWithNewCampaign: Story = {
-  args: {
-    routes: defaultRoutes,
-    logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
-    user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
-    onLogout: () => alert('Logout clicked'),
-    breadcrumbProps: { namespace: '' },
-    pageHeaderProps: {
-      title: 'CampaignAI Chat',
-      subtitle: 'AI-powered conversational interface for campaign management',
-      headerRight: null,
-      onEdit: () => alert('Edit clicked'),
-      onExport: () => alert('Export clicked'),
-      onImport: () => alert('Import clicked'),
-      onSettings: () => alert('Settings clicked'),
-    },
-    children: <ChatInterfaceWithNewCampaign />,
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'CampaignAI Chat',
+            subtitle: 'AI-powered conversational interface for campaign management',
+            headerRight: null,
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+          }}
+        >
+          <ChatInterfaceWithNewCampaign />
+        </AppLayout>
+      </MenuContextProvider>
+    );
   },
-  render: (args) => (
-    <MenuContextProvider>
-      <AppLayout {...args} />
-    </MenuContextProvider>
-  ),
 };
 
 // ChatInterface for Keyword Suggestions example
@@ -386,26 +406,32 @@ const ChatInterfaceWithKeywordSuggestions = () => {
 };
 
 export const ChatWithKeywordSuggestions: Story = {
-  args: {
-    routes: defaultRoutes,
-    logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
-    user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
-    onLogout: () => alert('Logout clicked'),
-    breadcrumbProps: { namespace: '' },
-    pageHeaderProps: {
-      title: 'CampaignAI Chat',
-      subtitle: 'AI-powered conversational interface for campaign management',
-      headerRight: null,
-      onEdit: () => alert('Edit clicked'),
-      onExport: () => alert('Export clicked'),
-      onImport: () => alert('Import clicked'),
-      onSettings: () => alert('Settings clicked'),
-    },
-    children: <ChatInterfaceWithKeywordSuggestions />,
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'CampaignAI Chat',
+            subtitle: 'AI-powered conversational interface for campaign management',
+            headerRight: null,
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+          }}
+        >
+          <ChatInterfaceWithKeywordSuggestions />
+        </AppLayout>
+      </MenuContextProvider>
+    );
   },
-  render: (args) => (
-    <MenuContextProvider>
-      <AppLayout {...args} />
-    </MenuContextProvider>
-  ),
 };

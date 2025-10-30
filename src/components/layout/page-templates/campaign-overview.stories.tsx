@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { addDays } from 'date-fns';
 import * as React from 'react';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -99,6 +101,10 @@ const statusVariant = (status: string) => {
 
 const createCampaignOverviewStory = (engineType: string, engineTitle: string) => ({
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
     const filteredCampaignData = campaignData.filter(row => {
@@ -109,7 +115,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

@@ -21,12 +21,14 @@ import {
   ChartNoAxesColumn,
   LayoutDashboard,
   MessageSquare,
+  MessageCirclePlus,
   MonitorSpeaker,
   ListStart,
   MonitorPlay,
   Store,
   WalletCards,
 } from 'lucide-react';
+import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
 export const renderIcon = (icon: string) => {
   const icons = {
@@ -52,12 +54,15 @@ export const renderIcon = (icon: string) => {
     ChartNoAxesColumn,
     LayoutDashboard,
     MessageSquare,
+    MessageCirclePlus,
     MonitorSpeaker,
     ListStart,
     MonitorPlay,
     Store,
     WalletCards,
+    OrganisationsIcon,
+    BrandsIcon,
   };
   const IconComponent = icons[icon as keyof typeof icons];
-  return IconComponent ? <IconComponent className="p-2" size={40} /> : null;
+  return IconComponent ? <IconComponent className="p-2" size={36} /> : null;
 }; 

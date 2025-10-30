@@ -1,26 +1,20 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarImage } from './avatar';
 import { NavigationItem } from './navigation-item';
 import { NavigationItemWithSubmenu } from './navigation-item-with-submenu';
 import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
 import { usePathname as usePathnameContext } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
-import { useEffect, useContext, useState, useRef } from 'react';
-import { useRouter as useRouterContext } from '@/lib/router-context';
+import { useEffect, useContext, useState } from 'react';
 import { ThemeContext } from '@/contexts/theme-context';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
-import { User, Bell, Building2, LogOut, Info } from 'lucide-react';
 
-// Try to import Next.js router, fallback to our custom router if not available
-let useRouterNext: (() => any) | null = null;
+// Try to import Next.js pathname
 let usePathnameNext: (() => string) | null = null;
 
 try {
   const nextNav = require('next/navigation');
-  useRouterNext = nextNav.useRouter;
   usePathnameNext = nextNav.usePathname;
 } catch (e) {
   // Next.js not available (we're in Storybook)
@@ -48,11 +42,6 @@ export interface SideNavigationProps {
     height?: number;
     svg?: React.ReactNode;
   };
-  user?: {
-    name?: string;
-    avatar?: string;
-  };
-  onLogout?: () => void;
   className?: string;
   style?: React.CSSProperties;
   theme?: string;
@@ -61,31 +50,69 @@ export interface SideNavigationProps {
 export const SideNavigation = ({
   routes,
   logo,
-  user,
-  onLogout,
   className,
   style,
   theme: themeProp,
 }: SideNavigationProps) => {
-  // Use Next.js router if available (in Next.js app), otherwise use our custom router (in Storybook)
-  const router = useRouterNext ? useRouterNext() : useRouterContext();
+  // Use Next.js pathname if available (in Next.js app), otherwise use our custom pathname (in Storybook)
   const pathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
 
-  console.log('[SideNav] Router initialized:', router);
-  console.log('[SideNav] Using Next.js router:', !!useRouterNext);
+  // Use state for theme to make it reactive
+  const [theme, setTheme] = useState<string>('gambit');
 
-  // Use theme from props first, then context, otherwise default to 'gambit'
-  let theme = themeProp || 'gambit';
-  if (!themeProp) {
+  const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
+
+  // Detect and update theme reactively
+  useEffect(() => {
+    if (themeProp) {
+      setTheme(themeProp);
+      return;
+    }
+
+    // Try to get theme from context first
     try {
       const themeContext = useContext(ThemeContext);
-      theme = themeContext?.theme || 'gambit';
+      if (themeContext?.theme) {
+        setTheme(themeContext.theme);
+        return;
+      }
     } catch (error) {
-      // ThemeContext not available, use default theme
-      theme = 'gambit';
+      // ThemeContext not available
     }
-  }
-  const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
+
+    // Detect theme from DOM (for Storybook)
+    const detectTheme = () => {
+      if (typeof document !== 'undefined') {
+        const dataTheme = document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme');
+        if (dataTheme) {
+          // Map Storybook theme names to our theme names
+          const themeMap: Record<string, string> = {
+            'albertHeijn': 'albert-heijn',
+            'retailMedia': 'gambit',
+            'adusa': 'adusa',
+            'delhaize': 'delhaize',
+            'alfaBeta': 'alfa-beta'
+          };
+          setTheme(themeMap[dataTheme] || dataTheme);
+        }
+      }
+    };
+
+    detectTheme();
+
+    // Watch for theme changes in Storybook
+    const observer = new MutationObserver(detectTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    return () => observer.disconnect();
+  }, [themeProp]);
 
   // Ensure openSubmenu is initialized as an array
   useEffect(() => {
@@ -133,11 +160,13 @@ export const SideNavigation = ({
           return false;
         }
         // Hide Configuration section and all its items
-        if (item.name === 'Configuration' || 
+        if (item.name === 'Configuration' ||
             item.name === 'Display config' ||
             item.name === 'Sponsored products config' ||
             item.name === 'Digital in-store config' ||
-            item.name === 'Offline in-store config') {
+            item.name === 'Offline in-store config' ||
+            item.name === 'Organisations & users' ||
+            item.name === 'Brands & retail products') {
           return false;
         }
       }
@@ -153,7 +182,7 @@ export const SideNavigation = ({
         // Make the sidebar fixed to the left, full height, and above content
         `fixed left-0 top-0 h-screen z-30 flex-shrink-0 text-sm flex flex-col transition-all duration-500 ease-in-out overflow-hidden scrollbar-hide`,
         collapsed ? 'w-[72px]' : 'w-[285px]',
-        'pt-4 px-4 pb-6', // Consistent 16px (px-4) padding for both states
+        'pt-4 px-4', // Consistent 16px (px-4) padding
         className
       )}
       data-collapsed={collapsed}
@@ -161,22 +190,33 @@ export const SideNavigation = ({
     >
       {/* Fixed logo area */}
       <div className="flex mb-8">
-        <Link 
-          href="/" 
-          className="side-navigation-logo flex-shrink-0 w-10 h-10" // Fixed dimensions for consistent positioning
-          style={{ 
+        <Link
+          href="/"
+          className="side-navigation-logo flex-shrink-0"
+          style={{
             pointerEvents: 'auto',
             background: 'none !important',
             boxShadow: 'none !important',
             outline: 'none !important'
           }}
         >
-          <Logo theme="auto" />
+          {theme === 'gambit' || theme === 'retailMedia' ? (
+            <div
+              className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
+              style={{ backgroundColor: '#1E5032' }}
+            >
+              <Logo theme="auto" className="h-6 w-6" />
+            </div>
+          ) : (
+            <div className="w-10 h-10">
+              <Logo theme="auto" />
+            </div>
+          )}
         </Link>
       </div>
 
       {/* Scrollable navigation area */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar -mr-4 pr-4">
         {filteredRoutes.map((item, index, arr) => {
           const nextItem = arr[index + 1];
           const isTitleType = item.type === 'title';
@@ -211,78 +251,6 @@ export const SideNavigation = ({
             </div>
           );
         })}
-      </div>
-
-      {/* Sticky avatar at the bottom */}
-      <div className="mt-auto">
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="flex items-center mb-4 mt-8 pr-2 rounded-md hover:bg-slate-100 w-full text-left relative z-50"
-                style={{ pointerEvents: 'auto' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURI(
-                        user.name || 'profile',
-                      )}&size=32`}
-                    />
-                  </Avatar>
-                </span>
-                <span className={cn('text-sm ml-2 transition-opacity duration-300', !showText && 'hidden')}>{user.name || 'Profile'}</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
-              <DropdownMenuItem onSelect={() => {
-                console.log('[Menu] Profile clicked');
-                router.push('/profile');
-              }}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => {
-                console.log('[Menu] Notifications clicked');
-                console.log('[Menu] Router object:', router);
-                console.log('[Menu] Calling router.push with /notifications');
-                try {
-                  router.push('/notifications');
-                  console.log('[Menu] router.push called successfully');
-                } catch (error) {
-                  console.error('[Menu] Error calling router.push:', error);
-                }
-              }}>
-                <Bell className="mr-2 h-4 w-4" />
-                <span>Notifications</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {
-                console.log('[Menu] My Organisation clicked');
-                // Placeholder for organisation functionality
-              }}>
-                <Building2 className="mr-2 h-4 w-4" />
-                <span>My Organisation</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {
-                console.log('[Menu] Information clicked');
-                // Placeholder for information functionality
-              }}>
-                <Info className="mr-2 h-4 w-4" />
-                <span>Information</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {
-                console.log('[Menu] Logout clicked');
-                router.push('/login');
-              }}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
     </div>
   );

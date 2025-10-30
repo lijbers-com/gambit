@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import React, { useState } from 'react';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -585,7 +587,7 @@ const NotificationCenterContent = () => {
 
 export const NotificationCenter: Story = {
   args: {
-    routes: defaultRoutes,
+    routes: defaultRoutes, // This will be overridden in render
     logo: { src: '/next.svg', alt: 'Logo', width: 40, height: 40 },
     user: { name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' },
     onLogout: () => alert('Logout clicked'),
@@ -593,6 +595,9 @@ export const NotificationCenter: Story = {
     children: <NotificationCenterContent />,
   },
   render: (args) => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(), // Today
@@ -602,6 +607,7 @@ export const NotificationCenter: Story = {
       <MenuContextProvider>
         <AppLayout
           {...args}
+          routes={routes}
           pageHeaderProps={{
             title: 'Notification Center',
             subtitle: 'Track campaign updates, approvals, and system events',

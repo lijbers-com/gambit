@@ -8,6 +8,8 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -1106,6 +1108,9 @@ const YearComparisonFilter = ({
 
 export const YieldDashboard: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState<string | null>('general-fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(2024, 0, 1), // January 1, 2024
@@ -1139,7 +1144,7 @@ export const YieldDashboard: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
@@ -1457,6 +1462,9 @@ export const YieldDashboard: Story = {
 
 export const SponsoredProductsYield: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1472,7 +1480,7 @@ export const SponsoredProductsYield: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
@@ -1611,6 +1619,9 @@ export const SponsoredProductsYield: Story = {
 
 export const DisplayYield: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1626,7 +1637,7 @@ export const DisplayYield: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
@@ -1765,6 +1776,9 @@ export const DisplayYield: Story = {
 
 export const DigitalInstoreYield: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1780,7 +1794,7 @@ export const DigitalInstoreYield: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
@@ -1919,6 +1933,9 @@ export const DigitalInstoreYield: Story = {
 
 export const OfflineInstoreYield: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1934,7 +1951,7 @@ export const OfflineInstoreYield: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{
           name: 'John Doe',
@@ -2072,6 +2089,9 @@ export const OfflineInstoreYield: Story = {
 };
 export const YieldReportView: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Filter states
     const [engineFilter, setEngineFilter] = useState<string[]>([]);
     const [retailMediaProductFilter, setRetailMediaProductFilter] = useState<string[]>([]);
@@ -2227,7 +2247,7 @@ export const YieldReportView: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-          routes={defaultRoutes}
+          routes={routes}
           logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
           user={{
             name: 'John Doe',

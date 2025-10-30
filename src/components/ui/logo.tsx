@@ -9,7 +9,7 @@ export interface LogoProps {
    * Theme type that determines which logo to display
    * @default 'auto'
    */
-  theme?: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'auto';
+  theme?: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'alfa-beta' | 'auto';
   /**
    * Color variant for the logo
    * @default 'auto' - uses theme-appropriate colors
@@ -44,7 +44,7 @@ export const Logo = ({
   className,
   onClick,
 }: LogoProps) => {
-  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn' | 'adusa' | 'delhaize'>('gambit');
+  const [resolvedTheme, setResolvedTheme] = useState<'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'alfa-beta'>('gambit');
 
   useEffect(() => {
     if (theme !== 'auto') {
@@ -105,6 +105,10 @@ export const Logo = ({
         return 'delhaize';
       }
 
+      if (htmlTheme === 'alfaBeta' || htmlTheme === 'alfa-beta' || bodyTheme === 'alfaBeta' || bodyTheme === 'alfa-beta') {
+        return 'alfa-beta';
+      }
+
       // Check class names - including the actual theme-ah class used in the app
       const hasAHClass = document.documentElement.classList.contains('albert-heijn') ||
                         document.documentElement.classList.contains('ah-theme') ||
@@ -136,6 +140,13 @@ export const Logo = ({
       const hasDelhaizeClass = document.documentElement.classList.contains('delhaize') ||
                               document.body.classList.contains('delhaize');
 
+      // Check for Alfa Beta classes
+      const hasAlfaBetaClass = document.documentElement.classList.contains('alfaBeta') ||
+                              document.documentElement.classList.contains('alfa-beta') ||
+                              document.body.classList.contains('alfaBeta') ||
+                              document.body.classList.contains('alfa-beta');
+
+      if (hasAlfaBetaClass) return 'alfa-beta';
       if (hasDelhaizeClass) return 'delhaize';
       if (hasADUSAClass) return 'adusa';
       return hasAHClass ? 'albert-heijn' : 'gambit';
@@ -178,24 +189,28 @@ export const Logo = ({
       src: '/delhaize-logo.svg',
       alt: alt || 'Delhaize Logo',
     },
+    'alfa-beta': {
+      src: '/alfabeta-logo.svg',
+      alt: alt || 'Alfa Beta Logo',
+    },
   };
 
   const config = logoConfig[resolvedTheme];
 
   // Determine color filter based on variant and theme
-  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize', currentVariant: string) => {
+  const getColorFilter = (currentTheme: 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'alfa-beta', currentVariant: string) => {
     if (currentVariant === 'original') return '';
     if (currentVariant === 'white') return 'filter brightness-0 invert';
     if (currentVariant === 'blue') return 'filter brightness-0 saturate-200 sepia-100 hue-rotate-180 brightness-150';
-    
+
     // Auto variant - use theme-appropriate colors
     if (currentVariant === 'auto') {
       if (currentTheme === 'albert-heijn' || currentTheme === 'adusa' || currentTheme === 'delhaize') {
         return 'filter brightness-0 invert'; // White for AH, ADUSA, and Delhaize themes by default
       }
     }
-    
-    return ''; // Original colors for Gambit theme
+
+    return ''; // Original colors for Gambit and Alfa Beta themes
   };
 
   // State for client-side color filter to avoid hydration mismatch
@@ -226,10 +241,11 @@ export const Logo = ({
       <Image
         src={config.src}
         alt={config.alt}
-        width={40}
-        height={40}
-        className="object-contain w-full h-full"
+        width={80}
+        height={80}
+        className="object-contain max-w-full max-h-full"
         priority
+        style={{ width: 'auto', height: '100%' }}
       />
     </div>
   );

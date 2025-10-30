@@ -3,16 +3,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Logo } from '@/components/ui/logo';
-import React, { useState } from 'react';
+import { Image } from '@/lib/router-context';
+import React, { useState, useEffect } from 'react';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 const meta: Meta = {
   title: 'Page templates/Login',
@@ -67,8 +69,10 @@ type Story = StoryObj<typeof meta>;
 interface Theme {
   name: string;
   logo: string;
+  loginLogo?: string; // Specific logo for login page background
   backgroundImage: string;
   primaryColor: string;
+  brandAppBg: string; // Brand app background color for icon backgrounds
   title: string;
   subtitle: string;
 }
@@ -79,13 +83,20 @@ interface LoginTemplateProps {
 }
 
 const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'albertHeijn' }) => {
-  const [currentTheme, setCurrentTheme] = useState(initialTheme);
+  const { theme: storybookTheme, setTheme: setStorybookTheme } = useStorybookTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Use theme from context, fallback to initialTheme
+  const currentTheme = storybookTheme || initialTheme;
   const theme = themes[currentTheme];
+
+  // Handle theme change - update context
+  const handleThemeChange = (newTheme: string) => {
+    setStorybookTheme(newTheme);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,23 +118,55 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
           backgroundPosition: 'center',
         }}
       >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-transparent" />
-        
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <div>
-            <Logo 
-              theme={currentTheme === 'albertHeijn' ? 'albert-heijn' : 'auto'}
-              variant="auto"
-              alt={`${theme.name} logo`} 
-              className="h-12 w-auto mb-8"
-            />
-          </div>
-          
-          <div>
-            <h1 className="text-4xl font-bold mb-4">{theme.title}</h1>
-            <p className="text-xl opacity-90">{theme.subtitle}</p>
+        <div className="relative z-10 p-12 text-white">
+          <div className="absolute top-80 left-12">
+            <div className="mb-8">
+              {theme.loginLogo ? (
+                <div className={`flex items-start justify-start w-auto ${currentTheme === 'retailMedia' ? 'max-h-[180px]' : 'h-20'}`}>
+                  <Image
+                    src={theme.loginLogo}
+                    alt={`${theme.name} logo`}
+                    width={currentTheme === 'retailMedia' ? 450 : 200}
+                    height={currentTheme === 'retailMedia' ? 180 : 80}
+                    className="object-contain object-left"
+                    style={{ maxHeight: currentTheme === 'retailMedia' ? '180px' : '80px', width: 'auto' }}
+                    priority
+                  />
+                </div>
+              ) : (
+                <Logo
+                  theme={
+                    currentTheme === 'albertHeijn' ? 'albert-heijn' :
+                    currentTheme === 'delhaize' ? 'delhaize' :
+                    currentTheme === 'adusa' ? 'adusa' :
+                    'auto'
+                  }
+                  variant="auto"
+                  alt={`${theme.name} logo`}
+                  className={`w-auto !justify-start ${currentTheme === 'retailMedia' ? 'max-h-[180px]' : 'h-20'}`}
+                />
+              )}
+            </div>
+            <h1
+              className="text-4xl font-bold mb-4 w-[400px]"
+              style={{
+                color:
+                  currentTheme === 'albertHeijn' ? '#253964' :
+                  currentTheme === 'alfaBeta' ? '#FFFFFF' :
+                  currentTheme === 'delhaize' ? '#002948' :
+                  currentTheme === 'adusa' ? '#00644C' :
+                  currentTheme === 'retailMedia' ? '#10351F' :
+                  undefined
+              }}
+            >
+              {theme.title.split('\n').map((line, index, array) => (
+                <React.Fragment key={index}>
+                  {line}
+                  {index < array.length - 1 && <br />}
+                </React.Fragment>
+              ))}
+            </h1>
           </div>
         </div>
       </div>
@@ -135,10 +178,15 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
             <div className="space-y-6">
               {/* Mobile logo */}
               <div className="lg:hidden flex justify-center mb-8">
-                <Logo 
-                  theme={currentTheme === 'albertHeijn' ? 'albert-heijn' : 'auto'}
+                <Logo
+                  theme={
+                    currentTheme === 'albertHeijn' ? 'albert-heijn' :
+                    currentTheme === 'delhaize' ? 'delhaize' :
+                    currentTheme === 'adusa' ? 'adusa' :
+                    'auto'
+                  }
                   variant={currentTheme === 'albertHeijn' ? 'blue' : 'auto'}
-                  alt={`${theme.name} logo`} 
+                  alt={`${theme.name} logo`}
                   className="h-10 w-auto"
                 />
               </div>
@@ -148,12 +196,27 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="hover:opacity-75 transition-opacity">
-                      <Logo 
-                        theme={currentTheme === 'albertHeijn' ? 'albert-heijn' : 'auto'}
-                        variant={currentTheme === 'albertHeijn' ? 'blue' : 'auto'}
-                        alt={`${theme.name} logo`} 
-                        className="h-8 w-auto"
-                      />
+                      <div
+                        className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
+                        style={{ backgroundColor: theme.brandAppBg }}
+                      >
+                        <Logo
+                          theme={
+                            currentTheme === 'albertHeijn' ? 'albert-heijn' :
+                            currentTheme === 'delhaize' ? 'delhaize' :
+                            currentTheme === 'adusa' ? 'adusa' :
+                            currentTheme === 'alfaBeta' ? 'alfa-beta' :
+                            'auto'
+                          }
+                          variant={
+                            theme.brandAppBg === '#ffffff' ? 'auto' :
+                            currentTheme === 'retailMedia' ? 'auto' : // Use original green logo for Gambit
+                            'white'
+                          }
+                          alt={`${theme.name} logo`}
+                          className="h-6 w-6"
+                        />
+                      </div>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-56">
@@ -162,15 +225,31 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                     {Object.entries(themes).map(([key, themeOption]) => (
                       <DropdownMenuItem
                         key={key}
-                        onClick={() => setCurrentTheme(key)}
+                        onClick={() => handleThemeChange(key)}
                         className="flex items-center gap-3"
                       >
-                        <Logo 
-                          theme={key === 'albertHeijn' ? 'albert-heijn' : 'auto'}
-                          variant={key === 'albertHeijn' ? 'blue' : 'auto'}
-                          alt={`${themeOption.name} logo`} 
-                          className="h-5 w-auto"
-                        />
+                        <div
+                          className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
+                          style={{ backgroundColor: themeOption.brandAppBg }}
+                        >
+                          <Logo
+                            theme={
+                              key === 'albertHeijn' ? 'albert-heijn' :
+                              key === 'delhaize' ? 'delhaize' :
+                              key === 'adusa' ? 'adusa' :
+                              key === 'alfaBeta' ? 'alfa-beta' :
+                              key === 'retailMedia' ? 'gambit' :
+                              'auto'
+                            }
+                            variant={
+                              themeOption.brandAppBg === '#ffffff' ? 'auto' :
+                              key === 'retailMedia' ? 'auto' : // Use original green logo for Gambit
+                              'white'
+                            }
+                            alt={`${themeOption.name} logo`}
+                            className="h-6 w-6"
+                          />
+                        </div>
                         <span>{themeOption.name}</span>
                         {currentTheme === key && (
                           <div className="ml-auto w-2 h-2 bg-current rounded-full" />
@@ -236,7 +315,6 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                 <Button
                   type="submit"
                   className="w-full h-11 text-base font-medium"
-                  style={{ backgroundColor: theme.primaryColor }}
                   disabled={isLoading}
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
@@ -282,27 +360,88 @@ const themes = {
   albertHeijn: {
     name: 'Albert Heijn',
     logo: '/ah-logo.svg',
-    backgroundImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&h=1080&fit=crop',
+    loginLogo: '/ah-login-logo.svg', // Custom login page logo
+    backgroundImage: '/ah-background.png',
     primaryColor: '#00A0E2',
+    brandAppBg: '#00ADE6', // Brand app background color
     title: 'Jouw Zelf Service Platform bij Albert Heijn',
     subtitle: 'Retail Media Services',
   },
   retailMedia: {
     name: 'Retail Media Platform',
     logo: '/gambit-logo.svg',
-    backgroundImage: '/Gambit_background.svg',
+    loginLogo: '/gambit-login-logo.svg', // Custom login page logo
+    backgroundImage: '/gambit-background.svg',
     primaryColor: '#10B981',
-    title: 'Welcome to Retail Media Platform',
+    brandAppBg: '#1E5032', // Special green color for Gambit app icon (exception to standard brand app bg)
+    title: 'Your retail media toolbox',
     subtitle: 'Maximize your retail advertising impact',
+  },
+  delhaize: {
+    name: 'Delhaize',
+    logo: '/delhaize-logo.svg',
+    loginLogo: '/delhaize-login-logo.svg', // Custom login page logo
+    backgroundImage: '/delhaize-background.svg',
+    primaryColor: '#CE1230',
+    brandAppBg: '#CE1230', // Brand app background color
+    title: 'Reach your customers where they are!',
+    subtitle: 'Retail Media Services',
+  },
+  adusa: {
+    name: 'AD USA',
+    logo: '/adusa-logo.svg',
+    loginLogo: '/adusa-login-logo.svg', // Custom login page logo
+    backgroundImage: '/adusa-background.png',
+    primaryColor: '#00644C',
+    brandAppBg: '#00644C', // Brand app background color
+    title: 'Easy.\nActivation.\nWherever.',
+    subtitle: 'Retail Media Services',
+  },
+  alfaBeta: {
+    name: 'Alfa Beta',
+    logo: '/alfabeta-logo.svg',
+    loginLogo: '/alfabeta-login-logo.svg', // Custom login page logo
+    backgroundImage: '/alfabeta-background.png',
+    primaryColor: '#0066CC',
+    brandAppBg: '#ffffff', // Brand app background color
+    title: 'Καλώς ήρθατε στο Alfa Beta Retail Media',
+    subtitle: 'Retail Media Services',
   },
 };
 
 // Stories
 export const AlbertHeijn: Story = {
+  parameters: {
+    globals: { theme: 'albertHeijn' },
+  },
   render: () => <LoginTemplate themes={themes} initialTheme="albertHeijn" />,
 };
 
 export const RetailMediaPlatform: Story = {
+  parameters: {
+    globals: { theme: 'retailMedia' },
+  },
   render: () => <LoginTemplate themes={themes} initialTheme="retailMedia" />,
+};
+
+export const Delhaize: Story = {
+  parameters: {
+    globals: { theme: 'delhaize' },
+  },
+  render: () => <LoginTemplate themes={themes} initialTheme="delhaize" />,
+};
+
+export const ADUSA: Story = {
+  parameters: {
+    globals: { theme: 'adusa' },
+  },
+  render: () => <LoginTemplate themes={themes} initialTheme="adusa" />,
+};
+
+export const AlfaBeta: Story = {
+  parameters: {
+    globals: { theme: 'alfaBeta' },
+  },
+  render: () => <LoginTemplate themes={themes} initialTheme="alfaBeta" />,
 };
 

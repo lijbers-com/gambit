@@ -19,6 +19,8 @@ import { FilterBar } from '@/components/ui/filter-bar';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Insights Dashboard',
@@ -392,6 +394,9 @@ const getPerformanceBadgeVariant = (performance: string) => {
 
 export const GeneralInsights: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       to: new Date(),
@@ -497,7 +502,7 @@ export const GeneralInsights: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -1104,6 +1109,9 @@ export const GeneralInsights: Story = {
 
 export const DisplayPerformance: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('impressions');
     const [activeTab, setActiveTab] = useState('line-items');
     const [timeRange, setTimeRange] = useState('last-month');
@@ -1165,7 +1173,7 @@ export const DisplayPerformance: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -1344,6 +1352,9 @@ export const DisplayPerformance: Story = {
 
 export const DigitalInstorePerformance: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('stores');
     const [activeTab, setActiveTab] = useState('line-items');
     const [timeRange, setTimeRange] = useState('last-month');
@@ -1460,7 +1471,7 @@ export const DigitalInstorePerformance: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -1767,6 +1778,9 @@ export const DigitalInstorePerformance: Story = {
 
 export const OfflineInstorePerformance: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('locations');
     const [activeTab, setActiveTab] = useState('line-items');
     const [timeRange, setTimeRange] = useState('last-month');
@@ -1828,7 +1842,7 @@ export const OfflineInstorePerformance: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -2114,6 +2128,9 @@ export const OfflineInstorePerformance: Story = {
 
 export const FullReportView: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Filter states
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
@@ -2297,7 +2314,7 @@ export const FullReportView: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -2445,6 +2462,9 @@ export const FullReportView: Story = {
 
 export const ProductReportView: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -2646,7 +2666,7 @@ export const ProductReportView: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

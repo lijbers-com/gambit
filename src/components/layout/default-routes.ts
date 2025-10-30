@@ -15,12 +15,6 @@ export const defaultRoutes: Route[] = [
     icon: { lucide: "Table" },
     subitems: [
       {
-        id: 19,
-        name: "All",
-        type: "single" as const,
-        url: "/campaigns",
-      },
-      {
         id: 20,
         name: "Sponsored products",
         type: "single" as const,
@@ -134,7 +128,7 @@ export const defaultRoutes: Route[] = [
     id: 6,
     name: "New chat",
     type: "single" as const,
-    icon: { lucide: "MessageSquare" },
+    icon: { lucide: "MessageCirclePlus" },
     url: "/chats/new",
   },
   {
@@ -169,6 +163,20 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "Store" },
     url: "/configuration/offline-instore",
+  },
+  {
+    id: 13,
+    name: "Organisations & users",
+    type: "single" as const,
+    icon: { lucide: "OrganisationsIcon" },
+    url: "/configuration/organisations-users",
+  },
+  {
+    id: 14,
+    name: "Brands & retail products",
+    type: "single" as const,
+    icon: { lucide: "BrandsIcon" },
+    url: "/configuration/brands-products",
   },
 ];
 

@@ -20,6 +20,8 @@ import { DateRangePicker, DatePicker } from '../../ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -150,6 +152,9 @@ type Story = StoryObj<typeof meta>;
 
 export const DigitalInstoreInOption: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -665,7 +670,7 @@ const updatedForecastMetrics = [
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -980,6 +985,9 @@ const updatedForecastMetrics = [
 
 export const DigitalInstoreRunning: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -1223,7 +1231,7 @@ export const DigitalInstoreRunning: Story = {
       >
         <MenuContextProvider>
           <AppLayout
-          routes={defaultRoutes}
+          routes={routes}
           logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
           onLogout={() => alert('Logout clicked')}
@@ -1528,6 +1536,9 @@ export const DigitalInstoreRunning: Story = {
 
 export const OfflineInstoreRunning: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -1761,7 +1772,7 @@ export const OfflineInstoreRunning: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -2089,6 +2100,9 @@ export const OfflineInstoreRunning: Story = {
 
 export const DisplayRunning: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -2322,7 +2336,7 @@ export const DisplayRunning: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -2650,6 +2664,9 @@ export const DisplayRunning: Story = {
 
 export const OfflineInstoreInOption: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -2882,7 +2899,7 @@ export const OfflineInstoreInOption: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -3188,6 +3205,9 @@ export const OfflineInstoreInOption: Story = {
 
 export const DisplayInOption: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
@@ -3420,7 +3440,7 @@ export const DisplayInOption: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -3748,6 +3768,9 @@ export const DisplayInOption: Story = {
 
 export const SponsoredProductsInOption: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('products');
     const [searchVolume, setSearchVolume] = useState<string[]>([]);
     const [competitive, setCompetitive] = useState<string[]>([]);
@@ -4288,7 +4311,7 @@ export const SponsoredProductsInOption: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -4724,6 +4747,9 @@ export const SponsoredProductsInOption: Story = {
 
 export const SponsoredProductsRunning: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('products');
     const [selectedMetric, setSelectedMetric] = useState('impressions');
     const [searchVolume, setSearchVolume] = useState<string[]>([]);
@@ -5091,7 +5117,7 @@ export const SponsoredProductsRunning: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

@@ -6,6 +6,8 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -130,6 +132,9 @@ const typeVariant = (type: string) => {
 
 export const CreativeOverview: Story = {
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [status, setStatus] = useState<string[]>([]);
     const [type, setType] = useState<string[]>([]);
     const [format, setFormat] = useState<string[]>([]);
@@ -149,7 +154,7 @@ export const CreativeOverview: Story = {
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

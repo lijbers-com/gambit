@@ -13,6 +13,8 @@ import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Engine Configuration',
@@ -174,6 +176,9 @@ const createEngineConfigurationStory = (
   }>
 ) => ({
   render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState(metrics[0]?.id || 'configurations');
     const [activeTab, setActiveTab] = useState('rules');
     const [timeRange, setTimeRange] = useState('last-month');
@@ -199,7 +204,7 @@ const createEngineConfigurationStory = (
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

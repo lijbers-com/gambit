@@ -18,6 +18,8 @@ import {
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { defaultRoutes } from '../default-routes';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { DateRange } from "react-day-picker";
 import { differenceInWeeks, startOfWeek, getWeek } from "date-fns";
@@ -153,15 +155,18 @@ const retailerEvents = [
 ];
 
 // Shared component for booking calendar functionality
-const BookingCalendarTemplate = ({ 
-  bookingsData, 
+const BookingCalendarTemplate = ({
+  bookingsData,
   title,
-  mediaProductOptions 
-}: { 
-  bookingsData: any[], 
+  mediaProductOptions
+}: {
+  bookingsData: any[],
   title: string,
   mediaProductOptions: Array<{ label: string, value: string }>
 }) => {
+  const { theme: storybookTheme } = useStorybookTheme();
+  const currentTheme = storybookTheme || 'retailMedia';
+  const routes = getRoutesForTheme(currentTheme);
   const [status, setStatus] = useState<string[]>([]);
   const [storeAssortment, setStoreAssortment] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
@@ -178,14 +183,14 @@ const BookingCalendarTemplate = ({
     to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
   });
   const [conversionWindow, setConversionWindow] = useState<number>(14);
-  
+
   const viewTabs = [
     { value: 'reach', label: 'Reach' },
     { value: 'revenue', label: 'Revenue' },
     { value: 'fillRate', label: 'Fill Rate' },
     { value: 'stores', label: 'Available Stores' },
   ];
-  
+
   // Calculate weeks to show and start week from date range
   const getCalendarWeeks = (range: DateRange | undefined) => {
     if (!range?.from || !range?.to) {
@@ -196,17 +201,17 @@ const BookingCalendarTemplate = ({
         numberOfWeeks: 8
       };
     }
-    
+
     const from = startOfWeek(range.from, { weekStartsOn: 1 });
     const to = startOfWeek(range.to, { weekStartsOn: 1 });
     const weeksDiff = differenceInWeeks(to, from) + 1; // +1 to include both start and end weeks
-    
+
     return {
       startWeek: getWeek(from),
       numberOfWeeks: Math.max(1, Math.min(weeksDiff, 52)) // Limit to between 1 and 52 weeks
     };
   };
-  
+
   const { startWeek, numberOfWeeks } = getCalendarWeeks(dateRange);
 
   // Handle cell click to open drawer
@@ -218,7 +223,7 @@ const BookingCalendarTemplate = ({
   // Get bookings for the selected week
   const getBookingsForWeek = () => {
     if (!selectedCell) return [];
-    
+
     return filteredBookingsData.reduce((allBookings: any[], product) => {
       if (product.bookings) {
         const weekBookings = product.bookings.filter((booking: any) =>
@@ -233,14 +238,14 @@ const BookingCalendarTemplate = ({
     }, []);
   };
 
-  
+
   // Adjust retailer events to match the actual week range
   const adjustedRetailerEvents = retailerEvents.map(event => ({
     ...event,
     week: startWeek + event.week - 1
   }));
-  
-  // Adjust bookings data to match the actual week range  
+
+  // Adjust bookings data to match the actual week range
   const adjustedBookingsData = bookingsData.map(product => ({
     ...product,
     bookings: product.bookings?.map((booking: any) => ({
@@ -249,34 +254,34 @@ const BookingCalendarTemplate = ({
       endWeek: startWeek + booking.endWeek - 1,
     }))
   }));
-  
+
   // Filter the adjusted bookings data based on selected filters
   const filteredBookingsData = adjustedBookingsData.filter(product => {
     // Media product filter
     if (mediaProduct.length > 0 && !mediaProduct.includes(product.id)) {
       return false;
     }
-    
+
     // Store type filter
     if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
       return false;
     }
-    
+
     // Store assortment (retail products) filter
     if (storeAssortment.length > 0 && !storeAssortment.some(retailProduct => product.retailProducts?.includes(retailProduct))) {
       return false;
     }
-    
+
     // If no booking-level filters are selected, include this media product
     if (status.length === 0) {
       return true;
     }
-    
+
     // Status filter - check if any bookings match the status filter
     const hasMatchingBookings = product.bookings?.some((booking: any) =>
       status.length === 0 || status.includes(booking.status || '')
     );
-    
+
     return hasMatchingBookings;
   }).map(product => {
     // For media products that pass the filter, also filter their bookings by status
@@ -290,11 +295,11 @@ const BookingCalendarTemplate = ({
     }
     return product;
   });
-  
+
   return (
     <RightDrawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}
@@ -1589,15 +1594,18 @@ export const GeneralBookingsCalendar: Story = {
 };
 
 // Specialized component for offline in-store calendar with custom filters
-const OfflineInstoreCalendarTemplate = ({ 
-  bookingsData, 
+const OfflineInstoreCalendarTemplate = ({
+  bookingsData,
   title,
-  mediaProductOptions 
-}: { 
-  bookingsData: any[], 
+  mediaProductOptions
+}: {
+  bookingsData: any[],
   title: string,
   mediaProductOptions: Array<{ label: string, value: string }>
 }) => {
+  const { theme: storybookTheme } = useStorybookTheme();
+  const currentTheme = storybookTheme || 'retailMedia';
+  const routes = getRoutesForTheme(currentTheme);
   const [inventoryType, setInventoryType] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
   const [retailProduct, setRetailProduct] = useState<string[]>([]);
@@ -1749,11 +1757,11 @@ const OfflineInstoreCalendarTemplate = ({
       reachData: product.reachData ? calculateFilteredAvailability(product.reachData, product, shouldHideGreyCells) : undefined,
     };
   });
-  
+
   return (
     <RightDrawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <AppLayout
-        routes={defaultRoutes}
+        routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
         onLogout={() => alert('Logout clicked')}

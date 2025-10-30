@@ -41,11 +41,6 @@ const sampleRoutes: Route[] = [
     icon: { lucide: "Table" },
     subitems: [
       {
-        id: 19,
-        name: "All",
-        url: "/campaigns"
-      },
-      {
         id: 20,
         name: "Sponsored products",
         url: "/campaigns/sponsored-products"
@@ -140,14 +135,14 @@ const sampleRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "CampaignAI chats",
+    name: "Campaign Intelligence",
     type: "title"
   },
   {
     id: 6,
     name: "New chat",
     type: "single",
-    icon: { lucide: "MessageSquare" },
+    icon: { lucide: "MessageCirclePlus" },
     url: "/chats/new"
   },
   {
@@ -182,6 +177,20 @@ const sampleRoutes: Route[] = [
     type: "single",
     icon: { lucide: "Store" },
     url: "/configuration/offline-instore"
+  },
+  {
+    id: 13,
+    name: "Organisations & users",
+    type: "single",
+    icon: { lucide: "OrganisationsIcon" },
+    url: "/configuration/organisations-users"
+  },
+  {
+    id: 14,
+    name: "Brands & retail products",
+    type: "single",
+    icon: { lucide: "BrandsIcon" },
+    url: "/configuration/brands-products"
   }
 ];
 
@@ -218,13 +227,14 @@ export const Primary: Story = {
               <li>⚙️ <strong>Sponsored products config</strong> - Sponsored products engine configuration</li>
               <li>⚙️ <strong>Digital in-store config</strong> - Digital in-store engine configuration</li>
               <li>⚙️ <strong>Offline in-store config</strong> - Offline in-store engine configuration</li>
+              <li>👥 <strong>Organisations & users</strong> - Manage organisations and user accounts</li>
+              <li>🏷️ <strong>Brands & retail products</strong> - Manage brands and product catalog</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mt-4">CampaignAI Chats Section:</h3>
+            <h3 className="text-lg font-semibold mt-4">Campaign Intelligence Section:</h3>
             <ul className="mt-2 space-y-1">
-              <li>💬 <strong>Chats</strong> - Chat management</li>
-              <li className="ml-4">• New chat</li>
+              <li>💬 <strong>New chat</strong> - Start a new AI-powered campaign chat</li>
             </ul>
           </div>
           <div>
@@ -324,8 +334,8 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
               if (shouldShowTitle) {
                 return (
                   <p key={item.id} className={`mb-4 mt-8 transition-opacity duration-300 ${
-                    item.name === "Configuration" || item.name === "CampaignAI chats" 
-                      ? "text-xs text-muted-foreground" 
+                    item.name === "Configuration" || item.name === "Campaign Intelligence"
+                      ? "text-xs text-muted-foreground"
                       : "text-muted-foreground"
                   }`}>
                     {item.name}
@@ -576,4 +586,120 @@ export const CollapsedState: Story = {
       </CollapsedMenuProvider>
     );
   },
-}; 
+};
+
+// Advertiser routes with limited access
+const advertiserRoutes: Route[] = [
+  {
+    id: 99,
+    name: "Media wallet",
+    type: "single",
+    icon: { lucide: "WalletCards" },
+    url: "/campaigns"
+  },
+  {
+    id: 0,
+    name: "Campaigns",
+    type: "parent",
+    icon: { lucide: "Table" },
+    subitems: [
+      {
+        id: 20,
+        name: "Sponsored products",
+        url: "/campaigns/sponsored-products"
+      },
+      {
+        id: 21,
+        name: "Display",
+        url: "/campaigns/display"
+      },
+      {
+        id: 22,
+        name: "Digital in-store",
+        url: "/campaigns/digital-instore"
+      },
+      {
+        id: 23,
+        name: "Offline instore",
+        url: "/campaigns/offline-instore"
+      }
+    ]
+  },
+  {
+    id: 1,
+    name: "Creatives",
+    type: "single",
+    icon: { lucide: "ImagePlus" },
+    url: "/creatives"
+  },
+  {
+    id: 3,
+    name: "Insights",
+    type: "parent",
+    icon: { lucide: "BarChart3" },
+    subitems: [
+      {
+        id: 50,
+        name: "Dashboard",
+        url: "/insights"
+      },
+      {
+        id: 51,
+        name: "Full report",
+        url: "/insights/report"
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "Campaign Intelligence",
+    type: "title"
+  },
+  {
+    id: 6,
+    name: "New chat",
+    type: "single",
+    icon: { lucide: "MessageCirclePlus" },
+    url: "/chats/new"
+  }
+];
+
+export const AdvertiserView: Story = {
+  args: {
+    routes: advertiserRoutes,
+    user: {
+      name: "Jane Smith",
+      avatar: "https://ui-avatars.com/api/?name=Jane+Smith&size=32"
+    },
+    onLogout: () => console.log("Logout clicked")
+  },
+  render: (args) => (
+    <div className="flex h-screen">
+      <SideNavigation {...args} />
+      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
+        <h1 className="text-2xl font-bold mb-4">Advertiser View</h1>
+        <p className="mb-4">Limited navigation menu for advertiser users with restricted access.</p>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Available Menu Items:</h3>
+            <ul className="mt-2 space-y-1">
+              <li>💳 <strong>Media wallet</strong> - Media order management</li>
+              <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
+              <li>🎨 <strong>Creatives</strong> - Creative management</li>
+              <li>📈 <strong>Insights</strong> - Performance analytics and reports</li>
+              <li>💬 <strong>Campaign Intelligence</strong> - AI-powered campaign chat</li>
+            </ul>
+          </div>
+          <div className="mt-4 p-4 bg-blue-50 rounded-md">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>Restricted Access:</strong>
+            </p>
+            <p className="text-sm text-blue-700">
+              Advertisers do not have access to Calendar, Yield, or Configuration sections.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+};

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Theme = 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize';
+export type Theme = 'gambit' | 'albert-heijn' | 'adusa' | 'delhaize' | 'alfa-beta';
 
 interface ThemeContextType {
   theme: Theme;
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('gambit-theme') as Theme;
-      if (savedTheme && (savedTheme === 'gambit' || savedTheme === 'albert-heijn' || savedTheme === 'adusa' || savedTheme === 'delhaize')) {
+      if (savedTheme && (savedTheme === 'gambit' || savedTheme === 'albert-heijn' || savedTheme === 'adusa' || savedTheme === 'delhaize' || savedTheme === 'alfa-beta')) {
         setTheme(savedTheme);
       }
     }
@@ -39,9 +39,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         'gambit': 'retailMedia',
         'albert-heijn': 'albertHeijn',
         'adusa': 'adusa',
-        'delhaize': 'delhaize'
+        'delhaize': 'delhaize',
+        'alfa-beta': 'alfaBeta'
       };
-      
+
       const themeAttr = themeAttributeMap[theme];
       document.documentElement.setAttribute('data-theme', themeAttr);
       document.body.setAttribute('data-theme', themeAttr);

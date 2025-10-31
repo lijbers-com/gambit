@@ -64,11 +64,15 @@ export default function InsightsPage() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      if (target.textContent?.includes('Full Report') || target.textContent?.includes('View Full Report')) {
+      // Check if the target is a button or is inside a button
+      const button = target.closest('button');
+
+      // Only proceed if we clicked on a button that contains "Full Report" text
+      if (button && (button.textContent?.includes('Full Report') || button.textContent?.includes('View Full Report'))) {
         e.preventDefault();
         e.stopPropagation();
 
-        const reportTab = getReportTabFromButton(target);
+        const reportTab = getReportTabFromButton(button);
         router.push(`/insights/report?tab=${reportTab}`);
       }
     };

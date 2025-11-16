@@ -1,6 +1,6 @@
 'use client';
 
-import { GeneralInsights } from '@/components/layout/page-templates/performance-dashboard.stories';
+import { FunnelView } from '@/components/layout/page-templates/performance-dashboard.stories';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -29,6 +29,9 @@ const getReportTabFromButton = (target: HTMLElement): string => {
   }
 
   // Map card titles to report tabs
+  if (cardTitle.includes('awareness')) return 'ecom-funnel-report';
+  if (cardTitle.includes('consideration')) return 'ecom-funnel-report';
+  if (cardTitle.includes('purchase')) return 'product-report';
   if (cardTitle.includes('iroas')) return 'iroas-report';
   if (cardTitle.includes('product')) return 'product-report';
   if (cardTitle.includes('funnel')) return 'ecom-funnel-report';
@@ -41,6 +44,9 @@ const getReportTabFromButton = (target: HTMLElement): string => {
   const parentCard = target.closest('[class*="card"]') || target.closest('div');
   const cardContent = parentCard?.textContent?.toLowerCase() || '';
 
+  if (cardContent.includes('awareness')) return 'ecom-funnel-report';
+  if (cardContent.includes('consideration')) return 'ecom-funnel-report';
+  if (cardContent.includes('purchase')) return 'product-report';
   if (cardContent.includes('iroas')) return 'iroas-report';
   if (cardContent.includes('product')) return 'product-report';
   if (cardContent.includes('funnel')) return 'ecom-funnel-report';
@@ -58,11 +64,15 @@ export default function InsightsPage() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      if (target.textContent?.includes('View Full Report')) {
+      // Check if the target is a button or is inside a button
+      const button = target.closest('button');
+
+      // Only proceed if we clicked on a button that contains "Full Report" text
+      if (button && (button.textContent?.includes('Full Report') || button.textContent?.includes('View Full Report'))) {
         e.preventDefault();
         e.stopPropagation();
 
-        const reportTab = getReportTabFromButton(target);
+        const reportTab = getReportTabFromButton(button);
         router.push(`/insights/report?tab=${reportTab}`);
       }
     };
@@ -71,7 +81,7 @@ export default function InsightsPage() {
     return () => document.removeEventListener('click', handleClick);
   }, [router]);
 
-  const Component = GeneralInsights.render as () => React.JSX.Element;
+  const Component = FunnelView.render as () => React.JSX.Element;
 
   if (!Component) {
     return <div>Insights Dashboard</div>;

@@ -23,6 +23,8 @@ export interface PieChartProps {
   nameKey?: string
   showLabels?: boolean
   labelPosition?: "outside" | "inside" | "center"
+  startAngle?: number
+  endAngle?: number
 }
 
 export function PieChartComponent({
@@ -37,9 +39,15 @@ export function PieChartComponent({
   nameKey = "name",
   showLabels = false,
   labelPosition = "outside",
+  startAngle = 0,
+  endAngle = 360,
 }: PieChartProps) {
   const renderCustomLabel = (entry: any) => {
-    return `${entry[dataKey]}%`;
+    // If entry has a label field, use it; otherwise show name + value%
+    if (entry.label) {
+      return entry.label;
+    }
+    return entry[nameKey] ? `${entry[nameKey]} ${entry[dataKey]}%` : `${entry[dataKey]}%`;
   };
 
   return (
@@ -55,6 +63,8 @@ export function PieChartComponent({
           dataKey={dataKey}
           nameKey={nameKey}
           label={showLabels ? renderCustomLabel : undefined}
+          startAngle={startAngle}
+          endAngle={endAngle}
         >
           {data.map((entry, index) => {
             const key = String(entry[nameKey] || entry.name || `item-${index}`)

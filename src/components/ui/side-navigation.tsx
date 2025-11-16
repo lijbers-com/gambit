@@ -235,8 +235,8 @@ export const SideNavigation = ({
               {shouldShowTitle && (
                 <p className={cn(
                   "mb-4 mt-8 transition-opacity duration-300",
-                  // Apply different styling for Configuration and Campaign Intelligence sections
-                  item.name === "Configuration" || item.name === "Campaign Intelligence"
+                  // Apply different styling for Configuration and Campaign Agent sections
+                  item.name === "Configuration" || item.name === "Campaign Agent"
                     ? "text-xs text-muted-foreground"
                     : "text-muted-foreground"
                 )}>{item.name}</p>

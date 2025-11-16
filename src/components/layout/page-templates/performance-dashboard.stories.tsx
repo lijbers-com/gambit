@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
+import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { MapChart } from '@/components/ui/map-chart';
@@ -21,6 +22,11 @@ import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Insights Dashboard',
@@ -3108,6 +3114,1715 @@ export const ProductReportView: Story = {
           />
         </div>
       </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+
+export const FunnelView: Story = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    // Filter states (multi-select for FilterBar)
+    const [brandFilter, setBrandFilter] = useState<string[]>([]);
+    const [campaignFilter, setCampaignFilter] = useState<string[]>([]);
+    const [goalFilter, setGoalFilter] = useState<string[]>([]);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: new Date(2024, 0, 1),
+      to: new Date(2024, 5, 30)
+    });
+
+    // Proposition states for each funnel card
+    const [awarenessPropositions, setAwarenessPropositions] = useState<string[]>(['display', 'digital-instore', 'offline-instore']);
+    const [considerationPropositions, setConsiderationPropositions] = useState<string[]>(['display', 'digital-instore', 'offline-instore']);
+    const [purchasePropositions, setPurchasePropositions] = useState<string[]>(['display', 'sponsored-products', 'digital-instore', 'offline-instore']);
+    const [loyaltyPropositions, setLoyaltyPropositions] = useState<string[]>(['sponsored-products', 'digital-instore']);
+
+    const toggleProposition = (proposition: string, card: 'awareness' | 'consideration' | 'purchase' | 'loyalty') => {
+      const setters = {
+        awareness: setAwarenessPropositions,
+        consideration: setConsiderationPropositions,
+        purchase: setPurchasePropositions,
+        loyalty: setLoyaltyPropositions,
+      };
+
+      setters[card](prev =>
+        prev.includes(proposition)
+          ? prev.filter(p => p !== proposition)
+          : [...prev, proposition]
+      );
+    };
+
+    // Metric selection states for each funnel card
+    const [awarenessMetrics, setAwarenessMetrics] = useState<string[]>(['impressions', 'sov', 'salesUplift', 'omiDots', 'doohSpots']);
+    const [considerationMetrics, setConsiderationMetrics] = useState<string[]>(['clicks', 'dots', 'displayClicks', 'viewability']);
+    const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
+    const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
+
+    // Customer segmentation data for Purchase card
+    const customerSegmentationData = [
+      { name: 'First-time', value: 35 },
+      { name: 'Returning', value: 42 },
+      { name: 'Loyal', value: 23 }
+    ];
+
+    // Selected top metrics (can be multiple)
+    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['sales', 'spend', 'roas']);
+
+    // Custom Report Dialog state
+    const [customReportOpen, setCustomReportOpen] = useState(false);
+    const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
+
+    // Collapse states for funnel cards
+    const [awarenessCollapsed, setAwarenessCollapsed] = useState(false);
+    const [considerationCollapsed, setConsiderationCollapsed] = useState(false);
+    const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
+    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
+
+    // Visibility states for dashboard customization
+    const [visibleFunnelCards, setVisibleFunnelCards] = useState({
+      awareness: true,
+      consideration: true,
+      purchase: true,
+      loyalty: true,
+    });
+
+    const toggleTopMetric = (metric: string) => {
+      setSelectedTopMetrics(prev =>
+        prev.includes(metric)
+          ? prev.filter(m => m !== metric)
+          : [...prev, metric]
+      );
+    };
+
+    const toggleReportMetric = (metric: string) => {
+      setSelectedReportMetrics(prev =>
+        prev.includes(metric)
+          ? prev.filter(m => m !== metric)
+          : [...prev, metric]
+      );
+    };
+
+    const handleBuildReport = () => {
+      console.log('Building report with metrics:', selectedReportMetrics);
+      alert(`Building custom report with ${selectedReportMetrics.length} metrics:\n${selectedReportMetrics.join(', ')}`);
+      setCustomReportOpen(false);
+    };
+
+    // Sample data for charts
+    const awarenessData = [
+      { month: 'Jan', impressions: 380000, sov: 28, salesUplift: 12, omiDots: 1650, doohSpots: 2200 },
+      { month: 'Feb', impressions: 520000, sov: 38, salesUplift: 15, omiDots: 2300, doohSpots: 2850 },
+      { month: 'Mar', impressions: 465000, sov: 35, salesUplift: 18, omiDots: 2050, doohSpots: 2600 },
+      { month: 'Apr', impressions: 585000, sov: 42, salesUplift: 21, omiDots: 2750, doohSpots: 3250 },
+      { month: 'May', impressions: 610000, sov: 44, salesUplift: 24, omiDots: 2950, doohSpots: 3500 },
+      { month: 'Jun', impressions: 645000, sov: 47, salesUplift: 27, omiDots: 3200, doohSpots: 3800 }
+    ];
+
+    const considerationData = [
+      { month: 'Jan', clicks: 11200, dots: 7800, displayClicks: 5500, viewability: 68 },
+      { month: 'Feb', clicks: 15800, dots: 10500, displayClicks: 7800, viewability: 76 },
+      { month: 'Mar', clicks: 13900, dots: 9200, displayClicks: 6900, viewability: 73 },
+      { month: 'Apr', clicks: 18400, dots: 12200, displayClicks: 9100, viewability: 81 },
+      { month: 'May', clicks: 19800, dots: 13500, displayClicks: 9800, viewability: 83 },
+      { month: 'Jun', clicks: 21500, dots: 14800, displayClicks: 10600, viewability: 86 }
+    ];
+
+    const purchaseData = [
+      { month: 'Jan', roas: 2.8, iroas: 2.4, purchaseBehavior: 62 },
+      { month: 'Feb', roas: 3.9, iroas: 3.4, purchaseBehavior: 74 },
+      { month: 'Mar', roas: 3.5, iroas: 3.0, purchaseBehavior: 69 },
+      { month: 'Apr', roas: 4.3, iroas: 3.8, purchaseBehavior: 79 },
+      { month: 'May', roas: 4.6, iroas: 4.1, purchaseBehavior: 83 },
+      { month: 'Jun', roas: 5.1, iroas: 4.5, purchaseBehavior: 88 }
+    ];
+
+    const loyaltyData = [
+      { month: 'Jan', repeatPurchaseRate: 28, customerLifetimeValue: 265, churnRate: 9.2 },
+      { month: 'Feb', repeatPurchaseRate: 37, customerLifetimeValue: 305, churnRate: 7.5 },
+      { month: 'Mar', repeatPurchaseRate: 34, customerLifetimeValue: 290, churnRate: 8.1 },
+      { month: 'Apr', repeatPurchaseRate: 43, customerLifetimeValue: 335, churnRate: 6.3 },
+      { month: 'May', repeatPurchaseRate: 46, customerLifetimeValue: 350, churnRate: 5.8 },
+      { month: 'Jun', repeatPurchaseRate: 51, customerLifetimeValue: 375, churnRate: 4.9 }
+    ];
+
+    // Data for top metric cards
+    const topMetricsData = [
+      { month: 'Jan', sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2 },
+      { month: 'Feb', sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1 },
+      { month: 'Mar', sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9 },
+      { month: 'Apr', sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2 },
+      { month: 'May', sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5 },
+      { month: 'Jun', sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9 }
+    ];
+
+    // Metric definitions for top cards
+    const metricDefinitions: Record<string, { label: string; value: string; badge: string; badgeVariant: "default" | "success" | "warning"; config: any; dataKey: string }> = {
+      sales: { label: 'Total Sales', value: '€200K', badge: '+78%', badgeVariant: 'success', config: { sales: { label: "Sales (K€)", color: "hsl(var(--chart-3))" } }, dataKey: 'sales' },
+      salesUplift: { label: 'Sales Uplift', value: '27%', badge: '+4.2%', badgeVariant: 'success', config: { salesUplift: { label: "Sales Uplift %", color: "hsl(var(--chart-3))" } }, dataKey: 'salesUplift' },
+      avgRevenuePerCustomer: { label: 'Avg Revenue per Customer', value: '€60', badge: '+33%', badgeVariant: 'success', config: { avgRevenuePerCustomer: { label: "Avg Revenue (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'avgRevenuePerCustomer' },
+      customerLifetimeValue: { label: 'Customer Lifetime Value', value: '€355', badge: '+27%', badgeVariant: 'success', config: { customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'customerLifetimeValue' },
+      spend: { label: 'Total Spend', value: '€42.5K', badge: '85% of budget', badgeVariant: 'default', config: { spend: { label: "Spend (K€)", color: "hsl(var(--chart-1))" } }, dataKey: 'spend' },
+      costPerAcquisition: { label: 'Cost per Acquisition', value: '€18', badge: '-36%', badgeVariant: 'success', config: { costPerAcquisition: { label: "CPA (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerAcquisition' },
+      costPerClick: { label: 'Cost per Click', value: '€1.60', badge: '-24%', badgeVariant: 'success', config: { costPerClick: { label: "CPC (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerClick' },
+      budgetUtilization: { label: 'Budget Utilization', value: '85%', badge: '+31%', badgeVariant: 'warning', config: { budgetUtilization: { label: "Budget %", color: "hsl(var(--chart-1))" } }, dataKey: 'budgetUtilization' },
+      roas: { label: 'ROAS', value: '4.7x', badge: '+0.8x', badgeVariant: 'success', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
+      iroas: { label: 'iROAS', value: '4.2x', badge: '+1.4x', badgeVariant: 'success', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
+      conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
+      clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
+    };
+
+    const awarenessConfig = {
+      impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
+      reach: { label: "Reach", color: "hsl(var(--chart-2))" }
+    };
+
+    const sovConfig = {
+      sov: { label: "SOV %", color: "hsl(var(--chart-3))" }
+    };
+
+    // Share of Voice pie chart data
+    const sovPieData = [
+      { name: "Your Brand", value: 45 },
+      { name: "Competitors", value: 55 }
+    ];
+
+    const sovPieConfig = {
+      "Your Brand": {
+        label: "Your Brand",
+        color: "hsl(var(--chart-1))"
+      },
+      "Competitors": {
+        label: "Competitors",
+        color: "hsl(0, 0%, 85%)"
+      }
+    };
+
+    const considerationConfig = {
+      clicks: { label: "Clicks", color: "hsl(var(--chart-1))" },
+      dots: { label: "DooH Dots", color: "hsl(var(--chart-2))" },
+      displayClicks: { label: "Display Clicks", color: "hsl(var(--chart-3))" }
+    };
+
+    const viewabilityConfig = {
+      viewability: { label: "Viewability %", color: "hsl(var(--chart-4))" }
+    };
+
+    const purchaseConfig = {
+      roas: { label: "ROAS", color: "hsl(var(--chart-1))" },
+      iroas: { label: "iROAS", color: "hsl(var(--chart-2))" }
+    };
+
+    const purchaseBehaviorConfig = {
+      purchaseBehavior: { label: "Purchase Behavior %", color: "hsl(var(--chart-5))" }
+    };
+
+    const customerSegmentationConfig = {
+      "First-time": { label: "First-time Customers", color: "hsl(var(--chart-1))" },
+      "Returning": { label: "Returning Customers", color: "hsl(var(--chart-2))" },
+      "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
+    };
+
+    return (
+      <MenuContextProvider>
+      <AppLayout
+        routes={routes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'John Doe', avatar: 'https://ui-avatars.com/api/?name=John+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{ namespace: '' }}
+        pageHeaderProps={{
+          title: 'Insights dashboard',
+          subtitle: 'Complete customer journey from awareness to purchase',
+          headerRight: (
+            <div className="flex gap-2 items-center flex-shrink-0">
+              <DateRangePicker
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
+              <Button
+                variant="outline"
+                size="default"
+                className="whitespace-nowrap flex-shrink-0"
+                onClick={() => setCustomReportOpen(true)}
+              >
+                Custom Report
+              </Button>
+            </div>
+          ),
+        }}
+      >
+        <div className="space-y-6">
+          {/* FilterBar with Settings */}
+          <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline">
+                  <Settings2 className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64 max-h-[500px] overflow-y-auto">
+                <DropdownMenuLabel>Customize Dashboard</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {/* Top Metric Cards Section */}
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Sales Metrics</p>
+                  <div className="space-y-2">
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('sales')}
+                      onCheckedChange={() => toggleTopMetric('sales')}
+                    >
+                      Total Sales
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('salesUplift')}
+                      onCheckedChange={() => toggleTopMetric('salesUplift')}
+                    >
+                      Sales Uplift
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('avgRevenuePerCustomer')}
+                      onCheckedChange={() => toggleTopMetric('avgRevenuePerCustomer')}
+                    >
+                      Avg Revenue per Customer
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('customerLifetimeValue')}
+                      onCheckedChange={() => toggleTopMetric('customerLifetimeValue')}
+                    >
+                      Customer Lifetime Value
+                    </DropdownMenuCheckboxItem>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Spend Metrics</p>
+                  <div className="space-y-2">
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('spend')}
+                      onCheckedChange={() => toggleTopMetric('spend')}
+                    >
+                      Total Spend
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('costPerAcquisition')}
+                      onCheckedChange={() => toggleTopMetric('costPerAcquisition')}
+                    >
+                      Cost per Acquisition
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('costPerClick')}
+                      onCheckedChange={() => toggleTopMetric('costPerClick')}
+                    >
+                      Cost per Click
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('budgetUtilization')}
+                      onCheckedChange={() => toggleTopMetric('budgetUtilization')}
+                    >
+                      Budget Utilization
+                    </DropdownMenuCheckboxItem>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Performance Metrics</p>
+                  <div className="space-y-2">
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('roas')}
+                      onCheckedChange={() => toggleTopMetric('roas')}
+                    >
+                      ROAS
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('iroas')}
+                      onCheckedChange={() => toggleTopMetric('iroas')}
+                    >
+                      iROAS
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('conversionRate')}
+                      onCheckedChange={() => toggleTopMetric('conversionRate')}
+                    >
+                      Conversion Rate
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTopMetrics.includes('clickThroughRate')}
+                      onCheckedChange={() => toggleTopMetric('clickThroughRate')}
+                    >
+                      Click-through Rate
+                    </DropdownMenuCheckboxItem>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                {/* Funnel Cards Section */}
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Funnel Stages</p>
+                  <div className="space-y-2">
+                    <DropdownMenuCheckboxItem
+                      checked={visibleFunnelCards.awareness}
+                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, awareness: checked }))}
+                    >
+                      Awareness
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={visibleFunnelCards.consideration}
+                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, consideration: checked }))}
+                    >
+                      Consideration
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={visibleFunnelCards.purchase}
+                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, purchase: checked }))}
+                    >
+                      Purchase
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={visibleFunnelCards.loyalty}
+                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, loyalty: checked }))}
+                    >
+                      Loyalty
+                    </DropdownMenuCheckboxItem>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex-1">
+              <FilterBar
+                filters={[
+                  {
+                    name: 'Brand',
+                    options: [
+                      { label: 'Unilever', value: 'unilever' },
+                      { label: "Ben & Jerry's", value: 'ben-jerrys' },
+                      { label: 'Dove', value: 'dove' }
+                    ],
+                    selectedValues: brandFilter,
+                    onChange: setBrandFilter
+                  },
+                  {
+                    name: 'Campaign',
+                    options: [
+                      { label: 'Summer Sale 2024', value: 'summer-2024' },
+                      { label: 'Spring Collection', value: 'spring-2024' },
+                      { label: 'Holiday Special', value: 'holiday-2024' }
+                    ],
+                    selectedValues: campaignFilter,
+                    onChange: setCampaignFilter
+                  },
+                  {
+                    name: 'Goal',
+                    options: [
+                      { label: 'Sales', value: 'sales' },
+                      { label: 'Brand Awareness', value: 'awareness' },
+                      { label: 'Consideration', value: 'consideration' },
+                      { label: 'Traffic', value: 'traffic' },
+                      { label: 'Engagement', value: 'engagement' }
+                    ],
+                    selectedValues: goalFilter,
+                    onChange: setGoalFilter
+                  }
+                ]}
+                hideSearch={true}
+              />
+            </div>
+          </div>
+
+          {/* Top Metric Cards - Combined Chart */}
+          {selectedTopMetrics.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {selectedTopMetrics.map((metricKey) => (
+                  <div key={metricKey} className="space-y-1">
+                    <div className="text-sm font-normal text-muted-foreground">
+                      {metricDefinitions[metricKey].label}
+                    </div>
+                    <div className="text-3xl font-bold">{metricDefinitions[metricKey].value}</div>
+                    <Badge variant={metricDefinitions[metricKey].badgeVariant} className="text-xs">
+                      {metricDefinitions[metricKey].badge}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              <AreaChartComponent
+                data={topMetricsData}
+                config={{
+                  sales: { label: "Total Sales (K€)", color: "hsl(var(--chart-1))" },
+                  spend: { label: "Total Spend (K€)", color: "hsl(var(--chart-2))" },
+                  roasEuro: { label: "ROAS (K€)", color: "hsl(var(--chart-3))" }
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+              />
+            </CardContent>
+          </Card>
+          )}
+
+          {/* Awareness Card */}
+          {visibleFunnelCards.awareness && (
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
+              <div className="flex items-center justify-between w-full gap-4">
+                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                  <CardTitle>Awareness</CardTitle>
+                  <p className={`text-sm text-muted-foreground ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    615K - Total impressions across all campaigns
+                  </p>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Settings2 className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
+                    <DropdownMenuLabel>Customize Awareness</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Display</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={awarenessMetrics.includes('impressions')}
+                          onCheckedChange={(checked) => {
+                            setAwarenessMetrics(prev =>
+                              checked ? [...prev, 'impressions'] : prev.filter(m => m !== 'impressions')
+                            );
+                          }}
+                        >
+                          Display Impressions
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Digital In-store</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={awarenessMetrics.includes('omiDots')}
+                          onCheckedChange={(checked) => {
+                            setAwarenessMetrics(prev =>
+                              checked ? [...prev, 'omiDots'] : prev.filter(m => m !== 'omiDots')
+                            );
+                          }}
+                        >
+                          OMI otS
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Offline In-store</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={awarenessMetrics.includes('doohSpots')}
+                          onCheckedChange={(checked) => {
+                            setAwarenessMetrics(prev =>
+                              checked ? [...prev, 'doohSpots'] : prev.filter(m => m !== 'doohSpots')
+                            );
+                          }}
+                        >
+                          DooH DotS
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Other</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={awarenessMetrics.includes('sov')}
+                          onCheckedChange={(checked) => {
+                            setAwarenessMetrics(prev =>
+                              checked ? [...prev, 'sov'] : prev.filter(m => m !== 'sov')
+                            );
+                          }}
+                        >
+                          Share of Voice (SOV)
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={awarenessMetrics.includes('salesUplift')}
+                          onCheckedChange={(checked) => {
+                            setAwarenessMetrics(prev =>
+                              checked ? [...prev, 'salesUplift'] : prev.filter(m => m !== 'salesUplift')
+                            );
+                          }}
+                        >
+                          Total Sales Uplift
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAwarenessCollapsed(!awarenessCollapsed);
+                  }}
+                >
+                  {awarenessCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </Button>
+              </div>
+              </div>
+            </CardHeader>
+            {!awarenessCollapsed && (
+            <CardContent>
+              <div className="flex gap-6">
+                {/* Left side - Funnel indicator */}
+                <div className="relative w-[250px] flex-shrink-0">
+                  {/* Vertical line */}
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
+
+                  {/* Stage indicator */}
+                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
+                        <Eye className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl font-bold">615K</div>
+                        <div className="text-sm text-muted-foreground leading-tight">Total impressions across all campaigns</div>
+                        <div className="flex flex-col items-start gap-1 mt-4">
+                          <Badge variant="secondary" className="text-xs">Display Impressions 300K</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">OMI otS 160K</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">DooH DotS 155K</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-6 text-xs h-8"
+                          onClick={() => alert('Full Awareness Report')}
+                        >
+                          Full Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - Grid of chart cards */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {awarenessMetrics.includes('impressions') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Display Impressions 300K</CardTitle>
+                        </CardHeader>
+                      <CardContent>
+                        <LineChartComponent
+                          data={awarenessData}
+                          config={{ impressions: { label: "Impressions", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-[150px] w-full"
+                          xAxisDataKey="month"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Badge variant="success" className="text-xs">+46%</Badge>
+                        </div>
+                      </CardContent>
+                      </Card>
+                    )}
+                    {awarenessMetrics.includes('sov') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Share of Voice 45%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PieChartComponent
+                            data={sovPieData}
+                            config={sovPieConfig}
+                            showLegend={false}
+                            showTooltip={true}
+                            className="h-[150px] w-full"
+                            nameKey="name"
+                            dataKey="value"
+                            innerRadius={35}
+                            outerRadius={55}
+                            showLabels={true}
+                            labelPosition="inside"
+                            startAngle={90}
+                            endAngle={-270}
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+41%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {awarenessMetrics.includes('salesUplift') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Total Sales Uplift 27%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ salesUplift: { label: "Sales Uplift", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+125%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {awarenessMetrics.includes('omiDots') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">OMI otS 160K</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+68%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {awarenessMetrics.includes('doohSpots') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">DooH DotS 155K</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+52%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+          )}
+
+          {/* Consideration Card */}
+          {visibleFunnelCards.consideration && (
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
+              <div className="flex items-center justify-between w-full gap-4">
+                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                  <CardTitle>Consideration</CardTitle>
+                  <p className={`text-sm text-muted-foreground ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    20.5K - Total clicks from engaged consumers
+                  </p>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Settings2 className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
+                    <DropdownMenuLabel>Customize Consideration</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Display</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={considerationMetrics.includes('displayClicks')}
+                          onCheckedChange={(checked) => {
+                            setConsiderationMetrics(prev =>
+                              checked ? [...prev, 'displayClicks'] : prev.filter(m => m !== 'displayClicks')
+                            );
+                          }}
+                        >
+                          Display Clicks
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={considerationMetrics.includes('viewability')}
+                          onCheckedChange={(checked) => {
+                            setConsiderationMetrics(prev =>
+                              checked ? [...prev, 'viewability'] : prev.filter(m => m !== 'viewability')
+                            );
+                          }}
+                        >
+                          Viewability Interactions
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={considerationMetrics.includes('clicks')}
+                          onCheckedChange={(checked) => {
+                            setConsiderationMetrics(prev =>
+                              checked ? [...prev, 'clicks'] : prev.filter(m => m !== 'clicks')
+                            );
+                          }}
+                        >
+                          Clicks
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Offline In-store</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={considerationMetrics.includes('dots')}
+                          onCheckedChange={(checked) => {
+                            setConsiderationMetrics(prev =>
+                              checked ? [...prev, 'dots'] : prev.filter(m => m !== 'dots')
+                            );
+                          }}
+                        >
+                          DooH Dots (POPs)
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConsiderationCollapsed(!considerationCollapsed);
+                  }}
+                >
+                  {considerationCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </Button>
+              </div>
+              </div>
+            </CardHeader>
+            {!considerationCollapsed && (
+            <CardContent>
+              <div className="flex gap-6">
+                {/* Left side - Funnel indicator */}
+                <div className="relative w-[250px] flex-shrink-0">
+                  {/* Vertical line */}
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
+
+                  {/* Stage indicator */}
+                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
+                        <MousePointer className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl font-bold">20.5K</div>
+                        <div className="text-sm text-muted-foreground leading-tight">Sum of all user interactions</div>
+                        <div className="flex flex-col items-start gap-1 mt-4">
+                          <Badge variant="secondary" className="text-xs">Clicks 12.4K</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">DooH DotS (POPs) 3.8K</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">Display Clicks 2.1K</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">Viewability 2.2K</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-6 text-xs h-8"
+                          onClick={() => alert('Full Consideration Report')}
+                        >
+                          Full Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - 2x2 Grid of chart cards */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {considerationMetrics.includes('clicks') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Clicks 12.4K</CardTitle>
+                        </CardHeader>
+                      <CardContent>
+                        <LineChartComponent
+                          data={considerationData}
+                          config={{ clicks: { label: "Clicks", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-[150px] w-full"
+                          xAxisDataKey="month"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Badge variant="success" className="text-xs">+64%</Badge>
+                        </div>
+                      </CardContent>
+                      </Card>
+                    )}
+                    {considerationMetrics.includes('dots') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">DooH Dots (POPs) 3.8K</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={considerationData}
+                            config={{ dots: { label: "DooH Dots", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+67%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {considerationMetrics.includes('displayClicks') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Display Clicks 2.1K</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={considerationData}
+                            config={{ displayClicks: { label: "Display Clicks", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+63%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {considerationMetrics.includes('viewability') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Viewability Interactions 2.2K</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={considerationData}
+                            config={viewabilityConfig}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+18%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+          )}
+
+          {/* Purchase Card */}
+          {visibleFunnelCards.purchase && (
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
+              <div className="flex items-center justify-between w-full gap-4">
+                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                  <CardTitle>Purchase</CardTitle>
+                  <p className={`text-sm text-muted-foreground ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    €200K - Total sales generated from campaigns
+                  </p>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Settings2 className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
+                    <DropdownMenuLabel>Customize Purchase</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={purchaseMetrics.includes('roas')}
+                          onCheckedChange={(checked) => {
+                            setPurchaseMetrics(prev =>
+                              checked ? [...prev, 'roas'] : prev.filter(m => m !== 'roas')
+                            );
+                          }}
+                        >
+                          ROAS
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={purchaseMetrics.includes('iroas')}
+                          onCheckedChange={(checked) => {
+                            setPurchaseMetrics(prev =>
+                              checked ? [...prev, 'iroas'] : prev.filter(m => m !== 'iroas')
+                            );
+                          }}
+                        >
+                          iROAS
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={purchaseMetrics.includes('purchaseBehavior')}
+                          onCheckedChange={(checked) => {
+                            setPurchaseMetrics(prev =>
+                              checked ? [...prev, 'purchaseBehavior'] : prev.filter(m => m !== 'purchaseBehavior')
+                            );
+                          }}
+                        >
+                          Attributable Purchase Behavior
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={purchaseMetrics.includes('customerSegmentation')}
+                          onCheckedChange={(checked) => {
+                            setPurchaseMetrics(prev =>
+                              checked ? [...prev, 'customerSegmentation'] : prev.filter(m => m !== 'customerSegmentation')
+                            );
+                          }}
+                        >
+                          Customer Segmentation
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPurchaseCollapsed(!purchaseCollapsed);
+                  }}
+                >
+                  {purchaseCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </Button>
+              </div>
+              </div>
+            </CardHeader>
+            {!purchaseCollapsed && (
+            <CardContent>
+              <div className="flex gap-6">
+                {/* Left side - Funnel indicator */}
+                <div className="relative w-[250px] flex-shrink-0">
+                  {/* Vertical line ends at this card */}
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
+
+                  {/* Funnel stage indicator */}
+                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
+                        <ShoppingCart className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl font-bold">4.7x</div>
+                        <div className="text-sm text-muted-foreground leading-tight">Average return on ad spend</div>
+                        <div className="flex flex-col items-start gap-1 mt-4">
+                          <Badge variant="secondary" className="text-xs">Revenue €940K</Badge>
+                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">÷</div>
+                          <Badge variant="secondary" className="text-xs">Ad Spend €200K</Badge>
+                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">×</div>
+                          <Badge variant="secondary" className="text-xs">Conversion Rate 100%</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-6 text-xs h-8"
+                          onClick={() => alert('Full Purchase Report')}
+                        >
+                          Full Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - Chart grid */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {purchaseMetrics.includes('roas') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">ROAS 4.7x</CardTitle>
+                        </CardHeader>
+                      <CardContent>
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ roas: { label: "ROAS", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-[150px] w-full"
+                          xAxisDataKey="month"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Badge variant="success" className="text-xs">+47%</Badge>
+                        </div>
+                      </CardContent>
+                      </Card>
+                    )}
+                    {purchaseMetrics.includes('iroas') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">iROAS 8.2x</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+50%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {purchaseMetrics.includes('purchaseBehavior') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Attributable Purchase Behavior 68%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={purchaseBehaviorConfig}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+25%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {purchaseMetrics.includes('customerSegmentation') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Customer Segmentation</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PieChartComponent
+                            data={customerSegmentationData}
+                            config={customerSegmentationConfig}
+                            showLegend={false}
+                            showTooltip={true}
+                            innerRadius={35}
+                            outerRadius={55}
+                            showLabels={true}
+                            labelPosition="inside"
+                            className="h-[150px] w-full"
+                            nameKey="name"
+                            dataKey="value"
+                            startAngle={90}
+                            endAngle={-270}
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="default" className="text-xs">42% Returning</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+          )}
+
+          {/* Loyalty Card */}
+          {visibleFunnelCards.loyalty && (
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
+              <div className="flex items-center justify-between w-full gap-4">
+                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                  <CardTitle>Loyalty</CardTitle>
+                  <p className={`text-sm text-muted-foreground ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    47% - Repeat purchase rate from engaged customers
+                  </p>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Settings2 className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
+                    <DropdownMenuLabel>Customize Loyalty</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('repeatPurchaseRate')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'repeatPurchaseRate'] : prev.filter(m => m !== 'repeatPurchaseRate')
+                            );
+                          }}
+                        >
+                          Repeat Purchase Rate
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('customerLifetimeValue')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'customerLifetimeValue'] : prev.filter(m => m !== 'customerLifetimeValue')
+                            );
+                          }}
+                        >
+                          Customer Lifetime Value
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Digital In-store</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('churnRate')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'churnRate'] : prev.filter(m => m !== 'churnRate')
+                            );
+                          }}
+                        >
+                          Churn Rate
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLoyaltyCollapsed(!loyaltyCollapsed);
+                  }}
+                >
+                  {loyaltyCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </Button>
+              </div>
+              </div>
+            </CardHeader>
+            {!loyaltyCollapsed && (
+            <CardContent>
+              <div className="flex gap-6">
+                {/* Left side - Funnel indicator */}
+                <div className="relative w-[250px] flex-shrink-0">
+                  {/* Vertical line continues from Purchase */}
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
+
+                  {/* Funnel stage indicator */}
+                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
+                        <Heart className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl font-bold">47%</div>
+                        <div className="text-sm text-muted-foreground leading-tight">Repeat purchase rate from engaged customers</div>
+                        <div className="flex flex-col items-start gap-1 mt-4">
+                          <Badge variant="secondary" className="text-xs">RPR 47%</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">CLV €355</Badge>
+                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">-</div>
+                          <Badge variant="secondary" className="text-xs">Churn Rate 5.2%</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-6 text-xs h-8"
+                          onClick={() => alert('Full Loyalty Report')}
+                        >
+                          Full Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - Chart grid */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {loyaltyMetrics.includes('repeatPurchaseRate') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Repeat Purchase Rate 47%</CardTitle>
+                        </CardHeader>
+                      <CardContent>
+                        <LineChartComponent
+                          data={loyaltyData}
+                          config={{ repeatPurchaseRate: { label: "Repeat Purchase Rate %", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-[150px] w-full"
+                          xAxisDataKey="month"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Badge variant="success" className="text-xs">+47%</Badge>
+                        </div>
+                      </CardContent>
+                      </Card>
+                    )}
+                    {loyaltyMetrics.includes('customerLifetimeValue') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Customer Lifetime Value €355</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">+27%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {loyaltyMetrics.includes('churnRate') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Churn Rate 5.2%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">-39%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+          )}
+        </div>
+      </AppLayout>
+
+      {/* Custom Report Dialog */}
+      <Dialog open={customReportOpen} onOpenChange={setCustomReportOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Create Custom Report</DialogTitle>
+            <DialogDescription>
+              Select the metrics you want to include in your custom report. Metrics are organized by funnel stage.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[50vh] overflow-y-auto pr-4">
+            {/* Awareness Metrics Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold mb-3 text-foreground">Awareness Metrics</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-impressions"
+                    checked={selectedReportMetrics.includes('impressions')}
+                    onCheckedChange={() => toggleReportMetric('impressions')}
+                  />
+                  <Label htmlFor="metric-impressions" className="text-sm font-normal cursor-pointer">
+                    Total Impressions
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-display-impressions"
+                    checked={selectedReportMetrics.includes('displayImpressions')}
+                    onCheckedChange={() => toggleReportMetric('displayImpressions')}
+                  />
+                  <Label htmlFor="metric-display-impressions" className="text-sm font-normal cursor-pointer">
+                    Display Impressions
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-omi-dots"
+                    checked={selectedReportMetrics.includes('omiDots')}
+                    onCheckedChange={() => toggleReportMetric('omiDots')}
+                  />
+                  <Label htmlFor="metric-omi-dots" className="text-sm font-normal cursor-pointer">
+                    OMI otS
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-dooh-dots"
+                    checked={selectedReportMetrics.includes('doohDots')}
+                    onCheckedChange={() => toggleReportMetric('doohDots')}
+                  />
+                  <Label htmlFor="metric-dooh-dots" className="text-sm font-normal cursor-pointer">
+                    DooH DotS
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-sov"
+                    checked={selectedReportMetrics.includes('shareOfVoice')}
+                    onCheckedChange={() => toggleReportMetric('shareOfVoice')}
+                  />
+                  <Label htmlFor="metric-sov" className="text-sm font-normal cursor-pointer">
+                    Share of Voice
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-sales-uplift"
+                    checked={selectedReportMetrics.includes('salesUplift')}
+                    onCheckedChange={() => toggleReportMetric('salesUplift')}
+                  />
+                  <Label htmlFor="metric-sales-uplift" className="text-sm font-normal cursor-pointer">
+                    Sales Uplift
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-reach"
+                    checked={selectedReportMetrics.includes('reach')}
+                    onCheckedChange={() => toggleReportMetric('reach')}
+                  />
+                  <Label htmlFor="metric-reach" className="text-sm font-normal cursor-pointer">
+                    Reach
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-frequency"
+                    checked={selectedReportMetrics.includes('frequency')}
+                    onCheckedChange={() => toggleReportMetric('frequency')}
+                  />
+                  <Label htmlFor="metric-frequency" className="text-sm font-normal cursor-pointer">
+                    Frequency
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Consideration Metrics Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold mb-3 text-foreground">Consideration Metrics</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-clicks"
+                    checked={selectedReportMetrics.includes('clicks')}
+                    onCheckedChange={() => toggleReportMetric('clicks')}
+                  />
+                  <Label htmlFor="metric-clicks" className="text-sm font-normal cursor-pointer">
+                    Total Clicks
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-display-clicks"
+                    checked={selectedReportMetrics.includes('displayClicks')}
+                    onCheckedChange={() => toggleReportMetric('displayClicks')}
+                  />
+                  <Label htmlFor="metric-display-clicks" className="text-sm font-normal cursor-pointer">
+                    Display Clicks
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-dooh-dots-pops"
+                    checked={selectedReportMetrics.includes('doohDotsPops')}
+                    onCheckedChange={() => toggleReportMetric('doohDotsPops')}
+                  />
+                  <Label htmlFor="metric-dooh-dots-pops" className="text-sm font-normal cursor-pointer">
+                    DooH DotS (POPs)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-viewability"
+                    checked={selectedReportMetrics.includes('viewability')}
+                    onCheckedChange={() => toggleReportMetric('viewability')}
+                  />
+                  <Label htmlFor="metric-viewability" className="text-sm font-normal cursor-pointer">
+                    Viewability
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-ctr"
+                    checked={selectedReportMetrics.includes('ctr')}
+                    onCheckedChange={() => toggleReportMetric('ctr')}
+                  />
+                  <Label htmlFor="metric-ctr" className="text-sm font-normal cursor-pointer">
+                    Click-Through Rate (CTR)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-engagement-rate"
+                    checked={selectedReportMetrics.includes('engagementRate')}
+                    onCheckedChange={() => toggleReportMetric('engagementRate')}
+                  />
+                  <Label htmlFor="metric-engagement-rate" className="text-sm font-normal cursor-pointer">
+                    Engagement Rate
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-video-completion"
+                    checked={selectedReportMetrics.includes('videoCompletion')}
+                    onCheckedChange={() => toggleReportMetric('videoCompletion')}
+                  />
+                  <Label htmlFor="metric-video-completion" className="text-sm font-normal cursor-pointer">
+                    Video Completion Rate
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Purchase Metrics Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold mb-3 text-foreground">Purchase Metrics</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-roas"
+                    checked={selectedReportMetrics.includes('roas')}
+                    onCheckedChange={() => toggleReportMetric('roas')}
+                  />
+                  <Label htmlFor="metric-roas" className="text-sm font-normal cursor-pointer">
+                    ROAS (Return on Ad Spend)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-iroas"
+                    checked={selectedReportMetrics.includes('iroas')}
+                    onCheckedChange={() => toggleReportMetric('iroas')}
+                  />
+                  <Label htmlFor="metric-iroas" className="text-sm font-normal cursor-pointer">
+                    iROAS (Incremental ROAS)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-purchase-behavior"
+                    checked={selectedReportMetrics.includes('purchaseBehavior')}
+                    onCheckedChange={() => toggleReportMetric('purchaseBehavior')}
+                  />
+                  <Label htmlFor="metric-purchase-behavior" className="text-sm font-normal cursor-pointer">
+                    Attributable Purchase Behavior
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-conversion-rate"
+                    checked={selectedReportMetrics.includes('conversionRate')}
+                    onCheckedChange={() => toggleReportMetric('conversionRate')}
+                  />
+                  <Label htmlFor="metric-conversion-rate" className="text-sm font-normal cursor-pointer">
+                    Conversion Rate
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-revenue"
+                    checked={selectedReportMetrics.includes('revenue')}
+                    onCheckedChange={() => toggleReportMetric('revenue')}
+                  />
+                  <Label htmlFor="metric-revenue" className="text-sm font-normal cursor-pointer">
+                    Total Revenue
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-ad-spend"
+                    checked={selectedReportMetrics.includes('adSpend')}
+                    onCheckedChange={() => toggleReportMetric('adSpend')}
+                  />
+                  <Label htmlFor="metric-ad-spend" className="text-sm font-normal cursor-pointer">
+                    Total Ad Spend
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-cpa"
+                    checked={selectedReportMetrics.includes('cpa')}
+                    onCheckedChange={() => toggleReportMetric('cpa')}
+                  />
+                  <Label htmlFor="metric-cpa" className="text-sm font-normal cursor-pointer">
+                    Cost Per Acquisition (CPA)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-cpc"
+                    checked={selectedReportMetrics.includes('cpc')}
+                    onCheckedChange={() => toggleReportMetric('cpc')}
+                  />
+                  <Label htmlFor="metric-cpc" className="text-sm font-normal cursor-pointer">
+                    Cost Per Click (CPC)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-basket-size"
+                    checked={selectedReportMetrics.includes('basketSize')}
+                    onCheckedChange={() => toggleReportMetric('basketSize')}
+                  />
+                  <Label htmlFor="metric-basket-size" className="text-sm font-normal cursor-pointer">
+                    Average Basket Size
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="metric-customer-ltv"
+                    checked={selectedReportMetrics.includes('customerLTV')}
+                    onCheckedChange={() => toggleReportMetric('customerLTV')}
+                  />
+                  <Label htmlFor="metric-customer-ltv" className="text-sm font-normal cursor-pointer">
+                    Customer Lifetime Value (LTV)
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCustomReportOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBuildReport}
+              disabled={selectedReportMetrics.length === 0}
+            >
+              Build Report ({selectedReportMetrics.length})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </MenuContextProvider>
     );
   },

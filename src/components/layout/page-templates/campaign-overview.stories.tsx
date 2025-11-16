@@ -326,7 +326,7 @@ export const Campaigns360: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'All campaigns',
+            title: 'Media Experiences',
             subtitle: 'Complete overview of all your campaigns across all advertising engines',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),

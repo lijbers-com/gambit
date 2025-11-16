@@ -72,7 +72,7 @@ export const Chat: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'CampaignAI Chat',
+            title: 'Campaign Agent',
             subtitle: 'AI-powered conversational interface for campaign management',
             headerRight: null,
             onEdit: () => alert('Edit clicked'),
@@ -316,7 +316,7 @@ export const ChatWithSpendAnalysis: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'CampaignAI Chat',
+            title: 'Campaign Agent',
             subtitle: 'AI-powered conversational interface for campaign management',
             headerRight: null,
             onEdit: () => alert('Edit clicked'),
@@ -368,7 +368,7 @@ export const ChatWithNewCampaign: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'CampaignAI Chat',
+            title: 'Campaign Agent',
             subtitle: 'AI-powered conversational interface for campaign management',
             headerRight: null,
             onEdit: () => alert('Edit clicked'),
@@ -420,7 +420,7 @@ export const ChatWithKeywordSuggestions: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'CampaignAI Chat',
+            title: 'Campaign Agent',
             subtitle: 'AI-powered conversational interface for campaign management',
             headerRight: null,
             onEdit: () => alert('Edit clicked'),

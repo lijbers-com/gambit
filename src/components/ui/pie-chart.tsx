@@ -43,7 +43,11 @@ export function PieChartComponent({
   endAngle = 360,
 }: PieChartProps) {
   const renderCustomLabel = (entry: any) => {
-    return `${entry[dataKey]}%`;
+    // If entry has a label field, use it; otherwise show name + value%
+    if (entry.label) {
+      return entry.label;
+    }
+    return entry[nameKey] ? `${entry[nameKey]} ${entry[dataKey]}%` : `${entry[dataKey]}%`;
   };
 
   return (

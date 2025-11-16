@@ -54,18 +54,28 @@ export function ChartShowcase() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Basic Area Chart</h3>
-            <AreaChartComponent 
-              data={chartData} 
-              config={chartConfig} 
+            <AreaChartComponent
+              data={chartData}
+              config={chartConfig}
               showLegend={true}
               className="h-[300px]"
             />
           </div>
           <div className="space-y-2">
+            <h3 className="text-lg font-medium">Area Chart with Right Y-Axis</h3>
+            <AreaChartComponent
+              data={chartData}
+              config={chartConfig}
+              showLegend={true}
+              showRightYAxis={true}
+              className="h-[300px]"
+            />
+          </div>
+          <div className="space-y-2">
             <h3 className="text-lg font-medium">Stacked Area Chart</h3>
-            <AreaChartComponent 
-              data={chartData} 
-              config={chartConfig} 
+            <AreaChartComponent
+              data={chartData}
+              config={chartConfig}
               showLegend={true}
               stacked={true}
               className="h-[300px]"
@@ -80,18 +90,28 @@ export function ChartShowcase() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Vertical Bar Chart</h3>
-            <BarChartComponent 
-              data={chartData} 
-              config={chartConfig} 
+            <BarChartComponent
+              data={chartData}
+              config={chartConfig}
               showLegend={true}
               className="h-[300px]"
             />
           </div>
           <div className="space-y-2">
+            <h3 className="text-lg font-medium">Bar Chart with Right Y-Axis</h3>
+            <BarChartComponent
+              data={chartData}
+              config={chartConfig}
+              showLegend={true}
+              showRightYAxis={true}
+              className="h-[300px]"
+            />
+          </div>
+          <div className="space-y-2">
             <h3 className="text-lg font-medium">Horizontal Bar Chart</h3>
-            <BarChartComponent 
-              data={chartData} 
-              config={chartConfig} 
+            <BarChartComponent
+              data={chartData}
+              config={chartConfig}
               showLegend={true}
               horizontal={true}
               className="h-[300px]"
@@ -185,6 +205,50 @@ export function ChartShowcase() {
               config={chartConfig} 
               showLegend={true}
               showRadiusAxis={true}
+              className="h-[300px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Dual Y-Axis Charts */}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Dual Y-Axis Charts</h2>
+        <p className="text-sm text-muted-foreground">Charts with both left and right Y-axes for comparing different scales</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Dual Y-Axis Area Chart</h3>
+            <AreaChartComponent
+              data={chartData}
+              config={chartConfig}
+              showLegend={true}
+              showRightYAxis={true}
+              rightAxisDataKey="tablet"
+              className="h-[300px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Dual Y-Axis Bar Chart</h3>
+            <BarChartComponent
+              data={chartData}
+              config={chartConfig}
+              showLegend={true}
+              showRightYAxis={true}
+              rightAxisDataKey="tablet"
+              className="h-[300px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Dual Y-Axis Line Chart</h3>
+            <LineChartComponent
+              data={chartData}
+              config={chartConfig}
+              showLegend={true}
+              curved={true}
+              secondaryYAxis={{
+                dataKey: "tablet",
+                label: "Tablet"
+              }}
               className="h-[300px]"
             />
           </div>

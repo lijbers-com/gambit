@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
+import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { MapChart } from '@/components/ui/map-chart';
@@ -21,7 +22,7 @@ import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
-import { Eye, MousePointer, ShoppingCart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus } from 'lucide-react';
+import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -3137,12 +3138,14 @@ export const FunnelView: Story = {
     const [awarenessPropositions, setAwarenessPropositions] = useState<string[]>(['display', 'digital-instore', 'offline-instore']);
     const [considerationPropositions, setConsiderationPropositions] = useState<string[]>(['display', 'digital-instore', 'offline-instore']);
     const [purchasePropositions, setPurchasePropositions] = useState<string[]>(['display', 'sponsored-products', 'digital-instore', 'offline-instore']);
+    const [loyaltyPropositions, setLoyaltyPropositions] = useState<string[]>(['sponsored-products', 'digital-instore']);
 
-    const toggleProposition = (proposition: string, card: 'awareness' | 'consideration' | 'purchase') => {
+    const toggleProposition = (proposition: string, card: 'awareness' | 'consideration' | 'purchase' | 'loyalty') => {
       const setters = {
         awareness: setAwarenessPropositions,
         consideration: setConsiderationPropositions,
         purchase: setPurchasePropositions,
+        loyalty: setLoyaltyPropositions,
       };
 
       setters[card](prev =>
@@ -3153,9 +3156,17 @@ export const FunnelView: Story = {
     };
 
     // Metric selection states for each funnel card
-    const [awarenessMetrics, setAwarenessMetrics] = useState<string[]>(['impressions', 'sov', 'omiDots', 'doohSpots']);
+    const [awarenessMetrics, setAwarenessMetrics] = useState<string[]>(['impressions', 'sov', 'salesUplift', 'omiDots', 'doohSpots']);
     const [considerationMetrics, setConsiderationMetrics] = useState<string[]>(['clicks', 'dots', 'displayClicks', 'viewability']);
-    const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'comparison']);
+    const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
+    const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
+
+    // Customer segmentation data for Purchase card
+    const customerSegmentationData = [
+      { name: 'First-time', value: 35 },
+      { name: 'Returning', value: 42 },
+      { name: 'Loyal', value: 23 }
+    ];
 
     // Selected top metrics (can be multiple)
     const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['sales', 'spend', 'roas']);
@@ -3168,12 +3179,14 @@ export const FunnelView: Story = {
     const [awarenessCollapsed, setAwarenessCollapsed] = useState(false);
     const [considerationCollapsed, setConsiderationCollapsed] = useState(false);
     const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
+    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
 
     // Visibility states for dashboard customization
     const [visibleFunnelCards, setVisibleFunnelCards] = useState({
       awareness: true,
       consideration: true,
       purchase: true,
+      loyalty: true,
     });
 
     const toggleTopMetric = (metric: string) => {
@@ -3200,40 +3213,49 @@ export const FunnelView: Story = {
 
     // Sample data for charts
     const awarenessData = [
-      { month: 'Jan', impressions: 420000, sov: 32, salesUplift: 12, omiDots: 1850, doohSpots: 2400 },
-      { month: 'Feb', impressions: 485000, sov: 35, salesUplift: 15, omiDots: 2100, doohSpots: 2650 },
-      { month: 'Mar', impressions: 512000, sov: 38, salesUplift: 18, omiDots: 2350, doohSpots: 2900 },
-      { month: 'Apr', impressions: 548000, sov: 41, salesUplift: 21, omiDots: 2600, doohSpots: 3150 },
-      { month: 'May', impressions: 592000, sov: 43, salesUplift: 24, omiDots: 2850, doohSpots: 3400 },
-      { month: 'Jun', impressions: 615000, sov: 45, salesUplift: 27, omiDots: 3100, doohSpots: 3650 }
+      { month: 'Jan', impressions: 380000, sov: 28, salesUplift: 12, omiDots: 1650, doohSpots: 2200 },
+      { month: 'Feb', impressions: 520000, sov: 38, salesUplift: 15, omiDots: 2300, doohSpots: 2850 },
+      { month: 'Mar', impressions: 465000, sov: 35, salesUplift: 18, omiDots: 2050, doohSpots: 2600 },
+      { month: 'Apr', impressions: 585000, sov: 42, salesUplift: 21, omiDots: 2750, doohSpots: 3250 },
+      { month: 'May', impressions: 610000, sov: 44, salesUplift: 24, omiDots: 2950, doohSpots: 3500 },
+      { month: 'Jun', impressions: 645000, sov: 47, salesUplift: 27, omiDots: 3200, doohSpots: 3800 }
     ];
 
     const considerationData = [
-      { month: 'Jan', clicks: 12500, dots: 8500, displayClicks: 6200, viewability: 72 },
-      { month: 'Feb', clicks: 14200, dots: 9800, displayClicks: 7100, viewability: 75 },
-      { month: 'Mar', clicks: 15600, dots: 10800, displayClicks: 7800, viewability: 78 },
-      { month: 'Apr', clicks: 17200, dots: 11500, displayClicks: 8500, viewability: 80 },
-      { month: 'May', clicks: 18900, dots: 12800, displayClicks: 9200, viewability: 82 },
-      { month: 'Jun', clicks: 20500, dots: 14200, displayClicks: 10100, viewability: 85 }
+      { month: 'Jan', clicks: 11200, dots: 7800, displayClicks: 5500, viewability: 68 },
+      { month: 'Feb', clicks: 15800, dots: 10500, displayClicks: 7800, viewability: 76 },
+      { month: 'Mar', clicks: 13900, dots: 9200, displayClicks: 6900, viewability: 73 },
+      { month: 'Apr', clicks: 18400, dots: 12200, displayClicks: 9100, viewability: 81 },
+      { month: 'May', clicks: 19800, dots: 13500, displayClicks: 9800, viewability: 83 },
+      { month: 'Jun', clicks: 21500, dots: 14800, displayClicks: 10600, viewability: 86 }
     ];
 
     const purchaseData = [
-      { month: 'Jan', roas: 3.2, iroas: 2.8, purchaseBehavior: 68 },
-      { month: 'Feb', roas: 3.5, iroas: 3.1, purchaseBehavior: 72 },
-      { month: 'Mar', roas: 3.8, iroas: 3.3, purchaseBehavior: 75 },
-      { month: 'Apr', roas: 4.1, iroas: 3.6, purchaseBehavior: 78 },
-      { month: 'May', roas: 4.4, iroas: 3.9, purchaseBehavior: 81 },
-      { month: 'Jun', roas: 4.7, iroas: 4.2, purchaseBehavior: 85 }
+      { month: 'Jan', roas: 2.8, iroas: 2.4, purchaseBehavior: 62 },
+      { month: 'Feb', roas: 3.9, iroas: 3.4, purchaseBehavior: 74 },
+      { month: 'Mar', roas: 3.5, iroas: 3.0, purchaseBehavior: 69 },
+      { month: 'Apr', roas: 4.3, iroas: 3.8, purchaseBehavior: 79 },
+      { month: 'May', roas: 4.6, iroas: 4.1, purchaseBehavior: 83 },
+      { month: 'Jun', roas: 5.1, iroas: 4.5, purchaseBehavior: 88 }
+    ];
+
+    const loyaltyData = [
+      { month: 'Jan', repeatPurchaseRate: 28, customerLifetimeValue: 265, churnRate: 9.2 },
+      { month: 'Feb', repeatPurchaseRate: 37, customerLifetimeValue: 305, churnRate: 7.5 },
+      { month: 'Mar', repeatPurchaseRate: 34, customerLifetimeValue: 290, churnRate: 8.1 },
+      { month: 'Apr', repeatPurchaseRate: 43, customerLifetimeValue: 335, churnRate: 6.3 },
+      { month: 'May', repeatPurchaseRate: 46, customerLifetimeValue: 350, churnRate: 5.8 },
+      { month: 'Jun', repeatPurchaseRate: 51, customerLifetimeValue: 375, churnRate: 4.9 }
     ];
 
     // Data for top metric cards
     const topMetricsData = [
-      { month: 'Jan', sales: 112, salesUplift: 12, avgRevenuePerCustomer: 45, customerLifetimeValue: 280, spend: 35, costPerAcquisition: 28, costPerClick: 2.1, budgetUtilization: 65, roas: 3.2, iroas: 2.8, conversionRate: 2.5, clickThroughRate: 3.8 },
-      { month: 'Feb', sales: 129.5, salesUplift: 15, avgRevenuePerCustomer: 48, customerLifetimeValue: 295, spend: 37, costPerAcquisition: 26, costPerClick: 2.0, budgetUtilization: 70, roas: 3.5, iroas: 3.1, conversionRate: 2.8, clickThroughRate: 4.2 },
-      { month: 'Mar', sales: 148.2, salesUplift: 18, avgRevenuePerCustomer: 51, customerLifetimeValue: 310, spend: 39, costPerAcquisition: 24, costPerClick: 1.9, budgetUtilization: 75, roas: 3.8, iroas: 3.3, conversionRate: 3.1, clickThroughRate: 4.6 },
-      { month: 'Apr', sales: 166.05, salesUplift: 21, avgRevenuePerCustomer: 54, customerLifetimeValue: 325, spend: 40.5, costPerAcquisition: 22, costPerClick: 1.8, budgetUtilization: 78, roas: 4.1, iroas: 3.6, conversionRate: 3.4, clickThroughRate: 5.0 },
-      { month: 'May', sales: 183.92, salesUplift: 24, avgRevenuePerCustomer: 57, customerLifetimeValue: 340, spend: 41.8, costPerAcquisition: 20, costPerClick: 1.7, budgetUtilization: 82, roas: 4.4, iroas: 3.9, conversionRate: 3.7, clickThroughRate: 5.4 },
-      { month: 'Jun', sales: 199.75, salesUplift: 27, avgRevenuePerCustomer: 60, customerLifetimeValue: 355, spend: 42.5, costPerAcquisition: 18, costPerClick: 1.6, budgetUtilization: 85, roas: 4.7, iroas: 4.2, conversionRate: 4.0, clickThroughRate: 5.8 }
+      { month: 'Jan', sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2 },
+      { month: 'Feb', sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1 },
+      { month: 'Mar', sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9 },
+      { month: 'Apr', sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2 },
+      { month: 'May', sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5 },
+      { month: 'Jun', sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9 }
     ];
 
     // Metric definitions for top cards
@@ -3295,6 +3317,12 @@ export const FunnelView: Story = {
 
     const purchaseBehaviorConfig = {
       purchaseBehavior: { label: "Purchase Behavior %", color: "hsl(var(--chart-5))" }
+    };
+
+    const customerSegmentationConfig = {
+      "First-time": { label: "First-time Customers", color: "hsl(var(--chart-1))" },
+      "Returning": { label: "Returning Customers", color: "hsl(var(--chart-2))" },
+      "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
     };
 
     return (
@@ -3458,6 +3486,12 @@ export const FunnelView: Story = {
                     >
                       Purchase
                     </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={visibleFunnelCards.loyalty}
+                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, loyalty: checked }))}
+                    >
+                      Loyalty
+                    </DropdownMenuCheckboxItem>
                   </div>
                 </div>
               </DropdownMenuContent>
@@ -3504,43 +3538,42 @@ export const FunnelView: Story = {
             </div>
           </div>
 
-          {/* Top Metric Cards */}
+          {/* Top Metric Cards - Combined Chart */}
           {selectedTopMetrics.length > 0 && (
-          <div className={`grid gap-4 ${
-            selectedTopMetrics.length === 1 ? 'grid-cols-1' :
-            selectedTopMetrics.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-            selectedTopMetrics.length === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
-            'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-          }`}>
-            {selectedTopMetrics.map((metricKey) => (
-              <Card key={metricKey}>
-                <CardHeader className="pb-2">
-                  <div className="text-sm font-normal text-muted-foreground">
-                    {metricDefinitions[metricKey].label}
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-3xl font-bold mb-4">{metricDefinitions[metricKey].value}</div>
-                  <LineChartComponent
-                    data={topMetricsData}
-                    config={metricDefinitions[metricKey].config}
-                    showLegend={false}
-                    showGrid={true}
-                    showTooltip={true}
-                    showXAxis={true}
-                    showYAxis={false}
-                    className="h-[80px] w-full"
-                    xAxisDataKey="month"
-                  />
-                  <div className="flex justify-end mt-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {selectedTopMetrics.map((metricKey) => (
+                  <div key={metricKey} className="space-y-1">
+                    <div className="text-sm font-normal text-muted-foreground">
+                      {metricDefinitions[metricKey].label}
+                    </div>
+                    <div className="text-3xl font-bold">{metricDefinitions[metricKey].value}</div>
                     <Badge variant={metricDefinitions[metricKey].badgeVariant} className="text-xs">
                       {metricDefinitions[metricKey].badge}
                     </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+              <AreaChartComponent
+                data={topMetricsData}
+                config={{
+                  sales: { label: "Total Sales (K€)", color: "hsl(var(--chart-1))" },
+                  spend: { label: "Total Spend (K€)", color: "hsl(var(--chart-2))" },
+                  roasEuro: { label: "ROAS (K€)", color: "hsl(var(--chart-3))" }
+                }}
+                showLegend={true}
+                showGrid={true}
+                showTooltip={true}
+                showXAxis={true}
+                showYAxis={true}
+                className="h-[300px] w-full"
+              />
+            </CardContent>
+          </Card>
           )}
 
           {/* Awareness Card */}
@@ -3594,7 +3627,7 @@ export const FunnelView: Story = {
                             );
                           }}
                         >
-                          OMI DotS
+                          OMI otS
                         </DropdownMenuCheckboxItem>
                       </div>
                     </div>
@@ -3679,7 +3712,7 @@ export const FunnelView: Story = {
                         <div className="flex flex-col items-start gap-1 mt-4">
                           <Badge variant="secondary" className="text-xs">Display Impressions 300K</Badge>
                           <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">OMI DotS 160K</Badge>
+                          <Badge variant="secondary" className="text-xs">OMI otS 160K</Badge>
                           <Plus className="w-3 h-3 text-muted-foreground" />
                           <Badge variant="secondary" className="text-xs">DooH DotS 155K</Badge>
                         </div>
@@ -3775,12 +3808,12 @@ export const FunnelView: Story = {
                     {awarenessMetrics.includes('omiDots') && (
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-base">OMI DotS 160K</CardTitle>
+                          <CardTitle className="text-base">OMI otS 160K</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <LineChartComponent
                             data={awarenessData}
-                            config={{ omiDots: { label: "OMI DotS", color: "hsl(var(--chart-4))" } }}
+                            config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
                             showLegend={false}
                             showGrid={true}
                             showTooltip={true}
@@ -4122,14 +4155,14 @@ export const FunnelView: Story = {
                           Attributable Purchase Behavior
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
-                          checked={purchaseMetrics.includes('comparison')}
+                          checked={purchaseMetrics.includes('customerSegmentation')}
                           onCheckedChange={(checked) => {
                             setPurchaseMetrics(prev =>
-                              checked ? [...prev, 'comparison'] : prev.filter(m => m !== 'comparison')
+                              checked ? [...prev, 'customerSegmentation'] : prev.filter(m => m !== 'customerSegmentation')
                             );
                           }}
                         >
-                          ROAS & iROAS Comparison
+                          Customer Segmentation
                         </DropdownMenuCheckboxItem>
                       </div>
                     </div>
@@ -4257,16 +4290,194 @@ export const FunnelView: Story = {
                         </CardContent>
                       </Card>
                     )}
-                    {purchaseMetrics.includes('comparison') && (
+                    {purchaseMetrics.includes('customerSegmentation') && (
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-base">ROAS & iROAS Comparison 4.7x / 8.2x</CardTitle>
+                          <CardTitle className="text-base">Customer Segmentation</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PieChartComponent
+                            data={customerSegmentationData}
+                            config={customerSegmentationConfig}
+                            showLegend={false}
+                            showTooltip={true}
+                            innerRadius={35}
+                            outerRadius={55}
+                            showLabels={true}
+                            labelPosition="inside"
+                            className="h-[150px] w-full"
+                            nameKey="name"
+                            dataKey="value"
+                            startAngle={90}
+                            endAngle={-270}
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="default" className="text-xs">42% Returning</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            )}
+          </Card>
+          )}
+
+          {/* Loyalty Card */}
+          {visibleFunnelCards.loyalty && (
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
+              <div className="flex items-center justify-between w-full gap-4">
+                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                  <CardTitle>Loyalty</CardTitle>
+                  <p className={`text-sm text-muted-foreground ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    47% - Repeat purchase rate from engaged customers
+                  </p>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Settings2 className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
+                    <DropdownMenuLabel>Customize Loyalty</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('repeatPurchaseRate')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'repeatPurchaseRate'] : prev.filter(m => m !== 'repeatPurchaseRate')
+                            );
+                          }}
+                        >
+                          Repeat Purchase Rate
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('customerLifetimeValue')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'customerLifetimeValue'] : prev.filter(m => m !== 'customerLifetimeValue')
+                            );
+                          }}
+                        >
+                          Customer Lifetime Value
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Digital In-store</p>
+                      <div className="space-y-2">
+                        <DropdownMenuCheckboxItem
+                          checked={loyaltyMetrics.includes('churnRate')}
+                          onCheckedChange={(checked) => {
+                            setLoyaltyMetrics(prev =>
+                              checked ? [...prev, 'churnRate'] : prev.filter(m => m !== 'churnRate')
+                            );
+                          }}
+                        >
+                          Churn Rate
+                        </DropdownMenuCheckboxItem>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLoyaltyCollapsed(!loyaltyCollapsed);
+                  }}
+                >
+                  {loyaltyCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </Button>
+              </div>
+              </div>
+            </CardHeader>
+            {!loyaltyCollapsed && (
+            <CardContent>
+              <div className="flex gap-6">
+                {/* Left side - Funnel indicator */}
+                <div className="relative w-[250px] flex-shrink-0">
+                  {/* Vertical line continues from Purchase */}
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
+
+                  {/* Funnel stage indicator */}
+                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
+                        <Heart className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl font-bold">47%</div>
+                        <div className="text-sm text-muted-foreground leading-tight">Repeat purchase rate from engaged customers</div>
+                        <div className="flex flex-col items-start gap-1 mt-4">
+                          <Badge variant="secondary" className="text-xs">RPR 47%</Badge>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Badge variant="secondary" className="text-xs">CLV €355</Badge>
+                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">-</div>
+                          <Badge variant="secondary" className="text-xs">Churn Rate 5.2%</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-6 text-xs h-8"
+                          onClick={() => alert('Full Loyalty Report')}
+                        >
+                          Full Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - Chart grid */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {loyaltyMetrics.includes('repeatPurchaseRate') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Repeat Purchase Rate 47%</CardTitle>
+                        </CardHeader>
+                      <CardContent>
+                        <LineChartComponent
+                          data={loyaltyData}
+                          config={{ repeatPurchaseRate: { label: "Repeat Purchase Rate %", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-[150px] w-full"
+                          xAxisDataKey="month"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Badge variant="success" className="text-xs">+47%</Badge>
+                        </div>
+                      </CardContent>
+                      </Card>
+                    )}
+                    {loyaltyMetrics.includes('customerLifetimeValue') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Customer Lifetime Value €355</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <LineChartComponent
-                            data={purchaseData}
-                            config={purchaseConfig}
-                            showLegend={true}
+                            data={loyaltyData}
+                            config={{ customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
                             showGrid={true}
                             showTooltip={true}
                             showXAxis={true}
@@ -4275,7 +4486,30 @@ export const FunnelView: Story = {
                             xAxisDataKey="month"
                           />
                           <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+47% / +50%</Badge>
+                            <Badge variant="success" className="text-xs">+27%</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {loyaltyMetrics.includes('churnRate') && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Churn Rate 5.2%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[150px] w-full"
+                            xAxisDataKey="month"
+                          />
+                          <div className="flex justify-end mt-2">
+                            <Badge variant="success" className="text-xs">-39%</Badge>
                           </div>
                         </CardContent>
                       </Card>
@@ -4332,7 +4566,7 @@ export const FunnelView: Story = {
                     onCheckedChange={() => toggleReportMetric('omiDots')}
                   />
                   <Label htmlFor="metric-omi-dots" className="text-sm font-normal cursor-pointer">
-                    OMI DotS
+                    OMI otS
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">

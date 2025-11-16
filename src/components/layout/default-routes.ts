@@ -3,7 +3,7 @@ import { Route } from '@/components/ui/side-navigation';
 export const defaultRoutes: Route[] = [
   {
     id: 99,
-    name: "Media wallet",
+    name: "Media Experiences",
     type: "single" as const,
     icon: { lucide: "WalletCards" },
     url: "/campaigns",
@@ -37,6 +37,24 @@ export const defaultRoutes: Route[] = [
         name: "Offline instore",
         type: "single" as const,
         url: "/campaigns/offline-instore",
+      },
+      {
+        id: 24,
+        name: "Audio in-store",
+        type: "single" as const,
+        url: "/campaigns/audio-instore",
+      },
+      {
+        id: 25,
+        name: "Social",
+        type: "single" as const,
+        url: "/campaigns/social",
+      },
+      {
+        id: 26,
+        name: "Display offsite",
+        type: "single" as const,
+        url: "/campaigns/display-offsite",
       },
     ],
   },
@@ -121,7 +139,7 @@ export const defaultRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "Campaign Intelligence",
+    name: "Campaign Agent",
     type: "title" as const,
   },
   {
@@ -178,6 +196,13 @@ export const defaultRoutes: Route[] = [
     icon: { lucide: "BrandsIcon" },
     url: "/configuration/brands-products",
   },
+  {
+    id: 15,
+    name: "Media Orchestra",
+    type: "single" as const,
+    icon: { lucide: "Settings2" },
+    url: "/configuration/media-orchestra",
+  },
 ];
 
 // Extended routes for breadcrumb navigation (detail pages)
@@ -212,6 +237,27 @@ export const extendedRoutes: Route[] = [
     url: "/campaigns/offline-instore/[id]",
     pattern: "/campaigns/offline-instore/*",
   },
+  {
+    id: 204,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/audio-instore/[id]",
+    pattern: "/campaigns/audio-instore/*",
+  },
+  {
+    id: 205,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/social/[id]",
+    pattern: "/campaigns/social/*",
+  },
+  {
+    id: 206,
+    name: "Campaign Details",
+    type: "hidden" as const,
+    url: "/campaigns/display-offsite/[id]",
+    pattern: "/campaigns/display-offsite/*",
+  },
   // Line-item detail routes
   {
     id: 210,
@@ -241,6 +287,27 @@ export const extendedRoutes: Route[] = [
     url: "/campaigns/offline-instore/line-item/[lineItemId]",
     pattern: "/campaigns/offline-instore/line-item/*",
   },
+  {
+    id: 214,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/audio-instore/line-item/[lineItemId]",
+    pattern: "/campaigns/audio-instore/line-item/*",
+  },
+  {
+    id: 215,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/social/line-item/[lineItemId]",
+    pattern: "/campaigns/social/line-item/*",
+  },
+  {
+    id: 216,
+    name: "Line-item Details",
+    type: "hidden" as const,
+    url: "/campaigns/display-offsite/line-item/[lineItemId]",
+    pattern: "/campaigns/display-offsite/line-item/*",
+  },
   // Creative detail routes
   {
     id: 220,
@@ -269,5 +336,26 @@ export const extendedRoutes: Route[] = [
     type: "hidden" as const,
     url: "/campaigns/offline-instore/creative/[creativeId]",
     pattern: "/campaigns/offline-instore/creative/*",
+  },
+  {
+    id: 224,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/audio-instore/creative/[creativeId]",
+    pattern: "/campaigns/audio-instore/creative/*",
+  },
+  {
+    id: 225,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/social/creative/[creativeId]",
+    pattern: "/campaigns/social/creative/*",
+  },
+  {
+    id: 226,
+    name: "Creative Details",
+    type: "hidden" as const,
+    url: "/campaigns/display-offsite/creative/[creativeId]",
+    pattern: "/campaigns/display-offsite/creative/*",
   },
 ];

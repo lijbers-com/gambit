@@ -29,7 +29,7 @@ type Story = StoryObj<typeof meta>;
 const sampleRoutes: Route[] = [
   {
     id: 99,
-    name: "Media wallet",
+    name: "Media Experiences",
     type: "single",
     icon: { lucide: "WalletCards" },
     url: "/campaigns"
@@ -59,6 +59,21 @@ const sampleRoutes: Route[] = [
         id: 23,
         name: "Offline instore",
         url: "/campaigns/offline-instore"
+      },
+      {
+        id: 24,
+        name: "Audio in-store",
+        url: "/campaigns/audio-instore"
+      },
+      {
+        id: 25,
+        name: "Social",
+        url: "/campaigns/social"
+      },
+      {
+        id: 26,
+        name: "Display offsite",
+        url: "/campaigns/display-offsite"
       }
     ]
   },
@@ -94,6 +109,21 @@ const sampleRoutes: Route[] = [
         id: 43,
         name: "Offline instore",
         url: "/calendar/offline-instore"
+      },
+      {
+        id: 44,
+        name: "Audio in-store",
+        url: "/calendar/audio-instore"
+      },
+      {
+        id: 45,
+        name: "Social",
+        url: "/calendar/social"
+      },
+      {
+        id: 46,
+        name: "Display offsite",
+        url: "/calendar/display-offsite"
       }
     ]
   },
@@ -135,7 +165,7 @@ const sampleRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "Campaign Intelligence",
+    name: "Campaign Agent",
     type: "title"
   },
   {
@@ -207,7 +237,7 @@ export const Primary: Story = {
           <div>
             <h3 className="text-lg font-semibold">Main Menu Items:</h3>
             <ul className="mt-2 space-y-1">
-              <li>💳 <strong>Media wallet</strong> - Media order management</li>
+              <li>💳 <strong>Media Experiences</strong> - Media order management</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management with 4 engines</li>
               <li>📅 <strong>Calendar</strong> - Booking calendar with 4 engines</li>
@@ -227,7 +257,7 @@ export const Primary: Story = {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mt-4">Campaign Intelligence Section:</h3>
+            <h3 className="text-lg font-semibold mt-4">Campaign Agent Section:</h3>
             <ul className="mt-2 space-y-1">
               <li>💬 <strong>New chat</strong> - Start a new AI-powered campaign chat</li>
             </ul>
@@ -577,7 +607,7 @@ export const CollapsedState: Story = {
 const advertiserRoutes: Route[] = [
   {
     id: 99,
-    name: "Media wallet",
+    name: "Media Experiences",
     type: "single",
     icon: { lucide: "WalletCards" },
     url: "/campaigns"
@@ -607,6 +637,21 @@ const advertiserRoutes: Route[] = [
         id: 23,
         name: "Offline instore",
         url: "/campaigns/offline-instore"
+      },
+      {
+        id: 24,
+        name: "Audio in-store",
+        url: "/campaigns/audio-instore"
+      },
+      {
+        id: 25,
+        name: "Social",
+        url: "/campaigns/social"
+      },
+      {
+        id: 26,
+        name: "Display offsite",
+        url: "/campaigns/display-offsite"
       }
     ]
   },
@@ -637,7 +682,7 @@ const advertiserRoutes: Route[] = [
   },
   {
     id: 5,
-    name: "Campaign Intelligence",
+    name: "Campaign Agent",
     type: "title"
   },
   {
@@ -663,11 +708,11 @@ export const AdvertiserView: Story = {
           <div>
             <h3 className="text-lg font-semibold">Available Menu Items:</h3>
             <ul className="mt-2 space-y-1">
-              <li>💳 <strong>Media wallet</strong> - Media order management</li>
+              <li>💳 <strong>Media Experiences</strong> - Media order management</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management</li>
               <li>📈 <strong>Insights</strong> - Performance analytics and reports</li>
-              <li>💬 <strong>Campaign Intelligence</strong> - AI-powered campaign chat</li>
+              <li>💬 <strong>Campaign Agent</strong> - AI-powered campaign chat</li>
             </ul>
           </div>
           <div className="mt-4 p-4 bg-blue-50 rounded-md">

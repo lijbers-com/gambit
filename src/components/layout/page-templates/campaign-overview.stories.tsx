@@ -206,6 +206,8 @@ export const OfflineInstore: Story = createCampaignOverviewStory('offline instor
 // Campaign data for the card view
 const campaignSummaryData = [
   {
+    id: 'C-001',
+    campaignType: 'sponsored-products',
     title: 'Holiday Sale Campaign',
     badge: { text: 'Best ROAS', variant: 'default' as const },
     goal: 'performance-transaction',
@@ -228,6 +230,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-002',
+    campaignType: 'display',
     title: 'Summer Launch Campaign',
     badge: { text: 'High CTR', variant: 'secondary' as const },
     goal: 'brand-awareness',
@@ -248,6 +252,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-003',
+    campaignType: 'digital-instore',
     title: 'Back to School Campaign',
     badge: { text: 'In Option', variant: 'outline' as const },
     goal: 'customer-acquisition',
@@ -268,6 +274,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-004',
+    campaignType: 'offline-instore',
     title: 'Black Friday Campaign',
     badge: { text: 'Paused', variant: 'destructive' as const },
     goal: 'performance-transaction',
@@ -290,6 +298,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-005',
+    campaignType: 'display',
     title: 'New Year Campaign',
     badge: { text: 'Ready', variant: 'secondary' as const },
     goal: 'retargeting',
@@ -393,6 +403,18 @@ export const Campaigns360: Story = {
                       console.log(`Budget updated for ${campaign.title}: ${newBudget}`);
                     }}
                     onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                    onEngineEdit={(engineId, engineName) => {
+                      // Map engine ID to URL path
+                      const engineTypeMap: { [key: string]: string } = {
+                        'display': 'display',
+                        'sponsored': 'sponsored-products',
+                        'digital': 'digital-instore',
+                        'offline': 'offline-instore',
+                      };
+                      const engineType = engineTypeMap[engineId] || engineId;
+                      console.log(`Navigate to: /campaigns/${engineType}/${campaign.id}`);
+                      alert(`Would navigate to: /campaigns/${engineType}/${campaign.id}`);
+                    }}
                     className="w-full"
                   />
                 );

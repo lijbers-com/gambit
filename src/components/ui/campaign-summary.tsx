@@ -12,7 +12,7 @@ import { DateRangePicker } from './date-picker';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info, MessageSquare } from 'lucide-react';
 
 export interface CampaignEngine {
   id: string;
@@ -54,6 +54,7 @@ export interface CampaignSummaryProps {
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
   onEngineBudgetChange?: (engineId: string, budget: string) => void;
   onEngineEdit?: (engineId: string, engineName: string) => void;
+  onNotificationClick?: (notificationType: string) => void;
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
@@ -87,6 +88,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onDateRangeChange,
     onEngineBudgetChange,
     onEngineEdit,
+    onNotificationClick,
     conversionWindow,
     onConversionWindowChange,
     onEdit,
@@ -101,6 +103,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
     const [autoTargeting, setAutoTargeting] = React.useState(true);
+    const [autoSuggestions, setAutoSuggestions] = React.useState(true);
     const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
 
     // Update internal state when props change
@@ -677,12 +680,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => onEngineEdit ? onEngineEdit(engine.id, engine.name) : console.log(`Edit ${engine.name} engine`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onEngineEdit) {
+                                    onEngineEdit(engine.id, engine.name);
+                                  } else {
+                                    console.log(`Edit ${engine.name} engine`);
+                                  }
+                                }}
                                 className="whitespace-nowrap"
                               >
                                 Edit
                               </Button>
-                            </td>                          </tr>
+                            </td>
+                          </tr>
                         ))}
                       </tbody>
                     </table>
@@ -708,26 +719,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     badgeValue="+15%"
                     badgeVariant="success"
                   />
-                </div>
-
-                {/* Optimization Switches */}
-                <div className="flex gap-6 pt-4 pb-4">
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={autoBudgetOptimization}
-                      onCheckedChange={setAutoBudgetOptimization}
-                    />
-                    <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={autoTargeting}
-                      onCheckedChange={setAutoTargeting}
-                    />
-                    <span className="text-sm text-foreground">Auto Targeting</span>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </div>
                 </div>
               </div>
 
@@ -788,6 +779,107 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     </div>
                   )}
                 </div>
+
+                {/* Campaign Agent Section */}
+                <div className="space-y-2 pt-4">
+                  <Label className="text-sm text-muted-foreground">Campaign Agent</Label>
+                  <div className="space-y-4 pt-2 pb-2">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoBudgetOptimization}
+                        onCheckedChange={setAutoBudgetOptimization}
+                      />
+                      <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoTargeting}
+                        onCheckedChange={setAutoTargeting}
+                      />
+                      <span className="text-sm text-foreground">Auto Targeting</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoSuggestions}
+                        onCheckedChange={setAutoSuggestions}
+                      />
+                      <span className="text-sm text-foreground">Auto Suggestions</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* AI Notifications Section - within grid */}
+              <div className="col-span-9 space-y-3 pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-foreground">AI Notifications</h3>
+                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+                    View all
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {/* AI Notification 1 - CTR Optimization */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => console.log('Navigate to CTR optimization')}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      AI Insight
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
+                    </p>
+                  </div>
+
+                  {/* AI Notification 2 - Creative Timing */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => console.log('Navigate to creative timing')}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      AI Insight
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
+                    </p>
+                  </div>
+
+                  {/* AI Notification 3 - Budget Alert */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => {
+                        if (onNotificationClick) {
+                          onNotificationClick('budget-recommendation');
+                        } else {
+                          console.log('Navigate to budget recommendation');
+                        }
+                      }}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </Button>
+                    <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                      Budget Alert
+                    </Badge>
+                    <p className="text-sm text-foreground flex-1 min-w-0">
+                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -795,15 +887,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
           {/* Action Buttons - Bottom, Left Aligned for all layouts */}
           <div className="flex gap-3 pt-4">
-            {layout === 'horizontal' && (
-              <Button
-                variant="outline"
-                onClick={onEdit}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                3 recommendations
-              </Button>
-            )}
             {onAddToCart && (
               <Button
                 onClick={onAddToCart}

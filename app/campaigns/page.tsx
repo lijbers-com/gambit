@@ -228,6 +228,12 @@ export default function AllCampaignsPage() {
                     // Navigate to the campaign detail page for this engine type
                     router.push(`/campaigns/${engineType}/${campaign.id}`);
                   }}
+                  onNotificationClick={(notificationType) => {
+                    // Navigate to chat page for budget recommendation
+                    if (notificationType === 'budget-recommendation') {
+                      router.push('/chat');
+                    }
+                  }}
                   className="w-full"
                 />
               );

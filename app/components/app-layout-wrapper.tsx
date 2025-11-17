@@ -76,9 +76,10 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Handle page header action buttons
+      // Handle page header action buttons - only intercept buttons that are in the page header
+      // Look for buttons with specific data attributes or that are direct children of the page header
       const button = target.closest('button');
-      if (button) {
+      if (button && button.closest('[class*="page-header"]')) {
         const buttonText = button.textContent?.toLowerCase() || '';
 
         if (buttonText.includes('edit') || buttonText.includes('export') ||
@@ -86,7 +87,7 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
           e.preventDefault();
           e.stopPropagation();
           console.log(`Action clicked: ${buttonText}`);
-          // These are placeholder actions in the stories
+          // These are placeholder actions in the page header
           return;
         }
       }

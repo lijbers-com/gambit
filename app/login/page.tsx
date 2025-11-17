@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 export default function LoginPage() {
   const router = useRouter();
 
-  // Override the login handler to navigate to campaigns
+  // Override the login handler to navigate to campaigns overview
   useEffect(() => {
     // Intercept form submissions and button clicks
     const handleClick = (e: MouseEvent) => {
@@ -16,7 +16,7 @@ export default function LoginPage() {
       // Check if it's a login button click
       if (target.tagName === 'BUTTON' && target.textContent?.includes('Sign in')) {
         e.preventDefault();
-        router.push('/campaigns/sponsored-products');
+        router.push('/campaigns');
       }
     };
 

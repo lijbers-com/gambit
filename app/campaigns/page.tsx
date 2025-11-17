@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -13,6 +14,8 @@ import { addDays } from 'date-fns';
 // Campaign data for the card view
 const campaignSummaryData = [
   {
+    id: 'C-001',
+    campaignType: 'sponsored-products',
     title: 'Holiday Sale Campaign',
     badge: { text: 'Best ROAS', variant: 'default' as const },
     goal: 'performance-transaction',
@@ -35,6 +38,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-002',
+    campaignType: 'display',
     title: 'Summer Launch Campaign',
     badge: { text: 'High CTR', variant: 'secondary' as const },
     goal: 'brand-awareness',
@@ -55,6 +60,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-003',
+    campaignType: 'digital-instore',
     title: 'Back to School Campaign',
     badge: { text: 'In Option', variant: 'outline' as const },
     goal: 'customer-acquisition',
@@ -75,6 +82,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-004',
+    campaignType: 'offline-instore',
     title: 'Black Friday Campaign',
     badge: { text: 'Paused', variant: 'destructive' as const },
     goal: 'performance-transaction',
@@ -97,6 +106,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-005',
+    campaignType: 'display',
     title: 'New Year Campaign',
     badge: { text: 'Ready', variant: 'secondary' as const },
     goal: 'retargeting',
@@ -119,6 +130,7 @@ const campaignSummaryData = [
 ];
 
 export default function AllCampaignsPage() {
+  const router = useRouter();
   const { theme } = useTheme();
   const routes = getRoutesForTheme(theme);
   const [status, setStatus] = React.useState<string[]>([]);
@@ -134,7 +146,7 @@ export default function AllCampaignsPage() {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'All campaigns',
+          title: 'Media Experiences',
           subtitle: 'Complete overview of all your campaigns across all advertising engines',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -200,7 +212,10 @@ export default function AllCampaignsPage() {
                     }));
                     console.log(`Budget updated for ${campaign.title}: ${newBudget}`);
                   }}
-                  onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                  onEdit={() => {
+                    // Navigate to the campaign detail page based on campaign type and ID
+                    router.push(`/campaigns/${campaign.campaignType}/${campaign.id}`);
+                  }}
                   className="w-full"
                 />
               );

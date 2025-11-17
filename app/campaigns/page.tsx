@@ -216,6 +216,18 @@ export default function AllCampaignsPage() {
                     // Navigate to the campaign detail page based on campaign type and ID
                     router.push(`/campaigns/${campaign.campaignType}/${campaign.id}`);
                   }}
+                  onEngineEdit={(engineId, engineName) => {
+                    // Map engine ID to URL path
+                    const engineTypeMap: { [key: string]: string } = {
+                      'display': 'display',
+                      'sponsored': 'sponsored-products',
+                      'digital': 'digital-instore',
+                      'offline': 'offline-instore',
+                    };
+                    const engineType = engineTypeMap[engineId] || engineId;
+                    // Navigate to the campaign detail page for this engine type
+                    router.push(`/campaigns/${engineType}/${campaign.id}`);
+                  }}
                   className="w-full"
                 />
               );

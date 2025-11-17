@@ -53,6 +53,7 @@ export interface CampaignSummaryProps {
   onFeatureToggle?: (featureId: string, enabled: boolean) => void;
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
   onEngineBudgetChange?: (engineId: string, budget: string) => void;
+  onEngineEdit?: (engineId: string, engineName: string) => void;
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
@@ -85,6 +86,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onFeatureToggle,
     onDateRangeChange,
     onEngineBudgetChange,
+    onEngineEdit,
     conversionWindow,
     onConversionWindowChange,
     onEdit,
@@ -675,13 +677,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => console.log(`Edit ${engine.name} engine`)}
+                                onClick={() => onEngineEdit ? onEngineEdit(engine.id, engine.name) : console.log(`Edit ${engine.name} engine`)}
                                 className="whitespace-nowrap"
                               >
                                 Edit
                               </Button>
-                            </td>
-                          </tr>
+                            </td>                          </tr>
                         ))}
                       </tbody>
                     </table>

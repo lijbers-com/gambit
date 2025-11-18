@@ -145,6 +145,28 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const currentEngines = onEngineToggle ? engines : internalEngines;
     const currentFeatures = onFeatureToggle ? features : internalFeatures;
 
+    // Calculate actual budget usage percentage
+    const calculateBudgetUsage = React.useMemo(() => {
+      if (budgetUsagePercentage !== undefined) {
+        // If percentage is explicitly provided, use it but cap at 100
+        return Math.min(budgetUsagePercentage, 100);
+      }
+
+      // Otherwise calculate from budget and totalPrice
+      if (budget && totalPrice) {
+        const budgetNum = parseFloat(budget.replace(/[^0-9.]/g, ''));
+        const spendNum = parseFloat(totalPrice.replace(/[^0-9.]/g, ''));
+
+        if (!isNaN(budgetNum) && !isNaN(spendNum) && budgetNum > 0) {
+          const percentage = (spendNum / budgetNum) * 100;
+          // Cap at 100% for the progress bar
+          return Math.min(Math.round(percentage), 100);
+        }
+      }
+
+      return 0;
+    }, [budget, totalPrice, budgetUsagePercentage]);
+
     // Media proposition icons mapping
     const mediaPropositionIcons = {
       'Display': MonitorSpeaker,
@@ -333,17 +355,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             {/* Badges and Collapse Button - Right Aligned (horizontal layout only) */}
             {layout !== 'vertical' && (
               <div className="flex items-start gap-2">
-                {badge && (
-                  <Badge
-                    variant={badge.variant || 'default'}
-                    className="bg-slate-800 text-white border-slate-800"
-                  >
+                {badge ? (
+                  <Badge variant={badge.variant || 'default'}>
                     {badge.text}
                   </Badge>
+                ) : (
+                  <Badge variant="outline">
+                    In-option
+                  </Badge>
                 )}
-                <Badge variant="outline">
-                  In-option
-                </Badge>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -551,11 +571,53 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             </div>
           ) : (
             // Horizontal Layout
-            <div className="grid grid-cols-12 gap-6">
-              {/* Left Column - Main Content */}
-              <div className="col-span-9 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Right Column - Summary (appears first on mobile, right on desktop) */}
+              <div className="lg:col-span-3 lg:order-2 space-y-2">
+                {/* Campaign Summary Title */}
+                <Label className="text-sm text-muted-foreground">Summary</Label>
+
+                {/* Budget Summary as MetricCard with Progress */}
+                <MetricCard
+                  label="Budget"
+                  value={budget}
+                  subMetric={totalPrice ? `Total Spend: ${totalPrice}` : undefined}
+                  progress={calculateBudgetUsage}
+                  variant="graph"
+                />
+
+                {/* Campaign Metrics Cards */}
+                <div className="space-y-4">
+                  <MetricCard
+                    label="Reach"
+                    value="2.5M"
+                    subMetric="Current: 1.6M"
+                    variant="graph"
+                    progress={64}
+                  />
+                  <MetricCard
+                    label="ROAS"
+                    value={estimatedRoas}
+                    subMetric="Current: 3.2x"
+                    variant="graph"
+                    progress={67}
+                  />
+                  <MetricCard
+                    label="Sales"
+                    value="$45.2K"
+                    subMetric="Current: $28.8K"
+                    badgeValue="+15%"
+                    badgeVariant="success"
+                    variant="graph"
+                    progress={64}
+                  />
+                </div>
+              </div>
+
+              {/* Left Column - Main Content (appears second on mobile, left on desktop) */}
+              <div className="lg:col-span-9 lg:order-1 space-y-4">
                 {/* Top Row - Goal, Budget, and Runtime together */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Goal Section */}
                   <div className="space-y-2">
                     <Label className="text-sm text-muted-foreground">Goal</Label>
@@ -700,90 +762,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </div>
                 </div>
 
-                {/* Campaign Metrics Row */}
-                <div className="grid grid-cols-3 gap-4 pt-4">
-                  <MetricCard
-                    label="Reach"
-                    value="2.5M"
-                    subMetric="Unique users"
-                  />
-                  <MetricCard
-                    label="ROAS"
-                    value={estimatedRoas}
-                    subMetric="Estimated return"
-                  />
-                  <MetricCard
-                    label="Sales"
-                    value="$45.2K"
-                    subMetric="+15% vs last period"
-                    badgeValue="+15%"
-                    badgeVariant="success"
-                  />
-                </div>
-              </div>
-
-              {/* Right Column - Summary */}
-              <div className="col-span-3 space-y-2">
-                {/* Campaign Summary Title - aligned with other titles */}
-                <Label className="text-sm text-muted-foreground">Summary</Label>
-                
-                {/* Summary Card */}
-                <div className="border rounded-lg p-4 bg-white">
-
-                  {/* Budget Set */}
-                  <div className="space-y-3 pb-3">
-                    <div className="flex justify-between items-center py-0.5">
-                      <span className="text-sm text-muted-foreground">Budget set</span>
-                      <span className="text-sm font-medium">{budget}</span>
-                    </div>
-                  </div>
-
-                  {/* Budget Metrics Group */}
-                  <div className="space-y-3 border-t pt-3 pb-3">
-                    {/* Used Budget */}
-                    {usedBudget && (
-                      <div className="flex justify-between items-center py-0.5">
-                        <span className="text-sm text-muted-foreground">Used Budget</span>
-                        <span className="text-sm font-medium">{usedBudget}</span>
-                      </div>
-                    )}
-
-                    {/* Budget Usage Progress */}
-                    {budgetUsagePercentage !== undefined && (
-                      <div className="space-y-2 py-0.5">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Budget Usage</span>
-                          <span className="text-sm font-medium">{budgetUsagePercentage}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={cn(
-                              "h-2 rounded-full transition-all",
-                              budgetUsagePercentage < 50 ? "bg-green-500" :
-                              budgetUsagePercentage < 80 ? "bg-yellow-500" : "bg-red-500"
-                            )}
-                            style={{ width: `${Math.min(budgetUsagePercentage, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Price Group */}
-                  {totalPrice && (
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between items-center py-0.5">
-                        <span className="text-sm text-muted-foreground">Total Spend</span>
-                        <span className="text-sm font-medium">{totalPrice}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Campaign Agent Section */}
+                {/* Campaign Agent Section - with horizontal switches */}
                 <div className="space-y-2 pt-4">
                   <Label className="text-sm text-muted-foreground">Campaign Agent</Label>
-                  <div className="space-y-4 pt-2 pb-2">
+                  <div className="flex gap-6 pt-2 pb-2">
                     <div className="flex items-center gap-3">
                       <Switch
                         checked={autoBudgetOptimization}
@@ -810,76 +792,80 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     </div>
                   </div>
                 </div>
-              </div>
-              {/* AI Notifications Section - within grid */}
-              <div className="col-span-9 space-y-3 pt-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-foreground">AI Notifications</h3>
-                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-                    View all
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  {/* AI Notification 1 - CTR Optimization */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => console.log('Navigate to CTR optimization')}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      AI Insight
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
-                    </p>
-                  </div>
 
-                  {/* AI Notification 2 - Creative Timing */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => console.log('Navigate to creative timing')}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      AI Insight
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
-                    </p>
-                  </div>
+                {/* AI Notifications Section - Only show when autoSuggestions is enabled */}
+                {autoSuggestions && (
+                  <div className="space-y-3 pt-4">
+                    <div className="space-y-4">
+                      {/* AI Notification 1 - CTR Optimization */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                          onClick={() => console.log('Navigate to CTR optimization')}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                          AI Insight
+                        </Badge>
+                        <p className="text-sm text-foreground flex-1 min-w-0">
+                          Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
+                        </p>
+                      </div>
 
-                  {/* AI Notification 3 - Budget Alert */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => {
-                        if (onNotificationClick) {
-                          onNotificationClick('budget-recommendation');
-                        } else {
-                          console.log('Navigate to budget recommendation');
-                        }
-                      }}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      Budget Alert
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
-                    </p>
+                      {/* AI Notification 2 - Creative Timing */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                          onClick={() => console.log('Navigate to creative timing')}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                          AI Insight
+                        </Badge>
+                        <p className="text-sm text-foreground flex-1 min-w-0">
+                          Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
+                        </p>
+                      </div>
+
+                      {/* AI Notification 3 - Budget Alert */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            if (onNotificationClick) {
+                              onNotificationClick('budget-recommendation');
+                            } else {
+                              console.log('Navigate to budget recommendation');
+                            }
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
+                          Budget Alert
+                        </Badge>
+                        <p className="text-sm text-foreground flex-1 min-w-0">
+                          Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* View All Button */}
+                    <div className="pt-2">
+                      <Button variant="outline" size="sm" className="text-xs">
+                        View all
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

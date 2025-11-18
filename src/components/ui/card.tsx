@@ -198,22 +198,24 @@ export interface MetricCardProps {
   variant?: "default" | "graph";
   graphData?: Array<{ value: number }>;
   graphColor?: string;
+  progress?: number;
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ 
-    label, 
-    value, 
-    subMetric, 
-    badgeValue, 
-    badgeVariant = "default", 
-    isSelected = false, 
-    onClick, 
+  ({
+    label,
+    value,
+    subMetric,
+    badgeValue,
+    badgeVariant = "default",
+    isSelected = false,
+    onClick,
     className,
     variant = "default",
     graphData,
     graphColor = "#8884d8",
-    ...props 
+    progress,
+    ...props
   }, ref) => (
     <Card
       ref={ref}
@@ -260,9 +262,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         {variant === "graph" && !graphData && (
           <div className="mt-3">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                style={{ width: '75%' }}
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress || 75}%` }}
               />
             </div>
           </div>

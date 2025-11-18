@@ -214,7 +214,7 @@ const campaignSummaryData = [
     estimatedRoas: '4.8x',
     budget: '$15,000',
     usedBudget: '$9,200',
-    totalPrice: '$17,500',
+    totalPrice: '$9,150',
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
@@ -238,7 +238,7 @@ const campaignSummaryData = [
     estimatedRoas: '3.2x',
     budget: '$8,500',
     usedBudget: '$2,100',
-    totalPrice: '$9,200',
+    totalPrice: '$2,125',
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
@@ -260,7 +260,7 @@ const campaignSummaryData = [
     estimatedRoas: '5.1x',
     budget: '$12,000',
     usedBudget: '$4,800',
-    totalPrice: '$13,500',
+    totalPrice: '$4,800',
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
@@ -282,7 +282,7 @@ const campaignSummaryData = [
     estimatedRoas: '6.2x',
     budget: '$25,000',
     usedBudget: '$22,800',
-    totalPrice: '$28,000',
+    totalPrice: '$22,750',
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [

@@ -17,12 +17,12 @@ const campaignSummaryData = [
     id: 'C-001',
     campaignType: 'sponsored-products',
     title: 'Holiday Sale Campaign',
-    badge: { text: 'Best ROAS', variant: 'default' as const },
+    badge: { text: 'Running', variant: 'success' as const },
     goal: 'performance-transaction',
     estimatedRoas: '4.8x',
     budget: '$15,000',
     usedBudget: '$9,200',
-    totalPrice: '$17,500',
+    totalPrice: '$9,150',
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
@@ -41,12 +41,12 @@ const campaignSummaryData = [
     id: 'C-002',
     campaignType: 'display',
     title: 'Summer Launch Campaign',
-    badge: { text: 'High CTR', variant: 'secondary' as const },
+    badge: { text: 'Running', variant: 'success' as const },
     goal: 'brand-awareness',
     estimatedRoas: '3.2x',
     budget: '$8,500',
     usedBudget: '$2,100',
-    totalPrice: '$9,200',
+    totalPrice: '$2,125',
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
@@ -63,12 +63,12 @@ const campaignSummaryData = [
     id: 'C-003',
     campaignType: 'digital-instore',
     title: 'Back to School Campaign',
-    badge: { text: 'In Option', variant: 'outline' as const },
+    badge: { text: 'Running', variant: 'success' as const },
     goal: 'customer-acquisition',
     estimatedRoas: '5.1x',
     budget: '$12,000',
     usedBudget: '$4,800',
-    totalPrice: '$13,500',
+    totalPrice: '$4,800',
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
@@ -90,7 +90,7 @@ const campaignSummaryData = [
     estimatedRoas: '6.2x',
     budget: '$25,000',
     usedBudget: '$22,800',
-    totalPrice: '$28,000',
+    totalPrice: '$22,750',
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [
@@ -109,12 +109,12 @@ const campaignSummaryData = [
     id: 'C-005',
     campaignType: 'display',
     title: 'New Year Campaign',
-    badge: { text: 'Ready', variant: 'secondary' as const },
+    badge: { text: 'In-option', variant: 'outline' as const },
     goal: 'retargeting',
     estimatedRoas: '4.5x',
     budget: '$18,000',
     usedBudget: '$1,200',
-    totalPrice: '$19,500',
+    totalPrice: '$1,260',
     budgetUsagePercentage: 7,
     placements: 14,
     engines: [
@@ -194,6 +194,7 @@ export default function AllCampaignsPage() {
                   key={index}
                   layout="horizontal"
                   title={campaign.title}
+                  badge={campaign.badge}
                   goal={campaign.goal}
                   audience="retail-shoppers"
                   estimatedRoas={campaign.estimatedRoas}

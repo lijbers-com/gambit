@@ -202,21 +202,24 @@ export const InteractiveForecast: Story = {
     const [spendValue, setSpendValue] = useState(30000);
     const [isDragging, setIsDragging] = useState(false);
     
-    // Calculate ROAS and Revenue based on spend using inverse relationship
+    // Calculate ROAS and Revenue based on spend using non-linear relationships
     const calculateMetrics = (spend: number) => {
-      // ROAS decreases as spend increases (inverse relationship) - scale values to be more visible
-      const maxRoas = 600; // Scale up for visibility
-      const minRoas = 100;
-      const roasRange = maxRoas - minRoas;
       const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
-      const roas = maxRoas - (spendRatio * roasRange); // This will go from 600 down to 100
-      
-      // Revenue increases, creating a crossing point around middle
-      const baseRevenue = 100; // Starting revenue 
-      const maxRevenue = 500; // Max revenue
-      const revenueRange = maxRevenue - baseRevenue;
-      const revenue = baseRevenue + (spendRatio * revenueRange); // This will go from 100 up to 500
-      
+
+      // ROAS shows diminishing returns (exponential decay)
+      // Starts high, decreases rapidly at first, then levels off
+      const maxRoas = 600;
+      const minRoas = 100;
+      const roasDecayRate = 2.5; // Controls how fast ROAS drops
+      const roas = maxRoas - ((maxRoas - minRoas) * Math.pow(spendRatio, 1 / roasDecayRate));
+
+      // Revenue shows logarithmic growth (diminishing returns)
+      // Increases quickly at first, then growth slows down
+      const baseRevenue = 100;
+      const maxRevenue = 500;
+      const revenueGrowthRate = 0.4; // Controls the curve steepness
+      const revenue = baseRevenue + ((maxRevenue - baseRevenue) * Math.pow(spendRatio, revenueGrowthRate));
+
       return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
     };
 

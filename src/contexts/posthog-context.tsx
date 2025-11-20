@@ -23,6 +23,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
       // Initialize PostHog
       posthog.init(apiKey, {
         api_host: apiHost,
+        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users
 
         // Enable all requested features
         autocapture: true, // Auto-capture clicks and pageviews

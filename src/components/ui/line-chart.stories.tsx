@@ -207,17 +207,17 @@ export const InteractiveForecast: Story = {
       const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
 
       // ROAS shows diminishing returns (exponential decay)
-      // Starts high, decreases rapidly at first, then levels off
+      // Starts high, decreases gradually
       const maxRoas = 600;
       const minRoas = 100;
-      const roasDecayRate = 2.5; // Controls how fast ROAS drops
+      const roasDecayRate = 1.8; // Gentler decay (was 2.5)
       const roas = maxRoas - ((maxRoas - minRoas) * Math.pow(spendRatio, 1 / roasDecayRate));
 
       // Revenue shows logarithmic growth (diminishing returns)
-      // Increases quickly at first, then growth slows down
+      // Increases more gradually at first, then slows down
       const baseRevenue = 100;
       const maxRevenue = 500;
-      const revenueGrowthRate = 0.4; // Controls the curve steepness
+      const revenueGrowthRate = 0.6; // Less steep curve (was 0.4)
       const revenue = baseRevenue + ((maxRevenue - baseRevenue) * Math.pow(spendRatio, revenueGrowthRate));
 
       return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };

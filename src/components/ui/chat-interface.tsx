@@ -30,8 +30,13 @@ export interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {}) => {
-  // PostHog hook for analytics
-  const posthog = usePostHog();
+  // PostHog hook for analytics (optional - won't be available in Storybook)
+  let posthog = null;
+  try {
+    posthog = usePostHog();
+  } catch (e) {
+    // PostHog not available (e.g., in Storybook)
+  }
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');

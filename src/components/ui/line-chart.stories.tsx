@@ -255,6 +255,7 @@ export const InteractiveForecast: Story = {
         <LineChartComponent
           data={forecastData}
           config={forecastConfig}
+          curved={true}
           showLegend={true}
           showGrid={true}
           showTooltip={true}

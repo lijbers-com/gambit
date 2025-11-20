@@ -27,10 +27,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
         // Enable all requested features
         autocapture: true, // Auto-capture clicks and pageviews
         capture_pageview: true, // Automatically capture pageviews
-        session_recording: {
-          enabled: true, // Enable session recordings
-          recordCrossOriginIframes: false, // Don't record iframes from other domains
-        },
+        disable_session_recording: false, // Enable session recordings
 
         // Additional recommended settings for Next.js
         loaded: (posthog) => {

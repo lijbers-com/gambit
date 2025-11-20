@@ -26,7 +26,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Overview: Story = {
+export const Overview = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
@@ -129,49 +129,37 @@ export const Overview: Story = {
           <FilterBar
             filters={[
               {
-                type: 'multiselect',
-                label: 'Media Product',
-                placeholder: 'Select media products',
+                name: 'Media Product',
                 options: [
                   { label: 'Premium Homepage', value: 'premium-homepage' },
                   { label: 'Category Takeover', value: 'category-takeover' },
                   { label: 'Product Spotlight', value: 'product-spotlight' },
                   { label: 'Checkout Boost', value: 'checkout-boost' },
                 ],
-                value: mediaProductFilter,
+                selectedValues: mediaProductFilter,
                 onChange: setMediaProductFilter,
               },
               {
-                type: 'multiselect',
-                label: 'Proposition (Engine)',
-                placeholder: 'Select propositions',
+                name: 'Proposition (Engine)',
                 options: [
                   { label: 'Display Engine', value: 'display' },
                   { label: 'Sponsored Products', value: 'sponsored-products' },
                   { label: 'Digital In-Store', value: 'digital-instore' },
                   { label: 'Offsite Media', value: 'offsite' },
                 ],
-                value: propositionFilter,
+                selectedValues: propositionFilter,
                 onChange: setPropositionFilter,
               },
               {
-                type: 'multiselect',
-                label: 'Ad Space',
-                placeholder: 'Select ad spaces',
+                name: 'Ad Space',
                 options: [
                   { label: 'Homepage Banner', value: 'homepage-banner' },
                   { label: 'Category Sidebar', value: 'category-sidebar' },
                   { label: 'Product Carousel', value: 'product-carousel' },
                   { label: 'Search Results', value: 'search-results' },
                 ],
-                value: adSpaceFilter,
+                selectedValues: adSpaceFilter,
                 onChange: setAdSpaceFilter,
-              },
-              {
-                type: 'daterange',
-                label: 'Date Range',
-                value: dateRange,
-                onChange: setDateRange,
               },
             ]}
           />

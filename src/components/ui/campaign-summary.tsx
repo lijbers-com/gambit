@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, MetricCard } from './card';
 import { Badge } from './badge';
@@ -12,6 +13,7 @@ import { DateRangePicker } from './date-picker';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
+import { NotificationItem } from './notification-item';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info, MessageSquare } from 'lucide-react';
 
 export interface CampaignEngine {
@@ -96,6 +98,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     className,
     ...props
   }, ref) => {
+    // Try to use Next.js router if available (will be null in Storybook)
+    let router: ReturnType<typeof useRouter> | null = null;
+    try {
+      router = useRouter();
+    } catch (e) {
+      // Router not available (Storybook)
+    }
+
     // Internal state for switches when callbacks are not provided
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
@@ -798,64 +808,74 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   <div className="space-y-3 pt-4">
                     <div className="space-y-4">
                       {/* AI Notification 1 - CTR Optimization */}
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                          onClick={() => console.log('Navigate to CTR optimization')}
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                        <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                          AI Insight
-                        </Badge>
-                        <p className="text-sm text-foreground flex-1 min-w-0">
-                          Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
-                        </p>
-                      </div>
+                      <NotificationItem
+                        type="ai-insight"
+                        message='Campaign "Spring Sale" could improve CTR by 23% with optimized targeting parameters.'
+                        linkText='"Spring Sale"'
+                        onLinkClick={() => {
+                          // Navigate to campaign detail page
+                          if (router) {
+                            router.push('/campaigns/sponsored-products/C-001');
+                          } else {
+                            console.log('Navigate to Spring Sale campaign');
+                          }
+                        }}
+                        onActionClick={() => {
+                          // Navigate to AI chat for CTR optimization
+                          if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Open AI chat for CTR optimization');
+                          }
+                        }}
+                      />
 
                       {/* AI Notification 2 - Creative Timing */}
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                          onClick={() => console.log('Navigate to creative timing')}
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                        <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                          AI Insight
-                        </Badge>
-                        <p className="text-sm text-foreground flex-1 min-w-0">
-                          Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
-                        </p>
-                      </div>
+                      <NotificationItem
+                        type="ai-insight"
+                        message='Creative "Banner_Summer_v2" shows 34% higher engagement in evening time slots.'
+                        linkText='"Banner_Summer_v2"'
+                        onLinkClick={() => {
+                          // Navigate to creative detail page
+                          if (router) {
+                            router.push('/campaigns/sponsored-products/creative/CRE-001');
+                          } else {
+                            console.log('Navigate to Banner_Summer_v2 creative');
+                          }
+                        }}
+                        onActionClick={() => {
+                          // Navigate to AI chat
+                          if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Open AI chat for creative timing');
+                          }
+                        }}
+                      />
 
                       {/* AI Notification 3 - Budget Alert */}
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                          onClick={() => {
-                            if (onNotificationClick) {
-                              onNotificationClick('budget-recommendation');
-                            } else {
-                              console.log('Navigate to budget recommendation');
-                            }
-                          }}
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                        <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                          Budget Alert
-                        </Badge>
-                        <p className="text-sm text-foreground flex-1 min-w-0">
-                          Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
-                        </p>
-                      </div>
+                      <NotificationItem
+                        type="budget-alert"
+                        message='Campaign "Summer Sale" budget recommendation. Opportunity: $12.5K potential lost revenue.'
+                        linkText='"Summer Sale"'
+                        onLinkClick={() => {
+                          // Navigate to campaign detail page
+                          if (router) {
+                            router.push('/campaigns/display/C-002');
+                          } else {
+                            console.log('Navigate to Summer Sale campaign');
+                          }
+                        }}
+                        onActionClick={() => {
+                          if (onNotificationClick) {
+                            onNotificationClick('budget-recommendation');
+                          } else if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Navigate to budget recommendation');
+                          }
+                        }}
+                      />
                     </div>
 
                     {/* View All Button */}

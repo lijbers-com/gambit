@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import '@/styles/globals.css';
+import { PostHogProvider } from '@/contexts/posthog-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { NavigationWrapper } from './components/navigation-wrapper';
@@ -18,15 +19,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MenuContextProvider>
-          <ThemeProvider>
-            <NavigationWrapper>
-              <AppLayoutWrapper>
-                {children}
-              </AppLayoutWrapper>
-            </NavigationWrapper>
-          </ThemeProvider>
-        </MenuContextProvider>
+        <PostHogProvider>
+          <MenuContextProvider>
+            <ThemeProvider>
+              <NavigationWrapper>
+                <AppLayoutWrapper>
+                  {children}
+                </AppLayoutWrapper>
+              </NavigationWrapper>
+            </ThemeProvider>
+          </MenuContextProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

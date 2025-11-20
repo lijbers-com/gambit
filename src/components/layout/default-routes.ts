@@ -2,6 +2,11 @@ import { Route } from '@/components/ui/side-navigation';
 
 export const defaultRoutes: Route[] = [
   {
+    id: 98,
+    name: "Campaign management",
+    type: "title" as const,
+  },
+  {
     id: 99,
     name: "Media Experiences",
     type: "single" as const,
@@ -118,57 +123,36 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 4,
-    name: "Yield",
-    type: "parent" as const,
-    icon: { lucide: "TrendingUp" },
-    subitems: [
-      {
-        id: 60,
-        name: "Dashboard",
-        type: "single" as const,
-        url: "/yield",
-      },
-      {
-        id: 61,
-        name: "Full report",
-        type: "single" as const,
-        url: "/yield/report",
-      },
-    ],
-  },
-  {
     id: 5,
     name: "Campaign Agent",
-    type: "title" as const,
-  },
-  {
-    id: 70,
-    name: "New chat",
-    type: "single" as const,
-    icon: { lucide: "MessageCirclePlus" },
-    url: "/chat",
-  },
-  {
-    id: 71,
-    name: "Budget analysis",
-    type: "single" as const,
-    icon: { lucide: "MessageCircle" },
-    url: "/chat/spend-analysis",
-  },
-  {
-    id: 72,
-    name: "New campaign",
-    type: "single" as const,
-    icon: { lucide: "MessageCircle" },
-    url: "/chat/new-campaign",
-  },
-  {
-    id: 73,
-    name: "Keyword suggestions",
-    type: "single" as const,
-    icon: { lucide: "MessageCircle" },
-    url: "/chat/keyword-suggestions",
+    type: "parent" as const,
+    icon: { lucide: "MessageSquare" },
+    subitems: [
+      {
+        id: 70,
+        name: "New chat",
+        type: "single" as const,
+        url: "/chat",
+      },
+      {
+        id: 71,
+        name: "Budget analysis",
+        type: "single" as const,
+        url: "/chat/spend-analysis",
+      },
+      {
+        id: 72,
+        name: "New campaign",
+        type: "single" as const,
+        url: "/chat/new-campaign",
+      },
+      {
+        id: 73,
+        name: "Keyword suggestions",
+        type: "single" as const,
+        url: "/chat/keyword-suggestions",
+      },
+    ],
   },
   {
     id: 8,

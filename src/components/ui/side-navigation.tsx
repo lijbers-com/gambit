@@ -234,11 +234,9 @@ export const SideNavigation = ({
             <div key={item.id}>
               {shouldShowTitle && (
                 <p className={cn(
-                  "mb-4 mt-8 transition-opacity duration-300",
-                  // Apply different styling for Configuration and Campaign Agent sections
-                  item.name === "Configuration" || item.name === "Campaign Agent"
-                    ? "text-xs text-muted-foreground"
-                    : "text-muted-foreground"
+                  "mb-4 transition-opacity duration-300 text-xs text-muted-foreground",
+                  // Remove top margin for the first title
+                  index === 0 ? "mt-0" : "mt-8"
                 )}>{item.name}</p>
               )}
 

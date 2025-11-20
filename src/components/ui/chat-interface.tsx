@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
+import { NotificationItem } from '@/components/ui/notification-item';
 import { SearchInput } from '@/components/ui/search-input';
 import { FormSection } from '@/components/ui/form-section';
 import { MetricCard } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { ArrowUp, Plus, ScanBarcode, Table, ImagePlus, FileText, Building2, More
 import { addDays } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Filter, FilterOption } from '@/components/ui/filter';
+import { usePostHog } from '@/contexts/posthog-context';
 
 export interface Message {
   id: number;
@@ -28,6 +30,9 @@ export interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {}) => {
+  // PostHog hook for analytics
+  const posthog = usePostHog();
+
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
   const [isStarted, setIsStarted] = useState(initialMessages.length > 0);
@@ -427,6 +432,11 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
     if (!inputValue.trim()) return;
 
     if (!isStarted) {
+      // Track when user starts their first chat
+      posthog?.capture('chat_started', {
+        message_length: inputValue.trim().length
+      });
+
       setIsAnimating(true);
       setTimeout(() => {
         setIsStarted(true);
@@ -444,6 +454,12 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
     setMessages(prev => [...prev, newMessage]);
     const currentMessage = inputValue;
     setInputValue('');
+
+    // Track message sent event
+    posthog?.capture('chat_message_sent', {
+      message_length: currentMessage.trim().length,
+      message_count: messages.length + 1
+    });
 
     // Simulate AI response with more realistic behavior
     setTimeout(() => {
@@ -473,6 +489,12 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
   };
 
   const handleNotificationClick = (notificationType: string) => {
+    // Track notification interaction
+    posthog?.capture('notification_clicked', {
+      notification_type: notificationType,
+      is_first_interaction: !isStarted
+    });
+
     if (!isStarted) {
       setIsAnimating(true);
       setTimeout(() => {
@@ -673,59 +695,29 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                   </Button>
                 </div>
                 <div className="space-y-4">
-                  {/* AI Notification 1 */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => handleNotificationClick('ctr-optimization')}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      AI Insight
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Spring Sale"</button> could improve CTR by 23% with optimized targeting parameters.
-                    </p>
-                  </div>
+                  <NotificationItem
+                    type="ai-insight"
+                    message='Campaign "Spring Sale" could improve CTR by 23% with optimized targeting parameters.'
+                    linkText='"Spring Sale"'
+                    onLinkClick={() => console.log('Navigate to Spring Sale campaign')}
+                    onActionClick={() => handleNotificationClick('ctr-optimization')}
+                  />
 
-                  {/* AI Notification 2 */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => handleNotificationClick('timing-optimization')}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="info" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      AI Insight
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Creative <button className="text-primary underline underline-offset-4 font-medium">"Banner_Summer_v2"</button> shows 34% higher engagement in evening time slots.
-                    </p>
-                  </div>
+                  <NotificationItem
+                    type="ai-insight"
+                    message='Creative "Banner_Summer_v2" shows 34% higher engagement in evening time slots.'
+                    linkText='"Banner_Summer_v2"'
+                    onLinkClick={() => console.log('Navigate to creative')}
+                    onActionClick={() => handleNotificationClick('timing-optimization')}
+                  />
 
-                  {/* AI Notification 3 - Budget Recommendation */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 text-muted-foreground hover:text-primary"
-                      onClick={() => handleNotificationClick('budget-recommendation')}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                    <Badge variant="warning" className="flex-shrink-0 whitespace-nowrap min-w-0">
-                      Budget Alert
-                    </Badge>
-                    <p className="text-sm text-foreground flex-1 min-w-0">
-                      Campaign <button className="text-primary underline underline-offset-4 font-medium">"Summer Sale"</button> budget recommendation. Opportunity: $12.5K potential lost revenue.
-                    </p>
-                  </div>
+                  <NotificationItem
+                    type="budget-alert"
+                    message='Campaign "Summer Sale" budget recommendation. Opportunity: $12.5K potential lost revenue.'
+                    linkText='"Summer Sale"'
+                    onLinkClick={() => console.log('Navigate to Summer Sale campaign')}
+                    onActionClick={() => handleNotificationClick('budget-recommendation')}
+                  />
                 </div>
               </div>
             </div>
@@ -741,22 +733,28 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                   <div
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div
-                      className={`${message.isUser ? 'max-w-[70%]' : 'max-w-[85%]'} rounded-2xl px-4 py-3 ${
-                        message.isUser
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      } shadow-sm`}
-                    >
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.text}
+                    {message.isUser ? (
+                      // User messages - keep in bubble
+                      <div className="max-w-[70%] rounded-2xl px-4 py-3 bg-primary text-primary-foreground shadow-sm">
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {message.text}
+                        </div>
+                        <div className="text-xs opacity-70 mt-1">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
-                      <div className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
+                    ) : (
+                      // AI messages - no bubble, direct on background
+                      <div className="max-w-[85%]">
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground mb-1">
+                          {message.text}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
 
-                      {/* Campaign proposals inside reply card */}
-                      {message.showCampaigns && (
+                        {/* Campaign proposals - moved outside of bubble */}
+                        {message.showCampaigns && (
                         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Campaign 1 - Performance focused */}
                       <CampaignSummary
@@ -914,7 +912,8 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                           </FormSection>
                         </div>
                       )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

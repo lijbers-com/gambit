@@ -652,7 +652,6 @@ export const Overview = {
                   showXAxis={true}
                   showYAxis={true}
                   className="h-[300px] w-full"
-                  xAxisDataKey="month"
                 />
               )}
               {selectedMetric === 'price' && (
@@ -666,7 +665,6 @@ export const Overview = {
                   showXAxis={true}
                   showYAxis={true}
                   className="h-[300px] w-full"
-                  xAxisDataKey="month"
                 />
               )}
               {selectedMetric === 'strategy' && (
@@ -680,7 +678,6 @@ export const Overview = {
                   showXAxis={true}
                   showYAxis={true}
                   className="h-[300px] w-full"
-                  xAxisDataKey="month"
                 />
               )}
               {selectedMetric === 'fillRate' && (
@@ -694,7 +691,6 @@ export const Overview = {
                   showXAxis={true}
                   showYAxis={true}
                   className="h-[300px] w-full"
-                  xAxisDataKey="month"
                 />
               )}
             </CardContent>

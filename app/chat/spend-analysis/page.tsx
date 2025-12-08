@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { ChatInterface, Message } from '@/components/ui/chat-interface';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -9,25 +9,32 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/ui/card';
 import { LineChartComponent } from '@/components/ui/line-chart';
-import { TrendingUp, AlertCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function SpendAnalysisChatPage() {
   const { theme } = useTheme();
   const routes = getRoutesForTheme(theme);
+  const [spendValue, setSpendValue] = useState(30000);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Create spend analysis content
   const createSpendAnalysisContent = () => {
     const calculateMetrics = (spend: number) => {
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+
+      // ROAS shows diminishing returns (exponential decay)
+      // Starts high, decreases gradually
       const maxRoas = 600;
       const minRoas = 100;
-      const roasRange = maxRoas - minRoas;
-      const spendRatio = (spend - 10000) / 40000;
-      const roas = maxRoas - (spendRatio * roasRange);
+      const roasDecayRate = 1.8; // Gentler decay
+      const roas = maxRoas - ((maxRoas - minRoas) * Math.pow(spendRatio, 1 / roasDecayRate));
 
+      // Revenue shows logarithmic growth (diminishing returns)
+      // Increases more gradually at first, then slows down
       const baseRevenue = 100;
       const maxRevenue = 500;
-      const revenueRange = maxRevenue - baseRevenue;
-      const revenue = baseRevenue + (spendRatio * revenueRange);
+      const revenueGrowthRate = 0.6; // More gradual increase
+      const revenue = baseRevenue + ((maxRevenue - baseRevenue) * Math.pow(spendRatio, revenueGrowthRate));
 
       return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
     };
@@ -47,6 +54,8 @@ export default function SpendAnalysisChatPage() {
     };
 
     const forecastData = generateForecastData();
+    const currentMetrics = calculateMetrics(spendValue);
+    const dragPosition = ((spendValue - 10000) / 40000) * 100; // Convert spend back to percentage
 
     const forecastConfig = {
       roas: {
@@ -91,10 +100,11 @@ export default function SpendAnalysisChatPage() {
         {/* Forecast Chart */}
         <div className="mb-4">
           <p className="text-sm font-medium mb-3">Spend vs Performance Forecast</p>
-          <div className="bg-white rounded-lg p-4">
+          <div className="bg-white rounded-lg p-4 relative">
             <LineChartComponent
               data={forecastData}
               config={forecastConfig}
+              curved={true}
               showLegend={true}
               showGrid={true}
               showTooltip={true}
@@ -109,6 +119,73 @@ export default function SpendAnalysisChatPage() {
                 label: "ROAS"
               }}
             />
+
+            {/* Interactive overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                cursor: isDragging ? 'ew-resize' : 'crosshair',
+                pointerEvents: 'auto'
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+
+                const container = e.currentTarget;
+                const rect = container.getBoundingClientRect();
+
+                // Account for chart margins - Recharts typically has margins
+                const chartMarginLeft = rect.width * 0.1; // ~10% left margin
+                const chartMarginRight = rect.width * 0.05; // ~5% right margin
+                const chartWidth = rect.width - chartMarginLeft - chartMarginRight;
+
+                const updateSpend = (clientX: number) => {
+                  const x = clientX - rect.left - chartMarginLeft;
+                  const percentage = Math.max(0, Math.min(100, (x / chartWidth) * 100));
+                  const newSpend = 10000 + (percentage / 100) * 40000;
+                  setSpendValue(Math.round(newSpend));
+                };
+
+                const handleMouseMove = (e: MouseEvent) => {
+                  updateSpend(e.clientX);
+                };
+
+                const handleMouseUp = () => {
+                  setIsDragging(false);
+                  document.removeEventListener('mousemove', handleMouseMove);
+                  document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+
+                // Set initial position
+                updateSpend(e.clientX);
+              }}
+            >
+              {/* Vertical indicator line */}
+              <div
+                className="absolute top-0 bottom-0 w-px bg-border pointer-events-none"
+                style={{
+                  left: `${10 + (dragPosition * 0.85)}%`, // Account for chart margins
+                  zIndex: 10
+                }}
+              >
+                {/* Spend amount as central element with chevrons */}
+                <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                  {/* Left chevron */}
+                  <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
+
+                  {/* Spend amount */}
+                  <span className="font-medium">
+                    Spend amount ${(spendValue / 1000).toFixed(0)}K
+                  </span>
+
+                  {/* Right chevron */}
+                  <ChevronRight className="w-4 h-4 ml-1 text-primary" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

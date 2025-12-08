@@ -111,8 +111,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalFeatures, setInternalFeatures] = React.useState(features);
     const [isCollapsed, setIsCollapsed] = React.useState(true);
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
-    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
-    const [autoTargeting, setAutoTargeting] = React.useState(true);
+    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
+    const [autoTargeting, setAutoTargeting] = React.useState(false);
     const [autoSuggestions, setAutoSuggestions] = React.useState(true);
     const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
 
@@ -600,26 +600,64 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <div className="space-y-4">
                   <MetricCard
                     label="Reach"
-                    value="2.5M"
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "3.8M" :
+                      autoTargeting ? "3.2M" :
+                      autoBudgetOptimization ? "2.8M" :
+                      "2.5M"
+                    }
                     subMetric="Current: 1.6M"
                     variant="graph"
-                    progress={64}
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 95 :
+                      autoTargeting ? 82 :
+                      autoBudgetOptimization ? 72 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
                   />
                   <MetricCard
                     label="ROAS"
-                    value={estimatedRoas}
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "5.6x" :
+                      autoBudgetOptimization ? "5.0x" :
+                      autoTargeting ? "4.5x" :
+                      "4.1x"
+                    }
                     subMetric="Current: 3.2x"
                     variant="graph"
-                    progress={67}
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 88 :
+                      autoBudgetOptimization ? 78 :
+                      autoTargeting ? 70 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
                   />
                   <MetricCard
                     label="Sales"
-                    value="$45.2K"
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "$68.3K" :
+                      autoBudgetOptimization ? "$58.7K" :
+                      autoTargeting ? "$52.4K" :
+                      "$45.2K"
+                    }
                     subMetric="Current: $28.8K"
-                    badgeValue="+15%"
+                    badgeValue={
+                      autoBudgetOptimization && autoTargeting ? "+42%" :
+                      autoBudgetOptimization ? "+30%" :
+                      autoTargeting ? "+22%" :
+                      "+15%"
+                    }
                     badgeVariant="success"
                     variant="graph"
-                    progress={64}
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 95 :
+                      autoBudgetOptimization ? 82 :
+                      autoTargeting ? 73 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
                   />
                 </div>
               </div>
@@ -859,11 +897,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         message='Campaign "Summer Sale" budget recommendation. Opportunity: $12.5K potential lost revenue.'
                         linkText='"Summer Sale"'
                         onLinkClick={() => {
-                          // Navigate to campaign detail page
+                          // Navigate to spend analysis chat
                           if (router) {
-                            router.push('/campaigns/display/C-002');
+                            router.push('/chat/spend-analysis');
                           } else {
-                            console.log('Navigate to Summer Sale campaign');
+                            console.log('Navigate to spend analysis chat');
                           }
                         }}
                         onActionClick={() => {

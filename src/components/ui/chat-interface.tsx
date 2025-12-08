@@ -29,6 +29,15 @@ export interface ChatInterfaceProps {
   initialMessages?: Message[];
 }
 
+// Helper function to format time consistently on server and client
+const formatTime = (date: Date): string => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const paddedHours = hours.toString().padStart(2, '0');
+  const paddedMinutes = minutes.toString().padStart(2, '0');
+  return `${paddedHours}:${paddedMinutes}`;
+};
+
 export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {}) => {
   // PostHog hook for analytics (optional - won't be available in Storybook)
   let posthog = null;
@@ -166,31 +175,20 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
     // Generate keyword suggestions based on product names
     const generateKeywords = () => {
       const keywords: { keyword: string; volume: string; competitive: string; }[] = [];
-      selectedProductNames.forEach((productName) => {
-        const parts = productName.split(' - ');
-        const brand = parts[0] || '';
-        const productType = parts[1] || '';
 
-        // Generate variations
-        if (brand && productType) {
-          keywords.push({
-            keyword: `${brand.toLowerCase()} ${productType.toLowerCase()}`,
-            volume: 'high',
-            competitive: 'Medium'
-          });
-          keywords.push({
-            keyword: `${productType.toLowerCase()}`,
-            volume: 'medium',
-            competitive: 'High'
-          });
-          keywords.push({
-            keyword: `best ${productType.toLowerCase()}`,
-            volume: 'medium',
-            competitive: 'Medium'
-          });
-        }
-      });
-      return keywords.slice(0, 6); // Limit to 6 keywords
+      // Category-based retail keywords (energy drinks / Red Bull relevant)
+      const retailKeywords = [
+        { keyword: 'energy drinks', volume: 'high', competitive: 'High' },
+        { keyword: 'sports performance drinks', volume: 'high', competitive: 'Medium' },
+        { keyword: 'caffeine boost', volume: 'medium', competitive: 'High' },
+        { keyword: 'workout energy', volume: 'medium', competitive: 'Medium' },
+        { keyword: 'sugar free energy', volume: 'medium', competitive: 'High' },
+        { keyword: 'focus and alertness', volume: 'medium', competitive: 'Low' },
+        { keyword: 'pre-workout drinks', volume: 'medium', competitive: 'Medium' },
+        { keyword: 'gaming energy drinks', volume: 'low', competitive: 'Medium' }
+      ];
+
+      return retailKeywords.slice(0, 8); // Return 8 keywords
     };
 
     const keywords = generateKeywords();
@@ -251,16 +249,21 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
 
   const createSpendAnalysisContent = () => {
     const calculateMetrics = (spend: number) => {
+      const spendRatio = (spend - 10000) / 40000; // Normalize spend to 0-1 range (10K-50K)
+
+      // ROAS shows diminishing returns (exponential decay)
+      // Starts high, decreases gradually
       const maxRoas = 600;
       const minRoas = 100;
-      const roasRange = maxRoas - minRoas;
-      const spendRatio = (spend - 10000) / 40000;
-      const roas = maxRoas - (spendRatio * roasRange);
+      const roasDecayRate = 1.8; // Gentler decay
+      const roas = maxRoas - ((maxRoas - minRoas) * Math.pow(spendRatio, 1 / roasDecayRate));
 
+      // Revenue shows logarithmic growth (diminishing returns)
+      // Increases more gradually at first, then slows down
       const baseRevenue = 100;
       const maxRevenue = 500;
-      const revenueRange = maxRevenue - baseRevenue;
-      const revenue = baseRevenue + (spendRatio * revenueRange);
+      const revenueGrowthRate = 0.6; // More gradual increase
+      const revenue = baseRevenue + ((maxRevenue - baseRevenue) * Math.pow(spendRatio, revenueGrowthRate));
 
       return { spend, roas: Math.round(roas), revenue: Math.round(revenue) };
     };
@@ -328,6 +331,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
             <LineChartComponent
               data={forecastData}
               config={forecastConfig}
+              curved={true}
               showLegend={true}
               showGrid={true}
               showTooltip={true}
@@ -745,7 +749,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                           {message.text}
                         </div>
                         <div className="text-xs opacity-70 mt-1">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(message.timestamp)}
                         </div>
                       </div>
                     ) : (
@@ -755,7 +759,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                           {message.text}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(message.timestamp)}
                         </div>
 
                         {/* Campaign proposals - moved outside of bubble */}

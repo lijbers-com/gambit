@@ -234,11 +234,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       </CardHeader>
       <CardContent className="pb-4 pt-0">
         <div>
-          <div className="text-3xl font-bold text-foreground truncate">
+          <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
             {value}
           </div>
           {subMetric && (
-            <div className="text-sm text-muted-foreground mt-2">
+            <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
               {subMetric}
             </div>
           )}
@@ -263,7 +263,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           <div className="mt-3">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-in-out"
                 style={{ width: `${progress || 75}%` }}
               />
             </div>
@@ -271,7 +271,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         )}
         {badgeValue && (
           <div className="flex justify-end mt-3">
-            <Badge variant={badgeVariant} className="text-xs">
+            <Badge variant={badgeVariant} className="text-xs transition-all duration-500 ease-in-out">
               {badgeValue}
             </Badge>
           </div>

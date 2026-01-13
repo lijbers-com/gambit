@@ -2,6 +2,11 @@ import { Route } from '@/components/ui/side-navigation';
 
 export const defaultRoutes: Route[] = [
   {
+    id: 98,
+    name: "Campaign management",
+    type: "title" as const,
+  },
+  {
     id: 99,
     name: "Media Experiences",
     type: "single" as const,
@@ -118,36 +123,36 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 4,
-    name: "Yield",
-    type: "parent" as const,
-    icon: { lucide: "TrendingUp" },
-    subitems: [
-      {
-        id: 60,
-        name: "Dashboard",
-        type: "single" as const,
-        url: "/yield",
-      },
-      {
-        id: 61,
-        name: "Full report",
-        type: "single" as const,
-        url: "/yield/report",
-      },
-    ],
-  },
-  {
     id: 5,
     name: "Campaign Agent",
-    type: "title" as const,
-  },
-  {
-    id: 6,
-    name: "New chat",
-    type: "single" as const,
-    icon: { lucide: "MessageCirclePlus" },
-    url: "/chats/new",
+    type: "parent" as const,
+    icon: { lucide: "MessageSquare" },
+    subitems: [
+      {
+        id: 70,
+        name: "New chat",
+        type: "single" as const,
+        url: "/chat",
+      },
+      {
+        id: 71,
+        name: "Budget analysis",
+        type: "single" as const,
+        url: "/chat/spend-analysis",
+      },
+      {
+        id: 72,
+        name: "New campaign",
+        type: "single" as const,
+        url: "/chat/new-campaign",
+      },
+      {
+        id: 73,
+        name: "Keyword suggestions",
+        type: "single" as const,
+        url: "/chat/keyword-suggestions",
+      },
+    ],
   },
   {
     id: 8,
@@ -160,6 +165,7 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "MonitorSpeaker" },
     url: "/configuration/display",
+    disabled: true,
   },
   {
     id: 10,
@@ -167,6 +173,7 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "ListStart" },
     url: "/configuration/sponsored-products",
+    disabled: true,
   },
   {
     id: 11,
@@ -174,6 +181,7 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "MonitorPlay" },
     url: "/configuration/digital-instore",
+    disabled: true,
   },
   {
     id: 12,
@@ -181,6 +189,7 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "Store" },
     url: "/configuration/offline-instore",
+    disabled: true,
   },
   {
     id: 13,

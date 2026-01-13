@@ -4,6 +4,11 @@ import { defaultRoutes } from '@/components/layout/default-routes';
 // Advertiser routes with limited access (no Calendar, Yield, or Configuration)
 export const advertiserRoutes: Route[] = [
   {
+    id: 98,
+    name: "Campaign management",
+    type: "title" as const,
+  },
+  {
     id: 99,
     name: "Media wallet",
     type: "single" as const,
@@ -72,14 +77,34 @@ export const advertiserRoutes: Route[] = [
   {
     id: 5,
     name: "Campaign Intelligence",
-    type: "title" as const,
-  },
-  {
-    id: 6,
-    name: "New chat",
-    type: "single" as const,
-    icon: { lucide: "MessageCirclePlus" },
-    url: "/chats/new"
+    type: "parent" as const,
+    icon: { lucide: "MessageSquare" },
+    subitems: [
+      {
+        id: 70,
+        name: "New chat",
+        type: "single" as const,
+        url: "/chat"
+      },
+      {
+        id: 71,
+        name: "Budget analysis",
+        type: "single" as const,
+        url: "/chat/spend-analysis"
+      },
+      {
+        id: 72,
+        name: "New campaign",
+        type: "single" as const,
+        url: "/chat/new-campaign"
+      },
+      {
+        id: 73,
+        name: "Keyword suggestions",
+        type: "single" as const,
+        url: "/chat/keyword-suggestions"
+      }
+    ]
   }
 ];
 

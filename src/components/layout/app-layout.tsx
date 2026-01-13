@@ -93,7 +93,7 @@ export function AppLayout({
                 className="flex-1 py-3 relative"
                 {...breadcrumbProps}
               />
-              <HeaderActions className="pr-6" />
+              <HeaderActions className="pr-6" routes={routes} />
             </div>
           </div>
           {/* Page Header */}

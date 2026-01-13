@@ -174,7 +174,7 @@ export const Horizontal: Story = {
     ...defaultProps,
     layout: 'horizontal',
     usedBudget: '$3,200',
-    totalPrice: '$5,800',
+    totalPrice: '$3,200',
     budgetUsagePercentage: 64,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
@@ -222,7 +222,7 @@ export const HorizontalHighBudgetUsage: Story = {
     ...defaultProps,
     layout: 'horizontal',
     usedBudget: '$4,600',
-    totalPrice: '$5,800',
+    totalPrice: '$4,600',
     budgetUsagePercentage: 92,
     engines: [
       { id: 'display', name: 'Display', enabled: true },
@@ -257,7 +257,7 @@ export const HorizontalLowBudgetUsage: Story = {
     ...defaultProps,
     layout: 'horizontal',
     usedBudget: '$1,200',
-    totalPrice: '$5,800',
+    totalPrice: '$1,200',
     budgetUsagePercentage: 24,
     engines: [
       { id: 'display', name: 'Display', enabled: true },

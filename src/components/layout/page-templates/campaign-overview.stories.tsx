@@ -206,13 +206,15 @@ export const OfflineInstore: Story = createCampaignOverviewStory('offline instor
 // Campaign data for the card view
 const campaignSummaryData = [
   {
+    id: 'C-001',
+    campaignType: 'sponsored-products',
     title: 'Holiday Sale Campaign',
     badge: { text: 'Best ROAS', variant: 'default' as const },
     goal: 'performance-transaction',
     estimatedRoas: '4.8x',
     budget: '$15,000',
     usedBudget: '$9,200',
-    totalPrice: '$17,500',
+    totalPrice: '$9,150',
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
@@ -228,13 +230,15 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-002',
+    campaignType: 'display',
     title: 'Summer Launch Campaign',
     badge: { text: 'High CTR', variant: 'secondary' as const },
     goal: 'brand-awareness',
     estimatedRoas: '3.2x',
     budget: '$8,500',
     usedBudget: '$2,100',
-    totalPrice: '$9,200',
+    totalPrice: '$2,125',
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
@@ -248,13 +252,15 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-003',
+    campaignType: 'digital-instore',
     title: 'Back to School Campaign',
     badge: { text: 'In Option', variant: 'outline' as const },
     goal: 'customer-acquisition',
     estimatedRoas: '5.1x',
     budget: '$12,000',
     usedBudget: '$4,800',
-    totalPrice: '$13,500',
+    totalPrice: '$4,800',
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
@@ -268,13 +274,15 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-004',
+    campaignType: 'offline-instore',
     title: 'Black Friday Campaign',
     badge: { text: 'Paused', variant: 'destructive' as const },
     goal: 'performance-transaction',
     estimatedRoas: '6.2x',
     budget: '$25,000',
     usedBudget: '$22,800',
-    totalPrice: '$28,000',
+    totalPrice: '$22,750',
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [
@@ -290,6 +298,8 @@ const campaignSummaryData = [
     features: [],
   },
   {
+    id: 'C-005',
+    campaignType: 'display',
     title: 'New Year Campaign',
     badge: { text: 'Ready', variant: 'secondary' as const },
     goal: 'retargeting',
@@ -393,6 +403,18 @@ export const Campaigns360: Story = {
                       console.log(`Budget updated for ${campaign.title}: ${newBudget}`);
                     }}
                     onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                    onEngineEdit={(engineId, engineName) => {
+                      // Map engine ID to URL path
+                      const engineTypeMap: { [key: string]: string } = {
+                        'display': 'display',
+                        'sponsored': 'sponsored-products',
+                        'digital': 'digital-instore',
+                        'offline': 'offline-instore',
+                      };
+                      const engineType = engineTypeMap[engineId] || engineId;
+                      console.log(`Navigate to: /campaigns/${engineType}/${campaign.id}`);
+                      alert(`Would navigate to: /campaigns/${engineType}/${campaign.id}`);
+                    }}
                     className="w-full"
                   />
                 );

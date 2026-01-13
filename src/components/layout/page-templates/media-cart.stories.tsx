@@ -117,7 +117,7 @@ const campaignData = {
   estimatedRoas: '4.5x',
   budget: '$18,000',
   usedBudget: '$1,200',
-  totalPrice: '$19,500',
+  totalPrice: '$1,260',
   budgetUsagePercentage: 7,
   engines: [
     { id: 'display', name: 'Display', enabled: true },

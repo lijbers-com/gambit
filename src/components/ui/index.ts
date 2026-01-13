@@ -34,4 +34,5 @@ export * from "./search-input";
 export * from './tabs';
 export * from './viewbar';
 export { Alert, AlertTitle, AlertDescription } from './alert';
-export * from './slider'; 
+export * from './slider';
+export { NotificationItem } from './notification-item'; 

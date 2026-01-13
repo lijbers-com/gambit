@@ -18,7 +18,7 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Input } from '@/components/ui/input';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -3181,6 +3181,55 @@ export const FunnelView: Story = {
     const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
     const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
 
+    // Handle Goal filter changes - expand selected card(s) and collapse others
+    useEffect(() => {
+      if (goalFilter.length > 0) {
+        // Collapse all cards first
+        setAwarenessCollapsed(true);
+        setConsiderationCollapsed(true);
+        setPurchaseCollapsed(true);
+        setLoyaltyCollapsed(true);
+
+        // Expand only the selected goal card(s)
+        goalFilter.forEach(goal => {
+          if (goal === 'awareness') setAwarenessCollapsed(false);
+          if (goal === 'consideration') setConsiderationCollapsed(false);
+          if (goal === 'purchase') setPurchaseCollapsed(false);
+          if (goal === 'loyalty') setLoyaltyCollapsed(false);
+        });
+
+        // Swap metrics in Performance Overview based on goal filter
+        if (goalFilter.includes('awareness')) {
+          // Replace 'sales' with 'reach' for awareness
+          setSelectedTopMetrics(prev => {
+            const newMetrics = prev.filter(m => m !== 'sales');
+            if (!newMetrics.includes('reach')) {
+              newMetrics.unshift('reach');
+            }
+            return newMetrics;
+          });
+        } else {
+          // Restore 'sales' and remove 'reach' for other goals
+          setSelectedTopMetrics(prev => {
+            const newMetrics = prev.filter(m => m !== 'reach');
+            if (!newMetrics.includes('sales')) {
+              newMetrics.unshift('sales');
+            }
+            return newMetrics;
+          });
+        }
+      } else {
+        // No filter selected - restore default with 'sales'
+        setSelectedTopMetrics(prev => {
+          const newMetrics = prev.filter(m => m !== 'reach');
+          if (!newMetrics.includes('sales')) {
+            newMetrics.unshift('sales');
+          }
+          return newMetrics;
+        });
+      }
+    }, [goalFilter]);
+
     // Visibility states for dashboard customization
     const [visibleFunnelCards, setVisibleFunnelCards] = useState({
       awareness: true,
@@ -3250,17 +3299,18 @@ export const FunnelView: Story = {
 
     // Data for top metric cards
     const topMetricsData = [
-      { month: 'Jan', sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2 },
-      { month: 'Feb', sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1 },
-      { month: 'Mar', sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9 },
-      { month: 'Apr', sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2 },
-      { month: 'May', sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5 },
-      { month: 'Jun', sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9 }
+      { month: 'Jan', sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
+      { month: 'Feb', sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
+      { month: 'Mar', sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
+      { month: 'Apr', sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
+      { month: 'May', sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
+      { month: 'Jun', sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
     ];
 
     // Metric definitions for top cards
     const metricDefinitions: Record<string, { label: string; value: string; badge: string; badgeVariant: "default" | "success" | "warning"; config: any; dataKey: string }> = {
       sales: { label: 'Total Sales', value: '€200K', badge: '+78%', badgeVariant: 'success', config: { sales: { label: "Sales (K€)", color: "hsl(var(--chart-3))" } }, dataKey: 'sales' },
+      reach: { label: 'Reach', value: '850K', badge: '+102%', badgeVariant: 'success', config: { reach: { label: "Reach (K)", color: "hsl(var(--chart-3))" } }, dataKey: 'reach' },
       salesUplift: { label: 'Sales Uplift', value: '27%', badge: '+4.2%', badgeVariant: 'success', config: { salesUplift: { label: "Sales Uplift %", color: "hsl(var(--chart-3))" } }, dataKey: 'salesUplift' },
       avgRevenuePerCustomer: { label: 'Avg Revenue per Customer', value: '€60', badge: '+33%', badgeVariant: 'success', config: { avgRevenuePerCustomer: { label: "Avg Revenue (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'avgRevenuePerCustomer' },
       customerLifetimeValue: { label: 'Customer Lifetime Value', value: '€355', badge: '+27%', badgeVariant: 'success', config: { customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'customerLifetimeValue' },
@@ -3523,11 +3573,10 @@ export const FunnelView: Story = {
                   {
                     name: 'Goal',
                     options: [
-                      { label: 'Sales', value: 'sales' },
-                      { label: 'Brand Awareness', value: 'awareness' },
+                      { label: 'Awareness', value: 'awareness' },
                       { label: 'Consideration', value: 'consideration' },
-                      { label: 'Traffic', value: 'traffic' },
-                      { label: 'Engagement', value: 'engagement' }
+                      { label: 'Purchase', value: 'purchase' },
+                      { label: 'Loyalty', value: 'loyalty' }
                     ],
                     selectedValues: goalFilter,
                     onChange: setGoalFilter
@@ -3778,29 +3827,6 @@ export const FunnelView: Story = {
                           />
                           <div className="flex justify-end mt-2">
                             <Badge variant="success" className="text-xs">+41%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {awarenessMetrics.includes('salesUplift') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Total Sales Uplift 27%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ salesUplift: { label: "Sales Uplift", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+125%</Badge>
                           </div>
                         </CardContent>
                       </Card>

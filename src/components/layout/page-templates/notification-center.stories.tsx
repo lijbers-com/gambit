@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { Clock, CheckCircle, XCircle, AlertCircle, FileText, Settings, Zap, Bell, Mail, MessageSquare, CheckCircle2, Sparkles, Table, Image, DollarSign, BarChart3 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Notification Center',
@@ -78,6 +79,15 @@ const activitiesData = [
   {
     timeGroup: 'Today',
     activities: [
+      {
+        id: 1.5,
+        type: 'Budget Alert',
+        status: 'warning',
+        description: 'Campaign "Summer Sale" budget recommendation. Opportunity: $12.5K potential lost revenue.',
+        entityName: 'Summer Sale',
+        entityType: 'budget',
+        timestamp: null,
+      },
       {
         id: 2,
         type: 'AI Insight',
@@ -336,6 +346,14 @@ const ActivityItem = ({ activity }: { activity: any }) => {
 };
 
 const NotificationCenterContent = () => {
+  // Try to use Next.js router if available (will be null in Storybook)
+  let router: ReturnType<typeof useRouter> | null = null;
+  try {
+    router = useRouter();
+  } catch (e) {
+    // Router not available (Storybook)
+  }
+
   // Notification settings state
   const [emailNotifications, setEmailNotifications] = React.useState(true);
   const [pushNotifications, setPushNotifications] = React.useState(true);
@@ -368,7 +386,20 @@ const NotificationCenterContent = () => {
             {group.activities.map((activity) => {
               // Determine icon based on entity type
               const Icon = activity.entityType === 'ai' ? Sparkles :
+                          activity.entityType === 'budget' ? DollarSign :
                           activity.entityType === 'creative' ? Image : Table;
+
+              // Handle click for budget alerts
+              const handleClick = () => {
+                if (activity.entityType === 'budget') {
+                  if (router) {
+                    router.push('/chat/spend-analysis');
+                  } else {
+                    console.log('Navigate to spend analysis chat');
+                  }
+                }
+              };
+
               return (
                 <div key={activity.id} className="relative flex items-start -ml-12">
                   {/* Icon on the timeline */}
@@ -385,10 +416,13 @@ const NotificationCenterContent = () => {
                         {activity.type}
                       </Badge>
                       <p className="text-sm text-foreground flex-1 min-w-0">
-                        {activity.entityType === 'ai' ? (
+                        {activity.entityType === 'ai' || activity.entityType === 'budget' ? (
                           <>
                             {activity.description.split(`"${activity.entityName}"`)[0]}
-                            <button className="text-primary underline underline-offset-4 font-medium">
+                            <button
+                              onClick={handleClick}
+                              className="text-primary underline underline-offset-4 font-medium"
+                            >
                               "{activity.entityName}"
                             </button>
                             {activity.description.split(`"${activity.entityName}"`)[1]}

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, MetricCard } from './card';
 import { Badge } from './badge';
@@ -12,7 +13,8 @@ import { DateRangePicker } from './date-picker';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info } from 'lucide-react';
+import { NotificationItem } from './notification-item';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info, MessageSquare } from 'lucide-react';
 
 export interface CampaignEngine {
   id: string;
@@ -53,6 +55,8 @@ export interface CampaignSummaryProps {
   onFeatureToggle?: (featureId: string, enabled: boolean) => void;
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
   onEngineBudgetChange?: (engineId: string, budget: string) => void;
+  onEngineEdit?: (engineId: string, engineName: string) => void;
+  onNotificationClick?: (notificationType: string) => void;
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
@@ -85,6 +89,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onFeatureToggle,
     onDateRangeChange,
     onEngineBudgetChange,
+    onEngineEdit,
+    onNotificationClick,
     conversionWindow,
     onConversionWindowChange,
     onEdit,
@@ -92,13 +98,22 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     className,
     ...props
   }, ref) => {
+    // Try to use Next.js router if available (will be null in Storybook)
+    let router: ReturnType<typeof useRouter> | null = null;
+    try {
+      router = useRouter();
+    } catch (e) {
+      // Router not available (Storybook)
+    }
+
     // Internal state for switches when callbacks are not provided
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
     const [isCollapsed, setIsCollapsed] = React.useState(true);
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
-    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
-    const [autoTargeting, setAutoTargeting] = React.useState(true);
+    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
+    const [autoTargeting, setAutoTargeting] = React.useState(false);
+    const [autoSuggestions, setAutoSuggestions] = React.useState(true);
     const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
 
     // Update internal state when props change
@@ -139,6 +154,28 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Use controlled or internal state
     const currentEngines = onEngineToggle ? engines : internalEngines;
     const currentFeatures = onFeatureToggle ? features : internalFeatures;
+
+    // Calculate actual budget usage percentage
+    const calculateBudgetUsage = React.useMemo(() => {
+      if (budgetUsagePercentage !== undefined) {
+        // If percentage is explicitly provided, use it but cap at 100
+        return Math.min(budgetUsagePercentage, 100);
+      }
+
+      // Otherwise calculate from budget and totalPrice
+      if (budget && totalPrice) {
+        const budgetNum = parseFloat(budget.replace(/[^0-9.]/g, ''));
+        const spendNum = parseFloat(totalPrice.replace(/[^0-9.]/g, ''));
+
+        if (!isNaN(budgetNum) && !isNaN(spendNum) && budgetNum > 0) {
+          const percentage = (spendNum / budgetNum) * 100;
+          // Cap at 100% for the progress bar
+          return Math.min(Math.round(percentage), 100);
+        }
+      }
+
+      return 0;
+    }, [budget, totalPrice, budgetUsagePercentage]);
 
     // Media proposition icons mapping
     const mediaPropositionIcons = {
@@ -328,17 +365,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             {/* Badges and Collapse Button - Right Aligned (horizontal layout only) */}
             {layout !== 'vertical' && (
               <div className="flex items-start gap-2">
-                {badge && (
-                  <Badge
-                    variant={badge.variant || 'default'}
-                    className="bg-slate-800 text-white border-slate-800"
-                  >
+                {badge ? (
+                  <Badge variant={badge.variant || 'default'}>
                     {badge.text}
                   </Badge>
+                ) : (
+                  <Badge variant="outline">
+                    In-option
+                  </Badge>
                 )}
-                <Badge variant="outline">
-                  In-option
-                </Badge>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -546,11 +581,91 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             </div>
           ) : (
             // Horizontal Layout
-            <div className="grid grid-cols-12 gap-6">
-              {/* Left Column - Main Content */}
-              <div className="col-span-9 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Right Column - Summary (appears first on mobile, right on desktop) */}
+              <div className="lg:col-span-3 lg:order-2 space-y-2">
+                {/* Campaign Summary Title */}
+                <Label className="text-sm text-muted-foreground">Summary</Label>
+
+                {/* Budget Summary as MetricCard with Progress */}
+                <MetricCard
+                  label="Budget"
+                  value={budget}
+                  subMetric={totalPrice ? `Total Spend: ${totalPrice}` : undefined}
+                  progress={calculateBudgetUsage}
+                  variant="graph"
+                />
+
+                {/* Campaign Metrics Cards */}
+                <div className="space-y-4">
+                  <MetricCard
+                    label="Reach"
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "3.8M" :
+                      autoTargeting ? "3.2M" :
+                      autoBudgetOptimization ? "2.8M" :
+                      "2.5M"
+                    }
+                    subMetric="Current: 1.6M"
+                    variant="graph"
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 95 :
+                      autoTargeting ? 82 :
+                      autoBudgetOptimization ? 72 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
+                  />
+                  <MetricCard
+                    label="ROAS"
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "5.6x" :
+                      autoBudgetOptimization ? "5.0x" :
+                      autoTargeting ? "4.5x" :
+                      "4.1x"
+                    }
+                    subMetric="Current: 3.2x"
+                    variant="graph"
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 88 :
+                      autoBudgetOptimization ? 78 :
+                      autoTargeting ? 70 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
+                  />
+                  <MetricCard
+                    label="Sales"
+                    value={
+                      autoBudgetOptimization && autoTargeting ? "$68.3K" :
+                      autoBudgetOptimization ? "$58.7K" :
+                      autoTargeting ? "$52.4K" :
+                      "$45.2K"
+                    }
+                    subMetric="Current: $28.8K"
+                    badgeValue={
+                      autoBudgetOptimization && autoTargeting ? "+42%" :
+                      autoBudgetOptimization ? "+30%" :
+                      autoTargeting ? "+22%" :
+                      "+15%"
+                    }
+                    badgeVariant="success"
+                    variant="graph"
+                    progress={
+                      autoBudgetOptimization && autoTargeting ? 95 :
+                      autoBudgetOptimization ? 82 :
+                      autoTargeting ? 73 :
+                      64
+                    }
+                    className="transition-all duration-500 ease-in-out"
+                  />
+                </div>
+              </div>
+
+              {/* Left Column - Main Content (appears second on mobile, left on desktop) */}
+              <div className="lg:col-span-9 lg:order-1 space-y-4">
                 {/* Top Row - Goal, Budget, and Runtime together */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Goal Section */}
                   <div className="space-y-2">
                     <Label className="text-sm text-muted-foreground">Goal</Label>
@@ -675,7 +790,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => console.log(`Edit ${engine.name} engine`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onEngineEdit) {
+                                    onEngineEdit(engine.id, engine.name);
+                                  } else {
+                                    console.log(`Edit ${engine.name} engine`);
+                                  }
+                                }}
                                 className="whitespace-nowrap"
                               >
                                 Edit
@@ -688,105 +810,120 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </div>
                 </div>
 
-                {/* Campaign Metrics Row */}
-                <div className="grid grid-cols-3 gap-4 pt-4">
-                  <MetricCard
-                    label="Reach"
-                    value="2.5M"
-                    subMetric="Unique users"
-                  />
-                  <MetricCard
-                    label="ROAS"
-                    value={estimatedRoas}
-                    subMetric="Estimated return"
-                  />
-                  <MetricCard
-                    label="Sales"
-                    value="$45.2K"
-                    subMetric="+15% vs last period"
-                    badgeValue="+15%"
-                    badgeVariant="success"
-                  />
-                </div>
-
-                {/* Optimization Switches */}
-                <div className="flex gap-6 pt-4 pb-4">
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={autoBudgetOptimization}
-                      onCheckedChange={setAutoBudgetOptimization}
-                    />
-                    <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={autoTargeting}
-                      onCheckedChange={setAutoTargeting}
-                    />
-                    <span className="text-sm text-foreground">Auto Targeting</span>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Summary */}
-              <div className="col-span-3 space-y-2">
-                {/* Campaign Summary Title - aligned with other titles */}
-                <Label className="text-sm text-muted-foreground">Summary</Label>
-                
-                {/* Summary Card */}
-                <div className="border rounded-lg p-4 bg-white">
-
-                  {/* Budget Set */}
-                  <div className="space-y-3 pb-3">
-                    <div className="flex justify-between items-center py-0.5">
-                      <span className="text-sm text-muted-foreground">Budget set</span>
-                      <span className="text-sm font-medium">{budget}</span>
+                {/* Campaign Agent Section - with horizontal switches */}
+                <div className="space-y-2 pt-4">
+                  <Label className="text-sm text-muted-foreground">Campaign Agent</Label>
+                  <div className="flex gap-6 pt-2 pb-2">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoBudgetOptimization}
+                        onCheckedChange={setAutoBudgetOptimization}
+                      />
+                      <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoTargeting}
+                        onCheckedChange={setAutoTargeting}
+                      />
+                      <span className="text-sm text-foreground">Auto Targeting</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={autoSuggestions}
+                        onCheckedChange={setAutoSuggestions}
+                      />
+                      <span className="text-sm text-foreground">Auto Suggestions</span>
+                      <Info className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-
-                  {/* Budget Metrics Group */}
-                  <div className="space-y-3 border-t pt-3 pb-3">
-                    {/* Used Budget */}
-                    {usedBudget && (
-                      <div className="flex justify-between items-center py-0.5">
-                        <span className="text-sm text-muted-foreground">Used Budget</span>
-                        <span className="text-sm font-medium">{usedBudget}</span>
-                      </div>
-                    )}
-
-                    {/* Budget Usage Progress */}
-                    {budgetUsagePercentage !== undefined && (
-                      <div className="space-y-2 py-0.5">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Budget Usage</span>
-                          <span className="text-sm font-medium">{budgetUsagePercentage}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={cn(
-                              "h-2 rounded-full transition-all",
-                              budgetUsagePercentage < 50 ? "bg-green-500" :
-                              budgetUsagePercentage < 80 ? "bg-yellow-500" : "bg-red-500"
-                            )}
-                            style={{ width: `${Math.min(budgetUsagePercentage, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Price Group */}
-                  {totalPrice && (
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between items-center py-0.5">
-                        <span className="text-sm text-muted-foreground">Total Spend</span>
-                        <span className="text-sm font-medium">{totalPrice}</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
+
+                {/* AI Notifications Section - Only show when autoSuggestions is enabled */}
+                {autoSuggestions && (
+                  <div className="space-y-3 pt-4">
+                    <div className="space-y-4">
+                      {/* AI Notification 1 - CTR Optimization */}
+                      <NotificationItem
+                        type="ai-insight"
+                        message='Campaign "Spring Sale" could improve CTR by 23% with optimized targeting parameters.'
+                        linkText='"Spring Sale"'
+                        onLinkClick={() => {
+                          // Navigate to campaign detail page
+                          if (router) {
+                            router.push('/campaigns/sponsored-products/C-001');
+                          } else {
+                            console.log('Navigate to Spring Sale campaign');
+                          }
+                        }}
+                        onActionClick={() => {
+                          // Navigate to AI chat for CTR optimization
+                          if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Open AI chat for CTR optimization');
+                          }
+                        }}
+                      />
+
+                      {/* AI Notification 2 - Creative Timing */}
+                      <NotificationItem
+                        type="ai-insight"
+                        message='Creative "Banner_Summer_v2" shows 34% higher engagement in evening time slots.'
+                        linkText='"Banner_Summer_v2"'
+                        onLinkClick={() => {
+                          // Navigate to creative detail page
+                          if (router) {
+                            router.push('/campaigns/sponsored-products/creative/CRE-001');
+                          } else {
+                            console.log('Navigate to Banner_Summer_v2 creative');
+                          }
+                        }}
+                        onActionClick={() => {
+                          // Navigate to AI chat
+                          if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Open AI chat for creative timing');
+                          }
+                        }}
+                      />
+
+                      {/* AI Notification 3 - Budget Alert */}
+                      <NotificationItem
+                        type="budget-alert"
+                        message='Campaign "Summer Sale" budget recommendation. Opportunity: $12.5K potential lost revenue.'
+                        linkText='"Summer Sale"'
+                        onLinkClick={() => {
+                          // Navigate to spend analysis chat
+                          if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Navigate to spend analysis chat');
+                          }
+                        }}
+                        onActionClick={() => {
+                          if (onNotificationClick) {
+                            onNotificationClick('budget-recommendation');
+                          } else if (router) {
+                            router.push('/chat/spend-analysis');
+                          } else {
+                            console.log('Navigate to budget recommendation');
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* View All Button */}
+                    <div className="pt-2">
+                      <Button variant="outline" size="sm" className="text-xs">
+                        View all
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -794,15 +931,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
           {/* Action Buttons - Bottom, Left Aligned for all layouts */}
           <div className="flex gap-3 pt-4">
-            {layout === 'horizontal' && (
-              <Button
-                variant="outline"
-                onClick={onEdit}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                3 recommendations
-              </Button>
-            )}
             {onAddToCart && (
               <Button
                 onClick={onAddToCart}

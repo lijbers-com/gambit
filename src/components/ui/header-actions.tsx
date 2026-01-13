@@ -4,6 +4,8 @@ import * as React from 'react';
 import { Bell, User, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { HeaderSearch } from './header-search';
+import { Route } from './side-navigation';
 import { useRouter as useRouterContext } from '@/lib/router-context';
 
 // Try to import Next.js router, fallback to our custom router if not available
@@ -18,6 +20,7 @@ try {
 
 export interface HeaderActionsProps {
   className?: string;
+  routes?: Route[];
   onNotificationsClick?: () => void;
   onProfileClick?: () => void;
   onOrganisationClick?: () => void;
@@ -29,6 +32,7 @@ export const HeaderActions = React.forwardRef<
   HeaderActionsProps
 >(({
   className,
+  routes = [],
   onNotificationsClick,
   onProfileClick,
   onOrganisationClick,
@@ -65,6 +69,8 @@ export const HeaderActions = React.forwardRef<
       ref={ref}
       className={cn('flex items-center gap-2 header-actions', className)}
     >
+      <HeaderSearch routes={routes} />
+
       <Button
         variant="ghost"
         size="icon"

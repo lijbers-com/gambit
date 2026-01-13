@@ -16,6 +16,27 @@ export const NavigationItem = ({ item }: { item: Route }) => {
     return pathname.split('/')[1] === route.split('/')[1];
   };
 
+  // Render as disabled div if item is disabled
+  if (item.disabled) {
+    return (
+      <div
+        className={cn(
+          'flex items-center mb-4 pr-2 rounded-md transition-colors',
+          'opacity-50 cursor-not-allowed'
+        )}
+        data-testid={'nav-' + item.id}
+      >
+        <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+          {item.icon?.lucide && renderIcon(item.icon.lucide)}
+          {item.icon?.url && (
+            <Image src={item.icon.url} alt={item.name} width={24} height={24} />
+          )}
+        </span>
+        <span className={cn(!showText && 'hidden', 'text-sm ml-2')}>{item.name}</span>
+      </div>
+    );
+  }
+
   return (
     <Link
       className={cn(

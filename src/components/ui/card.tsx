@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
 
 export interface CardWithTabsTab {
-  label: string;
+  label: React.ReactNode;
   value: string;
   content: React.ReactNode;
 }
@@ -198,22 +198,24 @@ export interface MetricCardProps {
   variant?: "default" | "graph";
   graphData?: Array<{ value: number }>;
   graphColor?: string;
+  progress?: number;
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ 
-    label, 
-    value, 
-    subMetric, 
-    badgeValue, 
-    badgeVariant = "default", 
-    isSelected = false, 
-    onClick, 
+  ({
+    label,
+    value,
+    subMetric,
+    badgeValue,
+    badgeVariant = "default",
+    isSelected = false,
+    onClick,
     className,
     variant = "default",
     graphData,
     graphColor = "#8884d8",
-    ...props 
+    progress,
+    ...props
   }, ref) => (
     <Card
       ref={ref}
@@ -232,11 +234,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       </CardHeader>
       <CardContent className="pb-4 pt-0">
         <div>
-          <div className="text-3xl font-bold text-foreground truncate">
+          <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
             {value}
           </div>
           {subMetric && (
-            <div className="text-sm text-muted-foreground mt-2">
+            <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
               {subMetric}
             </div>
           )}
@@ -260,16 +262,16 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         {variant === "graph" && !graphData && (
           <div className="mt-3">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                style={{ width: '75%' }}
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-in-out"
+                style={{ width: `${progress || 75}%` }}
               />
             </div>
           </div>
         )}
         {badgeValue && (
           <div className="flex justify-end mt-3">
-            <Badge variant={badgeVariant} className="text-xs">
+            <Badge variant={badgeVariant} className="text-xs transition-all duration-500 ease-in-out">
               {badgeValue}
             </Badge>
           </div>

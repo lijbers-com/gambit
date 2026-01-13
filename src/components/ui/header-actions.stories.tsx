@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { HeaderActions } from './header-actions';
+import { defaultRoutes } from '@/components/layout/default-routes';
 
 const meta: Meta<typeof HeaderActions> = {
   title: 'UI/Header Actions',
@@ -15,6 +16,7 @@ A component that displays icon buttons for quick access to key application areas
 
 ## Features
 
+- **Global Search**: Inline search input with categorized autocomplete
 - **Icon-based Navigation**: Clean, icon-only buttons for minimal UI footprint
 - **Notification Indicator**: Red dot badge on bell icon to show unread notifications
 - **Hover States**: Subtle hover effects for better user feedback
@@ -28,6 +30,7 @@ This component is typically placed in the top-right corner of the application he
 
 ## Navigation Targets
 
+- **Search Input**: Type to search campaigns, bookings, creatives, and pages
 - **Bell Icon**: Opens Notifications Center (/notifications)
 - **User Icon**: Opens User Profile (/profile)
 - **Building Icon**: Opens Organisation Settings (placeholder)
@@ -37,6 +40,10 @@ This component is typically placed in the top-right corner of the application he
   },
   tags: ['autodocs'],
   argTypes: {
+    routes: {
+      control: 'object',
+      description: 'Navigation routes for search functionality',
+    },
     onNotificationsClick: { action: 'notifications clicked' },
     onProfileClick: { action: 'profile clicked' },
     onOrganisationClick: { action: 'organisation clicked' },
@@ -54,12 +61,14 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     hasUnreadNotifications: true,
+    routes: defaultRoutes,
   },
 };
 
 export const NoUnreadNotifications: Story = {
   args: {
     hasUnreadNotifications: false,
+    routes: defaultRoutes,
   },
   parameters: {
     docs: {
@@ -94,7 +103,7 @@ export const InContext: Story = {
           <span className="mx-2">/</span>
           <span>Campaigns</span>
         </div>
-        <HeaderActions />
+        <HeaderActions routes={defaultRoutes} />
       </div>
     </div>
   ),

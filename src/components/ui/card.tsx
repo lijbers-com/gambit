@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
 
 export interface CardWithTabsTab {
-  label: string;
+  label: React.ReactNode;
   value: string;
   content: React.ReactNode;
 }

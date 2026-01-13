@@ -31,6 +31,7 @@ export interface Route {
   };
   subitems?: Route[];
   pattern?: string; // For breadcrumb matching with dynamic routes
+  disabled?: boolean;
 }
 
 export interface SideNavigationProps {

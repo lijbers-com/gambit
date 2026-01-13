@@ -123,6 +123,46 @@ export function DatePicker({
   disabled = false,
   className,
 }: DatePickerProps) {
+  const [inputValue, setInputValue] = React.useState(
+    date ? format(date, "dd/MM/yyyy") : ""
+  )
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setInputValue(value)
+
+    // Try to parse the date
+    if (value.length === 10) {
+      const parts = value.split("/")
+      if (parts.length === 3) {
+        const [day, month, year] = parts
+        const parsedDate = new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day)
+        )
+
+        // Validate the date
+        if (
+          !isNaN(parsedDate.getTime()) &&
+          parsedDate.getDate() === parseInt(day) &&
+          parsedDate.getMonth() === parseInt(month) - 1
+        ) {
+          onDateChange?.(parsedDate)
+        }
+      }
+    }
+  }
+
+  // Update input when date changes externally
+  React.useEffect(() => {
+    if (date) {
+      setInputValue(format(date, "dd/MM/yyyy"))
+    } else {
+      setInputValue("")
+    }
+  }, [date])
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -140,6 +180,22 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
+        <div className="p-3 border-b space-y-2">
+          <label className="text-sm font-medium text-foreground block">
+            Enter date (dd/MM/yyyy)
+          </label>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="dd/MM/yyyy"
+            className={cn(
+              "w-full px-3 py-2 border rounded-md text-sm",
+              "border-input bg-background",
+              "focus:outline-none focus:ring-2 focus:ring-ring"
+            )}
+          />
+        </div>
         <Calendar
           mode="single"
           selected={date}
@@ -163,23 +219,96 @@ export function DateRangePicker({
   conversionWindow,
   onConversionWindowChange,
 }: DateRangePickerProps) {
+  const [fromInputValue, setFromInputValue] = React.useState(
+    dateRange?.from ? format(dateRange.from, "dd/MM/yyyy") : ""
+  )
+  const [toInputValue, setToInputValue] = React.useState(
+    dateRange?.to ? format(dateRange.to, "dd/MM/yyyy") : ""
+  )
+
   const formatDateRange = (range: DateRange | undefined) => {
     if (!range || !range.from) return placeholder
-    
+
     if (range.from && range.to) {
       if (range.from.getTime() === range.to.getTime()) {
         return format(range.from, "PPP")
       }
       return `${format(range.from, "PPP")} - ${format(range.to, "PPP")}`
     }
-    
+
     return `${format(range.from, "PPP")} - ...`
+  }
+
+  const parseDate = (dateString: string): Date | null => {
+    if (dateString.length !== 10) return null
+
+    const parts = dateString.split("/")
+    if (parts.length !== 3) return null
+
+    const [day, month, year] = parts
+    const parsedDate = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day)
+    )
+
+    // Validate the date
+    if (
+      !isNaN(parsedDate.getTime()) &&
+      parsedDate.getDate() === parseInt(day) &&
+      parsedDate.getMonth() === parseInt(month) - 1
+    ) {
+      return parsedDate
+    }
+
+    return null
+  }
+
+  const handleFromInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFromInputValue(value)
+
+    const parsedDate = parseDate(value)
+    if (parsedDate) {
+      onDateRangeChange?.({
+        from: parsedDate,
+        to: dateRange?.to,
+      })
+    }
+  }
+
+  const handleToInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setToInputValue(value)
+
+    const parsedDate = parseDate(value)
+    if (parsedDate) {
+      onDateRangeChange?.({
+        from: dateRange?.from,
+        to: parsedDate,
+      })
+    }
   }
 
   const handlePresetSelect = (preset: typeof presets[0]) => {
     const range = preset.value()
     onDateRangeChange?.(range)
   }
+
+  // Update input when dateRange changes externally
+  React.useEffect(() => {
+    if (dateRange?.from) {
+      setFromInputValue(format(dateRange.from, "dd/MM/yyyy"))
+    } else {
+      setFromInputValue("")
+    }
+
+    if (dateRange?.to) {
+      setToInputValue(format(dateRange.to, "dd/MM/yyyy"))
+    } else {
+      setToInputValue("")
+    }
+  }, [dateRange])
 
   return (
     <Popover>
@@ -197,17 +326,46 @@ export function DateRangePicker({
           <span className="truncate">{formatDateRange(dateRange)}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-auto p-0" 
-        align="end" 
+      <PopoverContent
+        className="w-auto p-0"
+        align="end"
         side="bottom"
         sideOffset={4}
         avoidCollisions={true}
         collisionPadding={16}
       >
         <div className="flex flex-col max-h-[80vh] overflow-hidden">
-          {showPresets && (
-            <div className="border-b p-3 flex-shrink-0">
+          <div className="border-b p-3 flex-shrink-0 space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground block">
+                Enter dates (dd/MM/yyyy)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={fromInputValue}
+                  onChange={handleFromInputChange}
+                  placeholder="From"
+                  className={cn(
+                    "flex-1 px-3 py-2 border rounded-md text-sm",
+                    "border-input bg-background",
+                    "focus:outline-none focus:ring-2 focus:ring-ring"
+                  )}
+                />
+                <input
+                  type="text"
+                  value={toInputValue}
+                  onChange={handleToInputChange}
+                  placeholder="To"
+                  className={cn(
+                    "flex-1 px-3 py-2 border rounded-md text-sm",
+                    "border-input bg-background",
+                    "focus:outline-none focus:ring-2 focus:ring-ring"
+                  )}
+                />
+              </div>
+            </div>
+            {showPresets && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
@@ -215,7 +373,7 @@ export function DateRangePicker({
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
+                <DropdownMenuContent
                   className="w-full"
                   align="start"
                   side="bottom"
@@ -232,8 +390,8 @@ export function DateRangePicker({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          )}
+            )}
+          </div>
           <div className="overflow-auto">
             <Calendar
               mode="range"

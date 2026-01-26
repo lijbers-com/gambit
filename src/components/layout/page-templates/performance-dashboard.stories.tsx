@@ -22,9 +22,11 @@ import React, { useState, useEffect } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
-import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus } from 'lucide-react';
+import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus, Info } from 'lucide-react';
+import { LineChart as RechartsLineChart, Line as RechartsLine, ResponsiveContainer } from 'recharts';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
@@ -3156,7 +3158,7 @@ export const FunnelView: Story = {
     };
 
     // Metric selection states for each funnel card
-    const [awarenessMetrics, setAwarenessMetrics] = useState<string[]>(['impressions', 'sov', 'salesUplift', 'omiDots', 'doohSpots']);
+    const [awarenessMetrics, setAwarenessMetrics] = useState<string[]>(['spaImpressions', 'impressions', 'omiDots', 'doohSpots', 'sov', 'salesUplift']);
     const [considerationMetrics, setConsiderationMetrics] = useState<string[]>(['clicks', 'dots', 'displayClicks', 'viewability']);
     const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
     const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
@@ -3176,10 +3178,13 @@ export const FunnelView: Story = {
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
 
     // Collapse states for funnel cards
-    const [awarenessCollapsed, setAwarenessCollapsed] = useState(false);
-    const [considerationCollapsed, setConsiderationCollapsed] = useState(false);
-    const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
-    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
+    const [awarenessCollapsed, setAwarenessCollapsed] = useState(true);
+    const [volumeDetailsCollapsed, setVolumeDetailsCollapsed] = useState(false);
+    const [sovDetailsCollapsed, setSovDetailsCollapsed] = useState(false);
+    const [buyerReachDetailsCollapsed, setBuyerReachDetailsCollapsed] = useState(false);
+    const [considerationCollapsed, setConsiderationCollapsed] = useState(true);
+    const [purchaseCollapsed, setPurchaseCollapsed] = useState(true);
+    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(true);
 
     // Handle Goal filter changes - expand selected card(s) and collapse others
     useEffect(() => {
@@ -3261,40 +3266,166 @@ export const FunnelView: Story = {
     };
 
     // Sample data for charts
-    const awarenessData = [
-      { month: 'Jan', impressions: 380000, sov: 28, salesUplift: 12, omiDots: 1650, doohSpots: 2200 },
-      { month: 'Feb', impressions: 520000, sov: 38, salesUplift: 15, omiDots: 2300, doohSpots: 2850 },
-      { month: 'Mar', impressions: 465000, sov: 35, salesUplift: 18, omiDots: 2050, doohSpots: 2600 },
-      { month: 'Apr', impressions: 585000, sov: 42, salesUplift: 21, omiDots: 2750, doohSpots: 3250 },
-      { month: 'May', impressions: 610000, sov: 44, salesUplift: 24, omiDots: 2950, doohSpots: 3500 },
-      { month: 'Jun', impressions: 645000, sov: 47, salesUplift: 27, omiDots: 3200, doohSpots: 3800 }
+    const impressionKeys = ['spaImpressions', 'impressions', 'omiDots', 'doohSpots'] as const;
+    const selectedImpressionKeys = impressionKeys.filter(k => awarenessMetrics.includes(k));
+
+    const awarenessDataRaw = [
+      { month: 'Jan', spaImpressions: 120000, impressions: 65000, sov: 28, salesUplift: 12, omiDots: 62000, doohSpots: 58000 },
+      { month: 'Feb', spaImpressions: 175000, impressions: 95000, sov: 38, salesUplift: 15, omiDots: 98000, doohSpots: 87000 },
+      { month: 'Mar', spaImpressions: 155000, impressions: 82000, sov: 35, salesUplift: 18, omiDots: 85000, doohSpots: 78000 },
+      { month: 'Apr', spaImpressions: 220000, impressions: 118000, sov: 42, salesUplift: 21, omiDots: 120000, doohSpots: 112000 },
+      { month: 'May', spaImpressions: 265000, impressions: 140000, sov: 44, salesUplift: 24, omiDots: 142000, doohSpots: 133000 },
+      { month: 'Jun', spaImpressions: 300000, impressions: 160000, sov: 47, salesUplift: 27, omiDots: 160000, doohSpots: 155000 }
     ];
 
-    const considerationData = [
-      { month: 'Jan', clicks: 11200, dots: 7800, displayClicks: 5500, viewability: 68 },
-      { month: 'Feb', clicks: 15800, dots: 10500, displayClicks: 7800, viewability: 76 },
-      { month: 'Mar', clicks: 13900, dots: 9200, displayClicks: 6900, viewability: 73 },
-      { month: 'Apr', clicks: 18400, dots: 12200, displayClicks: 9100, viewability: 81 },
-      { month: 'May', clicks: 19800, dots: 13500, displayClicks: 9800, viewability: 83 },
-      { month: 'Jun', clicks: 21500, dots: 14800, displayClicks: 10600, viewability: 86 }
+    const awarenessData = awarenessDataRaw.map(d => ({
+      ...d,
+      totalVolume: selectedImpressionKeys.reduce((sum, key) => sum + (d[key] as number), 0)
+    }));
+
+    const totalVolumeLabel = `${Math.round(awarenessData[awarenessData.length - 1].totalVolume / 1000)}K`;
+
+    const buyerReachData = [
+      { month: 'Jan', newToBrand: 12500, lapsed: 8200, existing: 15800 },
+      { month: 'Feb', newToBrand: 16800, lapsed: 9500, existing: 18200 },
+      { month: 'Mar', newToBrand: 14900, lapsed: 8900, existing: 17100 },
+      { month: 'Apr', newToBrand: 19200, lapsed: 11200, existing: 20500 },
+      { month: 'May', newToBrand: 21500, lapsed: 12800, existing: 22100 },
+      { month: 'Jun', newToBrand: 24200, lapsed: 14500, existing: 24800 }
     ];
 
-    const purchaseData = [
-      { month: 'Jan', roas: 2.8, iroas: 2.4, purchaseBehavior: 62 },
-      { month: 'Feb', roas: 3.9, iroas: 3.4, purchaseBehavior: 74 },
-      { month: 'Mar', roas: 3.5, iroas: 3.0, purchaseBehavior: 69 },
-      { month: 'Apr', roas: 4.3, iroas: 3.8, purchaseBehavior: 79 },
-      { month: 'May', roas: 4.6, iroas: 4.1, purchaseBehavior: 83 },
-      { month: 'Jun', roas: 5.1, iroas: 4.5, purchaseBehavior: 88 }
+    const buyerReachConfig = {
+      newToBrand: { label: "New-to-brand reach", color: "hsl(var(--chart-1))" },
+      lapsed: { label: "Lapsed brand reach", color: "hsl(var(--chart-2))" },
+      existing: { label: "Existing brand reach", color: "hsl(var(--chart-3))" }
+    };
+
+    // Per-channel SOV data
+    const sovChannelData = {
+      spaImpressions: { label: "SPA SOV", value: 52, pieData: [{ name: "Your Brand", value: 52 }, { name: "Competitors", value: 48 }] },
+      impressions: { label: "Display SOV", value: 38, pieData: [{ name: "Your Brand", value: 38 }, { name: "Competitors", value: 62 }] },
+      omiDots: { label: "OMI otS SOV", value: 41, pieData: [{ name: "Your Brand", value: 41 }, { name: "Competitors", value: 59 }] },
+      doohSpots: { label: "DooH DotS SOV", value: 48, pieData: [{ name: "Your Brand", value: 48 }, { name: "Competitors", value: 52 }] },
+    };
+
+    // Per-channel buyer reach data
+    const buyerReachChannelData = {
+      spaImpressions: [
+        { month: 'Jan', newToBrand: 4200, lapsed: 2800, existing: 5300 },
+        { month: 'Feb', newToBrand: 5600, lapsed: 3200, existing: 6100 },
+        { month: 'Mar', newToBrand: 5000, lapsed: 3000, existing: 5700 },
+        { month: 'Apr', newToBrand: 6400, lapsed: 3700, existing: 6800 },
+        { month: 'May', newToBrand: 7200, lapsed: 4300, existing: 7400 },
+        { month: 'Jun', newToBrand: 8100, lapsed: 4800, existing: 8300 },
+      ],
+      impressions: [
+        { month: 'Jan', newToBrand: 3100, lapsed: 2100, existing: 3900 },
+        { month: 'Feb', newToBrand: 4200, lapsed: 2400, existing: 4500 },
+        { month: 'Mar', newToBrand: 3700, lapsed: 2200, existing: 4300 },
+        { month: 'Apr', newToBrand: 4800, lapsed: 2800, existing: 5100 },
+        { month: 'May', newToBrand: 5400, lapsed: 3200, existing: 5500 },
+        { month: 'Jun', newToBrand: 6100, lapsed: 3600, existing: 6200 },
+      ],
+      omiDots: [
+        { month: 'Jan', newToBrand: 2800, lapsed: 1800, existing: 3500 },
+        { month: 'Feb', newToBrand: 3800, lapsed: 2100, existing: 4100 },
+        { month: 'Mar', newToBrand: 3400, lapsed: 1900, existing: 3800 },
+        { month: 'Apr', newToBrand: 4300, lapsed: 2500, existing: 4600 },
+        { month: 'May', newToBrand: 4800, lapsed: 2800, existing: 5000 },
+        { month: 'Jun', newToBrand: 5400, lapsed: 3200, existing: 5600 },
+      ],
+      doohSpots: [
+        { month: 'Jan', newToBrand: 2400, lapsed: 1500, existing: 3100 },
+        { month: 'Feb', newToBrand: 3200, lapsed: 1800, existing: 3500 },
+        { month: 'Mar', newToBrand: 2800, lapsed: 1800, existing: 3300 },
+        { month: 'Apr', newToBrand: 3700, lapsed: 2200, existing: 4000 },
+        { month: 'May', newToBrand: 4100, lapsed: 2500, existing: 4200 },
+        { month: 'Jun', newToBrand: 4600, lapsed: 2900, existing: 4700 },
+      ],
+    };
+
+    const channelLabels: Record<string, string> = {
+      spaImpressions: 'Sponsored Products',
+      impressions: 'Display',
+      omiDots: 'Digital Media In-store',
+      doohSpots: 'Offline Media In-store',
+    };
+
+    const channelColors: Record<string, string> = {
+      spaImpressions: 'hsl(var(--chart-2))',
+      impressions: 'hsl(var(--chart-3))',
+      omiDots: 'hsl(var(--chart-4))',
+      doohSpots: 'hsl(var(--chart-5))',
+    };
+
+    const channelTooltips: Record<string, string> = {
+      spaImpressions: 'Impressions from Sponsored Product Ads shown in search results and product pages',
+      impressions: 'Impressions from display advertising such as banners and rich media placements',
+      omiDots: 'Digital media impressions delivered on in-store screens and digital signage',
+      doohSpots: 'Offline media impressions from digital out-of-home screens in and around stores',
+    };
+
+    const channelSovTooltips: Record<string, string> = {
+      spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
+      impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
+      omiDots: 'Share of digital in-store screen time compared to competitors',
+      doohSpots: 'Share of offline in-store media placements compared to competitors',
+    };
+
+    const titleTooltips = {
+      totalVolume: 'Total number of impressions across all selected channels. The sum of Sponsored Products, Display, Digital Media In-store and Offline Media In-store impressions.',
+      totalSov: 'Weighted average share of voice across all selected channels. Indicates your brand visibility relative to competitors.',
+      totalBuyerReach: 'Total unique buyers reached across all campaigns, segmented by new-to-brand, lapsed and existing customers.',
+    };
+
+    // Consideration data - engagements by channel
+    const considerationDataRaw = [
+      { month: 'Jan', spaClicks: 5200, displayClicks: 3100, doohClicks: 1800, omiClicks: 1100, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
+      { month: 'Feb', spaClicks: 7400, displayClicks: 4400, doohClicks: 2600, omiClicks: 1400, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
+      { month: 'Mar', spaClicks: 6500, displayClicks: 3800, doohClicks: 2200, omiClicks: 1400, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
+      { month: 'Apr', spaClicks: 8600, displayClicks: 5100, doohClicks: 3000, omiClicks: 1700, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
+      { month: 'May', spaClicks: 9300, displayClicks: 5500, doohClicks: 3200, omiClicks: 1800, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
+      { month: 'Jun', spaClicks: 10100, displayClicks: 5900, doohClicks: 3500, omiClicks: 2000, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
     ];
 
+    const considerationEngagementKeys = ['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks'] as const;
+    const considerationData = considerationDataRaw.map(d => ({
+      ...d,
+      totalEngagements: considerationEngagementKeys.reduce((sum, key) => sum + d[key], 0),
+      totalCtr: parseFloat(((d.spaCtr + d.displayCtr) / 2).toFixed(1)),
+    }));
+
+    const totalEngagementsLabel = `${Math.round(considerationData[considerationData.length - 1].totalEngagements / 1000)}K`;
+
+    // Purchase data - revenue and conversions by channel
+    const purchaseDataRaw = [
+      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, roas: 2.8, iroas: 2.4, addToCartRate: 3.2, unitsSold: 1200, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
+      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, roas: 3.9, iroas: 3.4, addToCartRate: 3.8, unitsSold: 1800, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
+      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, roas: 3.5, iroas: 3.0, addToCartRate: 3.5, unitsSold: 1550, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
+      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, roas: 4.3, iroas: 3.8, addToCartRate: 4.2, unitsSold: 2200, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
+      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, roas: 4.6, iroas: 4.1, addToCartRate: 4.5, unitsSold: 2400, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
+      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, roas: 5.1, iroas: 4.5, addToCartRate: 4.8, unitsSold: 2700, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
+    ];
+
+    const purchaseData = purchaseDataRaw.map(d => ({
+      ...d,
+      totalRevenue: d.spaRevenue + d.displayRevenue + d.dmiRevenue + d.omiRevenue,
+      totalBuyers: Math.round(d.conversions * 0.85),
+      newBuyers: Math.round(d.conversions * 0.3),
+      lapsedBuyers: Math.round(d.conversions * 0.25),
+      existingBuyers: Math.round(d.conversions * 0.3),
+    }));
+
+    const totalRevenueLabel = `€${Math.round(purchaseData[purchaseData.length - 1].totalRevenue / 1000)}K`;
+
+    // Loyalty data
     const loyaltyData = [
-      { month: 'Jan', repeatPurchaseRate: 28, customerLifetimeValue: 265, churnRate: 9.2 },
-      { month: 'Feb', repeatPurchaseRate: 37, customerLifetimeValue: 305, churnRate: 7.5 },
-      { month: 'Mar', repeatPurchaseRate: 34, customerLifetimeValue: 290, churnRate: 8.1 },
-      { month: 'Apr', repeatPurchaseRate: 43, customerLifetimeValue: 335, churnRate: 6.3 },
-      { month: 'May', repeatPurchaseRate: 46, customerLifetimeValue: 350, churnRate: 5.8 },
-      { month: 'Jun', repeatPurchaseRate: 51, customerLifetimeValue: 375, churnRate: 4.9 }
+      { month: 'Jan', clv: 265, churnRate: 9.2, retentionRate: 68, frequency: 2.1, existingBuyers: 3200, lapsedBuyers: 890 },
+      { month: 'Feb', clv: 305, churnRate: 7.5, retentionRate: 72, frequency: 2.4, existingBuyers: 3500, lapsedBuyers: 820 },
+      { month: 'Mar', clv: 290, churnRate: 8.1, retentionRate: 70, frequency: 2.3, existingBuyers: 3400, lapsedBuyers: 850 },
+      { month: 'Apr', clv: 335, churnRate: 6.3, retentionRate: 76, frequency: 2.7, existingBuyers: 3900, lapsedBuyers: 740 },
+      { month: 'May', clv: 350, churnRate: 5.8, retentionRate: 78, frequency: 2.9, existingBuyers: 4100, lapsedBuyers: 690 },
+      { month: 'Jun', clv: 375, churnRate: 4.9, retentionRate: 82, frequency: 3.2, existingBuyers: 4400, lapsedBuyers: 620 }
     ];
 
     // Data for top metric cards
@@ -3308,20 +3439,20 @@ export const FunnelView: Story = {
     ];
 
     // Metric definitions for top cards
-    const metricDefinitions: Record<string, { label: string; value: string; badge: string; badgeVariant: "default" | "success" | "warning"; config: any; dataKey: string }> = {
-      sales: { label: 'Total Sales', value: '€200K', badge: '+78%', badgeVariant: 'success', config: { sales: { label: "Sales (K€)", color: "hsl(var(--chart-3))" } }, dataKey: 'sales' },
-      reach: { label: 'Reach', value: '850K', badge: '+102%', badgeVariant: 'success', config: { reach: { label: "Reach (K)", color: "hsl(var(--chart-3))" } }, dataKey: 'reach' },
-      salesUplift: { label: 'Sales Uplift', value: '27%', badge: '+4.2%', badgeVariant: 'success', config: { salesUplift: { label: "Sales Uplift %", color: "hsl(var(--chart-3))" } }, dataKey: 'salesUplift' },
-      avgRevenuePerCustomer: { label: 'Avg Revenue per Customer', value: '€60', badge: '+33%', badgeVariant: 'success', config: { avgRevenuePerCustomer: { label: "Avg Revenue (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'avgRevenuePerCustomer' },
-      customerLifetimeValue: { label: 'Customer Lifetime Value', value: '€355', badge: '+27%', badgeVariant: 'success', config: { customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'customerLifetimeValue' },
-      spend: { label: 'Total Spend', value: '€42.5K', badge: '85% of budget', badgeVariant: 'default', config: { spend: { label: "Spend (K€)", color: "hsl(var(--chart-1))" } }, dataKey: 'spend' },
-      costPerAcquisition: { label: 'Cost per Acquisition', value: '€18', badge: '-36%', badgeVariant: 'success', config: { costPerAcquisition: { label: "CPA (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerAcquisition' },
-      costPerClick: { label: 'Cost per Click', value: '€1.60', badge: '-24%', badgeVariant: 'success', config: { costPerClick: { label: "CPC (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerClick' },
-      budgetUtilization: { label: 'Budget Utilization', value: '85%', badge: '+31%', badgeVariant: 'warning', config: { budgetUtilization: { label: "Budget %", color: "hsl(var(--chart-1))" } }, dataKey: 'budgetUtilization' },
-      roas: { label: 'ROAS', value: '4.7x', badge: '+0.8x', badgeVariant: 'success', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
-      iroas: { label: 'iROAS', value: '4.2x', badge: '+1.4x', badgeVariant: 'success', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
-      conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
-      clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
+    const metricDefinitions: Record<string, { label: string; value: string; badge: string; badgeVariant: "default" | "success" | "warning"; graphColor: string; config: any; dataKey: string }> = {
+      sales: { label: 'Total Sales', value: '€200K', badge: '+78%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { sales: { label: "Sales (K€)", color: "hsl(var(--chart-3))" } }, dataKey: 'sales' },
+      reach: { label: 'Reach', value: '850K', badge: '+102%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { reach: { label: "Reach (K)", color: "hsl(var(--chart-3))" } }, dataKey: 'reach' },
+      salesUplift: { label: 'Sales Uplift', value: '27%', badge: '+4.2%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { salesUplift: { label: "Sales Uplift %", color: "hsl(var(--chart-3))" } }, dataKey: 'salesUplift' },
+      avgRevenuePerCustomer: { label: 'Avg Revenue per Customer', value: '€60', badge: '+33%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { avgRevenuePerCustomer: { label: "Avg Revenue (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'avgRevenuePerCustomer' },
+      customerLifetimeValue: { label: 'Customer Lifetime Value', value: '€355', badge: '+27%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'customerLifetimeValue' },
+      spend: { label: 'Total Spend', value: '€42.5K', badge: '85% of budget', badgeVariant: 'default', graphColor: 'hsl(var(--chart-1))', config: { spend: { label: "Spend (K€)", color: "hsl(var(--chart-1))" } }, dataKey: 'spend' },
+      costPerAcquisition: { label: 'Cost per Acquisition', value: '€18', badge: '-36%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerAcquisition: { label: "CPA (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerAcquisition' },
+      costPerClick: { label: 'Cost per Click', value: '€1.60', badge: '-24%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerClick: { label: "CPC (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerClick' },
+      budgetUtilization: { label: 'Budget Utilization', value: '85%', badge: '+31%', badgeVariant: 'warning', graphColor: 'hsl(var(--chart-1))', config: { budgetUtilization: { label: "Budget %", color: "hsl(var(--chart-1))" } }, dataKey: 'budgetUtilization' },
+      roas: { label: 'ROAS', value: '4.7x', badge: '+0.8x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
+      iroas: { label: 'iROAS', value: '4.2x', badge: '+1.4x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
+      conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
+      clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
     };
 
     const awarenessConfig = {
@@ -3409,141 +3540,52 @@ export const FunnelView: Story = {
           <div className="flex items-center gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="outline">
-                  <Settings2 className="h-5 w-5" />
+                <Button variant="outline" className="gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Proposition
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 max-h-[500px] overflow-y-auto">
-                <DropdownMenuLabel>Customize Dashboard</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                {/* Top Metric Cards Section */}
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Sales Metrics</p>
-                  <div className="space-y-2">
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('sales')}
-                      onCheckedChange={() => toggleTopMetric('sales')}
-                    >
-                      Total Sales
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('salesUplift')}
-                      onCheckedChange={() => toggleTopMetric('salesUplift')}
-                    >
-                      Sales Uplift
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('avgRevenuePerCustomer')}
-                      onCheckedChange={() => toggleTopMetric('avgRevenuePerCustomer')}
-                    >
-                      Avg Revenue per Customer
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('customerLifetimeValue')}
-                      onCheckedChange={() => toggleTopMetric('customerLifetimeValue')}
-                    >
-                      Customer Lifetime Value
-                    </DropdownMenuCheckboxItem>
-                  </div>
-                </div>
-
-                <DropdownMenuSeparator />
-
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Spend Metrics</p>
-                  <div className="space-y-2">
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('spend')}
-                      onCheckedChange={() => toggleTopMetric('spend')}
-                    >
-                      Total Spend
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('costPerAcquisition')}
-                      onCheckedChange={() => toggleTopMetric('costPerAcquisition')}
-                    >
-                      Cost per Acquisition
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('costPerClick')}
-                      onCheckedChange={() => toggleTopMetric('costPerClick')}
-                    >
-                      Cost per Click
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('budgetUtilization')}
-                      onCheckedChange={() => toggleTopMetric('budgetUtilization')}
-                    >
-                      Budget Utilization
-                    </DropdownMenuCheckboxItem>
-                  </div>
-                </div>
-
-                <DropdownMenuSeparator />
-
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Performance Metrics</p>
-                  <div className="space-y-2">
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('roas')}
-                      onCheckedChange={() => toggleTopMetric('roas')}
-                    >
-                      ROAS
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('iroas')}
-                      onCheckedChange={() => toggleTopMetric('iroas')}
-                    >
-                      iROAS
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('conversionRate')}
-                      onCheckedChange={() => toggleTopMetric('conversionRate')}
-                    >
-                      Conversion Rate
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTopMetrics.includes('clickThroughRate')}
-                      onCheckedChange={() => toggleTopMetric('clickThroughRate')}
-                    >
-                      Click-through Rate
-                    </DropdownMenuCheckboxItem>
-                  </div>
-                </div>
-
-                <DropdownMenuSeparator />
-
-                {/* Funnel Cards Section */}
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Funnel Stages</p>
-                  <div className="space-y-2">
-                    <DropdownMenuCheckboxItem
-                      checked={visibleFunnelCards.awareness}
-                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, awareness: checked }))}
-                    >
-                      Awareness
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleFunnelCards.consideration}
-                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, consideration: checked }))}
-                    >
-                      Consideration
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleFunnelCards.purchase}
-                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, purchase: checked }))}
-                    >
-                      Purchase
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleFunnelCards.loyalty}
-                      onCheckedChange={(checked) => setVisibleFunnelCards(prev => ({ ...prev, loyalty: checked }))}
-                    >
-                      Loyalty
-                    </DropdownMenuCheckboxItem>
-                  </div>
-                </div>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuCheckboxItem
+                  checked={awarenessMetrics.includes('spaImpressions')}
+                  onCheckedChange={(checked) => {
+                    setAwarenessMetrics(prev =>
+                      checked ? [...prev, 'spaImpressions'] : prev.filter(m => m !== 'spaImpressions')
+                    );
+                  }}
+                >
+                  Sponsored Products
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={awarenessMetrics.includes('impressions')}
+                  onCheckedChange={(checked) => {
+                    setAwarenessMetrics(prev =>
+                      checked ? [...prev, 'impressions'] : prev.filter(m => m !== 'impressions')
+                    );
+                  }}
+                >
+                  Display
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={awarenessMetrics.includes('omiDots')}
+                  onCheckedChange={(checked) => {
+                    setAwarenessMetrics(prev =>
+                      checked ? [...prev, 'omiDots'] : prev.filter(m => m !== 'omiDots')
+                    );
+                  }}
+                >
+                  Digital Media In-store
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={awarenessMetrics.includes('doohSpots')}
+                  onCheckedChange={(checked) => {
+                    setAwarenessMetrics(prev =>
+                      checked ? [...prev, 'doohSpots'] : prev.filter(m => m !== 'doohSpots')
+                    );
+                  }}
+                >
+                  Offline Media In-store
+                </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -3587,147 +3629,73 @@ export const FunnelView: Story = {
             </div>
           </div>
 
-          {/* Top Metric Cards - Combined Chart */}
-          {selectedTopMetrics.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                {selectedTopMetrics.map((metricKey) => (
-                  <div key={metricKey} className="space-y-1">
-                    <div className="text-sm font-normal text-muted-foreground">
-                      {metricDefinitions[metricKey].label}
-                    </div>
-                    <div className="text-3xl font-bold">{metricDefinitions[metricKey].value}</div>
-                    <Badge variant={metricDefinitions[metricKey].badgeVariant} className="text-xs">
-                      {metricDefinitions[metricKey].badge}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <AreaChartComponent
-                data={topMetricsData}
-                config={{
-                  sales: { label: "Total Sales (K€)", color: "hsl(var(--chart-1))" },
-                  spend: { label: "Total Spend (K€)", color: "hsl(var(--chart-2))" },
-                  roasEuro: { label: "ROAS (K€)", color: "hsl(var(--chart-3))" }
-                }}
-                showLegend={true}
-                showGrid={true}
-                showTooltip={true}
-                showXAxis={true}
-                showYAxis={true}
-                className="h-[300px] w-full"
+          {/* Top Metric Cards */}
+          {/* grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-5 */}
+          <div className={`grid grid-cols-1 md:grid-cols-${Math.min(selectedTopMetrics.length + 1, 5)} gap-4`}>
+            {selectedTopMetrics.map((metricKey) => (
+              <MetricCard
+                key={metricKey}
+                label={metricDefinitions[metricKey].label}
+                value={metricDefinitions[metricKey].value}
+                badgeValue={metricDefinitions[metricKey].badge}
+                badgeVariant={metricDefinitions[metricKey].badgeVariant}
+                variant="graph"
+                graphData={topMetricsData.map(d => ({ value: d[metricDefinitions[metricKey].dataKey as keyof typeof d] as number }))}
+                graphColor={metricDefinitions[metricKey].graphColor}
               />
-            </CardContent>
-          </Card>
-          )}
+            ))}
+            <Dialog>
+              <DialogTrigger asChild>
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="h-8 w-8 text-gray-400" />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px]">
+                <DialogHeader>
+                  <DialogTitle>Select a Metric</DialogTitle>
+                  <DialogDescription>
+                    Choose a metric to add to your dashboard. Click on any metric card to select it.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="max-h-[500px] overflow-y-auto p-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    {Object.entries(metricDefinitions)
+                      .filter(([key]) => !selectedTopMetrics.includes(key))
+                      .map(([key, metric]) => (
+                        <MetricCard
+                          key={key}
+                          label={metric.label}
+                          value={metric.value}
+                          badgeValue={metric.badge}
+                          badgeVariant={metric.badgeVariant}
+                          variant="graph"
+                          graphData={topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number }))}
+                          graphColor={metric.graphColor}
+                          className="cursor-pointer hover:ring-2 hover:ring-primary"
+                          onClick={() => {
+                            setSelectedTopMetrics(prev => [...prev, key]);
+                          }}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           {/* Awareness Card */}
           {visibleFunnelCards.awareness && (
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Awareness</CardTitle>
-                  <p className={`text-sm text-muted-foreground ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    615K - Total impressions across all campaigns
+                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    Total Volume {totalVolumeLabel}
                   </p>
                 </div>
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <Settings2 className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
-                    <DropdownMenuLabel>Customize Awareness</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Display</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={awarenessMetrics.includes('impressions')}
-                          onCheckedChange={(checked) => {
-                            setAwarenessMetrics(prev =>
-                              checked ? [...prev, 'impressions'] : prev.filter(m => m !== 'impressions')
-                            );
-                          }}
-                        >
-                          Display Impressions
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Digital In-store</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={awarenessMetrics.includes('omiDots')}
-                          onCheckedChange={(checked) => {
-                            setAwarenessMetrics(prev =>
-                              checked ? [...prev, 'omiDots'] : prev.filter(m => m !== 'omiDots')
-                            );
-                          }}
-                        >
-                          OMI otS
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Offline In-store</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={awarenessMetrics.includes('doohSpots')}
-                          onCheckedChange={(checked) => {
-                            setAwarenessMetrics(prev =>
-                              checked ? [...prev, 'doohSpots'] : prev.filter(m => m !== 'doohSpots')
-                            );
-                          }}
-                        >
-                          DooH DotS
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Other</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={awarenessMetrics.includes('sov')}
-                          onCheckedChange={(checked) => {
-                            setAwarenessMetrics(prev =>
-                              checked ? [...prev, 'sov'] : prev.filter(m => m !== 'sov')
-                            );
-                          }}
-                        >
-                          Share of Voice (SOV)
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={awarenessMetrics.includes('salesUplift')}
-                          onCheckedChange={(checked) => {
-                            setAwarenessMetrics(prev =>
-                              checked ? [...prev, 'salesUplift'] : prev.filter(m => m !== 'salesUplift')
-                            );
-                          }}
-                        >
-                          Total Sales Uplift
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -3739,146 +3707,335 @@ export const FunnelView: Story = {
                   {awarenessCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                 </Button>
               </div>
-              </div>
+              {awarenessCollapsed && (
+                <div className="h-12 w-full -mb-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsLineChart data={awarenessData.map(d => ({ value: d.totalVolume }))}>
+                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-1))", strokeWidth: 2 }} />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardHeader>
             {!awarenessCollapsed && (
             <CardContent>
-              <div className="flex gap-6">
-                {/* Left side - Funnel indicator */}
-                <div className="relative w-[250px] flex-shrink-0">
-                  {/* Vertical line */}
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
-
-                  {/* Stage indicator */}
-                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
-                        <Eye className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl font-bold">615K</div>
-                        <div className="text-sm text-muted-foreground leading-tight">Total impressions across all campaigns</div>
-                        <div className="flex flex-col items-start gap-1 mt-4">
-                          <Badge variant="secondary" className="text-xs">Display Impressions 300K</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">OMI otS 160K</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">DooH DotS 155K</Badge>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-6 text-xs h-8"
-                          onClick={() => alert('Full Awareness Report')}
-                        >
-                          Full Report
-                        </Button>
-                      </div>
+              <div className="flex flex-col gap-6">
+                {/* Row 1 - Total Volume with selected impression type cards */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Volume {totalVolumeLabel}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>{titleTooltips.totalVolume}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <TooltipProvider>
+                        {selectedImpressionKeys.map((key, i) => (
+                          <React.Fragment key={key}>
+                            {i > 0 && <Plus className="w-3 h-3 text-muted-foreground" />}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span><Badge variant="secondary" className="text-xs cursor-help">{channelLabels[key]} {Math.round((awarenessDataRaw[awarenessDataRaw.length - 1] as any)[key] / 1000)}K</Badge></span>
+                              </TooltipTrigger>
+                              <TooltipContent>{channelTooltips[key]}</TooltipContent>
+                            </Tooltip>
+                          </React.Fragment>
+                        ))}
+                      </TooltipProvider>
                     </div>
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={awarenessData}
+                      config={{
+                        totalVolume: { label: "Total Volume", color: "hsl(var(--chart-1))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={Object.fromEntries(
+                        selectedImpressionKeys.map(k => [k, {
+                          spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" },
+                          impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" },
+                          omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" },
+                          doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" }
+                        }[k]])
+                      )}
+                    />
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setVolumeDetailsCollapsed(!volumeDetailsCollapsed)}
+                      >
+                        {volumeDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!volumeDetailsCollapsed && (
+                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${selectedImpressionKeys.length} gap-4`}>
+                      {awarenessMetrics.includes('spaImpressions') && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">SPA Impressions {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].spaImpressions / 1000)}K</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={awarenessData}
+                              config={{ spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                            <div className="flex justify-end mt-2">
+                              <Badge variant="success" className="text-xs">+54%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
 
-                {/* Right side - Grid of chart cards */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {awarenessMetrics.includes('impressions') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Display Impressions 300K</CardTitle>
-                        </CardHeader>
-                      <CardContent>
-                        <LineChartComponent
-                          data={awarenessData}
-                          config={{ impressions: { label: "Impressions", color: "hsl(var(--chart-1))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-[150px] w-full"
-                          xAxisDataKey="month"
-                        />
-                        <div className="flex justify-end mt-2">
-                          <Badge variant="success" className="text-xs">+46%</Badge>
-                        </div>
-                      </CardContent>
-                      </Card>
+                      {awarenessMetrics.includes('impressions') && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">Display Impressions {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].impressions / 1000)}K</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={awarenessData}
+                              config={{ impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                            <div className="flex justify-end mt-2">
+                              <Badge variant="success" className="text-xs">+46%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {awarenessMetrics.includes('omiDots') && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">OMI otS {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].omiDots / 1000)}K</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={awarenessData}
+                              config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                            <div className="flex justify-end mt-2">
+                              <Badge variant="success" className="text-xs">+68%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {awarenessMetrics.includes('doohSpots') && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">DooH DotS {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].doohSpots / 1000)}K</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={awarenessData}
+                              config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                            <div className="flex justify-end mt-2">
+                              <Badge variant="success" className="text-xs">+52%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
                     )}
-                    {awarenessMetrics.includes('sov') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Share of Voice 45%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <PieChartComponent
-                            data={sovPieData}
-                            config={sovPieConfig}
-                            showLegend={false}
-                            showTooltip={true}
-                            className="h-[150px] w-full"
-                            nameKey="name"
-                            dataKey="value"
-                            innerRadius={35}
-                            outerRadius={55}
-                            showLabels={true}
-                            labelPosition="inside"
-                            startAngle={90}
-                            endAngle={-270}
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+41%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Row 2 - Total Share of Voice */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Share of Voice 45%
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>{titleTooltips.totalSov}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <TooltipProvider>
+                        {selectedImpressionKeys.map((key, i) => (
+                          <React.Fragment key={key}>
+                            {i > 0 && <Plus className="w-3 h-3 text-muted-foreground" />}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span><Badge variant="secondary" className="text-xs cursor-help">{channelLabels[key]} {sovChannelData[key as keyof typeof sovChannelData].value}%</Badge></span>
+                              </TooltipTrigger>
+                              <TooltipContent>{channelSovTooltips[key]}</TooltipContent>
+                            </Tooltip>
+                          </React.Fragment>
+                        ))}
+                      </TooltipProvider>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <PieChartComponent
+                      data={sovPieData}
+                      config={sovPieConfig}
+                      showLegend={false}
+                      showTooltip={true}
+                      className="h-[200px] w-full"
+                      nameKey="name"
+                      dataKey="value"
+                      innerRadius={55}
+                      outerRadius={90}
+                      showLabels={true}
+                      labelPosition="inside"
+                      startAngle={90}
+                      endAngle={-270}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+41%</Badge>
+                    </div>
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
+                      >
+                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!sovDetailsCollapsed && (
+                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${selectedImpressionKeys.length} gap-4`}>
+                      {selectedImpressionKeys.map((key) => (
+                        <Card key={key}>
+                          <CardHeader>
+                            <CardTitle className="text-sm">{channelLabels[key]} SOV {sovChannelData[key as keyof typeof sovChannelData].value}%</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <PieChartComponent
+                              data={sovChannelData[key as keyof typeof sovChannelData].pieData}
+                              config={sovPieConfig}
+                              showLegend={false}
+                              showTooltip={true}
+                              className="h-[120px] w-full"
+                              nameKey="name"
+                              dataKey="value"
+                              innerRadius={25}
+                              outerRadius={40}
+                              showLabels={true}
+                              labelPosition="inside"
+                              startAngle={90}
+                              endAngle={-270}
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                     )}
-                    {awarenessMetrics.includes('omiDots') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">OMI otS 160K</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+68%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {awarenessMetrics.includes('doohSpots') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">DooH DotS 155K</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+52%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+
+                {/* Row 3 - Total Buyer Reach */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Buyer Reach
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>{titleTooltips.totalBuyerReach}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">New-to-brand reach</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Customer that did not have an impression, but now interacted with an ad</TooltipContent>
+                        </Tooltip>
+                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Lapsed brand reach</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Customer that had impressions, but not between x time and now interacted again</TooltipContent>
+                        </Tooltip>
+                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Existing brand reach</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Customer that has an impression before and already had this within x time</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartComponent
+                      data={buyerReachData}
+                      config={buyerReachConfig}
+                      showLegend={true}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      stacked={true}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-8 w-fit"
+                  onClick={() => alert('Full Awareness Report')}
+                >
+                  Full Report
+                </Button>
               </div>
             </CardContent>
             )}
@@ -3890,86 +4047,12 @@ export const FunnelView: Story = {
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Consideration</CardTitle>
-                  <p className={`text-sm text-muted-foreground ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    20.5K - Total clicks from engaged consumers
+                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    Total Engagements {totalEngagementsLabel}
                   </p>
                 </div>
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <Settings2 className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
-                    <DropdownMenuLabel>Customize Consideration</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Display</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={considerationMetrics.includes('displayClicks')}
-                          onCheckedChange={(checked) => {
-                            setConsiderationMetrics(prev =>
-                              checked ? [...prev, 'displayClicks'] : prev.filter(m => m !== 'displayClicks')
-                            );
-                          }}
-                        >
-                          Display Clicks
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={considerationMetrics.includes('viewability')}
-                          onCheckedChange={(checked) => {
-                            setConsiderationMetrics(prev =>
-                              checked ? [...prev, 'viewability'] : prev.filter(m => m !== 'viewability')
-                            );
-                          }}
-                        >
-                          Viewability Interactions
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={considerationMetrics.includes('clicks')}
-                          onCheckedChange={(checked) => {
-                            setConsiderationMetrics(prev =>
-                              checked ? [...prev, 'clicks'] : prev.filter(m => m !== 'clicks')
-                            );
-                          }}
-                        >
-                          Clicks
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Offline In-store</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={considerationMetrics.includes('dots')}
-                          onCheckedChange={(checked) => {
-                            setConsiderationMetrics(prev =>
-                              checked ? [...prev, 'dots'] : prev.filter(m => m !== 'dots')
-                            );
-                          }}
-                        >
-                          DooH Dots (POPs)
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -3981,144 +4064,194 @@ export const FunnelView: Story = {
                   {considerationCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                 </Button>
               </div>
-              </div>
+              {considerationCollapsed && (
+                <div className="h-12 w-full -mb-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsLineChart data={considerationData.map(d => ({ value: d.totalEngagements }))}>
+                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-2))", strokeWidth: 2 }} />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardHeader>
             {!considerationCollapsed && (
             <CardContent>
-              <div className="flex gap-6">
-                {/* Left side - Funnel indicator */}
-                <div className="relative w-[250px] flex-shrink-0">
-                  {/* Vertical line */}
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
-
-                  {/* Stage indicator */}
-                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
-                        <MousePointer className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl font-bold">20.5K</div>
-                        <div className="text-sm text-muted-foreground leading-tight">Sum of all user interactions</div>
-                        <div className="flex flex-col items-start gap-1 mt-4">
-                          <Badge variant="secondary" className="text-xs">Clicks 12.4K</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">DooH DotS (POPs) 3.8K</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">Display Clicks 2.1K</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">Viewability 2.2K</Badge>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-6 text-xs h-8"
-                          onClick={() => alert('Full Consideration Report')}
-                        >
-                          Full Report
-                        </Button>
-                      </div>
+              <div className="flex flex-col gap-6">
+                {/* Row 1 - Total Engagements */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Engagements {totalEngagementsLabel}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Total number of clicks and interactions across all channels</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">SPA Clicks {Math.round(considerationDataRaw[5].spaClicks / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Display Clicks {Math.round(considerationDataRaw[5].displayClicks / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">DOOH Clicks {Math.round(considerationDataRaw[5].doohClicks / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">OMI Clicks {Math.round(considerationDataRaw[5].omiClicks / 1000)}K</Badge>
                     </div>
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={considerationData}
+                      config={{
+                        totalEngagements: { label: "Total Engagements", color: "hsl(var(--chart-1))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={Object.fromEntries(
+                        considerationEngagementKeys.map(k => [k, {
+                          label: k === 'spaClicks' ? 'SPA Clicks' : k === 'displayClicks' ? 'Display Clicks' : k === 'doohClicks' ? 'DOOH Clicks' : 'OMI Clicks',
+                          color: 'transparent'
+                        }])
+                      )}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+78%</Badge>
+                    </div>
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setVolumeDetailsCollapsed(!volumeDetailsCollapsed)}
+                      >
+                        {volumeDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!volumeDetailsCollapsed && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {considerationEngagementKeys.map((key) => (
+                        <Card key={key}>
+                          <CardHeader>
+                            <CardTitle className="text-sm">
+                              {key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : 'OMI Clicks'} {Math.round(considerationDataRaw[5][key] / 1000)}K
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={considerationData}
+                              config={{ [key]: { label: key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : 'OMI Clicks', color: `hsl(var(--chart-${considerationEngagementKeys.indexOf(key) + 1}))` } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                {/* Right side - 2x2 Grid of chart cards */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {considerationMetrics.includes('clicks') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Clicks 12.4K</CardTitle>
-                        </CardHeader>
-                      <CardContent>
-                        <LineChartComponent
-                          data={considerationData}
-                          config={{ clicks: { label: "Clicks", color: "hsl(var(--chart-1))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-[150px] w-full"
-                          xAxisDataKey="month"
-                        />
-                        <div className="flex justify-end mt-2">
-                          <Badge variant="success" className="text-xs">+64%</Badge>
-                        </div>
-                      </CardContent>
-                      </Card>
-                    )}
-                    {considerationMetrics.includes('dots') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">DooH Dots (POPs) 3.8K</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={considerationData}
-                            config={{ dots: { label: "DooH Dots", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+67%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {considerationMetrics.includes('displayClicks') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Display Clicks 2.1K</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={considerationData}
-                            config={{ displayClicks: { label: "Display Clicks", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+63%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {considerationMetrics.includes('viewability') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Viewability Interactions 2.2K</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={considerationData}
-                            config={viewabilityConfig}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+18%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
+                {/* Row 2 - Total CTR */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total CTR {considerationData[5].totalCtr}%
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Average click-through rate across channels. Percentage of ads clicked vs impressions served.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={considerationData}
+                      config={{
+                        totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={{
+                        spaCtr: { label: 'SPA CTR %', color: 'transparent' },
+                        displayCtr: { label: 'Display CTR %', color: 'transparent' },
+                      }}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+56%</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Row 3 - Total Reach Clicks (Users) */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Reach Clicks {Math.round(considerationDataRaw[5].reachClicks / 1000)}K
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Unique count of customers (customer IDs) that had a click interaction</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">New-to-brand reach {Math.round(considerationDataRaw[5].newBrandReach / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Lapsed brand reach {Math.round(considerationDataRaw[5].lapsedReach / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Existing brand reach {Math.round(considerationDataRaw[5].existingReach / 1000)}K</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartComponent
+                      data={considerationData}
+                      config={{
+                        newBrandReach: { label: "New-to-brand", color: "hsl(var(--chart-1))" },
+                        lapsedReach: { label: "Lapsed brand", color: "hsl(var(--chart-2))" },
+                        existingReach: { label: "Existing brand", color: "hsl(var(--chart-3))" },
+                      }}
+                      showLegend={true}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      stacked={true}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+92%</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
             )}
@@ -4130,70 +4263,12 @@ export const FunnelView: Story = {
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Purchase</CardTitle>
-                  <p className={`text-sm text-muted-foreground ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    €200K - Total sales generated from campaigns
+                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    Total Buyers {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <Settings2 className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
-                    <DropdownMenuLabel>Customize Purchase</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={purchaseMetrics.includes('roas')}
-                          onCheckedChange={(checked) => {
-                            setPurchaseMetrics(prev =>
-                              checked ? [...prev, 'roas'] : prev.filter(m => m !== 'roas')
-                            );
-                          }}
-                        >
-                          ROAS
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={purchaseMetrics.includes('iroas')}
-                          onCheckedChange={(checked) => {
-                            setPurchaseMetrics(prev =>
-                              checked ? [...prev, 'iroas'] : prev.filter(m => m !== 'iroas')
-                            );
-                          }}
-                        >
-                          iROAS
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={purchaseMetrics.includes('purchaseBehavior')}
-                          onCheckedChange={(checked) => {
-                            setPurchaseMetrics(prev =>
-                              checked ? [...prev, 'purchaseBehavior'] : prev.filter(m => m !== 'purchaseBehavior')
-                            );
-                          }}
-                        >
-                          Attributable Purchase Behavior
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={purchaseMetrics.includes('customerSegmentation')}
-                          onCheckedChange={(checked) => {
-                            setPurchaseMetrics(prev =>
-                              checked ? [...prev, 'customerSegmentation'] : prev.filter(m => m !== 'customerSegmentation')
-                            );
-                          }}
-                        >
-                          Customer Segmentation
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -4205,146 +4280,229 @@ export const FunnelView: Story = {
                   {purchaseCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                 </Button>
               </div>
-              </div>
+              {purchaseCollapsed && (
+                <div className="h-12 w-full -mb-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsLineChart data={purchaseData.map(d => ({ value: d.totalBuyers }))}>
+                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-3))", strokeWidth: 2 }} />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardHeader>
             {!purchaseCollapsed && (
             <CardContent>
-              <div className="flex gap-6">
-                {/* Left side - Funnel indicator */}
-                <div className="relative w-[250px] flex-shrink-0">
-                  {/* Vertical line ends at this card */}
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
-
-                  {/* Funnel stage indicator */}
-                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
-                        <ShoppingCart className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl font-bold">4.7x</div>
-                        <div className="text-sm text-muted-foreground leading-tight">Average return on ad spend</div>
-                        <div className="flex flex-col items-start gap-1 mt-4">
-                          <Badge variant="secondary" className="text-xs">Revenue €940K</Badge>
-                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">÷</div>
-                          <Badge variant="secondary" className="text-xs">Ad Spend €200K</Badge>
-                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">×</div>
-                          <Badge variant="secondary" className="text-xs">Conversion Rate 100%</Badge>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-6 text-xs h-8"
-                          onClick={() => alert('Full Purchase Report')}
-                        >
-                          Full Report
-                        </Button>
-                      </div>
+              <div className="flex flex-col gap-6">
+                {/* Row 1 - ROAS */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      ROAS {purchaseData[5].roas}x
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Return on ad spend across Display, SPA, DMI and OMI channels</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">iROAS {purchaseData[5].iroas}x</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">CPA €{purchaseData[5].cpa}</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Adspend €{Math.round(purchaseDataRaw[5].adspend / 1000)}K</Badge>
                     </div>
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={purchaseData}
+                      config={{
+                        roas: { label: "ROAS", color: "hsl(var(--chart-1))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={{
+                        iroas: { label: 'iROAS', color: 'transparent' },
+                        cpa: { label: 'CPA (€)', color: 'transparent' },
+                        adspend: { label: 'Adspend (€)', color: 'transparent' },
+                      }}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+82%</Badge>
+                    </div>
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
+                      >
+                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!sovDetailsCollapsed && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Add to Cart Rate {purchaseData[5].addToCartRate}%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ addToCartRate: { label: "Add to Cart %", color: "hsl(var(--chart-1))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Units Sold {purchaseData[5].unitsSold.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ unitsSold: { label: "Units Sold", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Conversions {purchaseData[5].conversions.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ conversions: { label: "Conversions", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                {/* Right side - Chart grid */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {purchaseMetrics.includes('roas') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">ROAS 4.7x</CardTitle>
-                        </CardHeader>
-                      <CardContent>
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ roas: { label: "ROAS", color: "hsl(var(--chart-1))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-[150px] w-full"
-                          xAxisDataKey="month"
-                        />
-                        <div className="flex justify-end mt-2">
-                          <Badge variant="success" className="text-xs">+47%</Badge>
-                        </div>
-                      </CardContent>
-                      </Card>
-                    )}
-                    {purchaseMetrics.includes('iroas') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">iROAS 8.2x</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+50%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {purchaseMetrics.includes('purchaseBehavior') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Attributable Purchase Behavior 68%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={purchaseBehaviorConfig}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+25%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {purchaseMetrics.includes('customerSegmentation') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Customer Segmentation</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <PieChartComponent
-                            data={customerSegmentationData}
-                            config={customerSegmentationConfig}
-                            showLegend={false}
-                            showTooltip={true}
-                            innerRadius={35}
-                            outerRadius={55}
-                            showLabels={true}
-                            labelPosition="inside"
-                            className="h-[150px] w-full"
-                            nameKey="name"
-                            dataKey="value"
-                            startAngle={90}
-                            endAngle={-270}
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="default" className="text-xs">42% Returning</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
+                {/* Row 2 - Total Revenue */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Revenue {totalRevenueLabel}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Total revenue generated across Display, SPA, DMI and OMI channels</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">SPA €{Math.round(purchaseDataRaw[5].spaRevenue / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Display €{Math.round(purchaseDataRaw[5].displayRevenue / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">DMI €{Math.round(purchaseDataRaw[5].dmiRevenue / 1000)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">OMI €{Math.round(purchaseDataRaw[5].omiRevenue / 1000)}K</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={purchaseData}
+                      config={{
+                        totalRevenue: { label: "Total Revenue (€)", color: "hsl(var(--chart-3))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={{
+                        spaRevenue: { label: 'SPA Revenue (€)', color: 'transparent' },
+                        displayRevenue: { label: 'Display Revenue (€)', color: 'transparent' },
+                        dmiRevenue: { label: 'DMI Revenue (€)', color: 'transparent' },
+                        omiRevenue: { label: 'OMI Revenue (€)', color: 'transparent' },
+                      }}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+121%</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Row 3 - Total Buyers */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Total Buyers {purchaseData[5].totalBuyers.toLocaleString()}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Total unique buyers across all channels. Lapsed, existing and new buyers based on revenue.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">New buyers {purchaseData[5].newBuyers}</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Lapsed buyers {purchaseData[5].lapsedBuyers}</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Existing buyers {purchaseData[5].existingBuyers}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartComponent
+                      data={purchaseData}
+                      config={{
+                        newBuyers: { label: "New buyers", color: "hsl(var(--chart-1))" },
+                        lapsedBuyers: { label: "Lapsed buyers", color: "hsl(var(--chart-2))" },
+                        existingBuyers: { label: "Existing buyers", color: "hsl(var(--chart-3))" },
+                      }}
+                      showLegend={true}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      stacked={true}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+99%</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
             )}
@@ -4356,68 +4514,12 @@ export const FunnelView: Story = {
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 min-h-[48px] justify-center">
+                <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Loyalty</CardTitle>
-                  <p className={`text-sm text-muted-foreground ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    47% - Repeat purchase rate from engaged customers
+                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K
                   </p>
                 </div>
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <Settings2 className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 max-h-[500px] overflow-y-auto">
-                    <DropdownMenuLabel>Customize Loyalty</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Sponsored Products</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={loyaltyMetrics.includes('repeatPurchaseRate')}
-                          onCheckedChange={(checked) => {
-                            setLoyaltyMetrics(prev =>
-                              checked ? [...prev, 'repeatPurchaseRate'] : prev.filter(m => m !== 'repeatPurchaseRate')
-                            );
-                          }}
-                        >
-                          Repeat Purchase Rate
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={loyaltyMetrics.includes('customerLifetimeValue')}
-                          onCheckedChange={(checked) => {
-                            setLoyaltyMetrics(prev =>
-                              checked ? [...prev, 'customerLifetimeValue'] : prev.filter(m => m !== 'customerLifetimeValue')
-                            );
-                          }}
-                        >
-                          Customer Lifetime Value
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Digital In-store</p>
-                      <div className="space-y-2">
-                        <DropdownMenuCheckboxItem
-                          checked={loyaltyMetrics.includes('churnRate')}
-                          onCheckedChange={(checked) => {
-                            setLoyaltyMetrics(prev =>
-                              checked ? [...prev, 'churnRate'] : prev.filter(m => m !== 'churnRate')
-                            );
-                          }}
-                        >
-                          Churn Rate
-                        </DropdownMenuCheckboxItem>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -4429,119 +4531,175 @@ export const FunnelView: Story = {
                   {loyaltyCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                 </Button>
               </div>
-              </div>
+              {loyaltyCollapsed && (
+                <div className="h-12 w-full -mb-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsLineChart data={loyaltyData.map(d => ({ value: d.existingBuyers }))}>
+                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-4))", strokeWidth: 2 }} />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardHeader>
             {!loyaltyCollapsed && (
             <CardContent>
-              <div className="flex gap-6">
-                {/* Left side - Funnel indicator */}
-                <div className="relative w-[250px] flex-shrink-0">
-                  {/* Vertical line continues from Purchase */}
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
-
-                  {/* Funnel stage indicator */}
-                  <div className="relative z-10 flex flex-col items-start gap-4 pt-[33%]">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-lg">
-                        <Heart className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl font-bold">47%</div>
-                        <div className="text-sm text-muted-foreground leading-tight">Repeat purchase rate from engaged customers</div>
-                        <div className="flex flex-col items-start gap-1 mt-4">
-                          <Badge variant="secondary" className="text-xs">RPR 47%</Badge>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Badge variant="secondary" className="text-xs">CLV €355</Badge>
-                          <div className="w-3 h-3 text-muted-foreground flex items-center justify-center text-xs">-</div>
-                          <Badge variant="secondary" className="text-xs">Churn Rate 5.2%</Badge>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-6 text-xs h-8"
-                          onClick={() => alert('Full Loyalty Report')}
-                        >
-                          Full Report
-                        </Button>
-                      </div>
+              <div className="flex flex-col gap-6">
+                {/* Row 1 - Customer Lifetime Value */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Customer Lifetime Value €{loyaltyData[5].clv}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Average projected customer lifetime value based on purchase behavior and retention</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">Churn Rate {loyaltyData[5].churnRate}%</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Retention Rate {loyaltyData[5].retentionRate}%</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Frequency {loyaltyData[5].frequency}x</Badge>
                     </div>
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={loyaltyData}
+                      config={{
+                        clv: { label: "CLV (€)", color: "hsl(var(--chart-1))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={{
+                        churnRate: { label: 'Churn Rate %', color: 'transparent' },
+                        retentionRate: { label: 'Retention Rate %', color: 'transparent' },
+                        frequency: { label: 'Frequency', color: 'transparent' },
+                      }}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+42%</Badge>
+                    </div>
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setBuyerReachDetailsCollapsed(!buyerReachDetailsCollapsed)}
+                      >
+                        {buyerReachDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!buyerReachDetailsCollapsed && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Churn Rate {loyaltyData[5].churnRate}%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Retention Rate {loyaltyData[5].retentionRate}%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ retentionRate: { label: "Retention Rate %", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Frequency {loyaltyData[5].frequency}x</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ frequency: { label: "Frequency", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                {/* Right side - Chart grid */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {loyaltyMetrics.includes('repeatPurchaseRate') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Repeat Purchase Rate 47%</CardTitle>
-                        </CardHeader>
-                      <CardContent>
-                        <LineChartComponent
-                          data={loyaltyData}
-                          config={{ repeatPurchaseRate: { label: "Repeat Purchase Rate %", color: "hsl(var(--chart-1))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-[150px] w-full"
-                          xAxisDataKey="month"
-                        />
-                        <div className="flex justify-end mt-2">
-                          <Badge variant="success" className="text-xs">+47%</Badge>
-                        </div>
-                      </CardContent>
-                      </Card>
-                    )}
-                    {loyaltyMetrics.includes('customerLifetimeValue') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Customer Lifetime Value €355</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">+27%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {loyaltyMetrics.includes('churnRate') && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Churn Rate 5.2%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[150px] w-full"
-                            xAxisDataKey="month"
-                          />
-                          <div className="flex justify-end mt-2">
-                            <Badge variant="success" className="text-xs">-39%</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
+                {/* Row 2 - Unique Existing Buyers */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Unique Existing Buyers {(loyaltyData[5].existingBuyers / 1000).toFixed(1)}K
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Unique existing buyers who made repeat purchases. Is retail media contributing to repeating purchases.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">Existing buyers {(loyaltyData[5].existingBuyers / 1000).toFixed(1)}K</Badge>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">Lapsed buyers {loyaltyData[5].lapsedBuyers}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartComponent
+                      data={loyaltyData}
+                      config={{
+                        existingBuyers: { label: "Existing buyers", color: "hsl(var(--chart-1))" },
+                        lapsedBuyers: { label: "Lapsed buyers", color: "hsl(var(--chart-2))" },
+                      }}
+                      showLegend={true}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      stacked={true}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+38%</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
             )}

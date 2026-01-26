@@ -24,6 +24,7 @@ export interface LineChartProps {
   showDots?: boolean
   xAxisDataKey?: string
   yAxisLabel?: string
+  tooltipKeys?: ChartConfig
   secondaryYAxis?: {
     dataKey: string
     domain?: [number | 'auto' | 'dataMin' | 'dataMax', number | 'auto' | 'dataMin' | 'dataMax']
@@ -44,9 +45,12 @@ export function LineChartComponent({
   showDots = true,
   xAxisDataKey = "month",
   yAxisLabel,
+  tooltipKeys,
   secondaryYAxis,
 }: LineChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
+  const tooltipDataKeys = tooltipKeys ? Object.keys(tooltipKeys).filter(key => tooltipKeys[key].label) : []
+  const mergedConfig = tooltipKeys ? { ...config, ...tooltipKeys } : config
 
   // Calculate Y-axis ticks for gridlines
   const { yAxisTicks, yAxisDomain } = React.useMemo(() => {
@@ -80,7 +84,7 @@ export function LineChartComponent({
   }, [data, dataKeys, showGrid])
 
   return (
-    <ChartContainer config={config} className={className}>
+    <ChartContainer config={mergedConfig} className={className}>
       <LineChart
         accessibilityLayer
         data={data}
@@ -149,6 +153,18 @@ export function LineChartComponent({
             dot={showDots ? { fill: config[key]?.color || `hsl(var(--chart-1))` } : false}
           />
         ))}
+        {tooltipDataKeys.map((key) => (
+          <Line
+            key={key}
+            yAxisId="left"
+            dataKey={key}
+            type={curved ? "monotone" : "linear"}
+            stroke="transparent"
+            strokeWidth={0}
+            dot={false}
+            activeDot={false}
+          />
+        ))}
         {showTooltip && (
           <ChartTooltip
             cursor={false}
@@ -161,4 +177,4 @@ export function LineChartComponent({
       </LineChart>
     </ChartContainer>
   )
-} 
+}

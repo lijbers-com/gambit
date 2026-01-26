@@ -3182,6 +3182,7 @@ export const FunnelView: Story = {
     const [volumeDetailsCollapsed, setVolumeDetailsCollapsed] = useState(false);
     const [sovDetailsCollapsed, setSovDetailsCollapsed] = useState(false);
     const [buyerReachDetailsCollapsed, setBuyerReachDetailsCollapsed] = useState(false);
+    const [roasDetailsCollapsed, setRoasDetailsCollapsed] = useState(false);
     const [considerationCollapsed, setConsiderationCollapsed] = useState(true);
     const [purchaseCollapsed, setPurchaseCollapsed] = useState(true);
     const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(true);
@@ -3380,12 +3381,12 @@ export const FunnelView: Story = {
 
     // Consideration data - engagements by channel
     const considerationDataRaw = [
-      { month: 'Jan', spaClicks: 5200, displayClicks: 3100, doohClicks: 1800, omiClicks: 1100, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
-      { month: 'Feb', spaClicks: 7400, displayClicks: 4400, doohClicks: 2600, omiClicks: 1400, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
-      { month: 'Mar', spaClicks: 6500, displayClicks: 3800, doohClicks: 2200, omiClicks: 1400, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
-      { month: 'Apr', spaClicks: 8600, displayClicks: 5100, doohClicks: 3000, omiClicks: 1700, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
-      { month: 'May', spaClicks: 9300, displayClicks: 5500, doohClicks: 3200, omiClicks: 1800, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
-      { month: 'Jun', spaClicks: 10100, displayClicks: 5900, doohClicks: 3500, omiClicks: 2000, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
+      { month: 'Jan', spaClicks: 5200, displayClicks: 3100, doohClicks: 1800, omiClicks: 1100, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
+      { month: 'Feb', spaClicks: 7400, displayClicks: 4400, doohClicks: 2600, omiClicks: 1400, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
+      { month: 'Mar', spaClicks: 6500, displayClicks: 3800, doohClicks: 2200, omiClicks: 1400, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
+      { month: 'Apr', spaClicks: 8600, displayClicks: 5100, doohClicks: 3000, omiClicks: 1700, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
+      { month: 'May', spaClicks: 9300, displayClicks: 5500, doohClicks: 3200, omiClicks: 1800, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
+      { month: 'Jun', spaClicks: 10100, displayClicks: 5900, doohClicks: 3500, omiClicks: 2000, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
     ];
 
     const considerationEngagementKeys = ['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks'] as const;
@@ -3393,22 +3394,28 @@ export const FunnelView: Story = {
       ...d,
       totalEngagements: considerationEngagementKeys.reduce((sum, key) => sum + d[key], 0),
       totalCtr: parseFloat(((d.spaCtr + d.displayCtr) / 2).toFixed(1)),
+      totalPdpViewsPerUser: parseFloat((d.pdpViews / d.reachClicks).toFixed(2)),
+      spaPdpViewsPerUser: parseFloat((d.spaPdpViews / d.reachClicks).toFixed(2)),
+      displayPdpViewsPerUser: parseFloat((d.displayPdpViews / d.reachClicks).toFixed(2)),
     }));
 
     const totalEngagementsLabel = `${Math.round(considerationData[considerationData.length - 1].totalEngagements / 1000)}K`;
 
     // Purchase data - revenue and conversions by channel
     const purchaseDataRaw = [
-      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, roas: 2.8, iroas: 2.4, addToCartRate: 3.2, unitsSold: 1200, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
-      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, roas: 3.9, iroas: 3.4, addToCartRate: 3.8, unitsSold: 1800, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
-      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, roas: 3.5, iroas: 3.0, addToCartRate: 3.5, unitsSold: 1550, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
-      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, roas: 4.3, iroas: 3.8, addToCartRate: 4.2, unitsSold: 2200, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
-      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, roas: 4.6, iroas: 4.1, addToCartRate: 4.5, unitsSold: 2400, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
-      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, roas: 5.1, iroas: 4.5, addToCartRate: 4.8, unitsSold: 2700, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
+      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 520, displayUnitsSold: 310, dmiUnitsSold: 220, omiUnitsSold: 150, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
+      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 780, displayUnitsSold: 460, dmiUnitsSold: 330, omiUnitsSold: 230, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
+      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 670, displayUnitsSold: 400, dmiUnitsSold: 280, omiUnitsSold: 200, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
+      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 950, displayUnitsSold: 560, dmiUnitsSold: 400, omiUnitsSold: 290, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
+      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 1040, displayUnitsSold: 610, dmiUnitsSold: 430, omiUnitsSold: 320, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
+      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 1170, displayUnitsSold: 690, dmiUnitsSold: 490, omiUnitsSold: 350, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
     ];
+
+    const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold'] as const;
 
     const purchaseData = purchaseDataRaw.map(d => ({
       ...d,
+      totalUnitsSold: purchaseUnitKeys.reduce((sum, key) => sum + d[key], 0),
       totalRevenue: d.spaRevenue + d.displayRevenue + d.dmiRevenue + d.omiRevenue,
       totalBuyers: Math.round(d.conversions * 0.85),
       newBuyers: Math.round(d.conversions * 0.3),
@@ -3692,9 +3699,10 @@ export const FunnelView: Story = {
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Awareness</CardTitle>
-                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    Total Volume {totalVolumeLabel}
-                  </p>
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    <p className="text-sm text-muted-foreground">Total Volume {totalVolumeLabel}</p>
+                    <Badge variant="success" className="text-xs">+64%</Badge>
+                  </div>
                 </div>
                 <Button
                   size="icon"
@@ -4049,9 +4057,10 @@ export const FunnelView: Story = {
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Consideration</CardTitle>
-                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    Total Engagements {totalEngagementsLabel}
-                  </p>
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    <p className="text-sm text-muted-foreground">Total Engagements {totalEngagementsLabel}</p>
+                    <Badge variant="success" className="text-xs">+78%</Badge>
+                  </div>
                 </div>
                 <Button
                   size="icon"
@@ -4163,50 +4172,98 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 2 - Total CTR */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Total CTR {considerationData[5].totalCtr}%
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>Average click-through rate across channels. Percentage of ads clicked vs impressions served.</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <LineChartComponent
-                      data={considerationData}
-                      config={{
-                        totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={false}
-                      showDots={true}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      tooltipKeys={{
-                        spaCtr: { label: 'SPA CTR %', color: 'transparent' },
-                        displayCtr: { label: 'Display CTR %', color: 'transparent' },
-                      }}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+56%</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Row 2 - CTR and PDP Views side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Total CTR */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        Total CTR {considerationData[5].totalCtr}%
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Average click-through rate across channels. Percentage of ads clicked vs impressions served.</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                        <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
+                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <LineChartComponent
+                        data={considerationData}
+                        config={{
+                          totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
+                        }}
+                        showLegend={false}
+                        showGrid={true}
+                        showTooltip={true}
+                        showXAxis={true}
+                        showYAxis={false}
+                        showDots={true}
+                        className="h-[200px] w-full"
+                        xAxisDataKey="month"
+                        tooltipKeys={{
+                          spaCtr: { label: 'SPA CTR %', color: 'transparent' },
+                          displayCtr: { label: 'Display CTR %', color: 'transparent' },
+                        }}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Badge variant="success" className="text-xs">+56%</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* PDP Views per Reached User */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        PDP Views per Reached User {considerationData[5].totalPdpViewsPerUser}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Product detail page views per unique reached user. Measures how effectively ads drive product page engagement.</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                        <Badge variant="secondary" className="text-xs">SPA {considerationData[5].spaPdpViewsPerUser}</Badge>
+                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Badge variant="secondary" className="text-xs">Display {considerationData[5].displayPdpViewsPerUser}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <LineChartComponent
+                        data={considerationData}
+                        config={{
+                          totalPdpViewsPerUser: { label: "PDP Views / User", color: "hsl(var(--chart-4))" }
+                        }}
+                        showLegend={false}
+                        showGrid={true}
+                        showTooltip={true}
+                        showXAxis={true}
+                        showYAxis={false}
+                        showDots={true}
+                        className="h-[200px] w-full"
+                        xAxisDataKey="month"
+                        tooltipKeys={{
+                          spaPdpViewsPerUser: { label: 'SPA PDP Views / User', color: 'transparent' },
+                          displayPdpViewsPerUser: { label: 'Display PDP Views / User', color: 'transparent' },
+                        }}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Badge variant="success" className="text-xs">+24%</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
                 {/* Row 3 - Total Reach Clicks (Users) */}
                 <Card>
@@ -4265,9 +4322,10 @@ export const FunnelView: Story = {
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Purchase</CardTitle>
-                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    Total Buyers {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
-                  </p>
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    <p className="text-sm text-muted-foreground">Total Units Sold {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}</p>
+                    <Badge variant="success" className="text-xs">+125%</Badge>
+                  </div>
                 </div>
                 <Button
                   size="icon"
@@ -4283,7 +4341,7 @@ export const FunnelView: Story = {
               {purchaseCollapsed && (
                 <div className="h-12 w-full -mb-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={purchaseData.map(d => ({ value: d.totalBuyers }))}>
+                    <RechartsLineChart data={purchaseData.map(d => ({ value: d.totalUnitsSold }))}>
                       <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-3))", strokeWidth: 2 }} />
                     </RechartsLineChart>
                   </ResponsiveContainer>
@@ -4293,11 +4351,175 @@ export const FunnelView: Story = {
             {!purchaseCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
-                {/* Row 1 - ROAS */}
+                {/* Row 1 - Total Units Sold */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      ROAS {purchaseData[5].roas}x
+                      Total Units Sold {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Total units sold across all proposition channels</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <div className="flex items-center gap-1 flex-wrap mt-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Sponsored Products {purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Units sold attributed to Sponsored Product Ads</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Display {purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Units sold attributed to display advertising</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Digital Media In-store {purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Units sold attributed to digital in-store media</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Plus className="w-3 h-3 text-muted-foreground" />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Offline Media In-store {purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Units sold attributed to offline in-store media</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChartComponent
+                      data={purchaseData}
+                      config={{
+                        totalUnitsSold: { label: "Total Units Sold", color: "hsl(var(--chart-3))" }
+                      }}
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={false}
+                      showDots={true}
+                      className="h-[200px] w-full"
+                      xAxisDataKey="month"
+                      tooltipKeys={{
+                        spaUnitsSold: { label: 'Sponsored Products', color: 'transparent' },
+                        displayUnitsSold: { label: 'Display', color: 'transparent' },
+                        dmiUnitsSold: { label: 'Digital Media In-store', color: 'transparent' },
+                        omiUnitsSold: { label: 'Offline Media In-store', color: 'transparent' },
+                      }}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <Badge variant="success" className="text-xs">+125%</Badge>
+                    </div>
+                    <div className="flex justify-center mt-2 mb-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
+                      >
+                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {!sovDetailsCollapsed && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Sponsored Products {purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ spaUnitsSold: { label: "SPA Units", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Display {purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ displayUnitsSold: { label: "Display Units", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Digital Media In-store {purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ dmiUnitsSold: { label: "DMI Units", color: "hsl(var(--chart-4))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Offline Media In-store {purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={purchaseData}
+                            config={{ omiUnitsSold: { label: "OMI Units", color: "hsl(var(--chart-5))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Row 2 - ROAS */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      ROAS {purchaseData[purchaseData.length - 1].roas}x
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4308,11 +4530,11 @@ export const FunnelView: Story = {
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">iROAS {purchaseData[5].iroas}x</Badge>
+                      <Badge variant="secondary" className="text-xs">iROAS {purchaseData[purchaseData.length - 1].iroas}x</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">CPA €{purchaseData[5].cpa}</Badge>
+                      <Badge variant="secondary" className="text-xs">CPA €{purchaseData[purchaseData.length - 1].cpa}</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Adspend €{Math.round(purchaseDataRaw[5].adspend / 1000)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">Adspend €{Math.round(purchaseDataRaw[purchaseDataRaw.length - 1].adspend / 1000)}K</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -4342,152 +4564,69 @@ export const FunnelView: Story = {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
+                        onClick={() => setRoasDetailsCollapsed(!roasDetailsCollapsed)}
                       >
-                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                        {roasDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {!sovDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Add to Cart Rate {purchaseData[5].addToCartRate}%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ addToCartRate: { label: "Add to Cart %", color: "hsl(var(--chart-1))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Units Sold {purchaseData[5].unitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ unitsSold: { label: "Units Sold", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Conversions {purchaseData[5].conversions.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ conversions: { label: "Conversions", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
+                    {!roasDetailsCollapsed && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key, index) => (
+                        <Card key={key}>
+                          <CardHeader>
+                            <CardTitle className="text-sm">
+                              {key === 'spaRoas' ? 'Sponsored Products' : key === 'displayRoas' ? 'Display' : key === 'dmiRoas' ? 'Digital In-store' : 'Offline In-store'} {purchaseDataRaw[purchaseDataRaw.length - 1][key]}x
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <LineChartComponent
+                              data={purchaseData}
+                              config={{ [key]: { label: key === 'spaRoas' ? 'SPA ROAS' : key === 'displayRoas' ? 'Display ROAS' : key === 'dmiRoas' ? 'DMI ROAS' : 'OMI ROAS', color: `hsl(var(--chart-${index + 1}))` } }}
+                              showLegend={false}
+                              showGrid={true}
+                              showTooltip={true}
+                              showXAxis={true}
+                              showYAxis={false}
+                              className="h-[120px] w-full"
+                              xAxisDataKey="month"
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                     )}
                   </CardContent>
                 </Card>
 
-                {/* Row 2 - Total Revenue */}
+                {/* Row 3 - Purchase Users */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Revenue {totalRevenueLabel}
+                      Purchase Users {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>Total revenue generated across Display, SPA, DMI and OMI channels</TooltipContent>
+                          <TooltipContent>Unique count of customers that made a purchase, split by new-to-brand, lapsed and existing buyers</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">SPA €{Math.round(purchaseDataRaw[5].spaRevenue / 1000)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">New-to-brand {purchaseData[purchaseData.length - 1].newBuyers.toLocaleString()}</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Display €{Math.round(purchaseDataRaw[5].displayRevenue / 1000)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">Lapsed {purchaseData[purchaseData.length - 1].lapsedBuyers.toLocaleString()}</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">DMI €{Math.round(purchaseDataRaw[5].dmiRevenue / 1000)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">OMI €{Math.round(purchaseDataRaw[5].omiRevenue / 1000)}K</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <LineChartComponent
-                      data={purchaseData}
-                      config={{
-                        totalRevenue: { label: "Total Revenue (€)", color: "hsl(var(--chart-3))" }
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={false}
-                      showDots={true}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      tooltipKeys={{
-                        spaRevenue: { label: 'SPA Revenue (€)', color: 'transparent' },
-                        displayRevenue: { label: 'Display Revenue (€)', color: 'transparent' },
-                        dmiRevenue: { label: 'DMI Revenue (€)', color: 'transparent' },
-                        omiRevenue: { label: 'OMI Revenue (€)', color: 'transparent' },
-                      }}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+121%</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Row 3 - Total Buyers */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Buyers {purchaseData[5].totalBuyers.toLocaleString()}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>Total unique buyers across all channels. Lapsed, existing and new buyers based on revenue.</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">New buyers {purchaseData[5].newBuyers}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Lapsed buyers {purchaseData[5].lapsedBuyers}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Existing buyers {purchaseData[5].existingBuyers}</Badge>
+                      <Badge variant="secondary" className="text-xs">Existing {purchaseData[purchaseData.length - 1].existingBuyers.toLocaleString()}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <BarChartComponent
                       data={purchaseData}
                       config={{
-                        newBuyers: { label: "New buyers", color: "hsl(var(--chart-1))" },
-                        lapsedBuyers: { label: "Lapsed buyers", color: "hsl(var(--chart-2))" },
-                        existingBuyers: { label: "Existing buyers", color: "hsl(var(--chart-3))" },
+                        newBuyers: { label: "New-to-brand", color: "hsl(var(--chart-1))" },
+                        lapsedBuyers: { label: "Lapsed", color: "hsl(var(--chart-2))" },
+                        existingBuyers: { label: "Existing", color: "hsl(var(--chart-3))" },
                       }}
                       showLegend={true}
                       showGrid={true}
@@ -4516,9 +4655,10 @@ export const FunnelView: Story = {
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Loyalty</CardTitle>
-                  <p className={`text-sm text-muted-foreground transition-all duration-200 ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K
-                  </p>
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
+                    <p className="text-sm text-muted-foreground">Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K</p>
+                    <Badge variant="success" className="text-xs">+38%</Badge>
+                  </div>
                 </div>
                 <Button
                   size="icon"
@@ -4544,33 +4684,31 @@ export const FunnelView: Story = {
             {!loyaltyCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
-                {/* Row 1 - Customer Lifetime Value */}
+                {/* Row 1 - Retained Customers */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Customer Lifetime Value €{loyaltyData[5].clv}
+                      Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>Average projected customer lifetime value based on purchase behavior and retention</TooltipContent>
+                          <TooltipContent>Unique existing buyers who made repeat purchases. Is retail media contributing to repeating purchases.</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">Churn Rate {loyaltyData[5].churnRate}%</Badge>
+                      <Badge variant="secondary" className="text-xs">Existing buyers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Retention Rate {loyaltyData[5].retentionRate}%</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Frequency {loyaltyData[5].frequency}x</Badge>
+                      <Badge variant="secondary" className="text-xs">Lapsed buyers {loyaltyData[loyaltyData.length - 1].lapsedBuyers}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <LineChartComponent
                       data={loyaltyData}
                       config={{
-                        clv: { label: "CLV (€)", color: "hsl(var(--chart-1))" }
+                        existingBuyers: { label: "Retained Customers", color: "hsl(var(--chart-4))" }
                       }}
                       showLegend={false}
                       showGrid={true}
@@ -4581,13 +4719,11 @@ export const FunnelView: Story = {
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
                       tooltipKeys={{
-                        churnRate: { label: 'Churn Rate %', color: 'transparent' },
-                        retentionRate: { label: 'Retention Rate %', color: 'transparent' },
-                        frequency: { label: 'Frequency', color: 'transparent' },
+                        lapsedBuyers: { label: 'Lapsed buyers', color: 'transparent' },
                       }}
                     />
                     <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+42%</Badge>
+                      <Badge variant="success" className="text-xs">+38%</Badge>
                     </div>
                     <div className="flex justify-center mt-2 mb-2">
                       <Button
@@ -4602,25 +4738,7 @@ export const FunnelView: Story = {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-sm">Churn Rate {loyaltyData[5].churnRate}%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Retention Rate {loyaltyData[5].retentionRate}%</CardTitle>
+                          <CardTitle className="text-sm">Retention Rate {loyaltyData[loyaltyData.length - 1].retentionRate}%</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <LineChartComponent
@@ -4638,7 +4756,25 @@ export const FunnelView: Story = {
                       </Card>
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-sm">Frequency {loyaltyData[5].frequency}x</CardTitle>
+                          <CardTitle className="text-sm">Churn Rate {loyaltyData[loyaltyData.length - 1].churnRate}%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={loyaltyData}
+                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-[120px] w-full"
+                            xAxisDataKey="month"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Frequency {loyaltyData[loyaltyData.length - 1].frequency}x</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <LineChartComponent
@@ -4659,44 +4795,47 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 2 - Unique Existing Buyers */}
+                {/* Row 2 - Customer Lifetime Value */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Unique Existing Buyers {(loyaltyData[5].existingBuyers / 1000).toFixed(1)}K
+                      Customer Lifetime Value €{loyaltyData[loyaltyData.length - 1].clv}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>Unique existing buyers who made repeat purchases. Is retail media contributing to repeating purchases.</TooltipContent>
+                          <TooltipContent>Average projected customer lifetime value based on purchase behavior and retention</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">Existing buyers {(loyaltyData[5].existingBuyers / 1000).toFixed(1)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">CLV €{loyaltyData[loyaltyData.length - 1].clv}</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Lapsed buyers {loyaltyData[5].lapsedBuyers}</Badge>
+                      <Badge variant="secondary" className="text-xs">Frequency {loyaltyData[loyaltyData.length - 1].frequency}x</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <BarChartComponent
+                    <LineChartComponent
                       data={loyaltyData}
                       config={{
-                        existingBuyers: { label: "Existing buyers", color: "hsl(var(--chart-1))" },
-                        lapsedBuyers: { label: "Lapsed buyers", color: "hsl(var(--chart-2))" },
+                        clv: { label: "CLV (€)", color: "hsl(var(--chart-1))" }
                       }}
-                      showLegend={true}
+                      showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={false}
+                      showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      stacked={true}
+                      tooltipKeys={{
+                        frequency: { label: 'Frequency', color: 'transparent' },
+                        retentionRate: { label: 'Retention Rate %', color: 'transparent' },
+                      }}
                     />
                     <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+38%</Badge>
+                      <Badge variant="success" className="text-xs">+42%</Badge>
                     </div>
                   </CardContent>
                 </Card>

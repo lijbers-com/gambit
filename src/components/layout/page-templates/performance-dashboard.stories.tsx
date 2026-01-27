@@ -28,6 +28,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { MetricRow } from '@/components/ui/metric-row';
 import { Label } from '@/components/ui/label';
 
 const meta: Meta<typeof AppLayout> = {
@@ -3536,7 +3537,7 @@ export const FunnelView: Story = {
                 className="whitespace-nowrap flex-shrink-0"
                 onClick={() => setCustomReportOpen(true)}
               >
-                Custom Report
+                Build Report
               </Button>
             </div>
           ),
@@ -3637,60 +3638,20 @@ export const FunnelView: Story = {
           </div>
 
           {/* Top Metric Cards */}
-          {/* grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-5 */}
-          <div className={`grid grid-cols-1 md:grid-cols-${Math.min(selectedTopMetrics.length + 1, 5)} gap-4`}>
-            {selectedTopMetrics.map((metricKey) => (
-              <MetricCard
-                key={metricKey}
-                label={metricDefinitions[metricKey].label}
-                value={metricDefinitions[metricKey].value}
-                badgeValue={metricDefinitions[metricKey].badge}
-                badgeVariant={metricDefinitions[metricKey].badgeVariant}
-                variant="graph"
-                graphData={topMetricsData.map(d => ({ value: d[metricDefinitions[metricKey].dataKey as keyof typeof d] as number }))}
-                graphColor={metricDefinitions[metricKey].graphColor}
-              />
-            ))}
-            <Dialog>
-              <DialogTrigger asChild>
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-                >
-                  <Plus className="h-8 w-8 text-gray-400" />
-                </div>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px]">
-                <DialogHeader>
-                  <DialogTitle>Select a Metric</DialogTitle>
-                  <DialogDescription>
-                    Choose a metric to add to your dashboard. Click on any metric card to select it.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="max-h-[500px] overflow-y-auto p-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    {Object.entries(metricDefinitions)
-                      .filter(([key]) => !selectedTopMetrics.includes(key))
-                      .map(([key, metric]) => (
-                        <MetricCard
-                          key={key}
-                          label={metric.label}
-                          value={metric.value}
-                          badgeValue={metric.badge}
-                          badgeVariant={metric.badgeVariant}
-                          variant="graph"
-                          graphData={topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number }))}
-                          graphColor={metric.graphColor}
-                          className="cursor-pointer hover:ring-2 hover:ring-primary"
-                          onClick={() => {
-                            setSelectedTopMetrics(prev => [...prev, key]);
-                          }}
-                        />
-                      ))}
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <MetricRow
+            metrics={Object.entries(metricDefinitions).map(([key, metric]) => ({
+              key,
+              label: metric.label,
+              value: metric.value,
+              badgeValue: metric.badge,
+              badgeVariant: metric.badgeVariant,
+              graphData: topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number })),
+              graphColor: metric.graphColor,
+            }))}
+            selectedKeys={selectedTopMetrics}
+            onSelectionChange={setSelectedTopMetrics}
+            maxVisible={4}
+          />
 
           {/* Awareness Card */}
           {visibleFunnelCards.awareness && (
@@ -4050,6 +4011,20 @@ export const FunnelView: Story = {
           </Card>
           )}
 
+          {/* Funnel flow: Awareness → Consideration */}
+          {visibleFunnelCards.awareness && visibleFunnelCards.consideration && (
+            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
+              <div className="flex flex-col items-center">
+                <div className="w-px h-3 bg-gray-300" />
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-gray-500">{((considerationData[considerationData.length - 1].totalEngagements / awarenessData[awarenessData.length - 1].totalVolume) * 100).toFixed(1)}% engagement rate</span>
+                </div>
+                <div className="w-px h-3 bg-gray-300" />
+              </div>
+            </div>
+          )}
+
           {/* Consideration Card */}
           {visibleFunnelCards.consideration && (
           <Card>
@@ -4313,6 +4288,20 @@ export const FunnelView: Story = {
             </CardContent>
             )}
           </Card>
+          )}
+
+          {/* Funnel flow: Consideration → Purchase */}
+          {visibleFunnelCards.consideration && visibleFunnelCards.purchase && (
+            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
+              <div className="flex flex-col items-center">
+                <div className="w-px h-3 bg-gray-300" />
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-gray-500">{((purchaseData[purchaseData.length - 1].totalUnitsSold / considerationData[considerationData.length - 1].totalEngagements) * 100).toFixed(1)}% conversion rate</span>
+                </div>
+                <div className="w-px h-3 bg-gray-300" />
+              </div>
+            </div>
           )}
 
           {/* Purchase Card */}
@@ -4646,6 +4635,20 @@ export const FunnelView: Story = {
             </CardContent>
             )}
           </Card>
+          )}
+
+          {/* Funnel flow: Purchase → Loyalty */}
+          {visibleFunnelCards.purchase && visibleFunnelCards.loyalty && (
+            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
+              <div className="flex flex-col items-center">
+                <div className="w-px h-3 bg-gray-300" />
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-gray-500">{loyaltyData[loyaltyData.length - 1].retentionRate}% retention rate</span>
+                </div>
+                <div className="w-px h-3 bg-gray-300" />
+              </div>
+            </div>
           )}
 
           {/* Loyalty Card */}

@@ -4,6 +4,8 @@ import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
+import { MetricRow } from '@/components/ui/metric-row';
+import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -324,128 +326,33 @@ const updatedForecastMetrics = [
         badgeValue: '+8%',
         badgeVariant: 'success' as const,
       },
-    ];    const ForecastSection = () => (
+    ];
+    const dialogMetricsDigitalInOption: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '2.34%', subMetric: 'vs. 2.18% last period', badgeValue: '+7.3%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '4.12%', subMetric: '1,234 conversions', badgeValue: '+12.5%', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$0.58', subMetric: 'vs. $0.62 target', badgeValue: '-6.5%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '87.3%', subMetric: 'Above industry avg', badgeValue: '+5.2%', badgeVariant: 'success' },
+      { key: 'brandLift', label: 'Brand Lift', value: '+18.2%', subMetric: 'Awareness increase', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'sov', label: 'Share of Voice', value: '34.7%', subMetric: 'In category', badgeValue: '+2.1%', badgeVariant: 'secondary' },
+      { key: 'frequency', label: 'Frequency', value: '3.8x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'vcr', label: 'Video Completion Rate', value: '68.9%', subMetric: '15s videos', badgeValue: '+9.4%', badgeVariant: 'success' },
+      { key: 'cpa', label: 'Cost Per Acquisition', value: '$24.50', subMetric: 'vs. $30 target', badgeValue: '-18.3%', badgeVariant: 'success' },
+    ];
+
+    const ForecastSection = () => (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {updatedForecastMetrics.map((metric) => (
-            <MetricCard
-              key={metric.id}
-              label={metric.label}
-              value={String(metric.value)}
-              subMetric={metric.subMetric}
-              badgeValue={metric.badgeValue}
-              badgeVariant={metric.badgeVariant}
-              isSelected={selectedForecastMetric === metric.id}
-              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
-            />
-          ))}
-          <Dialog>
-            <DialogTrigger asChild>
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-              >
-                <Plus className="h-8 w-8 text-gray-400" />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
-              <DialogHeader>
-                <DialogTitle>Select a Metric</DialogTitle>
-                <DialogDescription>
-                  Choose a metric to add to your dashboard. Click on any metric card to select it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[500px] overflow-y-auto p-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <MetricCard
-                    label="Click-Through Rate"
-                    value="2.34%"
-                    subMetric="vs. 2.18% last period"
-                    badgeValue="+7.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CTR selected')}
-                  />
-                  <MetricCard
-                    label="Conversion Rate"
-                    value="4.12%"
-                    subMetric="1,234 conversions"
-                    badgeValue="+12.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Conversion Rate selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Click"
-                    value="$0.58"
-                    subMetric="vs. $0.62 target"
-                    badgeValue="-6.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPC selected')}
-                  />
-                  <MetricCard
-                    label="Viewability Rate"
-                    value="87.3%"
-                    subMetric="Above industry avg"
-                    badgeValue="+5.2%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Viewability selected')}
-                  />
-                  <MetricCard
-                    label="Brand Lift"
-                    value="+18.2%"
-                    subMetric="Awareness increase"
-                    badgeValue="High"
-                    badgeVariant="info"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Brand Lift selected')}
-                  />
-                  <MetricCard
-                    label="Share of Voice"
-                    value="34.7%"
-                    subMetric="In category"
-                    badgeValue="+2.1%"
-                    badgeVariant="secondary"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('SOV selected')}
-                  />
-                  <MetricCard
-                    label="Frequency"
-                    value="3.8x"
-                    subMetric="Avg. per user"
-                    badgeValue="Optimal"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Frequency selected')}
-                  />
-                  <MetricCard
-                    label="Video Completion Rate"
-                    value="68.9%"
-                    subMetric="15s videos"
-                    badgeValue="+9.4%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('VCR selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Acquisition"
-                    value="$24.50"
-                    subMetric="vs. $30 target"
-                    badgeValue="-18.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPA selected')}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
+        <MetricRow
+          metrics={updatedForecastMetrics.map(m => ({ ...m, key: m.id }))}
+          selectedKeys={updatedForecastMetrics.map(m => m.id)}
+          maxVisible={5}
+          defaultVariant="default"
+          removable={false}
+          activeKey={selectedForecastMetric}
+          onActiveKeyChange={setSelectedForecastMetric}
+          dialogMetrics={dialogMetricsDigitalInOption}
+          onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        />
+
         {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
         {(selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
           <div>
@@ -1096,128 +1003,30 @@ export const DigitalInstoreRunning: Story = {
       },
     ];
     
+    const dialogMetricsDigitalInstoreRunning: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '2.14%', subMetric: 'vs. 1.98% last period', badgeValue: '+8.1%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '3.84%', subMetric: '1,156 conversions', badgeValue: '+12.8%', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$0.45', subMetric: 'vs. $0.52 target', badgeValue: '-13.5%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '89.2%', subMetric: 'Above industry avg', badgeValue: '+6.4%', badgeVariant: 'success' },
+      { key: 'brandLift', label: 'Brand Lift', value: '+16.8%', subMetric: 'Awareness increase', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'sov', label: 'Share of Voice', value: '29.5%', subMetric: 'In category', badgeValue: '+1.8%', badgeVariant: 'secondary' },
+      { key: 'frequency', label: 'Frequency', value: '3.2x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'vcr', label: 'Video Completion Rate', value: '72.1%', subMetric: '15s videos', badgeValue: '+8.7%', badgeVariant: 'success' },
+      { key: 'cpa', label: 'Cost Per Acquisition', value: '$22.80', subMetric: 'vs. $28 target', badgeValue: '-18.6%', badgeVariant: 'success' },
+    ];
+
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {performanceMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Select a Metric</DialogTitle>
-              <DialogDescription>
-                Choose a metric to add to your dashboard. Click on any metric card to select it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[500px] overflow-y-auto p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Click-Through Rate"
-                  value="2.14%"
-                  subMetric="vs. 1.98% last period"
-                  badgeValue="+8.1%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CTR selected')}
-                />
-                <MetricCard
-                  label="Conversion Rate"
-                  value="3.84%"
-                  subMetric="1,156 conversions"
-                  badgeValue="+12.8%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Conversion Rate selected')}
-                />
-                <MetricCard
-                  label="Cost Per Click"
-                  value="$0.45"
-                  subMetric="vs. $0.52 target"
-                  badgeValue="-13.5%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CPC selected')}
-                />
-                <MetricCard
-                  label="Viewability Rate"
-                  value="89.2%"
-                  subMetric="Above industry avg"
-                  badgeValue="+6.4%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Viewability selected')}
-                />
-                <MetricCard
-                  label="Brand Lift"
-                  value="+16.8%"
-                  subMetric="Awareness increase"
-                  badgeValue="High"
-                  badgeVariant="info"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Brand Lift selected')}
-                />
-                <MetricCard
-                  label="Share of Voice"
-                  value="29.5%"
-                  subMetric="In category"
-                  badgeValue="+1.8%"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('SOV selected')}
-                />
-                <MetricCard
-                  label="Frequency"
-                  value="3.2x"
-                  subMetric="Avg. per user"
-                  badgeValue="Optimal"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Frequency selected')}
-                />
-                <MetricCard
-                  label="Video Completion Rate"
-                  value="72.1%"
-                  subMetric="15s videos"
-                  badgeValue="+8.7%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('VCR selected')}
-                />
-                <MetricCard
-                  label="Cost Per Acquisition"
-                  value="$22.80"
-                  subMetric="vs. $28 target"
-                  badgeValue="-18.6%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CPA selected')}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsDigitalInstoreRunning}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
-    
+
     return (
       <BreadcrumbProvider
         entities={[
@@ -1647,126 +1456,28 @@ export const OfflineInstoreRunning: Story = {
       },
     ];
 
+    const dialogMetricsOfflineInstoreRunning: MetricDefinition[] = [
+      { key: 'footfallRate', label: 'Footfall Rate', value: '12.8%', subMetric: 'vs. 11.2% last period', badgeValue: '+14.3%', badgeVariant: 'success' },
+      { key: 'storeCoverage', label: 'Store Coverage', value: '74%', subMetric: '287 of 388 stores', badgeValue: '+2.1%', badgeVariant: 'success' },
+      { key: 'dwellTime', label: 'Average Dwell Time', value: '4.2 min', subMetric: 'vs. 3.8 min target', badgeValue: '+10.5%', badgeVariant: 'success' },
+      { key: 'placementVisibility', label: 'Placement Visibility', value: '91.5%', subMetric: 'Above category avg', badgeValue: '+7.2%', badgeVariant: 'success' },
+      { key: 'brandAwareness', label: 'Brand Awareness', value: '+22.4%', subMetric: 'Unaided recall', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'purchaseIntent', label: 'Purchase Intent', value: '+18.6%', subMetric: 'Post-exposure', badgeValue: '+3.2%', badgeVariant: 'secondary' },
+      { key: 'cpi', label: 'Cost Per Impression', value: '€0.12', subMetric: 'vs. €0.15 target', badgeValue: '-20%', badgeVariant: 'success' },
+      { key: 'engagementRate', label: 'Engagement Rate', value: '8.9%', subMetric: 'Interactive displays', badgeValue: '+12.1%', badgeVariant: 'success' },
+      { key: 'conversionLift', label: 'Conversion Lift', value: '+15.3%', subMetric: 'In-store purchases', badgeValue: '+2.8%', badgeVariant: 'success' },
+    ];
+
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {performanceMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Select a Metric</DialogTitle>
-              <DialogDescription>
-                Choose a metric to add to your dashboard. Click on any metric card to select it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[500px] overflow-y-auto p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Footfall Rate"
-                  value="12.8%"
-                  subMetric="vs. 11.2% last period"
-                  badgeValue="+14.3%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Footfall Rate selected')}
-                />
-                <MetricCard
-                  label="Store Coverage"
-                  value="74%"
-                  subMetric="287 of 388 stores"
-                  badgeValue="+2.1%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Store Coverage selected')}
-                />
-                <MetricCard
-                  label="Average Dwell Time"
-                  value="4.2 min"
-                  subMetric="vs. 3.8 min target"
-                  badgeValue="+10.5%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Dwell Time selected')}
-                />
-                <MetricCard
-                  label="Placement Visibility"
-                  value="91.5%"
-                  subMetric="Above category avg"
-                  badgeValue="+7.2%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Placement Visibility selected')}
-                />
-                <MetricCard
-                  label="Brand Awareness"
-                  value="+22.4%"
-                  subMetric="Unaided recall"
-                  badgeValue="High"
-                  badgeVariant="info"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Brand Awareness selected')}
-                />
-                <MetricCard
-                  label="Purchase Intent"
-                  value="+18.6%"
-                  subMetric="Post-exposure"
-                  badgeValue="+3.2%"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Purchase Intent selected')}
-                />
-                <MetricCard
-                  label="Cost Per Impression"
-                  value="€0.12"
-                  subMetric="vs. €0.15 target"
-                  badgeValue="-20%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CPI selected')}
-                />
-                <MetricCard
-                  label="Engagement Rate"
-                  value="8.9%"
-                  subMetric="Interactive displays"
-                  badgeValue="+12.1%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Engagement Rate selected')}
-                />
-                <MetricCard
-                  label="Conversion Lift"
-                  value="+15.3%"
-                  subMetric="In-store purchases"
-                  badgeValue="+2.8%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Conversion Lift selected')}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsOfflineInstoreRunning}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
 
     return (
@@ -2211,126 +1922,28 @@ export const DisplayRunning: Story = {
       },
     ];
 
+    const dialogMetricsDisplayRunning: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '1.47%', subMetric: 'vs. 1.32% last period', badgeValue: '+11.4%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '78.4%', subMetric: 'Above industry avg', badgeValue: '+5.8%', badgeVariant: 'success' },
+      { key: 'cpm', label: 'Cost Per Mille', value: '$2.85', subMetric: 'vs. $3.20 target', badgeValue: '-10.9%', badgeVariant: 'success' },
+      { key: 'videoCompletion', label: 'Video Completion', value: '68.9%', subMetric: '15s completion', badgeValue: '+7.3%', badgeVariant: 'success' },
+      { key: 'brandLift', label: 'Brand Lift', value: '+19.2%', subMetric: 'Awareness increase', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'frequency', label: 'Frequency', value: '2.6x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$1.94', subMetric: 'vs. $2.15 target', badgeValue: '-9.8%', badgeVariant: 'success' },
+      { key: 'engagementRate', label: 'Engagement Rate', value: '3.2%', subMetric: 'Rich media ads', badgeValue: '+15.6%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '2.8%', subMetric: 'Post-click conv.', badgeValue: '+18.2%', badgeVariant: 'success' },
+    ];
+
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {performanceMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Select a Metric</DialogTitle>
-              <DialogDescription>
-                Choose a metric to add to your dashboard. Click on any metric card to select it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[500px] overflow-y-auto p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Click-Through Rate"
-                  value="1.47%"
-                  subMetric="vs. 1.32% last period"
-                  badgeValue="+11.4%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CTR selected')}
-                />
-                <MetricCard
-                  label="Viewability Rate"
-                  value="78.4%"
-                  subMetric="Above industry avg"
-                  badgeValue="+5.8%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Viewability selected')}
-                />
-                <MetricCard
-                  label="Cost Per Mille"
-                  value="$2.85"
-                  subMetric="vs. $3.20 target"
-                  badgeValue="-10.9%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CPM selected')}
-                />
-                <MetricCard
-                  label="Video Completion"
-                  value="68.9%"
-                  subMetric="15s completion"
-                  badgeValue="+7.3%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Video Completion selected')}
-                />
-                <MetricCard
-                  label="Brand Lift"
-                  value="+19.2%"
-                  subMetric="Awareness increase"
-                  badgeValue="High"
-                  badgeVariant="info"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Brand Lift selected')}
-                />
-                <MetricCard
-                  label="Frequency"
-                  value="2.6x"
-                  subMetric="Avg. per user"
-                  badgeValue="Optimal"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Frequency selected')}
-                />
-                <MetricCard
-                  label="Cost Per Click"
-                  value="$1.94"
-                  subMetric="vs. $2.15 target"
-                  badgeValue="-9.8%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('CPC selected')}
-                />
-                <MetricCard
-                  label="Engagement Rate"
-                  value="3.2%"
-                  subMetric="Rich media ads"
-                  badgeValue="+15.6%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Engagement Rate selected')}
-                />
-                <MetricCard
-                  label="Conversion Rate"
-                  value="2.8%"
-                  subMetric="Post-click conv."
-                  badgeValue="+18.2%"
-                  badgeVariant="success"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Conversion Rate selected')}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsDisplayRunning}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
 
     return (
@@ -2774,126 +2387,28 @@ export const OfflineInstoreInOption: Story = {
       },
     ];
 
+    const dialogMetricsOfflineInstoreInOption: MetricDefinition[] = [
+      { key: 'projectedFootfall', label: 'Projected Footfall', value: '8.5%', subMetric: 'Estimated reach', badgeValue: 'Est.', badgeVariant: 'secondary' },
+      { key: 'targetCoverage', label: 'Target Coverage', value: '57%', subMetric: '220 planned stores', badgeValue: 'Planned', badgeVariant: 'secondary' },
+      { key: 'expectedDwellTime', label: 'Expected Dwell Time', value: '3.8 min', subMetric: 'Target engagement', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'budgetAllocation', label: 'Budget Allocation', value: '€75K', subMetric: 'Initial allocation', badgeValue: 'Approved', badgeVariant: 'info' },
+      { key: 'targetAwareness', label: 'Target Awareness', value: '+20%', subMetric: 'Expected lift', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'cpi', label: 'Cost Per Impression', value: '€0.15', subMetric: 'Target CPI', badgeValue: 'Target', badgeVariant: 'secondary' },
+      { key: 'expectedRoi', label: 'Expected ROI', value: '2.5x', subMetric: 'Target return', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'timeline', label: 'Timeline', value: '45 days', subMetric: 'To launch', badgeValue: 'Pending', badgeVariant: 'warning' },
+      { key: 'approvalStatus', label: 'Approval Status', value: '75%', subMetric: 'Creatives approved', badgeValue: 'In Review', badgeVariant: 'warning' },
+    ];
+
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {performanceMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Select a Metric</DialogTitle>
-              <DialogDescription>
-                Choose a metric to add to your dashboard. Click on any metric card to select it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[500px] overflow-y-auto p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Projected Footfall"
-                  value="8.5%"
-                  subMetric="Estimated reach"
-                  badgeValue="Est."
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Projected Footfall selected')}
-                />
-                <MetricCard
-                  label="Target Coverage"
-                  value="57%"
-                  subMetric="220 planned stores"
-                  badgeValue="Planned"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Target Coverage selected')}
-                />
-                <MetricCard
-                  label="Expected Dwell Time"
-                  value="3.8 min"
-                  subMetric="Target engagement"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Expected Dwell Time selected')}
-                />
-                <MetricCard
-                  label="Budget Allocation"
-                  value="€75K"
-                  subMetric="Initial allocation"
-                  badgeValue="Approved"
-                  badgeVariant="info"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Budget Allocation selected')}
-                />
-                <MetricCard
-                  label="Target Awareness"
-                  value="+20%"
-                  subMetric="Expected lift"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Target Awareness selected')}
-                />
-                <MetricCard
-                  label="Cost Per Impression"
-                  value="€0.15"
-                  subMetric="Target CPI"
-                  badgeValue="Target"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Cost Per Impression selected')}
-                />
-                <MetricCard
-                  label="Expected ROI"
-                  value="2.5x"
-                  subMetric="Target return"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Expected ROI selected')}
-                />
-                <MetricCard
-                  label="Timeline"
-                  value="45 days"
-                  subMetric="To launch"
-                  badgeValue="Pending"
-                  badgeVariant="warning"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Timeline selected')}
-                />
-                <MetricCard
-                  label="Approval Status"
-                  value="75%"
-                  subMetric="Creatives approved"
-                  badgeValue="In Review"
-                  badgeVariant="warning"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Approval Status selected')}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsOfflineInstoreInOption}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
 
     return (
@@ -3315,126 +2830,28 @@ export const DisplayInOption: Story = {
       },
     ];
 
+    const dialogMetricsDisplayInOption: MetricDefinition[] = [
+      { key: 'projectedCtr', label: 'Projected CTR', value: '1.5%', subMetric: 'Estimated rate', badgeValue: 'Est.', badgeVariant: 'secondary' },
+      { key: 'targetViewability', label: 'Target Viewability', value: '65%', subMetric: 'Goal rate', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'budgetAllocated', label: 'Budget Allocated', value: '$100K', subMetric: 'Initial budget', badgeValue: 'Approved', badgeVariant: 'info' },
+      { key: 'targetFrequency', label: 'Target Frequency', value: '2.5x', subMetric: 'Optimal reach', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'expectedBrandLift', label: 'Expected Brand Lift', value: '+15%', subMetric: 'Awareness goal', badgeValue: 'Target', badgeVariant: 'secondary' },
+      { key: 'targetCpa', label: 'Target CPA', value: '$28', subMetric: 'Cost per acquisition', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'deviceMix', label: 'Device Mix', value: 'Multi-device', subMetric: '18-45 targeting', badgeValue: 'Planned', badgeVariant: 'secondary' },
+      { key: 'creativeStatus', label: 'Creative Status', value: '67%', subMetric: 'Assets approved', badgeValue: 'In Review', badgeVariant: 'warning' },
+      { key: 'launchTimeline', label: 'Launch Timeline', value: '30 days', subMetric: 'To go-live', badgeValue: 'Pending', badgeVariant: 'warning' },
+    ];
+
     const ForecastSection = () => (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {performanceMetrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            label={metric.label}
-            value={metric.value}
-            subMetric={metric.subMetric}
-            badgeValue={metric.badgeValue}
-            badgeVariant={metric.badgeVariant}
-            isSelected={false}
-            onClick={undefined}
-          />
-        ))}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Select a Metric</DialogTitle>
-              <DialogDescription>
-                Choose a metric to add to your dashboard. Click on any metric card to select it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[500px] overflow-y-auto p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Projected CTR"
-                  value="1.5%"
-                  subMetric="Estimated rate"
-                  badgeValue="Est."
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Projected CTR selected')}
-                />
-                <MetricCard
-                  label="Target Viewability"
-                  value="65%"
-                  subMetric="Goal rate"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Target Viewability selected')}
-                />
-                <MetricCard
-                  label="Budget Allocated"
-                  value="$100K"
-                  subMetric="Initial budget"
-                  badgeValue="Approved"
-                  badgeVariant="info"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Budget Allocated selected')}
-                />
-                <MetricCard
-                  label="Target Frequency"
-                  value="2.5x"
-                  subMetric="Optimal reach"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Target Frequency selected')}
-                />
-                <MetricCard
-                  label="Expected Brand Lift"
-                  value="+15%"
-                  subMetric="Awareness goal"
-                  badgeValue="Target"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Expected Brand Lift selected')}
-                />
-                <MetricCard
-                  label="Target CPA"
-                  value="$28"
-                  subMetric="Cost per acquisition"
-                  badgeValue="Goal"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Target CPA selected')}
-                />
-                <MetricCard
-                  label="Device Mix"
-                  value="Multi-device"
-                  subMetric="18-45 targeting"
-                  badgeValue="Planned"
-                  badgeVariant="secondary"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Device Mix selected')}
-                />
-                <MetricCard
-                  label="Creative Status"
-                  value="67%"
-                  subMetric="Assets approved"
-                  badgeValue="In Review"
-                  badgeVariant="warning"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Creative Status selected')}
-                />
-                <MetricCard
-                  label="Launch Timeline"
-                  value="30 days"
-                  subMetric="To go-live"
-                  badgeValue="Pending"
-                  badgeVariant="warning"
-                  className="cursor-pointer hover:ring-2 hover:ring-primary"
-                  onClick={() => console.log('Launch Timeline selected')}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsDisplayInOption}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
 
     return (
@@ -3984,153 +3401,57 @@ export const SponsoredProductsInOption: Story = {
         badgeVariant: 'success' as const,
       },
       { 
-        id: 'roas', 
-        label: 'ROAS Forecast', 
-        value: currentMetrics.roas, 
+        id: 'roas',
+        label: 'ROAS Forecast',
+        value: `${(currentMetrics.roas / 100).toFixed(2)}x`,
         subMetric: 'Projected return',
         badgeValue: '+3.4%',
         badgeVariant: 'success' as const,
       },
-      { 
-        id: 'revenue', 
-        label: 'Revenue Forecast', 
-        value: `$${currentMetrics.revenue.toLocaleString()}`, 
+      {
+        id: 'revenue',
+        label: 'Revenue Forecast',
+        value: `$${currentMetrics.revenue.toLocaleString()}`,
         subMetric: 'Total revenue',
         badgeValue: '+4.2%',
         badgeVariant: 'success' as const,
       },
-      { 
-        id: 'competitive', 
-        label: 'Competitive Forecast', 
-        value: 'Medium', 
+      {
+        id: 'competitive',
+        label: 'Competitive Forecast',
+        value: 'Medium',
         subMetric: 'Avg. competition',
         badgeValue: '+2%',
         badgeVariant: 'success' as const,
       },
     ];
     
+    const dialogMetricsSponsoredProductsInOption: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '2.34%', subMetric: 'vs. 2.18% last period', badgeValue: '+7.3%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '4.12%', subMetric: '1,234 conversions', badgeValue: '+12.5%', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$0.58', subMetric: 'vs. $0.62 target', badgeValue: '-6.5%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '87.3%', subMetric: 'Above industry avg', badgeValue: '+5.2%', badgeVariant: 'success' },
+      { key: 'brandLift', label: 'Brand Lift', value: '+18.2%', subMetric: 'Awareness increase', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'sov', label: 'Share of Voice', value: '34.7%', subMetric: 'In category', badgeValue: '+2.1%', badgeVariant: 'secondary' },
+      { key: 'frequency', label: 'Frequency', value: '3.8x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'vcr', label: 'Video Completion Rate', value: '68.9%', subMetric: '15s videos', badgeValue: '+9.4%', badgeVariant: 'success' },
+      { key: 'cpa', label: 'Cost Per Acquisition', value: '$24.50', subMetric: 'vs. $30 target', badgeValue: '-18.3%', badgeVariant: 'success' },
+    ];
+
     const ForecastSection = () => (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {updatedForecastMetrics.map((metric) => (
-            <MetricCard
-              key={metric.id}
-              label={metric.label}
-              value={String(metric.value)}
-              subMetric={metric.subMetric}
-              badgeValue={metric.badgeValue}
-              badgeVariant={metric.badgeVariant}
-              isSelected={selectedForecastMetric === metric.id}
-              onClick={() => setSelectedForecastMetric(selectedForecastMetric === metric.id ? null : metric.id)}
-            />
-          ))}
-          <Dialog>
-            <DialogTrigger asChild>
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-              >
-                <Plus className="h-8 w-8 text-gray-400" />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
-              <DialogHeader>
-                <DialogTitle>Select a Metric</DialogTitle>
-                <DialogDescription>
-                  Choose a metric to add to your dashboard. Click on any metric card to select it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[500px] overflow-y-auto p-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <MetricCard
-                    label="Click-Through Rate"
-                    value="2.34%"
-                    subMetric="vs. 2.18% last period"
-                    badgeValue="+7.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CTR selected')}
-                  />
-                  <MetricCard
-                    label="Conversion Rate"
-                    value="4.12%"
-                    subMetric="1,234 conversions"
-                    badgeValue="+12.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Conversion Rate selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Click"
-                    value="$0.58"
-                    subMetric="vs. $0.62 target"
-                    badgeValue="-6.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPC selected')}
-                  />
-                  <MetricCard
-                    label="Viewability Rate"
-                    value="87.3%"
-                    subMetric="Above industry avg"
-                    badgeValue="+5.2%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Viewability selected')}
-                  />
-                  <MetricCard
-                    label="Brand Lift"
-                    value="+18.2%"
-                    subMetric="Awareness increase"
-                    badgeValue="High"
-                    badgeVariant="info"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Brand Lift selected')}
-                  />
-                  <MetricCard
-                    label="Share of Voice"
-                    value="34.7%"
-                    subMetric="In category"
-                    badgeValue="+2.1%"
-                    badgeVariant="secondary"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('SOV selected')}
-                  />
-                  <MetricCard
-                    label="Frequency"
-                    value="3.8x"
-                    subMetric="Avg. per user"
-                    badgeValue="Optimal"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Frequency selected')}
-                  />
-                  <MetricCard
-                    label="Video Completion Rate"
-                    value="68.9%"
-                    subMetric="15s videos"
-                    badgeValue="+9.4%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('VCR selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Acquisition"
-                    value="$24.50"
-                    subMetric="vs. $30 target"
-                    badgeValue="-18.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPA selected')}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
+        <MetricRow
+          metrics={updatedForecastMetrics.map(m => ({ ...m, key: m.id }))}
+          selectedKeys={updatedForecastMetrics.map(m => m.id)}
+          maxVisible={5}
+          defaultVariant="default"
+          removable={false}
+          activeKey={selectedForecastMetric}
+          onActiveKeyChange={setSelectedForecastMetric}
+          dialogMetrics={dialogMetricsSponsoredProductsInOption}
+          onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        />
+
         {/* Interactive Forecast Chart - only show when spend, roas, or revenue is selected */}
         {(selectedForecastMetric === 'spend' || selectedForecastMetric === 'roas' || selectedForecastMetric === 'revenue') && (
           <div>
@@ -4959,128 +4280,32 @@ export const SponsoredProductsRunning: Story = {
     const chartData = getChartData(selectedMetric);
     const selectedMetricData = performanceMetrics.find(m => m.id === selectedMetric);
     
+    const dialogMetricsSponsoredProductsRunning: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '2.34%', subMetric: 'vs. 2.18% last period', badgeValue: '+7.3%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '4.12%', subMetric: '1,234 conversions', badgeValue: '+12.5%', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$0.58', subMetric: 'vs. $0.62 target', badgeValue: '-6.5%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '87.3%', subMetric: 'Above industry avg', badgeValue: '+5.2%', badgeVariant: 'success' },
+      { key: 'brandLift', label: 'Brand Lift', value: '+18.2%', subMetric: 'Awareness increase', badgeValue: 'High', badgeVariant: 'info' },
+      { key: 'sov', label: 'Share of Voice', value: '34.7%', subMetric: 'In category', badgeValue: '+2.1%', badgeVariant: 'secondary' },
+      { key: 'frequency', label: 'Frequency', value: '3.8x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'vcr', label: 'Video Completion Rate', value: '68.9%', subMetric: '15s videos', badgeValue: '+9.4%', badgeVariant: 'success' },
+      { key: 'cpa', label: 'Cost Per Acquisition', value: '$24.50', subMetric: 'vs. $30 target', badgeValue: '-18.3%', badgeVariant: 'success' },
+    ];
+
     const ForecastSection = () => (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {performanceMetrics.map((metric) => (
-            <MetricCard
-              key={metric.id}
-              label={metric.label}
-              value={String(metric.value)}
-              subMetric={metric.subMetric}
-              badgeValue={metric.badgeValue}
-              badgeVariant={metric.badgeVariant}
-              isSelected={selectedMetric === metric.id}
-              onClick={() => setSelectedMetric(metric.id)}
-            />
-          ))}
-          <Dialog>
-            <DialogTrigger asChild>
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-              >
-                <Plus className="h-8 w-8 text-gray-400" />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
-              <DialogHeader>
-                <DialogTitle>Select a Metric</DialogTitle>
-                <DialogDescription>
-                  Choose a metric to add to your dashboard. Click on any metric card to select it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[500px] overflow-y-auto p-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <MetricCard
-                    label="Click-Through Rate"
-                    value="2.34%"
-                    subMetric="vs. 2.18% last period"
-                    badgeValue="+7.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CTR selected')}
-                  />
-                  <MetricCard
-                    label="Conversion Rate"
-                    value="4.12%"
-                    subMetric="1,234 conversions"
-                    badgeValue="+12.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Conversion Rate selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Click"
-                    value="$0.58"
-                    subMetric="vs. $0.62 target"
-                    badgeValue="-6.5%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPC selected')}
-                  />
-                  <MetricCard
-                    label="Viewability Rate"
-                    value="87.3%"
-                    subMetric="Above industry avg"
-                    badgeValue="+5.2%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Viewability selected')}
-                  />
-                  <MetricCard
-                    label="Brand Lift"
-                    value="+18.2%"
-                    subMetric="Awareness increase"
-                    badgeValue="High"
-                    badgeVariant="info"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Brand Lift selected')}
-                  />
-                  <MetricCard
-                    label="Share of Voice"
-                    value="34.7%"
-                    subMetric="In category"
-                    badgeValue="+2.1%"
-                    badgeVariant="secondary"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('SOV selected')}
-                  />
-                  <MetricCard
-                    label="Frequency"
-                    value="3.8x"
-                    subMetric="Avg. per user"
-                    badgeValue="Optimal"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('Frequency selected')}
-                  />
-                  <MetricCard
-                    label="Video Completion Rate"
-                    value="68.9%"
-                    subMetric="15s videos"
-                    badgeValue="+9.4%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('VCR selected')}
-                  />
-                  <MetricCard
-                    label="Cost Per Acquisition"
-                    value="$24.50"
-                    subMetric="vs. $30 target"
-                    badgeValue="-18.3%"
-                    badgeVariant="success"
-                    className="cursor-pointer hover:ring-2 hover:ring-primary"
-                    onClick={() => console.log('CPA selected')}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
+        <MetricRow
+          metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+          selectedKeys={performanceMetrics.map(m => m.id)}
+          maxVisible={5}
+          defaultVariant="default"
+          removable={false}
+          activeKey={selectedMetric}
+          onActiveKeyChange={(key) => setSelectedMetric(key ?? 'impressions')}
+          dialogMetrics={dialogMetricsSponsoredProductsRunning}
+          onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        />
+
         {/* Interactive Line Chart */}
         <div>
           <div className="relative bg-white border rounded-lg p-6">

@@ -194,6 +194,7 @@ export interface MetricCardProps {
   badgeVariant?: "default" | "destructive" | "secondary" | "outline" | "success" | "warning" | "info";
   isSelected?: boolean;
   onClick?: () => void;
+  onRemove?: () => void;
   className?: string;
   variant?: "default" | "graph";
   graphData?: Array<{ value: number }>;
@@ -210,6 +211,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     badgeVariant = "default",
     isSelected = false,
     onClick,
+    onRemove,
     className,
     variant = "default",
     graphData,
@@ -220,13 +222,21 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     <Card
       ref={ref}
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md relative",
+        "cursor-pointer transition-all duration-200 hover:shadow-md relative group",
         isSelected && "shadow-md",
         className
       )}
       onClick={onClick}
       {...props}
     >
+      {onRemove && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="absolute top-2 right-2 z-10 h-5 w-5 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      )}
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-normal text-muted-foreground truncate">
           {label}

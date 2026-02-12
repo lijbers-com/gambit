@@ -30,7 +30,7 @@ import {
   Store,
   WalletCards,
 } from 'lucide-react';
-import { OrganisationsIcon, BrandsIcon } from './custom-icons';
+import { OrganisationsIcon, BrandsIcon, CreateIcon } from './custom-icons';
 
 export const renderIcon = (icon: string) => {
   const icons = {
@@ -66,6 +66,7 @@ export const renderIcon = (icon: string) => {
     WalletCards,
     OrganisationsIcon,
     BrandsIcon,
+    CreateIcon,
   };
   const IconComponent = icons[icon as keyof typeof icons];
   return IconComponent ? <IconComponent className="p-2" size={36} /> : null;

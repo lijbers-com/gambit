@@ -1842,6 +1842,42 @@ export const OfflineInStore: Story = {
                 <div className="lg:col-span-2 min-w-0">
                   <Card className="min-w-0">
                     <CardHeader className="space-y-8">
+                      <FormSection title="Preparation">
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">
+                            Complete the steps below to prepare this line item. Set the store list, creative status, printer instructions, and briefing to mark this line item as ready.
+                          </p>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Briefing</label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between">
+                                  {briefingStatus === 'not-set' && 'Not set'}
+                                  {briefingStatus === 'send' && 'Send'}
+                                  {briefingStatus === 'approved' && 'Approved'}
+                                  {briefingStatus === 'rejected' && 'Rejected'}
+                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuItem onClick={() => setBriefingStatus('not-set')}>
+                                  Not set
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('send')}>
+                                  Send
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('approved')}>
+                                  Approved
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('rejected')}>
+                                  Rejected
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </FormSection>
+
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
@@ -2240,39 +2276,6 @@ export const OfflineInStore: Story = {
                                 send
                               </Button>
                             </div>
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Briefing">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Status</label>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full justify-between">
-                                  {briefingStatus === 'not-set' && 'Not set'}
-                                  {briefingStatus === 'send' && 'Send'}
-                                  {briefingStatus === 'approved' && 'Approved'}
-                                  {briefingStatus === 'rejected' && 'Rejected'}
-                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-                                <DropdownMenuItem onClick={() => setBriefingStatus('not-set')}>
-                                  Not set
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setBriefingStatus('send')}>
-                                  Send
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setBriefingStatus('approved')}>
-                                  Approved
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setBriefingStatus('rejected')}>
-                                  Rejected
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
                         </div>
                       </FormSection>

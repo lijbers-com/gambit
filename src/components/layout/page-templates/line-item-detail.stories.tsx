@@ -2307,6 +2307,15 @@ export const OfflineInStore: Story = {
                     </CardHeader>
                     <CardSummaryContent>
                       <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Preparation</div>
+                        <div className={briefingStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
+                          {briefingStatus === 'not-set' && 'Not set'}
+                          {briefingStatus === 'send' && 'Briefing send'}
+                          {briefingStatus === 'approved' && 'Briefing approved'}
+                          {briefingStatus === 'rejected' && 'Briefing rejected'}
+                        </div>
+                      </div>
+                      <div className="mb-2">
                         <div className="text-[14px] text-muted-foreground">Runtime</div>
                         <div className="font-medium">
                           {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
@@ -2334,15 +2343,6 @@ export const OfflineInStore: Story = {
                           {printerStatus === 'instruction-send' && 'Instruction send'}
                           {printerStatus === 'delivered' && 'Delivered'}
                           {printerStatus === 'installed' && 'Installed'}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Preparation</div>
-                        <div className={briefingStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
-                          {briefingStatus === 'not-set' && 'Not set'}
-                          {briefingStatus === 'send' && 'Briefing send'}
-                          {briefingStatus === 'approved' && 'Briefing approved'}
-                          {briefingStatus === 'rejected' && 'Briefing rejected'}
                         </div>
                       </div>
                     </CardSummaryContent>

@@ -2337,12 +2337,12 @@ export const OfflineInStore: Story = {
                         </div>
                       </div>
                       <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Briefing</div>
+                        <div className="text-[14px] text-muted-foreground">Preparation</div>
                         <div className={briefingStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
                           {briefingStatus === 'not-set' && 'Not set'}
-                          {briefingStatus === 'send' && 'Send'}
-                          {briefingStatus === 'approved' && 'Approved'}
-                          {briefingStatus === 'rejected' && 'Rejected'}
+                          {briefingStatus === 'send' && 'Briefing send'}
+                          {briefingStatus === 'approved' && 'Briefing approved'}
+                          {briefingStatus === 'rejected' && 'Briefing rejected'}
                         </div>
                       </div>
                     </CardSummaryContent>

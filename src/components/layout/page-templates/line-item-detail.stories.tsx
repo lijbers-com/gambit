@@ -18,7 +18,7 @@ import { CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload } from 'lucide-react';
+import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -1528,6 +1528,34 @@ export const OfflineInStore: Story = {
       'line-item-2': 'Medium'
     });
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
+    const [storeSelectionMode, setStoreSelectionMode] = React.useState<'random' | 'copy' | 'custom' | null>(null);
+    const [creativeStatus, setCreativeStatus] = React.useState<'not-set' | 'received' | 'not-approved'>('not-set');
+    const [printerStatus, setPrinterStatus] = React.useState<'not-set' | 'instruction-send' | 'delivered' | 'installed'>('not-set');
+    const [briefingStatus, setBriefingStatus] = React.useState<'not-set' | 'send' | 'approved' | 'rejected'>('not-set');
+    const [printerMessages, setPrinterMessages] = React.useState<{text: string; timestamp: string; sender: string}[]>([]);
+    const [printerMessageInput, setPrinterMessageInput] = React.useState('');
+    const handleSendPrinterMessage = () => {
+      if (printerMessageInput.trim()) {
+        setPrinterMessages(prev => [...prev, {
+          text: printerMessageInput.trim(),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          sender: 'You'
+        }]);
+        setPrinterMessageInput('');
+      }
+    };
+    const [preparationChecklist, setPreparationChecklist] = React.useState({
+      briefingToAdvertisers: false,
+      creativeReceived: false,
+      finalPrinterInstructionSend: false,
+      storeListGenerated: false,
+    });
+
+    const allPreparationChecked = Object.values(preparationChecklist).every(Boolean);
+
+    const handlePreparationChange = (key: keyof typeof preparationChecklist) => {
+      setPreparationChecklist(prev => ({ ...prev, [key]: !prev[key] }));
+    };
 
     // Location options for Filter component
     const locationOptions = [
@@ -1814,89 +1842,6 @@ export const OfflineInStore: Story = {
                 <div className="lg:col-span-2 min-w-0">
                   <Card className="min-w-0">
                     <CardHeader className="space-y-8">
-                      <FormSection title="Line item details">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Name*</label>
-                            <Input 
-                              value={lineItemName}
-                              onChange={(e) => setLineItemName(e.target.value)}
-                              placeholder="Enter line item name" 
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
-                      
-                      <FormSection title="Placement">
-                        <div className="space-y-4 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Find inventory*</label>
-                            <SearchInput 
-                              value={inventorySearch}
-                              onChange={handleInventorySearchChange}
-                              onClick={handleInventoryClick}
-                              placeholder="Search for inventory..." 
-                              className="w-full"
-                              icon={<LayoutDashboard className="w-4 h-4" />}
-                            />
-                            {showInventoryResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredInventoryOptions.length > 0 ? (
-                                  filteredInventoryOptions.map((inventory) => (
-                                  <div
-                                    key={inventory.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handleInventorySelect(inventory)}
-                                  >
-                                    <div className="font-medium text-sm">{inventory.name}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {inventory.description} • {inventory.dimensions}
-                                    </div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No inventory found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedInventory.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected inventory:</div>
-                              <div className="space-y-1">
-                                {selectedInventory.map(inventory => (
-                                  <div key={inventory.id} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
-                                    <div>
-                                      <div className="text-sm font-medium">{inventory.name}</div>
-                                      <div className="text-xs text-muted-foreground">{inventory.description}</div>
-                                    </div>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      onClick={() => removeInventoryItem(inventory.id)}
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      <Minus className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="text-sm text-muted-foreground">
-                            {selectedInventory.length > 0
-                              ? 'Inventory selected for this line item'
-                              : 'Search and select inventory items for this line item'
-                            }
-                          </div>
-                        </div>
-                      </FormSection>
-
                       <FormSection title="Run time">
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
@@ -1925,118 +1870,119 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Retail products">
-                        <div className="space-y-4">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
-                            <SearchInput 
-                              value={retailProductSearch}
-                              onChange={handleRetailProductSearchChange}
-                              onClick={handleRetailProductClick}
-                              placeholder="Select product by name or ID..." 
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handleRetailProductSelect(product)}
-                                  >
-                                    <div className="font-medium text-sm">{product.name}</div>
-                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No products found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected products:</div>
-                              <div className="space-y-1">
-                                {selectedRetailProducts.map(productId => {
-                                  const product = retailProducts.find(p => p.id === productId);
-                                  return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
-                                      <div>
-                                        <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                      </div>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => removeRetailProduct(productId)}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <Minus className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="text-sm text-muted-foreground">
-                            {selectedRetailProducts.length > 0 
-                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this line item'
-                            }
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Store targets">
-                        <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Location"
-                              options={locationOptions}
-                              selectedValues={selectedLocations}
-                              onChange={setSelectedLocations}
-                            />
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
-
                       <FormSection title="Stores">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="relative" data-dropdown-container>
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Store className="w-4 h-4" />
-                              </span>
-                              <Input 
-                                type="number"
-                                value={storeAmount}
-                                onChange={(e) => setStoreAmount(e.target.value)}
-                                placeholder="Enter number of stores" 
-                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                min="1"
-                              />
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex-1" data-dropdown-container>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                  <Store className="w-4 h-4" />
+                                </span>
+                                <Input
+                                  type="number"
+                                  value={storeAmount}
+                                  onChange={(e) => setStoreAmount(e.target.value)}
+                                  placeholder="Enter number of stores"
+                                  className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  min="1"
+                                />
+                              </div>
+                              {storeSelectionMode && (
+                                <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" className="whitespace-nowrap h-10">
+                                      Selected stores
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                                    <DialogHeader>
+                                      <DialogTitle>Selected Stores</DialogTitle>
+                                      <DialogDescription>View and manage the stores selected for this line item.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex justify-end gap-2">
+                                      <Button variant="outline">
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Upload store list
+                                      </Button>
+                                      <Button variant="outline">
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download store list
+                                      </Button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto min-h-0">
+                                      <Table
+                                        columns={[
+                                          {
+                                            key: 'select',
+                                            header: (
+                                              <Checkbox
+                                                checked={selectedStoreIds.length === storesList.length}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setSelectedStoreIds(storesList.map(s => s.id));
+                                                  } else {
+                                                    setSelectedStoreIds([]);
+                                                  }
+                                                }}
+                                              />
+                                            )
+                                          },
+                                          { key: 'name', header: 'Store Name' },
+                                          { key: 'type', header: 'Type' },
+                                          { key: 'location', header: 'Location' },
+                                          { key: 'reach', header: 'Estimated Reach' },
+                                          { key: 'status', header: 'Status' }
+                                        ]}
+                                        data={storesList.map(store => ({
+                                          select: (
+                                            <Checkbox
+                                              checked={selectedStoreIds.includes(store.id)}
+                                              onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
+                                            />
+                                          ),
+                                          name: store.name,
+                                          type: store.type,
+                                          location: store.location,
+                                          reach: store.reach.toLocaleString(),
+                                          status: (
+                                            <Badge
+                                              className={store.status === 'available'
+                                                ? 'bg-green-100 text-green-800 border-green-200'
+                                                : 'bg-orange-100 text-orange-800 border-orange-200'}
+                                            >
+                                              {store.status === 'available' ? 'Available' : 'Booked'}
+                                            </Badge>
+                                          )
+                                        }))}
+                                        className="w-full"
+                                      />
+                                    </div>
+                                    <DialogFooter>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline">Close</Button>
+                                      </DialogTrigger>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
                             </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Button
+                              variant={storeSelectionMode === 'random' ? 'default' : 'outline'}
+                              className="w-full"
+                              onClick={() => setStoreSelectionMode('random')}
+                            >
+                              Generate random stores
+                            </Button>
+                            <Button
+                              variant={storeSelectionMode === 'custom' ? 'default' : 'outline'}
+                              className="w-full"
+                              onClick={() => setStoreSelectionMode('custom')}
+                            >
+                              Set custom stores
+                            </Button>
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
@@ -2144,87 +2090,6 @@ export const OfflineInStore: Story = {
                               </Dialog>
                             </>
                           )}
-                          <div className="flex gap-2 mt-4">
-                            <Button variant="outline">
-                              Bookings calendar
-                            </Button>
-                            <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline">
-                                  Selected store
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
-                                <DialogHeader>
-                                  <DialogTitle>Selected Stores</DialogTitle>
-                                  <DialogDescription>View and manage the stores selected for this line item.</DialogDescription>
-                                </DialogHeader>
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="outline">
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Upload store list
-                                  </Button>
-                                  <Button variant="outline">
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Download store list
-                                  </Button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto min-h-0">
-                                  <Table
-                                    columns={[
-                                      { 
-                                        key: 'select', 
-                                        header: (
-                                          <Checkbox 
-                                            checked={selectedStoreIds.length === storesList.length}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                setSelectedStoreIds(storesList.map(s => s.id));
-                                              } else {
-                                                setSelectedStoreIds([]);
-                                              }
-                                            }}
-                                          />
-                                        )
-                                      },
-                                      { key: 'name', header: 'Store Name' },
-                                      { key: 'type', header: 'Type' },
-                                      { key: 'location', header: 'Location' },
-                                      { key: 'reach', header: 'Estimated Reach' },
-                                      { key: 'status', header: 'Status' }
-                                    ]}
-                                    data={storesList.map(store => ({
-                                      select: (
-                                        <Checkbox
-                                          checked={selectedStoreIds.includes(store.id)}
-                                          onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
-                                        />
-                                      ),
-                                      name: store.name,
-                                      type: store.type,
-                                      location: store.location,
-                                      reach: store.reach.toLocaleString(),
-                                      status: (
-                                        <Badge 
-                                          className={store.status === 'available' 
-                                            ? 'bg-green-100 text-green-800 border-green-200' 
-                                            : 'bg-orange-100 text-orange-800 border-orange-200'}
-                                        >
-                                          {store.status === 'available' ? 'Available' : 'Booked'}
-                                        </Badge>
-                                      )
-                                    }))}
-                                    className="w-full"
-                                  />
-                                </div>
-                                <DialogFooter>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline">Close</Button>
-                                  </DialogTrigger>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
 {selectedLocations.length > 0 && (
   <div className="mt-6 pt-4 border-t border-slate-200">
     <h4 className="text-sm font-medium mb-3">Other campaigns in this location</h4>
@@ -2283,49 +2148,135 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
 
-                      {/* Creatives FormSection - temporarily hidden, can be easily restored later
                       <FormSection title="Creatives">
-                        {selectedCreatives.length > 0 && (
-                          <div className="mb-4 overflow-x-auto">
-                            <Table
-                              columns={[
-                                {
-                                  key: 'remove',
-                                  header: '',
-                                  render: (row) => (
-                                    <Button
-                                      size="icon"
-                                      variant="outline"
-                                      onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                                      aria-label="Remove creative"
-                                    >
-                                      <Minus className="h-4 w-4" />
-                                    </Button>
-                                  ),
-                                  className: 'w-10 text-center',
-                                },
-                                { key: 'name', header: 'Name' },
-                                { key: 'format', header: 'Format' },
-                                { key: 'status', header: 'Status' },
-                                { key: 'type', header: 'Type' },
-                              ]}
-                              data={selectedCreatives}
-                              rowKey={row => row.id}
-                              hideActions
-                              rowClassName={() => 'cursor-pointer'}
-                              onRowClick={row => {
-                                console.log('Navigate to creative details for', row.name);
-                              }}
-                            />
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Status</label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between">
+                                  {creativeStatus === 'not-set' && 'Creative not set'}
+                                  {creativeStatus === 'received' && 'Creative received'}
+                                  {creativeStatus === 'not-approved' && 'Creative not approved'}
+                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuItem onClick={() => setCreativeStatus('not-set')}>
+                                  Creative not set
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setCreativeStatus('received')}>
+                                  Creative received
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setCreativeStatus('not-approved')}>
+                                  Creative not approved
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                        )}
-                        
-                        <CreativeLinkingDialog 
-                          selectedCreatives={selectedCreatives} 
-                          onSelectionChange={setSelectedCreatives} 
-                        />
+                        </div>
                       </FormSection>
-                      */}
+
+                      <FormSection title="Printer">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Status</label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between">
+                                  {printerStatus === 'not-set' && 'Not set'}
+                                  {printerStatus === 'instruction-send' && 'Instruction send'}
+                                  {printerStatus === 'delivered' && 'Delivered'}
+                                  {printerStatus === 'installed' && 'Installed'}
+                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuItem onClick={() => setPrinterStatus('not-set')}>
+                                  Not set
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setPrinterStatus('instruction-send')}>
+                                  Instruction send
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setPrinterStatus('delivered')}>
+                                  Delivered
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setPrinterStatus('installed')}>
+                                  Installed
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium mb-2 pb-2 border-b">Printer communication</div>
+                            <div className="rounded-md border bg-muted/30 p-4 min-h-[80px] flex items-center justify-center mb-3">
+                              {printerMessages.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No messages yet</p>
+                              ) : (
+                                <div className="w-full space-y-2 flex flex-col">
+                                  {printerMessages.map((msg, i) => (
+                                    <div key={i} className="text-sm">
+                                      <span className="font-medium">{msg.sender}</span>
+                                      <span className="text-muted-foreground text-xs ml-2">{msg.timestamp}</span>
+                                      <p className="mt-0.5">{msg.text}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={printerMessageInput}
+                                onChange={(e) => setPrinterMessageInput(e.target.value)}
+                                placeholder="Type a message..."
+                                className="flex-1"
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleSendPrinterMessage(); }}
+                              />
+                              <Button
+                                variant="secondary"
+                                onClick={handleSendPrinterMessage}
+                                disabled={!printerMessageInput.trim()}
+                              >
+                                send
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      <FormSection title="Briefing">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Status</label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between">
+                                  {briefingStatus === 'not-set' && 'Not set'}
+                                  {briefingStatus === 'send' && 'Send'}
+                                  {briefingStatus === 'approved' && 'Approved'}
+                                  {briefingStatus === 'rejected' && 'Rejected'}
+                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuItem onClick={() => setBriefingStatus('not-set')}>
+                                  Not set
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('send')}>
+                                  Send
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('approved')}>
+                                  Approved
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setBriefingStatus('rejected')}>
+                                  Rejected
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </FormSection>
+
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
@@ -2335,72 +2286,66 @@ export const OfflineInStore: Story = {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line item</CardSummaryTitle>
+                      <div className="flex items-center justify-between">
+                        <CardSummaryTitle>Line item</CardSummaryTitle>
+                        <Badge className={
+                          storeSelectionMode && creativeStatus !== 'not-set' && printerStatus !== 'not-set' && briefingStatus !== 'not-set'
+                          ? 'bg-green-100 text-green-800 border-green-200'
+                          : 'bg-orange-100 text-orange-800 border-orange-200'
+                        }>
+                          {storeSelectionMode && creativeStatus !== 'not-set' && printerStatus !== 'not-set' && briefingStatus !== 'not-set' ? 'Ready' : 'In preparation'}
+                        </Badge>
+                      </div>
                     </CardHeader>
                     <CardSummaryContent>
-                      {lineItemName && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{lineItemName}</div>
+                      <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Runtime</div>
+                        <div className="font-medium">
+                          {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
                         </div>
-                      )}
-                      {selectedLocations.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Locations</div>
-                          <div className="font-medium">
-                            {selectedLocations.map(locationValue => {
-                              const location = locationOptions.find(opt => opt.value === locationValue);
-                              return location?.label;
-                            }).filter(Boolean).join(', ')}
-                          </div>
+                      </div>
+                      <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Stores</div>
+                        <div className={storeAmount || storeSelectionMode ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
+                          {storeAmount ? `${storeAmount} stores` : 'Not set'}
+                          {storeSelectionMode && ' · Store list generated'}
                         </div>
-                      )}
-                      {(startDate || endDate) && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Runtime</div>
-                          <div className="font-medium">
-                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                          </div>
+                      </div>
+                      <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Creatives</div>
+                        <div className={creativeStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
+                          {creativeStatus === 'not-set' && 'Not set'}
+                          {creativeStatus === 'received' && 'Creative received'}
+                          {creativeStatus === 'not-approved' && 'Creative not approved'}
                         </div>
-                      )}
-                      {selectedRetailProducts.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Retail products</div>
-                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                      </div>
+                      <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Printer</div>
+                        <div className={printerStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
+                          {printerStatus === 'not-set' && 'Not set'}
+                          {printerStatus === 'instruction-send' && 'Instruction send'}
+                          {printerStatus === 'delivered' && 'Delivered'}
+                          {printerStatus === 'installed' && 'Installed'}
                         </div>
-                      )}
-                      {storeAmount && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Stores</div>
-                          <div className="font-medium">{storeAmount} stores</div>
+                      </div>
+                      <div className="mb-2">
+                        <div className="text-[14px] text-muted-foreground">Briefing</div>
+                        <div className={briefingStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
+                          {briefingStatus === 'not-set' && 'Not set'}
+                          {briefingStatus === 'send' && 'Send'}
+                          {briefingStatus === 'approved' && 'Approved'}
+                          {briefingStatus === 'rejected' && 'Rejected'}
                         </div>
-                      )}
-                      {selectedStoreTypes.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store types</div>
-                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
-                        </div>
-                      )}
-                      {selectedAudiences.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Audiences</div>
-                          <div className="font-medium">{selectedAudiences.length} selected</div>
-                        </div>
-                      )}
-                      {selectedInventory.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Inventory</div>
-                          <div className="font-medium">{selectedInventory.length} selected</div>
-                        </div>
-                      )}
+                      </div>
                     </CardSummaryContent>
                   </CardSummary>
                   
+
                   {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
@@ -2429,7 +2374,7 @@ export const OfflineInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-                  
+
                   <CampaignDetailsSidebar />
                 </div>
               </div>

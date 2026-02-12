@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { NavigationItem } from './navigation-item';
 import { NavigationItemWithSubmenu } from './navigation-item-with-submenu';
+import { NavigationCreateItem } from './navigation-create-item';
 import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
 import { usePathname as usePathnameContext } from '@/lib/router-context';
@@ -24,7 +25,7 @@ export interface Route {
   id: number;
   name: string;
   url?: string;
-  type?: 'parent' | 'title' | 'single' | 'hidden';
+  type?: 'parent' | 'title' | 'single' | 'hidden' | 'create';
   icon?: {
     lucide?: string;
     url?: string;
@@ -245,6 +246,8 @@ export const SideNavigation = ({
                 (item.subitems?.length ?? 0) > 0 && (
                   <NavigationItemWithSubmenu item={item} />
                 )}
+
+              {item.type === 'create' && <NavigationCreateItem item={item} />}
 
               {(!item.type || item.type === 'single') && item.url && <NavigationItem item={item} />}
             </div>

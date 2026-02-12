@@ -1664,7 +1664,7 @@ export const OfflineInstoreRunning: Story = {
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/display/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/line-item/${row.id}`}
                   />
                 </div>
               ),
@@ -1726,7 +1726,7 @@ export const OfflineInstoreRunning: Story = {
                       return statusMatch && formatMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
                   />
                 </div>
               ),
@@ -1785,7 +1785,7 @@ export const OfflineInstoreRunning: Story = {
                       return userMatch && actionMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
                   />
                 </div>
               ),

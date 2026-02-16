@@ -21,7 +21,7 @@ export const NavigationItem = ({ item }: { item: Route }) => {
     return (
       <div
         className={cn(
-          'flex items-center mb-4 pr-2 rounded-md transition-colors',
+          'flex items-center mb-1 pr-2 rounded-md transition-colors',
           'opacity-50 cursor-not-allowed'
         )}
         data-testid={'nav-' + item.id}

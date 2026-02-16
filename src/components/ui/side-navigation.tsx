@@ -191,7 +191,7 @@ export const SideNavigation = ({
       style={style}
     >
       {/* Fixed logo area */}
-      <div className="flex mb-8">
+      <div className="flex mb-4">
         <Link
           href="/"
           className="side-navigation-logo flex-shrink-0"
@@ -222,7 +222,7 @@ export const SideNavigation = ({
         {filteredRoutes.map((item, index, arr) => {
           const nextItem = arr[index + 1];
           const isTitleType = item.type === 'title';
-          const isNextMainType = nextItem?.type === undefined || nextItem?.type === 'single';
+          const isNextMainType = nextItem?.type === undefined || nextItem?.type === 'single' || nextItem?.type === 'create';
           const isNextParentWithSubitems =
             nextItem?.type === 'parent' &&
             (nextItem.subitems?.length ?? 0) > 0;
@@ -236,9 +236,9 @@ export const SideNavigation = ({
             <div key={item.id}>
               {shouldShowTitle && (
                 <p className={cn(
-                  "mb-4 transition-opacity duration-300 text-xs text-muted-foreground",
+                  "mb-2 transition-opacity duration-300 text-xs text-muted-foreground",
                   // Remove top margin for the first title
-                  index === 0 ? "mt-0" : "mt-8"
+                  index === 0 ? "mt-0" : "mt-4"
                 )}>{item.name}</p>
               )}
 

@@ -21,7 +21,7 @@ export const NavigationItem = ({ item }: { item: Route }) => {
     return (
       <div
         className={cn(
-          'flex items-center mb-1 pr-2 rounded-md transition-colors',
+          'flex items-center pr-2 rounded-md transition-colors',
           'opacity-50 cursor-not-allowed'
         )}
         data-testid={'nav-' + item.id}
@@ -40,7 +40,7 @@ export const NavigationItem = ({ item }: { item: Route }) => {
   return (
     <Link
       className={cn(
-        'flex items-center mb-4 pr-2 rounded-md transition-colors',
+        'flex items-center pr-2 rounded-md transition-colors',
         checkActiveUrl(item.url) && 'active',
       )}
       href={item.url || '/'}

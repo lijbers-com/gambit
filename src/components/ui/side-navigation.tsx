@@ -218,7 +218,7 @@ export const SideNavigation = ({
       </div>
 
       {/* Scrollable navigation area */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar -mr-4 pr-4">
+      <div className="flex-1 flex flex-col gap-1 min-h-0 overflow-y-auto custom-scrollbar -mr-4 pr-4">
         {filteredRoutes.map((item, index, arr) => {
           const nextItem = arr[index + 1];
           const isTitleType = item.type === 'title';
@@ -232,16 +232,19 @@ export const SideNavigation = ({
             showText &&
             (isNextMainType || isNextParentWithSubitems);
 
+          // Title-only items: render the title text or nothing
+          if (isTitleType) {
+            if (!shouldShowTitle) return null;
+            return (
+              <p key={item.id} className={cn(
+                "transition-opacity duration-300 text-xs text-muted-foreground mb-1",
+                index === 0 ? "mt-0" : "mt-6"
+              )}>{item.name}</p>
+            );
+          }
+
           return (
             <div key={item.id}>
-              {shouldShowTitle && (
-                <p className={cn(
-                  "mb-2 transition-opacity duration-300 text-xs text-muted-foreground",
-                  // Remove top margin for the first title
-                  index === 0 ? "mt-0" : "mt-4"
-                )}>{item.name}</p>
-              )}
-
               {item.type === 'parent' &&
                 (item.subitems?.length ?? 0) > 0 && (
                   <NavigationItemWithSubmenu item={item} />

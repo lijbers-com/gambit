@@ -9,6 +9,20 @@ export const advertiserRoutes: Route[] = [
     type: "title" as const,
   },
   {
+    id: 100,
+    name: "Create",
+    type: "create" as const,
+    icon: { lucide: "CreateIcon" },
+    subitems: [
+      { id: 101, name: "Media experience", type: "single" as const, url: "/create/media-experience" },
+      { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products" },
+      { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
+      { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
+      { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore" },
+      { id: 106, name: "Social campaign", type: "single" as const, url: "/create/social" },
+    ],
+  },
+  {
     id: 99,
     name: "Media wallet",
     type: "single" as const,

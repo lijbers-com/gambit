@@ -35,7 +35,7 @@ export const NavigationItemWithSubmenu = ({
   return (
     <>
       <span
-        className="parent flex items-center mb-4 pr-2 rounded-md transition-colors cursor-pointer"
+        className="parent flex items-center mb-1 pr-2 rounded-md transition-colors cursor-pointer"
         onClick={() => toggleSubmenu(itemId)}
         data-testid={'nav-' + itemId}
       >
@@ -58,7 +58,7 @@ export const NavigationItemWithSubmenu = ({
       </span>
       <div
         className={
-          safeOpenSubmenu.includes(itemId) ? 'block mb-4 mt-[-16px]' : 'hidden'
+          safeOpenSubmenu.includes(itemId) ? 'block mb-1 mt-[-4px]' : 'hidden'
         }
       >
         {item.subitems?.map((subitem) => (

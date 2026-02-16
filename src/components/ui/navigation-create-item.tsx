@@ -25,7 +25,7 @@ export const NavigationCreateItem = ({ item }: { item: Route }) => {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'flex items-center mb-1 pr-2 rounded-md transition-colors w-full text-left',
+            'flex items-center pr-2 rounded-md transition-colors w-full text-left',
             'hover:bg-accent hover:text-accent-foreground cursor-pointer',
           )}
           data-testid={'nav-' + item.id}

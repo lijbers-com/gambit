@@ -218,10 +218,11 @@ const campaignSummaryData = [
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
-      { id: 'offline', name: 'Offline in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Holiday Banners', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Screens', enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday POS', enabled: true },
+      { id: 'extended-reach', name: 'Extended Reach', campaignName: 'Holiday Open Web', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-06-01'),
@@ -242,8 +243,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Summer Banners', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Summer Kiosks', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-07-01'),
@@ -264,8 +265,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Back to School Promos', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'School Aisle Screens', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-08-10'),
@@ -286,10 +287,11 @@ const campaignSummaryData = [
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
-      { id: 'offline', name: 'Offline in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'BF Homepage Takeover', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'BF Store Screens', enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'BF Shelf Talkers', enabled: true },
+      { id: 'extended-reach', name: 'Extended Reach', campaignName: 'BF Open Web', enabled: false },
     ],
     dateRange: {
       from: new Date('2024-11-01'),
@@ -310,8 +312,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 7,
     placements: 14,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'NY Retargeting Banners', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'NY Featured Products', enabled: true },
     ],
     dateRange: {
       from: new Date('2025-01-01'),

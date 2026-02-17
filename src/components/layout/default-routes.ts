@@ -17,7 +17,7 @@ export const defaultRoutes: Route[] = [
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
       { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore" },
-      { id: 106, name: "Social campaign", type: "single" as const, url: "/create/social" },
+      { id: 106, name: "Extended reach campaign", type: "single" as const, url: "/create/extended-reach" },
     ],
   },
   {

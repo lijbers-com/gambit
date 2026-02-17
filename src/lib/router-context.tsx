@@ -31,6 +31,12 @@ const getStorybookPath = (path: string): string | null => {
     '/campaigns': 'page-templates-campaign-overview--campaigns-360',
     '/notifications': 'page-templates-notification-center--notification-center',
     '/profile': 'page-templates-dashboard--dashboard',
+    '/create/media-experience': 'page-templates-create-media-experience--goal-selection',
+    '/create/sponsored-products': 'page-templates-campaign-details--sponsored-products-in-option',
+    '/create/display': 'page-templates-campaign-details--display-in-option',
+    '/create/offline-instore': 'page-templates-campaign-details--offline-instore-in-option',
+    '/create/digital-instore': 'page-templates-campaign-details--digital-instore-in-option',
+    '/create/extended-reach': 'page-templates-campaign-details--display-in-option',
     '/': 'page-templates-dashboard--dashboard',
   };
   return storyMapping[path] || null;

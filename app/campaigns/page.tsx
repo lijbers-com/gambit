@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -26,10 +26,10 @@ const campaignSummaryData = [
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
-      { id: 'offline', name: 'Offline in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Holiday Banners', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Sponsored', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Digital Screens', enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday Shelf Talkers', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-06-01'),
@@ -50,8 +50,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Summer Display Ads', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Summer In-Store', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-07-01'),
@@ -72,8 +72,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'School Supplies Promo', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Back to School Screens', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-08-10'),
@@ -94,10 +94,10 @@ const campaignSummaryData = [
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
-      { id: 'digital', name: 'Digital in-store', enabled: true },
-      { id: 'offline', name: 'Offline in-store', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Black Friday Banners', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Black Friday Deals', enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Black Friday Screens', enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'Black Friday POS', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-11-01'),
@@ -118,8 +118,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 7,
     placements: 14,
     engines: [
-      { id: 'display', name: 'Display', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'New Year Display', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'New Year Sponsored', enabled: true },
     ],
     dateRange: {
       from: new Date('2025-01-01'),
@@ -129,13 +129,63 @@ const campaignSummaryData = [
   },
 ];
 
-export default function AllCampaignsPage() {
+export default function AllCampaignsPageWrapper() {
+  return (
+    <React.Suspense fallback={null}>
+      <AllCampaignsPage />
+    </React.Suspense>
+  );
+}
+
+function AllCampaignsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { theme } = useTheme();
   const routes = getRoutesForTheme(theme);
   const [status, setStatus] = React.useState<string[]>([]);
   const [advertiser, setAdvertiser] = React.useState<string[]>([]);
   const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
+
+  // Check for newly created campaign from query param
+  const newCampaignName = searchParams.get('new');
+
+  // Memoize new campaign data to prevent re-creation on every render
+  const newCampaign = React.useMemo(() => {
+    if (!newCampaignName) return null;
+    return {
+      id: `C-${String(campaignSummaryData.length + 1).padStart(3, '0')}`,
+      campaignType: 'display',
+      title: newCampaignName,
+      badge: { text: 'In-option', variant: 'outline' as const },
+      goal: 'brand-awareness',
+      estimatedRoas: '–',
+      budget: '$10,000',
+      usedBudget: '$0',
+      totalPrice: '$0',
+      budgetUsagePercentage: 0,
+      placements: 0,
+      engines: [
+        { id: 'display', name: 'Display', campaignName: `${newCampaignName} – Display`, enabled: true },
+        { id: 'sponsored', name: 'Sponsored products', campaignName: `${newCampaignName} – Sponsored`, enabled: true },
+        { id: 'digital', name: 'Digital in-store', campaignName: `${newCampaignName} – Digital`, enabled: true },
+        { id: 'offline', name: 'Offline in-store', campaignName: `${newCampaignName} – Offline`, enabled: true },
+        { id: 'extended-reach', name: 'Extended Reach', campaignName: `${newCampaignName} – Extended Reach`, enabled: true },
+      ],
+      dateRange: {
+        from: new Date(),
+        to: addDays(new Date(), 30),
+      },
+      features: [],
+    };
+  }, [newCampaignName]);
+
+  // Combine campaigns: new one at the top if present
+  const allCampaigns = React.useMemo(() =>
+    newCampaign
+      ? [newCampaign, ...campaignSummaryData]
+      : campaignSummaryData,
+    [newCampaign]
+  );
 
   return (
     <MenuContextProvider>
@@ -187,11 +237,12 @@ export default function AllCampaignsPage() {
             />
           </CardHeader>
           <CardContent className="space-y-6">
-            {campaignSummaryData.map((campaign, index) => {
+            {allCampaigns.map((campaign, index) => {
+              const isNewCampaign = newCampaign && index === 0;
               const currentBudget = campaignBudgets[campaign.title] || campaign.budget;
               return (
                 <CampaignSummary
-                  key={index}
+                  key={campaign.id}
                   layout="horizontal"
                   title={campaign.title}
                   badge={campaign.badge}
@@ -206,6 +257,7 @@ export default function AllCampaignsPage() {
                   placements={campaign.placements}
                   dateRange={campaign.dateRange}
                   features={campaign.features}
+                  defaultExpanded={!!isNewCampaign}
                   onBudgetChange={(newBudget) => {
                     setCampaignBudgets(prev => ({
                       ...prev,

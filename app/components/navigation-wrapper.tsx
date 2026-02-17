@@ -72,6 +72,14 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/profile': '/profile',
         '/notifications': '/notifications',
 
+        // Create
+        '/create/media-experience': '/create/media-experience',
+        '/create/sponsored-products': '/create/sponsored-products',
+        '/create/display': '/create/display',
+        '/create/offline-instore': '/create/offline-instore',
+        '/create/digital-instore': '/create/digital-instore',
+        '/create/extended-reach': '/create/extended-reach',
+
         // Root
         '/': '/login'
       };

@@ -38,33 +38,61 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
 
       // Handle dropdown menu items from side navigation
       if (target.closest('[role="menuitem"]')) {
-        e.preventDefault();
-        e.stopPropagation();
+        // Create menu items — route to create pages
+        const createRoutes: Record<string, string> = {
+          'media experience': '/create/media-experience',
+          'sponsored product campaign': '/create/sponsored-products',
+          'display campaign': '/create/display',
+          'offline in-store campaign': '/create/offline-instore',
+          'digital in-store campaign': '/create/digital-instore',
+          'extended reach campaign': '/create/extended-reach',
+        };
 
+        for (const [label, route] of Object.entries(createRoutes)) {
+          if (text.includes(label)) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(route);
+            return;
+          }
+        }
+
+        // Profile/account menu items
         if (text.includes('logout')) {
+          e.preventDefault();
+          e.stopPropagation();
           router.push('/login');
           return;
         }
 
         if (text.includes('profile')) {
+          e.preventDefault();
+          e.stopPropagation();
           router.push('/profile');
           return;
         }
 
         if (text.includes('notifications')) {
+          e.preventDefault();
+          e.stopPropagation();
           router.push('/notifications');
           return;
         }
 
         if (text.includes('organisation') || text.includes('organization')) {
-          // Placeholder for organisation functionality
+          e.preventDefault();
+          e.stopPropagation();
           return;
         }
 
         if (text.includes('information')) {
-          // Placeholder for information functionality
+          e.preventDefault();
+          e.stopPropagation();
           return;
         }
+
+        // For unrecognized menu items, don't block — let the default handler work
+        return;
       }
 
       // Check if it's a logout button/link (legacy)

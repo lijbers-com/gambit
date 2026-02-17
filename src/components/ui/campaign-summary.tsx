@@ -14,11 +14,12 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Info, MessageSquare } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus } from 'lucide-react';
 
 export interface CampaignEngine {
   id: string;
   name: string;
+  campaignName?: string;
   enabled: boolean;
 }
 
@@ -56,11 +57,13 @@ export interface CampaignSummaryProps {
   onDateRangeChange?: (dateRange: DateRange | undefined) => void;
   onEngineBudgetChange?: (engineId: string, budget: string) => void;
   onEngineEdit?: (engineId: string, engineName: string) => void;
+  onEngineAdd?: (propositionType: string) => void;
   onNotificationClick?: (notificationType: string) => void;
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
   onAddToCart?: () => void;
+  defaultExpanded?: boolean;
   className?: string;
 }
 
@@ -90,11 +93,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onDateRangeChange,
     onEngineBudgetChange,
     onEngineEdit,
+    onEngineAdd,
     onNotificationClick,
     conversionWindow,
     onConversionWindowChange,
     onEdit,
     onAddToCart,
+    defaultExpanded = false,
     className,
     ...props
   }, ref) => {
@@ -109,21 +114,40 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Internal state for switches when callbacks are not provided
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
-    const [isCollapsed, setIsCollapsed] = React.useState(true);
+    const [isCollapsed, setIsCollapsed] = React.useState(!defaultExpanded);
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
     const [autoTargeting, setAutoTargeting] = React.useState(false);
     const [autoSuggestions, setAutoSuggestions] = React.useState(true);
     const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
+    const [showAddDropdown, setShowAddDropdown] = React.useState(false);
 
-    // Update internal state when props change
+    // Available proposition types for adding new campaigns
+    const propositionTypes = [
+      { id: 'display', name: 'Display', icon: MonitorSpeaker },
+      { id: 'sponsored', name: 'Sponsored products', icon: ListStart },
+      { id: 'digital', name: 'Digital in-store', icon: MonitorPlay },
+      { id: 'offline', name: 'Offline in-store', icon: Store },
+      { id: 'extended-reach', name: 'Extended Reach', icon: Globe },
+    ];
+
+    const handleAddCampaign = (propositionType: string) => {
+      if (onEngineAdd) {
+        onEngineAdd(propositionType);
+      }
+      setShowAddDropdown(false);
+    };
+
+    // Update internal state when props change (compare by value to avoid infinite loops)
+    const enginesKey = JSON.stringify(engines);
     React.useEffect(() => {
       setInternalEngines(engines);
-    }, [engines]);
+    }, [enginesKey]);
 
+    const featuresKey = JSON.stringify(features);
     React.useEffect(() => {
       setInternalFeatures(features);
-    }, [features]);
+    }, [featuresKey]);
 
     // Handle engine toggle
     const handleEngineToggle = (engineId: string, enabled: boolean) => {
@@ -178,11 +202,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     }, [budget, totalPrice, budgetUsagePercentage]);
 
     // Media proposition icons mapping
-    const mediaPropositionIcons = {
+    const mediaPropositionIcons: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
       'Display': MonitorSpeaker,
       'Sponsored products': ListStart,
       'Digital in-store': MonitorPlay,
       'Offline in-store': Store,
+      'Extended Reach': Globe,
     };
 
     // Handle engine budget change
@@ -212,11 +237,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       if (budget === 0) return '0x';
 
       // Engine-specific base ROAS values (distinct for demo purposes)
-      const engineBaseROAS = {
+      const engineBaseROAS: Record<string, number> = {
         'display': 2.5,
         'sponsored': 4.8,
         'digital': 3.2,
-        'offline': 0
+        'offline': 0,
+        'extended-reach': 2.1,
       };
 
       const baseROAS = engineBaseROAS[engineId as keyof typeof engineBaseROAS] || 3.0;
@@ -484,58 +510,87 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 </div>
               </div>
 
-              {/* Media Propositions Table */}
+              {/* Media Propositions */}
               <div className="space-y-3">
-                <Label className="text-sm text-muted-foreground">Media proposition</Label>
-                <div className="overflow-x-auto bg-white border border-slate-200 rounded-lg">
-                  <table className="min-w-full text-sm text-slate-700 table-fixed">
-                    <thead>
-                      <tr className="border-b bg-slate-50">
-                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '200px', minWidth: '200px' }}>
-                          Media proposition
-                        </th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '120px', minWidth: '120px' }}>
-                          Budget
-                        </th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
-                          Est. ROAS
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {currentEngines.map((engine, index) => (
-                        <tr key={engine.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-3 align-middle" style={{ width: '200px', minWidth: '200px' }}>
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              {(() => {
-                                const IconComponent = mediaPropositionIcons[engine.name as keyof typeof mediaPropositionIcons];
-                                return IconComponent ? <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : null;
-                              })()}
-                              <span className="text-sm font-medium text-foreground truncate">{engine.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 align-middle text-center" style={{ width: '120px', minWidth: '120px' }}>
-                            <div className="relative w-20 mx-auto">
-                              <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground flex-shrink-0" />
-                              <input
-                                type="number"
-                                value={getEngineBudget(engine.id).replace(/[^0-9.]/g, '')}
-                                onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
-                                disabled={autoBudgetOptimization}
-                                className="w-full text-center text-sm pl-6 pr-2 py-1 h-8 border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                                placeholder="0"
-                              />
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
-                            <span className={`text-sm font-medium whitespace-nowrap ${engine.id === 'offline' ? 'text-muted-foreground' : 'text-green-600'}`}>
-                              {calculateEngineROAS(engine.id)}
+                <Label className="text-sm text-muted-foreground">Campaigns</Label>
+                <div className="space-y-2">
+                  {currentEngines.map((engine) => {
+                    const IconComponent = mediaPropositionIcons[engine.name];
+                    const roas = calculateEngineROAS(engine.id);
+                    const budgetVal = getEngineBudget(engine.id).replace(/[^0-9.]/g, '');
+                    return (
+                      <div
+                        key={engine.id}
+                        className={cn(
+                          "rounded-lg border transition-all",
+                          engine.enabled ? 'border-border' : 'border-border/50'
+                        )}
+                      >
+                        <div className="flex items-center gap-3 p-3">
+                          <div className={cn(
+                            "w-7 h-7 rounded-md flex items-center justify-center transition-colors flex-shrink-0",
+                            engine.enabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                          )}>
+                            {IconComponent && <IconComponent size={14} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={cn(
+                              "text-sm font-medium",
+                              !engine.enabled && 'text-muted-foreground'
+                            )}>
+                              {engine.name}
+                              {engine.campaignName && (
+                                <span className="text-muted-foreground font-normal"> – {engine.campaignName}</span>
+                              )}
                             </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                          {engine.enabled && (
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              ${budgetVal} · {roas} ROAS
+                            </span>
+                          )}
+                          <Switch
+                            checked={engine.enabled}
+                            onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Add campaign row */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddDropdown(!showAddDropdown)}
+                      className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
+                    >
+                      <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                        <Plus size={14} />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Add campaign</span>
+                    </button>
+                    {showAddDropdown && (
+                      <div className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
+                        {propositionTypes.map((type) => {
+                          const TypeIcon = type.icon;
+                          return (
+                            <button
+                              key={type.id}
+                              type="button"
+                              onClick={() => handleAddCampaign(type.id)}
+                              className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors text-left"
+                            >
+                              <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                                <TypeIcon size={12} />
+                              </div>
+                              <span className="text-sm">{type.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -585,7 +640,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               {/* Right Column - Summary (appears first on mobile, right on desktop) */}
               <div className="lg:col-span-3 lg:order-2 space-y-2">
                 {/* Campaign Summary Title */}
-                <Label className="text-sm text-muted-foreground">Summary</Label>
+                <Label className="text-sm text-muted-foreground">Insights</Label>
 
                 {/* Budget Summary as MetricCard with Progress */}
                 <MetricCard
@@ -736,77 +791,84 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </div>
                 </div>
 
-                {/* Bottom Section - Engines (Line Item Style) */}
-                <div className="space-y-3">
-                  <div className="overflow-x-auto bg-white border border-slate-200 rounded-lg">
-                    <table className="min-w-full text-sm text-slate-700 table-fixed">
-                      <thead>
-                        <tr className="border-b bg-slate-50">
-                          <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '200px', minWidth: '200px' }}>
-                            Media proposition
-                          </th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '120px', minWidth: '120px' }}>
-                            Budget
-                          </th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
-                            Est. ROAS
-                          </th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide" style={{ width: '100px', minWidth: '100px' }}>
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {currentEngines.map((engine, index) => (
-                          <tr key={engine.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="px-4 py-3 align-middle" style={{ width: '200px', minWidth: '200px' }}>
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                {(() => {
-                                  const IconComponent = mediaPropositionIcons[engine.name as keyof typeof mediaPropositionIcons];
-                                  return IconComponent ? <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : null;
-                                })()}
-                                <span className="text-sm font-medium text-foreground truncate">{engine.name}</span>
+                {/* Media Propositions */}
+                <div className="space-y-2">
+                  {currentEngines.map((engine) => {
+                    const IconComponent = mediaPropositionIcons[engine.name];
+                    const roas = calculateEngineROAS(engine.id);
+                    const budgetVal = getEngineBudget(engine.id).replace(/[^0-9.]/g, '');
+                    return (
+                      <div
+                        key={engine.id}
+                        className={cn(
+                          "rounded-lg border transition-all",
+                          engine.enabled ? 'border-border' : 'border-border/50'
+                        )}
+                      >
+                        <div className="flex items-center gap-3 p-3">
+                          <div className={cn(
+                            "w-7 h-7 rounded-md flex items-center justify-center transition-colors flex-shrink-0",
+                            engine.enabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                          )}>
+                            {IconComponent && <IconComponent size={14} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={cn(
+                              "text-sm font-medium",
+                              !engine.enabled && 'text-muted-foreground'
+                            )}>
+                              {engine.name}
+                              {engine.campaignName && (
+                                <span className="text-muted-foreground font-normal"> – {engine.campaignName}</span>
+                              )}
+                            </span>
+                          </div>
+                          {engine.enabled && (
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              ${budgetVal} · {roas} ROAS
+                            </span>
+                          )}
+                          <Switch
+                            checked={engine.enabled}
+                            onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Add campaign row */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddDropdown(!showAddDropdown)}
+                      className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
+                    >
+                      <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                        <Plus size={14} />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Add campaign</span>
+                    </button>
+                    {showAddDropdown && (
+                      <div className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
+                        {propositionTypes.map((type) => {
+                          const TypeIcon = type.icon;
+                          return (
+                            <button
+                              key={type.id}
+                              type="button"
+                              onClick={() => handleAddCampaign(type.id)}
+                              className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors text-left"
+                            >
+                              <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                                <TypeIcon size={12} />
                               </div>
-                            </td>
-                            <td className="px-4 py-3 align-middle text-center" style={{ width: '120px', minWidth: '120px' }}>
-                              <div className="relative w-20 mx-auto">
-                                <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                <input
-                                  type="number"
-                                  value={getEngineBudget(engine.id).replace(/[^0-9.]/g, '')}
-                                  onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
-                                  disabled={autoBudgetOptimization}
-                                  className="w-full text-center text-sm pl-6 pr-2 py-1 h-8 border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                                  placeholder="0"
-                                />
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
-                              <span className={`text-sm font-medium whitespace-nowrap ${engine.id === 'offline' ? 'text-muted-foreground' : 'text-green-600'}`}>
-                                {calculateEngineROAS(engine.id)}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 align-middle text-center" style={{ width: '100px', minWidth: '100px' }}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (onEngineEdit) {
-                                    onEngineEdit(engine.id, engine.name);
-                                  } else {
-                                    console.log(`Edit ${engine.name} engine`);
-                                  }
-                                }}
-                                className="whitespace-nowrap"
-                              >
-                                Edit
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                              <span className="text-sm">{type.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
 

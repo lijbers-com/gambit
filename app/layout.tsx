@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '@/styles/globals.css';
-import { PostHogProvider } from '@/contexts/posthog-context';
+// PostHog is disabled for now — will be re-enabled later
+// import { PostHogProvider } from '@/contexts/posthog-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { NavigationWrapper } from './components/navigation-wrapper';
@@ -18,8 +20,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* EpicContext Widget */}
+        <Script id="epiccontext-config" strategy="beforeInteractive">
+          {`window.epicContext = { token: 'ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22' };`}
+        </Script>
+        <Script
+          src="https://epiccontext.com/widget.js"
+          strategy="afterInteractive"
+          defer
+        />
+      </head>
       <body>
-        <PostHogProvider>
+        {/* PostHog disabled for now — re-enable by uncommenting below and the import above */}
+        {/* <PostHogProvider> */}
           <MenuContextProvider>
             <ThemeProvider>
               <NavigationWrapper>
@@ -29,7 +43,7 @@ export default function RootLayout({
               </NavigationWrapper>
             </ThemeProvider>
           </MenuContextProvider>
-        </PostHogProvider>
+        {/* </PostHogProvider> */}
       </body>
     </html>
   );

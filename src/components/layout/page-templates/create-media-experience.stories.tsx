@@ -451,7 +451,6 @@ export const GoalSelection: Story = {
             subtitle: '',
             headerRight: null,
           }}
-          theme={currentTheme}
         >
           <div className="space-y-6">
             {/* Metric cards - always visible, show '-' when no data */}

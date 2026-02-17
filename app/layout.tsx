@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
+      <body>
         {/* EpicContext Widget */}
         <Script id="epiccontext-config" strategy="beforeInteractive">
           {`window.epicContext = { token: 'ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22' };`}
@@ -28,10 +28,8 @@ export default function RootLayout({
         <Script
           src="https://epiccontext.com/widget.js"
           strategy="afterInteractive"
-          defer
         />
-      </head>
-      <body>
+
         {/* PostHog disabled for now — re-enable by uncommenting below and the import above */}
         {/* <PostHogProvider> */}
           <MenuContextProvider>

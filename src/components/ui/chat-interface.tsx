@@ -794,7 +794,6 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                         }}
                         features={[]}
                         onEdit={() => console.log('Edit campaign 1')}
-                        onAddToCart={() => console.log('Add campaign 1 to cart')}
                       />
 
                       {/* Campaign 2 - Brand awareness */}
@@ -826,7 +825,6 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                         }}
                         features={[]}
                         onEdit={() => console.log('Edit campaign 2')}
-                        onAddToCart={() => console.log('Add campaign 2 to cart')}
                       />
                         </div>
                       )}

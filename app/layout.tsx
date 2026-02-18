@@ -19,15 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
+      <body>
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.epicContext = { token: "ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22" };`,
+            __html: `window.epicContext = { "token": "ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22" };`,
           }}
         />
-        <script src="https://epiccontext.com/widget.js" defer />
-      </head>
-      <body>
+        <script src="https://epiccontext.com/widget.js" defer={true} />
 
         {/* PostHog disabled for now — re-enable by uncommenting below and the import above */}
         {/* <PostHogProvider> */}

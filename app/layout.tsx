@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import '@/styles/globals.css';
 // PostHog is disabled for now — will be re-enabled later
 // import { PostHogProvider } from '@/contexts/posthog-context';
@@ -20,15 +19,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        {/* EpicContext Widget */}
-        <Script id="epiccontext-config" strategy="beforeInteractive">
-          {`window.epicContext = { token: 'ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22' };`}
-        </Script>
-        <Script
-          src="https://epiccontext.com/widget.js"
-          strategy="afterInteractive"
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.epicContext = { token: "ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22" };`,
+          }}
         />
+        <script src="https://epiccontext.com/widget.js" defer />
+      </head>
+      <body>
 
         {/* PostHog disabled for now — re-enable by uncommenting below and the import above */}
         {/* <PostHogProvider> */}

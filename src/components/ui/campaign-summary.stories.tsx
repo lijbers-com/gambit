@@ -47,7 +47,6 @@ import { CampaignSummary } from '@/components/ui/campaign-summary';
     { id: 'goal-based', label: 'Goal-Based Media placement', enabled: true }
   ]}
   onEdit={() => console.log('Edit clicked')}
-  onAddToCart={() => console.log('Add to cart clicked')}
 />
 \`\`\`
 
@@ -162,7 +161,6 @@ const defaultProps = {
     console.log('Feature toggle:', featureId, enabled),
   onDateRangeChange: (dateRange: any) => console.log('Date range changed:', dateRange),
   onEdit: () => console.log('Edit clicked'),
-  onAddToCart: () => console.log('Add to cart clicked'),
 };
 
 export const Default: Story = {
@@ -173,6 +171,7 @@ export const Horizontal: Story = {
   args: {
     ...defaultProps,
     layout: 'horizontal',
+    defaultExpanded: true,
     usedBudget: '$3,200',
     totalPrice: '$3,200',
     budgetUsagePercentage: 64,

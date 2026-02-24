@@ -17,7 +17,6 @@ export const defaultRoutes: Route[] = [
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
       { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore" },
-      { id: 106, name: "Social campaign", type: "single" as const, url: "/create/social" },
     ],
   },
   {
@@ -56,18 +55,6 @@ export const defaultRoutes: Route[] = [
         name: "Offline instore",
         type: "single" as const,
         url: "/campaigns/offline-instore",
-      },
-      {
-        id: 24,
-        name: "Audio in-store",
-        type: "single" as const,
-        url: "/campaigns/audio-instore",
-      },
-      {
-        id: 25,
-        name: "Social",
-        type: "single" as const,
-        url: "/campaigns/social",
       },
       {
         id: 26,
@@ -261,20 +248,6 @@ export const extendedRoutes: Route[] = [
     pattern: "/campaigns/offline-instore/*",
   },
   {
-    id: 204,
-    name: "Campaign Details",
-    type: "hidden" as const,
-    url: "/campaigns/audio-instore/[id]",
-    pattern: "/campaigns/audio-instore/*",
-  },
-  {
-    id: 205,
-    name: "Campaign Details",
-    type: "hidden" as const,
-    url: "/campaigns/social/[id]",
-    pattern: "/campaigns/social/*",
-  },
-  {
     id: 206,
     name: "Campaign Details",
     type: "hidden" as const,
@@ -311,20 +284,6 @@ export const extendedRoutes: Route[] = [
     pattern: "/campaigns/offline-instore/line-item/*",
   },
   {
-    id: 214,
-    name: "Line-item Details",
-    type: "hidden" as const,
-    url: "/campaigns/audio-instore/line-item/[lineItemId]",
-    pattern: "/campaigns/audio-instore/line-item/*",
-  },
-  {
-    id: 215,
-    name: "Line-item Details",
-    type: "hidden" as const,
-    url: "/campaigns/social/line-item/[lineItemId]",
-    pattern: "/campaigns/social/line-item/*",
-  },
-  {
     id: 216,
     name: "Line-item Details",
     type: "hidden" as const,
@@ -359,20 +318,6 @@ export const extendedRoutes: Route[] = [
     type: "hidden" as const,
     url: "/campaigns/offline-instore/creative/[creativeId]",
     pattern: "/campaigns/offline-instore/creative/*",
-  },
-  {
-    id: 224,
-    name: "Creative Details",
-    type: "hidden" as const,
-    url: "/campaigns/audio-instore/creative/[creativeId]",
-    pattern: "/campaigns/audio-instore/creative/*",
-  },
-  {
-    id: 225,
-    name: "Creative Details",
-    type: "hidden" as const,
-    url: "/campaigns/social/creative/[creativeId]",
-    pattern: "/campaigns/social/creative/*",
   },
   {
     id: 226,

@@ -2,8 +2,7 @@
 
 import { OffsiteInOption } from '@/components/layout/page-templates/campaign-details.stories';
 
-export default function CreateExtendedReachPage() {
-  // Renamed to Offsite - this page redirects for backwards compatibility
+export default function CreateOffsitePage() {
   const Component = OffsiteInOption.render as () => React.JSX.Element;
 
   if (!Component) {

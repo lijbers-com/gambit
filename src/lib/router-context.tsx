@@ -36,7 +36,7 @@ const getStorybookPath = (path: string): string | null => {
     '/create/display': 'page-templates-campaign-details--display-in-option',
     '/create/offline-instore': 'page-templates-campaign-details--offline-instore-in-option',
     '/create/digital-instore': 'page-templates-campaign-details--digital-instore-in-option',
-    '/create/extended-reach': 'page-templates-campaign-details--display-in-option',
+    '/create/offsite': 'page-templates-campaign-details--offsite-in-option',
     '/': 'page-templates-dashboard--dashboard',
   };
   return storyMapping[path] || null;

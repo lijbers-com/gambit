@@ -206,6 +206,8 @@ export const DigitalInStore: Story = createCampaignOverviewStory('digital in-sto
 
 export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline Instore');
 
+export const Offsite: Story = createCampaignOverviewStory('offsite', 'Offsite');
+
 // Campaign data for the card view
 const campaignSummaryData = [
   {
@@ -225,7 +227,7 @@ const campaignSummaryData = [
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', enabled: true },
       { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Screens', enabled: true },
       { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday POS', enabled: true },
-      { id: 'extended-reach', name: 'Extended Reach', campaignName: 'Holiday Open Web', enabled: true },
+      { id: 'offsite', name: 'Offsite', campaignName: 'Holiday Open Web', enabled: true },
     ],
     dateRange: {
       from: new Date('2024-06-01'),
@@ -294,7 +296,7 @@ const campaignSummaryData = [
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', enabled: true },
       { id: 'digital', name: 'Digital in-store', campaignName: 'BF Store Screens', enabled: true },
       { id: 'offline', name: 'Offline in-store', campaignName: 'BF Shelf Talkers', enabled: true },
-      { id: 'extended-reach', name: 'Extended Reach', campaignName: 'BF Open Web', enabled: false },
+      { id: 'offsite', name: 'Offsite', campaignName: 'BF Open Web', enabled: false },
     ],
     dateRange: {
       from: new Date('2024-11-01'),

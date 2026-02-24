@@ -45,7 +45,7 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
           'display campaign': '/create/display',
           'offline in-store campaign': '/create/offline-instore',
           'digital in-store campaign': '/create/digital-instore',
-          'extended reach campaign': '/create/extended-reach',
+          'offsite campaign': '/create/offsite',
         };
 
         for (const [label, route] of Object.entries(createRoutes)) {

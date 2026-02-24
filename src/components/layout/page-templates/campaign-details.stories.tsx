@@ -4781,4 +4781,920 @@ export const SponsoredProductsRunning: Story = {
       </MenuContextProvider>
     );
   },
-}; 
+};
+
+export const OffsiteRunning: Story = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [channel, setChannel] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const creativeData = [
+      { id: 'CR-001', status: 'Approved', name: 'Social Banner Pack', format: 'Social Media', placements: 6, totalSkuConversions: '4,512', totalSkuConversionRate: '3.2%', totalSkuUnits: '7,234', totalSkuRevenue: '$142,680', totalSkuRoas: '4.8x', onlineSkuConversions: '3,158', onlineSkuUnits: '5,064', onlineSkuRevenue: '$99,876', instoreSkuConversions: '1,354', instoreSkuUnits: '2,170', instoreSkuRevenue: '$42,804' },
+      { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 3, totalSkuConversions: '2,867', totalSkuConversionRate: '2.8%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.2x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
+      { id: 'CR-003', status: 'Approved', name: 'Audio Spot 15s', format: 'Audio', placements: 2, totalSkuConversions: '1,234', totalSkuConversionRate: '1.9%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,230', totalSkuRoas: '3.5x', onlineSkuConversions: '864', onlineSkuUnits: '1,509', onlineSkuRevenue: '$31,661', instoreSkuConversions: '370', instoreSkuUnits: '647', instoreSkuRevenue: '$13,569' },
+      { id: 'CR-004', status: 'Approved', name: 'DOOH Billboard', format: 'Digital Out-of-Home', placements: 4, totalSkuConversions: '1,890', totalSkuConversionRate: '2.4%', totalSkuUnits: '3,267', totalSkuRevenue: '$67,890', totalSkuRoas: '3.9x', onlineSkuConversions: '1,323', onlineSkuUnits: '2,287', onlineSkuRevenue: '$47,523', instoreSkuConversions: '567', instoreSkuUnits: '980', instoreSkuRevenue: '$20,367' },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'Running', name: '3rd Party Display Campaign', channel: '3rd Party Display', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,148', totalSkuConversionRate: '3.2%', totalSkuUnits: '3,756', totalSkuRevenue: '$78,280', totalSkuRoas: '4.8x', onlineSkuConversions: '1,504', onlineSkuUnits: '2,629', onlineSkuRevenue: '$54,796', instoreSkuConversions: '644', instoreSkuUnits: '1,127', instoreSkuRevenue: '$23,484' },
+      { id: 'LI-002', status: 'Running', name: 'Meta & Google Social Ads', channel: 'Socials', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '3,487', totalSkuConversionRate: '4.1%', totalSkuUnits: '5,734', totalSkuRevenue: '$118,450', totalSkuRoas: '5.3x', onlineSkuConversions: '2,441', onlineSkuUnits: '4,014', onlineSkuRevenue: '$82,915', instoreSkuConversions: '1,046', instoreSkuUnits: '1,720', instoreSkuRevenue: '$35,535' },
+      { id: 'LI-003', status: 'Running', name: 'Connected TV Spots', channel: 'Connected TV', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,834', totalSkuConversionRate: '2.6%', totalSkuUnits: '3,167', totalSkuRevenue: '$72,450', totalSkuRoas: '4.1x', onlineSkuConversions: '1,284', onlineSkuUnits: '2,217', onlineSkuRevenue: '$50,715', instoreSkuConversions: '550', instoreSkuUnits: '950', instoreSkuRevenue: '$21,735' },
+      { id: 'LI-004', status: 'Running', name: 'Digital Out-of-Home Network', channel: '3rd Party DOOH', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '1,243', totalSkuConversionRate: '2.1%', totalSkuUnits: '2,198', totalSkuRevenue: '$48,920', totalSkuRoas: '3.7x', onlineSkuConversions: '870', onlineSkuUnits: '1,539', onlineSkuRevenue: '$34,244', instoreSkuConversions: '373', instoreSkuUnits: '659', instoreSkuRevenue: '$14,676' },
+      { id: 'LI-005', status: 'Running', name: 'AI-Powered Programmatic', channel: 'AI', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '4,334', totalSkuRevenue: '$92,670', totalSkuRoas: '5.1x', onlineSkuConversions: '1,797', onlineSkuUnits: '3,034', onlineSkuRevenue: '$64,869', instoreSkuConversions: '770', instoreSkuUnits: '1,300', instoreSkuRevenue: '$27,801' },
+      { id: 'LI-006', status: 'Running', name: 'Audio Streaming Ads', channel: '3rd Party Audio', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '1.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$36,450', totalSkuRoas: '3.2x', onlineSkuConversions: '691', onlineSkuUnits: '1,214', onlineSkuRevenue: '$25,515', instoreSkuConversions: '296', instoreSkuUnits: '520', instoreSkuRevenue: '$10,935' },
+      { id: 'LI-007', status: 'Running', name: 'Direct Mail Campaign', channel: '3rd Party Mailing', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '2.9%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.3x', onlineSkuConversions: '1,097', onlineSkuUnits: '1,984', onlineSkuRevenue: '$41,069', instoreSkuConversions: '470', instoreSkuUnits: '850', instoreSkuRevenue: '$17,601' },
+    ];
+
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$50,000', newValue: '$120,000', description: 'Budget increased for multi-channel offsite push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Offsite campaign is now live' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display line item' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-002', description: 'Added Socials campaign line item' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Channel Added', field: 'Channels', oldValue: '-', newValue: 'Connected TV', description: 'Added CTV channel to offsite mix' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop 18-35', newValue: 'Multi-device 18-54', description: 'Expanded targeting for offsite channels' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Offsite performance exceeds expectations across all channels', description: 'Added performance comment' },
+    ];
+
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+
+    // Performance metrics for running offsite campaign
+    const performanceMetrics = [
+      {
+        id: 'impressions',
+        label: 'Impressions',
+        value: '12,847,320',
+        subMetric: 'Viewability: 72.1%',
+        badgeValue: '+18%',
+        badgeVariant: 'success' as const,
+      },
+      {
+        id: 'clicks',
+        label: 'Clicks',
+        value: '198,456',
+        subMetric: 'CTR: 1.54%',
+        badgeValue: '+12%',
+        badgeVariant: 'success' as const,
+      },
+      {
+        id: 'reach',
+        label: 'Reach',
+        value: '5.8M',
+        subMetric: 'Frequency: 2.2',
+        badgeValue: '+24%',
+        badgeVariant: 'success' as const,
+      },
+      {
+        id: 'roas',
+        label: 'ROAS',
+        value: '4.35x',
+        subMetric: 'CPA: $18.90',
+        badgeValue: '+19%',
+        badgeVariant: 'success' as const,
+      },
+    ];
+
+    const dialogMetricsOffsiteRunning: MetricDefinition[] = [
+      { key: 'ctr', label: 'Click-Through Rate', value: '1.54%', subMetric: 'vs. 1.28% last period', badgeValue: '+20.3%', badgeVariant: 'success' },
+      { key: 'viewability', label: 'Viewability Rate', value: '72.1%', subMetric: 'Across all channels', badgeValue: '+4.2%', badgeVariant: 'success' },
+      { key: 'cpm', label: 'Cost Per Mille', value: '$3.45', subMetric: 'vs. $4.10 target', badgeValue: '-15.9%', badgeVariant: 'success' },
+      { key: 'videoCompletion', label: 'Video Completion', value: '74.2%', subMetric: 'CTV + Social video', badgeValue: '+9.1%', badgeVariant: 'success' },
+      { key: 'channelMix', label: 'Channel Performance', value: '7 active', subMetric: 'All channels running', badgeValue: 'Healthy', badgeVariant: 'success' },
+      { key: 'frequency', label: 'Frequency', value: '2.2x', subMetric: 'Avg. per user', badgeValue: 'Optimal', badgeVariant: 'success' },
+      { key: 'cpc', label: 'Cost Per Click', value: '$1.62', subMetric: 'vs. $2.00 target', badgeValue: '-19%', badgeVariant: 'success' },
+      { key: 'socialEngagement', label: 'Social Engagement', value: '4.8%', subMetric: 'Likes, shares, comments', badgeValue: '+22.4%', badgeVariant: 'success' },
+      { key: 'conversionRate', label: 'Conversion Rate', value: '3.1%', subMetric: 'Cross-channel conv.', badgeValue: '+15.7%', badgeVariant: 'success' },
+    ];
+
+    const ForecastSection = () => (
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsOffsiteRunning}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
+    );
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+        routes={routes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{ namespace: '' }}
+        pageHeaderProps={{
+          title: 'Offsite: Summer Launch (Running)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Channel',
+                        options: [
+                          { label: '3rd Party Display', value: '3rd Party Display' },
+                          { label: 'Socials', value: 'Socials' },
+                          { label: 'Connected TV', value: 'Connected TV' },
+                          { label: '3rd Party DOOH', value: '3rd Party DOOH' },
+                          { label: 'AI', value: 'AI' },
+                          { label: '3rd Party Audio', value: '3rd Party Audio' },
+                          { label: '3rd Party Mailing', value: '3rd Party Mailing' },
+                        ],
+                        selectedValues: channel,
+                        onChange: setChannel,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'channel', header: 'Channel' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const channelMatch = channel.length === 0 || channel.includes(row.channel);
+                      return statusMatch && channelMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offsite/line-item/${row.id}`}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Social Media', value: 'Social Media' },
+                          { label: 'Video', value: 'Video' },
+                          { label: 'Audio', value: 'Audio' },
+                          { label: 'Digital Out-of-Home', value: 'Digital Out-of-Home' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offsite/creative/${row.id}`}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Channel Added', value: 'Channel Added' },
+                          { label: 'Target Updated', value: 'Target Updated' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/offsite/log/${row.id}`}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+
+export const OffsiteInOption: Story = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+    const [activeTab, setActiveTab] = useState('line-items');
+    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [channel, setChannel] = useState<string[]>([]);
+    const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
+    const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
+    const [logUsers, setLogUsers] = useState<string[]>([]);
+    const [logActions, setLogActions] = useState<string[]>([]);
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 30),
+    });
+    const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const creativeData = [
+      { id: 'CR-001', status: 'Pending', name: 'Social Banner Pack', format: 'Social Media', placements: 4, totalSkuConversions: '1,845', totalSkuConversionRate: '2.3%', totalSkuUnits: '3,134', totalSkuRevenue: '$62,680', totalSkuRoas: '3.8x', onlineSkuConversions: '1,292', onlineSkuUnits: '2,194', onlineSkuRevenue: '$43,876', instoreSkuConversions: '553', instoreSkuUnits: '940', instoreSkuRevenue: '$18,804' },
+      { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 2, totalSkuConversions: '2,167', totalSkuConversionRate: '2.9%', totalSkuUnits: '3,723', totalSkuRevenue: '$78,460', totalSkuRoas: '4.1x', onlineSkuConversions: '1,517', onlineSkuUnits: '2,606', onlineSkuRevenue: '$54,922', instoreSkuConversions: '650', instoreSkuUnits: '1,117', instoreSkuRevenue: '$23,538' },
+      { id: 'CR-003', status: 'Rejected', name: 'Audio Spot 15s', format: 'Audio', placements: 0, totalSkuConversions: '0', totalSkuConversionRate: '0%', totalSkuUnits: '0', totalSkuRevenue: '$0', totalSkuRoas: '0x', onlineSkuConversions: '0', onlineSkuUnits: '0', onlineSkuRevenue: '$0', instoreSkuConversions: '0', instoreSkuUnits: '0', instoreSkuRevenue: '$0' },
+    ];
+    const lineItemData = [
+      { id: 'LI-001', status: 'In-option', name: '3rd Party Display Campaign', channel: '3rd Party Display', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '956', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,667', totalSkuRevenue: '$35,280', totalSkuRoas: '3.8x', onlineSkuConversions: '669', onlineSkuUnits: '1,167', onlineSkuRevenue: '$24,696', instoreSkuConversions: '287', instoreSkuUnits: '500', instoreSkuRevenue: '$10,584' },
+      { id: 'LI-002', status: 'In-option', name: 'Meta & Google Social Ads', channel: 'Socials', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '1,234', totalSkuConversionRate: '3.1%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,670', totalSkuRoas: '4.2x', onlineSkuConversions: '864', onlineSkuUnits: '1,509', onlineSkuRevenue: '$31,969', instoreSkuConversions: '370', instoreSkuUnits: '647', instoreSkuRevenue: '$13,701' },
+      { id: 'LI-003', status: 'Ready', name: 'Connected TV Spots', channel: 'Connected TV', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '2.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.3x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,961', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,269' },
+      { id: 'LI-004', status: 'In-option', name: 'Digital Out-of-Home Network', channel: '3rd Party DOOH', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '532', totalSkuConversionRate: '1.7%', totalSkuUnits: '898', totalSkuRevenue: '$20,450', totalSkuRoas: '2.9x', onlineSkuConversions: '372', onlineSkuUnits: '629', onlineSkuRevenue: '$14,315', instoreSkuConversions: '160', instoreSkuUnits: '269', instoreSkuRevenue: '$6,135' },
+      { id: 'LI-005', status: 'Ready', name: 'AI-Powered Programmatic', channel: 'AI', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,189', totalSkuConversionRate: '3.3%', totalSkuUnits: '2,067', totalSkuRevenue: '$44,780', totalSkuRoas: '4.5x', onlineSkuConversions: '832', onlineSkuUnits: '1,447', onlineSkuRevenue: '$31,346', instoreSkuConversions: '357', instoreSkuUnits: '620', instoreSkuRevenue: '$13,434' },
+      { id: 'LI-006', status: 'In-option', name: 'Audio Streaming Ads', channel: '3rd Party Audio', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '423', totalSkuConversionRate: '1.4%', totalSkuUnits: '756', totalSkuRevenue: '$16,230', totalSkuRoas: '2.6x', onlineSkuConversions: '296', onlineSkuUnits: '529', onlineSkuRevenue: '$11,361', instoreSkuConversions: '127', instoreSkuUnits: '227', instoreSkuRevenue: '$4,869' },
+      { id: 'LI-007', status: 'Ready', name: 'Direct Mail Campaign', channel: '3rd Party Mailing', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '867', totalSkuConversionRate: '2.5%', totalSkuUnits: '1,534', totalSkuRevenue: '$32,670', totalSkuRoas: '3.7x', onlineSkuConversions: '607', onlineSkuUnits: '1,074', onlineSkuRevenue: '$22,869', instoreSkuConversions: '260', instoreSkuUnits: '460', instoreSkuRevenue: '$9,801' },
+    ];
+
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-09 15:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$0', newValue: '$100,000', description: 'Initial budget allocation for offsite channels' },
+      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display line item for approval' },
+      { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Social banner pack uploaded for review' },
+      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
+      { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Channel Added', field: 'Channels', oldValue: '3rd Party Display', newValue: '+ Socials, Connected TV', description: 'Expanded offsite channel mix' },
+      { id: 'LOG-007', timestamp: '2024-12-10 16:20:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting creative approval for all offsite channels', description: 'Added client feedback status' },
+    ];
+
+    const creativeStatusVariant = (status: string) => {
+      switch (status) {
+        case 'Approved': return 'success';
+        case 'Rejected': return 'destructive';
+        case 'Pending': return 'warning';
+        default: return 'outline';
+      }
+    };
+    const lineItemStatusVariant = (status: string) => {
+      switch (status) {
+        case 'In-option': return 'outline';
+        case 'Running': return 'success';
+        case 'Paused': return 'warning';
+        case 'Stopped': return 'destructive';
+        case 'Ready': return 'info';
+        default: return 'outline';
+      }
+    };
+    const [advertiserDropdown, setAdvertiserDropdown] = useState<string | undefined>(undefined);
+    const [brandDropdown, setBrandDropdown] = useState<string | undefined>(undefined);
+    const [goalDropdown, setGoalDropdown] = useState<string | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+
+    // Performance metrics for in-option offsite campaign (forecasted)
+    const performanceMetrics = [
+      {
+        id: 'projected-impressions',
+        label: 'Projected Impressions',
+        value: '8,500,000',
+        subMetric: 'Est. Viewability: 68%',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'projected-clicks',
+        label: 'Projected Clicks',
+        value: '127,500',
+        subMetric: 'Est. CTR: 1.5%',
+        badgeValue: 'Est.',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'projected-reach',
+        label: 'Projected Reach',
+        value: '4.2M',
+        subMetric: 'Target frequency: 2.0',
+        badgeValue: 'Goal',
+        badgeVariant: 'secondary' as const,
+      },
+      {
+        id: 'target-roas',
+        label: 'Target ROAS',
+        value: '3.80x',
+        subMetric: 'Target CPA: $22',
+        badgeValue: 'Goal',
+        badgeVariant: 'secondary' as const,
+      },
+    ];
+
+    const dialogMetricsOffsiteInOption: MetricDefinition[] = [
+      { key: 'projectedCtr', label: 'Projected CTR', value: '1.5%', subMetric: 'Estimated rate', badgeValue: 'Est.', badgeVariant: 'secondary' },
+      { key: 'targetViewability', label: 'Target Viewability', value: '68%', subMetric: 'Goal rate', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'budgetAllocated', label: 'Budget Allocated', value: '$100K', subMetric: 'Initial budget', badgeValue: 'Approved', badgeVariant: 'info' },
+      { key: 'channelCount', label: 'Channels Planned', value: '7', subMetric: 'Offsite channels', badgeValue: 'Planned', badgeVariant: 'secondary' },
+      { key: 'expectedBrandLift', label: 'Expected Brand Lift', value: '+18%', subMetric: 'Awareness goal', badgeValue: 'Target', badgeVariant: 'secondary' },
+      { key: 'targetCpa', label: 'Target CPA', value: '$22', subMetric: 'Cost per acquisition', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'channelMix', label: 'Channel Mix', value: 'Multi-channel', subMetric: 'Display, Social, CTV, DOOH, AI, Audio, Mail', badgeValue: 'Planned', badgeVariant: 'secondary' },
+      { key: 'creativeStatus', label: 'Creative Status', value: '33%', subMetric: 'Assets approved', badgeValue: 'In Review', badgeVariant: 'warning' },
+      { key: 'launchTimeline', label: 'Launch Timeline', value: '14 days', subMetric: 'To go-live', badgeValue: 'Pending', badgeVariant: 'warning' },
+    ];
+
+    const ForecastSection = () => (
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        dialogMetrics={dialogMetricsOffsiteInOption}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
+    );
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+        routes={routes}
+        logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+        onLogout={() => alert('Logout clicked')}
+        breadcrumbProps={{ namespace: '' }}
+        pageHeaderProps={{
+          title: 'Offsite: Summer Launch (In-option)',
+          onEdit: () => alert('Edit clicked'),
+          onExport: () => alert('Export clicked'),
+          onImport: () => alert('Import clicked'),
+          onSettings: () => alert('Settings clicked'),
+          headerRight: (
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              placeholder="Pick a date range with conversion window"
+              showPresets={true}
+              showConversionWindow={true}
+              conversionWindow={conversionWindow}
+              onConversionWindowChange={setConversionWindow}
+            />
+          ),
+        }}
+      >
+        <div className="mb-8">
+          <ForecastSection />
+        </div>
+
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl">
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={advertiserDropdown}
+                        onChange={setAdvertiserDropdown}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
+                        value={brandDropdown}
+                        onChange={setBrandDropdown}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={goalDropdown}
+                        onChange={setGoalDropdown}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Save</button>
+              </form>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Line-items',
+              value: 'line-items',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'In-option', value: 'In-option' },
+                          { label: 'Running', value: 'Running' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
+                        ],
+                        selectedValues: lineItemStatus,
+                        onChange: setLineItemStatus,
+                      },
+                      {
+                        name: 'Channel',
+                        options: [
+                          { label: '3rd Party Display', value: '3rd Party Display' },
+                          { label: 'Socials', value: 'Socials' },
+                          { label: 'Connected TV', value: 'Connected TV' },
+                          { label: '3rd Party DOOH', value: '3rd Party DOOH' },
+                          { label: 'AI', value: 'AI' },
+                          { label: '3rd Party Audio', value: '3rd Party Audio' },
+                          { label: '3rd Party Mailing', value: '3rd Party Mailing' },
+                        ],
+                        selectedValues: channel,
+                        onChange: setChannel,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search line items..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Line-item ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'channel', header: 'Channel' },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                    ]}
+                    data={lineItemData.filter(row => {
+                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                      const channelMatch = channel.length === 0 || channel.includes(row.channel);
+                      return statusMatch && channelMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to line-item detail: ${row.name} (${row.id})`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Creatives',
+              value: 'creatives',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Approved', value: 'Approved' },
+                          { label: 'Rejected', value: 'Rejected' },
+                          { label: 'Pending', value: 'Pending' },
+                        ],
+                        selectedValues: creativeStatus,
+                        onChange: setCreativeStatus,
+                      },
+                      {
+                        name: 'Format',
+                        options: [
+                          { label: 'Social Media', value: 'Social Media' },
+                          { label: 'Video', value: 'Video' },
+                          { label: 'Audio', value: 'Audio' },
+                          { label: 'Digital Out-of-Home', value: 'Digital Out-of-Home' },
+                        ],
+                        selectedValues: creativeFormat,
+                        onChange: setCreativeFormat,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search creatives..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'Creative ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'name', header: 'Name' },
+                      { key: 'format', header: 'Format' },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
+                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
+                      { key: 'totalSkuUnits', header: 'Total SKU units' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                    ]}
+                    data={creativeData.filter(row => {
+                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
+                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
+                      return statusMatch && formatMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                          { label: 'Jane Doe', value: 'Jane Doe' },
+                          { label: 'John Smith', value: 'John Smith' },
+                          { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                          { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                          { label: 'Campaign Created', value: 'Campaign Created' },
+                          { label: 'Budget Updated', value: 'Budget Updated' },
+                          { label: 'Status Changed', value: 'Status Changed' },
+                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Creative Uploaded', value: 'Creative Uploaded' },
+                          { label: 'Channel Added', value: 'Channel Added' },
+                          { label: 'Comment Added', value: 'Comment Added' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      { key: 'timestamp', header: 'Timestamp', render: row => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
+                      { key: 'user', header: 'User' },
+                      { key: 'action', header: 'Action', render: row => <Badge variant="outline">{row.action}</Badge> },
+                      { key: 'field', header: 'Field' },
+                      { key: 'oldValue', header: 'Old Value' },
+                      { key: 'newValue', header: 'New Value' },
+                      { key: 'description', header: 'Description' },
+                    ]}
+                    data={logData.filter(row => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      return userMatch && actionMatch;
+                    })}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigate to log detail: ${row.action} (${row.id})`)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'line-items' ? (
+              <Button>Add line-item</Button>
+            ) : activeTab === 'creatives' ? (
+              <Button>Add creative</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};

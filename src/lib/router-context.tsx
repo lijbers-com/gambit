@@ -28,7 +28,7 @@ const RouterContext = createContext<RouterContextType>({
 // Storybook story path mapping
 const getStorybookPath = (path: string): string | null => {
   const storyMapping: Record<string, string> = {
-    '/campaigns': 'page-templates-campaign-overview--campaigns-360',
+    '/campaigns': 'page-templates-campaign-overview--campaigns-360-no-goal-targeting',
     '/notifications': 'page-templates-notification-center--notification-center',
     '/profile': 'page-templates-dashboard--dashboard',
     '/create/media-experience': 'page-templates-create-media-experience--goal-selection',

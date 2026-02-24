@@ -269,12 +269,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             </ResponsiveContainer>
           </div>
         )}
-        {variant === "graph" && !graphData && (
+        {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (
           <div className="mt-3">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-in-out"
-                style={{ width: `${progress || 75}%` }}
+                style={{ width: `${progress}%` }}
               />
             </div>
           </div>

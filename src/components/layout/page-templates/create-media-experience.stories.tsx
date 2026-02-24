@@ -568,12 +568,12 @@ export const GoalSelection: Story = {
                             icon={<ScanBarcode className="w-4 h-4" />}
                           />
                           {showRetailProductResults && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
                               {filteredRetailProducts.length > 0 ? (
                                 filteredRetailProducts.map((product) => (
                                   <div
                                     key={product.id}
-                                    className={`p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 ${
+                                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 ${
                                       selectedRetailProducts.includes(product.id) ? 'bg-primary/5' : ''
                                     }`}
                                     onClick={() => handleRetailProductSelect(product)}
@@ -978,7 +978,7 @@ export const GoalSelection: Story = {
                 <CardSummaryContent>
                   <div className="relative pl-12">
                     {/* Vertical timeline line */}
-                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-slate-300"></div>
+                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
 
                     <div className="space-y-4">
                       {wizardSteps.map((step, index) => {
@@ -994,8 +994,8 @@ export const GoalSelection: Story = {
                                   status === 'completed'
                                     ? 'bg-primary text-primary-foreground'
                                     : status === 'active'
-                                      ? 'bg-white text-primary border-2 border-primary'
-                                      : 'bg-white text-muted-foreground border border-slate-300'
+                                      ? 'bg-background text-primary border-2 border-primary'
+                                      : 'bg-background text-muted-foreground border border-border'
                                 }`}
                               >
                                 {status === 'completed' ? <Check size={14} /> : index + 1}
@@ -1036,5 +1036,572 @@ export const GoalSelection: Story = {
         </AppLayout>
       </MenuContextProvider>
     );
+  },
+};
+
+// --- Wizard Steps without Goal and Targeting ---
+const wizardStepsNoGoalTargeting = [
+  { id: 'setup', label: 'Campaign setup' },
+  { id: 'budget', label: 'Run time & budget' },
+  { id: 'review', label: 'Media plan' },
+];
+
+export const NoGoalTargeting: Story = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    // Wizard state
+    const [currentStep, setCurrentStep] = React.useState(0);
+
+    // Step 1: Campaign Setup
+    const [campaignName, setCampaignName] = React.useState('');
+    const [selectedBrand, setSelectedBrand] = React.useState('');
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+
+    // Step 2: Run time & Budget (was step 4)
+    const [budgetAmount, setBudgetAmount] = React.useState('');
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+    const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
+
+    // Step 3: Media plan (was step 5)
+    const [propositionSelections, setPropositionSelections] = React.useState<Record<string, { mode: 'preset' | 'empty'; presetId?: string } | null>>(() => {
+      const defaults: Record<string, { mode: 'preset' | 'empty'; presetId?: string }> = {};
+      propositions.forEach(p => { defaults[p.id] = { mode: 'preset', presetId: p.aiPreset.id }; });
+      return defaults;
+    });
+
+    // Derived data
+    const selectedBrandData = brandOptions.find((b) => b.value === selectedBrand);
+
+    // Step completion checks
+    const isSetupComplete = campaignName.trim() !== '' && selectedBrand !== '';
+    const isBudgetComplete = budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
+
+    // Retail product helpers
+    const filteredRetailProducts = retailProducts.filter(product =>
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    const handleRetailProductSelect = (product: { id: string; name: string }) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRetailProductSearch(e.target.value);
+      setShowRetailProductResults(e.target.value.length > 0);
+    };
+
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowRetailProductResults(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Proposition impact on metrics
+    const propositionImpact = React.useMemo(() => {
+      let additionalReach = 0;
+      let roasBoost = 0;
+      let additionalSales = 0;
+      let selectedCount = 0;
+
+      Object.entries(propositionSelections).forEach(([propId, sel]) => {
+        if (!sel) return;
+        selectedCount++;
+        if (sel.mode === 'empty') return;
+        const prop = propositions.find(p => p.id === propId);
+        if (!prop) return;
+        const reachStr = prop.metrics.reach;
+        if (reachStr.endsWith('M')) {
+          additionalReach += parseFloat(reachStr.replace('M', ''));
+        } else if (reachStr.endsWith('K')) {
+          additionalReach += parseFloat(reachStr.replace('K', '')) / 1000;
+        }
+        const roasChangeNum = parseFloat(prop.metrics.roasChange.replace('%', '').replace('+', ''));
+        roasBoost += roasChangeNum;
+        const salesNum = parseFloat(prop.metrics.sales.replace('€', '').replace(',', ''));
+        additionalSales += salesNum;
+      });
+
+      return { additionalReach, roasBoost, additionalSales, selectedCount };
+    }, [propositionSelections]);
+
+    // Get step value for summary
+    const getStepValue = (stepId: string): string | null => {
+      switch (stepId) {
+        case 'setup':
+          if (isSetupComplete) return `${campaignName} · ${selectedBrandData?.label}`;
+          return null;
+        case 'budget': {
+          if (!isBudgetComplete) return null;
+          return `€${budgetAmount} total`;
+        }
+        case 'review': {
+          const selectedCount = Object.values(propositionSelections).filter(Boolean).length;
+          if (selectedCount === 0) return null;
+          return `${selectedCount} proposition${selectedCount !== 1 ? 's' : ''}`;
+        }
+        default:
+          return null;
+      }
+    };
+
+    // Get step status
+    const getStepStatus = (stepId: string, stepIndex: number): 'completed' | 'active' | 'pending' => {
+      if (stepIndex < currentStep) return 'completed';
+      if (stepIndex === currentStep) return 'active';
+      return 'pending';
+    };
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Create media experience',
+            subtitle: '',
+            headerRight: null,
+          }}
+        >
+          <div className="space-y-6">
+            {/* Metric cards */}
+              <MetricRow
+                metrics={[
+                  {
+                    key: 'reach',
+                    label: 'Est. Reach',
+                    value: propositionImpact.selectedCount > 0
+                      ? `${propositionImpact.additionalReach.toFixed(1)}M`
+                      : '-',
+                    subMetric: propositionImpact.selectedCount > 0
+                      ? `${propositionImpact.selectedCount} proposition${propositionImpact.selectedCount !== 1 ? 's' : ''}`
+                      : 'No propositions selected',
+                    badgeValue: propositionImpact.additionalReach > 0 ? `${propositionImpact.additionalReach.toFixed(1)}M` : undefined,
+                    badgeVariant: 'success' as const,
+                  },
+                  {
+                    key: 'budget',
+                    label: 'Budget',
+                    value: budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : '-',
+                    subMetric: budgetAmount.trim() !== ''
+                      ? (dateRange?.from && dateRange?.to
+                          ? `€${(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(0)}/day`
+                          : 'No dates set')
+                      : 'No budget set',
+                  },
+                  {
+                    key: 'roas',
+                    label: 'Est. ROAS',
+                    value: budgetAmount.trim() !== ''
+                      ? (() => {
+                          const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0);
+                          const boostedRoas = baseRoas * (1 + propositionImpact.roasBoost / 100);
+                          return `${boostedRoas.toFixed(1)}x`;
+                        })()
+                      : '-',
+                    subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',
+                    badgeValue: budgetAmount.trim() !== '' ? (propositionImpact.roasBoost > 0 ? `+${propositionImpact.roasBoost}%` : '+12%') : undefined,
+                    badgeVariant: 'success' as const,
+                  },
+                  {
+                    key: 'sales',
+                    label: 'Est. Sales',
+                    value: budgetAmount.trim() !== ''
+                      ? (() => {
+                          const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0);
+                          const baseSales = parseFloat(budgetAmount) * baseRoas;
+                          const totalSales = baseSales + propositionImpact.additionalSales;
+                          return `€${Math.round(totalSales).toLocaleString()}`;
+                        })()
+                      : '-',
+                    subMetric: budgetAmount.trim() !== '' ? 'Projected revenue' : 'Set budget to calculate',
+                    badgeValue: budgetAmount.trim() !== '' ? (propositionImpact.additionalSales > 0 ? `+€${propositionImpact.additionalSales.toLocaleString()}` : 'Based on avg.') : undefined,
+                    badgeVariant: propositionImpact.additionalSales > 0 ? 'success' as const : 'secondary' as const,
+                  },
+                ]}
+                selectedKeys={['reach', 'budget', 'roas', 'sales']}
+                maxVisible={4}
+                defaultVariant="default"
+                removable={false}
+              />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main content */}
+            <div className="lg:col-span-2 min-w-0">
+
+              {/* Step 1: Campaign Setup */}
+              {currentStep === 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Campaign setup</CardTitle>
+                    <CardDescription>
+                      Enter the basic details for your new media experience
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="campaign-name-ng">Campaign name</Label>
+                        <Input
+                          id="campaign-name-ng"
+                          placeholder="e.g. Summer Sale 2026"
+                          value={campaignName}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
+                          hint="Give your campaign a descriptive name to easily identify it later"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="brand-ng">Brand</Label>
+                        <Input
+                          dropdown
+                          options={brandOptions}
+                          value={selectedBrand}
+                          onChange={(value: string) => setSelectedBrand(value)}
+                          placeholder="Select a brand"
+                        />
+                        <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost">Cancel</Button>
+                      <Button disabled={!isSetupComplete} onClick={() => setCurrentStep(1)}>
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 2: Run time & Budget */}
+              {currentStep === 1 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Run time & budget</CardTitle>
+                    <CardDescription>
+                      Set when your campaign runs and how much you want to spend
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label>Run time</Label>
+                        <DateRangePicker
+                          dateRange={dateRange}
+                          onDateRangeChange={setDateRange}
+                          placeholder="Select start and end date"
+                          showPresets
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          Your campaign will automatically start and stop on the selected dates
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="budget-amount-ng">Total budget</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                          <Input
+                            id="budget-amount-ng"
+                            type="number"
+                            placeholder="e.g. 5000"
+                            value={budgetAmount}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
+                            className="pl-7"
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          The maximum total amount for the entire campaign duration
+                        </div>
+                      </div>
+
+                      {budgetAmount && dateRange?.from && dateRange?.to && (
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Daily average</span>
+                            <span className="text-sm font-semibold text-primary">
+                              €{(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            €{budgetAmount} over {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
+                          </p>
+                        </div>
+                      )}
+
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
+                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(2)}>
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 3: Media plan */}
+              {currentStep === 2 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Media plan</CardTitle>
+                    <CardDescription>
+                      Toggle propositions on or off and choose a preset campaign or start with an empty configuration.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {propositions.map((prop) => {
+                        const selection = propositionSelections[prop.id];
+                        const isEnabled = selection !== null && selection !== undefined;
+                        const isAiSelected = selection?.mode === 'preset';
+                        const isEmptySelected = selection?.mode === 'empty';
+                        const IconComponent = prop.icon;
+
+                        return (
+                          <div
+                            key={prop.id}
+                            className={cn(
+                              "rounded-lg border transition-all",
+                              isEnabled ? 'border-border' : 'border-border/50'
+                            )}
+                          >
+                            {/* Proposition header with toggle */}
+                            <div className="flex items-center gap-3 p-4">
+                              <div className={cn(
+                                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                isEnabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                              )}>
+                                <IconComponent size={16} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className={cn(
+                                  "text-sm font-semibold",
+                                  !isEnabled && 'text-muted-foreground'
+                                )}>{prop.name}</span>
+                                <p className="text-xs text-muted-foreground">{prop.description}</p>
+                              </div>
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                {isEnabled && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {isEmptySelected ? '– reach · – ROAS' : `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS`}
+                                  </span>
+                                )}
+                                <Switch
+                                  checked={isEnabled}
+                                  onCheckedChange={(checked: boolean) => {
+                                    if (checked) {
+                                      setPropositionSelections(prev => ({
+                                        ...prev,
+                                        [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id },
+                                      }));
+                                    } else {
+                                      setPropositionSelections(prev => ({ ...prev, [prop.id]: null }));
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Expanded content when enabled */}
+                            {isEnabled && (
+                              <div className="px-4 pb-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                  {/* AI preset option */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPropositionSelections(prev => ({
+                                        ...prev,
+                                        [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id },
+                                      }));
+                                    }}
+                                    className={cn(
+                                      "flex flex-col items-start text-left p-4 rounded-lg border-2 transition-all cursor-pointer h-full",
+                                      isAiSelected
+                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                        : 'border-border hover:border-primary/30'
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Sparkles size={14} className="text-primary flex-shrink-0" />
+                                      <span className="text-sm font-medium">Automatic</span>
+                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
+                                    <div className="flex gap-3 mt-auto">
+                                      <span className="text-xs text-muted-foreground">{prop.aiPreset.placements} placements</span>
+                                      <span className="text-xs text-muted-foreground">~{prop.aiPreset.estImpressions} imp.</span>
+                                    </div>
+                                  </button>
+
+                                  {/* Empty campaign option */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPropositionSelections(prev => ({
+                                        ...prev,
+                                        [prop.id]: { mode: 'empty' },
+                                      }));
+                                    }}
+                                    className={cn(
+                                      "flex flex-col items-start text-left p-4 rounded-lg border-2 border-dashed transition-all cursor-pointer h-full",
+                                      isEmptySelected
+                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                        : 'border-muted-foreground/20 hover:border-primary/30'
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <FileText size={14} className="text-muted-foreground flex-shrink-0" />
+                                      <span className="text-sm font-medium">Empty campaign</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                      Start with a blank {prop.name.toLowerCase()} campaign and configure manually
+                                    </p>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
+                      <Button
+                        onClick={() => {
+                          const name = campaignName || 'New Media Experience';
+                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                        }}
+                      >
+                        Launch media experience
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+            </div>
+
+            {/* Summary sidebar */}
+            <div className="flex flex-col gap-4">
+              <CardSummary>
+                <CardHeader>
+                  <CardSummaryTitle>Summary</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  <div className="relative pl-12">
+                    {/* Vertical timeline line */}
+                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
+
+                    <div className="space-y-4">
+                      {wizardStepsNoGoalTargeting.map((step, index) => {
+                        const status = getStepStatus(step.id, index);
+                        const stepValue = getStepValue(step.id);
+
+                        return (
+                          <div key={step.id} className="relative flex items-start -ml-12">
+                            {/* Circle on the timeline */}
+                            <div className="w-10 flex justify-center">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                                  status === 'completed'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : status === 'active'
+                                      ? 'bg-background text-primary border-2 border-primary'
+                                      : 'bg-background text-muted-foreground border border-border'
+                                }`}
+                              >
+                                {status === 'completed' ? <Check size={14} /> : index + 1}
+                              </div>
+                            </div>
+                            {/* Step content */}
+                            <div className="ml-3 flex-1 min-w-0 pt-1">
+                              <button
+                                type="button"
+                                className={`text-sm text-left ${
+                                  status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'
+                                } ${status === 'completed' ? 'hover:underline cursor-pointer' : ''}`}
+                                onClick={() => {
+                                  if (status === 'completed') setCurrentStep(index);
+                                }}
+                                disabled={status !== 'completed'}
+                              >
+                                {step.label}
+                              </button>
+                              {status === 'completed' && stepValue ? (
+                                <div className="text-sm text-muted-foreground mt-0.5">{stepValue}</div>
+                              ) : status === 'active' ? (
+                                <div className="text-xs text-muted-foreground italic mt-0.5">
+                                  {step.id === 'setup' ? 'Not filled in' : step.id === 'budget' ? 'Not configured' : 'Not selected'}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardSummaryContent>
+              </CardSummary>
+            </div>
+          </div>
+          </div>
+        </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+# Create Media Experience – No Goal & Targeting
+
+A streamlined variant of the Create Media Experience wizard that removes the Goal and Targeting steps. The wizard flows directly from Campaign Setup to Run Time & Budget, and then to Media Plan.
+
+## Steps
+
+1. **Campaign Setup** - Enter the campaign name, select brand, and choose retail products
+2. **Run Time & Budget** - Set the campaign schedule and budget with auto-optimization
+3. **Media Plan** - Toggle propositions and choose AI presets or empty campaigns
+
+## Differences from Standard Wizard
+
+- **No Campaign Goal step** (Step 2 removed)
+- **No Targeting step** (Step 3 removed)
+- **3-step wizard** instead of 5 steps
+- Metric cards do not include audience-based reach calculations
+- Summary sidebar shows only 3 steps
+
+## Use Cases
+
+- Platforms where goal and targeting are pre-configured or managed separately
+- Simplified campaign creation workflows
+- Quick campaign setup focused on budget and media selection
+        `,
+      },
+    },
   },
 };

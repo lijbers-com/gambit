@@ -14,7 +14,8 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
   id: string;
@@ -62,7 +63,13 @@ export interface CampaignSummaryProps {
   conversionWindow?: number;
   onConversionWindowChange?: (conversionWindow: number) => void;
   onEdit?: () => void;
+  onRename?: (newTitle: string) => void;
+  onDelete?: () => void;
   defaultExpanded?: boolean;
+  hideGoal?: boolean;
+  hideTargeting?: boolean;
+  hideAgent?: boolean;
+  hideAutoBudget?: boolean;
   className?: string;
 }
 
@@ -97,7 +104,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     conversionWindow,
     onConversionWindowChange,
     onEdit,
+    onRename,
+    onDelete,
     defaultExpanded = false,
+    hideGoal = false,
+    hideTargeting = false,
+    hideAgent = false,
+    hideAutoBudget = false,
     className,
     ...props
   }, ref) => {
@@ -117,8 +130,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
     const [autoTargeting, setAutoTargeting] = React.useState(false);
     const [autoSuggestions, setAutoSuggestions] = React.useState(true);
-    const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget.replace(/[^0-9.]/g, ''));
+    const [internalTitle, setInternalTitle] = React.useState(title);
+    const [isRenaming, setIsRenaming] = React.useState(false);
+    const renameInputRef = React.useRef<HTMLInputElement>(null);
+    const renameReadyRef = React.useRef(false);
+    const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget ? budget.replace(/[^0-9.]/g, '') : '');
     const [showAddDropdown, setShowAddDropdown] = React.useState(false);
+    const [renamingEngineId, setRenamingEngineId] = React.useState<string | null>(null);
+    const [engineNames, setEngineNames] = React.useState<Record<string, string>>({});
+    const engineRenameInputRef = React.useRef<HTMLInputElement>(null);
 
     // Available proposition types for adding new campaigns
     const propositionTypes = [
@@ -129,7 +149,37 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       { id: 'extended-reach', name: 'Extended Reach', icon: Globe },
     ];
 
+    // Engine ID to campaign details Storybook story URL mapping
+    const engineDetailUrlMap: Record<string, string> = {
+      'display': '?path=/story/page-templates-campaign-details--display-in-option',
+      'sponsored': '?path=/story/page-templates-campaign-details--sponsored-products-in-option',
+      'digital': '?path=/story/page-templates-campaign-details--digital-instore-in-option',
+      'offline': '?path=/story/page-templates-campaign-details--offline-instore-in-option',
+      'extended-reach': '?path=/story/page-templates-campaign-details--display-in-option',
+    };
+    // Resolve URL from engine ID (supports both "display" and "display-3" formats)
+    const getEngineDetailUrl = (engineId: string) => {
+      if (engineDetailUrlMap[engineId]) return engineDetailUrlMap[engineId];
+      const baseType = engineId.replace(/-\d+$/, '');
+      return engineDetailUrlMap[baseType];
+    };
+
+    const engineCounter = React.useRef(internalEngines.length);
     const handleAddCampaign = (propositionType: string) => {
+      const propType = propositionTypes.find(p => p.id === propositionType);
+      if (propType) {
+        engineCounter.current += 1;
+        const uniqueId = `${propType.id}-${engineCounter.current}`;
+        setInternalEngines(prev => [
+          ...prev,
+          {
+            id: uniqueId,
+            name: propType.name,
+            campaignName: 'Untitled',
+            enabled: true,
+          },
+        ]);
+      }
       if (onEngineAdd) {
         onEngineAdd(propositionType);
       }
@@ -208,14 +258,26 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       'Extended Reach': Globe,
     };
 
-    // Handle engine budget change
+    // Handle engine budget change — cap so total doesn't exceed total budget
     const handleEngineBudgetChange = (engineId: string, value: string) => {
-      const newBudget = `$${value}`;
+      const totalBudgetVal = parseFloat(totalBudgetInput) || 0;
+      const requestedVal = parseFloat(value) || 0;
+
+      // Sum of all other engine budgets (excluding current one)
+      const otherEnginesTotal = Object.entries(engineBudgets).reduce((sum, [id, b]) => {
+        if (id === engineId) return sum;
+        return sum + (parseFloat(b.replace(/[^0-9.]/g, '')) || 0);
+      }, 0);
+
+      const maxAllowed = Math.max(totalBudgetVal - otherEnginesTotal, 0);
+      const cappedVal = totalBudgetVal > 0 ? Math.min(requestedVal, maxAllowed) : requestedVal;
+
+      const newBudget = `$${cappedVal}`;
       setEngineBudgets(prev => ({
         ...prev,
         [engineId]: newBudget
       }));
-      
+
       if (onEngineBudgetChange) {
         onEngineBudgetChange(engineId, newBudget);
       }
@@ -223,7 +285,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
     // Get current budget for an engine
     const getEngineBudget = (engineId: string) => {
-      return engineBudgets[engineId] || (engineId === 'offline' ? '$0' : '$1,667');
+      return engineBudgets[engineId] || '$0';
     };
 
     // Calculate ROAS based on budget (higher budget = higher ROAS with some variation)
@@ -277,15 +339,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       return `${averageROAS.toFixed(1)}x`;
     };
 
-    // Update main budget and input when engine budgets change
+    // Notify parent when engine budgets change (without overwriting total budget)
     React.useEffect(() => {
-      const totalBudget = calculateTotalBudget();
-      const totalBudgetValue = totalBudget.replace(/[^0-9.]/g, '');
-      setTotalBudgetInput(totalBudgetValue);
-      if (onBudgetChange) {
-        onBudgetChange(totalBudget);
+      if (onBudgetChange && totalBudgetInput) {
+        onBudgetChange(`$${totalBudgetInput}`);
       }
-    }, [engineBudgets, currentEngines]);
+    }, [engineBudgets]);
 
     // Distribute budget based on Auto Budget Optimization setting
     React.useEffect(() => {
@@ -350,6 +409,63 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         setEngineBudgets(newBudgets);
       }
     }, [autoBudgetOptimization]);
+
+    // ── Dynamic estimated metrics for horizontal layout ──
+    const budgetNumForMetrics = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
+    const hasBudget = budgetNumForMetrics > 0;
+    const enabledEngineCount = currentEngines.filter(e => e.enabled).length;
+
+    // Progress bars only show when there is actual spend data (campaign is running)
+    const usedBudgetNum = parseFloat((usedBudget || '$0').replace(/[^0-9.]/g, '')) || 0;
+    const hasProgress = hasBudget && usedBudgetNum > 0;
+
+    const fmtNumber = (num: number): string => {
+      if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+      if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+      return `${Math.round(num)}`;
+    };
+    const fmtCurrency = (num: number): string => {
+      if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
+      if (num >= 1000) return `$${(num / 1000).toFixed(1)}K`;
+      return `$${Math.round(num)}`;
+    };
+
+    // Reach: ~170 impressions per dollar, boosted by toggles
+    const reachMult = autoBudgetOptimization && autoTargeting ? 250 :
+      autoTargeting ? 215 : autoBudgetOptimization ? 185 : 170;
+    const estReach = hasBudget ? fmtNumber(budgetNumForMetrics * reachMult) : '—';
+    const estReachCurrent = hasProgress ? `Current: ${fmtNumber(budgetNumForMetrics * reachMult * 0.64)}` : undefined;
+    const reachProgress = hasProgress ? (
+      autoBudgetOptimization && autoTargeting ? 95 :
+      autoTargeting ? 82 : autoBudgetOptimization ? 72 : 64
+    ) : undefined;
+
+    // ROAS: base 3.2x + engine bonus, boosted by toggles
+    const engBonus = Math.min(enabledEngineCount * 0.2, 1.0);
+    const baseRoasEst = 3.2 + engBonus;
+    const roasMult = autoBudgetOptimization && autoTargeting ? 1.4 :
+      autoBudgetOptimization ? 1.22 : autoTargeting ? 1.1 : 1.0;
+    const estRoasNum = baseRoasEst * roasMult;
+    const estRoas = hasBudget ? `${estRoasNum.toFixed(1)}x` : '—';
+    const estRoasCurrent = hasProgress ? `Current: ${(estRoasNum * 0.78).toFixed(1)}x` : undefined;
+    const roasProgress = hasProgress ? (
+      autoBudgetOptimization && autoTargeting ? 88 :
+      autoBudgetOptimization ? 78 : autoTargeting ? 70 : 64
+    ) : undefined;
+
+    // Sales: budget × ROAS
+    const estSalesNum = budgetNumForMetrics * estRoasNum;
+    const estSales = hasBudget ? fmtCurrency(estSalesNum) : '—';
+    const estSalesCurrent = hasProgress ? `Current: ${fmtCurrency(estSalesNum * 0.64)}` : undefined;
+    const estSalesGrowth = hasProgress ? (
+      autoBudgetOptimization && autoTargeting ? '+42%' :
+      autoBudgetOptimization ? '+30%' : autoTargeting ? '+22%' : '+15%'
+    ) : undefined;
+    const salesProgress = hasProgress ? (
+      autoBudgetOptimization && autoTargeting ? 95 :
+      autoBudgetOptimization ? 82 : autoTargeting ? 73 : 64
+    ) : undefined;
+
     return (
       <Card ref={ref} className={cn(
         'w-full',
@@ -360,23 +476,54 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         {layout === 'vertical' && badge && (
           <Badge
             variant={badge.variant || 'default'}
-            className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white border-slate-800 z-50"
+            className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-foreground text-background border-foreground z-50"
           >
             {badge.text}
           </Badge>
         )}
         
         <CardHeader
-          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-2' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-slate-50' : ''}` : ''}`}
-          onClick={layout !== 'vertical' ? () => setIsCollapsed(!isCollapsed) : undefined}
+          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-0.5' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
+          onClick={layout !== 'vertical' ? () => { if (!isRenaming) setIsCollapsed(!isCollapsed); } : undefined}
         >
           {/* Title and Badges Row */}
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start gap-4">
             {/* Title - Left Aligned */}
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-foreground leading-tight">
-                {title}
-              </h2>
+              {isRenaming ? (
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={internalTitle}
+                    onChange={(e) => setInternalTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsRenaming(false);
+                        if (onRename) onRename(internalTitle);
+                      }
+                      if (e.key === 'Escape') {
+                        setIsRenaming(false);
+                        setInternalTitle(internalTitle);
+                      }
+                    }}
+                    className="text-xl font-semibold text-foreground leading-tight bg-background border border-border rounded-md px-2 py-1 flex-1 focus:outline-none focus:border-ring"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setIsRenaming(false);
+                      if (onRename) onRename(internalTitle);
+                    }}
+                  >
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <h2 className="text-xl font-semibold text-foreground leading-tight">
+                  {internalTitle}
+                </h2>
+              )}
               {layout === 'vertical' && (
                 <div className="mt-2">
                   <Badge variant="success" className="text-sm font-medium">
@@ -386,9 +533,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               )}
             </div>
 
-            {/* Badges and Collapse Button - Right Aligned (horizontal layout only) */}
+            {/* Badges, Ellipsis Menu and Collapse Button - Right Aligned (horizontal layout only) */}
             {layout !== 'vertical' && (
-              <div className="flex items-start gap-2">
+              <div className="flex items-center gap-2">
                 {badge ? (
                   <Badge variant={badge.variant || 'default'}>
                     {badge.text}
@@ -398,15 +545,54 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     In-option
                   </Badge>
                 )}
-                <button
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setIsRenaming(true);
+                        setTimeout(() => {
+                          renameInputRef.current?.focus();
+                          renameInputRef.current?.select();
+                        }, 50);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Rename
+                    </DropdownMenuItem>
+                    {onDelete && (
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                      }} className="text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCollapsed(!isCollapsed);
                   }}
-                  className="p-1 hover:bg-slate-100 rounded-md transition-colors"
                 >
                   {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -415,17 +601,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           {layout !== 'vertical' && isCollapsed && (
             <div className="flex justify-between items-center">
               <div className="text-sm text-muted-foreground">
-                {goal.replace(/-/g, ' ')} • {budget} • {dateRange ?
+                {!hideGoal ? `${goal.replace(/-/g, ' ')} • ` : ''}{hasBudget ? budget : 'No budget set'} • {dateRange ?
                   `${dateRange.from?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${dateRange.to?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}` :
                   'No dates selected'
                 }
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-muted-foreground text-right">
-                  ROAS {calculateTotalROAS()}{usedBudget ? ` • Used ${usedBudget}` : ''}
-                </div>
-                {/* Spacer to match the chevron button width + gap */}
-                <div className="w-[28px]"></div>
               </div>
             </div>
           )}
@@ -439,6 +618,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               {/* Goal, Budget, and Runtime Section */}
               <div className="space-y-4">
                 {/* Goal Section */}
+                {!hideGoal && (
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Goal</Label>
                   <Input
@@ -454,9 +634,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     value={goal}
                     onChange={onGoalChange || (() => {})}
                     placeholder="Select goal"
-                    className="bg-slate-50 border-slate-200"
+                    className="bg-muted/50 border-border"
                   />
                 </div>
+                )}
 
                 {/* Total Budget Section */}
                 <div className="space-y-2">
@@ -489,7 +670,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         setEngineBudgets(newBudgets);
                         onBudgetChange?.(`$${e.target.value}`);
                       }}
-                      className="w-full h-9 bg-slate-50 border border-slate-200 pl-10 py-1 rounded-md focus:outline-none focus:border-slate-300 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                      className="w-full h-9 bg-muted/50 border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                       placeholder="Enter budget amount"
                     />
                   </div>
@@ -502,7 +683,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     dateRange={dateRange}
                     onDateRangeChange={onDateRangeChange}
                     placeholder="Select campaign dates"
-                    className="bg-slate-50 border-slate-200"
+                    className="bg-muted/50 border-border"
                     showPresets={true}
                   />
                 </div>
@@ -543,9 +724,27 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             </span>
                           </div>
                           {engine.enabled && (
-                            <span className="text-xs text-muted-foreground flex-shrink-0">
-                              ${budgetVal} · {roas} ROAS
-                            </span>
+                            <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <input
+                                type="number"
+                                value={budgetVal || ''}
+                                onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
+                                placeholder="Budget"
+                                className="w-28 h-8 text-sm bg-background border border-border pl-8 pr-2 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                              />
+                            </div>
+                          )}
+                          {engine.enabled && getEngineDetailUrl(engine.id) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); window.top!.location.href = getEngineDetailUrl(engine.id); }}
+                              title={`View ${engine.name} campaign details`}
+                            >
+                              <SquarePen className="h-4 w-4" />
+                              Edit
+                            </Button>
                           )}
                           <Switch
                             checked={engine.enabled}
@@ -569,7 +768,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       <span className="text-sm text-muted-foreground">Add campaign</span>
                     </button>
                     {showAddDropdown && (
-                      <div className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
+                      <div className="absolute z-20 w-full mt-1 bg-background border rounded-lg shadow-lg overflow-hidden">
                         {propositionTypes.map((type) => {
                           const TypeIcon = type.icon;
                           return (
@@ -577,7 +776,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               key={type.id}
                               type="button"
                               onClick={() => handleAddCampaign(type.id)}
-                              className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors text-left"
+                              className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
                             >
                               <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
                                 <TypeIcon size={12} />
@@ -594,6 +793,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
               {/* Optimization Switches */}
               <div className="space-y-3 pt-4 pb-4">
+                {!hideAutoBudget && (
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={autoBudgetOptimization}
@@ -602,6 +802,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   <span className="text-sm text-foreground">Auto Budget Optimization</span>
                   <Info className="h-4 w-4 text-muted-foreground" />
                 </div>
+                )}
+                {!hideTargeting && (
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={autoTargeting}
@@ -610,6 +812,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   <span className="text-sm text-foreground">Auto Targeting</span>
                   <Info className="h-4 w-4 text-muted-foreground" />
                 </div>
+                )}
               </div>
 
 
@@ -639,70 +842,35 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   label="Budget"
-                  value={budget}
-                  subMetric={totalPrice ? `Total Spend: ${totalPrice}` : undefined}
-                  progress={calculateBudgetUsage}
+                  value={hasBudget ? budget : '—'}
+                  subMetric={hasBudget && totalPrice ? `Total Spend: ${totalPrice}` : undefined}
+                  progress={hasProgress ? calculateBudgetUsage : undefined}
                   variant="graph"
                 />
                 <MetricCard
-                  label="Reach"
-                  value={
-                    autoBudgetOptimization && autoTargeting ? "3.8M" :
-                    autoTargeting ? "3.2M" :
-                    autoBudgetOptimization ? "2.8M" :
-                    "2.5M"
-                  }
-                  subMetric="Current: 1.6M"
+                  label="Est. Impressions"
+                  value={estReach}
+                  subMetric={estReachCurrent}
                   variant="graph"
-                  progress={
-                    autoBudgetOptimization && autoTargeting ? 95 :
-                    autoTargeting ? 82 :
-                    autoBudgetOptimization ? 72 :
-                    64
-                  }
+                  progress={reachProgress}
                   className="transition-all duration-500 ease-in-out"
                 />
                 <MetricCard
-                  label="ROAS"
-                  value={
-                    autoBudgetOptimization && autoTargeting ? "5.6x" :
-                    autoBudgetOptimization ? "5.0x" :
-                    autoTargeting ? "4.5x" :
-                    "4.1x"
-                  }
-                  subMetric="Current: 3.2x"
+                  label="Est. ROAS"
+                  value={estRoas}
+                  subMetric={estRoasCurrent}
                   variant="graph"
-                  progress={
-                    autoBudgetOptimization && autoTargeting ? 88 :
-                    autoBudgetOptimization ? 78 :
-                    autoTargeting ? 70 :
-                    64
-                  }
+                  progress={roasProgress}
                   className="transition-all duration-500 ease-in-out"
                 />
                 <MetricCard
-                  label="Sales"
-                  value={
-                    autoBudgetOptimization && autoTargeting ? "$68.3K" :
-                    autoBudgetOptimization ? "$58.7K" :
-                    autoTargeting ? "$52.4K" :
-                    "$45.2K"
-                  }
-                  subMetric="Current: $28.8K"
-                  badgeValue={
-                    autoBudgetOptimization && autoTargeting ? "+42%" :
-                    autoBudgetOptimization ? "+30%" :
-                    autoTargeting ? "+22%" :
-                    "+15%"
-                  }
+                  label="Est. Sales"
+                  value={estSales}
+                  subMetric={estSalesCurrent}
+                  badgeValue={estSalesGrowth}
                   badgeVariant="success"
                   variant="graph"
-                  progress={
-                    autoBudgetOptimization && autoTargeting ? 95 :
-                    autoBudgetOptimization ? 82 :
-                    autoTargeting ? 73 :
-                    64
-                  }
+                  progress={salesProgress}
                   className="transition-all duration-500 ease-in-out"
                 />
               </div>
@@ -717,15 +885,28 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       const IconComponent = mediaPropositionIcons[engine.name];
                       const roas = calculateEngineROAS(engine.id);
                       const budgetVal = getEngineBudget(engine.id).replace(/[^0-9.]/g, '');
+                      const detailUrl = getEngineDetailUrl(engine.id);
+                      const displayName = engineNames[engine.id] || engine.campaignName;
+                      const isEngineRenaming = renamingEngineId === engine.id;
                       return (
                         <div
                           key={engine.id}
                           className={cn(
-                            "rounded-lg border transition-all",
+                            "rounded-lg border transition-all cursor-pointer hover:border-primary/50",
                             engine.enabled ? 'border-border' : 'border-border/50'
                           )}
+                          onClick={() => {
+                            if (renamingEngineId) return;
+                            if (detailUrl) window.top!.location.href = detailUrl;
+                          }}
                         >
-                          <div className="flex items-center gap-3 p-3">
+                          <div className="flex items-center gap-3 p-3 min-h-[56px]">
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Switch
+                                checked={engine.enabled}
+                                onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
+                              />
+                            </div>
                             <div className={cn(
                               "w-7 h-7 rounded-md flex items-center justify-center transition-colors flex-shrink-0",
                               engine.enabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
@@ -733,25 +914,78 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               {IconComponent && <IconComponent size={14} />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className={cn(
-                                "text-sm font-medium",
-                                !engine.enabled && 'text-muted-foreground'
-                              )}>
-                                {engine.name}
-                                {engine.campaignName && (
-                                  <span className="text-muted-foreground font-normal"> – {engine.campaignName}</span>
-                                )}
-                              </span>
+                              {isEngineRenaming ? (
+                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    ref={engineRenameInputRef}
+                                    type="text"
+                                    value={engineNames[engine.id] ?? engine.campaignName ?? ''}
+                                    onChange={(e) => setEngineNames(prev => ({ ...prev, [engine.id]: e.target.value }))}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') setRenamingEngineId(null);
+                                      if (e.key === 'Escape') {
+                                        setEngineNames(prev => { const n = { ...prev }; delete n[engine.id]; return n; });
+                                        setRenamingEngineId(null);
+                                      }
+                                    }}
+                                    className="text-sm font-medium bg-background border border-border rounded-md px-2 py-1 flex-1 focus:outline-none focus:border-ring"
+                                  />
+                                  <Button size="sm" onClick={() => setRenamingEngineId(null)}>Save</Button>
+                                </div>
+                              ) : (
+                                <span className={cn(
+                                  "text-sm font-medium",
+                                  !engine.enabled && 'text-muted-foreground'
+                                )}>
+                                  {engine.name}
+                                  {displayName && (
+                                    <span className="text-muted-foreground font-normal"> – {displayName}</span>
+                                  )}
+                                </span>
+                              )}
                             </div>
-                            {engine.enabled && (
-                              <span className="text-xs text-muted-foreground flex-shrink-0">
-                                ${budgetVal} · {roas} ROAS
-                              </span>
-                            )}
-                            <Switch
-                              checked={engine.enabled}
-                              onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
-                            />
+                            <div className={cn("relative flex-shrink-0", !engine.enabled && "opacity-50")} onClick={(e) => e.stopPropagation()}>
+                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <input
+                                type="number"
+                                value={budgetVal || ''}
+                                onChange={(e) => handleEngineBudgetChange(engine.id, e.target.value)}
+                                placeholder="Budget"
+                                disabled={!engine.enabled}
+                                className="w-28 h-8 text-sm bg-background border border-border pl-8 pr-2 rounded-md focus:outline-none focus:border-ring disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                              />
+                            </div>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {detailUrl && (
+                                    <DropdownMenuItem onSelect={() => { window.top!.location.href = detailUrl; }}>
+                                      <SquarePen className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem onSelect={(e) => {
+                                    e.preventDefault();
+                                    setRenamingEngineId(engine.id);
+                                    if (!engineNames[engine.id]) {
+                                      setEngineNames(prev => ({ ...prev, [engine.id]: engine.campaignName || '' }));
+                                    }
+                                    setTimeout(() => {
+                                      engineRenameInputRef.current?.focus();
+                                      engineRenameInputRef.current?.select();
+                                    }, 50);
+                                  }}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Rename
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
                         </div>
                       );
@@ -770,7 +1004,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         <span className="text-sm text-muted-foreground">Add campaign</span>
                       </button>
                       {showAddDropdown && (
-                        <div className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
+                        <div className="absolute z-20 w-full mt-1 bg-background border rounded-lg shadow-lg overflow-hidden">
                           {propositionTypes.map((type) => {
                             const TypeIcon = type.icon;
                             return (
@@ -778,7 +1012,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 key={type.id}
                                 type="button"
                                 onClick={() => handleAddCampaign(type.id)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors text-left"
+                                className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
                               >
                                 <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
                                   <TypeIcon size={12} />
@@ -793,6 +1027,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </div>
 
                   {/* Campaign Agent Section */}
+                  {!hideAgent && (
                   <div className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -808,9 +1043,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       </Button>
                     </div>
                   </div>
+                  )}
 
                   {/* AI Notifications Section - Only show when autoSuggestions is enabled */}
-                  {autoSuggestions && (
+                  {!hideAgent && autoSuggestions && (
                     <div className="space-y-3 pt-4">
                       <div className="space-y-4">
                         {/* AI Notification 1 - CTR Optimization */}
@@ -890,12 +1126,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 {/* Right Column - Summary Card */}
                 <div className="lg:col-span-4 lg:order-2">
                   <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>Summary</CardSummaryTitle>
+                    <CardHeader className="pb-2">
+                      <span className="text-sm font-semibold text-foreground">Settings</span>
                     </CardHeader>
                     <CardSummaryContent>
                       <div className="space-y-5">
                         {/* Goal */}
+                        {!hideGoal && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">Goal</Label>
                           <Input
@@ -911,9 +1148,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             value={goal}
                             onChange={onGoalChange || (() => {})}
                             placeholder="Select goal"
-                            className="bg-white border-slate-200"
+                            className="bg-background border-border"
                           />
                         </div>
+                        )}
 
                         {/* Total Budget + Auto Budget Optimization */}
                         <div className="space-y-2">
@@ -941,10 +1179,32 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 setEngineBudgets(newBudgets);
                                 onBudgetChange?.(`$${e.target.value}`);
                               }}
-                              className="w-full h-9 bg-white border border-slate-200 pl-10 py-1 rounded-md focus:outline-none focus:border-slate-300 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                              className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                               placeholder="Enter budget amount"
                             />
                           </div>
+                          {/* Budget breakdown lines */}
+                          {(() => {
+                            const totalBudgetVal = parseFloat(totalBudgetInput) || 0;
+                            const allocatedBudget = currentEngines.reduce((sum, engine) => {
+                              const b = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
+                              return sum + b;
+                            }, 0);
+                            const remaining = Math.max(totalBudgetVal - allocatedBudget, 0);
+                            return (
+                              <div className="space-y-1.5 pt-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Budget remaining</span>
+                                  <span className="text-sm font-medium text-foreground">{fmtCurrency(remaining)}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Budget allocated</span>
+                                  <span className="text-sm font-medium text-foreground">{fmtCurrency(allocatedBudget)}</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          {!hideAutoBudget && (
                           <div className="flex items-center justify-between pt-1">
                             <div className="flex items-center gap-1.5">
                               <Sparkles className={cn("h-3.5 w-3.5", autoBudgetOptimization ? "text-primary" : "text-muted-foreground")} />
@@ -955,9 +1215,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               onCheckedChange={setAutoBudgetOptimization}
                             />
                           </div>
+                          )}
                         </div>
 
                         {/* Targeting + Auto Targeting */}
+                        {!hideTargeting && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">Targeting</Label>
                           <Input
@@ -972,7 +1234,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             value={audience}
                             onChange={onAudienceChange || (() => {})}
                             placeholder="Select audience"
-                            className="bg-white border-slate-200"
+                            className="bg-background border-border"
                           />
                           <div className="flex items-center justify-between pt-1">
                             <div className="flex items-center gap-1.5">
@@ -985,6 +1247,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             />
                           </div>
                         </div>
+                        )}
 
                         {/* Run Time */}
                         <div className="space-y-2">
@@ -993,7 +1256,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             dateRange={dateRange}
                             onDateRangeChange={onDateRangeChange}
                             placeholder="Select campaign dates"
-                            className="bg-white border-slate-200"
+                            className="bg-background border-border"
                             showPresets={true}
                           />
                         </div>

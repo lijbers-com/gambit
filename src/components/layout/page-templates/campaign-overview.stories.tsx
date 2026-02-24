@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
+import { DateRangePicker } from '@/components/ui/date-picker';
+import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { addDays } from 'date-fns';
@@ -467,4 +470,278 @@ This 360 Campaigns view provides complete visibility and control over your entir
       },
     },
   },
-}; 
+};
+
+export const Campaigns360NoGoalTargeting: Story = {
+  render: () => {
+    const [status, setStatus] = React.useState<string[]>([]);
+    const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
+    const [pageDateRange, setPageDateRange] = React.useState<DateRange | undefined>({
+      from: new Date('2024-06-01'),
+      to: addDays(new Date('2024-06-01'), 180),
+    });
+    const [activeTab, setActiveTab] = React.useState('media-experiences');
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+
+    const logData = [
+      { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Holiday Sale Campaign', description: 'Initial campaign creation' },
+      { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$10,000', newValue: '$15,000', description: 'Budget increased for holiday push' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Display', description: 'Added Display engine' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Sponsored Products', description: 'Added Sponsored Products engine' },
+      { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '06/25/2024', newValue: '06/30/2024', description: 'Extended campaign end date' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Budget Updated', field: 'Budget', oldValue: '$15,000', newValue: '$18,000', description: 'Budget reallocated across engines' },
+      { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Summer Launch Campaign', description: 'New campaign created' },
+      { id: 'LOG-009', timestamp: '2024-12-12 10:15:00', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Holiday Sale Campaign is now live' },
+      { id: 'LOG-010', timestamp: '2024-12-13 09:00:00', user: 'Mike Johnson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Digital In-store', description: 'Added Digital In-store engine to Summer Launch' },
+    ];
+
+    // Dynamic list of campaigns - starts with existing data
+    const [campaigns, setCampaigns] = React.useState(campaignSummaryData);
+    let nextId = React.useRef(campaigns.length + 1);
+
+    // Add a new empty media experience
+    const handleAddMediaExperience = () => {
+      const newId = `C-${String(nextId.current).padStart(3, '0')}`;
+      nextId.current += 1;
+      setCampaigns(prev => [
+        {
+          id: newId,
+          campaignType: 'new',
+          title: `Untitled`,
+          badge: { text: 'Draft', variant: 'outline' as const },
+          goal: '',
+          estimatedRoas: '0x',
+          budget: '',
+          usedBudget: '',
+          totalPrice: '',
+          budgetUsagePercentage: 0,
+          placements: 0,
+          engines: [],
+          dateRange: {
+            from: new Date(),
+            to: addDays(new Date(), 30),
+          },
+          features: [],
+        },
+        ...prev,
+      ]);
+    };
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={defaultRoutes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Media Experiences',
+            subtitle: 'Complete overview of all your campaigns across all advertising engines',
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+            headerRight: (
+              <DateRangePicker
+                dateRange={pageDateRange}
+                onDateRangeChange={setPageDateRange}
+                placeholder="Filter by date range"
+                className="bg-background border-border w-[260px]"
+                showPresets={true}
+              />
+            ),
+          }}
+        >
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                label: 'Media experiences',
+                value: 'media-experiences',
+                content: (
+                  <div className="space-y-6 mt-6">
+                    <FilterBar
+                      filters={[
+                        {
+                          name: 'Status',
+                          options: [
+                            { label: 'Running', value: 'running' },
+                            { label: 'Ready', value: 'ready' },
+                            { label: 'In option', value: 'in-option' },
+                            { label: 'Paused', value: 'paused' },
+                          ],
+                          selectedValues: status,
+                          onChange: setStatus,
+                        },
+                        {
+                          name: 'Advertiser',
+                          options: [
+                            { label: 'Acme Media', value: 'acme-media' },
+                            { label: 'BrandX', value: 'brandx' },
+                            { label: 'MediaWorks', value: 'mediaworks' },
+                            { label: 'AdPartners', value: 'adpartners' },
+                          ],
+                          selectedValues: advertiser,
+                          onChange: setAdvertiser,
+                        },
+                      ]}
+                      searchValue={''}
+                      onSearchChange={() => {}}
+                      searchPlaceholder="Search campaigns..."
+                    />
+                    <div className="space-y-6">
+                      {campaigns.map((campaign) => {
+                        const currentBudget = campaignBudgets[campaign.title] || campaign.budget;
+                        return (
+                          <CampaignSummary
+                            key={campaign.id}
+                            layout="horizontal"
+                            title={campaign.title}
+                            goal={campaign.goal}
+                            audience="retail-shoppers"
+                            hideGoal
+                            hideTargeting
+                            hideAgent
+                            hideAutoBudget
+                            defaultExpanded={campaign.engines.length === 0}
+                            estimatedRoas={campaign.estimatedRoas}
+                            budget={currentBudget}
+                            usedBudget={campaign.usedBudget}
+                            totalPrice={campaign.totalPrice}
+                            budgetUsagePercentage={campaign.budgetUsagePercentage}
+                            engines={campaign.engines}
+                            placements={campaign.placements}
+                            dateRange={campaign.dateRange}
+                            features={campaign.features}
+                            onBudgetChange={(newBudget) => {
+                              setCampaignBudgets(prev => ({
+                                ...prev,
+                                [campaign.title]: newBudget
+                              }));
+                              console.log(`Budget updated for ${campaign.title}: ${newBudget}`);
+                            }}
+                            onEdit={() => console.log(`Edit campaign: ${campaign.title}`)}
+                            onEngineEdit={(engineId, engineName) => {
+                              const engineTypeMap: { [key: string]: string } = {
+                                'display': 'display',
+                                'sponsored': 'sponsored-products',
+                                'digital': 'digital-instore',
+                                'offline': 'offline-instore',
+                              };
+                              const engineType = engineTypeMap[engineId] || engineId;
+                              console.log(`Navigate to: /campaigns/${engineType}/${campaign.id}`);
+                              alert(`Would navigate to: /campaigns/${engineType}/${campaign.id}`);
+                            }}
+                            onEngineAdd={(propositionType) => {
+                              console.log(`Adding ${propositionType} campaign to ${campaign.title}`);
+                            }}
+                            className="w-full"
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                label: 'Logs',
+                value: 'logs',
+                content: (
+                  <div className="space-y-6 mt-6">
+                    <FilterBar
+                      filters={[
+                        {
+                          name: 'Users',
+                          options: [
+                            { label: 'Jane Doe', value: 'Jane Doe' },
+                            { label: 'John Smith', value: 'John Smith' },
+                            { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                            { label: 'Mike Johnson', value: 'Mike Johnson' },
+                          ],
+                          selectedValues: logUsers,
+                          onChange: setLogUsers,
+                        },
+                        {
+                          name: 'Actions',
+                          options: [
+                            { label: 'Campaign Created', value: 'Campaign Created' },
+                            { label: 'Budget Updated', value: 'Budget Updated' },
+                            { label: 'Status Changed', value: 'Status Changed' },
+                            { label: 'Engine Added', value: 'Engine Added' },
+                            { label: 'Dates Modified', value: 'Dates Modified' },
+                          ],
+                          selectedValues: logActions,
+                          onChange: setLogActions,
+                        },
+                      ]}
+                      searchValue={''}
+                      onSearchChange={() => {}}
+                      searchPlaceholder="Search logs..."
+                    />
+                    <Table
+                      columns={[
+                        { key: 'timestamp', header: 'Timestamp', render: (row: typeof logData[0]) => new Date(row.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) },
+                        { key: 'user', header: 'User' },
+                        { key: 'action', header: 'Action', render: (row: typeof logData[0]) => <Badge variant="outline">{row.action}</Badge> },
+                        { key: 'field', header: 'Field' },
+                        { key: 'oldValue', header: 'Old Value' },
+                        { key: 'newValue', header: 'New Value' },
+                        { key: 'description', header: 'Description' },
+                      ]}
+                      data={logData.filter(row => {
+                        const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                        const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                        return userMatch && actionMatch;
+                      })}
+                      rowKey={(row: typeof logData[0]) => row.id}
+                      onRowClick={(row: typeof logData[0]) => console.log(`Log clicked: ${row.id}`)}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            action={
+              activeTab === 'media-experiences' ? (
+                <Button onClick={handleAddMediaExperience}>
+                  Add media experience
+                </Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null
+            }
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+# 360 Campaigns – No Goal & Targeting
+
+A variant of the 360 Campaigns view without Goal and Targeting sections in the campaign summary cards. This streamlined view focuses on budget, runtime, and media proposition management.
+
+## Differences from Standard 360 Campaigns
+
+- **No Goal dropdown** in the summary sidebar
+- **No Targeting dropdown** and Auto Targeting toggle in the summary sidebar
+- **Simplified collapsed subtitle** without goal information
+- All other features remain the same (budget management, engine toggles, metrics, etc.)
+
+## Use Cases
+
+- Retailers or platforms where goal and targeting are managed at a different level
+- Simplified campaign management workflows
+- Quick budget and runtime-focused campaign overviews
+        `,
+      },
+    },
+  },
+};

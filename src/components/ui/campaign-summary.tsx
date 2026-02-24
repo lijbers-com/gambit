@@ -146,7 +146,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       { id: 'sponsored', name: 'Sponsored products', icon: ListStart },
       { id: 'digital', name: 'Digital in-store', icon: MonitorPlay },
       { id: 'offline', name: 'Offline in-store', icon: Store },
-      { id: 'extended-reach', name: 'Extended Reach', icon: Globe },
+      { id: 'offsite', name: 'Offsite', icon: Globe },
     ];
 
     // Engine ID to campaign details Storybook story URL mapping
@@ -155,7 +155,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       'sponsored': '?path=/story/page-templates-campaign-details--sponsored-products-in-option',
       'digital': '?path=/story/page-templates-campaign-details--digital-instore-in-option',
       'offline': '?path=/story/page-templates-campaign-details--offline-instore-in-option',
-      'extended-reach': '?path=/story/page-templates-campaign-details--display-in-option',
+      'offsite': '?path=/story/page-templates-campaign-details--offsite-in-option',
     };
     // Resolve URL from engine ID (supports both "display" and "display-3" formats)
     const getEngineDetailUrl = (engineId: string) => {
@@ -255,7 +255,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       'Sponsored products': ListStart,
       'Digital in-store': MonitorPlay,
       'Offline in-store': Store,
-      'Extended Reach': Globe,
+      'Offsite': Globe,
     };
 
     // Handle engine budget change — cap so total doesn't exceed total budget
@@ -302,7 +302,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         'sponsored': 4.8,
         'digital': 3.2,
         'offline': 0,
-        'extended-reach': 2.1,
+        'offsite': 2.1,
       };
 
       const baseROAS = engineBaseROAS[engineId as keyof typeof engineBaseROAS] || 3.0;
@@ -735,11 +735,18 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               />
                             </div>
                           )}
-                          {engine.enabled && getEngineDetailUrl(engine.id) && (
+                          {engine.enabled && (onEngineEdit || getEngineDetailUrl(engine.id)) && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={(e) => { e.stopPropagation(); window.top!.location.href = getEngineDetailUrl(engine.id); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onEngineEdit) {
+                                  onEngineEdit(engine.id, engine.name);
+                                } else {
+                                  window.top!.location.href = getEngineDetailUrl(engine.id);
+                                }
+                              }}
                               title={`View ${engine.name} campaign details`}
                             >
                               <SquarePen className="h-4 w-4" />
@@ -897,7 +904,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           )}
                           onClick={() => {
                             if (renamingEngineId) return;
-                            if (detailUrl) window.top!.location.href = detailUrl;
+                            if (onEngineEdit) {
+                              onEngineEdit(engine.id, engine.name);
+                            } else if (detailUrl) {
+                              window.top!.location.href = detailUrl;
+                            }
                           }}
                         >
                           <div className="flex items-center gap-3 p-3 min-h-[56px]">
@@ -963,8 +974,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  {detailUrl && (
-                                    <DropdownMenuItem onSelect={() => { window.top!.location.href = detailUrl; }}>
+                                  {(onEngineEdit || detailUrl) && (
+                                    <DropdownMenuItem onSelect={() => {
+                                      if (onEngineEdit) {
+                                        onEngineEdit(engine.id, engine.name);
+                                      } else if (detailUrl) {
+                                        window.top!.location.href = detailUrl;
+                                      }
+                                    }}>
                                       <SquarePen className="h-4 w-4 mr-2" />
                                       Edit
                                     </DropdownMenuItem>

@@ -31,6 +31,7 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/campaigns/display': '/campaigns/display',
         '/campaigns/digital-instore': '/campaigns/digital-instore',
         '/campaigns/offline-instore': '/campaigns/offline-instore',
+        '/campaigns/offsite': '/campaigns/offsite',
 
         // Creatives
         '/creatives': '/creatives',
@@ -78,7 +79,7 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/create/display': '/create/display',
         '/create/offline-instore': '/create/offline-instore',
         '/create/digital-instore': '/create/digital-instore',
-        '/create/extended-reach': '/create/extended-reach',
+        '/create/offsite': '/create/offsite',
 
         // Root
         '/': '/login'

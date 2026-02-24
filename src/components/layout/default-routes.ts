@@ -73,7 +73,7 @@ export const defaultRoutes: Route[] = [
         id: 26,
         name: "Display offsite",
         type: "single" as const,
-        url: "/campaigns/display-offsite",
+        url: "/campaigns/offsite",
       },
     ],
   },
@@ -278,8 +278,8 @@ export const extendedRoutes: Route[] = [
     id: 206,
     name: "Campaign Details",
     type: "hidden" as const,
-    url: "/campaigns/display-offsite/[id]",
-    pattern: "/campaigns/display-offsite/*",
+    url: "/campaigns/offsite/[id]",
+    pattern: "/campaigns/offsite/*",
   },
   // Line-item detail routes
   {
@@ -328,8 +328,8 @@ export const extendedRoutes: Route[] = [
     id: 216,
     name: "Line-item Details",
     type: "hidden" as const,
-    url: "/campaigns/display-offsite/line-item/[lineItemId]",
-    pattern: "/campaigns/display-offsite/line-item/*",
+    url: "/campaigns/offsite/line-item/[lineItemId]",
+    pattern: "/campaigns/offsite/line-item/*",
   },
   // Creative detail routes
   {
@@ -378,7 +378,7 @@ export const extendedRoutes: Route[] = [
     id: 226,
     name: "Creative Details",
     type: "hidden" as const,
-    url: "/campaigns/display-offsite/creative/[creativeId]",
-    pattern: "/campaigns/display-offsite/creative/*",
+    url: "/campaigns/offsite/creative/[creativeId]",
+    pattern: "/campaigns/offsite/creative/*",
   },
 ];

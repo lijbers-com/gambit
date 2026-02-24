@@ -78,5 +78,5 @@ export const renderIcon = (icon: string) => {
     BrandsIcon,
   };
   const IconComponent = icons[icon as keyof typeof icons];
-  return IconComponent ? <IconComponent size={16} /> : null;
+  return IconComponent ? <IconComponent size={20} /> : null;
 }; 

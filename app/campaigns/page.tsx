@@ -315,6 +315,14 @@ function AllCampaignsPage() {
                           hideAutoBudget
                           hideEngineToggle={newCampaignIds.has(campaign.id)}
                           guidedSetup={newCampaignIds.has(campaign.id)}
+                          onCancel={() => {
+                            setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+                            setNewCampaignIds(prev => {
+                              const next = new Set(prev);
+                              next.delete(campaign.id);
+                              return next;
+                            });
+                          }}
                           campaignId={campaign.id}
                           defaultExpanded={campaign.engines.length === 0 || newCampaignIds.has(campaign.id)}
                           estimatedRoas={campaign.estimatedRoas}

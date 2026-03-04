@@ -73,6 +73,7 @@ export interface CampaignSummaryProps {
   hideAutoBudget?: boolean;
   hideEngineToggle?: boolean;
   guidedSetup?: boolean;
+  onCancel?: () => void;
   campaignId?: string;
   onCampaignIdChange?: (id: string) => void;
   advertiser?: string;
@@ -121,6 +122,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     hideAutoBudget = false,
     hideEngineToggle = false,
     guidedSetup = false,
+    onCancel,
     campaignId: campaignIdProp = '',
     onCampaignIdChange,
     advertiser: advertiserProp = '',
@@ -557,52 +559,56 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             {/* Badges, Ellipsis Menu and Collapse Button - Right Aligned (horizontal layout only) */}
             {layout !== 'vertical' && (
               <div className="flex items-center gap-2">
-                {badge ? (
-                  <Badge variant={badge.variant || 'default'}>
-                    {badge.text}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">
-                    In-option
-                  </Badge>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        setIsRenaming(true);
-                        setTimeout(() => {
-                          renameInputRef.current?.focus();
-                          renameInputRef.current?.select();
-                        }, 50);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Rename
-                    </DropdownMenuItem>
-                    {onDelete && (
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete();
-                      }} className="text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
+                {!isGuidedSettingsPhase && (
+                  <>
+                    {badge ? (
+                      <Badge variant={badge.variant || 'default'}>
+                        {badge.text}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        In-option
+                      </Badge>
                     )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setIsRenaming(true);
+                            setTimeout(() => {
+                              renameInputRef.current?.focus();
+                              renameInputRef.current?.select();
+                            }, 50);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        {onDelete && (
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                          }} className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
                 <Button
                   variant="outline"
                   size="icon"
@@ -1495,17 +1501,25 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           />
                         </div>
 
-                        {/* Guided setup: Continue button */}
+                        {/* Guided setup: Cancel + Continue buttons */}
                         {isGuidedSettingsPhase && (
-                          <div className="flex flex-col items-end gap-2 pt-2">
-                            <Button
-                              onClick={() => setGuidedSetupComplete(true)}
-                              disabled={!totalBudgetInput || !dateRange?.from || !dateRange?.to}
-                            >
-                              Create media experience
-                            </Button>
+                          <div className="flex flex-col gap-2 pt-2">
+                            <div className="flex items-center justify-between">
+                              <Button
+                                variant="outline"
+                                onClick={onCancel}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() => setGuidedSetupComplete(true)}
+                                disabled={!totalBudgetInput || !dateRange?.from || !dateRange?.to}
+                              >
+                                Create media experience
+                              </Button>
+                            </div>
                             {(!totalBudgetInput || !dateRange?.from || !dateRange?.to) && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground text-right">
                                 Set a budget and runtime to continue
                               </p>
                             )}

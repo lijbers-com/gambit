@@ -285,3 +285,45 @@ This helps campaign managers identify campaigns that may benefit from optimizati
     },
   },
 };
+
+export const GuidedSetup: Story = {
+  args: {
+    ...defaultProps,
+    title: 'Untitled',
+    badge: { text: 'Draft', variant: 'outline' as const },
+    layout: 'horizontal',
+    defaultExpanded: true,
+    guidedSetup: true,
+    budget: '',
+    goal: '',
+    engines: [],
+    hideGoal: true,
+    hideTargeting: true,
+    hideAgent: true,
+    hideAutoBudget: true,
+    hideEngineToggle: true,
+  },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: `
+# Guided Setup Variant
+
+This variant starts with the Settings card displayed full-width, prompting the user to set budget and runtime first. Once those are configured and the user clicks "Continue to campaigns", the Settings card animates to the right column and the campaign list becomes visible.
+
+## Flow
+
+1. **Step 1 - Settings**: The grey settings area fills the full card width. Budget and runtime fields are prominently displayed.
+2. **Step 2 - Campaigns**: After clicking "Continue", the settings area slides to the right and the campaign list appears on the left with an "Add campaign" button.
+
+## Use Cases
+
+- New media experience creation where budget and runtime must be set before adding campaigns
+- Guided onboarding flow for first-time campaign setup
+- Ensuring users don't skip critical budget/runtime configuration
+        `,
+      },
+    },
+  },
+};

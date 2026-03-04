@@ -21,6 +21,7 @@ export interface CampaignEngine {
   id: string;
   name: string;
   campaignName?: string;
+  status?: 'new' | 'draft' | 'ready' | 'in-option' | 'running' | 'paused';
   enabled: boolean;
 }
 
@@ -70,6 +71,13 @@ export interface CampaignSummaryProps {
   hideTargeting?: boolean;
   hideAgent?: boolean;
   hideAutoBudget?: boolean;
+  hideEngineToggle?: boolean;
+  guidedSetup?: boolean;
+  campaignId?: string;
+  onCampaignIdChange?: (id: string) => void;
+  advertiser?: string;
+  advertiserOptions?: { label: string; value: string }[];
+  onAdvertiserChange?: (advertiser: string) => void;
   className?: string;
 }
 
@@ -111,6 +119,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     hideTargeting = false,
     hideAgent = false,
     hideAutoBudget = false,
+    hideEngineToggle = false,
+    guidedSetup = false,
+    campaignId: campaignIdProp = '',
+    onCampaignIdChange,
+    advertiser: advertiserProp = '',
+    advertiserOptions,
+    onAdvertiserChange,
     className,
     ...props
   }, ref) => {
@@ -139,6 +154,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [renamingEngineId, setRenamingEngineId] = React.useState<string | null>(null);
     const [engineNames, setEngineNames] = React.useState<Record<string, string>>({});
     const engineRenameInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Guided setup: starts in settings-first mode, transitions once budget & runtime are set
+    const [guidedSetupComplete, setGuidedSetupComplete] = React.useState(false);
+    const isGuidedSettingsPhase = guidedSetup && !guidedSetupComplete;
+    const [internalCampaignId, setInternalCampaignId] = React.useState(campaignIdProp);
+    const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
 
     // Available proposition types for adding new campaigns
     const propositionTypes = [
@@ -697,6 +718,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     const IconComponent = mediaPropositionIcons[engine.name];
                     const roas = calculateEngineROAS(engine.id);
                     const budgetVal = getEngineBudget(engine.id).replace(/[^0-9.]/g, '');
+                    const vEngineStatus = engine.status || (!engine.campaignName || engine.campaignName === 'Untitled' ? 'new' : undefined);
+                    const vStatusBadgeVariant: Record<string, 'outline' | 'secondary' | 'info' | 'success' | 'destructive'> = {
+                      'new': 'outline', 'draft': 'outline', 'ready': 'secondary',
+                      'in-option': 'info', 'running': 'success', 'paused': 'destructive',
+                    };
+                    const vStatusBadgeLabel: Record<string, string> = {
+                      'new': 'New', 'draft': 'Draft', 'ready': 'Ready',
+                      'in-option': 'In Option', 'running': 'Running', 'paused': 'Paused',
+                    };
                     return (
                       <div
                         key={engine.id}
@@ -713,15 +743,22 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             {IconComponent && <IconComponent size={14} />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className={cn(
-                              "text-sm font-medium",
-                              !engine.enabled && 'text-muted-foreground'
-                            )}>
-                              {engine.name}
-                              {engine.campaignName && (
-                                <span className="text-muted-foreground font-normal"> – {engine.campaignName}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={cn(
+                                "text-sm font-medium",
+                                !engine.enabled && 'text-muted-foreground'
+                              )}>
+                                {engine.name}
+                                {engine.campaignName && (
+                                  <span className="text-muted-foreground font-normal"> – {engine.campaignName}</span>
+                                )}
+                              </span>
+                              {vEngineStatus && (
+                                <Badge variant={vStatusBadgeVariant[vEngineStatus]} className="text-xs">
+                                  {vStatusBadgeLabel[vEngineStatus]}
+                                </Badge>
                               )}
-                            </span>
+                            </div>
                           </div>
                           {engine.enabled && (
                             <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -753,10 +790,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               Edit
                             </Button>
                           )}
-                          <Switch
-                            checked={engine.enabled}
-                            onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
-                          />
+                          {!hideEngineToggle && (
+                            <Switch
+                              checked={engine.enabled}
+                              onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
+                            />
+                          )}
                         </div>
                       </div>
                     );
@@ -845,7 +884,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           ) : (
             // Horizontal Layout
             <div className="space-y-6">
-              {/* Metrics Row - Below the title */}
+              {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
+              {!isGuidedSettingsPhase && (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   label="Budget"
@@ -881,11 +921,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   className="transition-all duration-500 ease-in-out"
                 />
               </div>
+              )}
 
               {/* Main content area with summary sidebar */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className={cn(
+                "grid grid-cols-1 gap-6 transition-all duration-700 ease-in-out",
+                isGuidedSettingsPhase ? "lg:grid-cols-1" : "lg:grid-cols-12"
+              )}>
                 {/* Left Column - Campaigns & Agent */}
-                <div className="lg:col-span-8 lg:order-1 space-y-4">
+                <div className={cn(
+                  "lg:order-1 space-y-4 transition-all duration-700 ease-in-out overflow-hidden",
+                  isGuidedSettingsPhase
+                    ? "hidden"
+                    : "lg:col-span-8"
+                )}>
                   {/* Media Propositions */}
                   <div className="space-y-2">
                     {currentEngines.map((engine) => {
@@ -895,6 +944,24 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       const detailUrl = getEngineDetailUrl(engine.id);
                       const displayName = engineNames[engine.id] || engine.campaignName;
                       const isEngineRenaming = renamingEngineId === engine.id;
+                      const engineStatus = engine.status || (!engine.campaignName || engine.campaignName === 'Untitled' ? 'new' : undefined);
+                      const isNewOrDraft = engineStatus === 'new' || engineStatus === 'draft';
+                      const statusBadgeVariant = {
+                        'new': 'outline' as const,
+                        'draft': 'outline' as const,
+                        'ready': 'secondary' as const,
+                        'in-option': 'info' as const,
+                        'running': 'success' as const,
+                        'paused': 'destructive' as const,
+                      };
+                      const statusBadgeLabel = {
+                        'new': 'New',
+                        'draft': 'Draft',
+                        'ready': 'Ready',
+                        'in-option': 'In Option',
+                        'running': 'Running',
+                        'paused': 'Paused',
+                      };
                       return (
                         <div
                           key={engine.id}
@@ -912,12 +979,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           }}
                         >
                           <div className="flex items-center gap-3 p-3 min-h-[56px]">
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <Switch
-                                checked={engine.enabled}
-                                onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
-                              />
-                            </div>
+                            {!hideEngineToggle && (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Switch
+                                  checked={engine.enabled}
+                                  onCheckedChange={(checked) => handleEngineToggle(engine.id, checked)}
+                                />
+                              </div>
+                            )}
                             <div className={cn(
                               "w-7 h-7 rounded-md flex items-center justify-center transition-colors flex-shrink-0",
                               engine.enabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
@@ -944,15 +1013,22 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                   <Button size="sm" onClick={() => setRenamingEngineId(null)}>Save</Button>
                                 </div>
                               ) : (
-                                <span className={cn(
-                                  "text-sm font-medium",
-                                  !engine.enabled && 'text-muted-foreground'
-                                )}>
-                                  {engine.name}
-                                  {displayName && (
-                                    <span className="text-muted-foreground font-normal"> – {displayName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className={cn(
+                                    "text-sm font-medium",
+                                    !engine.enabled && 'text-muted-foreground'
+                                  )}>
+                                    {engine.name}
+                                    {displayName && (
+                                      <span className="text-muted-foreground font-normal"> – {displayName}</span>
+                                    )}
+                                  </span>
+                                  {engineStatus && (
+                                    <Badge variant={statusBadgeVariant[engineStatus]} className="text-xs">
+                                      {statusBadgeLabel[engineStatus]}
+                                    </Badge>
                                   )}
-                                </span>
+                                </div>
                               )}
                             </div>
                             <div className={cn("relative flex-shrink-0", !engine.enabled && "opacity-50")} onClick={(e) => e.stopPropagation()}>
@@ -966,6 +1042,33 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 className="w-28 h-8 text-sm bg-background border border-border pl-8 pr-2 rounded-md focus:outline-none focus:border-ring disabled:cursor-not-allowed [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                               />
                             </div>
+                            {(onEngineEdit || detailUrl) && (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  variant={isNewOrDraft ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => {
+                                    if (onEngineEdit) {
+                                      onEngineEdit(engine.id, engine.name);
+                                    } else if (detailUrl) {
+                                      window.top!.location.href = detailUrl;
+                                    }
+                                  }}
+                                >
+                                  {isNewOrDraft ? (
+                                    <>
+                                      <Plus className="h-4 w-4" />
+                                      Create
+                                    </>
+                                  ) : (
+                                    <>
+                                      <SquarePen className="h-4 w-4" />
+                                      Edit
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                             <div onClick={(e) => e.stopPropagation()}>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -1141,7 +1244,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 </div>
 
                 {/* Right Column - Summary Card */}
-                <div className="lg:col-span-4 lg:order-2">
+                <div className={cn(
+                  "lg:order-2 transition-all duration-700 ease-in-out",
+                  isGuidedSettingsPhase
+                    ? ""
+                    : "lg:col-span-4"
+                )}>
                   <CardSummary>
                     <CardHeader className="pb-2">
                       <span className="text-sm font-semibold text-foreground">Settings</span>
@@ -1170,7 +1278,115 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         </div>
                         )}
 
-                        {/* Total Budget + Auto Budget Optimization */}
+                        {/* Name & ID (name only in step 1) */}
+                        {guidedSetup && (
+                        isGuidedSettingsPhase ? (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Name</Label>
+                            <input
+                              type="text"
+                              value={internalTitle}
+                              onChange={(e) => {
+                                setInternalTitle(e.target.value);
+                                onRename?.(e.target.value);
+                              }}
+                              className="w-full h-9 bg-background border border-border px-3 py-1 rounded-md focus:outline-none focus:border-ring text-sm"
+                              placeholder="Enter name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">ID</Label>
+                            <input
+                              type="text"
+                              value={internalCampaignId}
+                              onChange={(e) => {
+                                setInternalCampaignId(e.target.value);
+                                onCampaignIdChange?.(e.target.value);
+                              }}
+                              className="w-full h-9 bg-background border border-border px-3 py-1 rounded-md focus:outline-none focus:border-ring text-sm"
+                              placeholder="Enter ID"
+                            />
+                          </div>
+                        </div>
+                        ) : (
+                        <div className="space-y-2">
+                          <Label className="text-sm text-muted-foreground">ID</Label>
+                          <p className="text-sm font-medium text-foreground">{internalCampaignId || '—'}</p>
+                        </div>
+                        )
+                        )}
+
+                        {/* Advertiser & Total Budget */}
+                        {guidedSetup ? (
+                        <div className={isGuidedSettingsPhase ? "grid grid-cols-2 gap-4" : "space-y-5"}>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Advertiser</Label>
+                            {isGuidedSettingsPhase ? (
+                              <Input
+                                dropdown
+                                options={advertiserOptions || [
+                                  { label: 'Unilever', value: 'unilever' },
+                                  { label: 'Procter & Gamble', value: 'pg' },
+                                  { label: 'Nestlé', value: 'nestle' },
+                                  { label: 'Coca-Cola', value: 'coca-cola' },
+                                  { label: 'PepsiCo', value: 'pepsico' },
+                                ]}
+                                value={internalAdvertiser}
+                                onChange={(val) => {
+                                  setInternalAdvertiser(val);
+                                  onAdvertiserChange?.(val);
+                                }}
+                                placeholder="Select advertiser"
+                                className="bg-background border-border"
+                              />
+                            ) : (
+                              <p className="text-sm font-medium text-foreground">
+                                {(() => {
+                                  const options = advertiserOptions || [
+                                    { label: 'Unilever', value: 'unilever' },
+                                    { label: 'Procter & Gamble', value: 'pg' },
+                                    { label: 'Nestlé', value: 'nestle' },
+                                    { label: 'Coca-Cola', value: 'coca-cola' },
+                                    { label: 'PepsiCo', value: 'pepsico' },
+                                  ];
+                                  return options.find(o => o.value === internalAdvertiser)?.label || internalAdvertiser || '—';
+                                })()}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Total budget</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <input
+                                type="number"
+                                value={totalBudgetInput}
+                                onChange={(e) => {
+                                  setTotalBudgetInput(e.target.value);
+                                  const newTotal = parseFloat(e.target.value) || 0;
+                                  const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+                                  const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
+                                  const newBudgets: { [key: string]: string } = {};
+                                  currentEngines.forEach(engine => {
+                                    if (engine.id === 'offline') {
+                                      newBudgets[engine.id] = '$0';
+                                    } else if (engine.enabled) {
+                                      newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+                                    } else {
+                                      newBudgets[engine.id] = '$0';
+                                    }
+                                  });
+                                  setEngineBudgets(newBudgets);
+                                  onBudgetChange?.(`$${e.target.value}`);
+                                }}
+                                className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                placeholder="Enter budget amount"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        ) : (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">Total budget</Label>
                           <div className="relative">
@@ -1200,8 +1416,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               placeholder="Enter budget amount"
                             />
                           </div>
-                          {/* Budget breakdown lines */}
-                          {(() => {
+                          {/* Budget breakdown lines (hidden during guided setup first step) */}
+                          {!isGuidedSettingsPhase && (() => {
                             const totalBudgetVal = parseFloat(totalBudgetInput) || 0;
                             const allocatedBudget = currentEngines.reduce((sum, engine) => {
                               const b = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
@@ -1234,6 +1450,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                           )}
                         </div>
+                        )}
 
                         {/* Targeting + Auto Targeting */}
                         {!hideTargeting && (
@@ -1277,6 +1494,23 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             showPresets={true}
                           />
                         </div>
+
+                        {/* Guided setup: Continue button */}
+                        {isGuidedSettingsPhase && (
+                          <div className="flex flex-col items-end gap-2 pt-2">
+                            <Button
+                              onClick={() => setGuidedSetupComplete(true)}
+                              disabled={!totalBudgetInput || !dateRange?.from || !dateRange?.to}
+                            >
+                              Create media experience
+                            </Button>
+                            {(!totalBudgetInput || !dateRange?.from || !dateRange?.to) && (
+                              <p className="text-xs text-muted-foreground">
+                                Set a budget and runtime to continue
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </CardSummaryContent>
                   </CardSummary>

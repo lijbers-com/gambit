@@ -223,11 +223,11 @@ const campaignSummaryData = [
     budgetUsagePercentage: 61,
     placements: 12,
     engines: [
-      { id: 'display', name: 'Display', campaignName: 'Holiday Banners', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', enabled: true },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Screens', enabled: true },
-      { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday POS', enabled: true },
-      { id: 'offsite', name: 'Offsite', campaignName: 'Holiday Open Web', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Holiday Banners', status: 'running' as const, enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', status: 'running' as const, enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Screens', status: 'ready' as const, enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday POS', status: 'in-option' as const, enabled: true },
+      { id: 'offsite', name: 'Offsite', campaignName: 'Holiday Open Web', status: 'draft' as const, enabled: true },
     ],
     dateRange: {
       from: new Date('2024-06-01'),
@@ -248,8 +248,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 25,
     placements: 8,
     engines: [
-      { id: 'display', name: 'Display', campaignName: 'Summer Banners', enabled: true },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'Summer Kiosks', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'Summer Banners', status: 'running' as const, enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'Summer Kiosks', status: 'ready' as const, enabled: true },
     ],
     dateRange: {
       from: new Date('2024-07-01'),
@@ -270,8 +270,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 40,
     placements: 15,
     engines: [
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Back to School Promos', enabled: true },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'School Aisle Screens', enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Back to School Promos', status: 'in-option' as const, enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'School Aisle Screens', status: 'in-option' as const, enabled: true },
     ],
     dateRange: {
       from: new Date('2024-08-10'),
@@ -292,11 +292,11 @@ const campaignSummaryData = [
     budgetUsagePercentage: 91,
     placements: 20,
     engines: [
-      { id: 'display', name: 'Display', campaignName: 'BF Homepage Takeover', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', enabled: true },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'BF Store Screens', enabled: true },
-      { id: 'offline', name: 'Offline in-store', campaignName: 'BF Shelf Talkers', enabled: true },
-      { id: 'offsite', name: 'Offsite', campaignName: 'BF Open Web', enabled: false },
+      { id: 'display', name: 'Display', campaignName: 'BF Homepage Takeover', status: 'paused' as const, enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', status: 'paused' as const, enabled: true },
+      { id: 'digital', name: 'Digital in-store', campaignName: 'BF Store Screens', status: 'paused' as const, enabled: true },
+      { id: 'offline', name: 'Offline in-store', campaignName: 'BF Shelf Talkers', status: 'paused' as const, enabled: true },
+      { id: 'offsite', name: 'Offsite', campaignName: 'BF Open Web', status: 'new' as const, enabled: false },
     ],
     dateRange: {
       from: new Date('2024-11-01'),
@@ -317,8 +317,8 @@ const campaignSummaryData = [
     budgetUsagePercentage: 7,
     placements: 14,
     engines: [
-      { id: 'display', name: 'Display', campaignName: 'NY Retargeting Banners', enabled: true },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'NY Featured Products', enabled: true },
+      { id: 'display', name: 'Display', campaignName: 'NY Retargeting Banners', status: 'ready' as const, enabled: true },
+      { id: 'sponsored', name: 'Sponsored products', campaignName: 'NY Featured Products', status: 'ready' as const, enabled: true },
     ],
     dateRange: {
       from: new Date('2025-01-01'),
@@ -502,12 +502,14 @@ export const Campaigns360NoGoalTargeting: Story = {
 
     // Dynamic list of campaigns - starts with existing data
     const [campaigns, setCampaigns] = React.useState(campaignSummaryData);
+    const [newCampaignIds, setNewCampaignIds] = React.useState<Set<string>>(new Set());
     let nextId = React.useRef(campaigns.length + 1);
 
     // Add a new empty media experience
     const handleAddMediaExperience = () => {
       const newId = `C-${String(nextId.current).padStart(3, '0')}`;
       nextId.current += 1;
+      setNewCampaignIds(prev => new Set(prev).add(newId));
       setCampaigns(prev => [
         {
           id: newId,
@@ -609,7 +611,10 @@ export const Campaigns360NoGoalTargeting: Story = {
                             hideTargeting
                             hideAgent
                             hideAutoBudget
-                            defaultExpanded={campaign.engines.length === 0}
+                            hideEngineToggle
+                            guidedSetup={newCampaignIds.has(campaign.id)}
+                            campaignId={campaign.id}
+                            defaultExpanded={campaign.engines.length === 0 || newCampaignIds.has(campaign.id)}
                             estimatedRoas={campaign.estimatedRoas}
                             budget={currentBudget}
                             usedBudget={campaign.usedBudget}

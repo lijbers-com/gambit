@@ -514,8 +514,8 @@ export const Campaigns360NoGoalTargeting: Story = {
         {
           id: newId,
           campaignType: 'new',
-          title: `Untitled`,
-          badge: { text: 'Draft', variant: 'outline' as const },
+          title: '',
+          badge: { text: 'New', variant: 'outline' as const },
           goal: '',
           estimatedRoas: '0x',
           budget: '',

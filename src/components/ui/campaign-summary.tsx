@@ -160,6 +160,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Guided setup: starts in settings-first mode, transitions once budget & runtime are set
     const [guidedSetupComplete, setGuidedSetupComplete] = React.useState(false);
     const isGuidedSettingsPhase = guidedSetup && !guidedSetupComplete;
+    const [createdEngineIds, setCreatedEngineIds] = React.useState<Set<string>>(new Set());
+    const [pendingBudget, setPendingBudget] = React.useState<string | null>(null);
     const [internalCampaignId, setInternalCampaignId] = React.useState(campaignIdProp);
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
 
@@ -198,7 +200,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           {
             id: uniqueId,
             name: propType.name,
-            campaignName: 'Untitled',
+            campaignName: '',
             enabled: true,
           },
         ]);
@@ -249,6 +251,26 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Use controlled or internal state
     const currentEngines = onEngineToggle ? engines : internalEngines;
     const currentFeatures = onFeatureToggle ? features : internalFeatures;
+
+    // Helper: apply budget value — updates state, distributes to engines, notifies parent
+    const applyBudget = React.useCallback((value: string) => {
+      setTotalBudgetInput(value);
+      const newTotal = parseFloat(value) || 0;
+      const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+      const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
+      const newBudgets: { [key: string]: string } = {};
+      currentEngines.forEach(engine => {
+        if (engine.id === 'offline') {
+          newBudgets[engine.id] = '$0';
+        } else if (engine.enabled) {
+          newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+        } else {
+          newBudgets[engine.id] = '$0';
+        }
+      });
+      setEngineBudgets(newBudgets);
+      onBudgetChange?.(`$${value}`);
+    }, [currentEngines, onBudgetChange]);
 
     // Calculate actual budget usage percentage
     const calculateBudgetUsage = React.useMemo(() => {
@@ -542,11 +564,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     Save
                   </Button>
                 </div>
-              ) : (
+              ) : internalTitle ? (
                 <h2 className="text-xl font-semibold text-foreground leading-tight">
                   {internalTitle}
                 </h2>
-              )}
+              ) : null}
               {layout === 'vertical' && (
                 <div className="mt-2">
                   <Badge variant="success" className="text-sm font-medium">
@@ -950,9 +972,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       const detailUrl = getEngineDetailUrl(engine.id);
                       const displayName = engineNames[engine.id] || engine.campaignName;
                       const isEngineRenaming = renamingEngineId === engine.id;
-                      const engineStatus = engine.status || (!engine.campaignName || engine.campaignName === 'Untitled' ? 'new' : undefined);
-                      const isNewOrDraft = engineStatus === 'new' || engineStatus === 'draft';
+                      const isPendingEngine = guidedSetup && !createdEngineIds.has(engine.id) && (!engine.status || engine.status === 'new');
+                      const engineStatus = isPendingEngine ? 'pending' : (engine.status || (!engine.campaignName || engine.campaignName === 'Untitled' ? 'new' : undefined));
+                      const isNewOrDraft = engineStatus === 'new' || engineStatus === 'draft' || engineStatus === 'pending';
                       const statusBadgeVariant = {
+                        'pending': 'outline' as const,
                         'new': 'outline' as const,
                         'draft': 'outline' as const,
                         'ready': 'secondary' as const,
@@ -961,6 +985,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         'paused': 'destructive' as const,
                       };
                       const statusBadgeLabel = {
+                        'pending': 'Pending',
                         'new': 'New',
                         'draft': 'Draft',
                         'ready': 'Ready',
@@ -1051,9 +1076,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             {(onEngineEdit || detailUrl) && (
                               <div onClick={(e) => e.stopPropagation()}>
                                 <Button
-                                  variant={isNewOrDraft ? "default" : "outline"}
+                                  variant={isPendingEngine ? "default" : "outline"}
                                   size="sm"
                                   onClick={() => {
+                                    if (isPendingEngine) {
+                                      setCreatedEngineIds(prev => new Set(prev).add(engine.id));
+                                    }
                                     if (onEngineEdit) {
                                       onEngineEdit(engine.id, engine.name);
                                     } else if (detailUrl) {
@@ -1061,11 +1089,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                     }
                                   }}
                                 >
-                                  {isNewOrDraft ? (
-                                    <>
-                                      <Plus className="h-4 w-4" />
-                                      Create
-                                    </>
+                                  {isPendingEngine ? (
+                                    'Create'
                                   ) : (
                                     <>
                                       <SquarePen className="h-4 w-4" />
@@ -1076,41 +1101,54 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               </div>
                             )}
                             <div onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="outline" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {(onEngineEdit || detailUrl) && (
-                                    <DropdownMenuItem onSelect={() => {
-                                      if (onEngineEdit) {
-                                        onEngineEdit(engine.id, engine.name);
-                                      } else if (detailUrl) {
-                                        window.top!.location.href = detailUrl;
+                              {isPendingEngine ? (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => {
+                                    setInternalEngines(prev => prev.filter(e => e.id !== engine.id));
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" className="h-8 w-8">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    {(onEngineEdit || detailUrl) && (
+                                      <DropdownMenuItem onSelect={() => {
+                                        if (onEngineEdit) {
+                                          onEngineEdit(engine.id, engine.name);
+                                        } else if (detailUrl) {
+                                          window.top!.location.href = detailUrl;
+                                        }
+                                      }}>
+                                        <SquarePen className="h-4 w-4 mr-2" />
+                                        Edit
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onSelect={(e) => {
+                                      e.preventDefault();
+                                      setRenamingEngineId(engine.id);
+                                      if (!engineNames[engine.id]) {
+                                        setEngineNames(prev => ({ ...prev, [engine.id]: engine.campaignName || '' }));
                                       }
+                                      setTimeout(() => {
+                                        engineRenameInputRef.current?.focus();
+                                        engineRenameInputRef.current?.select();
+                                      }, 50);
                                     }}>
-                                      <SquarePen className="h-4 w-4 mr-2" />
-                                      Edit
+                                      <Pencil className="h-4 w-4 mr-2" />
+                                      Rename
                                     </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuItem onSelect={(e) => {
-                                    e.preventDefault();
-                                    setRenamingEngineId(engine.id);
-                                    if (!engineNames[engine.id]) {
-                                      setEngineNames(prev => ({ ...prev, [engine.id]: engine.campaignName || '' }));
-                                    }
-                                    setTimeout(() => {
-                                      engineRenameInputRef.current?.focus();
-                                      engineRenameInputRef.current?.select();
-                                    }, 50);
-                                  }}>
-                                    <Pencil className="h-4 w-4 mr-2" />
-                                    Rename
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1367,29 +1405,40 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                               <input
                                 type="number"
-                                value={totalBudgetInput}
+                                value={!isGuidedSettingsPhase ? (pendingBudget ?? totalBudgetInput) : totalBudgetInput}
                                 onChange={(e) => {
-                                  setTotalBudgetInput(e.target.value);
-                                  const newTotal = parseFloat(e.target.value) || 0;
-                                  const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
-                                  const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
-                                  const newBudgets: { [key: string]: string } = {};
-                                  currentEngines.forEach(engine => {
-                                    if (engine.id === 'offline') {
-                                      newBudgets[engine.id] = '$0';
-                                    } else if (engine.enabled) {
-                                      newBudgets[engine.id] = `$${Math.round(perEngine)}`;
-                                    } else {
-                                      newBudgets[engine.id] = '$0';
-                                    }
-                                  });
-                                  setEngineBudgets(newBudgets);
-                                  onBudgetChange?.(`$${e.target.value}`);
+                                  if (isGuidedSettingsPhase) {
+                                    // Step 1: apply immediately
+                                    applyBudget(e.target.value);
+                                  } else {
+                                    // Step 2: store as pending, require confirmation
+                                    setPendingBudget(e.target.value);
+                                  }
                                 }}
                                 className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                 placeholder="Enter budget amount"
                               />
                             </div>
+                            {!isGuidedSettingsPhase && pendingBudget !== null && (
+                              <div className="flex items-center gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    applyBudget(pendingBudget);
+                                    setPendingBudget(null);
+                                  }}
+                                >
+                                  Confirm
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setPendingBudget(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         ) : (

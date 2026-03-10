@@ -289,8 +289,8 @@ This helps campaign managers identify campaigns that may benefit from optimizati
 export const GuidedSetup: Story = {
   args: {
     ...defaultProps,
-    title: 'Untitled',
-    badge: { text: 'Draft', variant: 'outline' as const },
+    title: '',
+    badge: { text: 'New', variant: 'outline' as const },
     layout: 'horizontal',
     defaultExpanded: true,
     guidedSetup: true,

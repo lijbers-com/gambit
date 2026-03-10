@@ -321,7 +321,8 @@ function AllCampaignsPage() {
                           hideTargeting
                           hideAgent
                           hideAutoBudget
-                          hideEngineToggle={newCampaignIds.has(campaign.id)}
+                          hideEngineToggle
+                          hideEngineActions
                           guidedSetup={newCampaignIds.has(campaign.id)}
                           onCancel={() => {
                             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker } from '@/components/ui/date-picker';
+import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { DateRange } from 'react-day-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
@@ -164,6 +165,7 @@ function AllCampaignsPage() {
   const routes = getRoutesForTheme(theme);
   const [status, setStatus] = React.useState<string[]>([]);
   const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+  const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
   const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
   const [activeTab, setActiveTab] = React.useState('media-experiences');
   const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -252,13 +254,19 @@ function AllCampaignsPage() {
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
           headerRight: (
-            <DateRangePicker
-              dateRange={pageDateRange}
-              onDateRangeChange={setPageDateRange}
-              placeholder="Filter by date range"
-              className="bg-background border-border w-[260px]"
-              showPresets={true}
-            />
+            <>
+              <AdvertiserSelect
+                value={headerAdvertiser}
+                onChange={setHeaderAdvertiser}
+              />
+              <DateRangePicker
+                dateRange={pageDateRange}
+                onDateRangeChange={setPageDateRange}
+                placeholder="Filter by date range"
+                className="bg-background border-border w-[220px]"
+                showPresets={true}
+              />
+            </>
           ),
         }}
       >

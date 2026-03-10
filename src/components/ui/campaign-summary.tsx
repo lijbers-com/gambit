@@ -72,6 +72,7 @@ export interface CampaignSummaryProps {
   hideAgent?: boolean;
   hideAutoBudget?: boolean;
   hideEngineToggle?: boolean;
+  hideEngineActions?: boolean;
   guidedSetup?: boolean;
   onCancel?: () => void;
   campaignId?: string;
@@ -121,6 +122,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     hideAgent = false,
     hideAutoBudget = false,
     hideEngineToggle = false,
+    hideEngineActions = false,
     guidedSetup = false,
     onCancel,
     campaignId: campaignIdProp = '',
@@ -1100,56 +1102,58 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 </Button>
                               </div>
                             )}
-                            <div onClick={(e) => e.stopPropagation()}>
-                              {isPendingEngine ? (
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => {
-                                    setInternalEngines(prev => prev.filter(e => e.id !== engine.id));
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="icon" className="h-8 w-8">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    {(onEngineEdit || detailUrl) && (
-                                      <DropdownMenuItem onSelect={() => {
-                                        if (onEngineEdit) {
-                                          onEngineEdit(engine.id, engine.name);
-                                        } else if (detailUrl) {
-                                          window.top!.location.href = detailUrl;
+                            {!hideEngineActions && (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                {isPendingEngine ? (
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => {
+                                      setInternalEngines(prev => prev.filter(e => e.id !== engine.id));
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                ) : (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="outline" size="icon" className="h-8 w-8">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {(onEngineEdit || detailUrl) && (
+                                        <DropdownMenuItem onSelect={() => {
+                                          if (onEngineEdit) {
+                                            onEngineEdit(engine.id, engine.name);
+                                          } else if (detailUrl) {
+                                            window.top!.location.href = detailUrl;
+                                          }
+                                        }}>
+                                          <SquarePen className="h-4 w-4 mr-2" />
+                                          Edit
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuItem onSelect={(e) => {
+                                        e.preventDefault();
+                                        setRenamingEngineId(engine.id);
+                                        if (!engineNames[engine.id]) {
+                                          setEngineNames(prev => ({ ...prev, [engine.id]: engine.campaignName || '' }));
                                         }
+                                        setTimeout(() => {
+                                          engineRenameInputRef.current?.focus();
+                                          engineRenameInputRef.current?.select();
+                                        }, 50);
                                       }}>
-                                        <SquarePen className="h-4 w-4 mr-2" />
-                                        Edit
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        Rename
                                       </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem onSelect={(e) => {
-                                      e.preventDefault();
-                                      setRenamingEngineId(engine.id);
-                                      if (!engineNames[engine.id]) {
-                                        setEngineNames(prev => ({ ...prev, [engine.id]: engine.campaignName || '' }));
-                                      }
-                                      setTimeout(() => {
-                                        engineRenameInputRef.current?.focus();
-                                        engineRenameInputRef.current?.select();
-                                      }, 50);
-                                    }}>
-                                      <Pencil className="h-4 w-4 mr-2" />
-                                      Rename
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
-                            </div>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

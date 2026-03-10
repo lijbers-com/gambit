@@ -634,6 +634,7 @@ export const Campaigns360NoGoalTargeting: Story = {
                             hideAgent
                             hideAutoBudget
                             hideEngineToggle
+                            hideEngineActions
                             guidedSetup={newCampaignIds.has(campaign.id)}
                             onCancel={() => {
                               setCampaigns(prev => prev.filter(c => c.id !== campaign.id));

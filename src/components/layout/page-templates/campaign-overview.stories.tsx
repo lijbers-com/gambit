@@ -8,6 +8,7 @@ import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker } from '@/components/ui/date-picker';
+import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -110,6 +111,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
 
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const filteredCampaignData = campaignData.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
@@ -130,6 +132,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
+          headerRight: (
+            <AdvertiserSelect
+              value={headerAdvertiser}
+              onChange={setHeaderAdvertiser}
+            />
+          ),
         }}
       >
         <Card className="w-full">
@@ -332,6 +340,7 @@ export const Campaigns360: Story = {
   render: () => {
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
 
     return (
@@ -349,6 +358,12 @@ export const Campaigns360: Story = {
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
+            headerRight: (
+              <AdvertiserSelect
+                value={headerAdvertiser}
+                onChange={setHeaderAdvertiser}
+              />
+            ),
           }}
         >
           <Card className="w-full">
@@ -478,6 +493,7 @@ export const Campaigns360NoGoalTargeting: Story = {
   render: () => {
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
     const [pageDateRange, setPageDateRange] = React.useState<DateRange | undefined>({
       from: new Date('2024-06-01'),
@@ -550,13 +566,19 @@ export const Campaigns360NoGoalTargeting: Story = {
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
             headerRight: (
-              <DateRangePicker
-                dateRange={pageDateRange}
-                onDateRangeChange={setPageDateRange}
-                placeholder="Filter by date range"
-                className="bg-background border-border w-[260px]"
-                showPresets={true}
-              />
+              <>
+                <AdvertiserSelect
+                  value={headerAdvertiser}
+                  onChange={setHeaderAdvertiser}
+                />
+                <DateRangePicker
+                  dateRange={pageDateRange}
+                  onDateRangeChange={setPageDateRange}
+                  placeholder="Filter by date range"
+                  className="bg-background border-border w-[220px]"
+                  showPresets={true}
+                />
+              </>
             ),
           }}
         >

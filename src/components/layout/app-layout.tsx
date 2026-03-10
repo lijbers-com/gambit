@@ -102,16 +102,15 @@ export function AppLayout({
             subtitle={pageHeaderProps?.subtitle}
             headerRight={
               pageHeaderProps?.headerRight || (
-                <DateRangePicker
-                  dateRange={dateRange}
-                  onDateRangeChange={setDateRange}
-                  placeholder="Select date range with conversion window"
-                  showPresets={true}
-                  showConversionWindow={true}
-                  conversionWindow={conversionWindow}
-                  onConversionWindowChange={setConversionWindow}
-                  className="w-[280px]"
-                />
+                pageHeaderProps?.variant === 'campaign-detail' ? undefined : (
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    placeholder="Select date range"
+                    showPresets={true}
+                    className="w-[280px]"
+                  />
+                )
               )
             }
             {...pageHeaderProps}

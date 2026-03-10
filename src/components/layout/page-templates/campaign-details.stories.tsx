@@ -169,6 +169,7 @@ export const DigitalInstoreInOption: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -588,17 +589,21 @@ const updatedForecastMetrics = [
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -907,6 +912,7 @@ export const DigitalInstoreRunning: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -1360,6 +1366,7 @@ export const OfflineInstoreRunning: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Print', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
@@ -1494,17 +1501,21 @@ export const OfflineInstoreRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -1826,6 +1837,7 @@ export const DisplayRunning: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Display Banner', placements: 4, totalSkuConversions: '3,245', totalSkuConversionRate: '2.8%', totalSkuUnits: '5,678', totalSkuRevenue: '$98,450', totalSkuRoas: '4.2x', onlineSkuConversions: '2,271', onlineSkuUnits: '3,975', onlineSkuRevenue: '$68,915', instoreSkuConversions: '974', instoreSkuUnits: '1,703', instoreSkuRevenue: '$29,535' },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2, totalSkuConversions: '1,867', totalSkuConversionRate: '3.4%', totalSkuUnits: '3,234', totalSkuRevenue: '$67,890', totalSkuRoas: '4.8x', onlineSkuConversions: '1,307', onlineSkuUnits: '2,264', onlineSkuRevenue: '$47,523', instoreSkuConversions: '560', instoreSkuUnits: '970', instoreSkuRevenue: '$20,367' },
@@ -1960,17 +1972,21 @@ export const DisplayRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -2292,6 +2308,7 @@ export const OfflineInstoreInOption: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Print', placements: 2 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
@@ -2425,17 +2442,21 @@ export const OfflineInstoreInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -2735,6 +2756,7 @@ export const DisplayInOption: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3, totalSkuConversions: '1,245', totalSkuConversionRate: '2.1%', totalSkuUnits: '2,134', totalSkuRevenue: '$42,680', totalSkuRoas: '3.5x', onlineSkuConversions: '871', onlineSkuUnits: '1,494', onlineSkuRevenue: '$29,876', instoreSkuConversions: '374', instoreSkuUnits: '640', instoreSkuRevenue: '$12,804' },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1, totalSkuConversions: '2,867', totalSkuConversionRate: '3.6%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.9x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
@@ -2868,17 +2890,21 @@ export const DisplayInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -3200,6 +3226,7 @@ export const SponsoredProductsInOption: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -3643,17 +3670,21 @@ export const SponsoredProductsInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -4084,6 +4115,7 @@ export const SponsoredProductsRunning: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
@@ -4353,17 +4385,21 @@ export const SponsoredProductsRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -4800,6 +4836,7 @@ export const OffsiteRunning: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Approved', name: 'Social Banner Pack', format: 'Social Media', placements: 6, totalSkuConversions: '4,512', totalSkuConversionRate: '3.2%', totalSkuUnits: '7,234', totalSkuRevenue: '$142,680', totalSkuRoas: '4.8x', onlineSkuConversions: '3,158', onlineSkuUnits: '5,064', onlineSkuRevenue: '$99,876', instoreSkuConversions: '1,354', instoreSkuUnits: '2,170', instoreSkuRevenue: '$42,804' },
       { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 3, totalSkuConversions: '2,867', totalSkuConversionRate: '2.8%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.2x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
@@ -4925,17 +4962,21 @@ export const OffsiteRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">
@@ -5259,6 +5300,7 @@ export const OffsiteInOption: Story = {
       to: addDays(new Date('2024-06-01'), 30),
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
+    const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
       { id: 'CR-001', status: 'Pending', name: 'Social Banner Pack', format: 'Social Media', placements: 4, totalSkuConversions: '1,845', totalSkuConversionRate: '2.3%', totalSkuUnits: '3,134', totalSkuRevenue: '$62,680', totalSkuRoas: '3.8x', onlineSkuConversions: '1,292', onlineSkuUnits: '2,194', onlineSkuRevenue: '$43,876', instoreSkuConversions: '553', instoreSkuUnits: '940', instoreSkuRevenue: '$18,804' },
       { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 2, totalSkuConversions: '2,167', totalSkuConversionRate: '2.9%', totalSkuUnits: '3,723', totalSkuRevenue: '$78,460', totalSkuRoas: '4.1x', onlineSkuConversions: '1,517', onlineSkuUnits: '2,606', onlineSkuRevenue: '$54,922', instoreSkuConversions: '650', instoreSkuUnits: '1,117', instoreSkuRevenue: '$23,538' },
@@ -5382,17 +5424,21 @@ export const OffsiteInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-            />
-          ),
+          variant: 'campaign-detail',
+          advertiserProps: {
+            value: headerAdvertiser,
+            onChange: setHeaderAdvertiser,
+          },
+          attributionWindowProps: {
+            value: conversionWindow,
+            onChange: setConversionWindow,
+          },
+          dateRangeProps: {
+            dateRange: dateRange,
+            onDateRangeChange: setDateRange,
+            placeholder: "Select date range",
+            showPresets: true,
+          },
         }}
       >
         <div className="mb-8">

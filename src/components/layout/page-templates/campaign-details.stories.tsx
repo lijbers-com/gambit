@@ -1368,16 +1368,16 @@ export const OfflineInstoreRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Print', placements: 3 },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
-      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Shelf Talker', placements: 2 },
+      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Print', placements: 3, adSpend: '€12,980', impressions: '750,168', clicks: '9,827', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€17,072', onlineSkuUnits: '1,382', onlineSkuConversions: '854', instoreSkuRevenue: '€20,496', instoreSkuUnits: '1,957', instoreSkuConversions: '1,231', totalSkuRevenue: '€37,568', totalSkuUnits: '3,339', totalSkuConversions: '2,085' },
+      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,468', instoreSkuConversions: '923', totalSkuRevenue: '€28,176', totalSkuUnits: '2,505', totalSkuConversions: '1,563' },
+      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Shelf Talker', placements: 2, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,467', instoreSkuConversions: '924', totalSkuRevenue: '€28,176', totalSkuUnits: '2,504', totalSkuConversions: '1,564' },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
+      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
+      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
     ];
 
     const logData = [
@@ -1428,62 +1428,32 @@ export const OfflineInstoreRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>();
 
     // Performance metrics for running campaign
-    const performanceMetrics = [
-      {
-        id: 'impressions',
-        label: 'Impressions',
-        value: '1,875,420',
-        subMetric: 'Footfall: 12.8%',
-        badgeValue: '+6%',
-        badgeVariant: 'success' as const,
-      },
-      {
-        id: 'stores',
-        label: 'Stores',
-        value: '287',
-        subMetric: 'Coverage: 74%',
-        badgeValue: '+2%',
-        badgeVariant: 'success' as const,
-      },
-      {
-        id: 'reach',
-        label: 'Reach',
-        value: '1.9M',
-        subMetric: 'Unique visitors',
-        badgeValue: '+8%',
-        badgeVariant: 'success' as const,
-      },
-      {
-        id: 'roas',
-        label: 'ROAS',
-        value: '2.86x',
-        subMetric: 'AOV: €65.20',
-        badgeValue: '+15%',
-        badgeVariant: 'success' as const,
-      },
-    ];
-
-    const dialogMetricsOfflineInstoreRunning: MetricDefinition[] = [
-      { key: 'footfallRate', label: 'Footfall Rate', value: '12.8%', subMetric: 'vs. 11.2% last period', badgeValue: '+14.3%', badgeVariant: 'success' },
-      { key: 'storeCoverage', label: 'Store Coverage', value: '74%', subMetric: '287 of 388 stores', badgeValue: '+2.1%', badgeVariant: 'success' },
-      { key: 'dwellTime', label: 'Average Dwell Time', value: '4.2 min', subMetric: 'vs. 3.8 min target', badgeValue: '+10.5%', badgeVariant: 'success' },
-      { key: 'placementVisibility', label: 'Placement Visibility', value: '91.5%', subMetric: 'Above category avg', badgeValue: '+7.2%', badgeVariant: 'success' },
-      { key: 'brandAwareness', label: 'Brand Awareness', value: '+22.4%', subMetric: 'Unaided recall', badgeValue: 'High', badgeVariant: 'info' },
-      { key: 'purchaseIntent', label: 'Purchase Intent', value: '+18.6%', subMetric: 'Post-exposure', badgeValue: '+3.2%', badgeVariant: 'secondary' },
-      { key: 'cpi', label: 'Cost Per Impression', value: '€0.12', subMetric: 'vs. €0.15 target', badgeValue: '-20%', badgeVariant: 'success' },
-      { key: 'engagementRate', label: 'Engagement Rate', value: '8.9%', subMetric: 'Interactive displays', badgeValue: '+12.1%', badgeVariant: 'success' },
-      { key: 'conversionLift', label: 'Conversion Lift', value: '+15.3%', subMetric: 'In-store purchases', badgeValue: '+2.8%', badgeVariant: 'success' },
+    const performanceMetrics: MetricDefinition[] = [
+      { key: 'adSpend', label: 'Ad Spend', value: '€32,450', subMetric: 'Budget: €50,000', badgeValue: '+12%', badgeVariant: 'success' },
+      { key: 'impressions', label: 'Impressions', value: '1,875,420', subMetric: 'Unique: 1.2M', badgeValue: '+6%', badgeVariant: 'success' },
+      { key: 'clicks', label: 'Clicks + Add to Carts', value: '24,567', subMetric: 'Add to Carts: 3,245', badgeValue: '+8%', badgeVariant: 'success' },
+      { key: 'cpc', label: 'CPC', value: '€1.32', subMetric: 'Ad Spend / Clicks', badgeValue: '-5%', badgeVariant: 'success' },
+      { key: 'ctr', label: 'CTR', value: '1.31%', subMetric: 'Clicks / Impressions', badgeValue: '+3%', badgeVariant: 'success' },
+      { key: 'cpm', label: 'CPM', value: '€26.64', subMetric: 'Budget / Impressions × 1,000', badgeValue: '-2%', badgeVariant: 'success' },
+      { key: 'ecpm', label: 'eCPM', value: '€17.30', subMetric: 'Spend / Impressions × 1,000', badgeValue: '-4%', badgeVariant: 'success' },
+      { key: 'onlineSkuRevenue', label: 'Online SKU Revenue', value: '€42,680', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+18%', badgeVariant: 'success' },
+      { key: 'onlineSkuUnits', label: 'Online SKU Units', value: '3,456', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+14%', badgeVariant: 'success' },
+      { key: 'onlineSkuConversions', label: 'Online SKU Conversions', value: '2,134', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+11%', badgeVariant: 'success' },
+      { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '€51,240', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+22%', badgeVariant: 'success' },
+      { key: 'instoreSkuUnits', label: 'In-store SKU Units', value: '4,892', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+16%', badgeVariant: 'success' },
+      { key: 'instoreSkuConversions', label: 'In-store SKU Conversions', value: '3,078', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+13%', badgeVariant: 'success' },
+      { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€93,920', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+20%', badgeVariant: 'success' },
+      { key: 'totalSkuUnits', label: 'Total SKU Units', value: '8,348', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+15%', badgeVariant: 'success' },
+      { key: 'totalSkuConversions', label: 'Total SKU Conversions', value: '5,212', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+12%', badgeVariant: 'success' },
     ];
 
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
-        selectedKeys={performanceMetrics.map(m => m.id)}
+        metrics={performanceMetrics}
+        selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
         maxVisible={5}
         defaultVariant="default"
-        removable={false}
-        dialogMetrics={dialogMetricsOfflineInstoreRunning}
-        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        removable={true}
       />
     );
 
@@ -1657,17 +1627,22 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
-                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
-                      { key: 'totalSkuUnits', header: 'Total SKU units' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'adSpend', header: 'Ad Spend' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks + Add to Carts' },
+                      { key: 'cpc', header: 'CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'cpm', header: 'CPM' },
+                      { key: 'ecpm', header: 'eCPM' },
                       { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU Units' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU Conversions' },
                       { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU Units' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU Conversions' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuUnits', header: 'Total SKU Units' },
+                      { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
                     data={lineItemData.filter(row => {
                       const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
@@ -1719,17 +1694,22 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'name', header: 'Name' },
                       { key: 'format', header: 'Format' },
                       { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
-                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
-                      { key: 'totalSkuUnits', header: 'Total SKU units' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
+                      { key: 'adSpend', header: 'Ad Spend' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks + Add to Carts' },
+                      { key: 'cpc', header: 'CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'cpm', header: 'CPM' },
+                      { key: 'ecpm', header: 'eCPM' },
                       { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
+                      { key: 'onlineSkuUnits', header: 'Online SKU Units' },
+                      { key: 'onlineSkuConversions', header: 'Online SKU Conversions' },
                       { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
+                      { key: 'instoreSkuUnits', header: 'In-store SKU Units' },
+                      { key: 'instoreSkuConversions', header: 'In-store SKU Conversions' },
+                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
+                      { key: 'totalSkuUnits', header: 'Total SKU Units' },
+                      { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
                     data={creativeData.filter(row => {
                       const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);

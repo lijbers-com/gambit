@@ -34,9 +34,8 @@ export const WithHeaderRight: Story = {
   render: () => {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(),
-      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader Title"
@@ -45,13 +44,47 @@ export const WithHeaderRight: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range with conversion window"
+            placeholder="Select date range"
             showPresets={true}
-            showConversionWindow={true}
-            conversionWindow={conversionWindow}
-            onConversionWindowChange={setConversionWindow}
           />
         }
+      />
+    );
+  },
+  args: { title: '' },
+};
+
+export const CampaignDetailVariant: Story = {
+  render: () => {
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+      from: new Date(),
+      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    const [conversionWindow, setConversionWindow] = useState<number>(14);
+    const [advertiser, setAdvertiser] = useState<string>('coca-cola');
+    return (
+      <PageHeader
+        title="Campaign Detail Header"
+        subtitle="Variant with Advertiser, Attribution Window, and Date Range dropdowns"
+        variant="campaign-detail"
+        advertiserProps={{
+          value: advertiser,
+          onChange: setAdvertiser,
+        }}
+        attributionWindowProps={{
+          value: conversionWindow,
+          onChange: setConversionWindow,
+        }}
+        dateRangeProps={{
+          dateRange: dateRange,
+          onDateRangeChange: setDateRange,
+          placeholder: "Select date range",
+          showPresets: true,
+        }}
+        onEdit={() => alert('Edit clicked')}
+        onExport={() => alert('Export clicked')}
+        onImport={() => alert('Import clicked')}
+        onSettings={() => alert('Settings clicked')}
       />
     );
   },
@@ -62,9 +95,8 @@ export const WithDropdownActions: Story = {
   render: () => {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(),
-      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader with Actions"
@@ -73,11 +105,8 @@ export const WithDropdownActions: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range with conversion window"
+            placeholder="Select date range"
             showPresets={true}
-            showConversionWindow={true}
-            conversionWindow={conversionWindow}
-            onConversionWindowChange={setConversionWindow}
           />
         }
         onEdit={() => alert('Edit clicked')}
@@ -94,9 +123,8 @@ export const WithoutOptionsMenu: Story = {
   render: () => {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(),
-      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-    const [conversionWindow, setConversionWindow] = useState<number>(14);
     return (
       <PageHeader
         title="PageHeader without Options"
@@ -105,11 +133,8 @@ export const WithoutOptionsMenu: Story = {
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            placeholder="Pick a date range with conversion window"
+            placeholder="Select date range"
             showPresets={true}
-            showConversionWindow={true}
-            conversionWindow={conversionWindow}
-            onConversionWindowChange={setConversionWindow}
           />
         }
         showOptionsMenu={false}
@@ -118,5 +143,3 @@ export const WithoutOptionsMenu: Story = {
   },
   args: { title: '' },
 };
-
- 

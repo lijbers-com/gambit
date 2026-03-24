@@ -397,9 +397,9 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
   const fixedSet = new Set(fixedColumnKeys);
 
-  // All hideable columns for dropdown (regular columns + __actions)
+  // All hideable columns for dropdown (__actions first to match table order, then regular columns)
   const hideableColumns = columns.filter((col) => col.hideable !== false);
-  const allDropdownKeys = [...hideableColumns.map((c) => c.key), ...(!hideActions ? ['__actions'] : [])];
+  const allDropdownKeys = [...(!hideActions ? ['__actions'] : []), ...hideableColumns.map((c) => c.key)];
   // Fixed keys for dropdown (in fixed order)
   const fixedDropdownKeys = fixedColumnKeys.filter((k) => allDropdownKeys.includes(k));
   // Non-fixed keys for dropdown (in original order)

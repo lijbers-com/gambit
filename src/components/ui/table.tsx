@@ -530,6 +530,52 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return key === '__select' ? !!selectionCol : fixedColumnKeys.includes(key);
   };
 
+  // Determine the last fixed column key for the border
+  const lastFixedColKey = (() => {
+    const fixedKeys: string[] = [];
+    if (isActionsVisible && isActionsFixed) fixedKeys.push('__actions');
+    if (selectionCol) fixedKeys.push('__select');
+    fixedKeys.push(...fixedCols.map((c) => c.key));
+    return fixedKeys.length > 0 ? fixedKeys[fixedKeys.length - 1] : null;
+  })();
+
+  // Per-column resize widths
+  const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
+  const resizingRef = React.useRef(false);
+  const resizeStartRef = React.useRef<{ key: string; startX: number; startWidth: number }>({ key: '', startX: 0, startWidth: 0 });
+
+  const handleResizeMouseDown = React.useCallback((e: React.MouseEvent, colKey: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!headerRowRef.current) return;
+
+    resizingRef.current = true;
+    const colIndex = allColKeys.indexOf(colKey);
+    const th = headerRowRef.current.querySelectorAll('th')[colIndex];
+    const startWidth = th ? th.getBoundingClientRect().width : 180;
+    resizeStartRef.current = { key: colKey, startX: e.clientX, startWidth };
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!resizingRef.current) return;
+      const delta = ev.clientX - resizeStartRef.current.startX;
+      const newWidth = Math.max(50, resizeStartRef.current.startWidth + delta);
+      setColumnWidths((prev) => ({ ...prev, [resizeStartRef.current.key]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [allColKeys]);
+
   // Get sticky styles for a column
   const getStickyStyle = (key: string): React.CSSProperties => {
     if (!isFixedColumn(key)) return {};
@@ -540,38 +586,59 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     };
   };
 
-  const hasFixedColumns = fixedCols.length > 0 || !!selectionCol;
+  // Get width style for a column (user-resized or default)
+  const getColWidthStyle = (key: string): React.CSSProperties => {
+    const w = columnWidths[key];
+    if (w == null) return {};
+    return { width: w, minWidth: w, maxWidth: w };
+  };
+
+  const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
     <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-slate-700 table-fixed">
         <thead className="bg-slate-50">
           <tr ref={headerRowRef}>
-            {allCols.map((col) => (
-              <th
-                key={col.key}
-                className={cn(
-                  'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                  col.className
-                )}
-                onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
-                style={{
-                  cursor: col.key !== '__actions' && (col as TableColumn<T>).sortable ? 'pointer' : undefined,
-                  ...getStickyStyle(col.key),
-                }}
-              >
-                <span className="flex items-center gap-1">
-                {col.header}
-                  {col.key === sortKey && col.key !== '__actions' && (
-                    sortDirection === 'asc' ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronUp className="w-4 h-4" />
-                    )
+            {allCols.map((col) => {
+              const isLastFixed = col.key === lastFixedColKey;
+              const isResizable = col.key !== '__select';
+              return (
+                <th
+                  key={col.key}
+                  className={cn(
+                    'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50 relative',
+                    isLastFixed && 'border-r-2 border-slate-300',
+                    col.className
                   )}
-                </span>
-              </th>
-            ))}
+                  onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
+                  style={{
+                    cursor: col.key !== '__actions' && (col as TableColumn<T>).sortable ? 'pointer' : undefined,
+                    ...getStickyStyle(col.key),
+                    ...getColWidthStyle(col.key),
+                  }}
+                >
+                  <span className="flex items-center gap-1">
+                  {col.header}
+                    {col.key === sortKey && col.key !== '__actions' && (
+                      sortDirection === 'asc' ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronUp className="w-4 h-4" />
+                      )
+                    )}
+                  </span>
+                  {/* Draggable resize handle on right edge */}
+                  {isResizable && (
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
+                      className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-20"
+                      style={{ transform: 'translateX(50%)' }}
+                    />
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -593,27 +660,31 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
-                {allCols.map((col) => (
-                  <td
-                    key={col.key}
-                    className={cn(
-                      'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
-                      col.className
-                    )}
-                    style={{
-                      maxWidth: col.key === '__select' ? SELECTION_COL_WIDTH : (col as TableColumn<T>).width || COL_DEFAULT_WIDTH,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      verticalAlign: 'middle',
-                      ...getStickyStyle(col.key),
-                    }}
-                  >
-                    <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>
-                    {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
-                    </div>
-                  </td>
-                ))}
+                {allCols.map((col) => {
+                  const isLastFixed = col.key === lastFixedColKey;
+                  return (
+                    <td
+                      key={col.key}
+                      className={cn(
+                        'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
+                        isLastFixed && 'border-r-2 border-slate-300',
+                        col.className
+                      )}
+                      style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        verticalAlign: 'middle',
+                        ...getStickyStyle(col.key),
+                        ...getColWidthStyle(col.key),
+                      }}
+                    >
+                      <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>
+                      {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
+                      </div>
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

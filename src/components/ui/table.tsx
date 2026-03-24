@@ -99,7 +99,7 @@ function FixedColumnsEmpty({
     <div
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className="px-2 py-1.5 text-xs text-slate-400"
+      className="px-2 py-1.5 pb-3 text-xs text-slate-400"
     >
       Drag columns here to fix them
     </div>

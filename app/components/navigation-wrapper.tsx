@@ -34,11 +34,11 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/campaigns/offsite': '/campaigns/offsite',
 
         // Creatives
-        '/creatives': '/creatives',
-        '/creatives/sponsored-products': '/creatives',
-        '/creatives/display': '/creatives',
-        '/creatives/digital-instore': '/creatives',
-        '/creatives/offline-instore': '/creatives',
+        '/creatives': '/creatives/display',
+        '/creatives/display': '/creatives/display',
+        '/creatives/digital-instore': '/creatives/digital-instore',
+        '/creatives/offline-instore': '/creatives/offline-instore',
+        '/creatives/offsite': '/creatives/offsite',
 
         // Calendar/Bookings
         '/calendar/sponsored-products': '/calendar/sponsored-products',

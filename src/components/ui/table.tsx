@@ -397,6 +397,12 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   Fixed columns
                 </div>
 
+                {/* Actions column is always fixed */}
+                <div className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md select-none text-slate-500">
+                  <Checkbox checked={true} disabled className="shrink-0 opacity-50" />
+                  <span className="flex-1 truncate">Actions</span>
+                </div>
+
                 {fixedColumnKeys.length > 0 ? (
                   <div onDragEnd={handleDragEnd}>
                     {fixedColumnKeys.map((key) => {
@@ -417,7 +423,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       );
                     })}
                   </div>
-                ) : (
+                ) : null}
+
+                {/* Drop zone / empty state */}
+                {fixedColumnKeys.length === 0 && (
                   <FixedColumnsEmpty
                     onDragOver={handleZoneDragOver}
                     onDrop={handleZoneDrop}

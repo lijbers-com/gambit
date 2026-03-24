@@ -351,25 +351,32 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     visibleCols = [selectionCol, ...visibleCols];
   }
 
-  // Compute cumulative left offsets for sticky fixed columns
+  // Refs and state for measuring actual column widths
+  const headerRowRef = React.useRef<HTMLTableRowElement>(null);
+  const [measuredWidths, setMeasuredWidths] = React.useState<Record<string, number>>({});
+
+  // Column width constants (fallbacks before measurement)
   const COL_DEFAULT_WIDTH = 180;
   const SELECTION_COL_WIDTH = 48;
   const ACTIONS_COL_WIDTH = 50;
+
+  // Compute cumulative left offsets for sticky fixed columns using measured widths
   const fixedColLeftOffsets: Record<string, number> = {};
 
-  // Actions column is always first when visible and fixed
+  // Build ordered list of fixed column keys as they appear in the table
   let cumulativeLeft = 0;
+  // Actions column is always first when visible and fixed
   if (isActionsVisible && isActionsFixed) {
     fixedColLeftOffsets['__actions'] = 0;
-    cumulativeLeft = ACTIONS_COL_WIDTH;
+    cumulativeLeft = measuredWidths['__actions'] || ACTIONS_COL_WIDTH;
   }
   if (selectionCol) {
     fixedColLeftOffsets['__select'] = cumulativeLeft;
-    cumulativeLeft += SELECTION_COL_WIDTH;
+    cumulativeLeft += measuredWidths['__select'] || SELECTION_COL_WIDTH;
   }
   for (const col of fixedCols) {
     fixedColLeftOffsets[col.key] = cumulativeLeft;
-    cumulativeLeft += col.width || COL_DEFAULT_WIDTH;
+    cumulativeLeft += measuredWidths[col.key] || col.width || COL_DEFAULT_WIDTH;
   }
 
   // Dropdown keys: fixed section shows fixedColumnKeys in order, columns section shows columnOrder
@@ -478,6 +485,23 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
   // Actions column goes first, then fixed columns, then non-fixed
   const allCols = [...actionsCol, ...visibleCols];
+  const allColKeys = allCols.map((col) => col.key);
+
+  // Measure header cell widths after render for accurate sticky offsets
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
+    if (!headerRowRef.current) return;
+    const cells = headerRowRef.current.querySelectorAll('th');
+    const widths: Record<string, number> = {};
+    cells.forEach((cell, index) => {
+      if (index < allColKeys.length) {
+        widths[allColKeys[index]] = cell.getBoundingClientRect().width;
+      }
+    });
+    // Only update if widths changed to avoid infinite loop
+    const changed = allColKeys.some((k) => widths[k] !== measuredWidths[k]);
+    if (changed) setMeasuredWidths(widths);
+  });
 
   // Sort data if needed
   let sortedData = [...data];
@@ -522,7 +546,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-slate-700 table-fixed">
         <thead className="bg-slate-50">
-          <tr>
+          <tr ref={headerRowRef}>
             {allCols.map((col) => (
               <th
                 key={col.key}

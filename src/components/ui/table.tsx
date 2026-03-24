@@ -509,26 +509,29 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     </DropdownMenu>
   );
 
-  // Actions column definition (first column when visible)
-  const actionsCol = !hideActions && isActionsVisible ? [{
+  // Actions column is always present (header dropdown stays for column settings),
+  // but row content is only shown when Actions is checked/visible
+  const actionsCol = !hideActions ? [{
     key: '__actions',
     header: columnSettingsDropdown,
     render: (row: T) =>
-      rowActions ? (
-        rowActions(row)
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-1 rounded-full hover:bg-slate-100 focus:outline-none">
-              <MoreHorizontal className="w-5 h-5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      isActionsVisible ? (
+        rowActions ? (
+          rowActions(row)
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 rounded-full hover:bg-slate-100 focus:outline-none">
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      ) : null,
     className: 'w-[50px]',
   }] : [];
 

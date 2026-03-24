@@ -541,6 +541,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
   // Per-column resize widths
   const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
+  const [resizingColKey, setResizingColKey] = React.useState<string | null>(null);
   const resizingRef = React.useRef(false);
   const resizeStartRef = React.useRef<{ key: string; startX: number; startWidth: number }>({ key: '', startX: 0, startWidth: 0 });
 
@@ -550,6 +551,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     if (!headerRowRef.current) return;
 
     resizingRef.current = true;
+    setResizingColKey(colKey);
     const colIndex = allColKeys.indexOf(colKey);
     const th = headerRowRef.current.querySelectorAll('th')[colIndex];
     const startWidth = th ? th.getBoundingClientRect().width : 180;
@@ -564,6 +566,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
     const handleMouseUp = () => {
       resizingRef.current = false;
+      setResizingColKey(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = '';
@@ -603,18 +606,22 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
               const isResizable = col.key !== '__select';
+              const isBeingResized = resizingColKey === col.key;
               return (
                 <th
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50 relative',
+                    'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
                     isLastFixed && 'border-r-2 border-slate-300',
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
                   style={{
                     cursor: col.key !== '__actions' && (col as TableColumn<T>).sortable ? 'pointer' : undefined,
-                    ...getStickyStyle(col.key),
+                    position: isFixedColumn(col.key) ? 'sticky' : 'relative',
+                    left: isFixedColumn(col.key) ? (fixedColLeftOffsets[col.key] ?? 0) : undefined,
+                    zIndex: isFixedColumn(col.key) ? 10 : undefined,
+                    overflow: 'visible',
                     ...getColWidthStyle(col.key),
                   }}
                 >
@@ -628,12 +635,18 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Draggable resize handle on right edge */}
+                  {/* Draggable resize handle — spans full table height on hover/drag */}
                   {isResizable && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
-                      className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-20"
-                      style={{ transform: 'translateX(50%)' }}
+                      className={cn(
+                        'absolute top-0 right-0 cursor-col-resize z-20 group',
+                        isBeingResized ? 'w-[3px] bg-primary/50' : 'w-[7px] hover:bg-primary/30',
+                      )}
+                      style={{
+                        transform: 'translateX(50%)',
+                        height: '9999px',
+                      }}
                     />
                   )}
                 </th>

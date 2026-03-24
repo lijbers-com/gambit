@@ -176,21 +176,6 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
         <Card className="w-full max-w-md border-0 shadow-none bg-transparent">
           <CardContent className="p-0">
             <div className="space-y-6">
-              {/* Mobile logo */}
-              <div className="lg:hidden flex justify-center mb-8">
-                <Logo
-                  theme={
-                    currentTheme === 'albertHeijn' ? 'albert-heijn' :
-                    currentTheme === 'delhaize' ? 'delhaize' :
-                    currentTheme === 'adusa' ? 'adusa' :
-                    'auto'
-                  }
-                  variant={currentTheme === 'albertHeijn' ? 'blue' : 'auto'}
-                  alt={`${theme.name} logo`}
-                  className="h-10 w-auto"
-                />
-              </div>
-
               {/* Theme switcher logo above sign in */}
               <div className="flex justify-start mb-6">
                 <DropdownMenu>

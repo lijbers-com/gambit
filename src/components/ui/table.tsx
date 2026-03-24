@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, ChevronDown, ChevronUp, GripVertical, Pin, X } from 'lucide-react';
+import { MoreHorizontal, ChevronDown, ChevronUp, GripVertical, Pin } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -44,18 +44,20 @@ export interface TableProps<T> {
 function DraggableColumnItem({
   columnKey,
   header,
+  checked,
+  onCheckedChange,
   onDragStart,
   onDragOver,
   onDrop,
-  onRemove,
   isDragOver
 }: {
   columnKey: string;
   header: React.ReactNode;
+  checked: boolean;
+  onCheckedChange: () => void;
   onDragStart: (e: React.DragEvent, key: string) => void;
   onDragOver: (e: React.DragEvent, key: string) => void;
   onDrop: (e: React.DragEvent, key: string) => void;
-  onRemove: (key: string) => void;
   isDragOver: boolean;
 }) {
   return (
@@ -68,18 +70,17 @@ function DraggableColumnItem({
         'flex items-center gap-2 px-2 py-1.5 text-sm rounded-md cursor-grab active:cursor-grabbing select-none transition-colors',
         isDragOver ? 'bg-primary/10 border border-primary/30 border-dashed' : 'hover:bg-accent'
       )}
-      role="menuitem"
+      role="menuitemcheckbox"
+      aria-checked={checked}
       tabIndex={-1}
     >
+      <Checkbox
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="shrink-0"
+      />
+      <span className="flex-1 truncate cursor-default" onClick={(e) => { e.stopPropagation(); onCheckedChange(); }}>{header}</span>
       <GripVertical className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-      <Pin className="w-3 h-3 text-primary shrink-0" />
-      <span className="flex-1 truncate">{header}</span>
-      <button
-        onClick={(e) => { e.stopPropagation(); onRemove(columnKey); }}
-        className="p-0.5 rounded hover:bg-slate-200 transition-colors shrink-0"
-      >
-        <X className="w-3 h-3 text-slate-400" />
-      </button>
     </div>
   );
 }
@@ -133,18 +134,21 @@ function ShowColumnItem({
     <div
       draggable={isDraggable}
       onDragStart={(e) => onDragStart(e, columnKey)}
-      className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md select-none hover:bg-accent transition-colors"
+      className={cn(
+        'flex items-center gap-2 px-2 py-1.5 text-sm rounded-md select-none hover:bg-accent transition-colors',
+        isDraggable && 'cursor-grab active:cursor-grabbing'
+      )}
       role="menuitemcheckbox"
       aria-checked={checked}
       tabIndex={-1}
     >
-      {isDraggable && <GripVertical className="w-3.5 h-3.5 text-slate-300 shrink-0 cursor-grab active:cursor-grabbing" />}
       <Checkbox
         checked={checked}
         onCheckedChange={onCheckedChange}
         className="shrink-0"
       />
       <span className="flex-1 truncate cursor-default" onClick={onCheckedChange}>{header}</span>
+      {isDraggable && <GripVertical className="w-3.5 h-3.5 text-slate-300 shrink-0" />}
     </div>
   );
 }
@@ -215,6 +219,9 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const handleUnfixColumn = (key: string) => {
     setFixedColumnKeys((keys) => keys.filter((k) => k !== key));
   };
+
+  // Drop zone state for the show columns section (to unfix by dragging back)
+  const [dragOverShowZone, setDragOverShowZone] = React.useState(false);
 
   // Drag handlers for fixed section reordering
   const handleFixedDragStart = (e: React.DragEvent, key: string) => {
@@ -406,10 +413,11 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                           key={key}
                           columnKey={key}
                           header={col.header}
+                          checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
+                          onCheckedChange={() => handleToggleColumn(key)}
                           onDragStart={handleFixedDragStart}
                           onDragOver={handleFixedDragOver}
                           onDrop={handleFixedDrop}
-                          onRemove={handleUnfixColumn}
                           isDragOver={dragOverTarget === key}
                         />
                       );
@@ -424,7 +432,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   />
                 )}
 
-                {/* Also show drop zone at the bottom of fixed section when there are items */}
+                {/* Drop zone at bottom of fixed section */}
                 {fixedColumnKeys.length > 0 && (
                   <div
                     onDragOver={handleZoneDragOver}
@@ -444,9 +452,33 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 {/* Separator */}
                 <div className="my-1 h-px bg-slate-200" />
 
-                {/* Show columns section */}
+                {/* Show columns section - also acts as drop target to unfix columns */}
                 <div className="px-2 py-1 text-xs font-medium text-slate-500">Show columns</div>
-                <div onDragEnd={handleDragEnd}>
+                <div
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e: React.DragEvent) => {
+                    if (dragSource?.section === 'fixed') {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      setDragOverShowZone(true);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverShowZone(false)}
+                  onDrop={(e: React.DragEvent) => {
+                    if (dragSource?.section === 'fixed') {
+                      e.preventDefault();
+                      const sourceKey = e.dataTransfer.getData('text/plain');
+                      handleUnfixColumn(sourceKey);
+                      setDragSource(null);
+                      setDragOverTarget(null);
+                      setDragOverShowZone(false);
+                    }
+                  }}
+                  className={cn(
+                    'rounded-md transition-colors',
+                    dragOverShowZone && dragSource?.section === 'fixed' && 'bg-primary/5 ring-1 ring-primary/20'
+                  )}
+                >
                   {nonFixedHideableColumns.map((col) => (
                     <ShowColumnItem
                       key={col.key}

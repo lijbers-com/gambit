@@ -63,9 +63,34 @@ export const advertiserRoutes: Route[] = [
   {
     id: 1,
     name: "Creatives",
-    type: "single" as const,
+    type: "parent" as const,
     icon: { lucide: "ImagePlus" },
-    url: "/creatives"
+    subitems: [
+      {
+        id: 30,
+        name: "Display",
+        type: "single" as const,
+        url: "/creatives/display",
+      },
+      {
+        id: 31,
+        name: "Digital in-store",
+        type: "single" as const,
+        url: "/creatives/digital-instore",
+      },
+      {
+        id: 32,
+        name: "Offline in-store",
+        type: "single" as const,
+        url: "/creatives/offline-instore",
+      },
+      {
+        id: 33,
+        name: "Offsite",
+        type: "single" as const,
+        url: "/creatives/offsite",
+      },
+    ],
   },
   {
     id: 3,

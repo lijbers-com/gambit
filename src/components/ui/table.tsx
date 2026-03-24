@@ -521,7 +521,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1 rounded-full hover:bg-slate-100 focus:outline-none">
+              <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100 focus:outline-none">
                 <MoreHorizontal className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>

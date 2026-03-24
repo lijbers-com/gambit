@@ -40,8 +40,8 @@ export interface TableProps<T> {
   defaultFixedColumns?: string[];
 }
 
-// Draggable item component for the fixed columns section
-function DraggableColumnItem({
+// Unified draggable column item for both fixed and columns sections
+function ColumnItem({
   columnKey,
   header,
   checked,
@@ -49,7 +49,7 @@ function DraggableColumnItem({
   onDragStart,
   onDragOver,
   onDrop,
-  isDragOver
+  isDragOver,
 }: {
   columnKey: string;
   header: React.ReactNode;
@@ -64,7 +64,7 @@ function DraggableColumnItem({
     <div
       draggable
       onDragStart={(e) => onDragStart(e, columnKey)}
-      onDragOver={(e) => onDragOver(e, columnKey)}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(e, columnKey); }}
       onDrop={(e) => onDrop(e, columnKey)}
       className={cn(
         'flex items-center gap-2 px-2 py-1.5 text-sm rounded-md cursor-grab active:cursor-grabbing select-none transition-colors',
@@ -81,66 +81,6 @@ function DraggableColumnItem({
       />
       <span className="flex-1 truncate cursor-default" onClick={(e) => { e.stopPropagation(); onCheckedChange(); }}>{header}</span>
       <GripVertical className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-    </div>
-  );
-}
-
-// Empty state text for fixed columns section
-function FixedColumnsEmpty({
-  onDragOver,
-  onDrop,
-  isDragOver,
-}: {
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent) => void;
-  isDragOver: boolean;
-}) {
-  return (
-    <div
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      className="px-2 py-1.5 pb-3 text-xs text-slate-400"
-    >
-      Drag columns here to fix them
-    </div>
-  );
-}
-
-// Draggable item in the show columns section
-function ShowColumnItem({
-  columnKey,
-  header,
-  checked,
-  onCheckedChange,
-  onDragStart,
-  draggable: isDraggable,
-}: {
-  columnKey: string;
-  header: React.ReactNode;
-  checked: boolean;
-  onCheckedChange: () => void;
-  onDragStart: (e: React.DragEvent, key: string) => void;
-  draggable: boolean;
-}) {
-  return (
-    <div
-      draggable={isDraggable}
-      onDragStart={(e) => onDragStart(e, columnKey)}
-      className={cn(
-        'flex items-center gap-2 px-2 py-1.5 text-sm rounded-md select-none hover:bg-accent transition-colors',
-        isDraggable && 'cursor-grab active:cursor-grabbing'
-      )}
-      role="menuitemcheckbox"
-      aria-checked={checked}
-      tabIndex={-1}
-    >
-      <Checkbox
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        className="shrink-0"
-      />
-      <span className="flex-1 truncate cursor-default" onClick={onCheckedChange}>{header}</span>
-      {isDraggable && <GripVertical className="w-3.5 h-3.5 text-slate-300 shrink-0" />}
     </div>
   );
 }
@@ -169,10 +109,21 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return defaults;
   });
 
+  // Column order state - tracks the order of non-fixed columns
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => {
+    const keys = columns.filter(c => c.hideable !== false).map(c => c.key);
+    if (!hideActions) keys.unshift('__actions');
+    // Remove any default fixed columns from the order
+    const defaults = defaultFixedColumns || [];
+    const fixedDefaults = !hideActions && !defaults.includes('__actions')
+      ? ['__actions', ...defaults]
+      : defaults;
+    return keys.filter(k => !fixedDefaults.includes(k));
+  });
+
   // Drag state
-  const [dragSource, setDragSource] = React.useState<{ key: string; section: 'fixed' | 'show' } | null>(null);
+  const [dragSource, setDragSource] = React.useState<{ key: string; section: 'fixed' | 'columns' } | null>(null);
   const [dragOverTarget, setDragOverTarget] = React.useState<string | null>(null);
-  const [dragOverZone, setDragOverZone] = React.useState(false);
 
   // Sorting state
   const [sortKey, setSortKey] = React.useState<string | null>(null);
@@ -200,55 +151,44 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     const vc = visibleColumns.find((c) => c.key === key);
     if (vc?.visible) {
       setFixedColumnKeys((keys) => keys.filter((k) => k !== key));
+      // Ensure it's in the column order
+      setColumnOrder((order) => {
+        if (order.includes(key)) return order;
+        return [...order, key];
+      });
     }
   };
 
-  // Fixed column management
-  const handleFixColumn = (key: string) => {
-    setFixedColumnKeys((keys) => {
-      if (keys.includes(key)) return keys;
-      return [...keys, key];
-    });
-    // Ensure column is visible when fixed
-    setVisibleColumns((cols) =>
-      cols.map((col) => col.key === key ? { ...col, visible: true } : col)
-    );
-  };
-
-  const handleUnfixColumn = (key: string) => {
-    setFixedColumnKeys((keys) => keys.filter((k) => k !== key));
-  };
-
-  // Drop zone state for the show columns section (to unfix by dragging back)
-  const [dragOverShowZone, setDragOverShowZone] = React.useState(false);
-
-  // Drag handlers for fixed section reordering
-  const handleFixedDragStart = (e: React.DragEvent, key: string) => {
-    setDragSource({ key, section: 'fixed' });
+  // Unified drag handlers for both sections
+  const handleDragStart = (e: React.DragEvent, key: string, section: 'fixed' | 'columns') => {
+    setDragSource({ key, section });
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', key);
   };
 
-  const handleFixedDragOver = (e: React.DragEvent, key: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  const handleDragOver = (_e: React.DragEvent, key: string) => {
     setDragOverTarget(key);
   };
 
-  const handleFixedDrop = (e: React.DragEvent, targetKey: string) => {
+  const handleDropOnFixed = (e: React.DragEvent, targetKey: string) => {
     e.preventDefault();
     const sourceKey = e.dataTransfer.getData('text/plain');
+    if (!sourceKey || sourceKey === targetKey) { resetDrag(); return; }
 
-    if (dragSource?.section === 'show') {
-      // Dragging from show to fixed - add at position
-      handleFixColumn(sourceKey);
+    if (dragSource?.section === 'columns') {
+      // Moving from columns to fixed: remove from columnOrder, add to fixed at position
+      setColumnOrder((order) => order.filter((k) => k !== sourceKey));
       setFixedColumnKeys((keys) => {
         const newKeys = keys.filter((k) => k !== sourceKey);
         const targetIndex = newKeys.indexOf(targetKey);
         newKeys.splice(targetIndex + 1, 0, sourceKey);
         return newKeys;
       });
-    } else if (dragSource?.section === 'fixed' && sourceKey !== targetKey) {
+      // Ensure visible
+      setVisibleColumns((cols) =>
+        cols.map((col) => col.key === sourceKey ? { ...col, visible: true } : col)
+      );
+    } else if (dragSource?.section === 'fixed') {
       // Reorder within fixed
       setFixedColumnKeys((keys) => {
         const newKeys = [...keys];
@@ -259,39 +199,76 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         return newKeys;
       });
     }
-
-    setDragSource(null);
-    setDragOverTarget(null);
-    setDragOverZone(false);
+    resetDrag();
   };
 
-  // Drag handlers for the empty drop zone
-  const handleZoneDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverZone(true);
-  };
-
-  const handleZoneDrop = (e: React.DragEvent) => {
+  const handleDropOnColumns = (e: React.DragEvent, targetKey: string) => {
     e.preventDefault();
     const sourceKey = e.dataTransfer.getData('text/plain');
-    handleFixColumn(sourceKey);
-    setDragSource(null);
-    setDragOverTarget(null);
-    setDragOverZone(false);
+    if (!sourceKey || sourceKey === targetKey) { resetDrag(); return; }
+
+    if (dragSource?.section === 'fixed') {
+      // Moving from fixed to columns: remove from fixed, add to columnOrder at position
+      setFixedColumnKeys((keys) => keys.filter((k) => k !== sourceKey));
+      setColumnOrder((order) => {
+        const newOrder = order.filter((k) => k !== sourceKey);
+        const targetIndex = newOrder.indexOf(targetKey);
+        newOrder.splice(targetIndex, 0, sourceKey);
+        return newOrder;
+      });
+    } else if (dragSource?.section === 'columns') {
+      // Reorder within columns
+      setColumnOrder((order) => {
+        const newOrder = [...order];
+        const sourceIndex = newOrder.indexOf(sourceKey);
+        const targetIndex = newOrder.indexOf(targetKey);
+        newOrder.splice(sourceIndex, 1);
+        newOrder.splice(targetIndex, 0, sourceKey);
+        return newOrder;
+      });
+    }
+    resetDrag();
   };
 
-  // Show columns drag start (for dragging into fixed area)
-  const handleShowDragStart = (e: React.DragEvent, key: string) => {
-    setDragSource({ key, section: 'show' });
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', key);
+  // Drop on the fixed section header/empty area (append to end of fixed)
+  const handleDropOnFixedZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    const sourceKey = e.dataTransfer.getData('text/plain');
+    if (!sourceKey) { resetDrag(); return; }
+    // Remove from columns order and add to fixed
+    setColumnOrder((order) => order.filter((k) => k !== sourceKey));
+    setFixedColumnKeys((keys) => {
+      if (keys.includes(sourceKey)) return keys;
+      return [...keys, sourceKey];
+    });
+    setVisibleColumns((cols) =>
+      cols.map((col) => col.key === sourceKey ? { ...col, visible: true } : col)
+    );
+    resetDrag();
+  };
+
+  // Drop on the columns section header/empty area (append to end of columns)
+  const handleDropOnColumnsZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    const sourceKey = e.dataTransfer.getData('text/plain');
+    if (!sourceKey) { resetDrag(); return; }
+    if (dragSource?.section === 'fixed') {
+      setFixedColumnKeys((keys) => keys.filter((k) => k !== sourceKey));
+      setColumnOrder((order) => {
+        if (order.includes(sourceKey)) return order;
+        return [...order, sourceKey];
+      });
+    }
+    resetDrag();
+  };
+
+  const resetDrag = () => {
+    setDragSource(null);
+    setDragOverTarget(null);
   };
 
   const handleDragEnd = () => {
-    setDragSource(null);
-    setDragOverTarget(null);
-    setDragOverZone(false);
+    resetDrag();
   };
 
   // Row selection logic
@@ -343,7 +320,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     };
   }
 
-  // Compute visible columns - fixed columns first, then rest in original order
+  // Compute visible columns - fixed columns first in fixed order, then columns in columnOrder
   const visibleColumnSet = new Set(
     visibleColumns.filter((vc) => vc.visible).map((vc) => vc.key)
   );
@@ -352,22 +329,22 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const isActionsVisible = !hideActions && visibleColumnSet.has('__actions');
   const isActionsFixed = fixedColumnKeys.includes('__actions');
 
-  // All manageable column keys (including __actions for the dropdown)
   // Map of key -> header label for dropdown display
   const allColumnMap: Record<string, React.ReactNode> = {};
   columns.forEach((col) => { allColumnMap[col.key] = col.header; });
   if (!hideActions) allColumnMap['__actions'] = 'Actions';
 
-  // Get fixed columns in their order (excluding __actions which is always pinned right)
+  // Get fixed columns in their order (excluding __actions which gets special handling)
   const fixedCols = fixedColumnKeys
     .filter((key) => key !== '__actions')
     .map((key) => columns.find((col) => col.key === key))
     .filter((col): col is TableColumn<T> => col !== undefined && visibleColumnSet.has(col.key));
 
-  // Get non-fixed visible columns in original order (excluding __actions)
-  const nonFixedCols = columns.filter(
-    (col) => visibleColumnSet.has(col.key) && !fixedColumnKeys.includes(col.key)
-  );
+  // Get non-fixed visible columns in columnOrder
+  const nonFixedCols = columnOrder
+    .filter((key) => key !== '__actions' && visibleColumnSet.has(key) && !fixedColumnKeys.includes(key))
+    .map((key) => columns.find((col) => col.key === key))
+    .filter((col): col is TableColumn<T> => col !== undefined);
 
   let visibleCols = [...fixedCols, ...nonFixedCols];
   if (selectionCol) {
@@ -395,15 +372,9 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     cumulativeLeft += col.width || COL_DEFAULT_WIDTH;
   }
 
-  const fixedSet = new Set(fixedColumnKeys);
-
-  // All hideable columns for dropdown (__actions first to match table order, then regular columns)
-  const hideableColumns = columns.filter((col) => col.hideable !== false);
-  const allDropdownKeys = [...(!hideActions ? ['__actions'] : []), ...hideableColumns.map((c) => c.key)];
-  // Fixed keys for dropdown (in fixed order)
-  const fixedDropdownKeys = fixedColumnKeys.filter((k) => allDropdownKeys.includes(k));
-  // Non-fixed keys for dropdown (in original order)
-  const nonFixedDropdownKeys = allDropdownKeys.filter((k) => !fixedSet.has(k));
+  // Dropdown keys: fixed section shows fixedColumnKeys in order, columns section shows columnOrder
+  const fixedDropdownKeys = fixedColumnKeys;
+  const columnsDropdownKeys = columnOrder;
 
   // Build the column settings dropdown (rendered in the header's last cell)
   const columnSettingsDropdown = (
@@ -415,93 +386,63 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
         {/* Fixed columns section */}
-        <div className="px-2 py-1 text-xs font-medium text-slate-500">
+        <div
+          className="px-2 py-1 text-xs font-medium text-slate-500"
+          onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
+          onDrop={handleDropOnFixedZone}
+        >
           Fixed columns
         </div>
 
         {fixedDropdownKeys.length > 0 ? (
           <div onDragEnd={handleDragEnd}>
             {fixedDropdownKeys.map((key) => (
-              <DraggableColumnItem
+              <ColumnItem
                 key={key}
                 columnKey={key}
                 header={allColumnMap[key]}
                 checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
                 onCheckedChange={() => handleToggleColumn(key)}
-                onDragStart={handleFixedDragStart}
-                onDragOver={handleFixedDragOver}
-                onDrop={handleFixedDrop}
+                onDragStart={(e, k) => handleDragStart(e, k, 'fixed')}
+                onDragOver={handleDragOver}
+                onDrop={handleDropOnFixed}
                 isDragOver={dragOverTarget === key}
               />
             ))}
           </div>
-        ) : null}
-
-        {/* Empty state when no fixed columns */}
-        {fixedDropdownKeys.length === 0 && (
-          <FixedColumnsEmpty
-            onDragOver={handleZoneDragOver}
-            onDrop={handleZoneDrop}
-            isDragOver={dragOverZone}
-          />
-        )}
-
-        {/* Drop zone at bottom of fixed section */}
-        {fixedDropdownKeys.length > 0 && (
+        ) : (
           <div
-            onDragOver={handleZoneDragOver}
-            onDrop={handleZoneDrop}
-            className={cn(
-              'mx-2 my-0.5 py-1 rounded-md border border-dashed text-xs text-center transition-colors',
-              dragOverZone && dragSource?.section === 'show'
-                ? 'border-primary/50 bg-primary/5 text-primary'
-                : 'border-transparent text-transparent',
-              dragSource?.section === 'show' && 'border-slate-200 text-slate-400'
-            )}
+            className="px-2 py-1.5 pb-3 text-xs text-slate-400"
+            onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
+            onDrop={handleDropOnFixedZone}
           >
-            + Drop here
+            Drag columns here to fix them
           </div>
         )}
 
         {/* Separator */}
         <div className="my-1 h-px bg-slate-200" />
 
-        {/* Columns section - also acts as drop target to unfix columns */}
-        <div className="px-2 py-1 text-xs font-medium text-slate-500">Columns</div>
+        {/* Columns section */}
         <div
-          onDragEnd={handleDragEnd}
-          onDragOver={(e: React.DragEvent) => {
-            if (dragSource?.section === 'fixed') {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = 'move';
-              setDragOverShowZone(true);
-            }
-          }}
-          onDragLeave={() => setDragOverShowZone(false)}
-          onDrop={(e: React.DragEvent) => {
-            if (dragSource?.section === 'fixed') {
-              e.preventDefault();
-              const sourceKey = e.dataTransfer.getData('text/plain');
-              handleUnfixColumn(sourceKey);
-              setDragSource(null);
-              setDragOverTarget(null);
-              setDragOverShowZone(false);
-            }
-          }}
-          className={cn(
-            'rounded-md transition-colors',
-            dragOverShowZone && dragSource?.section === 'fixed' && 'bg-primary/5 ring-1 ring-primary/20'
-          )}
+          className="px-2 py-1 text-xs font-medium text-slate-500"
+          onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
+          onDrop={handleDropOnColumnsZone}
         >
-          {nonFixedDropdownKeys.map((key) => (
-            <ShowColumnItem
+          Columns
+        </div>
+        <div onDragEnd={handleDragEnd}>
+          {columnsDropdownKeys.map((key) => (
+            <ColumnItem
               key={key}
               columnKey={key}
               header={allColumnMap[key]}
               checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
               onCheckedChange={() => handleToggleColumn(key)}
-              onDragStart={handleShowDragStart}
-              draggable={true}
+              onDragStart={(e, k) => handleDragStart(e, k, 'columns')}
+              onDragOver={handleDragOver}
+              onDrop={handleDropOnColumns}
+              isDragOver={dragOverTarget === key}
             />
           ))}
         </div>
@@ -562,7 +503,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Check if column is fixed (left-pinned)
   const isFixedColumn = (key: string) => {
     if (key === '__actions') return isActionsFixed;
-    return key === '__select' ? !!selectionCol : fixedSet.has(key);
+    return key === '__select' ? !!selectionCol : fixedColumnKeys.includes(key);
   };
 
   // Get sticky styles for a column

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, ChevronDown, ChevronUp, GripVertical, Pin } from 'lucide-react';
+import { MoreHorizontal, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -85,28 +85,23 @@ function DraggableColumnItem({
   );
 }
 
-// Drop zone for adding columns to fixed section
-function FixedColumnsDropZone({
+// Empty state text for fixed columns section
+function FixedColumnsEmpty({
   onDragOver,
   onDrop,
   isDragOver,
-  isEmpty
 }: {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   isDragOver: boolean;
-  isEmpty: boolean;
 }) {
-  if (!isEmpty) return null;
   return (
     <div
       onDragOver={onDragOver}
       onDrop={onDrop}
       className={cn(
-        'mx-2 my-1 py-3 px-3 rounded-md border border-dashed text-xs text-center transition-colors',
-        isDragOver
-          ? 'border-primary/50 bg-primary/5 text-primary'
-          : 'border-slate-300 text-slate-400'
+        'px-2 py-1.5 text-xs text-slate-400 transition-colors',
+        isDragOver && 'bg-primary/5 text-primary rounded-md'
       )}
     >
       Drag columns here to fix them
@@ -398,8 +393,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
                 {/* Fixed columns section */}
-                <div className="px-2 py-1 text-xs font-medium text-slate-500 flex items-center gap-1.5">
-                  <Pin className="w-3 h-3" />
+                <div className="px-2 py-1 text-xs font-medium text-slate-500">
                   Fixed columns
                 </div>
 
@@ -424,11 +418,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     })}
                   </div>
                 ) : (
-                  <FixedColumnsDropZone
+                  <FixedColumnsEmpty
                     onDragOver={handleZoneDragOver}
                     onDrop={handleZoneDrop}
                     isDragOver={dragOverZone}
-                    isEmpty={fixedColumnKeys.length === 0}
                   />
                 )}
 
@@ -535,13 +528,21 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     }
   }
 
-  // Check if column is fixed
+  // Check if column is fixed (left-pinned or actions column right-pinned)
   const isFixedColumn = (key: string) => {
+    if (key === '__actions') return true;
     return key === '__select' ? !!selectionCol : fixedSet.has(key);
   };
 
   // Get sticky styles for a column
   const getStickyStyle = (key: string): React.CSSProperties => {
+    if (key === '__actions') {
+      return {
+        position: 'sticky',
+        right: 0,
+        zIndex: 10,
+      };
+    }
     if (!isFixedColumn(key)) return {};
     return {
       position: 'sticky',

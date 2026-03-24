@@ -527,8 +527,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
               <th
                 key={col.key}
                 className={cn(
-                  'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap',
-                  isFixedColumn(col.key) && 'bg-slate-50',
+                  'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
                   col.className
                 )}
                 onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -574,8 +573,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   <td
                     key={col.key}
                     className={cn(
-                      'px-4 py-3 align-middle truncate max-w-[180px]',
-                      isFixedColumn(col.key) && 'bg-white',
+                      'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
                       col.className
                     )}
                     style={{

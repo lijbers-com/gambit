@@ -115,6 +115,59 @@ export const Default: Story = {
   ),
 };
 
+export const FixedColumns: Story = {
+  render: () => (
+    <div className="p-8 bg-slate-50 min-h-screen">
+      <div className="mb-4">
+        <p className="text-sm text-slate-500">The &quot;ID&quot; and &quot;Status&quot; columns are fixed by default. Open the column menu (⋯) to drag columns between the Fixed and Show sections, reorder fixed columns, or unpin them.</p>
+      </div>
+      <Table
+        columns={[
+          { key: 'id', header: 'ID', width: 80 },
+          { key: 'alerts', header: 'Alerts', width: 120 },
+          {
+            key: 'status',
+            header: 'Status',
+            width: 130,
+            render: (row) => (
+              <Badge variant="default" className="inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                <BadgeCheck className="h-4 w-4 mr-1 text-green-500" />
+                {row.status}
+              </Badge>
+            ),
+          },
+          {
+            key: 'player',
+            header: 'Player',
+            width: 260,
+            render: (row) => (
+              <div>
+                <div className="font-medium text-slate-800">{row.player}</div>
+                <div className="text-xs text-slate-500">MAC: {row.mac}</div>
+              </div>
+            ),
+          },
+          {
+            key: 'store',
+            header: 'Store',
+            width: 280,
+            render: (row) => (
+              <div className="flex items-center gap-2">
+                <img src={row.storeLogo} alt="store" className="h-7 w-7 rounded-full bg-slate-100 border border-slate-200" />
+                <span>{row.store}</span>
+              </div>
+            ),
+          },
+          { key: 'attributes', header: 'Attributes', width: 120 },
+        ]}
+        data={data}
+        rowKey={(row) => row.id}
+        defaultFixedColumns={['id', 'status']}
+      />
+    </div>
+  ),
+};
+
 export const SelectableRows: Story = {
   render: () => {
     const [selected, setSelected] = React.useState<any[]>([]);

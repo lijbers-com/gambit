@@ -157,13 +157,20 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return index;
   });
 
-  // Column visibility state
-  const [visibleColumns, setVisibleColumns] = React.useState(() =>
-    columns.map((col) => ({ key: col.key, visible: true, hideable: col.hideable !== false }))
-  );
+  // Column visibility state (includes __actions as a virtual column)
+  const [visibleColumns, setVisibleColumns] = React.useState(() => [
+    ...columns.map((col) => ({ key: col.key, visible: true, hideable: col.hideable !== false })),
+    ...(!hideActions ? [{ key: '__actions', visible: true, hideable: true }] : []),
+  ]);
 
-  // Fixed columns state - ordered list of fixed column keys
-  const [fixedColumnKeys, setFixedColumnKeys] = React.useState<string[]>(defaultFixedColumns || []);
+  // Fixed columns state - ordered list of fixed column keys (__actions is fixed by default)
+  const [fixedColumnKeys, setFixedColumnKeys] = React.useState<string[]>(() => {
+    const defaults = defaultFixedColumns || [];
+    if (!hideActions && !defaults.includes('__actions')) {
+      return ['__actions', ...defaults];
+    }
+    return defaults;
+  });
 
   // Drag state
   const [dragSource, setDragSource] = React.useState<{ key: string; section: 'fixed' | 'show' } | null>(null);
@@ -344,12 +351,23 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     visibleColumns.filter((vc) => vc.visible).map((vc) => vc.key)
   );
 
-  // Get fixed columns in their order
+  // Actions column visibility
+  const isActionsVisible = !hideActions && visibleColumnSet.has('__actions');
+  const isActionsFixed = fixedColumnKeys.includes('__actions');
+
+  // All manageable column keys (including __actions for the dropdown)
+  // Map of key -> header label for dropdown display
+  const allColumnMap: Record<string, React.ReactNode> = {};
+  columns.forEach((col) => { allColumnMap[col.key] = col.header; });
+  if (!hideActions) allColumnMap['__actions'] = 'Actions';
+
+  // Get fixed columns in their order (excluding __actions which is always pinned right)
   const fixedCols = fixedColumnKeys
+    .filter((key) => key !== '__actions')
     .map((key) => columns.find((col) => col.key === key))
     .filter((col): col is TableColumn<T> => col !== undefined && visibleColumnSet.has(col.key));
 
-  // Get non-fixed visible columns in original order
+  // Get non-fixed visible columns in original order (excluding __actions)
   const nonFixedCols = columns.filter(
     (col) => visibleColumnSet.has(col.key) && !fixedColumnKeys.includes(col.key)
   );
@@ -372,149 +390,144 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     fixedColLeftOffsets['__select'] = 0;
   }
 
-  // Hideabled columns for dropdown (excluding non-hideable)
-  const hideableColumns = columns.filter((col) => col.hideable !== false);
   const fixedSet = new Set(fixedColumnKeys);
-  const nonFixedHideableColumns = hideableColumns.filter((col) => !fixedSet.has(col.key));
 
-  // Add the ellipsis actions column as the last column
-  const allCols = hideActions
-    ? [...visibleCols]
-    : [
-        ...visibleCols,
-        {
-          key: '__actions',
-          header: (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100">
-                  <MoreHorizontal className="w-5 h-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
-                {/* Fixed columns section */}
-                <div className="px-2 py-1 text-xs font-medium text-slate-500">
-                  Fixed columns
-                </div>
+  // All hideable columns for dropdown (regular columns + __actions)
+  const hideableColumns = columns.filter((col) => col.hideable !== false);
+  const allDropdownKeys = [...hideableColumns.map((c) => c.key), ...(!hideActions ? ['__actions'] : [])];
+  // Fixed keys for dropdown (in fixed order)
+  const fixedDropdownKeys = fixedColumnKeys.filter((k) => allDropdownKeys.includes(k));
+  // Non-fixed keys for dropdown (in original order)
+  const nonFixedDropdownKeys = allDropdownKeys.filter((k) => !fixedSet.has(k));
 
-                {/* Actions column is always fixed */}
-                <div className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md select-none text-slate-500">
-                  <Checkbox checked={true} disabled className="shrink-0 opacity-50" />
-                  <span className="flex-1 truncate">Actions</span>
-                </div>
+  // Build the column settings dropdown (rendered in the header's last cell)
+  const columnSettingsDropdown = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100">
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
+        {/* Fixed columns section */}
+        <div className="px-2 py-1 text-xs font-medium text-slate-500">
+          Fixed columns
+        </div>
 
-                {fixedColumnKeys.length > 0 ? (
-                  <div onDragEnd={handleDragEnd}>
-                    {fixedColumnKeys.map((key) => {
-                      const col = columns.find((c) => c.key === key);
-                      if (!col) return null;
-                      return (
-                        <DraggableColumnItem
-                          key={key}
-                          columnKey={key}
-                          header={col.header}
-                          checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
-                          onCheckedChange={() => handleToggleColumn(key)}
-                          onDragStart={handleFixedDragStart}
-                          onDragOver={handleFixedDragOver}
-                          onDrop={handleFixedDrop}
-                          isDragOver={dragOverTarget === key}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : null}
+        {fixedDropdownKeys.length > 0 ? (
+          <div onDragEnd={handleDragEnd}>
+            {fixedDropdownKeys.map((key) => (
+              <DraggableColumnItem
+                key={key}
+                columnKey={key}
+                header={allColumnMap[key]}
+                checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
+                onCheckedChange={() => handleToggleColumn(key)}
+                onDragStart={handleFixedDragStart}
+                onDragOver={handleFixedDragOver}
+                onDrop={handleFixedDrop}
+                isDragOver={dragOverTarget === key}
+              />
+            ))}
+          </div>
+        ) : null}
 
-                {/* Drop zone / empty state */}
-                {fixedColumnKeys.length === 0 && (
-                  <FixedColumnsEmpty
-                    onDragOver={handleZoneDragOver}
-                    onDrop={handleZoneDrop}
-                    isDragOver={dragOverZone}
-                  />
-                )}
+        {/* Empty state when no fixed columns */}
+        {fixedDropdownKeys.length === 0 && (
+          <FixedColumnsEmpty
+            onDragOver={handleZoneDragOver}
+            onDrop={handleZoneDrop}
+            isDragOver={dragOverZone}
+          />
+        )}
 
-                {/* Drop zone at bottom of fixed section */}
-                {fixedColumnKeys.length > 0 && (
-                  <div
-                    onDragOver={handleZoneDragOver}
-                    onDrop={handleZoneDrop}
-                    className={cn(
-                      'mx-2 my-0.5 py-1 rounded-md border border-dashed text-xs text-center transition-colors',
-                      dragOverZone && dragSource?.section === 'show'
-                        ? 'border-primary/50 bg-primary/5 text-primary'
-                        : 'border-transparent text-transparent',
-                      dragSource?.section === 'show' && 'border-slate-200 text-slate-400'
-                    )}
-                  >
-                    + Drop here
-                  </div>
-                )}
+        {/* Drop zone at bottom of fixed section */}
+        {fixedDropdownKeys.length > 0 && (
+          <div
+            onDragOver={handleZoneDragOver}
+            onDrop={handleZoneDrop}
+            className={cn(
+              'mx-2 my-0.5 py-1 rounded-md border border-dashed text-xs text-center transition-colors',
+              dragOverZone && dragSource?.section === 'show'
+                ? 'border-primary/50 bg-primary/5 text-primary'
+                : 'border-transparent text-transparent',
+              dragSource?.section === 'show' && 'border-slate-200 text-slate-400'
+            )}
+          >
+            + Drop here
+          </div>
+        )}
 
-                {/* Separator */}
-                <div className="my-1 h-px bg-slate-200" />
+        {/* Separator */}
+        <div className="my-1 h-px bg-slate-200" />
 
-                {/* Show columns section - also acts as drop target to unfix columns */}
-                <div className="px-2 py-1 text-xs font-medium text-slate-500">Show columns</div>
-                <div
-                  onDragEnd={handleDragEnd}
-                  onDragOver={(e: React.DragEvent) => {
-                    if (dragSource?.section === 'fixed') {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                      setDragOverShowZone(true);
-                    }
-                  }}
-                  onDragLeave={() => setDragOverShowZone(false)}
-                  onDrop={(e: React.DragEvent) => {
-                    if (dragSource?.section === 'fixed') {
-                      e.preventDefault();
-                      const sourceKey = e.dataTransfer.getData('text/plain');
-                      handleUnfixColumn(sourceKey);
-                      setDragSource(null);
-                      setDragOverTarget(null);
-                      setDragOverShowZone(false);
-                    }
-                  }}
-                  className={cn(
-                    'rounded-md transition-colors',
-                    dragOverShowZone && dragSource?.section === 'fixed' && 'bg-primary/5 ring-1 ring-primary/20'
-                  )}
-                >
-                  {nonFixedHideableColumns.map((col) => (
-                    <ShowColumnItem
-                      key={col.key}
-                      columnKey={col.key}
-                      header={col.header}
-                      checked={!!visibleColumns.find((vc) => vc.key === col.key && vc.visible)}
-                      onCheckedChange={() => handleToggleColumn(col.key)}
-                      onDragStart={handleShowDragStart}
-                      draggable={true}
-                    />
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ),
-          render: (row: T) =>
-            rowActions ? (
-              rowActions(row)
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 rounded-full hover:bg-slate-100 focus:outline-none">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem>Delete</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ),
-          className: 'text-right',
-        },
-      ];
+        {/* Columns section - also acts as drop target to unfix columns */}
+        <div className="px-2 py-1 text-xs font-medium text-slate-500">Columns</div>
+        <div
+          onDragEnd={handleDragEnd}
+          onDragOver={(e: React.DragEvent) => {
+            if (dragSource?.section === 'fixed') {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              setDragOverShowZone(true);
+            }
+          }}
+          onDragLeave={() => setDragOverShowZone(false)}
+          onDrop={(e: React.DragEvent) => {
+            if (dragSource?.section === 'fixed') {
+              e.preventDefault();
+              const sourceKey = e.dataTransfer.getData('text/plain');
+              handleUnfixColumn(sourceKey);
+              setDragSource(null);
+              setDragOverTarget(null);
+              setDragOverShowZone(false);
+            }
+          }}
+          className={cn(
+            'rounded-md transition-colors',
+            dragOverShowZone && dragSource?.section === 'fixed' && 'bg-primary/5 ring-1 ring-primary/20'
+          )}
+        >
+          {nonFixedDropdownKeys.map((key) => (
+            <ShowColumnItem
+              key={key}
+              columnKey={key}
+              header={allColumnMap[key]}
+              checked={!!visibleColumns.find((vc) => vc.key === key && vc.visible)}
+              onCheckedChange={() => handleToggleColumn(key)}
+              onDragStart={handleShowDragStart}
+              draggable={true}
+            />
+          ))}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  // Add the ellipsis actions column as the last column (only if visible)
+  const actionsCol = !hideActions && isActionsVisible ? [{
+    key: '__actions',
+    header: columnSettingsDropdown,
+    render: (row: T) =>
+      rowActions ? (
+        rowActions(row)
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1 rounded-full hover:bg-slate-100 focus:outline-none">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    className: 'text-right',
+  }] : [];
+
+  const allCols = [...visibleCols, ...actionsCol];
 
   // Sort data if needed
   let sortedData = [...data];
@@ -537,15 +550,15 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     }
   }
 
-  // Check if column is fixed (left-pinned or actions column right-pinned)
+  // Check if column is fixed (left-pinned or actions column right-pinned when fixed)
   const isFixedColumn = (key: string) => {
-    if (key === '__actions') return true;
+    if (key === '__actions') return isActionsFixed;
     return key === '__select' ? !!selectionCol : fixedSet.has(key);
   };
 
   // Get sticky styles for a column
   const getStickyStyle = (key: string): React.CSSProperties => {
-    if (key === '__actions') {
+    if (key === '__actions' && isActionsFixed) {
       return {
         position: 'sticky',
         right: 0,

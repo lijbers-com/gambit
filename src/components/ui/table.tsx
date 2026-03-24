@@ -530,7 +530,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return key === '__select' ? !!selectionCol : fixedColumnKeys.includes(key);
   };
 
-  // Determine the last fixed column key for the border/resize handle
+  // Determine the last fixed column key for the border
   const lastFixedColKey = (() => {
     const fixedKeys: string[] = [];
     if (isActionsVisible && isActionsFixed) fixedKeys.push('__actions');
@@ -539,33 +539,27 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return fixedKeys.length > 0 ? fixedKeys[fixedKeys.length - 1] : null;
   })();
 
-  // Resize state for the last fixed column (resets when fixed columns change)
-  const [resizeWidth, setResizeWidth] = React.useState<number | null>(null);
-  const prevLastFixedRef = React.useRef(lastFixedColKey);
-  if (prevLastFixedRef.current !== lastFixedColKey) {
-    prevLastFixedRef.current = lastFixedColKey;
-    if (resizeWidth !== null) setResizeWidth(null);
-  }
+  // Per-column resize widths
+  const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
   const resizingRef = React.useRef(false);
-  const resizeStartRef = React.useRef<{ startX: number; startWidth: number }>({ startX: 0, startWidth: 0 });
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const resizeStartRef = React.useRef<{ key: string; startX: number; startWidth: number }>({ key: '', startX: 0, startWidth: 0 });
 
-  const handleResizeMouseDown = React.useCallback((e: React.MouseEvent) => {
+  const handleResizeMouseDown = React.useCallback((e: React.MouseEvent, colKey: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!lastFixedColKey || !headerRowRef.current) return;
+    if (!headerRowRef.current) return;
 
     resizingRef.current = true;
-    const lastFixedIndex = allColKeys.indexOf(lastFixedColKey);
-    const th = headerRowRef.current.querySelectorAll('th')[lastFixedIndex];
+    const colIndex = allColKeys.indexOf(colKey);
+    const th = headerRowRef.current.querySelectorAll('th')[colIndex];
     const startWidth = th ? th.getBoundingClientRect().width : 180;
-    resizeStartRef.current = { startX: e.clientX, startWidth };
+    resizeStartRef.current = { key: colKey, startX: e.clientX, startWidth };
 
     const handleMouseMove = (ev: MouseEvent) => {
       if (!resizingRef.current) return;
       const delta = ev.clientX - resizeStartRef.current.startX;
-      const newWidth = Math.max(60, resizeStartRef.current.startWidth + delta);
-      setResizeWidth(newWidth);
+      const newWidth = Math.max(50, resizeStartRef.current.startWidth + delta);
+      setColumnWidths((prev) => ({ ...prev, [resizeStartRef.current.key]: newWidth }));
     };
 
     const handleMouseUp = () => {
@@ -580,7 +574,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     document.addEventListener('mouseup', handleMouseUp);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-  }, [lastFixedColKey, allColKeys]);
+  }, [allColKeys]);
 
   // Get sticky styles for a column
   const getStickyStyle = (key: string): React.CSSProperties => {
@@ -592,21 +586,23 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     };
   };
 
-  // Get width override for the last fixed column (when resized)
-  const getResizeStyle = (key: string): React.CSSProperties => {
-    if (key !== lastFixedColKey || resizeWidth === null) return {};
-    return { width: resizeWidth, minWidth: resizeWidth, maxWidth: resizeWidth };
+  // Get width style for a column (user-resized or default)
+  const getColWidthStyle = (key: string): React.CSSProperties => {
+    const w = columnWidths[key];
+    if (w == null) return {};
+    return { width: w, minWidth: w, maxWidth: w };
   };
 
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
-    <div ref={tableContainerRef} className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
+    <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-slate-700 table-fixed">
         <thead className="bg-slate-50">
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
+              const isResizable = col.key !== '__select';
               return (
                 <th
                   key={col.key}
@@ -619,7 +615,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   style={{
                     cursor: col.key !== '__actions' && (col as TableColumn<T>).sortable ? 'pointer' : undefined,
                     ...getStickyStyle(col.key),
-                    ...getResizeStyle(col.key),
+                    ...getColWidthStyle(col.key),
                   }}
                 >
                   <span className="flex items-center gap-1">
@@ -632,10 +628,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Draggable resize handle on last fixed column */}
-                  {isLastFixed && (
+                  {/* Draggable resize handle on right edge */}
+                  {isResizable && (
                     <div
-                      onMouseDown={handleResizeMouseDown}
+                      onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
                       className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-20"
                       style={{ transform: 'translateX(50%)' }}
                     />
@@ -675,13 +671,12 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         col.className
                       )}
                       style={{
-                        maxWidth: col.key === '__select' ? SELECTION_COL_WIDTH : (col as TableColumn<T>).width || COL_DEFAULT_WIDTH,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         verticalAlign: 'middle',
                         ...getStickyStyle(col.key),
-                        ...getResizeStyle(col.key),
+                        ...getColWidthStyle(col.key),
                       }}
                     >
                       <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>

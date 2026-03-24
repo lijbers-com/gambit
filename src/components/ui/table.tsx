@@ -99,10 +99,7 @@ function FixedColumnsEmpty({
     <div
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className={cn(
-        'px-2 py-1.5 text-xs text-slate-400 transition-colors',
-        isDragOver && 'bg-primary/5 text-primary rounded-md'
-      )}
+      className="px-2 py-1.5 text-xs text-slate-400"
     >
       Drag columns here to fix them
     </div>
@@ -380,14 +377,22 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Compute cumulative left offsets for sticky fixed columns
   const COL_DEFAULT_WIDTH = 180;
   const SELECTION_COL_WIDTH = 48;
+  const ACTIONS_COL_WIDTH = 50;
   const fixedColLeftOffsets: Record<string, number> = {};
-  let cumulativeLeft = selectionCol ? SELECTION_COL_WIDTH : 0;
+
+  // Actions column is always first when visible and fixed
+  let cumulativeLeft = 0;
+  if (isActionsVisible && isActionsFixed) {
+    fixedColLeftOffsets['__actions'] = 0;
+    cumulativeLeft = ACTIONS_COL_WIDTH;
+  }
+  if (selectionCol) {
+    fixedColLeftOffsets['__select'] = cumulativeLeft;
+    cumulativeLeft += SELECTION_COL_WIDTH;
+  }
   for (const col of fixedCols) {
     fixedColLeftOffsets[col.key] = cumulativeLeft;
     cumulativeLeft += col.width || COL_DEFAULT_WIDTH;
-  }
-  if (selectionCol) {
-    fixedColLeftOffsets['__select'] = 0;
   }
 
   const fixedSet = new Set(fixedColumnKeys);
@@ -408,7 +413,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
+      <DropdownMenuContent align="start" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
         {/* Fixed columns section */}
         <div className="px-2 py-1 text-xs font-medium text-slate-500">
           Fixed columns
@@ -504,7 +509,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     </DropdownMenu>
   );
 
-  // Add the ellipsis actions column as the last column (only if visible)
+  // Actions column definition (first column when visible)
   const actionsCol = !hideActions && isActionsVisible ? [{
     key: '__actions',
     header: columnSettingsDropdown,
@@ -518,16 +523,17 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
               <MoreHorizontal className="w-5 h-5" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="start">
             <DropdownMenuItem>Edit</DropdownMenuItem>
             <DropdownMenuItem>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-    className: 'text-right',
+    className: 'w-[50px]',
   }] : [];
 
-  const allCols = [...visibleCols, ...actionsCol];
+  // Actions column goes first, then fixed columns, then non-fixed
+  const allCols = [...actionsCol, ...visibleCols];
 
   // Sort data if needed
   let sortedData = [...data];
@@ -550,7 +556,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     }
   }
 
-  // Check if column is fixed (left-pinned or actions column right-pinned when fixed)
+  // Check if column is fixed (left-pinned)
   const isFixedColumn = (key: string) => {
     if (key === '__actions') return isActionsFixed;
     return key === '__select' ? !!selectionCol : fixedSet.has(key);
@@ -558,13 +564,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
   // Get sticky styles for a column
   const getStickyStyle = (key: string): React.CSSProperties => {
-    if (key === '__actions' && isActionsFixed) {
-      return {
-        position: 'sticky',
-        right: 0,
-        zIndex: 10,
-      };
-    }
     if (!isFixedColumn(key)) return {};
     return {
       position: 'sticky',

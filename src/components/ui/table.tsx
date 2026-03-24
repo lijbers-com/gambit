@@ -612,7 +612,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   key={col.key}
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    isLastFixed && 'border-r-2 border-slate-300',
+                    isLastFixed && 'border-r border-slate-300',
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -680,7 +680,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
-                        isLastFixed && 'border-r-2 border-slate-300',
+                        isLastFixed && 'border-r border-slate-300',
                         col.className
                       )}
                       style={{

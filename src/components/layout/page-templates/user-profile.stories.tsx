@@ -446,11 +446,7 @@ const UserProfileContent = () => {
           ]}
           action={
             activeTab === 'details' ? (
-              <Button onClick={() => alert(`Saved: ${firstName} ${lastName}`)}>Save changes</Button>
-            ) : activeTab === 'permissions' ? (
-              null
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
+              <Button onClick={() => alert(`Saved: ${firstName} ${lastName}`)}>Save</Button>
             ) : null
           }
           activeTab={activeTab}

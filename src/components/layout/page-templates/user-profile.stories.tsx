@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Table } from '@/components/ui/table';
+import { FilterBar } from '@/components/ui/filter-bar';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +33,6 @@ import {
   Clock,
   Lock,
   ShieldCheck,
-  AlertTriangle,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -44,30 +45,31 @@ const meta: Meta<typeof AppLayout> = {
         component: `
 # User Profile Page Template
 
-The User Profile page template provides a comprehensive user management interface with account settings, campaign permissions, organisation details, role assignments, and access details.
+The User Profile page template provides a comprehensive user management interface with tabbed navigation for account settings, permissions, and access logs.
 
 ## Features
 
-- **Settings Card**: Editable First Name and Last Name fields with Save button, read-only Email and ID, email verification status (Verified/Unverified), and user status (Enabled/Disabled) with toggle
-- **Access Details Card**: Last login timestamp, lockout status, and credential management (Password, MFA devices, SSO) with reset confirmation dialogs
-- **Campaign Permissions**: Company selector with brand-level permission toggles for Sponsored Products and Display
-- **Organisation Card**: Displays the user's organisation and member count
-- **Roles Table**: Scrollable list of assigned roles with their propositions and an "Assign roles" action
+- **Details Tab**: Editable First Name and Last Name fields with Save button, read-only Email (with verification badge) and ID, account enabled/disabled toggle
+- **Permissions Tab**: Campaign permissions with company selector and brand-level toggles, plus roles table with proposition assignments
+- **Logs Tab**: Login/access log table with filters, access details including last login, lockout status, and credential management
 
 ## Layout
 
-Two-column responsive layout:
-- **Left column (2/3)**: Settings card + Access details card + Campaign permissions card
-- **Right column (1/3)**: Organisation card + Roles card
+Tabbed interface using CardWithTabs component with three tabs:
+- **Details**: User settings form
+- **Permissions**: Campaign permissions and role assignments
+- **Logs**: Access logs and credential management
 
 ## Components Used
 
 - AppLayout (navigation, user management, breadcrumbs)
-- Card (content containers)
+- CardWithTabs (tabbed interface)
+- Card (sidebar content containers)
 - Input (editable form fields)
 - Badge (status indicators)
 - Switch (permission toggles)
-- Separator (table row dividers)
+- Table (log entries)
+- FilterBar (log filtering)
 - Dialog (confirmation modals for credential resets)
 - Button (actions)
         `,
@@ -112,6 +114,19 @@ const roles = [
 const mfaDevices = [
   { name: 'iPhone 15 Pro' },
   { name: 'YubiKey 5 NFC' },
+];
+
+const loginLogData = [
+  { id: 'LOG-001', timestamp: '2026-02-28T14:32:00', action: 'Login', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-002', timestamp: '2026-02-27T09:15:00', action: 'Login', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-003', timestamp: '2026-02-26T16:45:00', action: 'Login', status: 'Failed', ipAddress: '10.0.0.12', browser: 'Firefox 123', location: 'Rotterdam, NL' },
+  { id: 'LOG-004', timestamp: '2026-02-26T16:44:00', action: 'Login', status: 'Failed', ipAddress: '10.0.0.12', browser: 'Firefox 123', location: 'Rotterdam, NL' },
+  { id: 'LOG-005', timestamp: '2026-02-25T08:30:00', action: 'Login', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-006', timestamp: '2026-02-24T11:20:00', action: 'Password Reset', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-007', timestamp: '2026-02-23T13:50:00', action: 'Login', status: 'Success', ipAddress: '172.16.0.5', browser: 'Safari 17', location: 'Utrecht, NL' },
+  { id: 'LOG-008', timestamp: '2026-02-22T10:10:00', action: 'MFA Setup', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-009', timestamp: '2026-02-21T15:30:00', action: 'Login', status: 'Success', ipAddress: '192.168.1.45', browser: 'Chrome 122', location: 'Amsterdam, NL' },
+  { id: 'LOG-010', timestamp: '2026-02-20T09:00:00', action: 'Login', status: 'Failed', ipAddress: '203.0.113.50', browser: 'Unknown', location: 'Unknown' },
 ];
 
 // Confirmation dialog component for credential resets
@@ -163,6 +178,9 @@ const UserProfileContent = () => {
   const [isEnabled, setIsEnabled] = useState(true);
   const [permissions, setPermissions] = useState(brandPermissions);
   const [selectedCompany] = useState('Kai Tak Company B.V.');
+  const [activeTab, setActiveTab] = useState('details');
+  const [logStatusFilter, setLogStatusFilter] = useState<string[]>([]);
+  const [logActionFilter, setLogActionFilter] = useState<string[]>([]);
 
   const togglePermission = (index: number, field: 'sponsoredProducts' | 'display') => {
     setPermissions(prev =>
@@ -170,257 +188,341 @@ const UserProfileContent = () => {
     );
   };
 
+  const filteredLogs = loginLogData.filter(row => {
+    const statusMatch = logStatusFilter.length === 0 || logStatusFilter.includes(row.status);
+    const actionMatch = logActionFilter.length === 0 || logActionFilter.includes(row.action);
+    return statusMatch && actionMatch;
+  });
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left column */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Settings card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    readOnly
-                    className="text-muted-foreground pr-24"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <Badge variant="success">Verified</Badge>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="userId">ID</Label>
-                <Input
-                  id="userId"
-                  value={userId}
-                  readOnly
-                  className="text-muted-foreground"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{isEnabled ? 'Account enabled' : 'Account disabled'}</Label>
-                <div className="flex items-center gap-3 pt-1">
-                  <Switch
-                    checked={isEnabled}
-                    onCheckedChange={setIsEnabled}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end mt-6">
-              <Button onClick={() => alert(`Saved: ${firstName} ${lastName}`)}>
-                Save changes
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Access details card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Access details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Last login & Lockout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Last login</p>
-                  <p className="text-sm text-muted-foreground">
-                    February 28, 2026 at 14:32 UTC
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Lock className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Lockout status</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="default" size="default">Not locked</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Credentials */}
-            <div>
-              <h4 className="text-sm font-semibold mb-4">Credentials configured</h4>
-              <div className="space-y-4">
-                {/* Password */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <KeyRound className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Password</p>
-                      <p className="text-sm text-muted-foreground">Configured</p>
-                    </div>
-                  </div>
-                  <ResetConfirmDialog
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        Reset password
-                      </Button>
-                    }
-                    title="Reset password"
-                    description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
-                    onConfirm={() => alert('Password reset email sent')}
-                  />
-                </div>
-
-                {/* MFA Devices */}
-                <div className="p-4 border rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Smartphone className="w-5 h-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">MFA Devices</p>
-                        <p className="text-sm text-muted-foreground">
-                          {mfaDevices.length} device(s) configured
-                        </p>
-                      </div>
-                    </div>
-                    <ResetConfirmDialog
-                      trigger={
-                        <Button variant="outline" size="sm">
-                          Remove all devices
-                        </Button>
-                      }
-                      title="Remove MFA devices"
-                      description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
-                      onConfirm={() => alert('All MFA devices removed')}
+      {/* Left column - Tabbed content */}
+      <div className="lg:col-span-2">
+        <CardWithTabs
+          className="w-full"
+          header={
+            activeTab === 'details' ? (
+              <div className="space-y-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First name</Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
                     />
                   </div>
-                  <div className="ml-8 space-y-2">
-                    {mfaDevices.map((device) => (
-                      <div
-                        key={device.name}
-                        className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                          <span>{device.name}</span>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last name</Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        readOnly
+                        className="text-muted-foreground pr-24"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <Badge variant="success">Verified</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="userId">ID</Label>
+                    <Input
+                      id="userId"
+                      value={userId}
+                      readOnly
+                      className="text-muted-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{isEnabled ? 'Account enabled' : 'Account disabled'}</Label>
+                    <div className="flex items-center gap-3 pt-1">
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={setIsEnabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'permissions' ? (
+              <div className="space-y-8 w-full">
+                {/* Campaign permissions */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-4">Campaign permissions</h3>
+                  <div className="mb-4">
+                    <button
+                      type="button"
+                      className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <span className="flex-1 truncate">{selectedCompany}</span>
+                      <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
+                    </button>
+                  </div>
+                  <div className="border rounded-md overflow-hidden">
+                    <div className="grid grid-cols-[1fr_160px_160px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary">
+                      <span>Brands</span>
+                      <span>Sponsored products</span>
+                      <span>Display</span>
+                      <span></span>
+                    </div>
+                    <Separator />
+                    {permissions.map((brand, index) => (
+                      <div key={brand.name}>
+                        <div className="grid grid-cols-[1fr_160px_160px_40px] items-center px-4 py-3 text-sm">
+                          <span className="flex items-center gap-2">
+                            {brand.name}
+                            {brand.isAll && <Info className="w-4 h-4 text-primary" />}
+                          </span>
+                          <span>
+                            <Switch
+                              checked={brand.sponsoredProducts}
+                              onCheckedChange={() => togglePermission(index, 'sponsoredProducts')}
+                            />
+                          </span>
+                          <span>
+                            <Switch
+                              checked={brand.display}
+                              onCheckedChange={() => togglePermission(index, 'display')}
+                            />
+                          </span>
+                          <span>
+                            <button className="p-1 rounded hover:bg-muted">
+                              <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          </span>
                         </div>
+                        {index < permissions.length - 1 && <Separator />}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* SSO Federated Credentials */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Link2 className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">SSO Federated Credentials</p>
-                      <p className="text-sm text-muted-foreground">Linked</p>
+                <Separator />
+
+                {/* Roles */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-4">Roles</h3>
+                  <div className="border rounded-md overflow-hidden">
+                    <div className="grid grid-cols-[1fr_1fr_32px] px-4 py-3 text-sm font-medium text-primary bg-muted/30">
+                      <span>Role</span>
+                      <span>Proposition</span>
+                      <span></span>
+                    </div>
+                    <Separator />
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {roles.map((item, index) => (
+                        <div key={`${item.role}-${item.proposition}-${index}`}>
+                          <div className="grid grid-cols-[1fr_1fr_32px] items-center px-4 py-3 text-sm">
+                            <span>{item.role}</span>
+                            <span>{item.proposition}</span>
+                            <span>
+                              <button className="p-1 rounded hover:bg-muted">
+                                <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                            </span>
+                          </div>
+                          {index < roles.length - 1 && <Separator />}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <ResetConfirmDialog
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        Unlink
-                      </Button>
-                    }
-                    title="Unlink SSO Federated Credentials"
-                    description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
-                    onConfirm={() => alert('SSO credentials unlinked')}
-                  />
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Campaign permissions card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign permissions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Company selector */}
-            <div className="mb-6">
-              <button
-                type="button"
-                className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <span className="flex-1 truncate">{selectedCompany}</span>
-                <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
-              </button>
-            </div>
-
-            {/* Permissions table */}
-            <div className="border rounded-md overflow-hidden">
-              {/* Table header */}
-              <div className="grid grid-cols-[1fr_160px_160px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary">
-                <span>Brands</span>
-                <span>Sponsored products</span>
-                <span>Display</span>
-                <span></span>
-              </div>
-              <Separator />
-
-              {/* Table rows */}
-              {permissions.map((brand, index) => (
-                <div key={brand.name}>
-                  <div className="grid grid-cols-[1fr_160px_160px_40px] items-center px-4 py-3 text-sm">
-                    <span className="flex items-center gap-2">
-                      {brand.name}
-                      {brand.isAll && <Info className="w-4 h-4 text-primary" />}
-                    </span>
-                    <span>
-                      <Switch
-                        checked={brand.sponsoredProducts}
-                        onCheckedChange={() =>
-                          togglePermission(index, 'sponsoredProducts')
-                        }
-                      />
-                    </span>
-                    <span>
-                      <Switch
-                        checked={brand.display}
-                        onCheckedChange={() =>
-                          togglePermission(index, 'display')
-                        }
-                      />
-                    </span>
-                    <span>
-                      <button className="p-1 rounded hover:bg-muted">
-                        <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </span>
+            ) : null
+          }
+          tabs={[
+            {
+              label: 'Details',
+              value: 'details',
+              content: null,
+            },
+            {
+              label: 'Permissions',
+              value: 'permissions',
+              content: null,
+            },
+            {
+              label: 'Logs',
+              value: 'logs',
+              content: (
+                <div className="space-y-6 mt-6">
+                  {/* Access summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-start gap-3 p-4 border rounded-lg">
+                      <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Last login</p>
+                        <p className="text-sm text-muted-foreground">
+                          Feb 28, 2026 at 14:32
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 border rounded-lg">
+                      <Lock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Lockout status</p>
+                        <Badge variant="default" size="default">Not locked</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 border rounded-lg">
+                      <ShieldCheck className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">MFA</p>
+                        <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s)</p>
+                      </div>
+                    </div>
                   </div>
-                  {index < permissions.length - 1 && <Separator />}
+
+                  {/* Credentials section */}
+                  <div>
+                    <h4 className="text-sm font-semibold mb-4">Credentials</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <KeyRound className="w-5 h-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Password</p>
+                            <p className="text-sm text-muted-foreground">Configured</p>
+                          </div>
+                        </div>
+                        <ResetConfirmDialog
+                          trigger={<Button variant="outline" size="sm">Reset password</Button>}
+                          title="Reset password"
+                          description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
+                          onConfirm={() => alert('Password reset email sent')}
+                        />
+                      </div>
+                      <div className="p-4 border rounded-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Smartphone className="w-5 h-5 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">MFA Devices</p>
+                              <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s) configured</p>
+                            </div>
+                          </div>
+                          <ResetConfirmDialog
+                            trigger={<Button variant="outline" size="sm">Remove all devices</Button>}
+                            title="Remove MFA devices"
+                            description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
+                            onConfirm={() => alert('All MFA devices removed')}
+                          />
+                        </div>
+                        <div className="ml-8 space-y-2">
+                          {mfaDevices.map((device) => (
+                            <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm">
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                                <span>{device.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Link2 className="w-5 h-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">SSO Federated Credentials</p>
+                            <p className="text-sm text-muted-foreground">Linked</p>
+                          </div>
+                        </div>
+                        <ResetConfirmDialog
+                          trigger={<Button variant="outline" size="sm">Unlink</Button>}
+                          title="Unlink SSO Federated Credentials"
+                          description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
+                          onConfirm={() => alert('SSO credentials unlinked')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Login log table */}
+                  <div>
+                    <h4 className="text-sm font-semibold mb-4">Login history</h4>
+                    <FilterBar
+                      filters={[
+                        {
+                          name: 'Status',
+                          options: [
+                            { label: 'Success', value: 'Success' },
+                            { label: 'Failed', value: 'Failed' },
+                          ],
+                          selectedValues: logStatusFilter,
+                          onChange: setLogStatusFilter,
+                        },
+                        {
+                          name: 'Action',
+                          options: [
+                            { label: 'Login', value: 'Login' },
+                            { label: 'Password Reset', value: 'Password Reset' },
+                            { label: 'MFA Setup', value: 'MFA Setup' },
+                          ],
+                          selectedValues: logActionFilter,
+                          onChange: setLogActionFilter,
+                        },
+                      ]}
+                      searchValue={''}
+                      onSearchChange={() => {}}
+                      searchPlaceholder="Search logs..."
+                    />
+                    <Table
+                      columns={[
+                        {
+                          key: 'timestamp',
+                          header: 'Timestamp',
+                          render: (row: typeof loginLogData[0]) => new Date(row.timestamp).toLocaleString('en-US', {
+                            month: '2-digit', day: '2-digit', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit', hour12: true,
+                          }),
+                        },
+                        { key: 'action', header: 'Action', render: (row: typeof loginLogData[0]) => <Badge variant="outline">{row.action}</Badge> },
+                        {
+                          key: 'status',
+                          header: 'Status',
+                          render: (row: typeof loginLogData[0]) => (
+                            <Badge variant={row.status === 'Success' ? 'success' : 'destructive'}>
+                              {row.status}
+                            </Badge>
+                          ),
+                        },
+                        { key: 'ipAddress', header: 'IP Address' },
+                        { key: 'browser', header: 'Browser' },
+                        { key: 'location', header: 'Location' },
+                      ]}
+                      data={filteredLogs}
+                      rowKey={(row: typeof loginLogData[0]) => row.id}
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              ),
+            },
+          ]}
+          action={
+            activeTab === 'details' ? (
+              <Button onClick={() => alert(`Saved: ${firstName} ${lastName}`)}>Save changes</Button>
+            ) : activeTab === 'permissions' ? (
+              <Button>Assign roles</Button>
+            ) : activeTab === 'logs' ? (
+              <Button>Export logs</Button>
+            ) : null
+          }
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
       </div>
 
       {/* Right column */}
@@ -433,46 +535,6 @@ const UserProfileContent = () => {
           <CardContent>
             <p className="text-sm font-medium">albertheijn</p>
             <p className="text-sm text-muted-foreground">250 user(s)</p>
-          </CardContent>
-        </Card>
-
-        {/* Roles card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Roles</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-hidden">
-              {/* Table header */}
-              <div className="grid grid-cols-[1fr_1fr_32px] px-4 py-3 text-sm font-medium text-primary bg-muted/30">
-                <span>Role</span>
-                <span>Proposition</span>
-                <span></span>
-              </div>
-              <Separator />
-
-              {/* Table rows */}
-              <div className="max-h-[520px] overflow-y-auto">
-                {roles.map((item, index) => (
-                  <div key={`${item.role}-${item.proposition}-${index}`}>
-                    <div className="grid grid-cols-[1fr_1fr_32px] items-center px-4 py-3 text-sm">
-                      <span>{item.role}</span>
-                      <span>{item.proposition}</span>
-                      <span>
-                        <button className="p-1 rounded hover:bg-muted">
-                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      </span>
-                    </div>
-                    {index < roles.length - 1 && <Separator />}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 flex justify-end">
-              <Button>Assign roles</Button>
-            </div>
           </CardContent>
         </Card>
       </div>

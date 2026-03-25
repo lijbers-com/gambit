@@ -253,8 +253,6 @@ const UserProfileContent = () => {
                   </div>
                 </div>
 
-                <Separator />
-
                 {/* Credentials */}
                 <h3 className="text-sm font-semibold">Credentials</h3>
                 <div className="space-y-3">

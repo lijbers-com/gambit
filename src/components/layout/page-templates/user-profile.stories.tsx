@@ -199,13 +199,18 @@ const UserProfileContent = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  readOnly
-                  className="text-muted-foreground"
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    readOnly
+                    className="text-muted-foreground pr-24"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <Badge variant="success">Verified</Badge>
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="userId">ID</Label>
@@ -215,12 +220,6 @@ const UserProfileContent = () => {
                   readOnly
                   className="text-muted-foreground"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Email verification</Label>
-                <div className="pt-1">
-                  <Badge variant="success" size="large">Verified</Badge>
-                </div>
               </div>
               <div className="space-y-2">
                 <Label>User status</Label>

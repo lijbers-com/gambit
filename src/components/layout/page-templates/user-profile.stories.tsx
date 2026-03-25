@@ -30,8 +30,6 @@ import {
   KeyRound,
   Smartphone,
   Link2,
-  Clock,
-  Lock,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -394,32 +392,6 @@ const UserProfileContent = () => {
               value: 'logs',
               content: (
                 <div className="space-y-6 mt-6">
-                  {/* Access summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-start gap-3 p-4 border rounded-lg">
-                      <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Last login</p>
-                        <p className="text-sm text-muted-foreground">Feb 28, 2026 at 14:32</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 border rounded-lg">
-                      <Lock className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Lockout status</p>
-                        <Badge variant="default" size="default">Not locked</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 border rounded-lg">
-                      <ShieldCheck className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">MFA</p>
-                        <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s)</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Login log table */}
                   <FilterBar
                     filters={[
                       {

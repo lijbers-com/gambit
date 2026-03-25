@@ -599,7 +599,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
-    <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
+    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-slate-200 rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-slate-700 table-fixed">
         <thead className="bg-slate-50">
           <tr ref={headerRowRef}>

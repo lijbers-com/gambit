@@ -222,15 +222,12 @@ const UserProfileContent = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>User status</Label>
+                <Label>{isEnabled ? 'Account enabled' : 'Account disabled'}</Label>
                 <div className="flex items-center gap-3 pt-1">
                   <Switch
                     checked={isEnabled}
                     onCheckedChange={setIsEnabled}
                   />
-                  <span className="text-sm text-muted-foreground">
-                    {isEnabled ? 'Enabled' : 'Disabled'}
-                  </span>
                 </div>
               </div>
             </div>

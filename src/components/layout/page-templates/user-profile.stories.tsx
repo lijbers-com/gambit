@@ -224,26 +224,13 @@ const UserProfileContent = () => {
               <div className="space-y-2">
                 <Label>User status</Label>
                 <div className="flex items-center gap-3 pt-1">
-                  <Badge
-                    variant={isEnabled ? 'success' : 'destructive'}
-                    size="large"
-                  >
-                    {isEnabled ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                  <ResetConfirmDialog
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        {isEnabled ? 'Disable user' : 'Enable user'}
-                      </Button>
-                    }
-                    title={isEnabled ? 'Disable user' : 'Enable user'}
-                    description={
-                      isEnabled
-                        ? 'This will revoke the user\'s access to the platform. The user account will not be deleted and can be re-enabled later.'
-                        : 'This will restore the user\'s access to the platform.'
-                    }
-                    onConfirm={() => setIsEnabled(!isEnabled)}
+                  <Switch
+                    checked={isEnabled}
+                    onCheckedChange={setIsEnabled}
                   />
+                  <span className="text-sm text-muted-foreground">
+                    {isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
                 </div>
               </div>
             </div>

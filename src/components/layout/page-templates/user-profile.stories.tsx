@@ -252,6 +252,70 @@ const UserProfileContent = () => {
                     </div>
                   </div>
                 </div>
+
+                <Separator />
+
+                {/* Credentials */}
+                <h3 className="text-sm font-semibold">Credentials</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <KeyRound className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Password</p>
+                        <p className="text-sm text-muted-foreground">Configured</p>
+                      </div>
+                    </div>
+                    <ResetConfirmDialog
+                      trigger={<Button variant="outline" size="sm">Reset password</Button>}
+                      title="Reset password"
+                      description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
+                      onConfirm={() => alert('Password reset email sent')}
+                    />
+                  </div>
+                  <div className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">MFA Devices</p>
+                          <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s) configured</p>
+                        </div>
+                      </div>
+                      <ResetConfirmDialog
+                        trigger={<Button variant="outline" size="sm">Remove all devices</Button>}
+                        title="Remove MFA devices"
+                        description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
+                        onConfirm={() => alert('All MFA devices removed')}
+                      />
+                    </div>
+                    <div className="ml-8 space-y-2">
+                      {mfaDevices.map((device) => (
+                        <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                            <span>{device.name}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Link2 className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">SSO Federated Credentials</p>
+                        <p className="text-sm text-muted-foreground">Linked</p>
+                      </div>
+                    </div>
+                    <ResetConfirmDialog
+                      trigger={<Button variant="outline" size="sm">Unlink</Button>}
+                      title="Unlink SSO Federated Credentials"
+                      description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
+                      onConfirm={() => alert('SSO credentials unlinked')}
+                    />
+                  </div>
+                </div>
               </div>
             ) : activeTab === 'permissions' ? (
               <div className="space-y-8 w-full">
@@ -319,73 +383,6 @@ const UserProfileContent = () => {
               label: 'Permissions',
               value: 'permissions',
               content: null,
-            },
-            {
-              label: 'Credentials',
-              value: 'credentials',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <KeyRound className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Password</p>
-                          <p className="text-sm text-muted-foreground">Configured</p>
-                        </div>
-                      </div>
-                      <ResetConfirmDialog
-                        trigger={<Button variant="outline" size="sm">Reset password</Button>}
-                        title="Reset password"
-                        description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
-                        onConfirm={() => alert('Password reset email sent')}
-                      />
-                    </div>
-                    <div className="p-4 border rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Smartphone className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">MFA Devices</p>
-                            <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s) configured</p>
-                          </div>
-                        </div>
-                        <ResetConfirmDialog
-                          trigger={<Button variant="outline" size="sm">Remove all devices</Button>}
-                          title="Remove MFA devices"
-                          description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
-                          onConfirm={() => alert('All MFA devices removed')}
-                        />
-                      </div>
-                      <div className="ml-8 space-y-2">
-                        {mfaDevices.map((device) => (
-                          <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm">
-                            <div className="flex items-center gap-2">
-                              <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                              <span>{device.name}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Link2 className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">SSO Federated Credentials</p>
-                          <p className="text-sm text-muted-foreground">Linked</p>
-                        </div>
-                      </div>
-                      <ResetConfirmDialog
-                        trigger={<Button variant="outline" size="sm">Unlink</Button>}
-                        title="Unlink SSO Federated Credentials"
-                        description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
-                        onConfirm={() => alert('SSO credentials unlinked')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ),
             },
             {
               label: 'Logs',

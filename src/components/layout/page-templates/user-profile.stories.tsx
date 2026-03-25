@@ -308,36 +308,6 @@ const UserProfileContent = () => {
                   </div>
                 </div>
 
-                <Separator />
-
-                {/* Roles */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-4">Roles</h3>
-                  <div className="border rounded-md overflow-hidden">
-                    <div className="grid grid-cols-[1fr_1fr_32px] px-4 py-3 text-sm font-medium text-primary bg-muted/30">
-                      <span>Role</span>
-                      <span>Proposition</span>
-                      <span></span>
-                    </div>
-                    <Separator />
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {roles.map((item, index) => (
-                        <div key={`${item.role}-${item.proposition}-${index}`}>
-                          <div className="grid grid-cols-[1fr_1fr_32px] items-center px-4 py-3 text-sm">
-                            <span>{item.role}</span>
-                            <span>{item.proposition}</span>
-                            <span>
-                              <button className="p-1 rounded hover:bg-muted">
-                                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                              </button>
-                            </span>
-                          </div>
-                          {index < roles.length - 1 && <Separator />}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
             ) : null
           }
@@ -353,6 +323,73 @@ const UserProfileContent = () => {
               content: null,
             },
             {
+              label: 'Credentials',
+              value: 'credentials',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <KeyRound className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Password</p>
+                          <p className="text-sm text-muted-foreground">Configured</p>
+                        </div>
+                      </div>
+                      <ResetConfirmDialog
+                        trigger={<Button variant="outline" size="sm">Reset password</Button>}
+                        title="Reset password"
+                        description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
+                        onConfirm={() => alert('Password reset email sent')}
+                      />
+                    </div>
+                    <div className="p-4 border rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Smartphone className="w-5 h-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">MFA Devices</p>
+                            <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s) configured</p>
+                          </div>
+                        </div>
+                        <ResetConfirmDialog
+                          trigger={<Button variant="outline" size="sm">Remove all devices</Button>}
+                          title="Remove MFA devices"
+                          description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
+                          onConfirm={() => alert('All MFA devices removed')}
+                        />
+                      </div>
+                      <div className="ml-8 space-y-2">
+                        {mfaDevices.map((device) => (
+                          <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm">
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                              <span>{device.name}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Link2 className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">SSO Federated Credentials</p>
+                          <p className="text-sm text-muted-foreground">Linked</p>
+                        </div>
+                      </div>
+                      <ResetConfirmDialog
+                        trigger={<Button variant="outline" size="sm">Unlink</Button>}
+                        title="Unlink SSO Federated Credentials"
+                        description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
+                        onConfirm={() => alert('SSO credentials unlinked')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -363,9 +400,7 @@ const UserProfileContent = () => {
                       <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-medium">Last login</p>
-                        <p className="text-sm text-muted-foreground">
-                          Feb 28, 2026 at 14:32
-                        </p>
+                        <p className="text-sm text-muted-foreground">Feb 28, 2026 at 14:32</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 border rounded-lg">
@@ -384,129 +419,60 @@ const UserProfileContent = () => {
                     </div>
                   </div>
 
-                  {/* Credentials section */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-4">Credentials</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <KeyRound className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">Password</p>
-                            <p className="text-sm text-muted-foreground">Configured</p>
-                          </div>
-                        </div>
-                        <ResetConfirmDialog
-                          trigger={<Button variant="outline" size="sm">Reset password</Button>}
-                          title="Reset password"
-                          description="The user will receive an email with instructions to set up a new password. Their current password will be invalidated immediately."
-                          onConfirm={() => alert('Password reset email sent')}
-                        />
-                      </div>
-                      <div className="p-4 border rounded-lg space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Smartphone className="w-5 h-5 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm font-medium">MFA Devices</p>
-                              <p className="text-sm text-muted-foreground">{mfaDevices.length} device(s) configured</p>
-                            </div>
-                          </div>
-                          <ResetConfirmDialog
-                            trigger={<Button variant="outline" size="sm">Remove all devices</Button>}
-                            title="Remove MFA devices"
-                            description="All MFA devices will be removed. The user will be prompted to set up a new MFA device on their next login."
-                            onConfirm={() => alert('All MFA devices removed')}
-                          />
-                        </div>
-                        <div className="ml-8 space-y-2">
-                          {mfaDevices.map((device) => (
-                            <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md text-sm">
-                              <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                                <span>{device.name}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Link2 className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">SSO Federated Credentials</p>
-                            <p className="text-sm text-muted-foreground">Linked</p>
-                          </div>
-                        </div>
-                        <ResetConfirmDialog
-                          trigger={<Button variant="outline" size="sm">Unlink</Button>}
-                          title="Unlink SSO Federated Credentials"
-                          description="This will unlink the Gambit user from its federated credentials. The user will no longer be able to sign in using SSO until the credentials are re-linked."
-                          onConfirm={() => alert('SSO credentials unlinked')}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
                   {/* Login log table */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-4">Login history</h4>
-                    <FilterBar
-                      filters={[
-                        {
-                          name: 'Status',
-                          options: [
-                            { label: 'Success', value: 'Success' },
-                            { label: 'Failed', value: 'Failed' },
-                          ],
-                          selectedValues: logStatusFilter,
-                          onChange: setLogStatusFilter,
-                        },
-                        {
-                          name: 'Action',
-                          options: [
-                            { label: 'Login', value: 'Login' },
-                            { label: 'Password Reset', value: 'Password Reset' },
-                            { label: 'MFA Setup', value: 'MFA Setup' },
-                          ],
-                          selectedValues: logActionFilter,
-                          onChange: setLogActionFilter,
-                        },
-                      ]}
-                      searchValue={''}
-                      onSearchChange={() => {}}
-                      searchPlaceholder="Search logs..."
-                    />
-                    <Table
-                      columns={[
-                        {
-                          key: 'timestamp',
-                          header: 'Timestamp',
-                          render: (row: typeof loginLogData[0]) => new Date(row.timestamp).toLocaleString('en-US', {
-                            month: '2-digit', day: '2-digit', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit', hour12: true,
-                          }),
-                        },
-                        { key: 'action', header: 'Action', render: (row: typeof loginLogData[0]) => <Badge variant="outline">{row.action}</Badge> },
-                        {
-                          key: 'status',
-                          header: 'Status',
-                          render: (row: typeof loginLogData[0]) => (
-                            <Badge variant={row.status === 'Success' ? 'success' : 'destructive'}>
-                              {row.status}
-                            </Badge>
-                          ),
-                        },
-                        { key: 'ipAddress', header: 'IP Address' },
-                        { key: 'browser', header: 'Browser' },
-                        { key: 'location', header: 'Location' },
-                      ]}
-                      data={filteredLogs}
-                      rowKey={(row: typeof loginLogData[0]) => row.id}
-                    />
-                  </div>
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Success', value: 'Success' },
+                          { label: 'Failed', value: 'Failed' },
+                        ],
+                        selectedValues: logStatusFilter,
+                        onChange: setLogStatusFilter,
+                      },
+                      {
+                        name: 'Action',
+                        options: [
+                          { label: 'Login', value: 'Login' },
+                          { label: 'Password Reset', value: 'Password Reset' },
+                          { label: 'MFA Setup', value: 'MFA Setup' },
+                        ],
+                        selectedValues: logActionFilter,
+                        onChange: setLogActionFilter,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <Table
+                    columns={[
+                      {
+                        key: 'timestamp',
+                        header: 'Timestamp',
+                        render: (row: typeof loginLogData[0]) => new Date(row.timestamp).toLocaleString('en-US', {
+                          month: '2-digit', day: '2-digit', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit', hour12: true,
+                        }),
+                      },
+                      { key: 'action', header: 'Action', render: (row: typeof loginLogData[0]) => <Badge variant="outline">{row.action}</Badge> },
+                      {
+                        key: 'status',
+                        header: 'Status',
+                        render: (row: typeof loginLogData[0]) => (
+                          <Badge variant={row.status === 'Success' ? 'success' : 'destructive'}>
+                            {row.status}
+                          </Badge>
+                        ),
+                      },
+                      { key: 'ipAddress', header: 'IP Address' },
+                      { key: 'browser', header: 'Browser' },
+                      { key: 'location', header: 'Location' },
+                    ]}
+                    data={filteredLogs}
+                    rowKey={(row: typeof loginLogData[0]) => row.id}
+                  />
                 </div>
               ),
             },
@@ -515,7 +481,7 @@ const UserProfileContent = () => {
             activeTab === 'details' ? (
               <Button onClick={() => alert(`Saved: ${firstName} ${lastName}`)}>Save changes</Button>
             ) : activeTab === 'permissions' ? (
-              <Button>Assign roles</Button>
+              null
             ) : activeTab === 'logs' ? (
               <Button>Export logs</Button>
             ) : null
@@ -535,6 +501,42 @@ const UserProfileContent = () => {
           <CardContent>
             <p className="text-sm font-medium">albertheijn</p>
             <p className="text-sm text-muted-foreground">250 user(s)</p>
+          </CardContent>
+        </Card>
+
+        {/* Roles card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Roles</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-[1fr_1fr_32px] px-4 py-3 text-sm font-medium text-primary bg-muted/30">
+                <span>Role</span>
+                <span>Proposition</span>
+                <span></span>
+              </div>
+              <Separator />
+              <div className="max-h-[520px] overflow-y-auto">
+                {roles.map((item, index) => (
+                  <div key={`${item.role}-${item.proposition}-${index}`}>
+                    <div className="grid grid-cols-[1fr_1fr_32px] items-center px-4 py-3 text-sm">
+                      <span>{item.role}</span>
+                      <span>{item.proposition}</span>
+                      <span>
+                        <button className="p-1 rounded hover:bg-muted">
+                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      </span>
+                    </div>
+                    {index < roles.length - 1 && <Separator />}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 flex justify-end">
+              <Button>Assign roles</Button>
+            </div>
           </CardContent>
         </Card>
       </div>

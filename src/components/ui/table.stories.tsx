@@ -47,23 +47,12 @@ const columns: TableColumn<Row>[] = [
   {
     key: 'player',
     header: 'Player',
-    render: (row) => (
-      <div>
-        <div className="font-medium text-slate-800">{row.player}</div>
-        <div className="text-xs text-slate-500">MAC: {row.mac}</div>
-      </div>
-    ),
+    render: (row) => row.player,
   },
   {
     key: 'store',
     header: 'Store',
-    render: (row) => (
-      <div className="flex items-center gap-2">
-        <img src={row.storeLogo} alt="store" className="h-7 w-7 rounded-full bg-slate-100 border border-slate-200" />
-        <span>{row.store}</span>
-      </div>
-    ),
-    className: 'w-72',
+    render: (row) => row.store,
   },
   { key: 'attributes', header: 'Attributes' },
 ];

@@ -733,9 +733,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         verticalAlign: 'middle',
                         ...getStickyStyle(col.key),
                         ...(isLastFixed ? {
-                          boxShadow: hoverFixedSeparator || resizingColKey === lastFixedColKey
-                            ? '1px 0 0 0 rgb(148 163 184)' // slate-400
-                            : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                          boxShadow: '1px 0 0 0 rgb(226 232 240)', // slate-200 always
                         } : {}),
                         ...getColWidthStyle(col.key),
                       }}

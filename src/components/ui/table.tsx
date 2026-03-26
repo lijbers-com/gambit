@@ -627,7 +627,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     ...getColWidthStyle(col.key),
                   }}
                 >
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 overflow-hidden">
                   {col.header}
                     {col.key === sortKey && col.key !== '__actions' && (
                       sortDirection === 'asc' ? (

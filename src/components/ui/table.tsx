@@ -688,7 +688,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     <td
                       key={col.key}
                       className={cn(
-                        'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
+                        'px-4 py-2 align-middle truncate max-w-[180px] bg-white',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
                         col.className
@@ -702,7 +702,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         ...getColWidthStyle(col.key),
                       }}
                     >
-                      <div className="flex items-center w-full overflow-hidden" style={{ minHeight: 60 }}>
+                      <div className="flex items-center w-full overflow-hidden">
                       {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
                       </div>
                     </td>

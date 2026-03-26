@@ -354,7 +354,7 @@ const UserProfileContent = () => {
                     </button>
                   </div>
                   <div className="border rounded-md overflow-hidden">
-                    <div className="grid grid-cols-[1fr_160px_160px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary">
+                    <div className="grid grid-cols-[1fr_minmax(80px,160px)_minmax(80px,160px)_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary">
                       <span>Brands</span>
                       <span>Sponsored products</span>
                       <span>Display</span>
@@ -363,7 +363,7 @@ const UserProfileContent = () => {
                     <Separator />
                     {permissions.map((brand, index) => (
                       <div key={brand.name}>
-                        <div className="grid grid-cols-[1fr_160px_160px_40px] items-center px-4 py-3 text-sm">
+                        <div className="grid grid-cols-[1fr_minmax(80px,160px)_minmax(80px,160px)_40px] items-center px-4 py-3 text-sm">
                           <span className="flex items-center gap-2">
                             {brand.name}
                             {brand.isAll && <Info className="w-4 h-4 text-primary" />}

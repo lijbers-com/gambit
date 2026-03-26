@@ -353,8 +353,9 @@ const UserProfileContent = () => {
                       <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
                     </button>
                   </div>
-                  <div className="border rounded-md overflow-hidden">
-                    <div className="grid grid-cols-[minmax(120px,1fr)_80px_80px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary">
+                  <div className="border rounded-md overflow-x-auto">
+                    <div style={{ minWidth: 500 }}>
+                    <div className="grid grid-cols-[1fr_160px_160px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary whitespace-nowrap">
                       <span>Brands</span>
                       <span>Sponsored products</span>
                       <span>Display</span>
@@ -363,7 +364,7 @@ const UserProfileContent = () => {
                     <Separator />
                     {permissions.map((brand, index) => (
                       <div key={brand.name}>
-                        <div className="grid grid-cols-[minmax(120px,1fr)_80px_80px_40px] items-center px-4 py-3 text-sm">
+                        <div className="grid grid-cols-[1fr_160px_160px_40px] items-center px-4 py-3 text-sm whitespace-nowrap">
                           <span className="flex items-center gap-2">
                             {brand.name}
                             {brand.isAll && <Info className="w-4 h-4 text-primary" />}
@@ -389,6 +390,7 @@ const UserProfileContent = () => {
                         {index < permissions.length - 1 && <Separator />}
                       </div>
                     ))}
+                    </div>
                   </div>
                 </div>
 

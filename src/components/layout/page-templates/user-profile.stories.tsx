@@ -259,7 +259,7 @@ const UserProfileContent = () => {
                         readOnly
                         className="text-muted-foreground pr-24"
                       />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <div className="absolute right-2 inset-y-0 flex items-center">
                         <Badge variant="success">Verified</Badge>
                       </div>
                     </div>

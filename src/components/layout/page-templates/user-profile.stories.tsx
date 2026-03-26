@@ -392,6 +392,7 @@ const UserProfileContent = () => {
                     ]}
                     data={permissions}
                     rowKey={(row: typeof permissions[0]) => row.name}
+                    hideActions
                   />
                 </div>
 
@@ -510,6 +511,7 @@ const UserProfileContent = () => {
               ]}
               data={roles}
               rowKey={(row: typeof roles[0]) => `${row.role}-${row.proposition}`}
+              hideActions
             />
             <div className="pt-4 flex justify-end">
               <Button>Assign roles</Button>

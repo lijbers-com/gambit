@@ -364,20 +364,27 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Compute cumulative left offsets for sticky fixed columns using measured widths
   const fixedColLeftOffsets: Record<string, number> = {};
 
+  // Helper: get effective width of a column (user-resized > measured > default)
+  const getEffectiveWidth = (key: string, fallback: number) => {
+    if (columnWidths[key] != null) return columnWidths[key];
+    if (measuredWidthsRef.current[key]) return measuredWidthsRef.current[key];
+    return fallback;
+  };
+
   // Build ordered list of fixed column keys as they appear in the table
   let cumulativeLeft = 0;
   // Actions column is always first when visible and fixed
   if (isActionsVisible && isActionsFixed) {
     fixedColLeftOffsets['__actions'] = 0;
-    cumulativeLeft = measuredWidthsRef.current['__actions'] || ACTIONS_COL_WIDTH;
+    cumulativeLeft = getEffectiveWidth('__actions', ACTIONS_COL_WIDTH);
   }
   if (selectionCol) {
     fixedColLeftOffsets['__select'] = cumulativeLeft;
-    cumulativeLeft += measuredWidthsRef.current['__select'] || SELECTION_COL_WIDTH;
+    cumulativeLeft += getEffectiveWidth('__select', SELECTION_COL_WIDTH);
   }
   for (const col of fixedCols) {
     fixedColLeftOffsets[col.key] = cumulativeLeft;
-    cumulativeLeft += measuredWidthsRef.current[col.key] || col.width || COL_DEFAULT_WIDTH;
+    cumulativeLeft += getEffectiveWidth(col.key, col.width || COL_DEFAULT_WIDTH);
   }
 
   // Dropdown keys: fixed section shows fixedColumnKeys in order, columns section shows columnOrder

@@ -614,6 +614,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
                     isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-slate-400' : 'border-r border-slate-200'),
+                    !isLastFixed && isBeingResized && 'border-r border-slate-400',
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -649,14 +650,13 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   {isResizable && !isLastFixed && !isFixedColumn(col.key) && col.key !== '__actions' && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
-                      className={cn(
-                        'absolute right-0 cursor-col-resize z-20',
-                        isBeingResized
-                          ? 'top-0 w-[3px] bg-primary/60'
-                          : 'top-1/2 -translate-y-1/2 h-4 w-[7px] hover:border-r hover:border-slate-400',
+                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] flex justify-center"
+                      style={{ height: '100%', transform: 'translateX(50%)' }}
+                    >
+                      {!isBeingResized && (
+                        <div className="w-px h-3 bg-slate-300 self-center rounded-full" />
                       )}
-                      style={isBeingResized ? { height: '9999px' } : undefined}
-                    />
+                    </div>
                   )}
                 </th>
               );
@@ -690,6 +690,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       className={cn(
                         'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-slate-400' : 'border-r border-slate-200'),
+                        !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
                         col.className
                       )}
                       style={{

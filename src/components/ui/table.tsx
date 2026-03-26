@@ -601,7 +601,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
 
   return (
     <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-slate-200 rounded-xl', className)}>
-      <table className="min-w-full text-[14px] text-slate-700 table-fixed">
+      <table className="min-w-full text-[14px] text-slate-700 table-auto">
         <thead className="bg-slate-50">
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
@@ -688,15 +688,12 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     <td
                       key={col.key}
                       className={cn(
-                        'px-4 py-[11px] align-middle truncate max-w-[180px] bg-white',
+                        'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
                         col.className
                       )}
                       style={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
                         verticalAlign: 'middle',
                         ...getStickyStyle(col.key),
                         ...getColWidthStyle(col.key),

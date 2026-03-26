@@ -351,9 +351,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     visibleCols = [selectionCol, ...visibleCols];
   }
 
-  // Refs and state for measuring actual column widths
+  // Refs for measuring actual column widths (use ref to avoid re-render loops)
   const headerRowRef = React.useRef<HTMLTableRowElement>(null);
-  const [measuredWidths, setMeasuredWidths] = React.useState<Record<string, number>>({});
+  const measuredWidthsRef = React.useRef<Record<string, number>>({});
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
 
   // Column width constants (fallbacks before measurement)
   const COL_DEFAULT_WIDTH = 180;
@@ -368,15 +369,15 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Actions column is always first when visible and fixed
   if (isActionsVisible && isActionsFixed) {
     fixedColLeftOffsets['__actions'] = 0;
-    cumulativeLeft = measuredWidths['__actions'] || ACTIONS_COL_WIDTH;
+    cumulativeLeft = measuredWidthsRef.current['__actions'] || ACTIONS_COL_WIDTH;
   }
   if (selectionCol) {
     fixedColLeftOffsets['__select'] = cumulativeLeft;
-    cumulativeLeft += measuredWidths['__select'] || SELECTION_COL_WIDTH;
+    cumulativeLeft += measuredWidthsRef.current['__select'] || SELECTION_COL_WIDTH;
   }
   for (const col of fixedCols) {
     fixedColLeftOffsets[col.key] = cumulativeLeft;
-    cumulativeLeft += measuredWidths[col.key] || col.width || COL_DEFAULT_WIDTH;
+    cumulativeLeft += measuredWidthsRef.current[col.key] || col.width || COL_DEFAULT_WIDTH;
   }
 
   // Dropdown keys: fixed section shows fixedColumnKeys in order, columns section shows columnOrder
@@ -488,8 +489,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const allColKeys = allCols.map((col) => col.key);
 
   // Measure header cell widths after render for accurate sticky offsets
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => {
+  const allColKeysStr = allColKeys.join(',');
+  const fixedKeysStr = fixedColumnKeys.join(',');
+  const hasMeasured = React.useRef(false);
+  React.useLayoutEffect(() => {
     if (!headerRowRef.current) return;
     const cells = headerRowRef.current.querySelectorAll('th');
     const widths: Record<string, number> = {};
@@ -498,11 +501,18 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         widths[allColKeys[index]] = Math.round(cell.getBoundingClientRect().width);
       }
     });
-    // Only update if widths changed by more than 1px to avoid infinite loop
-    const changed = allColKeys.some((k) => Math.abs((widths[k] || 0) - (measuredWidths[k] || 0)) > 1);
-    if (changed) setMeasuredWidths(widths);
+    const prev = measuredWidthsRef.current;
+    const changed = allColKeys.some((k) => Math.abs((widths[k] || 0) - (prev[k] || 0)) > 1);
+    if (changed) {
+      measuredWidthsRef.current = widths;
+      // Only force re-render on first measurement or significant changes
+      if (!hasMeasured.current || changed) {
+        hasMeasured.current = true;
+        forceUpdate();
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allColKeys.join(','), data.length, fixedColumnKeys.join(','), columnVisibility.map(c => `${c.key}:${c.visible}`).join(',')]);
+  }, [allColKeysStr, data.length, fixedKeysStr]);
 
   // Sort data if needed
   let sortedData = [...data];

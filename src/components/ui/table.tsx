@@ -635,18 +635,27 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Draggable resize handle — spans full table height on hover/drag */}
-                  {isResizable && (
+                  {/* Draggable resize handle */}
+                  {isResizable && isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
                       className={cn(
-                        'absolute top-0 right-0 cursor-col-resize z-20 group',
-                        isBeingResized ? 'w-[3px] bg-primary/50' : 'w-[7px] hover:border-r hover:border-primary/40',
+                        'absolute top-0 right-0 cursor-col-resize z-20',
+                        isBeingResized ? 'w-[3px] bg-primary/60' : 'w-[7px] hover:bg-primary/20',
                       )}
-                      style={{
-                        transform: isLastFixed ? undefined : 'translateX(50%)',
-                        height: '9999px',
-                      }}
+                      style={{ height: '9999px' }}
+                    />
+                  )}
+                  {isResizable && !isLastFixed && !isFixedColumn(col.key) && col.key !== '__actions' && (
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
+                      className={cn(
+                        'absolute right-0 cursor-col-resize z-20',
+                        isBeingResized
+                          ? 'top-0 w-[3px] bg-primary/60'
+                          : 'top-1/2 -translate-y-1/2 h-4 w-[7px] hover:border-r hover:border-slate-400',
+                      )}
+                      style={isBeingResized ? { height: '9999px' } : undefined}
                     />
                   )}
                 </th>

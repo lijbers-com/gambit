@@ -495,13 +495,14 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     const widths: Record<string, number> = {};
     cells.forEach((cell, index) => {
       if (index < allColKeys.length) {
-        widths[allColKeys[index]] = cell.getBoundingClientRect().width;
+        widths[allColKeys[index]] = Math.round(cell.getBoundingClientRect().width);
       }
     });
-    // Only update if widths changed to avoid infinite loop
-    const changed = allColKeys.some((k) => widths[k] !== measuredWidths[k]);
+    // Only update if widths changed by more than 1px to avoid infinite loop
+    const changed = allColKeys.some((k) => Math.abs((widths[k] || 0) - (measuredWidths[k] || 0)) > 1);
     if (changed) setMeasuredWidths(widths);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allColKeys.join(','), data.length, fixedColumnKeys.join(','), columnVisibility.map(c => `${c.key}:${c.visible}`).join(',')]);
 
   // Sort data if needed
   let sortedData = [...data];

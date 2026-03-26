@@ -638,12 +638,16 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   {isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
-                      className={cn(
-                        'absolute top-0 right-0 z-20 cursor-col-resize',
-                        isBeingResized ? 'w-[3px] bg-primary/60' : 'w-px bg-slate-300 hover:w-[3px] hover:bg-slate-400',
-                      )}
+                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] group"
                       style={{ height: '9999px' }}
-                    />
+                    >
+                      <div
+                        className={cn(
+                          'absolute top-0 right-[3px] w-px h-full',
+                          isBeingResized ? 'bg-primary/60' : 'bg-slate-200 group-hover:bg-slate-400',
+                        )}
+                      />
+                    </div>
                   )}
                   {isResizable && !isLastFixed && !isFixedColumn(col.key) && col.key !== '__actions' && (
                     <div

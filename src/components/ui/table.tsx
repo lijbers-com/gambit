@@ -612,7 +612,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   key={col.key}
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    isLastFixed && 'border-r border-slate-300',
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -635,13 +634,13 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Draggable resize handle */}
-                  {isResizable && isLastFixed && (
+                  {/* Fixed column separator — always visible 1px, darkens on hover/drag */}
+                  {isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
                       className={cn(
-                        'absolute top-0 right-0 cursor-col-resize z-20',
-                        isBeingResized ? 'w-[3px] bg-primary/60' : 'w-[7px] hover:bg-primary/20',
+                        'absolute top-0 right-0 z-20 cursor-col-resize',
+                        isBeingResized ? 'w-[3px] bg-primary/60' : 'w-px bg-slate-300 hover:w-[3px] hover:bg-slate-400',
                       )}
                       style={{ height: '9999px' }}
                     />
@@ -689,7 +688,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
-                        isLastFixed && 'border-r border-slate-300',
                         col.className
                       )}
                       style={{

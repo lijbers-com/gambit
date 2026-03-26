@@ -641,7 +641,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
                       className={cn(
                         'absolute top-0 right-0 cursor-col-resize z-20 group',
-                        isBeingResized ? 'w-[3px] bg-primary/50' : 'w-[7px] hover:bg-primary/30',
+                        isBeingResized ? 'w-[3px] bg-primary/50' : 'w-[7px] hover:border-r hover:border-primary/40',
                       )}
                       style={{
                         transform: 'translateX(50%)',

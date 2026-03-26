@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Table } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import {
@@ -27,7 +26,6 @@ import { cn } from '@/lib/utils';
 import {
   Building2,
   ChevronDown,
-  MoreVertical,
   Info,
   KeyRound,
   Smartphone,
@@ -353,45 +351,48 @@ const UserProfileContent = () => {
                       <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
                     </button>
                   </div>
-                  <div className="border rounded-md overflow-x-auto">
-                    <div style={{ minWidth: 500 }}>
-                    <div className="grid grid-cols-[1fr_160px_160px_40px] bg-muted/30 px-4 py-3 text-sm font-medium text-primary whitespace-nowrap">
-                      <span>Brands</span>
-                      <span>Sponsored products</span>
-                      <span>Display</span>
-                      <span></span>
-                    </div>
-                    <Separator />
-                    {permissions.map((brand, index) => (
-                      <div key={brand.name}>
-                        <div className="grid grid-cols-[1fr_160px_160px_40px] items-center px-4 py-3 text-sm whitespace-nowrap">
+                  <Table
+                    columns={[
+                      {
+                        key: 'name',
+                        header: 'Brands',
+                        render: (row: typeof permissions[0]) => (
                           <span className="flex items-center gap-2">
-                            {brand.name}
-                            {brand.isAll && <Info className="w-4 h-4 text-primary" />}
+                            {row.name}
+                            {row.isAll && <Info className="w-4 h-4 text-primary" />}
                           </span>
-                          <span>
+                        ),
+                      },
+                      {
+                        key: 'sponsoredProducts',
+                        header: 'Sponsored products',
+                        render: (row: typeof permissions[0]) => {
+                          const idx = permissions.findIndex(p => p.name === row.name);
+                          return (
                             <Switch
-                              checked={brand.sponsoredProducts}
-                              onCheckedChange={() => togglePermission(index, 'sponsoredProducts')}
+                              checked={row.sponsoredProducts}
+                              onCheckedChange={() => togglePermission(idx, 'sponsoredProducts')}
                             />
-                          </span>
-                          <span>
+                          );
+                        },
+                      },
+                      {
+                        key: 'display',
+                        header: 'Display',
+                        render: (row: typeof permissions[0]) => {
+                          const idx = permissions.findIndex(p => p.name === row.name);
+                          return (
                             <Switch
-                              checked={brand.display}
-                              onCheckedChange={() => togglePermission(index, 'display')}
+                              checked={row.display}
+                              onCheckedChange={() => togglePermission(idx, 'display')}
                             />
-                          </span>
-                          <span>
-                            <button className="p-1 rounded hover:bg-muted">
-                              <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          </span>
-                        </div>
-                        {index < permissions.length - 1 && <Separator />}
-                      </div>
-                    ))}
-                    </div>
-                  </div>
+                          );
+                        },
+                      },
+                    ]}
+                    data={permissions}
+                    rowKey={(row: typeof permissions[0]) => row.name}
+                  />
                 </div>
 
               </div>
@@ -501,32 +502,16 @@ const UserProfileContent = () => {
           <CardHeader>
             <CardTitle>Roles</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-hidden">
-              <div className="grid grid-cols-[1fr_1fr_32px] px-4 py-3 text-sm font-medium text-primary bg-muted/30">
-                <span>Role</span>
-                <span>Proposition</span>
-                <span></span>
-              </div>
-              <Separator />
-              <div className="max-h-[520px] overflow-y-auto">
-                {roles.map((item, index) => (
-                  <div key={`${item.role}-${item.proposition}-${index}`}>
-                    <div className="grid grid-cols-[1fr_1fr_32px] items-center px-4 py-3 text-sm">
-                      <span>{item.role}</span>
-                      <span>{item.proposition}</span>
-                      <span>
-                        <button className="p-1 rounded hover:bg-muted">
-                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      </span>
-                    </div>
-                    {index < roles.length - 1 && <Separator />}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="p-4 flex justify-end">
+          <CardContent>
+            <Table
+              columns={[
+                { key: 'role', header: 'Role' },
+                { key: 'proposition', header: 'Proposition' },
+              ]}
+              data={roles}
+              rowKey={(row: typeof roles[0]) => `${row.role}-${row.proposition}`}
+            />
+            <div className="pt-4 flex justify-end">
               <Button>Assign roles</Button>
             </div>
           </CardContent>

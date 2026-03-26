@@ -50,11 +50,9 @@ const columns: TableColumn<Row>[] = [
     render: (row) => (
       <div>
         <div className="font-medium text-slate-800">{row.player}</div>
-        <div className="text-xs text-slate-500">MAC Address: {row.mac}</div>
-        <div className="text-xs text-slate-400">Hostname: {row.hostname}</div>
+        <div className="text-xs text-slate-500">MAC: {row.mac}</div>
       </div>
     ),
-    className: 'w-64',
   },
   {
     key: 'store',

@@ -202,7 +202,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       <td 
         key={weekIndex} 
         className={cn(
-          "px-3 py-3 align-middle text-center cursor-pointer hover:bg-slate-50 transition-colors"
+          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-slate-50 transition-colors"
           // Removed thick border and conditional border coloring
         )}
         onClick={handleCellClick}
@@ -296,7 +296,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         <thead className="bg-slate-50">
           <tr>
             <th 
-              className="px-4 py-3 text-left font-medium text-slate-600 tracking-wide whitespace-nowrap"
+              className="px-4 py-[11px] text-left font-medium text-slate-600 tracking-wide whitespace-nowrap"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
               Zones
@@ -304,7 +304,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             {weekNumbers.map(week => (
               <th 
                 key={week} 
-                className="px-4 py-3 text-center font-medium text-slate-600 tracking-wide whitespace-nowrap"
+                className="px-4 py-[11px] text-center font-medium text-slate-600 tracking-wide whitespace-nowrap"
                 style={{ width: weekColumnWidth, minWidth: weekColumnWidth }}
               >
                 Week {week}
@@ -317,8 +317,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           {retailerEvents.length > 0 && (
             <React.Fragment>
               <tr className="bg-white border-b border-slate-200">
-                <td className="px-4 py-3 align-middle">
-                  <div className="flex items-center gap-3" style={{ minHeight: 48 }}>
+                <td className="px-4 py-[11px] align-middle">
+                  <div className="flex items-center gap-3">
                     <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">Events</span>
                     <button
                       onClick={toggleCommercialCalendar}
@@ -344,8 +344,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   }, [] as RetailerEvent[]);
                   
                   return (
-                    <td key={weekNum} className="px-4 py-3 align-middle text-center">
-                      <div style={{ minHeight: 48 }} className="flex items-center justify-center gap-1">
+                    <td key={weekNum} className="px-4 py-[11px] align-middle text-center">
+                      <div className="flex items-center justify-center gap-1">
                         {!isCommercialCalendarOpen && uniqueEventsInWeek.map((event, index) => {
                           // Find the event index in the overall event groups to get consistent color
                           const eventGroups = retailerEvents.reduce((groups, e) => {
@@ -475,8 +475,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 'bg-white',
                 productIndex !== mediaProducts.length - 1 && 'border-b border-slate-200'
               )}>
-                <td className="px-4 py-3 align-middle">
-                  <div className="flex items-center gap-3" style={{ minHeight: 48 }}>
+                <td className="px-4 py-[11px] align-middle">
+                  <div className="flex items-center gap-3">
                     <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
                     <button
                       onClick={() => toggleRow(product.id)}

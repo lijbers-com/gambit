@@ -624,8 +624,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   key={col.key}
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    isLastFixed && 'border-r',
-                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-slate-400' : 'border-slate-200'),
                     !isLastFixed && isBeingResized && 'border-r border-slate-400',
                     isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-slate-400',
                     col.className
@@ -677,12 +675,12 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )}
                     </div>
                   )}
-                  {/* Resize handle for non-fixed columns */}
+                  {/* Resize handle for non-fixed columns (z-index below fixed columns) */}
                   {isResizable && !isFixedColumn(col.key) && col.key !== '__select' && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
-                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] flex justify-center"
-                      style={{ height: '100%', transform: 'translateX(50%)' }}
+                      className="absolute top-0 right-0 cursor-col-resize w-[7px] flex justify-center"
+                      style={{ height: '100%', transform: 'translateX(50%)', zIndex: 5 }}
                     >
                       {!isBeingResized && (
                         <div className="w-px h-3 bg-slate-300 self-center rounded-full" />
@@ -720,8 +718,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
-                        isLastFixed && 'border-r',
-                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-slate-400' : 'border-slate-200'),
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
                         col.className
                       )}

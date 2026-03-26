@@ -644,7 +644,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         isBeingResized ? 'w-[3px] bg-primary/50' : 'w-[7px] hover:border-r hover:border-primary/40',
                       )}
                       style={{
-                        transform: 'translateX(50%)',
+                        transform: isLastFixed ? undefined : 'translateX(50%)',
                         height: '9999px',
                       }}
                     />

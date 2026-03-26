@@ -542,6 +542,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   // Per-column resize widths
   const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
   const [resizingColKey, setResizingColKey] = React.useState<string | null>(null);
+  const [hoverFixedSeparator, setHoverFixedSeparator] = React.useState(false);
   const resizingRef = React.useRef(false);
   const resizeStartRef = React.useRef<{ key: string; startX: number; startWidth: number }>({ key: '', startX: 0, startWidth: 0 });
 
@@ -612,7 +613,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   key={col.key}
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    isLastFixed && 'border-r border-slate-200',
+                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -639,6 +640,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   {isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
+                      onMouseEnter={() => setHoverFixedSeparator(true)}
+                      onMouseLeave={() => setHoverFixedSeparator(false)}
                       className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px]"
                       style={{ height: '100%', transform: 'translateX(50%)' }}
                     />
@@ -686,7 +689,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-3 align-middle truncate max-w-[180px] bg-white',
-                        isLastFixed && 'border-r border-slate-200',
+                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                         col.className
                       )}
                       style={{

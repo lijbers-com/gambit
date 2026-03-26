@@ -356,6 +356,9 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const measuredWidthsRef = React.useRef<Record<string, number>>({});
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
 
+  // Per-column resize widths (must be before offset calculation)
+  const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
+
   // Column width constants (fallbacks before measurement)
   const COL_DEFAULT_WIDTH = 180;
   const SELECTION_COL_WIDTH = 48;
@@ -557,8 +560,6 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     return fixedKeys.length > 0 ? fixedKeys[fixedKeys.length - 1] : null;
   })();
 
-  // Per-column resize widths
-  const [columnWidths, setColumnWidths] = React.useState<Record<string, number>>({});
   const [resizingColKey, setResizingColKey] = React.useState<string | null>(null);
   const [hoverFixedSeparator, setHoverFixedSeparator] = React.useState(false);
   const resizingRef = React.useRef(false);

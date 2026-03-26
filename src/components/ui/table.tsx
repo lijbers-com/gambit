@@ -624,8 +624,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                   key={col.key}
                   className={cn(
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                     !isLastFixed && isBeingResized && 'border-r border-slate-400',
+                    isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-slate-400',
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -635,6 +635,11 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     left: isFixedColumn(col.key) ? (fixedColLeftOffsets[col.key] ?? 0) : undefined,
                     zIndex: isFixedColumn(col.key) ? 10 : undefined,
                     overflow: 'visible',
+                    ...(isLastFixed ? {
+                      boxShadow: hoverFixedSeparator || isBeingResized
+                        ? '1px 0 0 0 rgb(148 163 184)' // slate-400
+                        : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                    } : {}),
                     ...getColWidthStyle(col.key),
                   }}
                 >
@@ -648,7 +653,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Invisible grab area for resizing the fixed column border */}
+                  {/* Grab area for resizing the fixed column border */}
                   {isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
@@ -658,7 +663,20 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       style={{ height: '100%', transform: 'translateX(50%)' }}
                     />
                   )}
-                  {isResizable && !isLastFixed && !isFixedColumn(col.key) && col.key !== '__actions' && (
+                  {/* Resize handle for fixed columns (not last fixed, not actions/select) */}
+                  {isResizable && isFixedColumn(col.key) && !isLastFixed && col.key !== '__actions' && (
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
+                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] flex justify-center"
+                      style={{ height: '100%', transform: 'translateX(50%)' }}
+                    >
+                      {!isBeingResized && (
+                        <div className="w-px h-3 bg-slate-300 self-center rounded-full" />
+                      )}
+                    </div>
+                  )}
+                  {/* Resize handle for non-fixed columns */}
+                  {isResizable && !isFixedColumn(col.key) && col.key !== '__actions' && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
                       className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] flex justify-center"
@@ -700,13 +718,17 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
-                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-slate-400' : 'border-r border-slate-200'),
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
                         col.className
                       )}
                       style={{
                         verticalAlign: 'middle',
                         ...getStickyStyle(col.key),
+                        ...(isLastFixed ? {
+                          boxShadow: hoverFixedSeparator || resizingColKey === lastFixedColKey
+                            ? '1px 0 0 0 rgb(148 163 184)' // slate-400
+                            : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                        } : {}),
                         ...getColWidthStyle(col.key),
                       }}
                     >

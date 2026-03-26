@@ -635,20 +635,13 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       )
                     )}
                   </span>
-                  {/* Fixed column separator — always visible 1px, darkens on hover/drag */}
+                  {/* Invisible grab area for resizing the fixed column border */}
                   {isLastFixed && (
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, col.key)}
-                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px] group"
-                      style={{ height: '9999px' }}
-                    >
-                      <div
-                        className={cn(
-                          'absolute top-0 right-[3px] w-px h-full',
-                          isBeingResized ? 'bg-primary/60' : 'bg-slate-200 group-hover:bg-slate-400',
-                        )}
-                      />
-                    </div>
+                      className="absolute top-0 right-0 z-20 cursor-col-resize w-[7px]"
+                      style={{ height: '100%', transform: 'translateX(50%)' }}
+                    />
                   )}
                   {isResizable && !isLastFixed && !isFixedColumn(col.key) && col.key !== '__actions' && (
                     <div

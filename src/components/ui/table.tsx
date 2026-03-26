@@ -637,6 +637,11 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     left: isFixedColumn(col.key) ? (fixedColLeftOffsets[col.key] ?? 0) : undefined,
                     zIndex: isFixedColumn(col.key) ? 10 : undefined,
                     overflow: 'visible',
+                    ...(isLastFixed ? {
+                      boxShadow: hoverFixedSeparator || isBeingResized
+                        ? '1px 0 0 0 rgb(148 163 184)' // slate-400
+                        : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                    } : {}),
                     ...getColWidthStyle(col.key),
                   }}
                 >
@@ -723,6 +728,11 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       style={{
                         verticalAlign: 'middle',
                         ...getStickyStyle(col.key),
+                        ...(isLastFixed ? {
+                          boxShadow: hoverFixedSeparator || resizingColKey === lastFixedColKey
+                            ? '1px 0 0 0 rgb(148 163 184)' // slate-400
+                            : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                        } : {}),
                         ...getColWidthStyle(col.key),
                       }}
                     >

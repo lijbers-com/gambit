@@ -15,6 +15,46 @@ import { Minus } from 'lucide-react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { MetricRow } from '@/components/ui/metric-row';
+import type { MetricDefinition } from '@/components/ui/metric-row';
+
+// --- Shared campaign metrics per proposition type ---
+// These mirror the campaign-level metrics so users see consistent data when navigating from campaign → creative
+
+const displayMetrics: MetricDefinition[] = [
+  { key: 'adSpend', label: 'Ad Spend', value: '€8,120', subMetric: 'Budget: €15,000', badgeValue: '+10%', badgeVariant: 'success' },
+  { key: 'impressions', label: 'Impressions', value: '945,230', subMetric: 'Unique: 620K', badgeValue: '+7%', badgeVariant: 'success' },
+  { key: 'clicks', label: 'Clicks', value: '12,340', subMetric: 'Add to Carts: 1,845', badgeValue: '+9%', badgeVariant: 'success' },
+  { key: 'ctr', label: 'CTR', value: '1.31%', subMetric: 'Clicks / Impressions', badgeValue: '+3%', badgeVariant: 'success' },
+  { key: 'cpc', label: 'CPC', value: '€0.66', subMetric: 'Ad Spend / Clicks', badgeValue: '-5%', badgeVariant: 'success' },
+  { key: 'cpm', label: 'CPM', value: '€8.59', subMetric: 'Cost per 1,000 impressions', badgeValue: '-2%', badgeVariant: 'success' },
+  { key: 'onlineSkuRevenue', label: 'Online SKU Revenue', value: '€18,450', subMetric: '28-day attribution', badgeValue: '+18%', badgeVariant: 'success' },
+  { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€24,680', subMetric: '28-day attribution', badgeValue: '+15%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '3.04x', subMetric: 'Revenue / Ad Spend', badgeValue: '+12%', badgeVariant: 'success' },
+];
+
+const digitalInstoreMetrics: MetricDefinition[] = [
+  { key: 'repetitions', label: 'Repetitions', value: '1,245,890', subMetric: 'CTR: 2.14%', badgeValue: '+8%', badgeVariant: 'success' },
+  { key: 'stores', label: 'Stores', value: '128', subMetric: 'Coverage: 74%', badgeValue: '0%', badgeVariant: 'secondary' },
+  { key: 'reach', label: 'Reach', value: '680K', subMetric: 'Unique shoppers', badgeValue: '+12%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '1.92x', subMetric: 'AOV: €42.30', badgeValue: '+5%', badgeVariant: 'success' },
+  { key: 'adSpend', label: 'Ad Spend', value: '€4,250', subMetric: 'Budget: €8,000', badgeValue: '+6%', badgeVariant: 'success' },
+  { key: 'cpm', label: 'CPM', value: '€3.41', subMetric: 'Cost per 1,000 repetitions', badgeValue: '-3%', badgeVariant: 'success' },
+  { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '€8,160', subMetric: '28-day attribution', badgeValue: '+14%', badgeVariant: 'success' },
+  { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€10,240', subMetric: '28-day attribution', badgeValue: '+11%', badgeVariant: 'success' },
+];
+
+const offlineInstoreMetrics: MetricDefinition[] = [
+  { key: 'adSpend', label: 'Ad Spend', value: '€6,480', subMetric: 'Budget: €12,000', badgeValue: '+12%', badgeVariant: 'success' },
+  { key: 'impressions', label: 'Impressions', value: '425,600', subMetric: 'Unique: 280K', badgeValue: '+6%', badgeVariant: 'success' },
+  { key: 'stores', label: 'Stores', value: '86', subMetric: 'Coverage: 62%', badgeValue: '+4%', badgeVariant: 'success' },
+  { key: 'ctr', label: 'CTR', value: '1.31%', subMetric: 'Clicks / Impressions', badgeValue: '+3%', badgeVariant: 'success' },
+  { key: 'cpm', label: 'CPM', value: '€15.23', subMetric: 'Cost per 1,000 impressions', badgeValue: '-2%', badgeVariant: 'success' },
+  { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '€12,480', subMetric: '28-day attribution', badgeValue: '+22%', badgeVariant: 'success' },
+  { key: 'instoreSkuUnits', label: 'In-store SKU Units', value: '1,245', subMetric: '28-day attribution', badgeValue: '+16%', badgeVariant: 'success' },
+  { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€18,960', subMetric: '28-day attribution', badgeValue: '+20%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '2.93x', subMetric: 'Revenue / Ad Spend', badgeValue: '+8%', badgeVariant: 'success' },
+];
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Creative Detail',
@@ -314,6 +354,15 @@ export const Display: Story = {
           headerRight: null,
         }}
       >
+        <div className="mb-6">
+          <MetricRow
+            metrics={displayMetrics}
+            selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+            maxVisible={5}
+            defaultVariant="default"
+            removable={true}
+          />
+        </div>
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">
@@ -535,6 +584,15 @@ export const DigitalInStore: Story = {
           headerRight: null,
         }}
       >
+        <div className="mb-6">
+          <MetricRow
+            metrics={digitalInstoreMetrics}
+            selectedKeys={['repetitions', 'stores', 'reach', 'roas']}
+            maxVisible={5}
+            defaultVariant="default"
+            removable={true}
+          />
+        </div>
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">
@@ -772,6 +830,15 @@ export const OfflineInStore: Story = {
           headerRight: null,
         }}
       >
+        <div className="mb-6">
+          <MetricRow
+            metrics={offlineInstoreMetrics}
+            selectedKeys={['adSpend', 'impressions', 'stores', 'totalSkuRevenue']}
+            maxVisible={5}
+            defaultVariant="default"
+            removable={true}
+          />
+        </div>
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">

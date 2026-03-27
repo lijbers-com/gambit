@@ -1325,7 +1325,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               {selectedAudiences.map((id) => {
                                 const audience = audienceOptions.find(a => a.id === id);
                                 return audience ? (
-                                  <Badge key={id} variant="secondary" size="small">{audience.label}</Badge>
+                                  <Badge key={id} variant="secondary" size="default">{audience.label}</Badge>
                                 ) : null;
                               })}
                             </div>
@@ -1361,7 +1361,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               {selectedKeywords.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 mt-1">
                                   {selectedKeywords.map((kw) => (
-                                    <Badge key={kw} variant="secondary" size="small">{kw}</Badge>
+                                    <Badge key={kw} variant="secondary" size="default">{kw}</Badge>
                                   ))}
                                 </div>
                               )}

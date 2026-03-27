@@ -1,9 +1,9 @@
 'use client';
 
-import { DigitalInstoreInOption } from '@/components/layout/page-templates/campaign-details.stories';
+import { CreateDigitalInstore } from '@/components/layout/page-templates/create-proposition-campaign.stories';
 
 export default function CreateDigitalInstorePage() {
-  const Component = DigitalInstoreInOption.render as () => React.JSX.Element;
+  const Component = CreateDigitalInstore.render as () => React.JSX.Element;
 
   if (!Component) {
     return <div>Digital In-Store Campaign</div>;

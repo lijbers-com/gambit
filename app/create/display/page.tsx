@@ -1,9 +1,9 @@
 'use client';
 
-import { DisplayInOption } from '@/components/layout/page-templates/campaign-details.stories';
+import { CreateDisplay } from '@/components/layout/page-templates/create-proposition-campaign.stories';
 
 export default function CreateDisplayPage() {
-  const Component = DisplayInOption.render as () => React.JSX.Element;
+  const Component = CreateDisplay.render as () => React.JSX.Element;
 
   if (!Component) {
     return <div>Display Campaign</div>;

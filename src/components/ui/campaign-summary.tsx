@@ -80,6 +80,7 @@ export interface CampaignSummaryProps {
   advertiser?: string;
   advertiserOptions?: { label: string; value: string }[];
   onAdvertiserChange?: (advertiser: string) => void;
+  mediaExperienceId?: string;
   className?: string;
 }
 
@@ -130,6 +131,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     advertiser: advertiserProp = '',
     advertiserOptions,
     onAdvertiserChange,
+    mediaExperienceId,
     className,
     ...props
   }, ref) => {
@@ -567,9 +569,25 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   </Button>
                 </div>
               ) : internalTitle ? (
-                <h2 className="text-xl font-semibold text-foreground leading-tight">
-                  {internalTitle}
-                </h2>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground leading-tight">
+                    {internalTitle}
+                  </h2>
+                  {(mediaExperienceId || internalAdvertiser) && (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {[mediaExperienceId, (() => {
+                        const opts = advertiserOptions || [
+                          { label: 'Unilever', value: 'unilever' },
+                          { label: 'Procter & Gamble', value: 'pg' },
+                          { label: 'Nestlé', value: 'nestle' },
+                          { label: 'Coca-Cola', value: 'coca-cola' },
+                          { label: 'PepsiCo', value: 'pepsico' },
+                        ];
+                        return opts.find(o => o.value === internalAdvertiser)?.label || internalAdvertiser;
+                      })()].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
               ) : null}
               {layout === 'vertical' && (
                 <div className="mt-2">
@@ -1446,7 +1464,27 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                         </div>
                         ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Advertiser</Label>
+                            <Input
+                              dropdown
+                              options={advertiserOptions || [
+                                { label: 'Unilever', value: 'unilever' },
+                                { label: 'Procter & Gamble', value: 'pg' },
+                                { label: 'Nestlé', value: 'nestle' },
+                                { label: 'Coca-Cola', value: 'coca-cola' },
+                                { label: 'PepsiCo', value: 'pepsico' },
+                              ]}
+                              value={internalAdvertiser}
+                              onChange={(val) => {
+                                setInternalAdvertiser(val);
+                                onAdvertiserChange?.(val);
+                              }}
+                              placeholder="Select advertiser"
+                              className="bg-background border-border"
+                            />
+                          </div>
                           <Label className="text-sm text-muted-foreground">Total budget</Label>
                           <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

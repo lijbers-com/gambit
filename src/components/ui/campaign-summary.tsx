@@ -573,9 +573,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   <h2 className="text-xl font-semibold text-foreground leading-tight">
                     {internalTitle}
                   </h2>
-                  {(mediaExperienceId || internalCampaignId || internalAdvertiser) && (
+                  {(mediaExperienceId || internalAdvertiser) && (
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {[mediaExperienceId, internalCampaignId, (() => {
+                      {[mediaExperienceId, (() => {
                         const opts = advertiserOptions || [
                           { label: 'Unilever', value: 'unilever' },
                           { label: 'Procter & Gamble', value: 'pg' },
@@ -670,7 +670,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           {layout !== 'vertical' && isCollapsed && (
             <div className="flex justify-between items-center">
               <div className="text-sm text-muted-foreground">
-                {!hideGoal ? `${goal.replace(/-/g, ' ')} • ` : ''}{hasBudget ? budget : 'No budget set'} • {dateRange ?
+                {internalCampaignId ? `${internalCampaignId} • ` : ''}{!hideGoal ? `${goal.replace(/-/g, ' ')} • ` : ''}{hasBudget ? budget : 'No budget set'} • {dateRange ?
                   `${dateRange.from?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${dateRange.to?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}` :
                   'No dates selected'
                 }

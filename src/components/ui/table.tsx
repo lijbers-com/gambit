@@ -647,7 +647,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     ...(isLastFixed ? {
                       boxShadow: hoverFixedSeparator || isBeingResized
                         ? '1px 0 0 0 rgb(148 163 184)' // slate-400
-                        : '1px 0 0 0 rgb(226 232 240)', // slate-200
+                        : '1px 0 0 0 rgb(203 213 225)', // slate-300
                     } : {}),
                     ...getColWidthStyle(col.key),
                   }}
@@ -736,7 +736,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         ...(isLastFixed ? {
                           boxShadow: resizingColKey === lastFixedColKey
                             ? '1px 0 0 0 rgb(148 163 184)' // slate-400 when dragging
-                            : '1px 0 0 0 rgb(226 232 240)', // slate-200 default
+                            : '1px 0 0 0 rgb(203 213 225)', // slate-300 default
                         } : {}),
                         ...getColWidthStyle(col.key),
                       }}

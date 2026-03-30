@@ -1383,30 +1383,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         )
                         )}
 
-                        {/* Advertiser (non-guided only) */}
-                        {!guidedSetup && (
-                        <div className="space-y-2">
-                          <Label className="text-sm text-muted-foreground">Advertiser</Label>
-                          <Input
-                            dropdown
-                            options={advertiserOptions || [
-                              { label: 'Unilever', value: 'unilever' },
-                              { label: 'Procter & Gamble', value: 'pg' },
-                              { label: 'Nestlé', value: 'nestle' },
-                              { label: 'Coca-Cola', value: 'coca-cola' },
-                              { label: 'PepsiCo', value: 'pepsico' },
-                            ]}
-                            value={internalAdvertiser}
-                            onChange={(val) => {
-                              setInternalAdvertiser(val);
-                              onAdvertiserChange?.(val);
-                            }}
-                            placeholder="Select advertiser"
-                            className="bg-background border-border"
-                          />
-                        </div>
-                        )}
-
                         {/* Advertiser & Total Budget */}
                         {guidedSetup ? (
                         <div className={isGuidedSettingsPhase ? "grid grid-cols-2 gap-4" : "space-y-5"}>
@@ -1509,6 +1485,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               className="bg-background border-border"
                             />
                           </div>
+                          {internalCampaignId && (
+                            <div className="space-y-1">
+                              <Label className="text-sm text-muted-foreground">ID</Label>
+                              <p className="text-sm font-medium text-foreground">{internalCampaignId}</p>
+                            </div>
+                          )}
                           <Label className="text-sm text-muted-foreground">Total budget</Label>
                           <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

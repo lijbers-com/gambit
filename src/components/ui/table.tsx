@@ -725,7 +725,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       className={cn(
                         'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
-                        isLastFixed && (resizingColKey === lastFixedColKey ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
+                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
                         col.className
                       )}
                       style={{

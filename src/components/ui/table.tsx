@@ -647,8 +647,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     overflow: 'visible',
                     ...(isLastFixed ? {
                       boxShadow: hoverFixedSeparator || isBeingResized
-                        ? '1px 0 0 0 rgb(148 163 184)' // slate-400
-                        : '1px 0 0 0 rgb(203 213 225)', // slate-300
+                        ? '1px 0 0 0 rgb(100 116 139)' // slate-500
+                        : '1px 0 0 0 rgb(148 163 184)', // slate-400
                     } : {}),
                     ...getColWidthStyle(col.key),
                   }}
@@ -736,8 +736,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         ...getStickyStyle(col.key),
                         ...(isLastFixed ? {
                           boxShadow: resizingColKey === lastFixedColKey
-                            ? '1px 0 0 0 rgb(148 163 184)' // slate-400 when dragging
-                            : '1px 0 0 0 rgb(203 213 225)', // slate-300 default
+                            ? '1px 0 0 0 rgb(100 116 139)' // slate-500 when dragging
+                            : '1px 0 0 0 rgb(148 163 184)', // slate-400 default
                         } : {}),
                         ...getColWidthStyle(col.key),
                       }}

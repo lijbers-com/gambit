@@ -1465,6 +1465,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         </div>
                         ) : (
                         <div className="space-y-5">
+                          {internalCampaignId && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">ID</span>
+                              <span className="text-sm font-medium text-foreground">{internalCampaignId}</span>
+                            </div>
+                          )}
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Advertiser</Label>
                             <Input
@@ -1485,39 +1491,35 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               className="bg-background border-border"
                             />
                           </div>
-                          {internalCampaignId && (
-                            <div className="space-y-1">
-                              <Label className="text-sm text-muted-foreground">ID</Label>
-                              <p className="text-sm font-medium text-foreground">{internalCampaignId}</p>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Total budget</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <input
+                                type="number"
+                                value={totalBudgetInput}
+                                onChange={(e) => {
+                                  setTotalBudgetInput(e.target.value);
+                                  const newTotal = parseFloat(e.target.value) || 0;
+                                  const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
+                                  const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
+                                  const newBudgets: { [key: string]: string } = {};
+                                  currentEngines.forEach(engine => {
+                                    if (engine.id === 'offline') {
+                                      newBudgets[engine.id] = '$0';
+                                    } else if (engine.enabled) {
+                                      newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+                                    } else {
+                                      newBudgets[engine.id] = '$0';
+                                    }
+                                  });
+                                  setEngineBudgets(newBudgets);
+                                  onBudgetChange?.(`$${e.target.value}`);
+                                }}
+                                className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                placeholder="Enter budget amount"
+                              />
                             </div>
-                          )}
-                          <Label className="text-sm text-muted-foreground">Total budget</Label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <input
-                              type="number"
-                              value={totalBudgetInput}
-                              onChange={(e) => {
-                                setTotalBudgetInput(e.target.value);
-                                const newTotal = parseFloat(e.target.value) || 0;
-                                const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
-                                const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
-                                const newBudgets: { [key: string]: string } = {};
-                                currentEngines.forEach(engine => {
-                                  if (engine.id === 'offline') {
-                                    newBudgets[engine.id] = '$0';
-                                  } else if (engine.enabled) {
-                                    newBudgets[engine.id] = `$${Math.round(perEngine)}`;
-                                  } else {
-                                    newBudgets[engine.id] = '$0';
-                                  }
-                                });
-                                setEngineBudgets(newBudgets);
-                                onBudgetChange?.(`$${e.target.value}`);
-                              }}
-                              className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                              placeholder="Enter budget amount"
-                            />
                           </div>
                           {/* Budget breakdown lines (hidden during guided setup first step) */}
                           {!isGuidedSettingsPhase && (() => {

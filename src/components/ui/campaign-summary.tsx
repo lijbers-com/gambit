@@ -573,9 +573,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   <h2 className="text-xl font-semibold text-foreground leading-tight">
                     {internalTitle}
                   </h2>
-                  {(mediaExperienceId || internalAdvertiser) && (
+                  {(mediaExperienceId || internalCampaignId || internalAdvertiser) && (
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {[mediaExperienceId, (() => {
+                      {[mediaExperienceId, internalCampaignId, (() => {
                         const opts = advertiserOptions || [
                           { label: 'Unilever', value: 'unilever' },
                           { label: 'Procter & Gamble', value: 'pg' },
@@ -1381,6 +1381,30 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           <p className="text-sm font-medium text-foreground">{internalCampaignId || '—'}</p>
                         </div>
                         )
+                        )}
+
+                        {/* Advertiser (non-guided only) */}
+                        {!guidedSetup && (
+                        <div className="space-y-2">
+                          <Label className="text-sm text-muted-foreground">Advertiser</Label>
+                          <Input
+                            dropdown
+                            options={advertiserOptions || [
+                              { label: 'Unilever', value: 'unilever' },
+                              { label: 'Procter & Gamble', value: 'pg' },
+                              { label: 'Nestlé', value: 'nestle' },
+                              { label: 'Coca-Cola', value: 'coca-cola' },
+                              { label: 'PepsiCo', value: 'pepsico' },
+                            ]}
+                            value={internalAdvertiser}
+                            onChange={(val) => {
+                              setInternalAdvertiser(val);
+                              onAdvertiserChange?.(val);
+                            }}
+                            placeholder="Select advertiser"
+                            className="bg-background border-border"
+                          />
+                        </div>
                         )}
 
                         {/* Advertiser & Total Budget */}

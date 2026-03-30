@@ -636,7 +636,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
                     !isLastFixed && isBeingResized && 'border-r border-slate-400',
                     isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-slate-400',
-                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r-2 border-r-slate-500' : 'border-r border-r-slate-300'),
+                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -725,7 +725,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       className={cn(
                         'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
                         !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
-                        isLastFixed && (resizingColKey === lastFixedColKey ? 'border-r-2 border-r-slate-500' : 'border-r border-r-slate-300'),
+                        isLastFixed && (resizingColKey === lastFixedColKey ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
                         col.className
                       )}
                       style={{

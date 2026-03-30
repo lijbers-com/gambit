@@ -553,9 +553,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   };
 
   // Determine the last fixed column key for the border
+  // Use !hideActions instead of isActionsVisible — the actions column always renders when !hideActions
   const lastFixedColKey = (() => {
     const fixedKeys: string[] = [];
-    if (isActionsVisible && isActionsFixed) fixedKeys.push('__actions');
+    if (!hideActions && isActionsFixed) fixedKeys.push('__actions');
     if (selectionCol) fixedKeys.push('__select');
     fixedKeys.push(...fixedCols.map((c) => c.key));
     return fixedKeys.length > 0 ? fixedKeys[fixedKeys.length - 1] : null;

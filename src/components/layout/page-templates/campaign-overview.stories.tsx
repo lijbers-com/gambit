@@ -87,9 +87,9 @@ type Story = StoryObj<typeof meta>;
 
 
 const productImages = [
-  'https://picsum.photos/seed/prod1/56/56',
-  'https://picsum.photos/seed/prod2/56/56',
-  'https://picsum.photos/seed/prod3/56/56',
+  '/products/product-1.jpg',
+  '/products/product-2.jpg',
+  '/products/product-3.jpg',
 ];
 
 const campaignData = [
@@ -185,7 +185,6 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                 { key: 'advertiser', header: 'Advertiser' },
                 { key: 'name', header: 'Name' },
-                { key: 'mediaProductLane', header: 'Media product lane', render: () => 'Demo media product' },
                 { key: 'products', header: 'Products', render: row => {
                   const maxShow = 3;
                   const shown = row.products.images.slice(0, maxShow);

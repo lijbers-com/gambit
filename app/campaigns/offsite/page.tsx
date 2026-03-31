@@ -13,8 +13,9 @@ export default function OffsiteCampaignsPage() {
       const row = target.closest('tr');
 
       if (row && row.querySelector('td')) {
-        const campaignId = row.querySelector('td')?.textContent;
-        if (campaignId && campaignId.startsWith('C-')) {
+        const cells = row.querySelectorAll('td');
+        const campaignId = Array.from(cells).map(td => td.textContent?.trim()).find(t => t?.startsWith('C-'));
+        if (campaignId) {
           e.preventDefault();
           e.stopPropagation();
           router.push(`/campaigns/offsite/${campaignId}`);

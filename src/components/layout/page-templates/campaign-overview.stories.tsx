@@ -179,13 +179,16 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                 { key: 'advertiser', header: 'Advertiser' },
                 { key: 'name', header: 'Name' },
-                { key: 'engines', header: 'Engine', render: row => (
-                  <div className="flex flex-nowrap gap-1 whitespace-nowrap">
-                    {row.engines.map((engine, index) => (
-                      <Badge key={index} variant="outline" className="text-xs whitespace-nowrap">{engine}</Badge>
-                    ))}
-                  </div>
-                )},
+                { key: 'engines', header: 'Engine', render: row => {
+                  const engines = engineType === 'all' ? row.engines : row.engines.filter(e => e.toLowerCase() === engineType.toLowerCase());
+                  return (
+                    <div className="flex flex-nowrap gap-1 whitespace-nowrap">
+                      {engines.map((engine, index) => (
+                        <Badge key={index} variant="outline" className="text-xs whitespace-nowrap">{engine}</Badge>
+                      ))}
+                    </div>
+                  );
+                }},
                 { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
                 { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
                 { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },

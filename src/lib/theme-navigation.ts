@@ -24,7 +24,7 @@ export const advertiserRoutes: Route[] = [
   },
   {
     id: 99,
-    name: "Media wallet",
+    name: "Media plans",
     type: "single" as const,
     icon: { lucide: "WalletCards" },
     url: "/campaigns"

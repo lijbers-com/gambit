@@ -185,16 +185,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                 { key: 'advertiser', header: 'Advertiser' },
                 { key: 'name', header: 'Name' },
-                { key: 'engines', header: 'Engine', render: row => {
-                  const engines = engineType === 'all' ? row.engines : row.engines.filter(e => e.toLowerCase() === engineType.toLowerCase());
-                  return (
-                    <div className="flex flex-nowrap gap-1 whitespace-nowrap">
-                      {engines.map((engine, index) => (
-                        <Badge key={index} variant="outline" className="text-xs whitespace-nowrap">{engine}</Badge>
-                      ))}
-                    </div>
-                  );
-                }},
+                { key: 'mediaProductLane', header: 'Media product lane', render: () => 'Demo media product' },
                 { key: 'products', header: 'Products', render: row => {
                   const maxShow = 3;
                   const shown = row.products.images.slice(0, maxShow);

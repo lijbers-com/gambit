@@ -1,4 +1,6 @@
 export { Button } from "./button"
+export { SummaryCard } from "./summary-card"
+export type { SummaryCardProps, SummaryCardVariant, SummaryItem, SummarySection, SummaryTotal, SummaryStep, SummaryAction } from "./summary-card"
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card"
 export { Input } from "./input"
 export { FileInput } from "./input"

@@ -192,7 +192,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                   return (
                     <div className="flex items-center gap-1">
                       {shown.map((img, i) => (
-                        <img key={i} src={img} alt="" className="w-7 h-7 rounded border border-slate-200 bg-slate-50 object-cover" />
+                        <img key={i} src={img} alt="" className="w-7 h-7 rounded object-cover" />
                       ))}
                       {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
                     </div>

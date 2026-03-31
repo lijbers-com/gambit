@@ -1388,38 +1388,23 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         <div className={isGuidedSettingsPhase ? "grid grid-cols-2 gap-4" : "space-y-5"}>
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Advertiser</Label>
-                            {isGuidedSettingsPhase ? (
-                              <Input
-                                dropdown
-                                options={advertiserOptions || [
-                                  { label: 'Unilever', value: 'unilever' },
-                                  { label: 'Procter & Gamble', value: 'pg' },
-                                  { label: 'Nestlé', value: 'nestle' },
-                                  { label: 'Coca-Cola', value: 'coca-cola' },
-                                  { label: 'PepsiCo', value: 'pepsico' },
-                                ]}
-                                value={internalAdvertiser}
-                                onChange={(val) => {
-                                  setInternalAdvertiser(val);
-                                  onAdvertiserChange?.(val);
-                                }}
-                                placeholder="Select advertiser"
-                                className="bg-background border-border"
-                              />
-                            ) : (
-                              <p className="text-sm font-medium text-foreground">
-                                {(() => {
-                                  const options = advertiserOptions || [
-                                    { label: 'Unilever', value: 'unilever' },
-                                    { label: 'Procter & Gamble', value: 'pg' },
-                                    { label: 'Nestlé', value: 'nestle' },
-                                    { label: 'Coca-Cola', value: 'coca-cola' },
-                                    { label: 'PepsiCo', value: 'pepsico' },
-                                  ];
-                                  return options.find(o => o.value === internalAdvertiser)?.label || internalAdvertiser || '—';
-                                })()}
-                              </p>
-                            )}
+                            <Input
+                              dropdown
+                              options={advertiserOptions || [
+                                { label: 'Unilever', value: 'unilever' },
+                                { label: 'Procter & Gamble', value: 'pg' },
+                                { label: 'Nestlé', value: 'nestle' },
+                                { label: 'Coca-Cola', value: 'coca-cola' },
+                                { label: 'PepsiCo', value: 'pepsico' },
+                              ]}
+                              value={internalAdvertiser}
+                              onChange={(val) => {
+                                setInternalAdvertiser(val);
+                                onAdvertiserChange?.(val);
+                              }}
+                              placeholder="Select advertiser"
+                              className="bg-background border-border"
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Total budget</Label>

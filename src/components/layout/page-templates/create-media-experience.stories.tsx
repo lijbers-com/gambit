@@ -37,6 +37,7 @@ import {
   Plus,
   FileText,
   Globe,
+  Minus,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -558,62 +559,67 @@ export const GoalSelection: Story = {
                       </div>
                       <div className="space-y-2">
                         <Label>Retail products</Label>
-                        <div className="relative" data-dropdown-container>
-                          <SearchInput
-                            value={retailProductSearch}
-                            onChange={handleRetailProductSearchChange}
-                            onClick={() => setShowRetailProductResults(true)}
-                            placeholder="Select product by name or ID..."
-                            className="w-full"
-                            icon={<ScanBarcode className="w-4 h-4" />}
-                          />
-                          {showRetailProductResults && (
-                            <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                              {filteredRetailProducts.length > 0 ? (
-                                filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 ${
-                                      selectedRetailProducts.includes(product.id) ? 'bg-primary/5' : ''
-                                    }`}
-                                    onClick={() => handleRetailProductSelect(product)}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm">{product.name}</span>
-                                      <span className="text-xs text-muted-foreground">#{product.id}</span>
+                        <div className="space-y-4">
+                          <div className="relative" data-dropdown-container>
+                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
+                            <SearchInput
+                              value={retailProductSearch}
+                              onChange={handleRetailProductSearchChange}
+                              onClick={() => setShowRetailProductResults(true)}
+                              placeholder="Select product by name or ID..."
+                              className="w-full"
+                              icon={<ScanBarcode className="w-4 h-4" />}
+                            />
+                            {showRetailProductResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRetailProducts.length > 0 ? (
+                                  filteredRetailProducts.map((product) => (
+                                    <div
+                                      key={product.id}
+                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                      onClick={() => handleRetailProductSelect(product)}
+                                    >
+                                      <div className="font-medium text-sm">{product.name}</div>
+                                      <div className="text-xs text-muted-foreground">ID: {product.id}</div>
                                     </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="p-3 text-sm text-muted-foreground">No products found</div>
-                              )}
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {selectedRetailProducts.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Selected products:</div>
+                              <div className="space-y-1">
+                                {selectedRetailProducts.map((productId) => {
+                                  const product = retailProducts.find(p => p.id === productId);
+                                  return product ? (
+                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                      <div>
+                                        <div className="text-sm font-medium">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                      </div>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => removeRetailProduct(productId)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
                             </div>
                           )}
-                        </div>
-                        {selectedRetailProducts.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {selectedRetailProducts.map((productId) => {
-                              const product = retailProducts.find(p => p.id === productId);
-                              if (!product) return null;
-                              return (
-                                <Badge key={productId} variant="default" size="large" className="gap-1 pr-1.5">
-                                  {product.name}
-                                  <button
-                                    type="button"
-                                    onClick={() => removeRetailProduct(productId)}
-                                    className="ml-1 hover:text-destructive transition-colors rounded-full"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </Badge>
-                              );
-                            })}
+                          <div className="text-sm text-muted-foreground">
+                            {selectedRetailProducts.length > 0
+                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                              : 'Search and select retail products to target for this campaign'}
                           </div>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                          {selectedRetailProducts.length > 0
-                            ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                            : 'Search and select retail products to target for this campaign'}
                         </div>
                       </div>
                     </div>

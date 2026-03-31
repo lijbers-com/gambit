@@ -113,7 +113,7 @@ export const advertiserRoutes: Route[] = [
       },
       {
         id: 51,
-        name: "Full report",
+        name: "Custom reports",
         type: "single" as const,
         url: "/insights/report"
       }

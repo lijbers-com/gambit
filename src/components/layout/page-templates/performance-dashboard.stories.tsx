@@ -2681,7 +2681,7 @@ export const ProductReportView: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Reports',
+          title: 'Custom reports',
           headerRight: (
             <DateRangePicker
               dateRange={dateRange}

@@ -143,7 +143,7 @@ export const defaultRoutes: Route[] = [
       },
       {
         id: 51,
-        name: "Full report",
+        name: "Custom reports",
         type: "single" as const,
         url: "/insights/report",
       },

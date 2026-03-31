@@ -3159,68 +3159,7 @@ export const ProductReportView: Story = {
                         searchPlaceholder="Search custom report..."
                       />
                     </div>
-                    <div className="space-y-6 py-4">
-                      {/* Summary metric cards */}
-                      <div className="grid grid-cols-4 gap-4">
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-2xl font-bold">€142,830</div>
-                            <p className="text-sm text-muted-foreground">Total Revenue</p>
-                            <div className="mt-1"><Badge variant="default">+18% vs last period</Badge></div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-2xl font-bold">€38,450</div>
-                            <p className="text-sm text-muted-foreground">Total Spend</p>
-                            <div className="mt-1"><Badge variant="secondary">+12% vs last period</Badge></div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-2xl font-bold">3.71x</div>
-                            <p className="text-sm text-muted-foreground">Blended ROAS</p>
-                            <div className="mt-1"><Badge variant="default">+5% vs last period</Badge></div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-2xl font-bold">28,640</div>
-                            <p className="text-sm text-muted-foreground">Total Conversions</p>
-                            <div className="mt-1"><Badge variant="default">+22% vs last period</Badge></div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                      {/* Revenue by proposition chart */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Revenue by Proposition</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <BarChartComponent
-                            data={[
-                              { proposition: 'Sponsored Products', revenue: 58400, spend: 15200 },
-                              { proposition: 'Display', revenue: 32600, spend: 9800 },
-                              { proposition: 'Digital In-store', revenue: 24500, spend: 7100 },
-                              { proposition: 'Offline In-store', revenue: 18900, spend: 4950 },
-                              { proposition: 'Display Offsite', revenue: 8430, spend: 1400 },
-                            ]}
-                            config={{
-                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
-                              spend: { label: 'Spend', color: 'hsl(var(--chart-2))' },
-                            }}
-                            xAxisDataKey="proposition"
-                            showLegend={true}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={true}
-                            className="h-64 w-full"
-                          />
-                        </CardContent>
-                      </Card>
-                      {/* Detailed breakdown table */}
-                      <Table
+                    <Table
                         columns={[
                           { key: 'proposition', header: 'Proposition', hideable: false },
                           { key: 'campaigns', header: 'Campaigns', render: (row: { campaigns: number }) => row.campaigns.toLocaleString() },
@@ -3244,7 +3183,6 @@ export const ProductReportView: Story = {
                         rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
                         onRowClick={(row: { proposition: string }) => console.log('Navigate to proposition details for', row.proposition)}
                       />
-                    </div>
                   </div>
                 )
               },

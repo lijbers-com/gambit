@@ -38,7 +38,7 @@ const sampleRoutes: Route[] = [
     type: "create",
     icon: { lucide: "CreateIcon" },
     subitems: [
-      { id: 101, name: "Media experience", type: "single" as const, url: "/create/media-experience" },
+      { id: 101, name: "Media plan", type: "single" as const, url: "/create/media-experience" },
       { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products" },
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
@@ -48,7 +48,7 @@ const sampleRoutes: Route[] = [
   },
   {
     id: 99,
-    name: "Media Experiences",
+    name: "Media plans",
     type: "single",
     icon: { lucide: "WalletCards" },
     url: "/campaigns"
@@ -256,7 +256,7 @@ export const Primary: Story = {
           <div>
             <h3 className="text-lg font-semibold">Main Menu Items:</h3>
             <ul className="mt-2 space-y-1">
-              <li>💳 <strong>Media Experiences</strong> - Media order management</li>
+              <li>💳 <strong>Media plans</strong> - Media order management</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management with 4 engines</li>
               <li>📅 <strong>Calendar</strong> - Booking calendar with 4 engines</li>
@@ -635,7 +635,7 @@ const advertiserRoutes: Route[] = [
     type: "create",
     icon: { lucide: "CreateIcon" },
     subitems: [
-      { id: 101, name: "Media experience", type: "single" as const, url: "/create/media-experience" },
+      { id: 101, name: "Media plan", type: "single" as const, url: "/create/media-experience" },
       { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products" },
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
@@ -645,7 +645,7 @@ const advertiserRoutes: Route[] = [
   },
   {
     id: 99,
-    name: "Media Experiences",
+    name: "Media plans",
     type: "single",
     icon: { lucide: "WalletCards" },
     url: "/campaigns"
@@ -746,7 +746,7 @@ export const AdvertiserView: Story = {
           <div>
             <h3 className="text-lg font-semibold">Available Menu Items:</h3>
             <ul className="mt-2 space-y-1">
-              <li>💳 <strong>Media Experiences</strong> - Media order management</li>
+              <li>💳 <strong>Media plans</strong> - Media order management</li>
               <li>🗂️ <strong>Campaigns</strong> - Campaign management with 4 engines</li>
               <li>🎨 <strong>Creatives</strong> - Creative management</li>
               <li>📈 <strong>Insights</strong> - Performance analytics and reports</li>

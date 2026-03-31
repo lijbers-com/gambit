@@ -1599,7 +1599,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 onClick={() => setGuidedSetupComplete(true)}
                                 disabled={!totalBudgetInput || !dateRange?.from || !dateRange?.to}
                               >
-                                Create media experience
+                                Create media plan
                               </Button>
                             </div>
                             {(!totalBudgetInput || !dateRange?.from || !dateRange?.to) && (

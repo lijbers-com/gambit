@@ -12,7 +12,7 @@ export const defaultRoutes: Route[] = [
     type: "create" as const,
     icon: { lucide: "CreateIcon" },
     subitems: [
-      { id: 101, name: "Media experience", type: "single" as const, url: "/create/media-experience" },
+      { id: 101, name: "Media plan", type: "single" as const, url: "/create/media-experience" },
       { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products" },
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
@@ -22,7 +22,7 @@ export const defaultRoutes: Route[] = [
   },
   {
     id: 99,
-    name: "Media Experiences",
+    name: "Media plans",
     type: "single" as const,
     icon: { lucide: "WalletCards" },
     url: "/campaigns",

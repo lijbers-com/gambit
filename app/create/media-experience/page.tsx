@@ -6,7 +6,7 @@ export default function CreateMediaExperiencePage() {
   const Component = GoalSelection.render as () => React.JSX.Element;
 
   if (!Component) {
-    return <div>Create Media Experience</div>;
+    return <div>Create Media plan</div>;
   }
 
   return <Component />;

@@ -49,12 +49,12 @@ const meta: Meta<typeof AppLayout> = {
         component: `
 # Create Media Experience - Wizard
 
-A step-by-step wizard for creating new media experiences.
+A step-by-step wizard for creating new media plans.
 
 ## Steps
 
 1. **Campaign Setup** - Enter the campaign name and select the brand to advertise for
-2. **Campaign Goal** - Select the objective of the media experience
+2. **Campaign Goal** - Select the objective of the media plan
 3. **Targeting** - Select audience segments and add targeting tags
 4. **Budget & Schedule** - Set the campaign budget and date range
 5. Review & Launch (future)
@@ -447,7 +447,7 @@ export const GoalSelection: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Create media experience',
+            title: 'Create media plan',
             subtitle: '',
             headerRight: null,
           }}
@@ -530,7 +530,7 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Campaign setup</CardTitle>
                     <CardDescription>
-                      Enter the basic details for your new media experience
+                      Enter the basic details for your new media plan
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -955,12 +955,12 @@ export const GoalSelection: Story = {
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>
                       <Button
                         onClick={() => {
-                          // Navigate to media experiences overview with new campaign expanded
-                          const name = campaignName || 'New Media Experience';
+                          // Navigate to media plans overview with new campaign expanded
+                          const name = campaignName || 'New Media plan';
                           window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
                         }}
                       >
-                        Launch media experience
+                        Launch media plan
                       </Button>
                     </div>
                   </CardContent>
@@ -1180,7 +1180,7 @@ export const NoGoalTargeting: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Create media experience',
+            title: 'Create media plan',
             subtitle: '',
             headerRight: null,
           }}
@@ -1257,7 +1257,7 @@ export const NoGoalTargeting: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Campaign setup</CardTitle>
                     <CardDescription>
-                      Enter the basic details for your new media experience
+                      Enter the basic details for your new media plan
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1492,11 +1492,11 @@ export const NoGoalTargeting: Story = {
                       <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
                       <Button
                         onClick={() => {
-                          const name = campaignName || 'New Media Experience';
+                          const name = campaignName || 'New Media plan';
                           window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
                         }}
                       >
-                        Launch media experience
+                        Launch media plan
                       </Button>
                     </div>
                   </CardContent>

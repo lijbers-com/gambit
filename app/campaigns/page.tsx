@@ -211,7 +211,7 @@ function AllCampaignsPage() {
     }
   }, [newCampaignName]);
 
-  // Add a new empty media experience
+  // Add a new empty media plan
   const handleAddMediaExperience = () => {
     const newId = `C-${String(nextId.current).padStart(3, '0')}`;
     nextId.current += 1;
@@ -247,7 +247,7 @@ function AllCampaignsPage() {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Media Experiences',
+          title: 'Media plans',
           subtitle: 'Complete overview of all your campaigns across all advertising engines',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -274,7 +274,7 @@ function AllCampaignsPage() {
           className="w-full"
           tabs={[
             {
-              label: 'Media experiences',
+              label: 'Media plans',
               value: 'media-experiences',
               content: (
                 <div className="space-y-6 mt-6">
@@ -434,7 +434,7 @@ function AllCampaignsPage() {
           action={
             activeTab === 'media-experiences' ? (
               <Button onClick={handleAddMediaExperience}>
-                Add media experience
+                Add media plan
               </Button>
             ) : activeTab === 'logs' ? (
               <Button>Export logs</Button>

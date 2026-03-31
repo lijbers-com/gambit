@@ -319,7 +319,7 @@ This variant starts with the Settings card displayed full-width, prompting the u
 
 ## Use Cases
 
-- New media experience creation where budget and runtime must be set before adding campaigns
+- New media plan creation where budget and runtime must be set before adding campaigns
 - Guided onboarding flow for first-time campaign setup
 - Ensuring users don't skip critical budget/runtime configuration
         `,

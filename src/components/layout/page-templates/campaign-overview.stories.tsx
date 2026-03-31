@@ -384,7 +384,7 @@ export const Campaigns360: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Media Experiences',
+            title: 'Media plans',
             subtitle: 'Complete overview of all your campaigns across all advertising engines',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -553,7 +553,7 @@ export const Campaigns360NoGoalTargeting: Story = {
     const [newCampaignIds, setNewCampaignIds] = React.useState<Set<string>>(new Set());
     let nextId = React.useRef(campaigns.length + 1);
 
-    // Add a new empty media experience
+    // Add a new empty media plan
     const handleAddMediaExperience = () => {
       const newId = `C-${String(nextId.current).padStart(3, '0')}`;
       nextId.current += 1;
@@ -591,7 +591,7 @@ export const Campaigns360NoGoalTargeting: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Media Experiences',
+            title: 'Media plans',
             subtitle: 'Complete overview of all your campaigns across all advertising engines',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -618,7 +618,7 @@ export const Campaigns360NoGoalTargeting: Story = {
             className="w-full"
             tabs={[
               {
-                label: 'Media experiences',
+                label: 'Media plans',
                 value: 'media-experiences',
                 content: (
                   <div className="space-y-6 mt-6">
@@ -777,7 +777,7 @@ export const Campaigns360NoGoalTargeting: Story = {
             action={
               activeTab === 'media-experiences' ? (
                 <Button onClick={handleAddMediaExperience}>
-                  Add media experience
+                  Add media plan
                 </Button>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>

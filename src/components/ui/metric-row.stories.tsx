@@ -212,22 +212,18 @@ export const DefaultVariantCards: Story = {
 };
 
 const WithActiveSelectionTemplate = () => {
-  const [selected] = useState(['sales', 'spend', 'roas', 'iroas']);
-  const [activeKey, setActiveKey] = useState<string | null>('sales');
-
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Active metric: {activeKey ?? 'none'} | Click a card to toggle its selection indicator.
+        Click a metric card to open its chart. Click again (or the X) to close.
       </p>
       <MetricRow
         metrics={allMetrics}
-        selectedKeys={selected}
+        selectedKeys={['sales', 'spend', 'roas', 'iroas']}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
-        activeKey={activeKey}
-        onActiveKeyChange={setActiveKey}
+        showCharts={true}
       />
     </div>
   );
@@ -238,7 +234,7 @@ export const WithActiveSelection: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Cards with active selection indicator (arrow). Click a card to select it for chart filtering. Used in campaign detail templates.',
+        story: 'Click a metric card to open an expandable time-series chart below. Click the card again or the X button to close. Used in all campaign detail templates.',
       },
     },
   },

@@ -2,10 +2,12 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { MetricCard, MetricCardProps } from "./card"
+import { Button } from "./button"
+import { LineChartComponent } from "./line-chart"
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,8 @@ export interface MetricDefinition {
   graphColor?: string
   subMetric?: string
   variant?: "default" | "graph"
+  /** Time-series data for the expandable chart panel */
+  chartData?: Array<{ day: string; value: number }>
 }
 
 export interface MetricRowProps {
@@ -50,6 +54,8 @@ export interface MetricRowProps {
   dialogMetrics?: MetricDefinition[]
   /** Fires when a dialog-only metric is clicked */
   onDialogMetricClick?: (key: string) => void
+  /** Whether to show built-in chart panel when clicking a metric that has chartData */
+  showCharts?: boolean
 }
 
 const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
@@ -60,18 +66,21 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     maxVisible = 4,
     className,
     defaultVariant = "graph",
-    activeKey,
+    activeKey: controlledActiveKey,
     onActiveKeyChange,
     removable = true,
     dialogMetrics,
     onDialogMetricClick,
+    showCharts = false,
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
       controlledSelectedKeys ?? metrics.slice(0, 3).map(m => m.key)
     )
+    const [internalActiveKey, setInternalActiveKey] = useState<string | null>(null)
 
     const selectedKeys = controlledSelectedKeys ?? internalSelectedKeys
+    const activeKey = controlledActiveKey !== undefined ? controlledActiveKey : internalActiveKey
 
     const updateSelection = (newKeys: string[]) => {
       if (!controlledSelectedKeys) {
@@ -101,18 +110,45 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
 
     const colCount = Math.min(selectedMetrics.length + (showAddButton ? 1 : 0), maxVisible + 1)
 
+    const handleCardClick = (key: string) => {
+      const newKey = activeKey === key ? null : key
+      if (showCharts) {
+        setInternalActiveKey(newKey)
+      }
+      if (onActiveKeyChange) {
+        onActiveKeyChange(newKey)
+      }
+    }
+
+    const generateDemoChartData = (key: string): Array<{ day: string; value: number }> => {
+      const seed = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+      const base = 1000 + (seed % 9000)
+      const days = []
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        const pseudoRandom = ((seed * (i + 1) * 1337) % 1000) / 1000
+        days.push({ day: dayLabel, value: Math.round(base + pseudoRandom * base * 0.4) })
+      }
+      return days
+    }
+
+    const activeMetric = selectedMetrics.find(m => m.key === activeKey)
+    const chartPanelData = showCharts && activeKey && activeMetric
+      ? (activeMetric.chartData ?? generateDemoChartData(activeKey))
+      : null
+
     return (
+      <div ref={ref} className={cn("space-y-4", className)} {...props}>
       <div
-        ref={ref}
         className={cn(
           `grid grid-cols-1 gap-4`,
           colCount === 2 && "md:grid-cols-2",
           colCount === 3 && "md:grid-cols-3",
           colCount === 4 && "md:grid-cols-4",
           colCount >= 5 && "md:grid-cols-5",
-          className
         )}
-        {...props}
       >
         {selectedMetrics.map((metric) => (
           <MetricCard
@@ -127,9 +163,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             graphColor={metric.graphColor}
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
-            onClick={onActiveKeyChange ? () => onActiveKeyChange(
-              activeKey === metric.key ? null : metric.key
-            ) : undefined}
+            onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}
           />
         ))}
         {showAddButton && (
@@ -185,6 +219,40 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             </DialogContent>
           </Dialog>
         )}
+      </div>
+
+      {chartPanelData && (
+        <div className="relative bg-white border rounded-lg p-6">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              setInternalActiveKey(null)
+              onActiveKeyChange?.(null)
+            }}
+            aria-label="Close chart"
+            className="absolute top-2 right-2 z-10"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+          <LineChartComponent
+            data={chartPanelData}
+            config={{
+              value: {
+                label: activeMetric?.label || 'Value',
+                color: "hsl(var(--chart-1))",
+              },
+            }}
+            showLegend={false}
+            showGrid={true}
+            showTooltip={true}
+            showXAxis={true}
+            showYAxis={true}
+            className="h-52 w-full"
+            xAxisDataKey="day"
+          />
+        </div>
+      )}
       </div>
     )
   }

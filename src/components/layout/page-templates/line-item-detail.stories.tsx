@@ -583,6 +583,7 @@ export const Display: Story = {
             maxVisible={5}
             defaultVariant="default"
             removable={true}
+            showCharts={true}
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -1166,6 +1167,7 @@ export const DigitalInStore: Story = {
             maxVisible={5}
             defaultVariant="default"
             removable={true}
+            showCharts={true}
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -1925,6 +1927,7 @@ export const OfflineInStore: Story = {
             maxVisible={5}
             defaultVariant="default"
             removable={true}
+            showCharts={true}
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -2649,6 +2652,7 @@ export const SponsoredProducts: Story = {
             maxVisible={5}
             defaultVariant="default"
             removable={true}
+            showCharts={true}
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -3181,6 +3185,7 @@ export const OffsiteDisplay: Story = {
               maxVisible={5}
               defaultVariant="default"
               removable={true}
+              showCharts={true}
             />
           </div>
 

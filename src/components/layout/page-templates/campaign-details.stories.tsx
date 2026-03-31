@@ -1028,6 +1028,7 @@ export const DigitalInstoreRunning: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={false}
+        showCharts={true}
         dialogMetrics={dialogMetricsDigitalInstoreRunning}
         onDialogMetricClick={(key) => console.log(`${key} selected`)}
       />
@@ -1454,6 +1455,7 @@ export const OfflineInstoreRunning: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={true}
+        showCharts={true}
       />
     );
 
@@ -1933,6 +1935,7 @@ export const DisplayRunning: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={false}
+        showCharts={true}
         dialogMetrics={dialogMetricsDisplayRunning}
         onDialogMetricClick={(key) => console.log(`${key} selected`)}
       />
@@ -2403,6 +2406,7 @@ export const OfflineInstoreInOption: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={false}
+        showCharts={true}
         dialogMetrics={dialogMetricsOfflineInstoreInOption}
         onDialogMetricClick={(key) => console.log(`${key} selected`)}
       />
@@ -2851,6 +2855,7 @@ export const DisplayInOption: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={false}
+        showCharts={true}
         dialogMetrics={dialogMetricsDisplayInOption}
         onDialogMetricClick={(key) => console.log(`${key} selected`)}
       />
@@ -3201,6 +3206,7 @@ export const SponsoredProductsInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [retailProduct, setRetailProduct] = useState<string[]>([]);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
       from: new Date('2024-06-01'),
       to: addDays(new Date('2024-06-01'), 30),
@@ -4305,50 +4311,16 @@ export const SponsoredProductsRunning: Story = {
     ];
 
     const ForecastSection = () => (
-      <div className="space-y-6">
-        <MetricRow
-          metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
-          selectedKeys={performanceMetrics.map(m => m.id)}
-          maxVisible={5}
-          defaultVariant="default"
-          removable={false}
-          activeKey={selectedMetric}
-          onActiveKeyChange={(key) => setSelectedMetric(key ?? 'impressions')}
-          dialogMetrics={dialogMetricsSponsoredProductsRunning}
-          onDialogMetricClick={(key) => console.log(`${key} selected`)}
-        />
-
-        {/* Interactive Line Chart */}
-        <div>
-          <div className="relative bg-white border rounded-lg p-6">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setSelectedMetric('impressions')}
-              aria-label="Close chart"
-              className="absolute top-2 right-2 z-10"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            <LineChartComponent
-            data={chartData}
-            config={{
-              value: {
-                label: selectedMetricData?.label || 'Value',
-                color: "hsl(var(--chart-1))",
-              },
-            }}
-            showLegend={false}
-            showGrid={true}
-            showTooltip={true}
-            showXAxis={true}
-            showYAxis={true}
-              className="h-52 w-full"
-              xAxisDataKey="day"
-            />
-          </div>
-        </div>
-      </div>
+      <MetricRow
+        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
+        selectedKeys={performanceMetrics.map(m => m.id)}
+        maxVisible={5}
+        defaultVariant="default"
+        removable={false}
+        showCharts={true}
+        dialogMetrics={dialogMetricsSponsoredProductsRunning}
+        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+      />
     );
     
     return (
@@ -4896,6 +4868,7 @@ export const OffsiteRunning: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={true}
+        showCharts={true}
       />
     );
 
@@ -5281,6 +5254,7 @@ export const OffsiteInOption: Story = {
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
     const [logActions, setLogActions] = useState<string[]>([]);
+    const [retailProduct, setRetailProduct] = useState<string[]>([]);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
       from: new Date('2024-06-01'),
       to: addDays(new Date('2024-06-01'), 30),
@@ -5363,6 +5337,7 @@ export const OffsiteInOption: Story = {
         maxVisible={5}
         defaultVariant="default"
         removable={true}
+        showCharts={true}
       />
     );
 

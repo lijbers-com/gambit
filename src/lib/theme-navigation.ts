@@ -19,6 +19,7 @@ export const advertiserRoutes: Route[] = [
       { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
       { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
       { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore" },
+      { id: 106, name: "Offsite campaign", type: "single" as const, url: "/create/offsite" },
     ],
   },
   {
@@ -57,6 +58,12 @@ export const advertiserRoutes: Route[] = [
         name: "Offline instore",
         type: "single" as const,
         url: "/campaigns/offline-instore"
+      },
+      {
+        id: 26,
+        name: "Display offsite",
+        type: "single" as const,
+        url: "/campaigns/offsite"
       }
     ]
   },

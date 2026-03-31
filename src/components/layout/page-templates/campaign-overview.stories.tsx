@@ -87,9 +87,9 @@ type Story = StoryObj<typeof meta>;
 
 
 const productImages = [
-  '/products/product-1.jpg',
-  '/products/product-2.jpg',
-  '/products/product-3.jpg',
+  '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg',
+  '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg',
+  '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg',
 ];
 
 const campaignData = [

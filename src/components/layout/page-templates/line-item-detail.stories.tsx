@@ -65,6 +65,19 @@ const offlineInstoreMetrics: MetricDefinition[] = [
   { key: 'roas', label: 'ROAS', value: '2.93x', subMetric: 'Revenue / Ad Spend', badgeValue: '+8%', badgeVariant: 'success' },
 ];
 
+const offsiteDisplayMetrics: MetricDefinition[] = [
+  { key: 'adSpend', label: 'Ad Spend', value: '$12,350', subMetric: 'Budget: $20,000', badgeValue: '+15%', badgeVariant: 'success' },
+  { key: 'impressions', label: 'Impressions', value: '1,835,331', subMetric: 'Unique: 980K', badgeValue: '+18%', badgeVariant: 'success' },
+  { key: 'clicks', label: 'Clicks + Add to Carts', value: '28,349', subMetric: 'Add to Carts: 3,544', badgeValue: '+12%', badgeVariant: 'success' },
+  { key: 'ctr', label: 'CTR', value: '1.54%', subMetric: 'Clicks / Impressions', badgeValue: '+20%', badgeVariant: 'success' },
+  { key: 'cpc', label: 'CPC', value: '$0.44', subMetric: 'Ad Spend / Clicks', badgeValue: '-8%', badgeVariant: 'success' },
+  { key: 'cpm', label: 'CPM', value: '$9.34', subMetric: 'Cost per 1,000 impressions', badgeValue: '-6%', badgeVariant: 'success' },
+  { key: 'ecpm', label: 'eCPM', value: '$6.73', subMetric: 'Spend / Impressions × 1,000', badgeValue: '-4%', badgeVariant: 'success' },
+  { key: 'onlineSkuRevenue', label: 'Online SKU Revenue', value: '$31,234', subMetric: '14-day attribution', badgeValue: '+22%', badgeVariant: 'success' },
+  { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '$22,326', subMetric: '14-day attribution', badgeValue: '+19%', badgeVariant: 'success' },
+  { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '$53,560', subMetric: '14-day attribution', badgeValue: '+21%', badgeVariant: 'success' },
+];
+
 const sponsoredProductsMetrics: MetricDefinition[] = [
   { key: 'adSpend', label: 'Ad Spend', value: '€10,890', subMetric: 'Budget: €20,000', badgeValue: '+14%', badgeVariant: 'success' },
   { key: 'impressions', label: 'Impressions', value: '2,145,670', subMetric: 'Unique: 1.4M', badgeValue: '+9%', badgeVariant: 'success' },
@@ -3047,6 +3060,502 @@ export const SponsoredProducts: Story = {
           </div>
         </div>
       </AppLayout>
+      </MenuContextProvider>
+    );
+  },
+};
+
+// Offsite Display Line Item Detail Story
+export const OffsiteDisplay: Story = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const currentTheme = storybookTheme || 'retailMedia';
+    const routes = getRoutesForTheme(currentTheme);
+
+    const [lineItemName, setLineItemName] = React.useState('');
+    const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
+    const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    const [retailProductSearch, setRetailProductSearch] = React.useState('');
+    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [selectedPlacement, setSelectedPlacement] = React.useState<string>('');
+    const [selectedBudget, setSelectedBudget] = React.useState('');
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [selectedDevices, setSelectedDevices] = React.useState<string[]>([]);
+    const [selectedGeos, setSelectedGeos] = React.useState<string[]>([]);
+
+    const offsitePlacements = [
+      { value: 'homepage-hero', label: 'Homepage Hero', description: '970×250 · Above the fold · Premium visibility' },
+      { value: 'category-leaderboard', label: 'Category Leaderboard', description: '728×90 · Category pages · High intent audience' },
+      { value: 'product-page-rectangle', label: 'Product Page Rectangle', description: '300×250 · Product detail pages · High purchase intent' },
+      { value: 'search-results-top', label: 'Search Results Top', description: '728×90 · Search results · Keyword-triggered' },
+      { value: 'checkout-sidebar', label: 'Checkout Sidebar', description: '300×600 · Checkout flow · Last-touch attribution' },
+      { value: 'newsletter-half-page', label: 'Newsletter Half Page', description: '300×600 · Weekly newsletter · Engaged subscribers' },
+      { value: 'mobile-interstitial', label: 'Mobile Interstitial', description: '320×480 · App & mobile web · Full-screen takeover' },
+    ];
+
+    const retailProducts = [
+      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
+      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
+      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
+      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
+      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
+      { id: '614649', name: "Ben & Jerry's - cookie dough - 465ml" },
+    ];
+
+    const audienceOptions = [
+      { label: 'Beverage Buyers', value: 'beverage-buyers' },
+      { label: 'Health & Wellness', value: 'health-wellness' },
+      { label: 'Frequent Shoppers', value: 'frequent-shoppers' },
+      { label: 'Young Adults 18–34', value: 'young-adults' },
+      { label: 'Families with Kids', value: 'families-kids' },
+      { label: 'Premium Brand Affinity', value: 'premium-brand' },
+    ];
+
+    const deviceOptions = [
+      { label: 'Desktop', value: 'desktop' },
+      { label: 'Mobile', value: 'mobile' },
+      { label: 'Tablet', value: 'tablet' },
+    ];
+
+    const geoOptions = [
+      { label: 'Amsterdam', value: 'amsterdam' },
+      { label: 'Rotterdam', value: 'rotterdam' },
+      { label: 'Den Haag', value: 'den-haag' },
+      { label: 'Utrecht', value: 'utrecht' },
+      { label: 'Eindhoven', value: 'eindhoven' },
+    ];
+
+    const filteredRetailProducts = retailProducts.filter(product =>
+      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
+      product.id.includes(retailProductSearch)
+    );
+
+    const handleRetailProductSelect = (product: any) => {
+      if (!selectedRetailProducts.includes(product.id)) {
+        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
+      }
+      setRetailProductSearch('');
+      setShowRetailProductResults(false);
+    };
+
+    const removeRetailProduct = (productId: string) => {
+      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-dropdown-container]')) {
+          setShowRetailProductResults(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedPlacementObj = offsitePlacements.find(p => p.value === selectedPlacement);
+
+    return (
+      <MenuContextProvider>
+        <AppLayout
+          routes={routes}
+          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Line Item Detail - Offsite Display',
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+            headerRight: null,
+          }}
+        >
+          <div className="mb-6">
+            <MetricRow
+              metrics={offsiteDisplayMetrics}
+              selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+              maxVisible={5}
+              defaultVariant="default"
+              removable={true}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 min-w-0">
+              <Card className="min-w-0">
+                <CardHeader className="space-y-8">
+
+                  <FormSection title="Line item details">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Name*</label>
+                      <Input
+                        value={lineItemName}
+                        onChange={(e) => setLineItemName(e.target.value)}
+                        placeholder="Enter line item name"
+                        className="w-full"
+                      />
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Placement">
+                    <div className="space-y-3">
+                      <label className="block text-sm font-medium mb-2">Select placement*</label>
+                      {offsitePlacements.map(placement => (
+                        <div
+                          key={placement.value}
+                          onClick={() => setSelectedPlacement(placement.value)}
+                          className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+                            selectedPlacement === placement.value
+                              ? 'border-primary bg-primary/5'
+                              : 'border-input hover:bg-accent'
+                          }`}
+                        >
+                          <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                            selectedPlacement === placement.value ? 'border-primary' : 'border-muted-foreground'
+                          }`}>
+                            {selectedPlacement === placement.value && (
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">{placement.label}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{placement.description}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Run time">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Start date*</label>
+                          <DatePicker
+                            date={startDate}
+                            onDateChange={setStartDate}
+                            placeholder="Select start date"
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">End date*</label>
+                          <DatePicker
+                            date={endDate}
+                            onDateChange={setEndDate}
+                            placeholder="Select end date"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Campaign runtime: 01 Jun, 2024 - 30 Jun, 2024
+                      </div>
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Budget">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Line item budget*</label>
+                        <Input
+                          type="number"
+                          value={selectedBudget}
+                          onChange={(e) => setSelectedBudget(e.target.value)}
+                          placeholder="Enter budget"
+                          className="w-full"
+                          min="0"
+                        />
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Campaign budget: $120,000
+                      </div>
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Retail products">
+                    <div className="space-y-4">
+                      <div className="relative" data-dropdown-container>
+                        <label className="block text-sm font-medium mb-2">Select retail products*</label>
+                        <SearchInput
+                          value={retailProductSearch}
+                          onChange={(e) => {
+                            setRetailProductSearch(e.target.value);
+                            setShowRetailProductResults(e.target.value.length > 0);
+                          }}
+                          onClick={() => setShowRetailProductResults(true)}
+                          placeholder="Search product by name or ID..."
+                          className="w-full"
+                          icon={<ScanBarcode className="w-4 h-4" />}
+                        />
+                        {showRetailProductResults && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            {filteredRetailProducts.length > 0 ? (
+                              filteredRetailProducts.map(product => (
+                                <div
+                                  key={product.id}
+                                  className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                  onClick={() => handleRetailProductSelect(product)}
+                                >
+                                  <div className="font-medium text-sm">{product.name}</div>
+                                  <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {selectedRetailProducts.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium">Selected products:</div>
+                          {selectedRetailProducts.map(productId => {
+                            const product = retailProducts.find(p => p.id === productId);
+                            return product ? (
+                              <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                <div>
+                                  <div className="text-sm font-medium">{product.name}</div>
+                                  <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => removeRetailProduct(productId)} className="h-8 w-8 p-0">
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+
+                      <div className="text-sm text-muted-foreground">
+                        {selectedRetailProducts.length > 0
+                          ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
+                          : 'Search and select retail products to advertise in this line item'
+                        }
+                      </div>
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Targeting">
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Audience</label>
+                        <div className="flex flex-wrap gap-2">
+                          {audienceOptions.map(opt => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setSelectedAudiences(prev =>
+                                prev.includes(opt.value) ? prev.filter(v => v !== opt.value) : [...prev, opt.value]
+                              )}
+                              className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                selectedAudiences.includes(opt.value)
+                                  ? 'bg-primary text-white border-primary'
+                                  : 'border-input bg-background hover:bg-accent'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Device</label>
+                        <div className="flex flex-wrap gap-2">
+                          {deviceOptions.map(opt => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setSelectedDevices(prev =>
+                                prev.includes(opt.value) ? prev.filter(v => v !== opt.value) : [...prev, opt.value]
+                              )}
+                              className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                selectedDevices.includes(opt.value)
+                                  ? 'bg-primary text-white border-primary'
+                                  : 'border-input bg-background hover:bg-accent'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Geo</label>
+                        <div className="flex flex-wrap gap-2">
+                          {geoOptions.map(opt => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setSelectedGeos(prev =>
+                                prev.includes(opt.value) ? prev.filter(v => v !== opt.value) : [...prev, opt.value]
+                              )}
+                              className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                selectedGeos.includes(opt.value)
+                                  ? 'bg-primary text-white border-primary'
+                                  : 'border-input bg-background hover:bg-accent'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </FormSection>
+
+                  <FormSection title="Creatives">
+                    {selectedCreatives.length > 0 && (
+                      <div className="mb-4 overflow-x-auto">
+                        <Table
+                          columns={[
+                            {
+                              key: 'remove',
+                              header: '',
+                              render: (row) => (
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
+                                  aria-label="Remove creative"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                              ),
+                              className: 'w-10 text-center',
+                            },
+                            { key: 'name', header: 'Name' },
+                            { key: 'format', header: 'Format' },
+                            { key: 'status', header: 'Status' },
+                          ]}
+                          data={selectedCreatives}
+                          rowKey={row => row.id}
+                          hideActions
+                          onRowClick={row => console.log('Navigate to creative', row.name)}
+                        />
+                      </div>
+                    )}
+                    <CreativeLinkingDialog
+                      selectedCreatives={selectedCreatives}
+                      onSelectionChange={setSelectedCreatives}
+                    />
+                  </FormSection>
+
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button variant="outline">Cancel</Button>
+                    <Button>Submit for approval</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="flex flex-col gap-4">
+              <CardSummary>
+                <CardHeader>
+                  <CardSummaryTitle>Line item</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  {lineItemName && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Name</div>
+                      <div className="font-medium">{lineItemName}</div>
+                    </div>
+                  )}
+                  {selectedPlacementObj && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Placement</div>
+                      <div className="font-medium">{selectedPlacementObj.label}</div>
+                    </div>
+                  )}
+                  {(startDate || endDate) && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Runtime</div>
+                      <div className="font-medium">
+                        {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
+                      </div>
+                    </div>
+                  )}
+                  {selectedBudget && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Budget</div>
+                      <div className="font-medium">${Number(selectedBudget).toLocaleString()}</div>
+                    </div>
+                  )}
+                  {selectedRetailProducts.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Retail products</div>
+                      <div className="font-medium">{selectedRetailProducts.length} selected</div>
+                    </div>
+                  )}
+                  {selectedAudiences.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Audiences</div>
+                      <div className="font-medium">{selectedAudiences.length} selected</div>
+                    </div>
+                  )}
+                  {selectedDevices.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Devices</div>
+                      <div className="font-medium">{selectedDevices.join(', ')}</div>
+                    </div>
+                  )}
+                  {selectedGeos.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-[14px] text-muted-foreground">Geo</div>
+                      <div className="font-medium">{selectedGeos.length} selected</div>
+                    </div>
+                  )}
+                </CardSummaryContent>
+              </CardSummary>
+
+              <CardSummary>
+                <CardHeader>
+                  <CardSummaryTitle>Campaign details</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">Campaign name</div>
+                    <div className="font-medium">Offsite: Summer Launch</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">PO Number</div>
+                    <div className="font-medium">PO-789012</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">Advertiser</div>
+                    <div className="font-medium">Coca-Cola</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">Brand</div>
+                    <div className="font-medium">Coca-Cola Zero</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">Goal</div>
+                    <div className="font-medium">Awareness</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-[14px] text-muted-foreground">Budget</div>
+                    <div className="font-medium">$120,000</div>
+                  </div>
+                  <div>
+                    <div className="text-[14px] text-muted-foreground">Runtime</div>
+                    <div className="font-medium">01 Jun, 2024 - 30 Jun, 2024</div>
+                  </div>
+                </CardSummaryContent>
+              </CardSummary>
+            </div>
+          </div>
+        </AppLayout>
       </MenuContextProvider>
     );
   },

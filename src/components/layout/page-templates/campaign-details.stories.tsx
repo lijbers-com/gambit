@@ -4807,6 +4807,7 @@ export const OffsiteRunning: Story = {
     const [activeTab, setActiveTab] = useState('line-items');
     const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
     const [channel, setChannel] = useState<string[]>([]);
+    const [retailProduct, setRetailProduct] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
@@ -4824,13 +4825,13 @@ export const OffsiteRunning: Story = {
       { id: 'CR-004', status: 'Approved', name: 'DOOH Billboard', format: 'Digital Out-of-Home', placements: 4, adSpend: '$17,290', impressions: '2,569,464', clicks: '39,691', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$43,728', onlineSkuUnits: '2,964', onlineSkuConversions: '1,787', instoreSkuRevenue: '$31,256', instoreSkuUnits: '2,091', instoreSkuConversions: '1,262', totalSkuRevenue: '$74,984', totalSkuUnits: '5,055', totalSkuConversions: '3,049' },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: '3rd Party Display Campaign', channel: '3rd Party Display', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
-      { id: 'LI-002', status: 'Running', name: 'Meta & Google Social Ads', channel: 'Socials', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
-      { id: 'LI-003', status: 'Running', name: 'Connected TV Spots', channel: 'Connected TV', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-004', status: 'Running', name: 'Digital Out-of-Home Network', channel: '3rd Party DOOH', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '$9,566', impressions: '1,421,287', clicks: '21,953', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$24,205', onlineSkuUnits: '1,641', onlineSkuConversions: '989', instoreSkuRevenue: '$17,304', instoreSkuUnits: '1,158', instoreSkuConversions: '699', totalSkuRevenue: '$41,509', totalSkuUnits: '2,799', totalSkuConversions: '1,688' },
-      { id: 'LI-005', status: 'Running', name: 'AI-Powered Programmatic', channel: 'AI', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-006', status: 'Running', name: 'Audio Streaming Ads', channel: '3rd Party Audio', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '$8,255', impressions: '1,226,527', clicks: '18,944', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$20,896', onlineSkuUnits: '1,417', onlineSkuConversions: '854', instoreSkuRevenue: '$14,935', instoreSkuUnits: '999', instoreSkuConversions: '603', totalSkuRevenue: '$35,831', totalSkuUnits: '2,416', totalSkuConversions: '1,457' },
-      { id: 'LI-007', status: 'Running', name: 'Direct Mail Campaign', channel: '3rd Party Mailing', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', adSpend: '$12,350', impressions: '1,834,470', clicks: '28,326', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,177', onlineSkuUnits: '2,110', onlineSkuConversions: '1,273', instoreSkuRevenue: '$22,283', instoreSkuUnits: '1,491', instoreSkuConversions: '900', totalSkuRevenue: '$53,460', totalSkuUnits: '3,601', totalSkuConversions: '2,173' },
+      { id: 'LI-001', status: 'Running', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
+      { id: 'LI-002', status: 'Running', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
+      { id: 'LI-003', status: 'Running', name: 'Product Page Rectangle', channel: 'Product Page Rectangle', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
+      { id: 'LI-004', status: 'Running', name: 'Search Results Top Banner', channel: 'Search Results Top', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '$9,566', impressions: '1,421,287', clicks: '21,953', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$24,205', onlineSkuUnits: '1,641', onlineSkuConversions: '989', instoreSkuRevenue: '$17,304', instoreSkuUnits: '1,158', instoreSkuConversions: '699', totalSkuRevenue: '$41,509', totalSkuUnits: '2,799', totalSkuConversions: '1,688' },
+      { id: 'LI-005', status: 'Running', name: 'Checkout Sidebar', channel: 'Checkout Sidebar', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
+      { id: 'LI-006', status: 'Running', name: 'Newsletter Half Page', channel: 'Newsletter Half Page', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '$8,255', impressions: '1,226,527', clicks: '18,944', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$20,896', onlineSkuUnits: '1,417', onlineSkuConversions: '854', instoreSkuRevenue: '$14,935', instoreSkuUnits: '999', instoreSkuConversions: '603', totalSkuRevenue: '$35,831', totalSkuUnits: '2,416', totalSkuConversions: '1,457' },
+      { id: 'LI-007', status: 'Running', name: 'Mobile Interstitial', channel: 'Mobile Interstitial', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '$12,350', impressions: '1,834,470', clicks: '28,326', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,177', onlineSkuUnits: '2,110', onlineSkuConversions: '1,273', instoreSkuRevenue: '$22,283', instoreSkuUnits: '1,491', instoreSkuConversions: '900', totalSkuRevenue: '$53,460', totalSkuUnits: '3,601', totalSkuConversions: '2,173' },
     ];
 
     const logData = [
@@ -5045,16 +5046,29 @@ export const OffsiteRunning: Story = {
                       {
                         name: 'Channel',
                         options: [
-                          { label: '3rd Party Display', value: '3rd Party Display' },
-                          { label: 'Socials', value: 'Socials' },
-                          { label: 'Connected TV', value: 'Connected TV' },
-                          { label: '3rd Party DOOH', value: '3rd Party DOOH' },
-                          { label: 'AI', value: 'AI' },
-                          { label: '3rd Party Audio', value: '3rd Party Audio' },
-                          { label: '3rd Party Mailing', value: '3rd Party Mailing' },
+                          { label: 'Homepage Hero', value: 'Homepage Hero' },
+                          { label: 'Category Leaderboard', value: 'Category Leaderboard' },
+                          { label: 'Product Page Rectangle', value: 'Product Page Rectangle' },
+                          { label: 'Search Results Top', value: 'Search Results Top' },
+                          { label: 'Checkout Sidebar', value: 'Checkout Sidebar' },
+                          { label: 'Newsletter Half Page', value: 'Newsletter Half Page' },
+                          { label: 'Mobile Interstitial', value: 'Mobile Interstitial' },
                         ],
                         selectedValues: channel,
                         onChange: setChannel,
+                      },
+                      {
+                        name: 'Retail Product',
+                        options: [
+                          { label: 'Coca-Cola Zero - 1 liter', value: '606983' },
+                          { label: 'Pepsi Max - 1.5 liter', value: '607124' },
+                          { label: 'Red Bull Original - 250ml', value: '608456' },
+                          { label: 'Heineken Lager - 6x330ml', value: '609782' },
+                          { label: 'Nutella Hazelnut Spread - 750g', value: '614038' },
+                          { label: "Ben & Jerry's Cookie Dough - 465ml", value: '614649' },
+                        ],
+                        selectedValues: retailProduct,
+                        onChange: setRetailProduct,
                       },
                     ]}
                     searchValue={''}
@@ -5066,8 +5080,20 @@ export const OffsiteRunning: Story = {
                       { key: 'id', header: 'Line-item ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
-                      { key: 'channel', header: 'Channel' },
+                      { key: 'retailMedia', header: 'Retail Media', render: row => {
+                        const maxShow = 3;
+                        const shown = row.retailMedia.images.slice(0, maxShow);
+                        const remaining = row.retailMedia.total - shown.length;
+                        return (
+                          <div className="flex items-center gap-1">
+                            {shown.map((img: string, i: number) => (
+                              <img key={i} src={img} alt="" className="w-7 h-7 rounded object-cover" />
+                            ))}
+                            {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
+                          </div>
+                        );
+                      }},
+                      { key: 'channel', header: 'Placements' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'adSpend', header: 'Ad Spend' },
@@ -5267,13 +5293,13 @@ export const OffsiteInOption: Story = {
       { id: 'CR-003', status: 'Rejected', name: 'Audio Spot 15s', format: 'Audio', placements: 0, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
     ];
     const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: '3rd Party Display Campaign', channel: '3rd Party Display', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-002', status: 'In-option', name: 'Meta & Google Social Ads', channel: 'Socials', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-003', status: 'Ready', name: 'Connected TV Spots', channel: 'Connected TV', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-004', status: 'In-option', name: 'Digital Out-of-Home Network', channel: '3rd Party DOOH', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-005', status: 'Ready', name: 'AI-Powered Programmatic', channel: 'AI', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-006', status: 'In-option', name: 'Audio Streaming Ads', channel: '3rd Party Audio', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-007', status: 'Ready', name: 'Direct Mail Campaign', channel: '3rd Party Mailing', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-001', status: 'In-option', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-002', status: 'In-option', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-003', status: 'Ready', name: 'Product Page Rectangle', channel: 'Product Page Rectangle', start: '2024-08-10', end: '2024-09-10', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-004', status: 'In-option', name: 'Search Results Top Banner', channel: 'Search Results Top', start: '2024-11-01', end: '2024-11-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-005', status: 'Ready', name: 'Checkout Sidebar', channel: 'Checkout Sidebar', start: '2024-12-01', end: '2024-12-31', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-006', status: 'In-option', name: 'Newsletter Half Page', channel: 'Newsletter Half Page', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-007', status: 'Ready', name: 'Mobile Interstitial', channel: 'Mobile Interstitial', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
     ];
 
     const logData = [
@@ -5487,16 +5513,29 @@ export const OffsiteInOption: Story = {
                       {
                         name: 'Channel',
                         options: [
-                          { label: '3rd Party Display', value: '3rd Party Display' },
-                          { label: 'Socials', value: 'Socials' },
-                          { label: 'Connected TV', value: 'Connected TV' },
-                          { label: '3rd Party DOOH', value: '3rd Party DOOH' },
-                          { label: 'AI', value: 'AI' },
-                          { label: '3rd Party Audio', value: '3rd Party Audio' },
-                          { label: '3rd Party Mailing', value: '3rd Party Mailing' },
+                          { label: 'Homepage Hero', value: 'Homepage Hero' },
+                          { label: 'Category Leaderboard', value: 'Category Leaderboard' },
+                          { label: 'Product Page Rectangle', value: 'Product Page Rectangle' },
+                          { label: 'Search Results Top', value: 'Search Results Top' },
+                          { label: 'Checkout Sidebar', value: 'Checkout Sidebar' },
+                          { label: 'Newsletter Half Page', value: 'Newsletter Half Page' },
+                          { label: 'Mobile Interstitial', value: 'Mobile Interstitial' },
                         ],
                         selectedValues: channel,
                         onChange: setChannel,
+                      },
+                      {
+                        name: 'Retail Product',
+                        options: [
+                          { label: 'Coca-Cola Zero - 1 liter', value: '606983' },
+                          { label: 'Pepsi Max - 1.5 liter', value: '607124' },
+                          { label: 'Red Bull Original - 250ml', value: '608456' },
+                          { label: 'Heineken Lager - 6x330ml', value: '609782' },
+                          { label: 'Nutella Hazelnut Spread - 750g', value: '614038' },
+                          { label: "Ben & Jerry's Cookie Dough - 465ml", value: '614649' },
+                        ],
+                        selectedValues: retailProduct,
+                        onChange: setRetailProduct,
                       },
                     ]}
                     searchValue={''}
@@ -5508,8 +5547,20 @@ export const OffsiteInOption: Story = {
                       { key: 'id', header: 'Line-item ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
-                      { key: 'channel', header: 'Channel' },
+                      { key: 'retailMedia', header: 'Retail Media', render: row => {
+                        const maxShow = 3;
+                        const shown = row.retailMedia.images.slice(0, maxShow);
+                        const remaining = row.retailMedia.total - shown.length;
+                        return (
+                          <div className="flex items-center gap-1">
+                            {shown.map((img: string, i: number) => (
+                              <img key={i} src={img} alt="" className="w-7 h-7 rounded object-cover" />
+                            ))}
+                            {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
+                          </div>
+                        );
+                      }},
+                      { key: 'channel', header: 'Placements' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'adSpend', header: 'Ad Spend' },

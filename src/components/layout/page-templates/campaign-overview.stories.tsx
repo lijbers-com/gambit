@@ -117,6 +117,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
 
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
+    const [retailProduct, setRetailProduct] = React.useState<string[]>([]);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const filteredCampaignData = campaignData.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
@@ -171,6 +172,23 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                   ],
                   selectedValues: advertiser,
                   onChange: setAdvertiser,
+                },
+                {
+                  name: 'Retail Product',
+                  options: [
+                    { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
+                    { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
+                    { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
+                    { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
+                    { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
+                    { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
+                    { label: 'Nike - air max 270 - size 42', value: '612816' },
+                    { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
+                    { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
+                    { label: "Ben & Jerry's - cookie dough - 465ml", value: '614649' },
+                  ],
+                  selectedValues: retailProduct,
+                  onChange: setRetailProduct,
                 },
               ]}
               searchValue={''}

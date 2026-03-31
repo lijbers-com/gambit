@@ -12,7 +12,7 @@ export default function InsightsReportClient() {
     const tabParam = searchParams.get('tab');
     if (tabParam) {
       // Validate the tab parameter against available tabs
-      const validTabs = ['product-report', 'audience-report', 'iroas-report', 'ecom-funnel-report', 'goal-report'];
+      const validTabs = ['product-report', 'audience-report', 'iroas-report', 'ecom-funnel-report', 'goal-report', 'new-report'];
       if (validTabs.includes(tabParam)) {
         setTargetTab(tabParam);
       }
@@ -29,7 +29,8 @@ export default function InsightsReportClient() {
           'audience-report': 'Audience Report',
           'iroas-report': 'IROAS Report',
           'ecom-funnel-report': 'Ecom Funnel Report',
-          'goal-report': 'Goal Report'
+          'goal-report': 'Goal Report',
+          'new-report': 'New report'
         };
 
         const targetLabel = tabLabels[targetTab];

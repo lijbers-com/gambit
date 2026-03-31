@@ -2745,12 +2745,13 @@ export const ProductReportView: Story = {
                             onChange: setBrandFilter,
                           },
                           {
-                            name: "Engine",
+                            name: "Proposition",
                             options: [
                               { label: "Display", value: "display" },
                               { label: "Sponsored Products", value: "sponsored-products" },
                               { label: "Digital In-store", value: "digital-instore" },
                               { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
                             ],
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
@@ -2843,12 +2844,13 @@ export const ProductReportView: Story = {
                             onChange: setBrandFilter,
                           },
                           {
-                            name: "Engine",
+                            name: "Proposition",
                             options: [
                               { label: "Display", value: "display" },
                               { label: "Sponsored Products", value: "sponsored-products" },
                               { label: "Digital In-store", value: "digital-instore" },
                               { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
                             ],
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
@@ -2921,12 +2923,13 @@ export const ProductReportView: Story = {
                             onChange: setBrandFilter,
                           },
                           {
-                            name: "Engine",
+                            name: "Proposition",
                             options: [
                               { label: "Display", value: "display" },
                               { label: "Sponsored Products", value: "sponsored-products" },
                               { label: "Digital In-store", value: "digital-instore" },
                               { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
                             ],
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
@@ -2996,12 +2999,13 @@ export const ProductReportView: Story = {
                             onChange: setBrandFilter,
                           },
                           {
-                            name: "Engine",
+                            name: "Proposition",
                             options: [
                               { label: "Display", value: "display" },
                               { label: "Sponsored Products", value: "sponsored-products" },
                               { label: "Digital In-store", value: "digital-instore" },
                               { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
                             ],
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
@@ -3073,12 +3077,13 @@ export const ProductReportView: Story = {
                             onChange: setBrandFilter,
                           },
                           {
-                            name: "Engine",
+                            name: "Proposition",
                             options: [
                               { label: "Display", value: "display" },
                               { label: "Sponsored Products", value: "sponsored-products" },
                               { label: "Digital In-store", value: "digital-instore" },
                               { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
                             ],
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
@@ -3103,6 +3108,143 @@ export const ProductReportView: Story = {
                       rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
                       onRowClick={row => console.log('Navigate to goal details for', row.goal)}
                     />
+                  </div>
+                )
+              },
+              {
+                value: 'new-report',
+                label: 'New report',
+                content: (
+                  <div>
+                    <div className="mb-4 mt-6">
+                      <FilterBar
+                        filters={[
+                          {
+                            name: "Status",
+                            options: [
+                              { label: "Active", value: "active" },
+                              { label: "Paused", value: "paused" },
+                              { label: "Completed", value: "completed" },
+                            ],
+                            selectedValues: statusFilter,
+                            onChange: setStatusFilter,
+                          },
+                          {
+                            name: "Brand",
+                            options: [
+                              { label: "Dove", value: "dove" },
+                              { label: "Hellmanns", value: "hellmanns" },
+                              { label: "Ben & Jerrys", value: "ben-jerrys" },
+                              { label: "Axe", value: "axe" },
+                              { label: "Lipton", value: "lipton" },
+                            ],
+                            selectedValues: brandFilter,
+                            onChange: setBrandFilter,
+                          },
+                          {
+                            name: "Proposition",
+                            options: [
+                              { label: "Display", value: "display" },
+                              { label: "Sponsored Products", value: "sponsored-products" },
+                              { label: "Digital In-store", value: "digital-instore" },
+                              { label: "Offline In-store", value: "offline-instore" },
+                              { label: "Display Offsite", value: "display-offsite" },
+                            ],
+                            selectedValues: engineFilter,
+                            onChange: setEngineFilter,
+                          },
+                        ]}
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search custom report..."
+                      />
+                    </div>
+                    <div className="space-y-6 py-4">
+                      {/* Summary metric cards */}
+                      <div className="grid grid-cols-4 gap-4">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-2xl font-bold">€142,830</div>
+                            <p className="text-sm text-muted-foreground">Total Revenue</p>
+                            <div className="mt-1"><Badge variant="default">+18% vs last period</Badge></div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-2xl font-bold">€38,450</div>
+                            <p className="text-sm text-muted-foreground">Total Spend</p>
+                            <div className="mt-1"><Badge variant="secondary">+12% vs last period</Badge></div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-2xl font-bold">3.71x</div>
+                            <p className="text-sm text-muted-foreground">Blended ROAS</p>
+                            <div className="mt-1"><Badge variant="default">+5% vs last period</Badge></div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-2xl font-bold">28,640</div>
+                            <p className="text-sm text-muted-foreground">Total Conversions</p>
+                            <div className="mt-1"><Badge variant="default">+22% vs last period</Badge></div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      {/* Revenue by proposition chart */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Revenue by Proposition</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={[
+                              { proposition: 'Sponsored Products', revenue: 58400, spend: 15200 },
+                              { proposition: 'Display', revenue: 32600, spend: 9800 },
+                              { proposition: 'Digital In-store', revenue: 24500, spend: 7100 },
+                              { proposition: 'Offline In-store', revenue: 18900, spend: 4950 },
+                              { proposition: 'Display Offsite', revenue: 8430, spend: 1400 },
+                            ]}
+                            config={{
+                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+                              spend: { label: 'Spend', color: 'hsl(var(--chart-2))' },
+                            }}
+                            xAxisDataKey="proposition"
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            className="h-64 w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                      {/* Detailed breakdown table */}
+                      <Table
+                        columns={[
+                          { key: 'proposition', header: 'Proposition', hideable: false },
+                          { key: 'campaigns', header: 'Campaigns', render: (row: { campaigns: number }) => row.campaigns.toLocaleString() },
+                          { key: 'impressions', header: 'Impressions', render: (row: { impressions: number }) => row.impressions.toLocaleString() },
+                          { key: 'clicks', header: 'Clicks', render: (row: { clicks: number }) => row.clicks.toLocaleString() },
+                          { key: 'ctr', header: 'CTR' },
+                          { key: 'spend', header: 'Spend', render: (row: { spend: number }) => `€${row.spend.toLocaleString()}` },
+                          { key: 'revenue', header: 'Revenue', render: (row: { revenue: number }) => `€${row.revenue.toLocaleString()}` },
+                          { key: 'roas', header: 'ROAS' },
+                          { key: 'conversions', header: 'Conversions', render: (row: { conversions: number }) => row.conversions.toLocaleString() },
+                          { key: 'cpa', header: 'CPA' },
+                        ]}
+                        data={[
+                          { id: 'NR-001', proposition: 'Sponsored Products', campaigns: 12, impressions: 6200000, clicks: 24800, ctr: '0.40%', spend: 15200, revenue: 58400, roas: '3.84x', conversions: 11680, cpa: '€1.30' },
+                          { id: 'NR-002', proposition: 'Display', campaigns: 8, impressions: 4100000, clicks: 12300, ctr: '0.30%', spend: 9800, revenue: 32600, roas: '3.33x', conversions: 6150, cpa: '€1.59' },
+                          { id: 'NR-003', proposition: 'Digital In-store', campaigns: 6, impressions: 2800000, clicks: 8400, ctr: '0.30%', spend: 7100, revenue: 24500, roas: '3.45x', conversions: 4200, cpa: '€1.69' },
+                          { id: 'NR-004', proposition: 'Offline In-store', campaigns: 5, impressions: 1900000, clicks: 3800, ctr: '0.20%', spend: 4950, revenue: 18900, roas: '3.82x', conversions: 1900, cpa: '€2.61' },
+                          { id: 'NR-005', proposition: 'Display Offsite', campaigns: 3, impressions: 980000, clicks: 2940, ctr: '0.30%', spend: 1400, revenue: 8430, roas: '6.02x', conversions: 710, cpa: '€1.97' },
+                        ]}
+                        rowKey={(row: { id: string }) => row.id}
+                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        onRowClick={(row: { proposition: string }) => console.log('Navigate to proposition details for', row.proposition)}
+                      />
+                    </div>
                   </div>
                 )
               },

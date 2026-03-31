@@ -87,9 +87,9 @@ type Story = StoryObj<typeof meta>;
 
 
 const productImages = [
-  'https://ui-avatars.com/api/?name=P1&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
-  'https://ui-avatars.com/api/?name=P2&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
-  'https://ui-avatars.com/api/?name=P3&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
+  'https://picsum.photos/seed/prod1/56/56',
+  'https://picsum.photos/seed/prod2/56/56',
+  'https://picsum.photos/seed/prod3/56/56',
 ];
 
 const campaignData = [

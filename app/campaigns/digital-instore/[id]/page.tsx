@@ -10,29 +10,25 @@ export default function DigitalInstoreCampaignDetailsPage() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const tabContent = target.closest('[role="tabpanel"]');
+      const row = target.closest('tr');
 
-      if (tabContent && tabContent.getAttribute('aria-labelledby')?.includes('line-items')) {
-        const row = target.closest('tr');
-        if (row && row.querySelector('td')) {
-          const lineItemId = row.querySelector('td:nth-child(2)')?.textContent;
-          if (lineItemId) {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`/campaigns/digital-instore/line-item/${lineItemId}`);
-          }
+      if (row && row.querySelector('td')) {
+        const cells = row.querySelectorAll('td');
+        const cellTexts = Array.from(cells).map(td => td.textContent?.trim());
+
+        const lineItemId = cellTexts.find(t => t?.startsWith('LI-'));
+        if (lineItemId) {
+          e.preventDefault();
+          e.stopPropagation();
+          router.push(`/campaigns/digital-instore/line-item/${lineItemId}`);
+          return;
         }
-      }
 
-      if (tabContent && tabContent.getAttribute('aria-labelledby')?.includes('creatives')) {
-        const row = target.closest('tr');
-        if (row && row.querySelector('td')) {
-          const creativeId = row.querySelector('td:nth-child(2)')?.textContent;
-          if (creativeId) {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`/campaigns/digital-instore/creative/${creativeId}`);
-          }
+        const creativeId = cellTexts.find(t => t?.startsWith('CR-'));
+        if (creativeId) {
+          e.preventDefault();
+          e.stopPropagation();
+          router.push(`/campaigns/digital-instore/creative/${creativeId}`);
         }
       }
     };

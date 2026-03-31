@@ -86,11 +86,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 
+const productImages = [
+  'https://ui-avatars.com/api/?name=P1&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
+  'https://ui-avatars.com/api/?name=P2&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
+  'https://ui-avatars.com/api/?name=P3&size=28&background=f1f5f9&color=475569&bold=true&format=svg',
+];
+
 const campaignData = [
-  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, placements: 12, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products', 'Offsite'] },
-  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, placements: 8, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store', 'Offsite'] },
-  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, placements: 15, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products', 'Offsite'] },
-  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, placements: 20, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store', 'Offsite'] },
+  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', lineItems: 5, creatives: 3, placements: 12, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products', 'Offsite'], products: { images: productImages, total: 3 }, spendToDate: 0, spendingLimit: 10000 },
+  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', lineItems: 2, creatives: 1, placements: 8, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store', 'Offsite'], products: { images: productImages.slice(0, 1), total: 1 }, spendToDate: 0, spendingLimit: 100000 },
+  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', lineItems: 4, creatives: 2, placements: 15, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products', 'Offsite'], products: { images: productImages.slice(0, 2), total: 7 }, spendToDate: 0, spendingLimit: 100000 },
+  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', lineItems: 6, creatives: 4, placements: 20, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store', 'Offsite'], products: { images: productImages, total: 13 }, spendToDate: 0, spendingLimit: 80000 },
 ];
 
 const statusVariant = (status: string) => {
@@ -189,9 +195,24 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                     </div>
                   );
                 }},
+                { key: 'products', header: 'Products', render: row => {
+                  const maxShow = 3;
+                  const shown = row.products.images.slice(0, maxShow);
+                  const remaining = row.products.total - shown.length;
+                  return (
+                    <div className="flex items-center gap-1">
+                      {shown.map((img, i) => (
+                        <img key={i} src={img} alt="" className="w-7 h-7 rounded border border-slate-200 bg-slate-50 object-cover" />
+                      ))}
+                      {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
+                    </div>
+                  );
+                }},
                 { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
                 { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
                 { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                { key: 'spendToDate', header: 'Spend to date', render: row => `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                { key: 'spendingLimit', header: 'Spending limit', render: row => `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
                 { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                 { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
               ]}

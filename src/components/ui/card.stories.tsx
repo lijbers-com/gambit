@@ -105,9 +105,9 @@ export const WithTabs: Story = {
       }
       tabs={[
         {
-          label: 'Line-items',
-          value: 'line-items',
-          content: <div className="h-32">Line-items content</div>,
+          label: 'Bookings',
+          value: 'bookings',
+          content: <div className="h-32">Bookings content</div>,
         },
         {
           label: 'Creatives',

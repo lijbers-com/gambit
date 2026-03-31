@@ -16,11 +16,11 @@ export default function DigitalInstoreCampaignDetailsPage() {
         const cells = row.querySelectorAll('td');
         const cellTexts = Array.from(cells).map(td => td.textContent?.trim());
 
-        const lineItemId = cellTexts.find(t => t?.startsWith('LI-'));
-        if (lineItemId) {
+        const bookingId = cellTexts.find(t => t?.startsWith('LI-'));
+        if (bookingId) {
           e.preventDefault();
           e.stopPropagation();
-          router.push(`/campaigns/digital-instore/line-item/${lineItemId}`);
+          router.push(`/campaigns/digital-instore/booking/${bookingId}`);
           return;
         }
 

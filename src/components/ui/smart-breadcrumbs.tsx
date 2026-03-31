@@ -61,10 +61,10 @@ const SmartBreadcrumbsInner = ({
         return breadcrumbContext.getCampaignName(campaignId);
       }
 
-      // Line-item detail pages
-      if (fullPath.match(/^\/campaigns\/[^/]+\/line-item\/[^/]+$/)) {
-        const lineItemId = path;
-        return breadcrumbContext.getLineItemName(lineItemId);
+      // Booking detail pages
+      if (fullPath.match(/^\/campaigns\/[^/]+\/booking\/[^/]+$/)) {
+        const bookingId = path;
+        return breadcrumbContext.getBookingName(bookingId);
       }
 
       // Creative detail pages

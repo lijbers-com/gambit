@@ -66,14 +66,14 @@ const meta: Meta<typeof AppLayout> = {
         component: `
 # Creative Detail Page Template
 
-The Creative Detail page template provides comprehensive forms for creating and editing creative assets across different campaign types. It features dynamic form sections, line item linking, and real-time summary cards.
+The Creative Detail page template provides comprehensive forms for creating and editing creative assets across different campaign types. It features dynamic form sections, booking linking, and real-time summary cards.
 
 ## Features
 
 - **Multi-Variant Support**: Different forms for Display, Digital In-Store, and Offline In-Store creatives
 - **Dynamic Form Sections**: Form fields change based on format selection
-- **Line Item Linking**: Advanced dialog for linking creatives to line items with filtering and search
-- **Real-time Summary**: Live sidebar updates showing creative and line item details
+- **Booking Linking**: Advanced dialog for linking creatives to bookings with filtering and search
+- **Real-time Summary**: Live sidebar updates showing creative and booking details
 - **Format Requirements**: Contextual help for format specifications
 - **Responsive Design**: Two-column layout that adapts to screen size
 
@@ -102,11 +102,11 @@ The settings section adapts based on selected format:
 - Supported formats: PDF, PNG, JPG, AI, EPS
 - File size limit: 10MB
 
-### Line Items Section
+### Bookings Section
 - **Link Dialog**: Advanced filtering by Brand and Product
-- **Search**: Real-time search across line item names
-- **Management Table**: View and remove linked line items
-- **Row Actions**: Click to navigate to line item details
+- **Search**: Real-time search across booking names
+- **Management Table**: View and remove linked bookings
+- **Row Actions**: Click to navigate to booking details
 
 ## Format Options
 
@@ -135,7 +135,7 @@ The settings section adapts based on selected format:
 1. **Format Selection**: Must select a format before settings section appears
 2. **Required Fields**: Name and Format are mandatory
 3. **File Uploads**: Offline formats require single file upload
-4. **Line Item Linking**: Creatives can be linked to multiple line items
+4. **Booking Linking**: Creatives can be linked to multiple bookings
 5. **Real-time Updates**: Sidebar updates immediately when form fields change
 
 ## Sidebar Information
@@ -147,8 +147,8 @@ The settings section adapts based on selected format:
 - Duration (for Digital In-Store)
 - File information (for Offline In-Store)
 
-### Line Items Summary
-- Shows relationship between creative and line items
+### Bookings Summary
+- Shows relationship between creative and bookings
 - Displays "Line item: [Brand] [Store Count] stores"
 - Shows "Creative: [Creative Name]" or "No creative"
 
@@ -171,9 +171,9 @@ This template is ideal for:
 - FormSection (organized form layouts)
 - Input (text inputs and dropdowns)
 - FileInput (file upload with validation)
-- Dialog (line item linking modal)
+- Dialog (booking linking modal)
 - FilterBar (advanced filtering in dialog)
-- Table (line item management)
+- Table (booking management)
 - Button (actions and navigation)
 - CardSummary (sidebar information cards)
         `,
@@ -187,7 +187,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 
-const mockLineItems = [
+const mockBookings = [
   { id: 1, name: 'Knorr 500 stores', brand: 'Knorr', start: '01/08/2024', end: '30/08/2024', stores: 500, product: 'Pakket M' },
   { id: 2, name: 'Unox 200 stores', brand: 'Unox', start: '05/08/2024', end: '20/08/2024', stores: 200, product: 'Pakket S' },
   { id: 3, name: 'Maggi 300 stores', brand: 'Maggi', start: '10/08/2024', end: '25/08/2024', stores: 300, product: 'Pakket L' },
@@ -234,24 +234,24 @@ const CampaignDetailsSidebar = () => (
   </div>
 );
 
-// Shared component for line items dialog
-const LineItemsDialog = ({ selectedLineItems, onSelectionChange }: { 
-  selectedLineItems: any[], 
+// Shared component for bookings dialog
+const BookingsDialog = ({ selectedBookings, onSelectionChange }: { 
+  selectedBookings: any[], 
   onSelectionChange: (items: any[]) => void 
 }) => {
   const [brandFilter, setBrandFilter] = React.useState<string[]>([]);
   const [productFilter, setProductFilter] = React.useState<string[]>([]);
   const [search, setSearch] = React.useState('');
-  const [localSelection, setLocalSelection] = React.useState<any[]>(selectedLineItems);
+  const [localSelection, setLocalSelection] = React.useState<any[]>(selectedBookings);
 
   React.useEffect(() => {
-    setLocalSelection(selectedLineItems);
-  }, [selectedLineItems]);
+    setLocalSelection(selectedBookings);
+  }, [selectedBookings]);
 
-  const brands = Array.from(new Set(mockLineItems.map(item => item.brand)));
-  const products = Array.from(new Set(mockLineItems.map(item => item.product)));
+  const brands = Array.from(new Set(mockBookings.map(item => item.brand)));
+  const products = Array.from(new Set(mockBookings.map(item => item.product)));
 
-  const filteredLineItems = mockLineItems.filter(item => {
+  const filteredBookings = mockBookings.filter(item => {
     const brandMatch = brandFilter.length === 0 || brandFilter.includes(item.brand);
     const productMatch = productFilter.length === 0 || productFilter.includes(item.product);
     const searchMatch = search === '' || item.name.toLowerCase().includes(search.toLowerCase());
@@ -265,12 +265,12 @@ const LineItemsDialog = ({ selectedLineItems, onSelectionChange }: {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="mt-4">Link line items</Button>
+        <Button variant="outline" className="mt-4">Link bookings</Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl w-full">
         <DialogHeader>
-          <DialogTitle>Link line-items</DialogTitle>
-          <DialogDescription>Select line-items to link to this creative.</DialogDescription>
+          <DialogTitle>Link bookings</DialogTitle>
+          <DialogDescription>Select bookings to link to this creative.</DialogDescription>
         </DialogHeader>
         
         <FilterBar
@@ -303,16 +303,16 @@ const LineItemsDialog = ({ selectedLineItems, onSelectionChange }: {
               { key: 'stores', header: 'Stores' },
               { key: 'product', header: 'Product' },
             ]}
-            data={filteredLineItems}
+            data={filteredBookings}
             rowKey={row => row.id}
             rowSelection={{
               selectedKeys: localSelection.map(row => row.id),
               onChange: (keys) => {
-                setLocalSelection(filteredLineItems.filter(row => keys.includes(row.id)));
+                setLocalSelection(filteredBookings.filter(row => keys.includes(row.id)));
               },
               getKey: row => row.id,
             }}
-            onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
+            onRowClick={(row) => window.location.href = `/campaigns/digital-instore/booking/${row.id}`}
             hideActions
           />
         </div>
@@ -335,7 +335,7 @@ export const Display: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [creativeName, setCreativeName] = React.useState('');
     const [creativeFormat, setCreativeFormat] = React.useState('');
-    const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
+    const [selectedBookings, setSelectedBookings] = React.useState<any[]>([]);
 
     return (
       <MenuContextProvider>
@@ -438,8 +438,8 @@ export const Display: Story = {
                         </FormSection>
                       )}
 
-                      <FormSection title="Line items">
-                        {selectedLineItems.length > 0 && (
+                      <FormSection title="Bookings">
+                        {selectedBookings.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
                               columns={[
@@ -450,8 +450,8 @@ export const Display: Story = {
                                     <Button
                                       size="icon"
                                       variant="outline"
-                                      onClick={() => setSelectedLineItems(selectedLineItems.filter(item => item.id !== row.id))}
-                                      aria-label="Remove line-item"
+                                      onClick={() => setSelectedBookings(selectedBookings.filter(item => item.id !== row.id))}
+                                      aria-label="Remove booking"
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
@@ -465,20 +465,20 @@ export const Display: Story = {
                                 { key: 'stores', header: 'Stores' },
                                 { key: 'product', header: 'Product' },
                               ]}
-                              data={selectedLineItems}
+                              data={selectedBookings}
                               rowKey={row => row.id}
                               hideActions
                               rowClassName={() => 'cursor-pointer'}
                               onRowClick={row => {
-                                console.log('Navigate to line-item details for', row.name);
+                                console.log('Navigate to booking details for', row.name);
                               }}
                             />
                           </div>
                         )}
                         
-                        <LineItemsDialog 
-                          selectedLineItems={selectedLineItems} 
-                          onSelectionChange={setSelectedLineItems} 
+                        <BookingsDialog 
+                          selectedBookings={selectedBookings} 
+                          onSelectionChange={setSelectedBookings} 
                         />
                       </FormSection>
                     </CardHeader>
@@ -515,11 +515,11 @@ export const Display: Story = {
                   
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line items</CardSummaryTitle>
+                      <CardSummaryTitle>Bookings</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {mockLineItems.map(item => {
-                        const isLinked = selectedLineItems.some(selected => selected.id === item.id);
+                      {mockBookings.map(item => {
+                        const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
                           <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
                             <div className="text-[14px]">
@@ -565,7 +565,7 @@ export const DigitalInStore: Story = {
     const [width, setWidth] = React.useState('');
     const [height, setHeight] = React.useState('');
     const [duration, setDuration] = React.useState('');
-    const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
+    const [selectedBookings, setSelectedBookings] = React.useState<any[]>([]);
 
     return (
       <MenuContextProvider>
@@ -675,8 +675,8 @@ export const DigitalInStore: Story = {
                         </FormSection>
                       )}
 
-                      <FormSection title="Line items">
-                        {selectedLineItems.length > 0 && (
+                      <FormSection title="Bookings">
+                        {selectedBookings.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
                               columns={[
@@ -687,8 +687,8 @@ export const DigitalInStore: Story = {
                                     <Button
                                       size="icon"
                                       variant="outline"
-                                      onClick={() => setSelectedLineItems(selectedLineItems.filter(item => item.id !== row.id))}
-                                      aria-label="Remove line-item"
+                                      onClick={() => setSelectedBookings(selectedBookings.filter(item => item.id !== row.id))}
+                                      aria-label="Remove booking"
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
@@ -702,20 +702,20 @@ export const DigitalInStore: Story = {
                                 { key: 'stores', header: 'Stores' },
                                 { key: 'product', header: 'Product' },
                               ]}
-                              data={selectedLineItems}
+                              data={selectedBookings}
                               rowKey={row => row.id}
                               hideActions
                               rowClassName={() => 'cursor-pointer'}
                               onRowClick={row => {
-                                console.log('Navigate to line-item details for', row.name);
+                                console.log('Navigate to booking details for', row.name);
                               }}
                             />
                           </div>
                         )}
                         
-                        <LineItemsDialog 
-                          selectedLineItems={selectedLineItems} 
-                          onSelectionChange={setSelectedLineItems} 
+                        <BookingsDialog 
+                          selectedBookings={selectedBookings} 
+                          onSelectionChange={setSelectedBookings} 
                         />
                       </FormSection>
                     </CardHeader>
@@ -764,11 +764,11 @@ export const DigitalInStore: Story = {
                   
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line items</CardSummaryTitle>
+                      <CardSummaryTitle>Bookings</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {mockLineItems.map(item => {
-                        const isLinked = selectedLineItems.some(selected => selected.id === item.id);
+                      {mockBookings.map(item => {
+                        const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
                           <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
                             <div className="text-[14px]">
@@ -811,7 +811,7 @@ export const OfflineInStore: Story = {
     const [creativeFormat, setCreativeFormat] = React.useState('');
     const [creativeType, setCreativeType] = React.useState('');
     const [fileName, setFileName] = React.useState<string | null>(null);
-    const [selectedLineItems, setSelectedLineItems] = React.useState<any[]>([]);
+    const [selectedBookings, setSelectedBookings] = React.useState<any[]>([]);
 
     return (
       <MenuContextProvider>
@@ -894,8 +894,8 @@ export const OfflineInStore: Story = {
                         </FormSection>
                       )}
 
-                      <FormSection title="Line items">
-                        {selectedLineItems.length > 0 && (
+                      <FormSection title="Bookings">
+                        {selectedBookings.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
                               columns={[
@@ -906,8 +906,8 @@ export const OfflineInStore: Story = {
                                     <Button
                                       size="icon"
                                       variant="outline"
-                                      onClick={() => setSelectedLineItems(selectedLineItems.filter(item => item.id !== row.id))}
-                                      aria-label="Remove line-item"
+                                      onClick={() => setSelectedBookings(selectedBookings.filter(item => item.id !== row.id))}
+                                      aria-label="Remove booking"
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
@@ -921,20 +921,20 @@ export const OfflineInStore: Story = {
                                 { key: 'stores', header: 'Stores' },
                                 { key: 'product', header: 'Product' },
                               ]}
-                              data={selectedLineItems}
+                              data={selectedBookings}
                               rowKey={row => row.id}
                               hideActions
                               rowClassName={() => 'cursor-pointer'}
                               onRowClick={row => {
-                                console.log('Navigate to line-item details for', row.name);
+                                console.log('Navigate to booking details for', row.name);
                               }}
                             />
                           </div>
                         )}
                         
-                        <LineItemsDialog 
-                          selectedLineItems={selectedLineItems} 
-                          onSelectionChange={setSelectedLineItems} 
+                        <BookingsDialog 
+                          selectedBookings={selectedBookings} 
+                          onSelectionChange={setSelectedBookings} 
                         />
                       </FormSection>
                     </CardHeader>
@@ -977,11 +977,11 @@ export const OfflineInStore: Story = {
                   
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line items</CardSummaryTitle>
+                      <CardSummaryTitle>Bookings</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {mockLineItems.map(item => {
-                        const isLinked = selectedLineItems.some(selected => selected.id === item.id);
+                      {mockBookings.map(item => {
+                        const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
                           <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
                             <div className="text-[14px]">

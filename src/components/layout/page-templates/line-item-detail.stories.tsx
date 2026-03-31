@@ -28,7 +28,7 @@ import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 
 // --- Shared campaign metrics per proposition type ---
-// These mirror the campaign-level metrics so users see consistent data when navigating from campaign → line item
+// These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
 
 const displayMetrics: MetricDefinition[] = [
   { key: 'adSpend', label: 'Ad Spend', value: '€8,120', subMetric: 'Budget: €15,000', badgeValue: '+10%', badgeVariant: 'success' },
@@ -91,30 +91,30 @@ const sponsoredProductsMetrics: MetricDefinition[] = [
 ];
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Line Item Detail',
+  title: 'Page templates/Booking Detail',
   component: AppLayout,
   parameters: { 
     layout: 'fullscreen',
     docs: {
       description: {
         component: `
-# Line Item Detail Page Template
+# Booking Detail Page Template
 
-The Line Item Detail page template provides comprehensive forms for creating and editing line items across different campaign types. It features placement search, date pickers, creative linking, and real-time summary cards.
+The Booking Detail page template provides comprehensive forms for creating and editing bookings across different campaign types. It features placement search, date pickers, creative linking, and real-time summary cards.
 
 ## Features
 
 - **Multi-Variant Support**: Different forms for Display, Digital In-Store, Offline In-Store, and Sponsored Products
 - **Placement Search**: SearchInput component with dropdown results for store/placement selection
 - **Date Pickers**: DatePicker components for start and end date selection
-- **Creative Linking**: Advanced dialog for linking line items to creatives with filtering and search
-- **Real-time Summary**: Live sidebar updates showing line item, placement, and creative details
+- **Creative Linking**: Advanced dialog for linking bookings to creatives with filtering and search
+- **Real-time Summary**: Live sidebar updates showing booking, placement, and creative details
 - **Responsive Design**: Two-column layout that adapts to screen size
 
 ## Form Structure
 
-### Line Item Details Section
-- **Name**: Required field for line item name
+### Booking Details Section
+- **Name**: Required field for booking name
 
 ### Placement Section
 - **Find Placement**: SearchInput with dropdown results
@@ -123,8 +123,8 @@ The Line Item Detail page template provides comprehensive forms for creating and
 
 ### Run Time Section
 - **Campaign Runtime**: Displays preset campaign dates
-- **Start Date**: DatePicker for line item start date
-- **End Date**: DatePicker for line item end date
+- **Start Date**: DatePicker for booking start date
+- **End Date**: DatePicker for booking end date
 - **Date Validation**: Proper date handling with dd/MM/yyyy format
 
 ### Target Section
@@ -170,39 +170,39 @@ Example placement results:
 
 ## Variants
 
-### Display Line Items
-- Standard display advertising line items
+### Display Bookings
+- Standard display advertising bookings
 - Focus on digital placements and targeting
 
-### Digital In-Store Line Items
-- In-store digital advertising line items
+### Digital In-Store Bookings
+- In-store digital advertising bookings
 - Store-specific placement selection
 
-### Offline In-Store Line Items
-- Physical in-store advertising line items
+### Offline In-Store Bookings
+- Physical in-store advertising bookings
 - Store location and material placement
 
-### Sponsored Products Line Items
-- Product-specific advertising line items
+### Sponsored Products Bookings
+- Product-specific advertising bookings
 - Product catalog integration
 
 ## Business Rules
 
-1. **Name Required**: Line item name is mandatory
+1. **Name Required**: Booking name is mandatory
 2. **Placement Selection**: Must select a placement for activation
 3. **Date Validation**: Start date must be before end date
-4. **Creative Linking**: Line items can be linked to multiple creatives
+4. **Creative Linking**: Bookings can be linked to multiple creatives
 5. **Real-time Updates**: Sidebar updates immediately when form fields change
 
 ## Sidebar Information
 
-### Line Item Summary
-- Line item name
+### Booking Summary
+- Booking name
 - Selected placement information
 - Runtime dates (formatted)
 
 ### Creatives Summary
-- Shows relationship between line item and creatives
+- Shows relationship between booking and creatives
 - Displays creative names and formats
 - Shows linked/unlinked status
 
@@ -213,10 +213,10 @@ Example placement results:
 ## Usage
 
 This template is ideal for:
-- Line item creation and editing
+- Booking creation and editing
 - Campaign planning and management
 - Placement and targeting configuration
-- Creative-line item relationship management
+- Creative-booking relationship management
 
 ## Components Used
 
@@ -242,7 +242,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 
-// Mock data for creatives (opposite of line items)
+// Mock data for creatives (opposite of bookings)
 const mockCreatives = [
   { id: 1, name: 'Summer Banner', format: 'Banner', status: 'Approved', type: 'Display' },
   { id: 2, name: 'Holiday Video', format: 'Video', status: 'Pending', type: 'Display' },
@@ -361,7 +361,7 @@ const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: {
       <DialogContent className="max-w-4xl w-full">
         <DialogHeader>
           <DialogTitle>Link creatives</DialogTitle>
-          <DialogDescription>Select creatives to link to this line item.</DialogDescription>
+          <DialogDescription>Select creatives to link to this booking.</DialogDescription>
         </DialogHeader>
         
         <FilterBar
@@ -416,7 +416,7 @@ const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: {
   );
 };
 
-// Display Line Item Detail Story
+// Display Booking Detail Story
 export const Display: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
@@ -430,7 +430,7 @@ export const Display: Story = {
       { label: 'Utrecht', value: 'utrecht' },
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
-    const [lineItemName, setLineItemName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -568,7 +568,7 @@ export const Display: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Line Item Detail - Display',
+          title: 'Booking Detail - Display',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -593,14 +593,14 @@ export const Display: Story = {
                 <div className="lg:col-span-2 min-w-0">
                   <Card className="min-w-0">
                     <CardHeader className="space-y-8">
-                      <FormSection title="Line item details">
+                      <FormSection title="Booking details">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input 
-                              value={lineItemName}
-                              onChange={(e) => setLineItemName(e.target.value)}
-                              placeholder="Enter line item name" 
+                              value={bookingName}
+                              onChange={(e) => setBookingName(e.target.value)}
+                              placeholder="Enter booking name" 
                               className="w-full"
                             />
                           </div>
@@ -667,8 +667,8 @@ export const Display: Story = {
 
                           <div className="text-sm text-muted-foreground">
                             {selectedPlacement 
-                              ? 'Placement selected for this line item'
-                              : 'Search and select a placement for this line item'
+                              ? 'Placement selected for this booking'
+                              : 'Search and select a placement for this booking'
                             }
                           </div>
                         </div>
@@ -766,7 +766,7 @@ export const Display: Story = {
                           <div className="text-sm text-muted-foreground">
                             {selectedRetailProducts.length > 0 
                               ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this line item'
+                              : 'Search and select retail products to target for this booking'
                             }
                           </div>
                         </div>
@@ -818,7 +818,7 @@ export const Display: Story = {
                           <div className="text-sm text-muted-foreground">
                             {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
                               ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this line item will target'
+                              : 'Specify how many stores this booking will target'
                             }
                           </div>
                         </div>
@@ -827,7 +827,7 @@ export const Display: Story = {
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this line item
+                            Add targeting criteria for this booking
                           </div>
                           <div className="flex gap-3">
                             <Filter
@@ -903,13 +903,13 @@ export const Display: Story = {
                 <div className="flex flex-col gap-4">
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line item</CardSummaryTitle>
+                      <CardSummaryTitle>Booking</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {lineItemName && (
+                      {bookingName && (
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{lineItemName}</div>
+                          <div className="font-medium">{bookingName}</div>
                         </div>
                       )}
                       {selectedPlacement && (
@@ -974,11 +974,11 @@ export const Display: Story = {
                               <span className="font-medium">{creative.name}</span>
                             </div>
                             <div className="text-[14px]">
-                              <span className="text-muted-foreground">Line item: </span>
+                              <span className="text-muted-foreground">Booking: </span>
                               {isLinked ? (
-                                <span className="font-medium">{lineItemName || 'Unnamed Line Item'}</span>
+                                <span className="font-medium">{bookingName || 'Unnamed Booking'}</span>
                               ) : (
-                                <span className="text-muted-foreground">No line item</span>
+                                <span className="text-muted-foreground">No booking</span>
                               )}
                             </div>
                           </div>
@@ -1000,7 +1000,7 @@ export const Display: Story = {
   },
 };
 
-// Digital In-Store Line Item Detail Story
+// Digital In-Store Booking Detail Story
 export const DigitalInStore: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
@@ -1014,7 +1014,7 @@ export const DigitalInStore: Story = {
       { label: 'Utrecht', value: 'utrecht' },
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
-    const [lineItemName, setLineItemName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -1152,7 +1152,7 @@ export const DigitalInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Line Item Detail - Digital In-Store',
+          title: 'Booking Detail - Digital In-Store',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1177,14 +1177,14 @@ export const DigitalInStore: Story = {
                 <div className="lg:col-span-2 min-w-0">
                   <Card className="min-w-0">
                     <CardHeader className="space-y-8">
-                      <FormSection title="Line item details">
+                      <FormSection title="Booking details">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input 
-                              value={lineItemName}
-                              onChange={(e) => setLineItemName(e.target.value)}
-                              placeholder="Enter line item name" 
+                              value={bookingName}
+                              onChange={(e) => setBookingName(e.target.value)}
+                              placeholder="Enter booking name" 
                               className="w-full"
                             />
                           </div>
@@ -1251,8 +1251,8 @@ export const DigitalInStore: Story = {
 
                           <div className="text-sm text-muted-foreground">
                             {selectedPlacement 
-                              ? 'Placement selected for this line item'
-                              : 'Search and select a placement for this line item'
+                              ? 'Placement selected for this booking'
+                              : 'Search and select a placement for this booking'
                             }
                           </div>
                         </div>
@@ -1350,7 +1350,7 @@ export const DigitalInStore: Story = {
                           <div className="text-sm text-muted-foreground">
                             {selectedRetailProducts.length > 0 
                               ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this line item'
+                              : 'Search and select retail products to target for this booking'
                             }
                           </div>
                         </div>
@@ -1402,7 +1402,7 @@ export const DigitalInStore: Story = {
                           <div className="text-sm text-muted-foreground">
                             {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
                               ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this line item will target'
+                              : 'Specify how many stores this booking will target'
                             }
                           </div>
                         </div>
@@ -1411,7 +1411,7 @@ export const DigitalInStore: Story = {
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this line item
+                            Add targeting criteria for this booking
                           </div>
                           <div className="flex gap-3">
                             <Filter
@@ -1487,13 +1487,13 @@ export const DigitalInStore: Story = {
                 <div className="flex flex-col gap-4">
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line item</CardSummaryTitle>
+                      <CardSummaryTitle>Booking</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {lineItemName && (
+                      {bookingName && (
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{lineItemName}</div>
+                          <div className="font-medium">{bookingName}</div>
                         </div>
                       )}
                       {selectedPlacement && (
@@ -1558,11 +1558,11 @@ export const DigitalInStore: Story = {
                               <span className="font-medium">{creative.name}</span>
                             </div>
                             <div className="text-[14px]">
-                              <span className="text-muted-foreground">Line item: </span>
+                              <span className="text-muted-foreground">Booking: </span>
                               {isLinked ? (
-                                <span className="font-medium">{lineItemName || 'Unnamed Line Item'}</span>
+                                <span className="font-medium">{bookingName || 'Unnamed Booking'}</span>
                               ) : (
-                                <span className="text-muted-foreground">No line item</span>
+                                <span className="text-muted-foreground">No booking</span>
                               )}
                             </div>
                           </div>
@@ -1584,13 +1584,13 @@ export const DigitalInStore: Story = {
   },
 };
 
-// Offline In-Store Line Item Detail Story
+// Offline In-Store Booking Detail Story
 export const OfflineInStore: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [lineItemName, setLineItemName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('');
     const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory, setSelectedInventory] = React.useState<any[]>([]);
     const [inventorySearch, setInventorySearch] = React.useState('');
@@ -1608,9 +1608,9 @@ export const OfflineInStore: Story = {
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [showSelectedStoresDialog, setShowSelectedStoresDialog] = React.useState(false);
     const [showConflictingItemsDialog, setShowConflictingItemsDialog] = React.useState(false);
-    const [conflictingLineItemPriorities, setConflictingLineItemPriorities] = React.useState<{[key: string]: string}>({
-      'line-item-1': 'Medium',
-      'line-item-2': 'Medium'
+    const [conflictingBookingPriorities, setConflictingBookingPriorities] = React.useState<{[key: string]: string}>({
+      'booking-1': 'Medium',
+      'booking-2': 'Medium'
     });
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
     const [storeSelectionMode, setStoreSelectionMode] = React.useState<'random' | 'copy' | 'custom' | null>(null);
@@ -1668,23 +1668,23 @@ export const OfflineInStore: Story = {
       { id: 'makelaarsbord', name: 'Makelaarsbord', description: 'Standing promotional board', dimensions: '60x80cm', locations: 'Store entrance, aisles' },
     ];
 
-    // Conflicting line-items data for overbook alert
-    const conflictingLineItems = [
-      { id: 'line-item-1', name: 'Summer Beverage Campaign', stores: 280, currentPriority: conflictingLineItemPriorities['line-item-1'] },
-      { id: 'line-item-2', name: 'Back to School Promotion', stores: 320, currentPriority: conflictingLineItemPriorities['line-item-2'] }
+    // Conflicting bookings data for overbook alert
+    const conflictingBookings = [
+      { id: 'booking-1', name: 'Summer Beverage Campaign', stores: 280, currentPriority: conflictingBookingPriorities['booking-1'] },
+      { id: 'booking-2', name: 'Back to School Promotion', stores: 320, currentPriority: conflictingBookingPriorities['booking-2'] }
     ];
 
     const priorityOptions = ['High', 'Medium', 'Low'];
 
-    const handlePriorityChange = (lineItemId: string, priority: string) => {
-      setConflictingLineItemPriorities(prev => ({
+    const handlePriorityChange = (bookingId: string, priority: string) => {
+      setConflictingBookingPriorities(prev => ({
         ...prev,
-        [lineItemId]: priority
+        [bookingId]: priority
       }));
     };
 
-    // Sample data for other line items running in the same time window
-    const runningLineItemsData = [
+    // Sample data for other bookings running in the same time window
+    const runningBookingsData = [
       {
         id: '1',
         name: 'Summer Beverage Campaign',
@@ -1707,8 +1707,8 @@ export const OfflineInStore: Story = {
       }
     ];
 
-    // Other line-items in the same location
-    const locationLineItems = [
+    // Other bookings in the same location
+    const locationBookings = [
       {
         campaignId: 'LI-2024-001',
         status: 'closed-won',
@@ -1912,7 +1912,7 @@ export const OfflineInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Line Item Detail - Offline In-Store',
+          title: 'Booking Detail - Offline In-Store',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1940,7 +1940,7 @@ export const OfflineInStore: Story = {
                       <FormSection title="Preparation">
                         <div className="space-y-4">
                           <p className="text-sm text-muted-foreground">
-                            Complete the steps below to prepare this line item. Set the store list, creative status, printer instructions, and briefing to mark this line item as ready.
+                            Complete the steps below to prepare this booking. Set the store list, creative status, printer instructions, and briefing to mark this booking as ready.
                           </p>
                           <div>
                             <label className="block text-sm font-medium mb-2">Briefing</label>
@@ -2029,7 +2029,7 @@ export const OfflineInStore: Story = {
                                   <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
                                     <DialogHeader>
                                       <DialogTitle>Selected Stores</DialogTitle>
-                                      <DialogDescription>View and manage the stores selected for this line item.</DialogDescription>
+                                      <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                                     </DialogHeader>
                                     <div className="flex justify-end gap-2">
                                       <Button variant="outline">
@@ -2130,7 +2130,7 @@ export const OfflineInStore: Story = {
                                     You have selected {storeAmount} stores, which exceeds the 750 available stores within the selected run time.
                                   </div>
                                   <div className="mb-2">
-                                    There are 2 conflicting line-items booked in the same run time that limit store availability.
+                                    There are 2 conflicting bookings booked in the same run time that limit store availability.
                                   </div>
                                   <button 
                                     className="text-orange-600 hover:text-orange-700 underline text-sm font-medium"
@@ -2146,13 +2146,13 @@ export const OfflineInStore: Story = {
                                   <DialogHeader>
                                     <DialogTitle>Resolve Conflicting Line-Items</DialogTitle>
                                     <DialogDescription>
-                                      Adjust priorities for line-items running in the same time period. Higher priority items will be allocated stores first.
+                                      Adjust priorities for bookings running in the same time period. Higher priority items will be allocated stores first.
                                     </DialogDescription>
                                   </DialogHeader>
                                   <div className="mt-4">
                                     <Table
                                       columns={[
-                                        { key: 'name', header: 'Line Item' },
+                                        { key: 'name', header: 'Booking' },
                                         { key: 'stores', header: 'Stores Required' },
                                         { key: 'priority', header: 'Priority' }
                                       ]}
@@ -2160,8 +2160,8 @@ export const OfflineInStore: Story = {
                                         {
                                           name: (
                                             <div>
-                                              <div className="font-medium">{lineItemName || 'Current Line Item'}</div>
-                                              <div className="text-sm text-muted-foreground">This line item</div>
+                                              <div className="font-medium">{bookingName || 'Current Booking'}</div>
+                                              <div className="text-sm text-muted-foreground">This booking</div>
                                             </div>
                                           ),
                                           stores: `${storeAmount} stores`,
@@ -2182,7 +2182,7 @@ export const OfflineInStore: Story = {
                                             </DropdownMenu>
                                           )
                                         },
-                                        ...conflictingLineItems.map((item) => ({
+                                        ...conflictingBookings.map((item) => ({
                                           name: <div className="font-medium">{item.name}</div>,
                                           stores: `${item.stores} stores`,
                                           priority: (
@@ -2269,7 +2269,7 @@ export const OfflineInStore: Story = {
           render: (row) => <span className="font-medium">{row.storeAmount}</span>
         }
       ]}
-      data={locationLineItems}
+      data={locationBookings}
       rowKey={(row) => row.campaignId}
       hideActions={true}
     />
@@ -2390,7 +2390,7 @@ export const OfflineInStore: Story = {
                   <CardSummary>
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardSummaryTitle>Line item</CardSummaryTitle>
+                        <CardSummaryTitle>Booking</CardSummaryTitle>
                         <Badge className={
                           storeSelectionMode && creativeStatus !== 'not-set' && printerStatus !== 'not-set' && briefingStatus !== 'not-set'
                           ? 'bg-green-100 text-green-800 border-green-200'
@@ -2459,11 +2459,11 @@ export const OfflineInStore: Story = {
                               <span className="font-medium">{creative.name}</span>
                             </div>
                             <div className="text-[14px]">
-                              <span className="text-[14px] text-muted-foreground">Line item: </span>
+                              <span className="text-[14px] text-muted-foreground">Booking: </span>
                               {isLinked ? (
-                                <span className="font-medium">{lineItemName || 'Unnamed Line Item'}</span>
+                                <span className="font-medium">{bookingName || 'Unnamed Booking'}</span>
                               ) : (
-                                <span className="text-muted-foreground">No line item</span>
+                                <span className="text-muted-foreground">No booking</span>
                               )}
                             </div>
                           </div>
@@ -2485,7 +2485,7 @@ export const OfflineInStore: Story = {
   },
 };
 
-// Sponsored Products Line Item Detail Story
+// Sponsored Products Booking Detail Story
 export const SponsoredProducts: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
@@ -2499,7 +2499,7 @@ export const SponsoredProducts: Story = {
       { label: 'Utrecht', value: 'utrecht' },
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
-    const [lineItemName, setLineItemName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -2637,7 +2637,7 @@ export const SponsoredProducts: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Line Item Detail - Sponsored Products',
+          title: 'Booking Detail - Sponsored Products',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2662,14 +2662,14 @@ export const SponsoredProducts: Story = {
                 <div className="lg:col-span-2 min-w-0">
                   <Card className="min-w-0">
                     <CardHeader className="space-y-8">
-                      <FormSection title="Line item details">
+                      <FormSection title="Booking details">
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input 
-                              value={lineItemName}
-                              onChange={(e) => setLineItemName(e.target.value)}
-                              placeholder="Enter line item name" 
+                              value={bookingName}
+                              onChange={(e) => setBookingName(e.target.value)}
+                              placeholder="Enter booking name" 
                               className="w-full"
                             />
                           </div>
@@ -2736,8 +2736,8 @@ export const SponsoredProducts: Story = {
 
                           <div className="text-sm text-muted-foreground">
                             {selectedPlacement 
-                              ? 'Placement selected for this line item'
-                              : 'Search and select a placement for this line item'
+                              ? 'Placement selected for this booking'
+                              : 'Search and select a placement for this booking'
                             }
                           </div>
                         </div>
@@ -2835,7 +2835,7 @@ export const SponsoredProducts: Story = {
                           <div className="text-sm text-muted-foreground">
                             {selectedRetailProducts.length > 0 
                               ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this line item'
+                              : 'Search and select retail products to target for this booking'
                             }
                           </div>
                         </div>
@@ -2887,7 +2887,7 @@ export const SponsoredProducts: Story = {
                           <div className="text-sm text-muted-foreground">
                             {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
                               ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this line item will target'
+                              : 'Specify how many stores this booking will target'
                             }
                           </div>
                         </div>
@@ -2896,7 +2896,7 @@ export const SponsoredProducts: Story = {
                       <FormSection title="Target">
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this line item
+                            Add targeting criteria for this booking
                           </div>
                           <div className="flex gap-3">
                             <Filter
@@ -2972,13 +2972,13 @@ export const SponsoredProducts: Story = {
                 <div className="flex flex-col gap-4">
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>Line item</CardSummaryTitle>
+                      <CardSummaryTitle>Booking</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
-                      {lineItemName && (
+                      {bookingName && (
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{lineItemName}</div>
+                          <div className="font-medium">{bookingName}</div>
                         </div>
                       )}
                       {selectedPlacement && (
@@ -3043,11 +3043,11 @@ export const SponsoredProducts: Story = {
                               <span className="font-medium">{creative.name}</span>
                             </div>
                             <div className="text-[14px]">
-                              <span className="text-muted-foreground">Line item: </span>
+                              <span className="text-muted-foreground">Booking: </span>
                               {isLinked ? (
-                                <span className="font-medium">{lineItemName || 'Unnamed Line Item'}</span>
+                                <span className="font-medium">{bookingName || 'Unnamed Booking'}</span>
                               ) : (
-                                <span className="text-muted-foreground">No line item</span>
+                                <span className="text-muted-foreground">No booking</span>
                               )}
                             </div>
                           </div>
@@ -3069,14 +3069,14 @@ export const SponsoredProducts: Story = {
   },
 };
 
-// Offsite Display Line Item Detail Story
+// Offsite Display Booking Detail Story
 export const OffsiteDisplay: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
 
-    const [lineItemName, setLineItemName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
@@ -3170,7 +3170,7 @@ export const OffsiteDisplay: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Line Item Detail - Offsite Display',
+            title: 'Booking Detail - Offsite Display',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -3194,13 +3194,13 @@ export const OffsiteDisplay: Story = {
               <Card className="min-w-0">
                 <CardHeader className="space-y-8">
 
-                  <FormSection title="Line item details">
+                  <FormSection title="Booking details">
                     <div>
                       <label className="block text-sm font-medium mb-2">Name*</label>
                       <Input
-                        value={lineItemName}
-                        onChange={(e) => setLineItemName(e.target.value)}
-                        placeholder="Enter line item name"
+                        value={bookingName}
+                        onChange={(e) => setBookingName(e.target.value)}
+                        placeholder="Enter booking name"
                         className="w-full"
                       />
                     </div>
@@ -3266,7 +3266,7 @@ export const OffsiteDisplay: Story = {
                   <FormSection title="Budget">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Line item budget*</label>
+                        <label className="block text-sm font-medium mb-2">Booking budget*</label>
                         <Input
                           type="number"
                           value={selectedBudget}
@@ -3340,7 +3340,7 @@ export const OffsiteDisplay: Story = {
                       <div className="text-sm text-muted-foreground">
                         {selectedRetailProducts.length > 0
                           ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                          : 'Search and select retail products to advertise in this line item'
+                          : 'Search and select retail products to advertise in this booking'
                         }
                       </div>
                     </div>
@@ -3467,13 +3467,13 @@ export const OffsiteDisplay: Story = {
             <div className="flex flex-col gap-4">
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>Line item</CardSummaryTitle>
+                  <CardSummaryTitle>Booking</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
-                  {lineItemName && (
+                  {bookingName && (
                     <div className="mb-2">
                       <div className="text-[14px] text-muted-foreground">Name</div>
-                      <div className="font-medium">{lineItemName}</div>
+                      <div className="font-medium">{bookingName}</div>
                     </div>
                   )}
                   {selectedPlacementObj && (

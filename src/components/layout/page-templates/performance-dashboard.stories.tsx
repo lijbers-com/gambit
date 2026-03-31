@@ -47,7 +47,7 @@ The Insights Dashboard provides comprehensive performance analytics with interac
 
 - **Interactive Metric Cards**: Clickable cards that change the chart view
 - **Dynamic Chart Visualization**: Bar chart showing achieved vs planned performance
-- **Tabbed Data Tables**: Switch between Line Items and Creatives performance data
+- **Tabbed Data Tables**: Switch between Bookings and Creatives performance data
 - **Real-time Metrics**: Live performance indicators with percentage calculations
 - **Responsive Design**: Adapts to different screen sizes seamlessly
 
@@ -66,7 +66,7 @@ The Insights Dashboard provides comprehensive performance analytics with interac
 - **Legend**: Clear distinction between Achieved and Planned metrics
 
 ### Bottom Table Section
-- **Tabbed Interface**: Switch between Line Items and Creatives
+- **Tabbed Interface**: Switch between Bookings and Creatives
 - **Performance Metrics**: ID, Planned, Achieved, Performance %, Creative count
 - **Sortable Data**: All columns support sorting
 - **Badge Indicators**: Visual performance indicators
@@ -75,7 +75,7 @@ The Insights Dashboard provides comprehensive performance analytics with interac
 
 1. **Metric Card Selection**: Click any metric card to update the chart
 2. **Chart Responsiveness**: Chart data updates based on selected metric
-3. **Tab Navigation**: Easy switching between Line Items and Creatives data
+3. **Tab Navigation**: Easy switching between Bookings and Creatives data
 4. **Performance Indicators**: Color-coded performance badges
 
 ## Data Structure
@@ -113,7 +113,7 @@ This template is ideal for:
 - AppLayout (navigation, user management, page header)
 - Card (metric cards and main container)
 - BarChart (performance visualization)
-- Tabs (Line Items vs Creatives switching)
+- Tabs (Bookings vs Creatives switching)
 - Table (performance data display)
 - Badge (performance indicators)
         `,
@@ -373,25 +373,25 @@ const getChartConfig = (selectedMetric: string) => ({
   },
 });
 
-// Mock data for line items performance
-const lineItemsData = [
+// Mock data for bookings performance
+const bookingsData = [
   { id: '1893', name: 'Campaign total', planned: 27000, achieved: 25000, performance: '103.00%', creatives: 2, roas: '3.24x' },
-  { id: '1893', name: 'Auction line item #1', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.15x' },
-  { id: '1893', name: 'Auction line item #2', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.42x' },
-  { id: '1893', name: 'Auction line item #3', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.98x' },
-  { id: '1893', name: 'Auction line item #4', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.67x' },
-  { id: '1893', name: 'Auction line item #5', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.21x' },
-  { id: '1893', name: 'Auction line item #6', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.87x' },
-  { id: '1893', name: 'Auction line item #7', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.55x' },
+  { id: '1893', name: 'Auction booking #1', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.15x' },
+  { id: '1893', name: 'Auction booking #2', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.42x' },
+  { id: '1893', name: 'Auction booking #3', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.98x' },
+  { id: '1893', name: 'Auction booking #4', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.67x' },
+  { id: '1893', name: 'Auction booking #5', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.21x' },
+  { id: '1893', name: 'Auction booking #6', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.87x' },
+  { id: '1893', name: 'Auction booking #7', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.55x' },
 ];
 
 // Mock data for creatives performance
 const creativesData = [
-  { id: 'CR-001', name: 'Summer Banner', planned: 15000, achieved: 14500, performance: '96.67%', lineItems: 3, roas: '3.45x' },
-  { id: 'CR-002', name: 'Holiday Video', planned: 12000, achieved: 10500, performance: '87.50%', lineItems: 2, roas: '2.78x' },
-  { id: 'CR-003', name: 'Store Display', planned: 8000, achieved: 8200, performance: '102.50%', lineItems: 1, roas: '4.12x' },
-  { id: 'CR-004', name: 'Product Banner', planned: 10000, achieved: 9800, performance: '98.00%', lineItems: 2, roas: '2.95x' },
-  { id: 'CR-005', name: 'Promo Video', planned: 6000, achieved: 6300, performance: '105.00%', lineItems: 1, roas: '3.67x' },
+  { id: 'CR-001', name: 'Summer Banner', planned: 15000, achieved: 14500, performance: '96.67%', bookings: 3, roas: '3.45x' },
+  { id: 'CR-002', name: 'Holiday Video', planned: 12000, achieved: 10500, performance: '87.50%', bookings: 2, roas: '2.78x' },
+  { id: 'CR-003', name: 'Store Display', planned: 8000, achieved: 8200, performance: '102.50%', bookings: 1, roas: '4.12x' },
+  { id: 'CR-004', name: 'Product Banner', planned: 10000, achieved: 9800, performance: '98.00%', bookings: 2, roas: '2.95x' },
+  { id: 'CR-005', name: 'Promo Video', planned: 6000, achieved: 6300, performance: '105.00%', bookings: 1, roas: '3.67x' },
 ];
 
 const getPerformanceBadgeVariant = (performance: string) => {
@@ -414,7 +414,7 @@ export const GeneralInsights: Story = {
     
     // Top filter states
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
-    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [bookingFilter, setBookingFilter] = useState<string | undefined>(undefined);
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>(undefined);
     const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
     
@@ -564,19 +564,19 @@ export const GeneralInsights: Story = {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <label className="block text-sm font-medium mb-2">Booking</label>
                   <Input
                     dropdown
                     options={[
-                      { label: 'All Line Items', value: 'all' },
-                      { label: 'Auction line item #1', value: 'auction-1' },
-                      { label: 'Auction line item #2', value: 'auction-2' },
-                      { label: 'Auction line item #3', value: 'auction-3' },
-                      { label: 'Auction line item #4', value: 'auction-4' },
+                      { label: 'All Bookings', value: 'all' },
+                      { label: 'Auction booking #1', value: 'auction-1' },
+                      { label: 'Auction booking #2', value: 'auction-2' },
+                      { label: 'Auction booking #3', value: 'auction-3' },
+                      { label: 'Auction booking #4', value: 'auction-4' },
                     ]}
-                    value={lineItemFilter}
-                    onChange={setLineItemFilter}
-                    placeholder="Select line item"
+                    value={bookingFilter}
+                    onChange={setBookingFilter}
+                    placeholder="Select booking"
                   />
                 </div>
                 <div>
@@ -1122,7 +1122,7 @@ export const DisplayPerformance: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('impressions');
-    const [activeTab, setActiveTab] = useState('line-items');
+    const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1136,7 +1136,7 @@ export const DisplayPerformance: Story = {
     const [searchValue, setSearchValue] = useState('');
     
     // Selection states
-    const [selectedLineItems, setSelectedLineItems] = useState<any[]>([]);
+    const [selectedBookings, setSelectedBookings] = useState<any[]>([]);
     const [selectedCreatives, setSelectedCreatives] = useState<any[]>([]);
     
     // Display-specific metrics
@@ -1248,7 +1248,7 @@ export const DisplayPerformance: Story = {
               <Viewbar
                 labels={[]}
                 tabs={[
-                  { value: 'line-items', label: 'Line Items' },
+                  { value: 'bookings', label: 'Bookings' },
                   { value: 'creatives', label: 'Creatives' },
                 ]}
                 activeTab={activeTab}
@@ -1283,11 +1283,11 @@ export const DisplayPerformance: Story = {
                   ]}
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
-                  searchPlaceholder="Search line items, creatives..."
+                  searchPlaceholder="Search bookings, creatives..."
                 />
               </div>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsContent value="line-items" className="mt-0">
+                <TabsContent value="bookings" className="mt-0">
                   <Table
                     columns={[
                       { key: 'name', header: 'Name' },
@@ -1304,16 +1304,16 @@ export const DisplayPerformance: Story = {
                       )},
                       { key: 'roas', header: 'ROAS' },
                     ]}
-                    data={lineItemsData}
+                    data={bookingsData}
                     rowKey={row => `${row.id}-${row.name}`}
                     hideActions
                     rowClassName={() => 'cursor-pointer'}
                     onRowClick={row => {
-                      console.log('Navigate to line item details for', row.name);
+                      console.log('Navigate to booking details for', row.name);
                     }}
                     rowSelection={{
-                      selectedKeys: selectedLineItems,
-                      onChange: setSelectedLineItems,
+                      selectedKeys: selectedBookings,
+                      onChange: setSelectedBookings,
                       getKey: row => `${row.id}-${row.name}`,
                     }}
                   />
@@ -1330,8 +1330,8 @@ export const DisplayPerformance: Story = {
                           {row.performance}
                         </Badge>
                       )},
-                      { key: 'lineItems', header: 'Line Items', render: row => (
-                        <Badge variant="secondary">{row.lineItems}</Badge>
+                      { key: 'bookings', header: 'Bookings', render: row => (
+                        <Badge variant="secondary">{row.bookings}</Badge>
                       )},
                       { key: 'roas', header: 'ROAS' },
                     ]}
@@ -1365,7 +1365,7 @@ export const DigitalInstorePerformance: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('stores');
-    const [activeTab, setActiveTab] = useState('line-items');
+    const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1380,7 +1380,7 @@ export const DigitalInstorePerformance: Story = {
     
     // Top filter states (similar to Sponsored Products)
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('summer-promotion-2024');
-    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [bookingFilter, setBookingFilter] = useState<string | undefined>(undefined);
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>(undefined);
     
     // Digital In-store specific filter states (no longer needed for tables but keeping for reference)
@@ -1544,19 +1544,19 @@ export const DigitalInstorePerformance: Story = {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <label className="block text-sm font-medium mb-2">Booking</label>
                   <Input
                     dropdown
                     options={[
-                      { label: 'All Line Items', value: 'all' },
+                      { label: 'All Bookings', value: 'all' },
                       { label: 'Hypermarket displays', value: 'hypermarket-displays' },
                       { label: 'Checkout screens', value: 'checkout-screens' },
                       { label: 'Interactive kiosks', value: 'interactive-kiosks' },
                       { label: 'Entrance displays', value: 'entrance-displays' },
                     ]}
-                    value={lineItemFilter}
-                    onChange={setLineItemFilter}
-                    placeholder="Select line item"
+                    value={bookingFilter}
+                    onChange={setBookingFilter}
+                    placeholder="Select booking"
                   />
                 </div>
               </div>
@@ -1791,7 +1791,7 @@ export const OfflineInstorePerformance: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('locations');
-    const [activeTab, setActiveTab] = useState('line-items');
+    const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1805,7 +1805,7 @@ export const OfflineInstorePerformance: Story = {
     const [searchValue, setSearchValue] = useState('');
     
     // Selection states
-    const [selectedLineItems, setSelectedLineItems] = useState<any[]>([]);
+    const [selectedBookings, setSelectedBookings] = useState<any[]>([]);
     const [selectedCreatives, setSelectedCreatives] = useState<any[]>([]);
     
     // Offline In-store specific metrics
@@ -2024,7 +2024,7 @@ export const OfflineInstorePerformance: Story = {
               <Viewbar
                 labels={[]}
                 tabs={[
-                  { value: 'line-items', label: 'Line Items' },
+                  { value: 'bookings', label: 'Bookings' },
                   { value: 'creatives', label: 'Creatives' },
                 ]}
                 activeTab={activeTab}
@@ -2059,11 +2059,11 @@ export const OfflineInstorePerformance: Story = {
                   ]}
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
-                  searchPlaceholder="Search line items, creatives..."
+                  searchPlaceholder="Search bookings, creatives..."
                 />
               </div>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsContent value="line-items" className="mt-0">
+                <TabsContent value="bookings" className="mt-0">
                   <Table
                     columns={[
                       { key: 'name', header: 'Name' },
@@ -2080,16 +2080,16 @@ export const OfflineInstorePerformance: Story = {
                       )},
                       { key: 'roas', header: 'ROAS' },
                     ]}
-                    data={lineItemsData}
+                    data={bookingsData}
                     rowKey={row => `${row.id}-${row.name}`}
                     hideActions
                     rowClassName={() => 'cursor-pointer'}
                     onRowClick={row => {
-                      console.log('Navigate to line item details for', row.name);
+                      console.log('Navigate to booking details for', row.name);
                     }}
                     rowSelection={{
-                      selectedKeys: selectedLineItems,
-                      onChange: setSelectedLineItems,
+                      selectedKeys: selectedBookings,
+                      onChange: setSelectedBookings,
                       getKey: row => `${row.id}-${row.name}`,
                     }}
                   />
@@ -2106,8 +2106,8 @@ export const OfflineInstorePerformance: Story = {
                           {row.performance}
                         </Badge>
                       )},
-                      { key: 'lineItems', header: 'Line Items', render: row => (
-                        <Badge variant="secondary">{row.lineItems}</Badge>
+                      { key: 'bookings', header: 'Bookings', render: row => (
+                        <Badge variant="secondary">{row.bookings}</Badge>
                       )},
                       { key: 'roas', header: 'ROAS' },
                     ]}
@@ -2143,7 +2143,7 @@ export const FullReportView: Story = {
     // Filter states
     const [advertiserFilter, setAdvertiserFilter] = useState<string | undefined>('unilever');
     const [campaignFilter, setCampaignFilter] = useState<string | undefined>('holiday-sale-2024');
-    const [lineItemFilter, setLineItemFilter] = useState<string | undefined>(undefined);
+    const [bookingFilter, setBookingFilter] = useState<string | undefined>(undefined);
     const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
       from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -2388,20 +2388,20 @@ export const FullReportView: Story = {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Line Item</label>
+                  <label className="block text-sm font-medium mb-2">Booking</label>
                   <Input
                     dropdown
                     options={[
-                      { label: 'All Line Items', value: 'all' },
+                      { label: 'All Bookings', value: 'all' },
                       { label: 'Sponsored Products', value: 'sponsored-products' },
                       { label: 'Display Campaign', value: 'display' },
                       { label: 'Video Campaign', value: 'video' },
                       { label: 'Search Campaign', value: 'search' },
                       { label: 'Social Media Campaign', value: 'social' },
                     ]}
-                    value={lineItemFilter}
-                    onChange={setLineItemFilter}
-                    placeholder="Select line item"
+                    value={bookingFilter}
+                    onChange={setBookingFilter}
+                    placeholder="Select booking"
                   />
                 </div>
                 <div>
@@ -2432,7 +2432,7 @@ export const FullReportView: Story = {
             <CardContent>
               <Table
                 columns={[
-                  { key: 'id', header: 'Line Item ID', hideable: false },
+                  { key: 'id', header: 'Booking ID', hideable: false },
                   { key: 'name', header: 'Campaign Name', hideable: false },
                   { key: 'advertiser', header: 'Advertiser' },
                   { key: 'status', header: 'Status', render: row => (
@@ -2457,7 +2457,7 @@ export const FullReportView: Story = {
                 rowKey={row => row.id}
                 rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
                 onRowClick={row => {
-                  console.log('Navigate to line item details for', row.name);
+                  console.log('Navigate to booking details for', row.name);
                 }}
               />
             </CardContent>

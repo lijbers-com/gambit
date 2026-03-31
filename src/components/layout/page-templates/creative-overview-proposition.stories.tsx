@@ -48,39 +48,39 @@ const statusVariant = (status: string) => {
 
 // Display creatives
 const displayCreatives = [
-  { id: 'CR-001', status: 'Approved', format: 'Banner', name: 'Holiday Sale Banner', campaign: 'Holiday Sale', lineItems: 3, dimensions: '728x90', created: '2024-06-01', updated: '2024-06-15' },
-  { id: 'CR-002', status: 'Pending', format: 'Video', name: 'Summer Launch Video', campaign: 'Summer Launch', lineItems: 1, dimensions: '1920x1080', created: '2024-07-01', updated: '2024-07-10' },
-  { id: 'CR-006', status: 'Draft', format: 'Interstitial', name: 'Winter Collection', campaign: 'Winter Launch', lineItems: 0, dimensions: '320x480', created: '2024-11-01', updated: '2024-11-01' },
-  { id: 'CR-010', status: 'Approved', format: 'Banner', name: 'Spring Deals Banner', campaign: 'Spring Deals', lineItems: 2, dimensions: '300x250', created: '2024-03-15', updated: '2024-04-01' },
-  { id: 'CR-011', status: 'Approved', format: 'Video', name: 'Brand Story Video', campaign: 'Brand Awareness', lineItems: 4, dimensions: '1920x1080', created: '2024-05-10', updated: '2024-05-20' },
-  { id: 'CR-012', status: 'Pending', format: 'Banner', name: 'Flash Sale Leaderboard', campaign: 'Flash Sale', lineItems: 1, dimensions: '728x90', created: '2024-08-20', updated: '2024-08-22' },
+  { id: 'CR-001', status: 'Approved', format: 'Banner', name: 'Holiday Sale Banner', campaign: 'Holiday Sale', bookings: 3, dimensions: '728x90', created: '2024-06-01', updated: '2024-06-15' },
+  { id: 'CR-002', status: 'Pending', format: 'Video', name: 'Summer Launch Video', campaign: 'Summer Launch', bookings: 1, dimensions: '1920x1080', created: '2024-07-01', updated: '2024-07-10' },
+  { id: 'CR-006', status: 'Draft', format: 'Interstitial', name: 'Winter Collection', campaign: 'Winter Launch', bookings: 0, dimensions: '320x480', created: '2024-11-01', updated: '2024-11-01' },
+  { id: 'CR-010', status: 'Approved', format: 'Banner', name: 'Spring Deals Banner', campaign: 'Spring Deals', bookings: 2, dimensions: '300x250', created: '2024-03-15', updated: '2024-04-01' },
+  { id: 'CR-011', status: 'Approved', format: 'Video', name: 'Brand Story Video', campaign: 'Brand Awareness', bookings: 4, dimensions: '1920x1080', created: '2024-05-10', updated: '2024-05-20' },
+  { id: 'CR-012', status: 'Pending', format: 'Banner', name: 'Flash Sale Leaderboard', campaign: 'Flash Sale', bookings: 1, dimensions: '728x90', created: '2024-08-20', updated: '2024-08-22' },
 ];
 
 // Digital in-store creatives
 const digitalInstoreCreatives = [
-  { id: 'CR-003', status: 'Approved', format: 'Digital Signage', name: 'Back to School Display', campaign: 'Back to School', lineItems: 2, dimensions: '1920x1080', created: '2024-08-01', updated: '2024-08-05' },
-  { id: 'CR-020', status: 'Approved', format: 'Digital Signage', name: 'Entrance Screen Welcome', campaign: 'Store Branding', lineItems: 5, dimensions: '3840x2160', created: '2024-04-10', updated: '2024-04-15' },
-  { id: 'CR-021', status: 'Pending', format: 'Digital Endcap', name: 'Aisle Promo Screen', campaign: 'Aisle Promotions', lineItems: 3, dimensions: '1080x1920', created: '2024-06-20', updated: '2024-06-25' },
-  { id: 'CR-022', status: 'Draft', format: 'Checkout Screen', name: 'Checkout Upsell', campaign: 'Checkout Campaign', lineItems: 0, dimensions: '1920x1080', created: '2024-09-01', updated: '2024-09-01' },
-  { id: 'CR-023', status: 'Approved', format: 'Digital Signage', name: 'Fresh Produce Display', campaign: 'Fresh & Healthy', lineItems: 2, dimensions: '1920x1080', created: '2024-07-15', updated: '2024-07-20' },
+  { id: 'CR-003', status: 'Approved', format: 'Digital Signage', name: 'Back to School Display', campaign: 'Back to School', bookings: 2, dimensions: '1920x1080', created: '2024-08-01', updated: '2024-08-05' },
+  { id: 'CR-020', status: 'Approved', format: 'Digital Signage', name: 'Entrance Screen Welcome', campaign: 'Store Branding', bookings: 5, dimensions: '3840x2160', created: '2024-04-10', updated: '2024-04-15' },
+  { id: 'CR-021', status: 'Pending', format: 'Digital Endcap', name: 'Aisle Promo Screen', campaign: 'Aisle Promotions', bookings: 3, dimensions: '1080x1920', created: '2024-06-20', updated: '2024-06-25' },
+  { id: 'CR-022', status: 'Draft', format: 'Checkout Screen', name: 'Checkout Upsell', campaign: 'Checkout Campaign', bookings: 0, dimensions: '1920x1080', created: '2024-09-01', updated: '2024-09-01' },
+  { id: 'CR-023', status: 'Approved', format: 'Digital Signage', name: 'Fresh Produce Display', campaign: 'Fresh & Healthy', bookings: 2, dimensions: '1920x1080', created: '2024-07-15', updated: '2024-07-20' },
 ];
 
 // Offline in-store creatives
 const offlineInstoreCreatives = [
-  { id: 'CR-004', status: 'Rejected', format: 'Wobbler', name: 'Black Friday Wobbler', campaign: 'Black Friday', lineItems: 0, dimensions: '100x150mm', created: '2024-10-15', updated: '2024-10-20' },
-  { id: 'CR-030', status: 'Approved', format: 'Shelf Strip', name: 'Weekly Deals Strip', campaign: 'Weekly Deals', lineItems: 6, dimensions: '900x50mm', created: '2024-05-01', updated: '2024-05-10' },
-  { id: 'CR-031', status: 'Approved', format: 'Poster', name: 'Season Sale Poster', campaign: 'Season Sale', lineItems: 3, dimensions: 'A2', created: '2024-03-20', updated: '2024-04-01' },
-  { id: 'CR-032', status: 'Pending', format: 'Floor Sticker', name: 'Entrance Floor Promo', campaign: 'Store Entrance', lineItems: 1, dimensions: '500x500mm', created: '2024-08-01', updated: '2024-08-05' },
-  { id: 'CR-033', status: 'Draft', format: 'Wobbler', name: 'New Product Wobbler', campaign: 'Product Launch', lineItems: 0, dimensions: '80x120mm', created: '2024-11-10', updated: '2024-11-10' },
+  { id: 'CR-004', status: 'Rejected', format: 'Wobbler', name: 'Black Friday Wobbler', campaign: 'Black Friday', bookings: 0, dimensions: '100x150mm', created: '2024-10-15', updated: '2024-10-20' },
+  { id: 'CR-030', status: 'Approved', format: 'Shelf Strip', name: 'Weekly Deals Strip', campaign: 'Weekly Deals', bookings: 6, dimensions: '900x50mm', created: '2024-05-01', updated: '2024-05-10' },
+  { id: 'CR-031', status: 'Approved', format: 'Poster', name: 'Season Sale Poster', campaign: 'Season Sale', bookings: 3, dimensions: 'A2', created: '2024-03-20', updated: '2024-04-01' },
+  { id: 'CR-032', status: 'Pending', format: 'Floor Sticker', name: 'Entrance Floor Promo', campaign: 'Store Entrance', bookings: 1, dimensions: '500x500mm', created: '2024-08-01', updated: '2024-08-05' },
+  { id: 'CR-033', status: 'Draft', format: 'Wobbler', name: 'New Product Wobbler', campaign: 'Product Launch', bookings: 0, dimensions: '80x120mm', created: '2024-11-10', updated: '2024-11-10' },
 ];
 
 // Offsite creatives
 const offsiteCreatives = [
-  { id: 'CR-040', status: 'Approved', format: 'Display Banner', name: 'Retargeting Banner', campaign: 'Retargeting Q4', lineItems: 4, dimensions: '300x250', created: '2024-09-15', updated: '2024-10-01' },
-  { id: 'CR-041', status: 'Approved', format: 'Native Ad', name: 'Recipe Integration', campaign: 'Content Marketing', lineItems: 2, dimensions: '600x400', created: '2024-06-10', updated: '2024-06-20' },
-  { id: 'CR-042', status: 'Pending', format: 'Video Pre-roll', name: 'Summer Collection Pre-roll', campaign: 'Summer Launch', lineItems: 1, dimensions: '1920x1080', created: '2024-07-05', updated: '2024-07-10' },
-  { id: 'CR-043', status: 'Draft', format: 'Display Banner', name: 'Holiday Retargeting', campaign: 'Holiday Campaign', lineItems: 0, dimensions: '728x90', created: '2024-11-01', updated: '2024-11-01' },
-  { id: 'CR-044', status: 'Approved', format: 'Social Display', name: 'Social Media Banner Set', campaign: 'Social Push', lineItems: 3, dimensions: '1080x1080', created: '2024-04-20', updated: '2024-05-01' },
+  { id: 'CR-040', status: 'Approved', format: 'Display Banner', name: 'Retargeting Banner', campaign: 'Retargeting Q4', bookings: 4, dimensions: '300x250', created: '2024-09-15', updated: '2024-10-01' },
+  { id: 'CR-041', status: 'Approved', format: 'Native Ad', name: 'Recipe Integration', campaign: 'Content Marketing', bookings: 2, dimensions: '600x400', created: '2024-06-10', updated: '2024-06-20' },
+  { id: 'CR-042', status: 'Pending', format: 'Video Pre-roll', name: 'Summer Collection Pre-roll', campaign: 'Summer Launch', bookings: 1, dimensions: '1920x1080', created: '2024-07-05', updated: '2024-07-10' },
+  { id: 'CR-043', status: 'Draft', format: 'Display Banner', name: 'Holiday Retargeting', campaign: 'Holiday Campaign', bookings: 0, dimensions: '728x90', created: '2024-11-01', updated: '2024-11-01' },
+  { id: 'CR-044', status: 'Approved', format: 'Social Display', name: 'Social Media Banner Set', campaign: 'Social Push', bookings: 3, dimensions: '1080x1080', created: '2024-04-20', updated: '2024-05-01' },
 ];
 
 interface PropositionCreativeOverviewProps {
@@ -161,7 +161,7 @@ const PropositionCreativeOverview = ({ title, subtitle, data, formatOptions }: P
                 { key: 'dimensions', header: 'Dimensions' },
                 { key: 'name', header: 'Name' },
                 { key: 'campaign', header: 'Campaign' },
-                { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
+                { key: 'bookings', header: 'Bookings', render: row => <Badge variant="secondary">{row.bookings}</Badge> },
                 { key: 'created', header: 'Created', render: row => new Date(row.created).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                 { key: 'updated', header: 'Updated', render: row => new Date(row.updated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
               ]}

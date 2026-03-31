@@ -61,7 +61,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // Retail products data from line-item template
+  // Retail products data from booking template
   const retailProducts = [
     { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
     { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
@@ -90,7 +90,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
       { label: 'Video Ad 30s', value: 'crea-004', description: 'MP4 • Review' },
       { label: 'Carousel Set', value: 'crea-005', description: '5 images • Active' },
     ],
-    'line-item': [
+    'booking': [
       { label: 'Premium Placement', value: 'line-001', description: 'Budget: $5,000 • Active' },
       { label: 'Standard Display', value: 'line-002', description: 'Budget: $2,500 • Active' },
       { label: 'Mobile Only', value: 'line-003', description: 'Budget: $1,500 • Paused' },
@@ -609,7 +609,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                         <ImagePlus className="mr-2 h-4 w-4" />
                         <span>Creative</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleContextSelect('line-item')}>
+                      <DropdownMenuItem onSelect={() => handleContextSelect('booking')}>
                         <FileText className="mr-2 h-4 w-4" />
                         <span>Line-item</span>
                       </DropdownMenuItem>
@@ -993,7 +993,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                   <ImagePlus className="mr-2 h-4 w-4" />
                   <span>Creative</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => handleContextSelect('line-item')}>
+                <DropdownMenuItem onSelect={() => handleContextSelect('booking')}>
                   <FileText className="mr-2 h-4 w-4" />
                   <span>Line-item</span>
                 </DropdownMenuItem>

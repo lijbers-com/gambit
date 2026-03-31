@@ -41,7 +41,7 @@ Each creative record includes:
 - **Format**: Creative format specification
 - **Name**: Creative name
 - **Campaign**: Associated campaign name
-- **Line Items**: Number of linked line items (with badge)
+- **Bookings**: Number of linked bookings (with badge)
 - **Created/Updated**: Date tracking with proper formatting
 
 ## Filter Options
@@ -102,12 +102,12 @@ type Story = StoryObj<typeof meta>;
 
 
 const creativeData = [
-  { id: 'CR-001', status: 'Approved', type: 'Display', format: 'Banner', name: 'Holiday Sale Banner', campaign: 'Holiday Sale', lineItems: 3, created: '2024-06-01', updated: '2024-06-15' },
-  { id: 'CR-002', status: 'Pending', type: 'Display', format: 'Video', name: 'Summer Launch Video', campaign: 'Summer Launch', lineItems: 1, created: '2024-07-01', updated: '2024-07-10' },
-  { id: 'CR-003', status: 'Approved', type: 'Digital In-Store', format: 'Digital Signage', name: 'Back to School Display', campaign: 'Back to School', lineItems: 2, created: '2024-08-01', updated: '2024-08-05' },
-  { id: 'CR-004', status: 'Rejected', type: 'Offline In-Store', format: 'Wobbler', name: 'Black Friday Wobbler', campaign: 'Black Friday', lineItems: 0, created: '2024-10-15', updated: '2024-10-20' },
-  { id: 'CR-005', status: 'Approved', type: 'Sponsored Products', format: 'Product Image', name: 'Electronics Promo', campaign: 'Electronics Sale', lineItems: 4, created: '2024-09-01', updated: '2024-09-10' },
-  { id: 'CR-006', status: 'Draft', type: 'Display', format: 'Interstitial', name: 'Winter Collection', campaign: 'Winter Launch', lineItems: 0, created: '2024-11-01', updated: '2024-11-01' },
+  { id: 'CR-001', status: 'Approved', type: 'Display', format: 'Banner', name: 'Holiday Sale Banner', campaign: 'Holiday Sale', bookings: 3, created: '2024-06-01', updated: '2024-06-15' },
+  { id: 'CR-002', status: 'Pending', type: 'Display', format: 'Video', name: 'Summer Launch Video', campaign: 'Summer Launch', bookings: 1, created: '2024-07-01', updated: '2024-07-10' },
+  { id: 'CR-003', status: 'Approved', type: 'Digital In-Store', format: 'Digital Signage', name: 'Back to School Display', campaign: 'Back to School', bookings: 2, created: '2024-08-01', updated: '2024-08-05' },
+  { id: 'CR-004', status: 'Rejected', type: 'Offline In-Store', format: 'Wobbler', name: 'Black Friday Wobbler', campaign: 'Black Friday', bookings: 0, created: '2024-10-15', updated: '2024-10-20' },
+  { id: 'CR-005', status: 'Approved', type: 'Sponsored Products', format: 'Product Image', name: 'Electronics Promo', campaign: 'Electronics Sale', bookings: 4, created: '2024-09-01', updated: '2024-09-10' },
+  { id: 'CR-006', status: 'Draft', type: 'Display', format: 'Interstitial', name: 'Winter Collection', campaign: 'Winter Launch', bookings: 0, created: '2024-11-01', updated: '2024-11-01' },
 ];
 
 const statusVariant = (status: string) => {
@@ -222,7 +222,7 @@ export const CreativeOverview: Story = {
                 { key: 'format', header: 'Format' },
                 { key: 'name', header: 'Name' },
                 { key: 'campaign', header: 'Campaign' },
-                { key: 'lineItems', header: 'Line items', render: row => <Badge variant="secondary">{row.lineItems}</Badge> },
+                { key: 'bookings', header: 'Bookings', render: row => <Badge variant="secondary">{row.bookings}</Badge> },
                 { key: 'created', header: 'Created', render: row => new Date(row.created).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                 { key: 'updated', header: 'Updated', render: row => new Date(row.updated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
               ]}

@@ -36,15 +36,15 @@ const meta: Meta<typeof AppLayout> = {
         component: `
 # Campaign Details Page Template
 
-The Campaign Details page template provides a comprehensive view of individual campaigns with tabbed navigation for different data views. It combines campaign information display with detailed line item and creative management.
+The Campaign Details page template provides a comprehensive view of individual campaigns with tabbed navigation for different data views. It combines campaign information display with detailed booking and creative management.
 
 ## Features
 
 - **Tabbed Interface**: CardWithTabs component for organized content sections
 - **Campaign Information**: Detailed campaign metadata and settings
-- **Line Items Management**: Table view with filtering and actions
+- **Bookings Management**: Table view with filtering and actions
 - **Creatives Management**: Table view with filtering and actions
-- **Advanced Filtering**: FilterBar for both line items and creatives
+- **Advanced Filtering**: FilterBar for both bookings and creatives
 - **Action Menus**: Dropdown menus for row-level actions
 - **Responsive Design**: Adapts to different screen sizes
 
@@ -55,12 +55,12 @@ The Campaign Details page template provides a comprehensive view of individual c
 - **Settings**: Campaign configuration options
 - **Status**: Current campaign status and approval state
 
-### Line Items Tab
-- **Data Table**: List of all line items in the campaign
+### Bookings Tab
+- **Data Table**: List of all bookings in the campaign
 - **Filtering**: Filter by status, type, and other criteria
-- **Actions**: Edit, duplicate, delete line items
-- **Search**: Real-time search across line item names
-- **Status Badges**: Visual indicators for line item status
+- **Actions**: Edit, duplicate, delete bookings
+- **Search**: Real-time search across booking names
+- **Status Badges**: Visual indicators for booking status
 
 ### Creatives Tab
 - **Data Table**: List of all creatives in the campaign
@@ -71,7 +71,7 @@ The Campaign Details page template provides a comprehensive view of individual c
 
 ## Data Management
 
-### Line Items
+### Bookings
 - **Status Tracking**: Active, Paused, Completed, Draft
 - **Type Classification**: Display, Digital In-Store, Offline In-Store, Sponsored Products
 - **Performance Metrics**: Impressions, clicks, conversions
@@ -85,11 +85,11 @@ The Campaign Details page template provides a comprehensive view of individual c
 
 ## Action Capabilities
 
-### Line Item Actions
-- **Edit**: Navigate to line item detail page
-- **Duplicate**: Create copy of line item
-- **Delete**: Remove line item from campaign
-- **Pause/Resume**: Toggle line item status
+### Booking Actions
+- **Edit**: Navigate to booking detail page
+- **Duplicate**: Create copy of booking
+- **Delete**: Remove booking from campaign
+- **Pause/Resume**: Toggle booking status
 - **View Performance**: Access performance metrics
 
 ### Creative Actions
@@ -109,7 +109,7 @@ The Campaign Details page template provides a comprehensive view of individual c
 
 ## Filter Options
 
-### Line Items Filters
+### Bookings Filters
 - **Status**: Active, Paused, Completed, Draft
 - **Type**: Display, Digital In-Store, Offline In-Store, Sponsored Products
 - **Performance**: Based on metrics thresholds
@@ -157,8 +157,8 @@ export const DigitalInstoreInOption: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -175,19 +175,19 @@ export const DigitalInstoreInOption: Story = {
       { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
       { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Banner', placements: 2 },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-003', status: 'In-option', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-005', status: 'In-option', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
+    const bookingData = [
+      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'In-option', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'In-option', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
     
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
       { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
-      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
@@ -202,7 +202,7 @@ export const DigitalInstoreInOption: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -701,8 +701,8 @@ const updatedForecastMetrics = [
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -716,8 +716,8 @@ const updatedForecastMetrics = [
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -733,25 +733,25 @@ const updatedForecastMetrics = [
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -841,7 +841,7 @@ const updatedForecastMetrics = [
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -878,8 +878,8 @@ const updatedForecastMetrics = [
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -900,8 +900,8 @@ export const DigitalInstoreRunning: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -918,19 +918,19 @@ export const DigitalInstoreRunning: Story = {
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Banner', placements: 2 },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
+    const bookingData = [
+      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
     ];
     
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
       { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
-      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage line item' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
@@ -945,7 +945,7 @@ export const DigitalInstoreRunning: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -1166,8 +1166,8 @@ export const DigitalInstoreRunning: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -1181,8 +1181,8 @@ export const DigitalInstoreRunning: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -1198,25 +1198,25 @@ export const DigitalInstoreRunning: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -1295,7 +1295,7 @@ export const DigitalInstoreRunning: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -1332,8 +1332,8 @@ export const DigitalInstoreRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -1355,8 +1355,8 @@ export const OfflineInstoreRunning: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -1373,19 +1373,19 @@ export const OfflineInstoreRunning: Story = {
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,468', instoreSkuConversions: '923', totalSkuRevenue: '€28,176', totalSkuUnits: '2,505', totalSkuConversions: '1,563' },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Shelf Talker', placements: 2, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,467', instoreSkuConversions: '924', totalSkuRevenue: '€28,176', totalSkuUnits: '2,504', totalSkuConversions: '1,564' },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
+    const bookingData = [
+      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
+      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
+      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offline In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
       { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
-      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap line item' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Print creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 18-35', newValue: 'Urban 18-45', description: 'Expanded age targeting' },
@@ -1400,7 +1400,7 @@ export const OfflineInstoreRunning: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -1585,8 +1585,8 @@ export const OfflineInstoreRunning: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -1600,8 +1600,8 @@ export const OfflineInstoreRunning: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -1618,12 +1618,12 @@ export const OfflineInstoreRunning: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
@@ -1646,13 +1646,13 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'totalSkuUnits', header: 'Total SKU Units' },
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -1748,7 +1748,7 @@ export const OfflineInstoreRunning: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -1785,8 +1785,8 @@ export const OfflineInstoreRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -1807,8 +1807,8 @@ export const DisplayRunning: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -1825,19 +1825,19 @@ export const DisplayRunning: Story = {
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2, totalSkuConversions: '1,867', totalSkuConversionRate: '3.4%', totalSkuUnits: '3,234', totalSkuRevenue: '$67,890', totalSkuRoas: '4.8x', onlineSkuConversions: '1,307', onlineSkuUnits: '2,264', onlineSkuRevenue: '$47,523', instoreSkuConversions: '560', instoreSkuUnits: '970', instoreSkuRevenue: '$20,367' },
       { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Rich Media', placements: 3, totalSkuConversions: '2,456', totalSkuConversionRate: '3.1%', totalSkuUnits: '4,123', totalSkuRevenue: '$89,670', totalSkuRoas: '4.6x', onlineSkuConversions: '1,719', onlineSkuUnits: '2,886', onlineSkuRevenue: '$62,769', instoreSkuConversions: '737', instoreSkuUnits: '1,237', instoreSkuRevenue: '$26,901' },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'Running', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
-      { id: 'LI-002', status: 'Running', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
-      { id: 'LI-003', status: 'Running', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
-      { id: 'LI-004', status: 'Running', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
-      { id: 'LI-005', status: 'Running', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
+    const bookingData = [
+      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
+      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
+      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
+      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
+      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Display: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
       { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
-      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold line item' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Display banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop 18-35', newValue: 'Multi-device 18-45', description: 'Expanded targeting parameters' },
@@ -1852,7 +1852,7 @@ export const DisplayRunning: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -2067,8 +2067,8 @@ export const DisplayRunning: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -2082,8 +2082,8 @@ export const DisplayRunning: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -2100,12 +2100,12 @@ export const DisplayRunning: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
@@ -2123,13 +2123,13 @@ export const DisplayRunning: Story = {
                       { key: 'instoreSkuUnits', header: 'In-store SKU units' },
                       { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/display/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/display/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -2220,7 +2220,7 @@ export const DisplayRunning: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -2257,8 +2257,8 @@ export const DisplayRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -2279,8 +2279,8 @@ export const OfflineInstoreInOption: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -2297,18 +2297,18 @@ export const OfflineInstoreInOption: Story = {
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
       { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Shelf Talker', placements: 1 },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
+    const bookingData = [
+      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-09 16:20:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offline In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-09 16:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€75,000', description: 'Initial budget allocation' },
-      { id: 'LOG-003', timestamp: '2024-12-10 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap line item for approval' },
+      { id: 'LOG-003', timestamp: '2024-12-10 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap booking for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Print creative uploaded for review' },
       { id: 'LOG-005', timestamp: '2024-12-10 11:30:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
       { id: 'LOG-006', timestamp: '2024-12-10 14:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 25-45', newValue: 'Urban 18-45', description: 'Expanded age targeting for approval' },
@@ -2323,7 +2323,7 @@ export const OfflineInstoreInOption: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -2538,8 +2538,8 @@ export const OfflineInstoreInOption: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -2553,8 +2553,8 @@ export const OfflineInstoreInOption: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -2571,25 +2571,25 @@ export const OfflineInstoreInOption: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'placement', header: 'Placement' },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -2669,7 +2669,7 @@ export const OfflineInstoreInOption: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -2706,8 +2706,8 @@ export const OfflineInstoreInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -2728,8 +2728,8 @@ export const DisplayInOption: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -2746,18 +2746,18 @@ export const DisplayInOption: Story = {
       { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1, totalSkuConversions: '2,867', totalSkuConversionRate: '3.6%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.9x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
       { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0, totalSkuConversions: '0', totalSkuConversionRate: '0%', totalSkuUnits: '0', totalSkuRevenue: '$0', totalSkuRoas: '0x', onlineSkuConversions: '0', onlineSkuUnits: '0', onlineSkuRevenue: '$0', instoreSkuConversions: '0', instoreSkuUnits: '0', instoreSkuRevenue: '$0' },
     ];
-    const lineItemData = [
-      { id: 'LI-001', status: 'In-option', name: 'Line-item 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
-      { id: 'LI-002', status: 'In-option', name: 'Line-item 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
-      { id: 'LI-003', status: 'Ready', name: 'Line-item 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.7x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
-      { id: 'LI-004', status: 'In-option', name: 'Line-item 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
-      { id: 'LI-005', status: 'Ready', name: 'Line-item 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '4.1x', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
+    const bookingData = [
+      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
+      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
+      { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.7x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
+      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
+      { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '4.1x', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-09 15:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Display: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€100,000', description: 'Initial budget allocation for display campaign' },
-      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold placement for approval' },
+      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold placement for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Display banner creative uploaded for review' },
       { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
       { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop only', newValue: 'Multi-device 18-45', description: 'Expanded device and demographic targeting' },
@@ -2772,7 +2772,7 @@ export const DisplayInOption: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -2987,8 +2987,8 @@ export const DisplayInOption: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -3002,8 +3002,8 @@ export const DisplayInOption: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Placement',
@@ -3020,12 +3020,12 @@ export const DisplayInOption: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
                       { key: 'placement', header: 'Placement' },
@@ -3043,13 +3043,13 @@ export const DisplayInOption: Story = {
                       { key: 'instoreSkuUnits', header: 'In-store SKU units' },
                       { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       return statusMatch && placementMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to line-item detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to booking detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -3140,7 +3140,7 @@ export const DisplayInOption: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -3177,8 +3177,8 @@ export const DisplayInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -3311,7 +3311,7 @@ export const SponsoredProductsInOption: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -4023,7 +4023,7 @@ export const SponsoredProductsInOption: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -4200,7 +4200,7 @@ export const SponsoredProductsRunning: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -4715,7 +4715,7 @@ export const SponsoredProductsRunning: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Dates Modified', value: 'Dates Modified' },
                           { label: 'Target Updated', value: 'Target Updated' },
@@ -4776,8 +4776,8 @@ export const OffsiteRunning: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [channel, setChannel] = useState<string[]>([]);
     const [retailProduct, setRetailProduct] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
@@ -4796,7 +4796,7 @@ export const OffsiteRunning: Story = {
       { id: 'CR-003', status: 'Approved', name: 'Audio Spot 15s', format: 'Audio', placements: 2, adSpend: '$17,290', impressions: '2,569,464', clicks: '39,691', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$43,728', onlineSkuUnits: '2,965', onlineSkuConversions: '1,787', instoreSkuRevenue: '$31,256', instoreSkuUnits: '2,091', instoreSkuConversions: '1,262', totalSkuRevenue: '$74,984', totalSkuUnits: '5,056', totalSkuConversions: '3,049' },
       { id: 'CR-004', status: 'Approved', name: 'DOOH Billboard', format: 'Digital Out-of-Home', placements: 4, adSpend: '$17,290', impressions: '2,569,464', clicks: '39,691', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$43,728', onlineSkuUnits: '2,964', onlineSkuConversions: '1,787', instoreSkuRevenue: '$31,256', instoreSkuUnits: '2,091', instoreSkuConversions: '1,262', totalSkuRevenue: '$74,984', totalSkuUnits: '5,055', totalSkuConversions: '3,049' },
     ];
-    const lineItemData = [
+    const bookingData = [
       { id: 'LI-001', status: 'Running', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
       { id: 'LI-002', status: 'Running', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
       { id: 'LI-003', status: 'Running', name: 'Product Page Rectangle', channel: 'Product Page Rectangle', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
@@ -4810,8 +4810,8 @@ export const OffsiteRunning: Story = {
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$50,000', newValue: '$120,000', description: 'Budget increased for multi-channel offsite push' },
       { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Offsite campaign is now live' },
-      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display line item' },
-      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-002', description: 'Added Socials campaign line item' },
+      { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display booking' },
+      { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-002', description: 'Added Socials campaign booking' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Channel Added', field: 'Channels', oldValue: '-', newValue: 'Connected TV', description: 'Added CTV channel to offsite mix' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop 18-35', newValue: 'Multi-device 18-54', description: 'Expanded targeting for offsite channels' },
       { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Offsite performance exceeds expectations across all channels', description: 'Added performance comment' },
@@ -4825,7 +4825,7 @@ export const OffsiteRunning: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -4998,8 +4998,8 @@ export const OffsiteRunning: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -5013,8 +5013,8 @@ export const OffsiteRunning: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Channel',
@@ -5046,12 +5046,12 @@ export const OffsiteRunning: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'retailMedia', header: 'Retail Media', render: row => {
                         const maxShow = 3;
@@ -5086,13 +5086,13 @@ export const OffsiteRunning: Story = {
                       { key: 'totalSkuUnits', header: 'Total SKU Units' },
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const channelMatch = channel.length === 0 || channel.includes(row.channel);
                       return statusMatch && channelMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offsite/line-item/${row.id}`}
+                    onRowClick={(row) => window.location.href = `/campaigns/offsite/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -5189,7 +5189,7 @@ export const OffsiteRunning: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Channel Added', value: 'Channel Added' },
                           { label: 'Target Updated', value: 'Target Updated' },
                           { label: 'Comment Added', value: 'Comment Added' },
@@ -5225,8 +5225,8 @@ export const OffsiteRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (
@@ -5247,8 +5247,8 @@ export const OffsiteInOption: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('line-items');
-    const [lineItemStatus, setLineItemStatus] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [channel, setChannel] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
@@ -5266,7 +5266,7 @@ export const OffsiteInOption: Story = {
       { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 2, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'CR-003', status: 'Rejected', name: 'Audio Spot 15s', format: 'Audio', placements: 0, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
     ];
-    const lineItemData = [
+    const bookingData = [
       { id: 'LI-001', status: 'In-option', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-002', status: 'In-option', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-003', status: 'Ready', name: 'Product Page Rectangle', channel: 'Product Page Rectangle', start: '2024-08-10', end: '2024-09-10', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
@@ -5279,7 +5279,7 @@ export const OffsiteInOption: Story = {
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-09 15:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$0', newValue: '$100,000', description: 'Initial budget allocation for offsite channels' },
-      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Line Item Added', field: 'Line Items', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display line item for approval' },
+      { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display booking for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Social banner pack uploaded for review' },
       { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
       { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Channel Added', field: 'Channels', oldValue: '3rd Party Display', newValue: '+ Socials, Connected TV', description: 'Expanded offsite channel mix' },
@@ -5294,7 +5294,7 @@ export const OffsiteInOption: Story = {
         default: return 'outline';
       }
     };
-    const lineItemStatusVariant = (status: string) => {
+    const bookingStatusVariant = (status: string) => {
       switch (status) {
         case 'In-option': return 'outline';
         case 'Running': return 'success';
@@ -5467,8 +5467,8 @@ export const OffsiteInOption: Story = {
               content: null,
             },
             {
-              label: 'Line-items',
-              value: 'line-items',
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
@@ -5482,8 +5482,8 @@ export const OffsiteInOption: Story = {
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: lineItemStatus,
-                        onChange: setLineItemStatus,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
                         name: 'Channel',
@@ -5515,12 +5515,12 @@ export const OffsiteInOption: Story = {
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search line items..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Line-item ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={lineItemStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'Booking ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
                       { key: 'retailMedia', header: 'Retail Media', render: row => {
                         const maxShow = 3;
@@ -5555,13 +5555,13 @@ export const OffsiteInOption: Story = {
                       { key: 'totalSkuUnits', header: 'Total SKU Units' },
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
-                    data={lineItemData.filter(row => {
-                      const statusMatch = lineItemStatus.length === 0 || lineItemStatus.includes(row.status);
+                    data={bookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const channelMatch = channel.length === 0 || channel.includes(row.channel);
                       return statusMatch && channelMatch;
                     })}
                     rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to line-item detail: ${row.name} (${row.id})`)}
+                    onRowClick={(row) => console.log(`Navigate to booking detail: ${row.name} (${row.id})`)}
                   />
                 </div>
               ),
@@ -5658,7 +5658,7 @@ export const OffsiteInOption: Story = {
                           { label: 'Campaign Created', value: 'Campaign Created' },
                           { label: 'Budget Updated', value: 'Budget Updated' },
                           { label: 'Status Changed', value: 'Status Changed' },
-                          { label: 'Line Item Added', value: 'Line Item Added' },
+                          { label: 'Booking Added', value: 'Booking Added' },
                           { label: 'Creative Uploaded', value: 'Creative Uploaded' },
                           { label: 'Channel Added', value: 'Channel Added' },
                           { label: 'Comment Added', value: 'Comment Added' },
@@ -5694,8 +5694,8 @@ export const OffsiteInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'line-items' ? (
-              <Button>Add line-item</Button>
+            activeTab === 'bookings' ? (
+              <Button>Add booking</Button>
             ) : activeTab === 'creatives' ? (
               <Button>Add creative</Button>
             ) : activeTab === 'logs' ? (

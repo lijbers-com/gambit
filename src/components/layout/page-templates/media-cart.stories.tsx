@@ -89,13 +89,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Media products data for each engine
-const displayLineItems = [
+const displayBookings = [
   { id: 'D-001', name: 'Premium Banner Placement', brand: 'Coca-Cola', budget: '$3,000', roas: '4.2x', status: 'Active' },
   { id: 'D-002', name: 'Mobile App Ads', brand: 'Nike', budget: '$2,500', roas: '4.8x', status: 'Active' },
   { id: 'D-003', name: 'Video Interstitials', brand: 'Samsung', budget: '$3,500', roas: '4.5x', status: 'Pending' },
 ];
 
-const sponsoredLineItems = [
+const sponsoredBookings = [
   { id: 'S-001', name: 'Search Result Placement', brand: 'Amazon Basics', budget: '$4,000', roas: '5.1x', status: 'Active' },
   { id: 'S-002', name: 'Product Page Ads', brand: 'Unilever', budget: '$3,000', roas: '4.3x', status: 'Active' },
   { id: 'S-003', name: 'Category Spotlight', brand: 'P&G', budget: '$2,000', roas: '4.7x', status: 'Active' },
@@ -240,10 +240,10 @@ export const MediaCart: Story = {
                                     )
                                   },
                                 ]}
-                                data={displayLineItems}
+                                data={displayBookings}
                                 rowKey={row => row.id}
                                 hideActions
-                                onRowClick={(row) => console.log('Navigate to line item:', row.name)}
+                                onRowClick={(row) => console.log('Navigate to booking:', row.name)}
                               />
                             </div>
 
@@ -292,10 +292,10 @@ export const MediaCart: Story = {
                                     )
                                   },
                                 ]}
-                                data={sponsoredLineItems}
+                                data={sponsoredBookings}
                                 rowKey={row => row.id}
                                 hideActions
-                                onRowClick={(row) => console.log('Navigate to line item:', row.name)}
+                                onRowClick={(row) => console.log('Navigate to booking:', row.name)}
                               />
                             </div>
 

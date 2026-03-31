@@ -192,12 +192,12 @@ export const Horizontal: Story = {
 The horizontal variant provides a wider layout that displays campaign information in a three-column format:
 
 - **Left Column**: Core campaign settings (Goal, Audience, Run time)
-- **Middle Column**: Engines and Features displayed in line-item style tables with headers and organized rows
+- **Middle Column**: Engines and Features displayed in booking style tables with headers and organized rows
 - **Right Column**: Metrics and action buttons
 
 ## Key Features
 
-- **Line-Item Style Engines**: Engines are displayed in a structured table format similar to line items, with clear headers and organized rows
+- **Line-Item Style Engines**: Engines are displayed in a structured table format similar to bookings, with clear headers and organized rows
 - **Table Layout**: Each engine shows in a dedicated row with proper spacing and hover effects
 - **Enhanced Visual Hierarchy**: Better organization of information with clear column separation
 - **Responsive Design**: Adapts to wider screens while maintaining usability

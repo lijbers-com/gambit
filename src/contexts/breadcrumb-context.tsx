@@ -5,7 +5,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 export interface BreadcrumbEntity {
   id: string;
   name: string;
-  type: 'campaign' | 'line-item' | 'creative';
+  type: 'campaign' | 'booking' | 'creative';
   campaignType?: 'sponsored-products' | 'display' | 'digital-instore' | 'offline-instore';
 }
 
@@ -15,7 +15,7 @@ export interface BreadcrumbContextValue {
   getEntityName: (id: string, type: BreadcrumbEntity['type']) => string | null;
   addEntity: (entity: BreadcrumbEntity) => void;
   getCampaignName: (campaignId: string) => string;
-  getLineItemName: (lineItemId: string) => string;
+  getBookingName: (bookingId: string) => string;
   getCreativeName: (creativeId: string) => string;
 }
 
@@ -47,9 +47,9 @@ export function BreadcrumbProvider({ children, entities = [] }: BreadcrumbProvid
     return entity || 'Campaign Details';
   };
 
-  const getLineItemName = (lineItemId: string): string => {
-    const entity = getEntityName(lineItemId, 'line-item');
-    return entity || 'Line-item Details';
+  const getBookingName = (bookingId: string): string => {
+    const entity = getEntityName(bookingId, 'booking');
+    return entity || 'Booking Details';
   };
 
   const getCreativeName = (creativeId: string): string => {
@@ -63,7 +63,7 @@ export function BreadcrumbProvider({ children, entities = [] }: BreadcrumbProvid
     getEntityName,
     addEntity,
     getCampaignName,
-    getLineItemName,
+    getBookingName,
     getCreativeName,
   };
 

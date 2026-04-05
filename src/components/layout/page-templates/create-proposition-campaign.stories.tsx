@@ -356,7 +356,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const isSetupComplete = campaignName.trim() !== '';
   const isAdvertiserComplete = selectedBrand !== '';
   const isBudgetComplete = isSponsoredProducts
-    ? budgetAmount.trim() !== '' && dailyBudget.trim() !== '' && biddingCPC.trim() !== ''
+    ? budgetAmount.trim() !== '' && dailyBudget.trim() !== '' && biddingCPC.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined
     : budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
   const isTargetingComplete = isSponsoredProducts
     ? selectedLocalBrands.length > 0
@@ -555,6 +555,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
       case 'budget': {
         const vals: string[] = [];
         if (isSponsoredProducts) {
+          if (dateRange?.from && dateRange?.to) {
+            vals.push(`${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`);
+          }
           if (budgetAmount.trim()) vals.push(`Total €${budgetAmount}`);
           if (dailyBudget.trim()) vals.push(`Daily €${dailyBudget}`);
           if (biddingCPC.trim()) vals.push(`CPC €${biddingCPC}`);
@@ -848,16 +851,28 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
               {currentStepId === 'budget' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">{isSponsoredProducts ? 'Budget and bidding' : 'Run time & budget'}</CardTitle>
+                    <CardTitle className="text-lg">Run time & budget</CardTitle>
                     <CardDescription>
                       {isSponsoredProducts
-                        ? 'Set your total budget, daily spend cap and cost-per-click bid'
+                        ? 'Set when your campaign runs, your total budget and cost-per-click bid'
                         : 'Set when your campaign runs and how much you want to spend'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {isSponsoredProducts ? (
                       <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label>Run time <span className="text-destructive">*</span></Label>
+                          <DateRangePicker
+                            dateRange={dateRange}
+                            onDateRangeChange={setDateRange}
+                            placeholder="Select start and end date"
+                            showPresets
+                          />
+                          <div className="text-xs text-muted-foreground">
+                            Your campaign will automatically start and stop on the selected dates
+                          </div>
+                        </div>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="budget-amount">Total budget <span className="text-destructive">*</span></Label>

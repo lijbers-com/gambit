@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
@@ -14,7 +14,7 @@ import { Badge } from '../../ui/badge';
 import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import { CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
+import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
@@ -286,43 +286,19 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
 
 // Shared component for campaign details sidebar
 const CampaignDetailsSidebar = () => (
-  <div className="flex flex-col gap-4">
-    <CardSummary>
-      <CardHeader>
-        <CardSummaryTitle>Campaign details</CardSummaryTitle>
-      </CardHeader>
-      <CardSummaryContent>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">Campaign name</div>
-          <div className="font-medium">Campaign AH ..</div>
-        </div>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">PO Number</div>
-          <div className="font-medium">PO-123456</div>
-        </div>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">Advertiser</div>
-          <div className="font-medium">Acme Media</div>
-        </div>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">Brand</div>
-          <div className="font-medium">Knorr</div>
-        </div>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">Goal</div>
-          <div className="font-medium">Awareness</div>
-        </div>
-        <div className="mb-2">
-          <div className="text-[14px] text-muted-foreground">Budget</div>
-          <div className="font-medium">€10,000</div>
-        </div>
-        <div>
-          <div className="text-[14px] text-muted-foreground">Runtime</div>
-          <div className="font-medium">01 Aug, 2024 - 30 Aug, 2024</div>
-        </div>
-      </CardSummaryContent>
-    </CardSummary>
-  </div>
+  <SummaryCard
+    title="Campaign details"
+    variant="details"
+    items={[
+      { label: 'Campaign name', value: 'Campaign AH ..' },
+      { label: 'PO Number', value: 'PO-123456' },
+      { label: 'Advertiser', value: 'Acme Media' },
+      { label: 'Brand', value: 'Knorr' },
+      { label: 'Goal', value: 'Awareness' },
+      { label: 'Budget', value: '€10,000' },
+      { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
+    ]}
+  />
 );
 
 // Shared component for creative linking dialog
@@ -901,64 +877,21 @@ export const Display: Story = {
                 
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
-                  <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>Booking</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      {bookingName && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{bookingName}</div>
-                        </div>
-                      )}
-                      {selectedPlacement && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Placement</div>
-                          <div className="font-medium">{selectedPlacement.name}</div>
-                        </div>
-                      )}
-                      {(startDate || endDate) && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Runtime</div>
-                          <div className="font-medium">
-                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                          </div>
-                        </div>
-                      )}
-                      {selectedRetailProducts.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Retail products</div>
-                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
-                        </div>
-                      )}
-                      {storeAmount && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Stores</div>
-                          <div className="font-medium">{storeAmount} stores</div>
-                        </div>
-                      )}
-                      {selectedStoreTypes.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store types</div>
-                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
-                        </div>
-                      )}
-                      {selectedAudiences.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Audiences</div>
-                          <div className="font-medium">{selectedAudiences.length} selected</div>
-                        </div>
-                      )}
-                      {selectedInventory.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Inventory</div>
-                          <div className="font-medium">{selectedInventory.length} selected</div>
-                        </div>
-                      )}
-                    </CardSummaryContent>
-                  </CardSummary>
-                  
+                  <SummaryCard
+                    title="Booking"
+                    variant="details"
+                    items={[
+                      ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                      ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
+                      ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
+                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
+                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
+                      ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
+                      ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
+                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${selectedInventory.length} selected` }] : []),
+                    ]}
+                  />
+
                   {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
@@ -987,7 +920,7 @@ export const Display: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-                  
+
                   <CampaignDetailsSidebar />
                 </div>
               </div>
@@ -1485,64 +1418,21 @@ export const DigitalInStore: Story = {
                 
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
-                  <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>Booking</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      {bookingName && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{bookingName}</div>
-                        </div>
-                      )}
-                      {selectedPlacement && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Placement</div>
-                          <div className="font-medium">{selectedPlacement.name}</div>
-                        </div>
-                      )}
-                      {(startDate || endDate) && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Runtime</div>
-                          <div className="font-medium">
-                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                          </div>
-                        </div>
-                      )}
-                      {selectedRetailProducts.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Retail products</div>
-                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
-                        </div>
-                      )}
-                      {storeAmount && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Stores</div>
-                          <div className="font-medium">{storeAmount} stores</div>
-                        </div>
-                      )}
-                      {selectedStoreTypes.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store types</div>
-                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
-                        </div>
-                      )}
-                      {selectedAudiences.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Audiences</div>
-                          <div className="font-medium">{selectedAudiences.length} selected</div>
-                        </div>
-                      )}
-                      {selectedInventory.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Inventory</div>
-                          <div className="font-medium">{selectedInventory.length} selected</div>
-                        </div>
-                      )}
-                    </CardSummaryContent>
-                  </CardSummary>
-                  
+                  <SummaryCard
+                    title="Booking"
+                    variant="details"
+                    items={[
+                      ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                      ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
+                      ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
+                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
+                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
+                      ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
+                      ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
+                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${selectedInventory.length} selected` }] : []),
+                    ]}
+                  />
+
                   {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
@@ -1571,7 +1461,7 @@ export const DigitalInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-                  
+
                   <CampaignDetailsSidebar />
                 </div>
               </div>
@@ -2387,62 +2277,17 @@ export const OfflineInStore: Story = {
 
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
-                  <CardSummary>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardSummaryTitle>Booking</CardSummaryTitle>
-                        <Badge className={
-                          storeSelectionMode && creativeStatus !== 'not-set' && printerStatus !== 'not-set' && briefingStatus !== 'not-set'
-                          ? 'bg-green-100 text-green-800 border-green-200'
-                          : 'bg-orange-100 text-orange-800 border-orange-200'
-                        }>
-                          {storeSelectionMode && creativeStatus !== 'not-set' && printerStatus !== 'not-set' && briefingStatus !== 'not-set' ? 'Ready' : 'In preparation'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Preparation</div>
-                        <div className={briefingStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
-                          {briefingStatus === 'not-set' && 'Not set'}
-                          {briefingStatus === 'send' && 'Briefing send'}
-                          {briefingStatus === 'approved' && 'Briefing approved'}
-                          {briefingStatus === 'rejected' && 'Briefing rejected'}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Runtime</div>
-                        <div className="font-medium">
-                          {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Stores</div>
-                        <div className={storeAmount || storeSelectionMode ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
-                          {storeAmount ? `${storeAmount} stores` : 'Not set'}
-                          {storeSelectionMode && ' · Store list generated'}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Creatives</div>
-                        <div className={creativeStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
-                          {creativeStatus === 'not-set' && 'Not set'}
-                          {creativeStatus === 'received' && 'Creative received'}
-                          {creativeStatus === 'not-approved' && 'Creative not approved'}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-[14px] text-muted-foreground">Printer</div>
-                        <div className={printerStatus !== 'not-set' ? 'font-medium' : 'text-sm text-muted-foreground italic'}>
-                          {printerStatus === 'not-set' && 'Not set'}
-                          {printerStatus === 'instruction-send' && 'Instruction send'}
-                          {printerStatus === 'delivered' && 'Delivered'}
-                          {printerStatus === 'installed' && 'Installed'}
-                        </div>
-                      </div>
-                    </CardSummaryContent>
-                  </CardSummary>
-                  
+                  <SummaryCard
+                    title="Booking"
+                    variant="details"
+                    items={[
+                      { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
+                      { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
+                      { label: 'Stores', value: storeAmount ? `${storeAmount} stores${storeSelectionMode ? ' · Store list generated' : ''}` : 'Not set' },
+                      { label: 'Creatives', value: creativeStatus === 'not-set' ? 'Not set' : creativeStatus === 'received' ? 'Creative received' : 'Creative not approved' },
+                      { label: 'Printer', value: printerStatus === 'not-set' ? 'Not set' : printerStatus === 'instruction-send' ? 'Instruction send' : printerStatus === 'delivered' ? 'Delivered' : 'Installed' },
+                    ]}
+                  />
 
                   {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
@@ -2970,64 +2815,21 @@ export const SponsoredProducts: Story = {
                 
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
-                  <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>Booking</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      {bookingName && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Name</div>
-                          <div className="font-medium">{bookingName}</div>
-                        </div>
-                      )}
-                      {selectedPlacement && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Placement</div>
-                          <div className="font-medium">{selectedPlacement.name}</div>
-                        </div>
-                      )}
-                      {(startDate || endDate) && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Runtime</div>
-                          <div className="font-medium">
-                            {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                          </div>
-                        </div>
-                      )}
-                      {selectedRetailProducts.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Retail products</div>
-                          <div className="font-medium">{selectedRetailProducts.length} selected</div>
-                        </div>
-                      )}
-                      {storeAmount && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Stores</div>
-                          <div className="font-medium">{storeAmount} stores</div>
-                        </div>
-                      )}
-                      {selectedStoreTypes.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Store types</div>
-                          <div className="font-medium">{selectedStoreTypes.length} selected</div>
-                        </div>
-                      )}
-                      {selectedAudiences.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Audiences</div>
-                          <div className="font-medium">{selectedAudiences.length} selected</div>
-                        </div>
-                      )}
-                      {selectedInventory.length > 0 && (
-                        <div className="mb-2">
-                          <div className="text-[14px] text-muted-foreground">Inventory</div>
-                          <div className="font-medium">{selectedInventory.length} selected</div>
-                        </div>
-                      )}
-                    </CardSummaryContent>
-                  </CardSummary>
-                  
+                  <SummaryCard
+                    title="Booking"
+                    variant="details"
+                    items={[
+                      ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                      ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
+                      ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
+                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
+                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
+                      ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
+                      ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
+                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${(selectedInventory as any[]).length} selected` }] : []),
+                    ]}
+                  />
+
                   {/* Creatives section - hidden for now, can be brought back later
                   <CardSummary>
                     <CardHeader>
@@ -3056,7 +2858,7 @@ export const SponsoredProducts: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-                  
+
                   <CampaignDetailsSidebar />
                 </div>
               </div>
@@ -3465,99 +3267,34 @@ export const OffsiteDisplay: Story = {
 
             {/* Sidebar */}
             <div className="flex flex-col gap-4">
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>Booking</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  {bookingName && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Name</div>
-                      <div className="font-medium">{bookingName}</div>
-                    </div>
-                  )}
-                  {selectedPlacementObj && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Placement</div>
-                      <div className="font-medium">{selectedPlacementObj.label}</div>
-                    </div>
-                  )}
-                  {(startDate || endDate) && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Runtime</div>
-                      <div className="font-medium">
-                        {startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - {endDate ? format(endDate, 'dd/MM/yyyy') : '?'}
-                      </div>
-                    </div>
-                  )}
-                  {selectedBudget && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Budget</div>
-                      <div className="font-medium">${Number(selectedBudget).toLocaleString()}</div>
-                    </div>
-                  )}
-                  {selectedRetailProducts.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Retail products</div>
-                      <div className="font-medium">{selectedRetailProducts.length} selected</div>
-                    </div>
-                  )}
-                  {selectedAudiences.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Audiences</div>
-                      <div className="font-medium">{selectedAudiences.length} selected</div>
-                    </div>
-                  )}
-                  {selectedDevices.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Devices</div>
-                      <div className="font-medium">{selectedDevices.join(', ')}</div>
-                    </div>
-                  )}
-                  {selectedGeos.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[14px] text-muted-foreground">Geo</div>
-                      <div className="font-medium">{selectedGeos.length} selected</div>
-                    </div>
-                  )}
-                </CardSummaryContent>
-              </CardSummary>
+              <SummaryCard
+                title="Booking"
+                variant="details"
+                items={[
+                  ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                  ...(selectedPlacementObj ? [{ label: 'Placement', value: selectedPlacementObj.label }] : []),
+                  ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
+                  ...(selectedBudget ? [{ label: 'Budget', value: `$${Number(selectedBudget).toLocaleString()}` }] : []),
+                  ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
+                  ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
+                  ...(selectedDevices.length > 0 ? [{ label: 'Devices', value: selectedDevices.join(', ') }] : []),
+                  ...(selectedGeos.length > 0 ? [{ label: 'Geo', value: `${selectedGeos.length} selected` }] : []),
+                ]}
+              />
 
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>Campaign details</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">Campaign name</div>
-                    <div className="font-medium">Offsite: Summer Launch</div>
-                  </div>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">PO Number</div>
-                    <div className="font-medium">PO-789012</div>
-                  </div>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">Advertiser</div>
-                    <div className="font-medium">Coca-Cola</div>
-                  </div>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">Brand</div>
-                    <div className="font-medium">Coca-Cola Zero</div>
-                  </div>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">Goal</div>
-                    <div className="font-medium">Awareness</div>
-                  </div>
-                  <div className="mb-2">
-                    <div className="text-[14px] text-muted-foreground">Budget</div>
-                    <div className="font-medium">$120,000</div>
-                  </div>
-                  <div>
-                    <div className="text-[14px] text-muted-foreground">Runtime</div>
-                    <div className="font-medium">01 Jun, 2024 - 30 Jun, 2024</div>
-                  </div>
-                </CardSummaryContent>
-              </CardSummary>
+              <SummaryCard
+                title="Campaign details"
+                variant="details"
+                items={[
+                  { label: 'Campaign name', value: 'Offsite: Summer Launch' },
+                  { label: 'PO Number', value: 'PO-789012' },
+                  { label: 'Advertiser', value: 'Coca-Cola' },
+                  { label: 'Brand', value: 'Coca-Cola Zero' },
+                  { label: 'Goal', value: 'Awareness' },
+                  { label: 'Budget', value: '$120,000' },
+                  { label: 'Runtime', value: '01 Jun, 2024 - 30 Jun, 2024' },
+                ]}
+              />
             </div>
           </div>
         </AppLayout>

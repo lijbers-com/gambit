@@ -29,6 +29,7 @@ import {
   MonitorPlay,
   Store,
   WalletCards,
+  Globe,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
@@ -74,6 +75,7 @@ export const renderIcon = (icon: string) => {
     MonitorPlay,
     Store,
     WalletCards,
+    Globe,
     OrganisationsIcon,
     BrandsIcon,
   };

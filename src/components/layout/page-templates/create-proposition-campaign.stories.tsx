@@ -9,6 +9,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { SelectionList } from '@/components/ui/selection-list';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
@@ -145,6 +146,30 @@ const goals = [
   },
 ];
 
+const mediaPlanOptions = [
+  { label: 'Summer Sale 2026 – Knorr', value: 'summer-sale-2026' },
+  { label: 'Back to School 2026 – PepsiCo', value: 'back-to-school-2026' },
+  { label: 'Holiday Season 2026 – Nestlé', value: 'holiday-2026' },
+  { label: 'Q3 Awareness – Heineken', value: 'q3-awareness' },
+];
+
+const localBrands = [
+  { id: 'food-lion', label: 'Food Lion' },
+  { id: 'giant-food', label: 'Giant Food' },
+  { id: 'hannaford', label: 'Hannaford' },
+  { id: 'martins', label: "Martin's" },
+  { id: 'stop-shop', label: 'Stop & Shop' },
+  { id: 'giant-company', label: 'The Giant Company' },
+];
+
+const advertiserOptions = [
+  { label: 'Acme Media', value: 'acme-media' },
+  { label: 'Brand Alliance', value: 'brand-alliance' },
+  { label: 'Global Brands Co.', value: 'global-brands' },
+  { label: 'Unilever Shopper Marketing', value: 'unilever-shopper' },
+  { label: 'Nestlé Trade Marketing', value: 'nestle-trade' },
+];
+
 const brandOptions = [
   { label: 'Coca-Cola', value: 'coca-cola' },
   { label: 'Unilever', value: 'unilever' },
@@ -169,32 +194,37 @@ const suggestedTags = [
   'Family', 'Young adults', 'Sports & Fitness',
 ];
 
+const productImages = [
+  '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg',
+  '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg',
+  '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg',
+];
+
 const retailProducts = [
-  { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
-  { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
-  { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
-  { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
-  { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
-  { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
-  { id: '612816', name: 'Nike - air max 270 - size 42' },
-  { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
-  { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
-  { id: '615649', name: "Lay's - classic potato chips - 250g" },
-  { id: '616250', name: 'Dove - body wash sensitive - 500ml' },
-  { id: '617861', name: 'Nespresso - vertuo capsules - 30 pack' },
+  { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter', image: productImages[0] },
+  { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter', image: productImages[1] },
+  { id: '608456', name: 'Red Bull - energy drink original - 250ml', image: productImages[2] },
+  { id: '609782', name: 'Heineken - premium lager beer - 6x330ml', image: productImages[0] },
+  { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB', image: productImages[1] },
+  { id: '611205', name: 'iPhone - 15 pro max - 512GB', image: productImages[2] },
+  { id: '612816', name: 'Nike - air max 270 - size 42', image: productImages[0] },
+  { id: '613427', name: 'Adidas - ultraboost 22 - size 43', image: productImages[1] },
+  { id: '614038', name: 'Nutella - hazelnut spread - 750g', image: productImages[2] },
+  { id: '615649', name: "Lay's - classic potato chips - 250g", image: productImages[0] },
+  { id: '616250', name: 'Dove - body wash sensitive - 500ml', image: productImages[1] },
+  { id: '617861', name: 'Nespresso - vertuo capsules - 30 pack', image: productImages[2] },
 ];
 
 const getWizardSteps = (propositionType: string) => {
   const base = [
-    { id: 'setup', label: 'Campaign setup' },
-    { id: 'brand', label: 'Brand & products' },
-    { id: 'goal', label: 'Campaign goal' },
-    { id: 'targeting', label: 'Targeting' },
+    { id: 'setup', label: 'Setup' },
+    { id: 'advertiser', label: 'Advertiser' },
+    { id: 'budget', label: 'Run time & budget' },
+    { id: 'targeting', label: 'Goals & targets' },
   ];
   if (propositionType === 'sponsored-products') {
     base.push({ id: 'keywords', label: 'Keywords & placements' });
   }
-  base.push({ id: 'review', label: 'Review & launch' });
   return base;
 };
 
@@ -276,20 +306,34 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepId = wizardSteps[currentStep]?.id;
 
-  // Step 1: Campaign Setup
+  // Step 1: Setup
   const [campaignName, setCampaignName] = React.useState('');
+  const [poNumber, setPoNumber] = React.useState('');
+
+  // Step 2: Advertiser
+  const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
   const [selectedBrand, setSelectedBrand] = React.useState('');
   const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
   const [retailProductSearch, setRetailProductSearch] = React.useState('');
   const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
 
-  // Step 2: Campaign Goal
-  const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
+  // Step 1: Setup (SP-specific)
+  const [selectedMediaPlan, setSelectedMediaPlan] = React.useState('');
 
-  // Step 3: Targeting
+  // Step 3: Run time & Budget
+  const [budgetAmount, setBudgetAmount] = React.useState('');
+  const [dailyBudget, setDailyBudget] = React.useState('');
+  const [biddingCPC, setBiddingCPC] = React.useState('');
+  const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
+
+  // Step 4: Goals & targets
+  const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
   const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
   const [tags, setTags] = React.useState<string[]>([]);
   const [tagInput, setTagInput] = React.useState('');
+  const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([]);
 
   // Step: Keywords & Placements (Sponsored Products only)
   const [selectedKeywords, setSelectedKeywords] = React.useState<string[]>([]);
@@ -304,21 +348,31 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const [placementSearch, setPlacementSearch] = React.useState('');
   const [showPlacementResults, setShowPlacementResults] = React.useState(false);
 
-  // Step: Run time & Budget
-  const [budgetAmount, setBudgetAmount] = React.useState('');
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
-  const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
-
   // Derived data
   const selectedGoalData = goals.find((g) => g.id === selectedGoal);
   const selectedBrandData = brandOptions.find((b) => b.value === selectedBrand);
 
   // Step completion checks
-  const isSetupComplete = campaignName.trim() !== '' && budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
-  const isBrandComplete = selectedBrand !== '';
-  const isGoalComplete = selectedGoal !== null;
-  const isTargetingComplete = selectedAudiences.length > 0;
+  const isSetupComplete = campaignName.trim() !== '';
+  const isAdvertiserComplete = selectedBrand !== '';
+  const isBudgetComplete = isSponsoredProducts
+    ? budgetAmount.trim() !== '' && dailyBudget.trim() !== '' && biddingCPC.trim() !== ''
+    : budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
+  const isTargetingComplete = isSponsoredProducts
+    ? selectedLocalBrands.length > 0
+    : selectedGoal !== null && selectedAudiences.length > 0;
   const isKeywordsComplete = isSponsoredProducts ? (selectedKeywords.length > 0 || selectedCategories.length > 0) : true;
+
+  const isCurrentStepComplete = (() => {
+    switch (currentStepId) {
+      case 'setup': return isSetupComplete;
+      case 'advertiser': return isAdvertiserComplete;
+      case 'budget': return isBudgetComplete;
+      case 'targeting': return isTargetingComplete;
+      case 'keywords': return isKeywordsComplete;
+      default: return false;
+    }
+  })();
 
   // Step navigation helpers
   const goToNextStep = () => setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length - 1));
@@ -476,35 +530,68 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
     ? otherPlacements.filter((p) => p.name.toLowerCase().includes(placementSearch.toLowerCase()))
     : otherPlacements;
 
-  // Get step value for summary
-  const getStepValue = (stepId: string): string | null => {
+  // Get step values for summary (returns array for list display)
+  const getStepValues = (stepId: string): string[] | null => {
     switch (stepId) {
-      case 'setup':
-        if (isSetupComplete) return `${campaignName} · €${budgetAmount}`;
-        return null;
-      case 'brand': {
-        if (!isBrandComplete) return null;
-        const parts = [selectedBrandData?.label];
-        if (selectedRetailProducts.length > 0) parts.push(`${selectedRetailProducts.length} product${selectedRetailProducts.length !== 1 ? 's' : ''}`);
-        return parts.filter(Boolean).join(' · ');
+      case 'setup': {
+        const vals: string[] = [];
+        const mediaPlanData = mediaPlanOptions.find((m) => m.value === selectedMediaPlan);
+        if (mediaPlanData) vals.push(mediaPlanData.label);
+        if (campaignName.trim()) vals.push(campaignName);
+        if (poNumber.trim()) vals.push(poNumber);
+        return vals.length > 0 ? vals : null;
       }
-      case 'goal':
-        if (selectedGoalData) return selectedGoalData.title;
-        return null;
+      case 'advertiser': {
+        const vals: string[] = [];
+        const advertiserData = advertiserOptions.find((a) => a.value === selectedAdvertiser);
+        if (advertiserData) vals.push(advertiserData.label);
+        if (selectedBrandData) vals.push(selectedBrandData.label);
+        selectedRetailProducts.forEach((id) => {
+          const p = retailProducts.find((r) => r.id === id);
+          if (p) vals.push(p.name);
+        });
+        return vals.length > 0 ? vals : null;
+      }
+      case 'budget': {
+        const vals: string[] = [];
+        if (isSponsoredProducts) {
+          if (budgetAmount.trim()) vals.push(`Total €${budgetAmount}`);
+          if (dailyBudget.trim()) vals.push(`Daily €${dailyBudget}`);
+          if (biddingCPC.trim()) vals.push(`CPC €${biddingCPC}`);
+        } else {
+          if (budgetAmount.trim()) vals.push(`€${budgetAmount}`);
+          if (dateRange?.from && dateRange?.to) {
+            vals.push(`${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`);
+          }
+        }
+        return vals.length > 0 ? vals : null;
+      }
       case 'targeting': {
-        if (!isTargetingComplete) return null;
-        const audienceCount = selectedAudiences.length;
-        return `${audienceCount} audience${audienceCount !== 1 ? 's' : ''}`;
+        if (isSponsoredProducts) {
+          const vals = selectedLocalBrands.map((id) => localBrands.find((b) => b.id === id)?.label ?? id);
+          return vals.length > 0 ? vals : null;
+        }
+        const vals: string[] = [];
+        if (selectedGoalData) vals.push(selectedGoalData.title);
+        selectedAudiences.forEach((id) => {
+          const a = audienceOptions.find((o) => o.id === id);
+          if (a) vals.push(a.label);
+        });
+        return vals.length > 0 ? vals : null;
       }
       case 'keywords': {
-        const parts: string[] = [];
-        if (selectedKeywords.length > 0) parts.push(`${selectedKeywords.length} keyword${selectedKeywords.length !== 1 ? 's' : ''}`);
-        if (selectedCategories.length > 0) parts.push(`${selectedCategories.length} categor${selectedCategories.length !== 1 ? 'ies' : 'y'}`);
-        if (selectedOtherPlacements.length > 0) parts.push(`${selectedOtherPlacements.length} placement${selectedOtherPlacements.length !== 1 ? 's' : ''}`);
-        return parts.length > 0 ? parts.join(' · ') : null;
+        const vals: string[] = [];
+        vals.push(...selectedKeywords);
+        selectedCategories.forEach((id) => {
+          const cat = categoryPlacements.flatMap((c) => [c, ...c.children]).find((c) => c.id === id);
+          if (cat) vals.push(cat.name);
+        });
+        selectedOtherPlacements.forEach((id) => {
+          const p = otherPlacements.find((o) => o.id === id);
+          if (p) vals.push(p.name);
+        });
+        return vals.length > 0 ? vals : null;
       }
-      case 'review':
-        return null;
       default:
         return null;
     }
@@ -531,7 +618,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: `Create ${proposition.name.toLowerCase()} campaign`,
+          title: campaignName || `Create ${proposition.name.toLowerCase()} campaign`,
           subtitle: '',
           headerRight: null,
         }}
@@ -606,17 +693,30 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0">
 
-              {/* Step: Campaign Setup (name + budget + runtime) */}
+              {/* Step 1: Setup */}
               {currentStepId === 'setup' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Campaign setup</CardTitle>
+                    <CardTitle className="text-lg">Setup</CardTitle>
                     <CardDescription>
                       Enter the basic details for your new {proposition.name.toLowerCase()} campaign
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
+                      {isSponsoredProducts && (
+                        <div className="space-y-2">
+                          <Label htmlFor="media-plan">Media plan</Label>
+                          <Input
+                            dropdown
+                            options={mediaPlanOptions}
+                            value={selectedMediaPlan}
+                            onChange={(value: string) => setSelectedMediaPlan(value)}
+                            placeholder="Select a media plan"
+                          />
+                          <div className="text-xs text-muted-foreground">Link this campaign to an existing media plan</div>
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <Label htmlFor="campaign-name">Campaign name</Label>
                         <Input
@@ -627,85 +727,14 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           hint="Give your campaign a descriptive name to easily identify it later"
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label>Run time</Label>
-                        <DateRangePicker
-                          dateRange={dateRange}
-                          onDateRangeChange={setDateRange}
-                          placeholder="Select start and end date"
-                          showPresets
+                        <Label htmlFor="po-number">PO number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                        <Input
+                          id="po-number"
+                          placeholder="e.g. PO-123456"
+                          value={poNumber}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
-                        <div className="text-xs text-muted-foreground">
-                          Your campaign will automatically start and stop on the selected dates
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="budget-amount">Total budget</Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                          <Input
-                            id="budget-amount"
-                            type="number"
-                            placeholder="e.g. 5000"
-                            value={budgetAmount}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
-                            className="pl-7"
-                          />
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          The maximum total amount for the entire campaign duration
-                        </div>
-                      </div>
-
-                      {budgetAmount && dateRange?.from && dateRange?.to && (
-                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Daily average</span>
-                            <span className="text-sm font-semibold text-primary">
-                              €{(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            €{budgetAmount} over {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Auto Budget Optimization */}
-                      <div className={cn(
-                        "rounded-lg border p-4 transition-all",
-                        autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
-                      )}>
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <Sparkles size={14} className={autoBudgetOptimization ? 'text-primary' : 'text-muted-foreground'} />
-                              <span className="text-sm font-medium">Auto budget optimization</span>
-                              {autoBudgetOptimization && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Automatically optimize your budget allocation based on real-time performance data to maximise ROAS
-                            </p>
-                          </div>
-                          <Switch
-                            checked={autoBudgetOptimization}
-                            onCheckedChange={setAutoBudgetOptimization}
-                          />
-                        </div>
-                        {autoBudgetOptimization && budgetAmount && (
-                          <div className="mt-3 pt-3 border-t border-primary/20 flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                              <TrendingUp size={12} className="text-primary" />
-                              <span className="text-xs text-muted-foreground">Avg. +18% ROAS improvement</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <DollarSign size={12} className="text-primary" />
-                              <span className="text-xs text-muted-foreground">Real-time rebalancing</span>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
@@ -718,17 +747,27 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                 </Card>
               )}
 
-              {/* Step: Brand & Products */}
-              {currentStepId === 'brand' && (
+              {/* Step 2: Advertiser */}
+              {currentStepId === 'advertiser' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Brand & products</CardTitle>
+                    <CardTitle className="text-lg">Advertiser</CardTitle>
                     <CardDescription>
-                      Select the brand and retail products for this campaign
+                      Select the advertiser, brand and retail products for this campaign
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="advertiser">Advertiser</Label>
+                        <Input
+                          dropdown
+                          options={advertiserOptions}
+                          value={selectedAdvertiser}
+                          onChange={(value: string) => setSelectedAdvertiser(value)}
+                          placeholder="Select an advertiser"
+                        />
+                      </div>
                       <div className="space-y-2">
                         <Label htmlFor="brand">Brand</Label>
                         <Input
@@ -741,7 +780,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                         <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Retail products</Label>
+                        <Label>{isSponsoredProducts ? 'SKU' : 'Retail products'} <span className="text-muted-foreground font-normal">(optional)</span></Label>
                         <div className="relative" data-dropdown-container>
                           <SearchInput
                             value={retailProductSearch}
@@ -753,6 +792,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           />
                           {showRetailProductResults && (
                             <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                              {!retailProductSearch && (
+                                <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+                                  Suggestions
+                                </div>
+                              )}
                               {filteredRetailProducts.length > 0 ? (
                                 filteredRetailProducts.map((product) => (
                                   <div
@@ -774,26 +818,15 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                             </div>
                           )}
                         </div>
-                        {selectedRetailProducts.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {selectedRetailProducts.map((productId) => {
-                              const product = retailProducts.find(p => p.id === productId);
-                              if (!product) return null;
-                              return (
-                                <Badge key={productId} variant="default" size="large" className="gap-1 pr-1.5">
-                                  {product.name}
-                                  <button
-                                    type="button"
-                                    onClick={() => removeRetailProduct(productId)}
-                                    className="ml-1 hover:text-destructive transition-colors rounded-full"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </Badge>
-                              );
-                            })}
-                          </div>
-                        )}
+                        <SelectionList
+                          variant="list"
+                          items={selectedRetailProducts
+                            .map((id) => retailProducts.find((p) => p.id === id))
+                            .filter(Boolean)
+                            .map((p) => ({ id: p!.id, label: p!.name, meta: `#${p!.id}`, image: p!.image }))}
+                          onRemove={(id) => removeRetailProduct(id)}
+                          className="mt-2"
+                        />
                         <div className="text-xs text-muted-foreground">
                           {selectedRetailProducts.length > 0
                             ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
@@ -803,7 +836,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!isBrandComplete} onClick={goToNextStep}>
+                      <Button disabled={!isAdvertiserComplete} onClick={goToNextStep}>
                         Continue
                       </Button>
                     </div>
@@ -811,154 +844,336 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                 </Card>
               )}
 
-              {/* Step: Campaign Goal */}
-              {currentStepId === 'goal' && (
+              {/* Step 3: Run time & budget */}
+              {currentStepId === 'budget' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">What is your campaign goal?</CardTitle>
+                    <CardTitle className="text-lg">{isSponsoredProducts ? 'Budget and bidding' : 'Run time & budget'}</CardTitle>
                     <CardDescription>
-                      Select a goal to align the objectives and settings that work best for your campaign
+                      {isSponsoredProducts
+                        ? 'Set your total budget, daily spend cap and cost-per-click bid'
+                        : 'Set when your campaign runs and how much you want to spend'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {goals.map((goal) => (
-                        <GoalCard
-                          key={goal.id}
-                          icon={goal.icon}
-                          title={goal.title}
-                          description={goal.description}
-                          selected={selectedGoal === goal.id}
-                          onClick={() => setSelectedGoal(goal.id)}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!selectedGoal} onClick={goToNextStep}>
-                        Continue
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Step: Targeting */}
-              {currentStepId === 'targeting' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Users size={20} />
-                      Select your audience
-                    </CardTitle>
-                    <CardDescription>
-                      Choose one or more audience segments to target with your campaign
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {audienceOptions.map((audience) => {
-                        const isSelected = selectedAudiences.includes(audience.id);
-                        return (
-                          <button
-                            key={audience.id}
-                            type="button"
-                            onClick={() => toggleAudience(audience.id)}
-                            className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
-                              isSelected
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/30'
-                            }`}
-                          >
-                            <div
-                              className={cn(
-                                "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                                isSelected && "bg-primary text-primary-foreground"
-                              )}
-                            >
-                              {isSelected && <Check className="h-4 w-4" />}
+                    {isSponsoredProducts ? (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="budget-amount">Total budget <span className="text-destructive">*</span></Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                              <Input
+                                id="budget-amount"
+                                type="number"
+                                placeholder="e.g. 5000"
+                                value={budgetAmount}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
+                                className="pl-7"
+                              />
                             </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="daily-budget">Daily budget <span className="text-destructive">*</span></Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                              <Input
+                                id="daily-budget"
+                                type="number"
+                                placeholder="e.g. 200"
+                                value={dailyBudget}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
+                                className="pl-7"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="bidding-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                              <Input
+                                id="bidding-cpc"
+                                type="number"
+                                placeholder="e.g. 0.50"
+                                value={biddingCPC}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
+                                className="pl-7"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-lg border">
+                          <span className="text-sm">Send me an email with budget notifications</span>
+                          <Switch
+                            checked={sendBudgetNotification}
+                            onCheckedChange={setSendBudgetNotification}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label>Run time</Label>
+                          <DateRangePicker
+                            dateRange={dateRange}
+                            onDateRangeChange={setDateRange}
+                            placeholder="Select start and end date"
+                            showPresets
+                          />
+                          <div className="text-xs text-muted-foreground">
+                            Your campaign will automatically start and stop on the selected dates
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="budget-amount">Total budget</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                            <Input
+                              id="budget-amount"
+                              type="number"
+                              placeholder="e.g. 5000"
+                              value={budgetAmount}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
+                              className="pl-7"
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            The maximum total amount for the entire campaign duration
+                          </div>
+                        </div>
+                        {budgetAmount && dateRange?.from && dateRange?.to && (
+                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Daily average</span>
+                              <span className="text-sm font-semibold text-primary">
+                                €{(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              €{budgetAmount} over {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
+                            </p>
+                          </div>
+                        )}
+                        {/* Auto Budget Optimization */}
+                        <div className={cn(
+                          "rounded-lg border p-4 transition-all",
+                          autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
+                        )}>
+                          <div className="flex items-start gap-3">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-sm font-medium">{audience.label}</span>
-                                <span className="text-xs text-muted-foreground flex-shrink-0">Reach: {audience.reach}</span>
+                              <div className="flex items-center gap-2">
+                                <Sparkles size={14} className={autoBudgetOptimization ? 'text-primary' : 'text-muted-foreground'} />
+                                <span className="text-sm font-medium">Auto budget optimization</span>
+                                {autoBudgetOptimization && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>}
                               </div>
-                              <p className="text-xs text-muted-foreground mt-0.5">{audience.description}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Automatically optimize your budget allocation based on real-time performance data to maximise ROAS
+                              </p>
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {estimatedReach && (
-                      <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Estimated reach</span>
-                          <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
+                            <Switch
+                              checked={autoBudgetOptimization}
+                              onCheckedChange={setAutoBudgetOptimization}
+                            />
+                          </div>
+                          {autoBudgetOptimization && budgetAmount && (
+                            <div className="mt-3 pt-3 border-t border-primary/20 flex gap-4">
+                              <div className="flex items-center gap-1.5">
+                                <TrendingUp size={12} className="text-primary" />
+                                <span className="text-xs text-muted-foreground">Avg. +18% ROAS improvement</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <DollarSign size={12} className="text-primary" />
+                                <span className="text-xs text-muted-foreground">Real-time rebalancing</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
-
-                    {/* Tags section */}
-                    <div className="mt-6 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Tag size={16} className="text-muted-foreground" />
-                        <Label>Targeting tags</Label>
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add a tag..."
-                          value={tagInput}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
-                          onKeyDown={handleTagKeyDown}
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addTag(tagInput)}
-                          disabled={!tagInput.trim()}
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {tags.map((tag) => (
-                            <Badge key={tag} variant="default" size="large" className="gap-1 pr-1.5">
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => removeTag(tag)}
-                                className="ml-1 hover:text-destructive transition-colors rounded-full"
-                              >
-                                <X size={14} />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-1.5">
-                        {suggestedTags
-                          .filter((t) => !tags.includes(t))
-                          .slice(0, 8)
-                          .map((tag) => (
-                            <button
-                              key={tag}
-                              type="button"
-                              onClick={() => addTag(tag)}
-                              className="text-xs px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
-                            >
-                              + {tag}
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!isTargetingComplete} onClick={goToNextStep}>
+                      <Button disabled={!isBudgetComplete} onClick={goToNextStep}>
                         Continue
                       </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 4: Goals & targets */}
+              {currentStepId === 'targeting' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Goals & targets</CardTitle>
+                    <CardDescription>
+                      {isSponsoredProducts
+                        ? 'Which great local brand would you like to target?'
+                        : 'Select your campaign goal and the audience segments to target'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isSponsoredProducts ? (
+                      <div className="space-y-3">
+                        {localBrands.map((brand) => {
+                          const isSelected = selectedLocalBrands.includes(brand.id);
+                          return (
+                            <button
+                              key={brand.id}
+                              type="button"
+                              onClick={() =>
+                                setSelectedLocalBrands((prev) =>
+                                  prev.includes(brand.id)
+                                    ? prev.filter((b) => b !== brand.id)
+                                    : [...prev, brand.id]
+                                )
+                              }
+                              className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
+                                isSelected
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/30'
+                              }`}
+                            >
+                              <div
+                                className={cn(
+                                  "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                                  isSelected && "bg-primary text-primary-foreground"
+                                )}
+                              >
+                                {isSelected && <Check className="h-4 w-4" />}
+                              </div>
+                              <span className="text-sm font-medium">{brand.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div>
+                          <Label className="mb-3 block">Campaign goal</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {goals.map((goal) => (
+                              <GoalCard
+                                key={goal.id}
+                                icon={goal.icon}
+                                title={goal.title}
+                                description={goal.description}
+                                selected={selectedGoal === goal.id}
+                                onClick={() => setSelectedGoal(goal.id)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="mb-3 block flex items-center gap-2">
+                            <Users size={16} />
+                            Audience segments
+                          </Label>
+                          <div className="space-y-3">
+                            {audienceOptions.map((audience) => {
+                              const isSelected = selectedAudiences.includes(audience.id);
+                              return (
+                                <button
+                                  key={audience.id}
+                                  type="button"
+                                  onClick={() => toggleAudience(audience.id)}
+                                  className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
+                                    isSelected
+                                      ? 'border-primary bg-primary/5'
+                                      : 'border-border hover:border-primary/30'
+                                  }`}
+                                >
+                                  <div
+                                    className={cn(
+                                      "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                                      isSelected && "bg-primary text-primary-foreground"
+                                    )}
+                                  >
+                                    {isSelected && <Check className="h-4 w-4" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="text-sm font-medium">{audience.label}</span>
+                                      <span className="text-xs text-muted-foreground flex-shrink-0">Reach: {audience.reach}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{audience.description}</p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {estimatedReach && (
+                            <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Estimated reach</span>
+                                <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {/* Tags section */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Tag size={16} className="text-muted-foreground" />
+                            <Label>Targeting tags</Label>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add a tag..."
+                              value={tagInput}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
+                              onKeyDown={handleTagKeyDown}
+                              className="flex-1"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addTag(tagInput)}
+                              disabled={!tagInput.trim()}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                          {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {tags.map((tag) => (
+                                <Badge key={tag} variant="default" size="large" className="gap-1 pr-1.5">
+                                  {tag}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTag(tag)}
+                                    className="ml-1 hover:text-destructive transition-colors rounded-full"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-1.5">
+                            {suggestedTags
+                              .filter((t) => !tags.includes(t))
+                              .slice(0, 8)
+                              .map((tag) => (
+                                <button
+                                  key={tag}
+                                  type="button"
+                                  onClick={() => addTag(tag)}
+                                  className="text-xs px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                                >
+                                  + {tag}
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
+                      {isSponsoredProducts && (
+                        <Button disabled={!isTargetingComplete} onClick={goToNextStep}>
+                          Continue
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -996,6 +1211,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               />
                               {showKeywordSuggestions && filteredSuggestedKeywords.length > 0 && (
                                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {!keywordSearch && (
+                                    <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+                                      Suggestions
+                                    </div>
+                                  )}
                                   {filteredSuggestedKeywords.map((kw) => (
                                     <div
                                       key={kw}
@@ -1020,22 +1240,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                             </Button>
                           </div>
                         </div>
-                        {selectedKeywords.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {selectedKeywords.map((kw) => (
-                              <Badge key={kw} variant="default" size="large" className="gap-1 pr-1.5">
-                                {kw}
-                                <button
-                                  type="button"
-                                  onClick={() => removeKeyword(kw)}
-                                  className="ml-1 hover:text-destructive transition-colors rounded-full"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                        <SelectionList
+                          variant="list"
+                          items={selectedKeywords.map((kw) => ({ id: kw, label: kw }))}
+                          onRemove={(id) => removeKeyword(id)}
+                        />
                         <div className="text-xs text-muted-foreground">
                           {selectedKeywords.length > 0
                             ? `${selectedKeywords.length} keyword${selectedKeywords.length !== 1 ? 's' : ''} added`
@@ -1164,18 +1373,13 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                             </div>
                           )}
                         </div>
-                        {/* Selected other placements with toggles */}
-                        <div className="space-y-1">
-                          {otherPlacements.filter((p) => selectedOtherPlacements.includes(p.id)).map((placement) => (
-                            <div key={placement.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 transition-colors">
-                              <Switch
-                                checked={true}
-                                onCheckedChange={() => toggleOtherPlacement(placement.id)}
-                              />
-                              <span className="text-sm font-medium flex-1">{placement.name}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <SelectionList
+                          variant="switch"
+                          items={otherPlacements
+                            .filter((p) => selectedOtherPlacements.includes(p.id))
+                            .map((p) => ({ id: p.id, label: p.name }))}
+                          onToggle={(id) => toggleOtherPlacement(id)}
+                        />
                         {selectedOtherPlacements.length === 0 && (
                           <div className="text-xs text-muted-foreground">
                             Select additional page placements for your sponsored products
@@ -1191,212 +1395,12 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
 
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!isKeywordsComplete} onClick={goToNextStep}>
-                        Continue
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
 
-              {/* Step: Review & Launch */}
-              {currentStepId === 'review' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Review & launch</CardTitle>
-                    <CardDescription>
-                      Review your campaign settings before launching
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Proposition type */}
-                      <div className="flex items-center gap-3 p-4 rounded-lg border bg-primary/5 border-primary/20">
-                        <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                          <PropositionIcon size={20} />
-                        </div>
-                        <div>
-                          <span className="text-sm font-semibold">{proposition.name}</span>
-                          <p className="text-xs text-muted-foreground">{proposition.description}</p>
-                        </div>
-                      </div>
-
-                      {/* Campaign details */}
-                      <div className="rounded-lg border divide-y">
-                        {/* Setup details */}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">Campaign setup</span>
-                            <button
-                              type="button"
-                              className="text-xs text-primary hover:underline cursor-pointer"
-                              onClick={() => goToStepById('setup')}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Name</span>
-                              <span className="text-sm font-medium">{campaignName}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Budget</span>
-                              <span className="text-sm font-medium">€{Number(budgetAmount).toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Run time</span>
-                              <span className="text-sm font-medium">
-                                {dateRange?.from && dateRange?.to
-                                  ? `${formatDate(dateRange.from)} – ${formatDate(dateRange.to)}`
-                                  : '-'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Auto optimization</span>
-                              <span className="text-sm font-medium">{autoBudgetOptimization ? 'Enabled' : 'Disabled'}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Brand & Products details */}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">Brand & products</span>
-                            <button
-                              type="button"
-                              className="text-xs text-primary hover:underline cursor-pointer"
-                              onClick={() => goToStepById('brand')}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Brand</span>
-                              <span className="text-sm font-medium">{selectedBrandData?.label}</span>
-                            </div>
-                            {selectedRetailProducts.length > 0 && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">Products</span>
-                                <span className="text-sm font-medium">{selectedRetailProducts.length} selected</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Goal details */}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">Campaign goal</span>
-                            <button
-                              type="button"
-                              className="text-xs text-primary hover:underline cursor-pointer"
-                              onClick={() => goToStepById('goal')}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-primary">{selectedGoalData?.icon}</div>
-                            <span className="text-sm font-medium">{selectedGoalData?.title}</span>
-                          </div>
-                        </div>
-
-                        {/* Targeting details */}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">Targeting</span>
-                            <button
-                              type="button"
-                              className="text-xs text-primary hover:underline cursor-pointer"
-                              onClick={() => goToStepById('targeting')}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Audiences</span>
-                              <span className="text-sm font-medium">{selectedAudiences.length} selected</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 mt-1">
-                              {selectedAudiences.map((id) => {
-                                const audience = audienceOptions.find(a => a.id === id);
-                                return audience ? (
-                                  <Badge key={id} variant="secondary" size="default">{audience.label}</Badge>
-                                ) : null;
-                              })}
-                            </div>
-                            {tags.length > 0 && (
-                              <div className="flex justify-between mt-2">
-                                <span className="text-sm text-muted-foreground">Tags</span>
-                                <span className="text-sm font-medium">{tags.length} tag{tags.length !== 1 ? 's' : ''}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Keywords & Placements details (Sponsored Products) */}
-                        {isSponsoredProducts && (selectedKeywords.length > 0 || selectedCategories.length > 0 || selectedOtherPlacements.length > 0) && (
-                          <div className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Keywords & placements</span>
-                              <button
-                                type="button"
-                                className="text-xs text-primary hover:underline cursor-pointer"
-                                onClick={() => goToStepById('keywords')}
-                              >
-                                Edit
-                              </button>
-                            </div>
-                            <div className="space-y-1.5">
-                              {selectedKeywords.length > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-sm text-muted-foreground">Keywords</span>
-                                  <span className="text-sm font-medium">{selectedKeywords.length} keyword{selectedKeywords.length !== 1 ? 's' : ''}</span>
-                                </div>
-                              )}
-                              {selectedKeywords.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mt-1">
-                                  {selectedKeywords.map((kw) => (
-                                    <Badge key={kw} variant="secondary" size="default">{kw}</Badge>
-                                  ))}
-                                </div>
-                              )}
-                              {selectedCategories.length > 0 && (
-                                <div className="flex justify-between mt-2">
-                                  <span className="text-sm text-muted-foreground">Categories</span>
-                                  <span className="text-sm font-medium">{selectedCategories.length} selected</span>
-                                </div>
-                              )}
-                              {selectedOtherPlacements.length > 0 && (
-                                <div className="flex justify-between mt-2">
-                                  <span className="text-sm text-muted-foreground">Other placements</span>
-                                  <span className="text-sm font-medium">{selectedOtherPlacements.length} selected</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button
-                        onClick={() => {
-                          const name = campaignName || 'New Campaign';
-                          window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`;
-                        }}
-                      >
-                        Launch campaign
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
 
             </div>
 
@@ -1404,7 +1408,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
             <div className="flex flex-col gap-4">
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>Summary</CardSummaryTitle>
+                  <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
                   <div className="relative pl-12">
@@ -1414,7 +1418,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     <div className="space-y-4">
                       {wizardSteps.map((step, index) => {
                         const status = getStepStatus(index);
-                        const stepValue = getStepValue(step.id);
+                        const stepValues = getStepValues(step.id);
 
                         return (
                           <div key={step.id} className="relative flex items-start -ml-12">
@@ -1425,7 +1429,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                                   status === 'completed'
                                     ? 'bg-primary text-primary-foreground'
                                     : status === 'active'
-                                      ? 'bg-background text-primary border-2 border-primary'
+                                      ? 'bg-background text-primary border border-primary'
                                       : 'bg-background text-muted-foreground border border-border'
                                 }`}
                               >
@@ -1446,11 +1450,15 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               >
                                 {step.label}
                               </button>
-                              {status === 'completed' && stepValue ? (
-                                <div className="text-sm text-muted-foreground mt-0.5">{stepValue}</div>
+                              {(status === 'completed' || status === 'active') && stepValues && stepValues.length > 0 ? (
+                                <div className="mt-1 space-y-0.5">
+                                  {stepValues.map((v, i) => (
+                                    <div key={i} className="text-xs text-muted-foreground">{v}</div>
+                                  ))}
+                                </div>
                               ) : status === 'active' ? (
                                 <div className="text-xs text-muted-foreground italic mt-0.5">
-                                  {step.id === 'setup' ? 'Not filled in' : step.id === 'brand' ? 'Not selected' : step.id === 'review' ? 'Review your settings' : step.id === 'keywords' ? 'Not configured' : 'Not selected'}
+                                  Not filled in
                                 </div>
                               ) : null}
                             </div>
@@ -1460,6 +1468,31 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </div>
                   </div>
                 </CardSummaryContent>
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  {currentStep < wizardSteps.length - 1 ? (
+                    <>
+                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={goToNextStep}>Continue</Button>
+                      {currentStep > 0 ? (
+                        <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
+                      ) : (
+                        <Button variant="ghost" className="w-full">Cancel</Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          const name = campaignName || 'New Campaign';
+                          window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`;
+                        }}
+                      >
+                        Launch campaign
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
+                    </>
+                  )}
+                </div>
               </CardSummary>
             </div>
           </div>

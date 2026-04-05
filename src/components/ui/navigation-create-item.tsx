@@ -43,6 +43,7 @@ export const NavigationCreateItem = ({ item }: { item: Route }) => {
             onClick={() => handleSelect(subitem.url)}
             className="cursor-pointer"
           >
+            {subitem.icon?.lucide && renderIcon(subitem.icon.lucide)}
             {subitem.name}
           </DropdownMenuItem>
         ))}

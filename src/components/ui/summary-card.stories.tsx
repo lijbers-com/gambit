@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
 import { SummaryCard } from './summary-card';
 import type { SummaryStep } from './summary-card';
 
@@ -47,14 +46,29 @@ export const CampaignDetails: Story = {
       <SummaryCard
         title="Campaign details"
         variant="details"
-        items={[
-          { label: 'Campaign name', value: 'Campaign AH – Summer 2024' },
-          { label: 'PO Number', value: 'PO-123456' },
-          { label: 'Advertiser', value: 'Acme Media' },
-          { label: 'Brand', value: 'Knorr' },
-          { label: 'Goal', value: 'Awareness' },
-          { label: 'Budget', value: '€10,000' },
-          { label: 'Runtime', value: '01 Aug, 2024 – 30 Aug, 2024' },
+        groups={[
+          {
+            label: 'Campaign setup',
+            items: [
+              { label: 'Campaign name', value: 'Campaign AH – Summer 2024' },
+              { label: 'PO Number', value: 'PO-123456' },
+              { label: 'Budget', value: '€10,000' },
+              { label: 'Runtime', value: '01 Aug, 2024 – 30 Aug, 2024' },
+            ],
+          },
+          {
+            label: 'Advertiser, brand & products',
+            items: [
+              { label: 'Advertiser', value: 'Acme Media' },
+              { label: 'Brand', value: 'Knorr' },
+            ],
+          },
+          {
+            label: 'Campaign targeting',
+            items: [
+              { label: 'Goal', value: 'Awareness' },
+            ],
+          },
         ]}
         actions={[
           { label: 'Edit campaign', variant: 'outline', onClick: () => alert('Edit') },
@@ -137,19 +151,19 @@ export const WizardSummaryInProgress: Story = {
     const [currentStep, setCurrentStep] = useState(2);
 
     const allSteps = [
-      { id: 'setup', label: 'Campaign setup', completedValue: 'Summer Sale 2024 · Knorr' },
-      { id: 'brand', label: 'Brand & products', completedValue: 'Knorr · 3 products' },
-      { id: 'goal', label: 'Campaign goal', completedValue: undefined },
-      { id: 'targeting', label: 'Targeting', completedValue: undefined },
-      { id: 'keywords', label: 'Keywords & placements', completedValue: undefined },
-      { id: 'review', label: 'Review & launch', completedValue: undefined },
+      { id: 'setup', label: 'Campaign setup', completedValues: ['Summer Sale 2024', 'Knorr'] },
+      { id: 'brand', label: 'Brand & products', completedValues: ['Knorr', '3 products selected'] },
+      { id: 'goal', label: 'Campaign goal', completedValues: undefined },
+      { id: 'targeting', label: 'Targeting', completedValues: undefined },
+      { id: 'keywords', label: 'Keywords & placements', completedValues: undefined },
+      { id: 'review', label: 'Review & launch', completedValues: undefined },
     ];
 
     const steps: SummaryStep[] = allSteps.map((s, i) => ({
       id: s.id,
       label: s.label,
       status: i < currentStep ? 'completed' : i === currentStep ? 'active' : 'pending',
-      value: i < currentStep ? s.completedValue : undefined,
+      values: i < currentStep ? s.completedValues : undefined,
       onClick: i < currentStep ? () => setCurrentStep(i) : undefined,
     }));
 
@@ -172,11 +186,11 @@ export const WizardSummaryComplete: Story = {
         title="Summary"
         variant="process"
         steps={[
-          { id: 'setup', label: 'Campaign setup', status: 'completed', value: 'Summer Sale 2024 · Knorr' },
-          { id: 'brand', label: 'Brand & products', status: 'completed', value: 'Knorr · 3 products' },
-          { id: 'goal', label: 'Campaign goal', status: 'completed', value: 'Awareness' },
-          { id: 'targeting', label: 'Targeting', status: 'completed', value: 'Retail shoppers' },
-          { id: 'keywords', label: 'Keywords & placements', status: 'completed', value: '8 keywords' },
+          { id: 'setup', label: 'Campaign setup', status: 'completed', values: ['Summer Sale 2024', 'Knorr'] },
+          { id: 'brand', label: 'Brand & products', status: 'completed', values: ['Knorr', '3 products selected'] },
+          { id: 'goal', label: 'Campaign goal', status: 'completed', values: ['Awareness'] },
+          { id: 'targeting', label: 'Targeting', status: 'completed', values: ['Retail shoppers'] },
+          { id: 'keywords', label: 'Keywords & placements', status: 'completed', values: ['8 keywords'] },
           { id: 'review', label: 'Review & launch', status: 'active' },
         ]}
         actions={[
@@ -190,68 +204,10 @@ export const WizardSummaryComplete: Story = {
 
 // ─── Order variant ────────────────────────────────────────────────────────────
 
-export const OrderSummary: Story = {
-  name: 'Order — Telecom style',
-  render: () => (
-    <div className="w-80">
-      <SummaryCard
-        title="Je bestelling"
-        subtitle="Looptijd 24 maanden"
-        variant="order"
-        sections={[
-          {
-            label: 'Maandelijkse kosten',
-            items: [
-              { label: 'Samsung Galaxy S26 Ultra', value: '€ 41,00' },
-              {
-                label: 'Unlimited400 en onbeperkt bel/sms',
-                value: '€ 31,50',
-                originalValue: '€ 36,00',
-                badge: 'Korting op je abonnement',
-              },
-            ],
-          },
-          {
-            label: 'Eenmalige kosten',
-            items: [
-              { label: 'Bijbetaling toestel', value: '€ 96,00' },
-              { label: 'Thuiskopieheffing', value: '€ 6,89' },
-            ],
-          },
-        ]}
-        totals={[
-          {
-            label: 'Totaal per maand',
-            value: '€ 72,50',
-            originalValue: '€ 77,00',
-            note: 'Na 24 maanden  €31,50',
-            info: true,
-          },
-          {
-            label: 'Totaal eenmalig',
-            value: '€ 102,89',
-            note: 'Tijdelijk geen aansluitkosten',
-          },
-        ]}
-        actions={[
-          {
-            label: 'Bekijk hele overzicht',
-            variant: 'outline',
-            icon: <ShoppingCart className="w-4 h-4" />,
-            onClick: () => alert('Overzicht'),
-          },
-          { label: 'Doorgaan', variant: 'default', onClick: () => alert('Doorgaan') },
-        ]}
-        footer="Alle prijzen zijn inclusief btw."
-      />
-    </div>
-  ),
-};
-
 export const OrderSummaryRetailMedia: Story = {
   name: 'Order — Media plan',
   render: () => (
-    <div className="w-80">
+    <div className="w-72">
       <SummaryCard
         title="Media plan summary"
         subtitle="Campaign · Summer Sale 2024"
@@ -261,20 +217,20 @@ export const OrderSummaryRetailMedia: Story = {
             label: 'Monthly costs',
             items: [
               { label: 'Sponsored Products', value: '€ 1,200' },
-              { label: 'Display campaign', value: '€ 800', originalValue: '€ 1,000', badge: 'Bundle discount' },
+              { label: 'Display campaign', value: '€ 800', originalValue: '€ 1,000' },
             ],
           },
           {
             label: 'One-time costs',
             items: [
               { label: 'Creative production', value: '€ 250' },
-              { label: 'Setup fee', value: '€ 0', badge: 'Waived' },
+              { label: 'Setup fee', value: '€ 0' },
             ],
           },
         ]}
         totals={[
-          { label: 'Total per month', value: '€ 2,000', originalValue: '€ 2,200', info: true },
-          { label: 'One-time total', value: '€ 250', note: 'Creative + setup' },
+          { label: 'Total per month', value: '€ 2,000' },
+          { label: 'One-time total', value: '€ 250' },
         ]}
         actions={[
           { label: 'View full overview', variant: 'outline', onClick: () => alert('Overview') },

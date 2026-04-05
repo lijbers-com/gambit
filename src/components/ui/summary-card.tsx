@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, Info, ShoppingCart } from "lucide-react"
+import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { Badge } from "./badge"
@@ -42,8 +42,10 @@ export interface SummaryStep {
   id: string
   label: string
   status: "completed" | "active" | "pending"
-  /** Short value shown under a completed step */
+  /** Single value shown under a completed step (use `values` for a list) */
   value?: string
+  /** List of values shown under a completed step */
+  values?: string[]
   onClick?: () => void
 }
 
@@ -54,6 +56,12 @@ export interface SummaryAction {
   icon?: React.ReactNode
   onClick?: () => void
   disabled?: boolean
+}
+
+/** A named group of items used in the `details` variant */
+export interface SummaryGroup {
+  label: string
+  items: SummaryItem[]
 }
 
 export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -67,8 +75,10 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
    * `order`   — grouped line-items with totals (e.g. order overview)
    */
   variant?: SummaryCardVariant
-  /** Items for `details` variant */
+  /** Flat items for `details` variant */
   items?: SummaryItem[]
+  /** Grouped items for `details` variant (renders section headers between groups) */
+  groups?: SummaryGroup[]
   /** Steps for `process` variant */
   steps?: SummaryStep[]
   /** Grouped sections for `order` variant */
@@ -83,15 +93,15 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 // ─── Sub-renderers ────────────────────────────────────────────────────────────
 
-function DetailsContent({ items }: { items: SummaryItem[] }) {
+function DetailsItems({ items }: { items: SummaryItem[] }) {
   return (
-    <div className="space-y-3">
+    <>
       {items.map((item, i) => (
         <div key={i}>
-          <div className="text-[13px] text-muted-foreground">{item.label}</div>
-          <div className="font-medium text-[14px] flex items-center gap-2 flex-wrap">
+          <div className="text-[13px] font-medium">{item.label}</div>
+          <div className="text-[13px] text-muted-foreground flex items-center gap-2 flex-wrap">
             {item.originalValue && (
-              <span className="line-through text-muted-foreground">{item.originalValue}</span>
+              <span className="line-through">{item.originalValue}</span>
             )}
             <span>{item.value}</span>
             {item.badge && (
@@ -105,6 +115,34 @@ function DetailsContent({ items }: { items: SummaryItem[] }) {
           </div>
         </div>
       ))}
+    </>
+  )
+}
+
+function DetailsContent({ items, groups }: { items?: SummaryItem[]; groups?: SummaryGroup[] }) {
+  if (groups && groups.length > 0) {
+    return (
+      <div className="space-y-4">
+        {groups.map((group, gi) => (
+          <div key={gi}>
+            <div className="text-[13px] font-semibold tracking-tight mb-1">
+              {group.label}
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map((item, i) => (
+                <div key={i} className="text-[13px] text-muted-foreground">
+                  {item.value}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-3">
+      <DetailsItems items={items ?? []} />
     </div>
   )
 }
@@ -125,7 +163,7 @@ function ProcessContent({ steps }: { steps: SummaryStep[] }) {
                   step.status === "completed" &&
                     "bg-primary text-primary-foreground",
                   step.status === "active" &&
-                    "bg-background text-primary border-2 border-primary",
+                    "bg-background text-primary border border-primary",
                   step.status === "pending" &&
                     "bg-background text-muted-foreground border border-border",
                 )}
@@ -154,14 +192,21 @@ function ProcessContent({ steps }: { steps: SummaryStep[] }) {
               >
                 {step.label}
               </button>
-              {step.status === "completed" && step.value && (
+              {step.status === "completed" && step.values && step.values.length > 0 && (
+                <div className="mt-1 space-y-0.5">
+                  {step.values.map((v, i) => (
+                    <div key={i} className="text-xs text-muted-foreground">{v}</div>
+                  ))}
+                </div>
+              )}
+              {step.status === "completed" && step.value && !step.values && (
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {step.value}
                 </div>
               )}
               {step.status === "active" && (
                 <div className="text-xs text-muted-foreground italic mt-0.5">
-                  {step.value ?? "Not filled in"}
+                  Not filled in
                 </div>
               )}
             </div>
@@ -190,62 +235,29 @@ function OrderContent({
           )}
           <ul className="space-y-2">
             {section.items.map((item, ii) => (
-              <React.Fragment key={ii}>
-                <li className="flex items-start justify-between gap-4">
-                  <span className="text-[14px]">
-                    <span className="text-muted-foreground mr-1">•</span>
-                    {item.label}
-                  </span>
-                  <span className="text-[14px] font-semibold whitespace-nowrap flex items-center gap-1.5">
-                    {item.originalValue && (
-                      <span className="line-through text-muted-foreground font-normal text-[13px]">
-                        {item.originalValue}
-                      </span>
-                    )}
-                    {item.value}
-                  </span>
-                </li>
-                {item.badge && (
-                  <li>
-                    <span
-                      className={cn(
-                        "inline-block text-[12px] font-bold px-2 py-0.5 rounded",
-                        item.badgeColor ??
-                          "bg-[#c8f000] text-black",
-                      )}
-                    >
-                      {item.badge}
+              <li key={ii} className="flex items-center justify-between gap-4">
+                <span className="text-[14px]">{item.label}</span>
+                <span className="text-[14px] font-medium whitespace-nowrap flex items-center gap-1.5 text-right">
+                  {item.originalValue && (
+                    <span className="line-through text-muted-foreground font-normal text-[13px]">
+                      {item.originalValue}
                     </span>
-                  </li>
-                )}
-              </React.Fragment>
+                  )}
+                  {item.value}
+                </span>
+              </li>
             ))}
           </ul>
         </div>
       ))}
 
       {totals && totals.length > 0 && (
-        <div className="rounded-xl bg-muted/60 p-4 space-y-3 mt-2">
+        <div className="border-t pt-3 space-y-2 mt-2">
           {totals.map((total, ti) => (
             <div key={ti}>
               <div className="flex items-center justify-between gap-2">
-                <span
-                  className={cn(
-                    "text-[14px] flex items-center gap-1",
-                    total.bold !== false && "font-bold",
-                  )}
-                >
-                  {total.label}
-                  {total.info && (
-                    <Info className="w-4 h-4 text-blue-500 fill-blue-500 text-white" />
-                  )}
-                </span>
-                <span
-                  className={cn(
-                    "text-[14px] flex items-center gap-1.5",
-                    total.bold !== false && "font-bold",
-                  )}
-                >
+                <span className="text-[14px] font-semibold">{total.label}</span>
+                <span className="text-[14px] font-semibold whitespace-nowrap flex items-center gap-1.5">
                   {total.originalValue && (
                     <span className="line-through text-muted-foreground font-normal text-[13px]">
                       {total.originalValue}
@@ -276,6 +288,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       subtitle,
       variant = "details",
       items,
+      groups,
       steps,
       sections,
       totals,
@@ -307,8 +320,8 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
 
         {/* Content */}
         <div className="px-6 pb-4">
-          {variant === "details" && items && (
-            <DetailsContent items={items} />
+          {variant === "details" && (items || groups) && (
+            <DetailsContent items={items} groups={groups} />
           )}
           {variant === "process" && steps && (
             <ProcessContent steps={steps} />
@@ -321,7 +334,6 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         {/* Actions */}
         {actions && actions.length > 0 && (
           <div className="px-6 pb-4 space-y-2">
-            <div className="h-px bg-border mb-3" />
             {actions.map((action, i) => (
               <Button
                 key={i}

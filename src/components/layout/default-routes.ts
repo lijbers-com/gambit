@@ -12,12 +12,12 @@ export const defaultRoutes: Route[] = [
     type: "create" as const,
     icon: { lucide: "CreateIcon" },
     subitems: [
-      { id: 101, name: "Media plan", type: "single" as const, url: "/create/media-experience" },
-      { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products" },
-      { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display" },
-      { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore" },
-      { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore" },
-      { id: 106, name: "Offsite campaign", type: "single" as const, url: "/create/offsite" },
+      { id: 101, name: "Media plan", type: "single" as const, url: "/create/media-experience", icon: { lucide: "WalletCards" } },
+      { id: 102, name: "Sponsored product campaign", type: "single" as const, url: "/create/sponsored-products", icon: { lucide: "ListStart" } },
+      { id: 103, name: "Display campaign", type: "single" as const, url: "/create/display", icon: { lucide: "MonitorSpeaker" } },
+      { id: 104, name: "Offline in-store campaign", type: "single" as const, url: "/create/offline-instore", icon: { lucide: "Store" } },
+      { id: 105, name: "Digital in-store campaign", type: "single" as const, url: "/create/digital-instore", icon: { lucide: "MonitorPlay" } },
+      { id: 106, name: "Offsite campaign", type: "single" as const, url: "/create/offsite", icon: { lucide: "Globe" } },
     ],
   },
   {

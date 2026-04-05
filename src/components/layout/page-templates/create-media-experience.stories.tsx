@@ -126,6 +126,14 @@ const goals = [
   },
 ];
 
+const advertiserOptions = [
+  { label: 'Acme Media', value: 'acme-media' },
+  { label: 'Brand Alliance', value: 'brand-alliance' },
+  { label: 'Global Brands Co.', value: 'global-brands' },
+  { label: 'Unilever Shopper Marketing', value: 'unilever-shopper' },
+  { label: 'Nestlé Trade Marketing', value: 'nestle-trade' },
+];
+
 const brandOptions = [
   { label: 'Coca-Cola', value: 'coca-cola' },
   { label: 'Unilever', value: 'unilever' },
@@ -239,10 +247,10 @@ const propositions = [
 ];
 
 const wizardSteps = [
-  { id: 'setup', label: 'Campaign setup' },
-  { id: 'goal', label: 'Campaign goal' },
-  { id: 'targeting', label: 'Targeting' },
+  { id: 'setup', label: 'Setup' },
+  { id: 'advertiser', label: 'Advertiser' },
   { id: 'budget', label: 'Run time & budget' },
+  { id: 'targeting', label: 'Goals & targets' },
   { id: 'review', label: 'Media plan' },
 ];
 
@@ -255,25 +263,27 @@ export const GoalSelection: Story = {
     // Wizard state
     const [currentStep, setCurrentStep] = React.useState(0);
 
-    // Step 1: Campaign Setup
+    // Step 1: Setup
     const [campaignName, setCampaignName] = React.useState('');
+    const [poNumber, setPoNumber] = React.useState('');
+
+    // Step 2: Advertiser
+    const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
     const [selectedBrand, setSelectedBrand] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
 
-    // Step 2: Campaign Goal
-    const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
-
-    // Step 3: Targeting
-    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
-    const [tags, setTags] = React.useState<string[]>([]);
-    const [tagInput, setTagInput] = React.useState('');
-
-    // Step 4: Run time & Budget
+    // Step 3: Run time & budget
     const [budgetAmount, setBudgetAmount] = React.useState('');
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
+
+    // Step 4: Goals & targets (goal + audience)
+    const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
+    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    const [tags, setTags] = React.useState<string[]>([]);
+    const [tagInput, setTagInput] = React.useState('');
 
     // Step 5: Media plan - proposition selections
     // Each key is a proposition id, value is 'preset' | 'empty' | null, plus selected preset id
@@ -289,10 +299,12 @@ export const GoalSelection: Story = {
     const selectedBrandData = brandOptions.find((b) => b.value === selectedBrand);
 
     // Step completion checks
-    const isSetupComplete = campaignName.trim() !== '' && selectedBrand !== '';
-    const isGoalComplete = selectedGoal !== null;
-    const isTargetingComplete = selectedAudiences.length > 0;
+    const isSetupComplete = campaignName.trim() !== '';
+    const isAdvertiserComplete = selectedBrand !== '';
     const isBudgetComplete = budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
+    const isTargetingComplete = selectedGoal !== null && selectedAudiences.length > 0;
+
+    const isCurrentStepComplete = [isSetupComplete, isAdvertiserComplete, isBudgetComplete, isTargetingComplete, true][currentStep] ?? false;
 
     // Audience toggle
     const toggleAudience = (id: string) => {
@@ -356,28 +368,41 @@ export const GoalSelection: Story = {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Get step value for summary
-    const getStepValue = (stepId: string): string | null => {
+    // Get step values for summary (returns array for list display)
+    const getStepValues = (stepId: string): string[] | null => {
       switch (stepId) {
-        case 'setup':
-          if (isSetupComplete) return `${campaignName} · ${selectedBrandData?.label}`;
-          return null;
-        case 'goal':
-          if (selectedGoalData) return selectedGoalData.title;
-          return null;
-        case 'targeting': {
-          if (!isTargetingComplete) return null;
-          const audienceCount = selectedAudiences.length;
-          return `${audienceCount} audience${audienceCount !== 1 ? 's' : ''}`;
+        case 'setup': {
+          if (!campaignName.trim()) return null;
+          const vals: string[] = [campaignName];
+          if (poNumber.trim()) vals.push(poNumber);
+          return vals;
+        }
+        case 'advertiser': {
+          if (!isAdvertiserComplete) return null;
+          const vals: string[] = [];
+          if (selectedBrandData) vals.push(selectedBrandData.label);
+          if (selectedRetailProducts.length > 0) vals.push(`${selectedRetailProducts.length} product${selectedRetailProducts.length !== 1 ? 's' : ''} selected`);
+          return vals.length > 0 ? vals : null;
         }
         case 'budget': {
           if (!isBudgetComplete) return null;
-          return `€${budgetAmount} total`;
+          const vals: string[] = [`€${budgetAmount}`];
+          if (dateRange?.from && dateRange?.to) {
+            vals.push(`${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`);
+          }
+          return vals;
+        }
+        case 'targeting': {
+          if (!selectedGoal) return null;
+          const vals: string[] = [];
+          if (selectedGoalData) vals.push(selectedGoalData.title);
+          if (selectedAudiences.length > 0) vals.push(`${selectedAudiences.length} audience${selectedAudiences.length !== 1 ? 's' : ''} selected`);
+          return vals;
         }
         case 'review': {
           const selectedCount = Object.values(propositionSelections).filter(Boolean).length;
           if (selectedCount === 0) return null;
-          return `${selectedCount} proposition${selectedCount !== 1 ? 's' : ''}`;
+          return [`${selectedCount} proposition${selectedCount !== 1 ? 's' : ''} selected`];
         }
         default:
           return null;
@@ -448,7 +473,7 @@ export const GoalSelection: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Create media plan',
+            title: campaignName || 'Create media plan',
             subtitle: '',
             headerRight: null,
           }}
@@ -525,11 +550,11 @@ export const GoalSelection: Story = {
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0">
 
-              {/* Step 1: Campaign Setup */}
+              {/* Step 1: Setup */}
               {currentStep === 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Campaign setup</CardTitle>
+                    <CardTitle className="text-lg">Setup</CardTitle>
                     <CardDescription>
                       Enter the basic details for your new media plan
                     </CardDescription>
@@ -537,13 +562,54 @@ export const GoalSelection: Story = {
                   <CardContent>
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="campaign-name">Campaign name</Label>
+                        <Label htmlFor="campaign-name">Media plan name</Label>
                         <Input
                           id="campaign-name"
                           placeholder="e.g. Summer Sale 2026"
                           value={campaignName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
-                          hint="Give your campaign a descriptive name to easily identify it later"
+                          hint="Give your media plan a descriptive name to easily identify it later"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="po-number">PO number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                        <Input
+                          id="po-number"
+                          placeholder="e.g. PO-123456"
+                          value={poNumber}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost">Cancel</Button>
+                      <Button disabled={!isSetupComplete} onClick={() => setCurrentStep(1)}>
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 2: Advertiser */}
+              {currentStep === 1 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Advertiser</CardTitle>
+                    <CardDescription>
+                      Select the advertiser, brand and retail products for this campaign
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="advertiser">Advertiser</Label>
+                        <Input
+                          dropdown
+                          options={advertiserOptions}
+                          value={selectedAdvertiser}
+                          onChange={(value: string) => setSelectedAdvertiser(value)}
+                          placeholder="Select an advertiser"
                         />
                       </div>
                       <div className="space-y-2">
@@ -558,10 +624,9 @@ export const GoalSelection: Story = {
                         <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Retail products</Label>
+                        <Label>Retail products <span className="text-muted-foreground font-normal">(optional)</span></Label>
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput
                               value={retailProductSearch}
                               onChange={handleRetailProductSearchChange}
@@ -624,40 +689,8 @@ export const GoalSelection: Story = {
                       </div>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost">Cancel</Button>
-                      <Button disabled={!isSetupComplete} onClick={() => setCurrentStep(1)}>
-                        Continue
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Step 2: Campaign Goal */}
-              {currentStep === 1 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">What is your campaign goal?</CardTitle>
-                    <CardDescription>
-                      Select a goal to align the objectives and settings that work best for your campaign
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {goals.map((goal) => (
-                        <GoalCard
-                          key={goal.id}
-                          icon={goal.icon}
-                          title={goal.title}
-                          description={goal.description}
-                          selected={selectedGoal === goal.id}
-                          onClick={() => setSelectedGoal(goal.id)}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
-                      <Button disabled={!selectedGoal} onClick={() => setCurrentStep(2)}>
+                      <Button disabled={!isAdvertiserComplete} onClick={() => setCurrentStep(2)}>
                         Continue
                       </Button>
                     </div>
@@ -665,72 +698,8 @@ export const GoalSelection: Story = {
                 </Card>
               )}
 
-              {/* Step 3: Targeting */}
+              {/* Step 3: Run time & budget */}
               {currentStep === 2 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users size={20} />
-                        Select your audience
-                      </CardTitle>
-                      <CardDescription>
-                        Choose one or more audience segments to target with your campaign
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {audienceOptions.map((audience) => {
-                          const isSelected = selectedAudiences.includes(audience.id);
-                          return (
-                            <button
-                              key={audience.id}
-                              type="button"
-                              onClick={() => toggleAudience(audience.id)}
-                              className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
-                                isSelected
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border hover:border-primary/30'
-                              }`}
-                            >
-                              <div
-                                className={cn(
-                                  "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                                  isSelected && "bg-primary text-primary-foreground"
-                                )}
-                              >
-                                {isSelected && <Check className="h-4 w-4" />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-sm font-medium">{audience.label}</span>
-                                  <span className="text-xs text-muted-foreground flex-shrink-0">Reach: {audience.reach}</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-0.5">{audience.description}</p>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {estimatedReach && (
-                        <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Estimated reach</span>
-                            <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex justify-end gap-3 mt-8">
-                        <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
-                        <Button disabled={!isTargetingComplete} onClick={() => setCurrentStep(3)}>
-                          Continue
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-              )}
-
-              {/* Step 4: Run time & Budget */}
-              {currentStep === 3 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Run time & budget</CardTitle>
@@ -752,7 +721,6 @@ export const GoalSelection: Story = {
                           Your campaign will automatically start and stop on the selected dates
                         </div>
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="budget-amount">Total budget</Label>
                         <div className="relative">
@@ -770,7 +738,6 @@ export const GoalSelection: Story = {
                           The maximum total amount for the entire campaign duration
                         </div>
                       </div>
-
                       {budgetAmount && dateRange?.from && dateRange?.to && (
                         <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                           <div className="flex items-center justify-between">
@@ -784,8 +751,6 @@ export const GoalSelection: Story = {
                           </p>
                         </div>
                       )}
-
-                      {/* Auto Budget Optimization */}
                       <div className={cn(
                         "rounded-lg border p-4 transition-all",
                         autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
@@ -820,10 +785,93 @@ export const GoalSelection: Story = {
                         )}
                       </div>
                     </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
+                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(3)}>
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
+              {/* Step 4: Goals & targets */}
+              {currentStep === 3 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Goals & targets</CardTitle>
+                    <CardDescription>
+                      Select your campaign goal and audience segments to target
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <Label className="mb-3 block">Campaign goal</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {goals.map((goal) => (
+                            <GoalCard
+                              key={goal.id}
+                              icon={goal.icon}
+                              title={goal.title}
+                              description={goal.description}
+                              selected={selectedGoal === goal.id}
+                              onClick={() => setSelectedGoal(goal.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="mb-3 block flex items-center gap-2">
+                          <Users size={16} />
+                          Audience segments
+                        </Label>
+                        <div className="space-y-3">
+                          {audienceOptions.map((audience) => {
+                            const isSelected = selectedAudiences.includes(audience.id);
+                            return (
+                              <button
+                                key={audience.id}
+                                type="button"
+                                onClick={() => toggleAudience(audience.id)}
+                                className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/30'
+                                }`}
+                              >
+                                <div
+                                  className={cn(
+                                    "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                                    isSelected && "bg-primary text-primary-foreground"
+                                  )}
+                                >
+                                  {isSelected && <Check className="h-4 w-4" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-sm font-medium">{audience.label}</span>
+                                    <span className="text-xs text-muted-foreground flex-shrink-0">Reach: {audience.reach}</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-0.5">{audience.description}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {estimatedReach && (
+                          <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Estimated reach</span>
+                              <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(2)}>Back</Button>
-                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(4)}>
+                      <Button disabled={!isTargetingComplete} onClick={() => setCurrentStep(4)}>
                         Continue
                       </Button>
                     </div>
@@ -979,7 +1027,7 @@ export const GoalSelection: Story = {
             <div className="flex flex-col gap-4">
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>Summary</CardSummaryTitle>
+                  <CardSummaryTitle>Media plan</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
                   <div className="relative pl-12">
@@ -989,7 +1037,7 @@ export const GoalSelection: Story = {
                     <div className="space-y-4">
                       {wizardSteps.map((step, index) => {
                         const status = getStepStatus(step.id, index);
-                        const stepValue = getStepValue(step.id);
+                        const stepValues = getStepValues(step.id);
 
                         return (
                           <div key={step.id} className="relative flex items-start -ml-12">
@@ -1000,7 +1048,7 @@ export const GoalSelection: Story = {
                                   status === 'completed'
                                     ? 'bg-primary text-primary-foreground'
                                     : status === 'active'
-                                      ? 'bg-background text-primary border-2 border-primary'
+                                      ? 'bg-background text-primary border border-primary'
                                       : 'bg-background text-muted-foreground border border-border'
                                 }`}
                               >
@@ -1021,11 +1069,15 @@ export const GoalSelection: Story = {
                               >
                                 {step.label}
                               </button>
-                              {status === 'completed' && stepValue ? (
-                                <div className="text-sm text-muted-foreground mt-0.5">{stepValue}</div>
+                              {status === 'completed' && stepValues && stepValues.length > 0 ? (
+                                <div className="mt-1 space-y-0.5">
+                                  {stepValues.map((v, i) => (
+                                    <div key={i} className="text-xs text-muted-foreground">{v}</div>
+                                  ))}
+                                </div>
                               ) : status === 'active' ? (
                                 <div className="text-xs text-muted-foreground italic mt-0.5">
-                                  {step.id === 'setup' ? 'Not filled in' : step.id === 'budget' ? 'Not configured' : 'Not selected'}
+                                  Not filled in
                                 </div>
                               ) : null}
                             </div>
@@ -1035,6 +1087,31 @@ export const GoalSelection: Story = {
                     </div>
                   </div>
                 </CardSummaryContent>
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  {currentStep < wizardSteps.length - 1 ? (
+                    <>
+                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={() => setCurrentStep(currentStep + 1)}>Continue</Button>
+                      {currentStep > 0 ? (
+                        <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
+                      ) : (
+                        <Button variant="ghost" className="w-full">Cancel</Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          const name = campaignName || 'New Media plan';
+                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                        }}
+                      >
+                        Launch media plan
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
+                    </>
+                  )}
+                </div>
               </CardSummary>
             </div>
           </div>
@@ -1086,6 +1163,8 @@ export const NoGoalTargeting: Story = {
     // Step completion checks
     const isSetupComplete = campaignName.trim() !== '' && selectedBrand !== '';
     const isBudgetComplete = budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
+
+    const isCurrentStepComplete = [isSetupComplete, isBudgetComplete, true][currentStep] ?? false;
 
     // Retail product helpers
     const filteredRetailProducts = retailProducts.filter(product =>
@@ -1186,7 +1265,7 @@ export const NoGoalTargeting: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Create media plan',
+            title: campaignName || 'Create media plan',
             subtitle: '',
             headerRight: null,
           }}
@@ -1269,13 +1348,13 @@ export const NoGoalTargeting: Story = {
                   <CardContent>
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="campaign-name-ng">Campaign name</Label>
+                        <Label htmlFor="campaign-name-ng">Media plan name</Label>
                         <Input
                           id="campaign-name-ng"
                           placeholder="e.g. Summer Sale 2026"
                           value={campaignName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
-                          hint="Give your campaign a descriptive name to easily identify it later"
+                          hint="Give your media plan a descriptive name to easily identify it later"
                         />
                       </div>
                       <div className="space-y-2">
@@ -1515,7 +1594,7 @@ export const NoGoalTargeting: Story = {
             <div className="flex flex-col gap-4">
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>Summary</CardSummaryTitle>
+                  <CardSummaryTitle>Media plan</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
                   <div className="relative pl-12">
@@ -1536,7 +1615,7 @@ export const NoGoalTargeting: Story = {
                                   status === 'completed'
                                     ? 'bg-primary text-primary-foreground'
                                     : status === 'active'
-                                      ? 'bg-background text-primary border-2 border-primary'
+                                      ? 'bg-background text-primary border border-primary'
                                       : 'bg-background text-muted-foreground border border-border'
                                 }`}
                               >
@@ -1561,7 +1640,7 @@ export const NoGoalTargeting: Story = {
                                 <div className="text-sm text-muted-foreground mt-0.5">{stepValue}</div>
                               ) : status === 'active' ? (
                                 <div className="text-xs text-muted-foreground italic mt-0.5">
-                                  {step.id === 'setup' ? 'Not filled in' : step.id === 'budget' ? 'Not configured' : 'Not selected'}
+                                  {step.id === 'setup' ? 'Not filled in' : 'Not selected'}
                                 </div>
                               ) : null}
                             </div>
@@ -1571,6 +1650,31 @@ export const NoGoalTargeting: Story = {
                     </div>
                   </div>
                 </CardSummaryContent>
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  {currentStep < wizardStepsNoGoalTargeting.length - 1 ? (
+                    <>
+                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={() => setCurrentStep(currentStep + 1)}>Continue</Button>
+                      {currentStep > 0 ? (
+                        <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
+                      ) : (
+                        <Button variant="ghost" className="w-full">Cancel</Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          const name = campaignName || 'New Media plan';
+                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                        }}
+                      >
+                        Launch media plan
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
+                    </>
+                  )}
+                </div>
               </CardSummary>
             </div>
           </div>

@@ -19,6 +19,7 @@ import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
 import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown } from 'lucide-react';
+import { Switch } from '../../ui/switch';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -398,536 +399,411 @@ export const Display: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    // Location options for targeting
-    const locationOptions = [
-      { label: 'Amsterdam', value: 'amsterdam' },
-      { label: 'Rotterdam', value: 'rotterdam' },
-      { label: 'Den Haag', value: 'den-haag' },
-      { label: 'Utrecht', value: 'utrecht' },
-      { label: 'Eindhoven', value: 'eindhoven' }
-    ];
+
+    // Section open/closed state
+    const [section1Open, setSection1Open] = React.useState(true);
+    const [section2Open, setSection2Open] = React.useState(true);
+    const [section3Open, setSection3Open] = React.useState(true);
+    const [section4Open, setSection4Open] = React.useState(true);
+    const [section5Open, setSection5Open] = React.useState(true);
+
+    // Booking setup
     const [bookingName, setBookingName] = React.useState('');
-    const [placementSearch, setPlacementSearch] = React.useState('');
-    const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
-    const [showPlacementResults, setShowPlacementResults] = React.useState(false);
-    const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
-    const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
-    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
-    const [storeAmount, setStoreAmount] = React.useState('');
-    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
-    const [retailProductSearch, setRetailProductSearch] = React.useState('');
-    const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
-    const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
-    const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
-    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
-    const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
+    const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
+    const [startTime, setStartTime] = React.useState('00:00');
+    const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+    const [endTime, setEndTime] = React.useState('23:59');
+    const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
+    const [positionOpen, setPositionOpen] = React.useState(true);
+    const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
+    const [positionSearch, setPositionSearch] = React.useState('');
 
-    // Retail products data
-    const retailProducts = [
-      { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
-      { id: '607124', name: 'Pepsi - pepsi max - 1.5 liter' },
-      { id: '608456', name: 'Red Bull - energy drink original - 250ml' },
-      { id: '609782', name: 'Heineken - premium lager beer - 6x330ml' },
-      { id: '610394', name: 'Samsung - galaxy s24 ultra - 256GB' },
-      { id: '611205', name: 'iPhone - 15 pro max - 512GB' },
-      { id: '612816', name: 'Nike - air max 270 - size 42' },
-      { id: '613427', name: 'Adidas - ultraboost 22 - size 43' },
-      { id: '614038', name: 'Nutella - hazelnut spread - 750g' },
-      { id: '614649', name: 'Ben & Jerry\'s - cookie dough - 465ml' },
+    // Targeting
+    const [targetMode, setTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
+    const [targetKeywordType, setTargetKeywordType] = React.useState('Search Keyword');
+    const [targetValue, setTargetValue] = React.useState('');
+
+    // Delivery behavior
+    const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
+    const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
+    const [deliveryMethod, setDeliveryMethod] = React.useState('Account setting');
+    const [exclusivity, setExclusivity] = React.useState(false);
+
+    // Delivery objectives
+    const [priorityOverride, setPriorityOverride] = React.useState(false);
+    const [reachOverride, setReachOverride] = React.useState(false);
+    const [deliveryLimit, setDeliveryLimit] = React.useState(false);
+
+    // Pricing
+    const [pricingModel, setPricingModel] = React.useState(false);
+    const [competeWithRTB, setCompeteWithRTB] = React.useState(false);
+
+    const dayLabels = [
+      { id: 'mo', label: 'Mo' },
+      { id: 'tu', label: 'Tu' },
+      { id: 'we', label: 'We' },
+      { id: 'th', label: 'Th' },
+      { id: 'fr', label: 'Fr' },
+      { id: 'sa', label: 'Sa' },
+      { id: 'su', label: 'Su' },
     ];
 
-    // Target filter options (empty for non-OfflineInStore stories)
-    const storeTypeOptions = [
-      { label: 'AH XL', value: 'ah-xl' },
-      { label: 'AH DNAH', value: 'ah-dnah' }
-    ];
+    const toggleDay = (id: string) => {
+      setActiveDays(prev =>
+        prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
+      );
+    };
 
-
-    const audienceOptions = [
-      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
-      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
-      { label: 'Young adult', value: 'young-adult' },
-      { label: 'Family with Kids', value: 'family-with-kids' },
-      { label: 'Convenience stores', value: 'convenience-stores' },
-      { label: 'Traditional stores', value: 'traditional-stores' }
-    ];
-
-    // Filter retail products based on search
-    const filteredRetailProducts = retailProducts.filter(product => 
-      product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
-      product.id.includes(retailProductSearch)
+    // Reusable section header
+    const SectionHeader = ({ number, title, open, onToggle }: { number: number; title: string; open: boolean; onToggle: () => void }) => (
+      <button
+        className="w-full flex items-center justify-between p-6 text-left"
+        onClick={onToggle}
+      >
+        <span className="font-semibold text-base">{number}. {title}</span>
+        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
+      </button>
     );
 
-    // Handle retail product selection
-    const handleRetailProductSelect = (product: any) => {
-      if (!selectedRetailProducts.includes(product.id)) {
-        setSelectedRetailProducts([...selectedRetailProducts, product.id]);
-      }
-      setRetailProductSearch('');
-      setShowRetailProductResults(false);
-    };
-
-    // Handle retail product search change
-    const handleRetailProductSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRetailProductSearch(e.target.value);
-      setShowRetailProductResults(e.target.value.length > 0);
-    };
-
-    // Remove retail product
-    const removeRetailProduct = (productId: string) => {
-      setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
-    };
-
-    // Calculate estimated reach based on store amount (average reach per store: ~65)
-    const calculateReach = (stores: string) => {
-      const numStores = parseInt(stores);
-      if (isNaN(numStores) || numStores <= 0) return 0;
-      return Math.round(numStores * 65);
-    };
-
-    // Filter placements based on search and exclude already selected one
-    const filteredPlacements = mockPlacements.filter(placement => 
-      (placement.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.location.toLowerCase().includes(placementSearch.toLowerCase()) ||
-      placement.type.toLowerCase().includes(placementSearch.toLowerCase())) &&
-      (!selectedPlacement || selectedPlacement.id !== placement.id)
+    // Reusable sub-section header (within a section)
+    const SubSectionHeader = ({ title, open, onToggle }: { title: string; open: boolean; onToggle: () => void }) => (
+      <button
+        className="w-full flex items-center justify-between py-3 text-left border-t"
+        onClick={onToggle}
+      >
+        <span className="font-semibold text-sm">{title}</span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
+      </button>
     );
 
-    // Handle placement selection
-    const handlePlacementSelect = (placement: any) => {
-      setSelectedPlacement(placement);
-      setPlacementSearch('');
-      setShowPlacementResults(false);
-    };
-
-    // Remove placement
-    const removePlacement = () => {
-      setSelectedPlacement(null);
-    };
-
-    // Handle placement search change
-    const handlePlacementSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPlacementSearch(e.target.value);
-      setShowPlacementResults(e.target.value.length > 0);
-    };
-
-    // Handle placement input click
-    const handlePlacementClick = () => {
-      setShowPlacementResults(true);
-    };
-
-    // Handle retail product input click
-    const handleRetailProductClick = () => {
-      setShowRetailProductResults(true);
-    };
-
-    // Close dropdowns when clicking outside
-    React.useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-        if (!target.closest('[data-dropdown-container]')) {
-          setShowPlacementResults(false);
-          setShowRetailProductResults(false);
-        }
-      };
-
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    // Toggle row (used in delivery behavior / objectives / pricing)
+    const ToggleRow = ({ label, checked, onCheckedChange, info, rightText }: {
+      label: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: boolean; rightText?: string;
+    }) => (
+      <div className="flex items-center justify-between p-4 rounded-lg border bg-white">
+        <span className="font-medium text-sm">{label}</span>
+        <div className="flex items-center gap-3">
+          {info && (
+            <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+          )}
+          {rightText && <span className="text-sm text-muted-foreground">{rightText}</span>}
+          <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </div>
+      </div>
+    );
 
     return (
       <MenuContextProvider>
         <AppLayout
-        routes={routes}
-        logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
-        user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-        onLogout={() => alert('Logout clicked')}
-        breadcrumbProps={{ namespace: '' }}
-        pageHeaderProps={{ 
-          title: 'Booking Detail - Display',
-          onEdit: () => alert('Edit clicked'),
-          onExport: () => alert('Export clicked'),
-          onImport: () => alert('Import clicked'),
-          onSettings: () => alert('Settings clicked'),
-          headerRight: null,
-        }}
-      >
-        <div className="mb-6">
-          <MetricRow
-            metrics={displayMetrics}
-            selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
-            maxVisible={5}
-            defaultVariant="default"
-            removable={true}
-            showCharts={true}
-          />
-        </div>
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 md:gap-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 min-w-0">
-                  <Card className="min-w-0">
-                    <CardHeader className="space-y-8">
-                      <FormSection title="Booking details">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Name*</label>
-                            <Input 
-                              value={bookingName}
-                              onChange={(e) => setBookingName(e.target.value)}
-                              placeholder="Enter booking name" 
+          routes={routes}
+          logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
+          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          onLogout={() => alert('Logout clicked')}
+          breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{
+            title: 'Booking Detail - Display',
+            onEdit: () => alert('Edit clicked'),
+            onExport: () => alert('Export clicked'),
+            onImport: () => alert('Import clicked'),
+            onSettings: () => alert('Settings clicked'),
+            headerRight: null,
+          }}
+        >
+          <div className="mb-6">
+            <MetricRow
+              metrics={displayMetrics}
+              selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+              maxVisible={5}
+              defaultVariant="default"
+              removable={true}
+              showCharts={true}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+
+              {/* 1. Booking setup */}
+              <div className="rounded-xl border bg-white">
+                <SectionHeader number={1} title="Booking setup" open={section1Open} onToggle={() => setSection1Open(v => !v)} />
+                {section1Open && (
+                  <div className="px-6 pb-6 space-y-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Booking name <span className="text-destructive">*</span></label>
+                      <Input
+                        value={bookingName}
+                        onChange={(e) => setBookingName(e.target.value)}
+                        placeholder=""
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="font-semibold text-sm">Schedule</div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm mb-1 flex items-center gap-1">
+                            Start date and time
+                            <span className="inline-block w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] flex items-center justify-center font-bold">!</span>
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <DatePicker
+                              date={startDate}
+                              onDateChange={setStartDate}
+                              placeholder="MM/DD/YYYY"
                               className="w-full"
                             />
-                          </div>
-                        </div>
-                      </FormSection>
-                      
-                      <FormSection title="Placement">
-                        <div className="space-y-4 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Find placement*</label>
-                            <SearchInput 
-                              value={placementSearch}
-                              onChange={handlePlacementSearchChange}
-                              onClick={handlePlacementClick}
-                              placeholder="Search for placement..." 
-                              className="w-full"
-                              icon={<LayoutDashboard className="w-4 h-4" />}
-                            />
-                            {showPlacementResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.length > 0 ? (
-                                  filteredPlacements.map((placement) => (
-                                  <div
-                                    key={placement.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handlePlacementSelect(placement)}
-                                  >
-                                    <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {placement.adSpaces}
-                                    </div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No placements found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedPlacement && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
-                                <div>
-                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {selectedPlacement.adSpaces}
-                                  </div>
-                                </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={removePlacement}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="text-sm text-muted-foreground">
-                            {selectedPlacement 
-                              ? 'Placement selected for this booking'
-                              : 'Search and select a placement for this booking'
-                            }
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Run time">
-                        <div className="space-y-4 min-w-0">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">Start date*</label>
-                              <DatePicker 
-                                date={startDate}
-                                onDateChange={setStartDate}
-                                placeholder="Select start date" 
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">End date*</label>
-                              <DatePicker 
-                                date={endDate}
-                                onDateChange={setEndDate}
-                                placeholder="Select end date" 
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Retail products">
-                        <div className="space-y-4">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
-                            <SearchInput 
-                              value={retailProductSearch}
-                              onChange={handleRetailProductSearchChange}
-                              onClick={handleRetailProductClick}
-                              placeholder="Select product by name or ID..." 
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handleRetailProductSelect(product)}
-                                  >
-                                    <div className="font-medium text-sm">{product.name}</div>
-                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No products found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected products:</div>
-                              <div className="space-y-1">
-                                {selectedRetailProducts.map(productId => {
-                                  const product = retailProducts.find(p => p.id === productId);
-                                  return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
-                                      <div>
-                                        <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                      </div>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => removeRetailProduct(productId)}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <Minus className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="text-sm text-muted-foreground">
-                            {selectedRetailProducts.length > 0 
-                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this booking'
-                            }
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Store targets">
-                        <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Location"
-                              options={locationOptions}
-                              selectedValues={selectedLocations}
-                              onChange={setSelectedLocations}
-                            />
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Stores">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="relative" data-dropdown-container>
+                            <div className="relative">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Store className="w-4 h-4" />
+                                <Calendar className="w-4 h-4" />
                               </span>
-                              <Input 
-                                type="number"
-                                value={storeAmount}
-                                onChange={(e) => setStoreAmount(e.target.value)}
-                                placeholder="Enter number of stores" 
-                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                min="1"
+                              <Input
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                                className="pl-9"
+                                placeholder="00:00"
                               />
                             </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
-                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this booking will target'
-                            }
+                        </div>
+                        <div>
+                          <label className="block text-sm mb-1">End date and time</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <DatePicker
+                              date={endDate}
+                              onDateChange={setEndDate}
+                              placeholder="MM/DD/YYYY"
+                              className="w-full"
+                            />
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Calendar className="w-4 h-4" />
+                              </span>
+                              <Input
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                                className="pl-9"
+                                placeholder="23:59"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </FormSection>
-
-                      <FormSection title="Target">
-                        <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this booking
-                          </div>
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                              className="flex-1"
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                              className="flex-1"
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection title="Creatives">
-                        {selectedCreatives.length > 0 && (
-                          <div className="mb-4 overflow-x-auto">
-                            <Table
-                              columns={[
-                                {
-                                  key: 'remove',
-                                  header: '',
-                                  render: (row) => (
-                                    <Button
-                                      size="icon"
-                                      variant="outline"
-                                      onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                                      aria-label="Remove creative"
-                                    >
-                                      <Minus className="h-4 w-4" />
-                                    </Button>
-                                  ),
-                                  className: 'w-10 text-center',
-                                },
-                                { key: 'name', header: 'Name' },
-                                { key: 'format', header: 'Format' },
-                                { key: 'status', header: 'Status' },
-                                { key: 'type', header: 'Type' },
-                              ]}
-                              data={selectedCreatives}
-                              rowKey={row => row.id}
-                              hideActions
-                              rowClassName={() => 'cursor-pointer'}
-                              onRowClick={row => {
-                                console.log('Navigate to creative details for', row.name);
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        <CreativeLinkingDialog 
-                          selectedCreatives={selectedCreatives} 
-                          onSelectionChange={setSelectedCreatives} 
-                        />
-                      </FormSection>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex gap-2">
-                        <Button variant="outline">Cancel</Button>
-                        <Button>Submit for approval</Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Sidebar */}
-                <div className="flex flex-col gap-4">
-                  <SummaryCard
-                    title="Booking"
-                    variant="details"
-                    items={[
-                      ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
-                      ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
-                      ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
-                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
-                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
-                      ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
-                      ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
-                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${selectedInventory.length} selected` }] : []),
-                    ]}
-                  />
+                    </div>
 
-                  {/* Creatives section - hidden for now, can be brought back later
-                  <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>Creatives</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      {mockCreatives.map(creative => {
-                        const isLinked = selectedCreatives.some(selected => selected.id === creative.id);
-                        return (
-                          <div key={creative.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
-                            <div className="text-[14px]">
-                              <span className="text-muted-foreground">Creative: </span>
-                              <span className="font-medium">{creative.name}</span>
-                            </div>
-                            <div className="text-[14px]">
-                              <span className="text-muted-foreground">Booking: </span>
-                              {isLinked ? (
-                                <span className="font-medium">{bookingName || 'Unnamed Booking'}</span>
-                              ) : (
-                                <span className="text-muted-foreground">No booking</span>
-                              )}
-                            </div>
+                    {/* Active days sub-section */}
+                    <div>
+                      <SubSectionHeader title="Active days" open={activeDaysOpen} onToggle={() => setActiveDaysOpen(v => !v)} />
+                      {activeDaysOpen && (
+                        <div className="pt-4 space-y-3">
+                          <div className="flex gap-2">
+                            {dayLabels.map(day => (
+                              <button
+                                key={day.id}
+                                onClick={() => toggleDay(day.id)}
+                                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                                  activeDays.includes(day.id)
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-muted-foreground'
+                                }`}
+                              >
+                                {day.label}
+                              </button>
+                            ))}
                           </div>
-                        );
-                      })}
-                    </CardSummaryContent>
-                  </CardSummary>
-                  */}
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <span>Select:</span>
+                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
+                            <span className="text-muted-foreground">·</span>
+                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                            <span className="text-muted-foreground">·</span>
+                            <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                  <CampaignDetailsSidebar />
-                </div>
+                    {/* Position sub-section */}
+                    <div>
+                      <SubSectionHeader title="Position" open={positionOpen} onToggle={() => setPositionOpen(v => !v)} />
+                      {positionOpen && (
+                        <div className="pt-4 space-y-3">
+                          <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
+                            {(['channels', 'positions'] as const).map(tab => (
+                              <button
+                                key={tab}
+                                onClick={() => setPositionTab(tab)}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
+                                  positionTab === tab
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                              >
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                          <SearchInput
+                            value={positionSearch}
+                            onChange={(e) => setPositionSearch(e.target.value)}
+                            placeholder="Search..."
+                            className="w-full"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Targeting */}
+              <div className="rounded-xl border bg-white">
+                <SectionHeader number={2} title="Targeting" open={section2Open} onToggle={() => setSection2Open(v => !v)} />
+                {section2Open && (
+                  <div className="px-6 pb-6">
+                    <div className="rounded-lg border bg-white p-4 space-y-4">
+                      <div className="font-semibold text-sm">Targets</div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex rounded-lg bg-muted p-1 gap-1">
+                          {(['inclusive', 'exclusive'] as const).map(mode => (
+                            <button
+                              key={mode}
+                              onClick={() => setTargetMode(mode)}
+                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
+                                targetMode === mode
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Download className="w-4 h-4 mr-1" />
+                            Download template
+                          </Button>
+                          <Button size="sm">
+                            <Upload className="w-4 h-4 mr-1" />
+                            Upload CSV
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="flex items-center gap-1 min-w-[140px] justify-between">
+                              {targetKeywordType}
+                              <ChevronDown className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => (
+                              <DropdownMenuItem key={opt} onClick={() => setTargetKeywordType(opt)}>{opt}</DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="flex-1 flex items-center justify-between">
+                              <span className="text-muted-foreground">{targetValue || 'Select target'}</span>
+                              <ChevronDown className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56">
+                            {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => (
+                              <DropdownMenuItem key={opt} onClick={() => setTargetValue(opt)}>{opt}</DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Delivery behavior */}
+              <div className="rounded-xl border bg-white">
+                <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
+                {section3Open && (
+                  <div className="px-6 pb-6 space-y-3">
+                    <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info />
+                    <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info />
+                    <div className="rounded-lg border bg-white p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">Delivery method</span>
+                        <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-full flex items-center justify-between">
+                            {deliveryMethod}
+                            <ChevronDown className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-full">
+                          {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => (
+                            <DropdownMenuItem key={opt} onClick={() => setDeliveryMethod(opt)}>{opt}</DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <p className="text-xs text-muted-foreground">
+                        Follows the default setting that is configured for your account (Frontloaded).
+                      </p>
+                    </div>
+                    <ToggleRow label="Exclusivity" checked={exclusivity} onCheckedChange={setExclusivity} />
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Delivery objectives */}
+              <div className="rounded-xl border bg-white">
+                <SectionHeader number={4} title="Delivery objectives" open={section4Open} onToggle={() => setSection4Open(v => !v)} />
+                {section4Open && (
+                  <div className="px-6 pb-6 space-y-3">
+                    <ToggleRow label="Priority" checked={priorityOverride} onCheckedChange={setPriorityOverride} rightText="Inherited from campaign: Highest" />
+                    <ToggleRow label="Reach" checked={reachOverride} onCheckedChange={setReachOverride} />
+                    <ToggleRow label="Delivery limit" checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Pricing */}
+              <div className="rounded-xl border bg-white">
+                <SectionHeader number={5} title="Pricing" open={section5Open} onToggle={() => setSection5Open(v => !v)} />
+                {section5Open && (
+                  <div className="px-6 pb-6 space-y-3">
+                    <ToggleRow label="Pricing model" checked={pricingModel} onCheckedChange={setPricingModel} />
+                    <ToggleRow label="Compete with RTB" checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pb-6">
+                <Button variant="outline">Cancel</Button>
+                <Button>Submit for approval</Button>
               </div>
             </div>
+
+            {/* Sidebar */}
+            <div className="flex flex-col gap-4">
+              <SummaryCard
+                title="Booking"
+                variant="details"
+                items={[
+                  ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                  ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
+                  ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
+                  ...(activeDays.length > 0 && activeDays.length < 7 ? [{ label: 'Active days', value: activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') }] : []),
+                  ...(targetValue ? [{ label: 'Target', value: `${targetMode === 'inclusive' ? '+ ' : '- '}${targetValue}` }] : []),
+                  ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
+                ]}
+              />
+              <CampaignDetailsSidebar />
+            </div>
           </div>
-        </div>
-      </AppLayout>
+        </AppLayout>
       </MenuContextProvider>
     );
   },

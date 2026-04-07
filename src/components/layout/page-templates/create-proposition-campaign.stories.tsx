@@ -219,6 +219,18 @@ const retailProducts = [
 ];
 
 const getWizardSteps = (propositionType: string) => {
+  if (propositionType === 'display') {
+    return [
+      { id: 'setup', label: 'Setup' },
+      { id: 'advertiser', label: 'Advertiser' },
+      { id: 'budget', label: 'Run time & budget' },
+      { id: 'booking', label: 'Booking setup' },
+      { id: 'line-targeting', label: 'Targeting' },
+      { id: 'delivery', label: 'Delivery behavior' },
+      { id: 'delivery-objectives', label: 'Delivery objectives' },
+      { id: 'pricing', label: 'Pricing' },
+    ];
+  }
   const base = [
     { id: 'setup', label: 'Setup' },
     { id: 'advertiser', label: 'Advertiser' },
@@ -227,15 +239,6 @@ const getWizardSteps = (propositionType: string) => {
   ];
   if (propositionType === 'sponsored-products') {
     base.push({ id: 'keywords', label: 'Keywords & placements' });
-  }
-  if (propositionType === 'display') {
-    base.push(
-      { id: 'booking', label: 'Booking setup' },
-      { id: 'line-targeting', label: 'Targeting' },
-      { id: 'delivery', label: 'Delivery behavior' },
-      { id: 'delivery-objectives', label: 'Delivery objectives' },
-      { id: 'pricing', label: 'Pricing' },
-    );
   }
   return base;
 };

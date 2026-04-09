@@ -510,7 +510,7 @@ export const Display: Story = {
             headerRight: null,
           }}
         >
-          <div className="mb-6">
+          <div className="mb-3">
             <MetricRow
               metrics={displayMetrics}
               selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
@@ -969,7 +969,7 @@ export const DigitalInStore: Story = {
           headerRight: null,
         }}
       >
-        <div className="mb-6">
+        <div className="mb-3">
           <MetricRow
             metrics={digitalInstoreMetrics}
             selectedKeys={['repetitions', 'stores', 'reach', 'roas']}
@@ -1686,7 +1686,7 @@ export const OfflineInStore: Story = {
           headerRight: null,
         }}
       >
-        <div className="mb-6">
+        <div className="mb-3">
           <MetricRow
             metrics={offlineInstoreMetrics}
             selectedKeys={['adSpend', 'impressions', 'stores', 'totalSkuRevenue']}
@@ -2366,7 +2366,7 @@ export const SponsoredProducts: Story = {
           headerRight: null,
         }}
       >
-        <div className="mb-6">
+        <div className="mb-3">
           <MetricRow
             metrics={sponsoredProductsMetrics}
             selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
@@ -2856,7 +2856,7 @@ export const OffsiteDisplay: Story = {
             headerRight: null,
           }}
         >
-          <div className="mb-6">
+          <div className="mb-3">
             <MetricRow
               metrics={offsiteDisplayMetrics}
               selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}

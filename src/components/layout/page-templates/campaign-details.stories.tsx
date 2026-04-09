@@ -606,7 +606,7 @@ const updatedForecastMetrics = [
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
         
@@ -1071,7 +1071,7 @@ export const DigitalInstoreRunning: Story = {
             ),
           }}
         >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
         
@@ -1490,7 +1490,7 @@ export const OfflineInstoreRunning: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 
@@ -1972,7 +1972,7 @@ export const DisplayRunning: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 
@@ -2443,7 +2443,7 @@ export const OfflineInstoreInOption: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 
@@ -2892,7 +2892,7 @@ export const DisplayInOption: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 
@@ -3673,7 +3673,7 @@ export const SponsoredProductsInOption: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
         
@@ -4354,7 +4354,7 @@ export const SponsoredProductsRunning: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
         
@@ -4903,7 +4903,7 @@ export const OffsiteRunning: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 
@@ -5372,7 +5372,7 @@ export const OffsiteInOption: Story = {
           },
         }}
       >
-        <div className="mb-8">
+        <div className="mb-3">
           <ForecastSection />
         </div>
 

@@ -478,7 +478,7 @@ export const GoalSelection: Story = {
             headerRight: null,
           }}
         >
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Metric cards - always visible, show '-' when no data */}
               <MetricRow
                 metrics={[

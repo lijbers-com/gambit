@@ -42,6 +42,7 @@ import {
   Download,
   Upload,
   Calendar,
+  Clock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -374,9 +375,8 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives', 'Pricing'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
-  const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(undefined);
+  const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
   const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
-  const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(undefined);
   const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
   const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
   const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
@@ -409,15 +409,15 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const saveBooking = () => {
     setBookings(prev => [...prev, {
       id: String(Date.now()),
-      name: bookingName, startDate: bookingStartDate, startTime: bookingStartTime,
-      endDate: bookingEndDate, endTime: bookingEndTime, activeDays: [...activeDays],
+      name: bookingName, startDate: bookingDateRange?.from, startTime: bookingStartTime,
+      endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
       targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
       optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
       priorityOverride, reachOverride, deliveryLimit, pricingModel, competeWithRTB,
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingStartDate(undefined); setBookingEndDate(undefined);
+    setBookingName(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
@@ -715,7 +715,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
           headerRight: null,
         }}
       >
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Metric cards */}
           <MetricRow
             metrics={[
@@ -1561,24 +1561,23 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                             </div>
                             <div className="space-y-3">
                               <Label className="text-sm font-semibold">Schedule</Label>
-                              <div>
-                                <label className="block text-sm mb-1 flex items-center gap-1.5">
-                                  Start date and time <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">!</span>
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <DateRangePicker dateRange={bookingStartDate ? { from: bookingStartDate } : undefined} onDateRangeChange={(r) => setBookingStartDate(r?.from)} placeholder="MM/DD/YYYY" />
+                              <DateRangePicker
+                                dateRange={bookingDateRange}
+                                onDateRangeChange={setBookingDateRange}
+                                placeholder="Select start and end date"
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                  <label className="block text-sm text-muted-foreground">Start time</label>
                                   <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
                                     <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
                                   </div>
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-sm mb-1">End date and time</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <DateRangePicker dateRange={bookingEndDate ? { from: bookingEndDate } : undefined} onDateRangeChange={(r) => setBookingEndDate(r?.from)} placeholder="MM/DD/YYYY" />
+                                <div className="space-y-1">
+                                  <label className="block text-sm text-muted-foreground">End time</label>
                                   <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
                                     <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
                                   </div>
                                 </div>
@@ -1781,7 +1780,161 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
 
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
-              {/* Campaign summary card — always visible */}
+              {/* New booking card — shown while actively creating a booking */}
+              {isInBookingsPhase && bookingSubStep !== null && (() => {
+                const getLiveBookingStepValues = (stepIndex: number): string[] | null => {
+                  switch (stepIndex) {
+                    case 0: {
+                      const vals: string[] = [];
+                      if (bookingDateRange?.from) vals.push(`${bookingDateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}${bookingDateRange.to ? ` – ${bookingDateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${bookingEndTime}` : ''}`);
+                      if (activeDays.length < 7) vals.push(activeDays.join(', '));
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 1: {
+                      const vals: string[] = [];
+                      if (lineTargetValue) vals.push(`${lineTargetKeywordType}: ${lineTargetValue}`);
+                      if (lineTargetMode !== 'inclusive') vals.push(lineTargetMode);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 2: {
+                      const vals: string[] = [];
+                      if (deliveryMethod && deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
+                      if (optimizeForCPC) vals.push('Optimize for CPC');
+                      if (userFrequencyCap) vals.push('Frequency cap on');
+                      if (exclusivity) vals.push('Exclusivity on');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 3: {
+                      const vals: string[] = [];
+                      if (priorityOverride) vals.push('Priority override');
+                      if (reachOverride) vals.push('Reach override');
+                      if (deliveryLimit) vals.push('Delivery limit set');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 4: {
+                      const vals: string[] = [];
+                      if (pricingModel) vals.push('Custom pricing');
+                      if (competeWithRTB) vals.push('Compete with RTB');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    default: return null;
+                  }
+                };
+                return (
+                  <CardSummary>
+                    <CardHeader>
+                      <CardSummaryTitle>New booking</CardSummaryTitle>
+                    </CardHeader>
+                    <CardSummaryContent>
+                      <div className="relative pl-12">
+                        <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
+                        <div className="space-y-4">
+                          {bookingSubStepLabels.map((label, index) => {
+                            const status: 'completed' | 'active' | 'pending' =
+                              index < bookingSubStep ? 'completed'
+                              : index === bookingSubStep ? 'active'
+                              : 'pending';
+                            const vals = status === 'completed' ? getLiveBookingStepValues(index) : null;
+                            return (
+                              <div key={label} className="relative flex items-start -ml-12">
+                                <div className="w-10 flex justify-center">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
+                                    {status === 'completed' ? <Check size={14} /> : index + 1}
+                                  </div>
+                                </div>
+                                <div className="ml-3 flex-1 min-w-0 pt-1">
+                                  <div className={`text-sm ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'}`}>{label}</div>
+                                  {vals && <div className="text-sm text-muted-foreground mt-0.5">{vals.join(', ')}</div>}
+                                  {status === 'active' && <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </CardSummaryContent>
+                    {bookingSubStep === bookingSubStepLabels.length - 1 && (
+                      <div className="px-4 pb-4">
+                        <Button className="w-full" onClick={saveBooking}>Create booking</Button>
+                      </div>
+                    )}
+                  </CardSummary>
+                );
+              })()}
+
+              {/* Saved booking cards — one per booking */}
+              {isInBookingsPhase && bookings.map((booking, index) => {
+                const getBookingStepValues = (stepIndex: number): string[] | null => {
+                  switch (stepIndex) {
+                    case 0: { // Booking setup
+                      const vals: string[] = [];
+                      if (booking.startDate) vals.push(`${booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${booking.startTime}${booking.endDate ? ` – ${booking.endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${booking.endTime}` : ''}`);
+                      if (booking.activeDays.length < 7) vals.push(`${booking.activeDays.join(', ')}`);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 1: { // Targeting
+                      const vals: string[] = [];
+                      if (booking.targetValue) vals.push(`${booking.targetKeywordType}: ${booking.targetValue}`);
+                      if (booking.targetMode !== 'inclusive') vals.push(booking.targetMode);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 2: { // Delivery behavior
+                      const vals: string[] = [];
+                      if (booking.deliveryMethod && booking.deliveryMethod !== 'Account setting') vals.push(booking.deliveryMethod);
+                      if (booking.optimizeForCPC) vals.push('Optimize for CPC');
+                      if (booking.userFrequencyCap) vals.push('Frequency cap on');
+                      if (booking.exclusivity) vals.push('Exclusivity on');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 3: { // Delivery objectives
+                      const vals: string[] = [];
+                      if (booking.priorityOverride) vals.push('Priority override');
+                      if (booking.reachOverride) vals.push('Reach override');
+                      if (booking.deliveryLimit) vals.push('Delivery limit set');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 4: { // Pricing
+                      const vals: string[] = [];
+                      if (booking.pricingModel) vals.push('Custom pricing');
+                      if (booking.competeWithRTB) vals.push('Compete with RTB');
+                      return vals.length > 0 ? vals : null;
+                    }
+                    default: return null;
+                  }
+                };
+                return (
+                  <CardSummary key={booking.id}>
+                    <CardHeader>
+                      <CardSummaryTitle>{booking.name || `Booking ${index + 1}`}</CardSummaryTitle>
+                    </CardHeader>
+                    <CardSummaryContent>
+                      <div className="relative pl-12">
+                        <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
+                        <div className="space-y-4">
+                          {bookingSubStepLabels.map((label, stepIndex) => {
+                            const vals = getBookingStepValues(stepIndex);
+                            return (
+                              <div key={label} className="relative flex items-start -ml-12">
+                                <div className="w-10 flex justify-center">
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-primary text-primary-foreground">
+                                    <Check size={14} />
+                                  </div>
+                                </div>
+                                <div className="ml-3 flex-1 min-w-0 pt-1">
+                                  <div className="text-sm font-medium">{label}</div>
+                                  {vals && <div className="text-sm text-muted-foreground mt-0.5">{vals.join(', ')}</div>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </CardSummaryContent>
+                  </CardSummary>
+                );
+              })}
+
+              {/* Campaign summary card — always at the bottom */}
               <CardSummary>
                 <CardHeader>
                   <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
@@ -1830,62 +1983,18 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </Button>
                   </div>
                 )}
+                {isInBookingsPhase && (
+                  <div className="px-4 pb-4">
+                    <Button
+                      className="w-full"
+                      disabled={bookings.length === 0}
+                      onClick={() => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                    >
+                      Launch campaign
+                    </Button>
+                  </div>
+                )}
               </CardSummary>
-
-              {/* Booking card — only shown after campaign is saved */}
-              {isInBookingsPhase && (
-                <CardSummary>
-                  <CardHeader>
-                    <CardSummaryTitle>
-                      {bookingSubStep === null
-                        ? (bookings.length > 0 ? `${bookings.length} booking${bookings.length !== 1 ? 's' : ''}` : 'Bookings')
-                        : 'New booking'}
-                    </CardSummaryTitle>
-                  </CardHeader>
-                  <CardSummaryContent>
-                    <div className="relative pl-12">
-                      <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-                      <div className="space-y-4">
-                        {bookingSubStepLabels.map((label, index) => {
-                          const status: 'completed' | 'active' | 'pending' =
-                            bookingSubStep === null ? 'pending'
-                            : index < bookingSubStep ? 'completed'
-                            : index === bookingSubStep ? 'active'
-                            : 'pending';
-                          return (
-                            <div key={label} className="relative flex items-start -ml-12">
-                              <div className="w-10 flex justify-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
-                                  {status === 'completed' ? <Check size={14} /> : index + 1}
-                                </div>
-                              </div>
-                              <div className="ml-3 flex-1 min-w-0 pt-1">
-                                <div className={`text-sm ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'}`}>{label}</div>
-                                {status === 'active' && <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </CardSummaryContent>
-                  {(bookingSubStep === null || bookingSubStep === bookingSubStepLabels.length - 1) && (
-                    <div className="px-4 pb-4">
-                      {bookingSubStep === null ? (
-                        <Button
-                          className="w-full"
-                          disabled={bookings.length === 0}
-                          onClick={() => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
-                        >
-                          Launch campaign
-                        </Button>
-                      ) : (
-                        <Button className="w-full" onClick={saveBooking}>Create booking</Button>
-                      )}
-                    </div>
-                  )}
-                </CardSummary>
-              )}
             </div>
           </div>
         </div>

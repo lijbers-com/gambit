@@ -1087,31 +1087,19 @@ export const GoalSelection: Story = {
                     </div>
                   </div>
                 </CardSummaryContent>
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  {currentStep < wizardSteps.length - 1 ? (
-                    <>
-                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={() => setCurrentStep(currentStep + 1)}>Continue</Button>
-                      {currentStep > 0 ? (
-                        <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
-                      ) : (
-                        <Button variant="ghost" className="w-full">Cancel</Button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          const name = campaignName || 'New Media plan';
-                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
-                        }}
-                      >
-                        Launch media plan
-                      </Button>
-                      <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
-                    </>
-                  )}
-                </div>
+                {currentStep === wizardSteps.length - 1 && (
+                  <div className="px-4 pb-4">
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        const name = campaignName || 'New Media plan';
+                        window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                      }}
+                    >
+                      Launch media plan
+                    </Button>
+                  </div>
+                )}
               </CardSummary>
             </div>
           </div>
@@ -1650,31 +1638,19 @@ export const NoGoalTargeting: Story = {
                     </div>
                   </div>
                 </CardSummaryContent>
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  {currentStep < wizardStepsNoGoalTargeting.length - 1 ? (
-                    <>
-                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={() => setCurrentStep(currentStep + 1)}>Continue</Button>
-                      {currentStep > 0 ? (
-                        <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
-                      ) : (
-                        <Button variant="ghost" className="w-full">Cancel</Button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          const name = campaignName || 'New Media plan';
-                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
-                        }}
-                      >
-                        Launch media plan
-                      </Button>
-                      <Button variant="outline" className="w-full" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>
-                    </>
-                  )}
-                </div>
+                {currentStep === wizardStepsNoGoalTargeting.length - 1 && (
+                  <div className="px-4 pb-4">
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        const name = campaignName || 'New Media plan';
+                        window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                      }}
+                    >
+                      Launch media plan
+                    </Button>
+                  </div>
+                )}
               </CardSummary>
             </div>
           </div>

@@ -1096,9 +1096,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     )}
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!isBudgetComplete} onClick={goToNextStep}>
-                        {isDisplay ? 'Save campaign' : 'Continue'}
-                      </Button>
+                      {!isDisplay && (
+                        <Button disabled={!isBudgetComplete} onClick={goToNextStep}>Continue</Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1537,6 +1537,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
                           <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
                         </button>
+                        <div className="flex justify-start mt-2">
+                          <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
+                        </div>
                       </CardContent>
                     </Card>
                   )}
@@ -1624,6 +1627,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                                 </div>
                               )}
                             </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
+                            </div>
                           </CardContent>
                         </Card>
                       )}
@@ -1661,6 +1668,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                                   {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                 </select>
                               </div>
+                            </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1700,6 +1711,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               <span className="font-medium text-sm">Exclusivity</span>
                               <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
                             </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
+                            </div>
                           </CardContent>
                         </Card>
                       )}
@@ -1727,6 +1742,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               <span className="font-medium text-sm">Delivery limit</span>
                               <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
                             </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(4)}>Continue</Button>
+                            </div>
                           </CardContent>
                         </Card>
                       )}
@@ -1746,6 +1765,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                             <div className="flex items-center justify-between p-4 rounded-lg border">
                               <span className="font-medium text-sm">Compete with RTB</span>
                               <Switch checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
+                            </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(3)}>Back</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1797,29 +1819,15 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </div>
                   </div>
                 </CardSummaryContent>
-                {!isInBookingsPhase && (
-                  <div className="px-4 pb-4 flex flex-col gap-2">
-                    {isLastCampaignStep ? (
-                      <>
-                        <Button
-                          className="w-full"
-                          disabled={isDisplay ? !isCurrentStepComplete : false}
-                          onClick={isDisplay ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
-                        >
-                          {isDisplay ? 'Save campaign' : 'Launch campaign'}
-                        </Button>
-                        <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button className="w-full" disabled={!isCurrentStepComplete} onClick={goToNextStep}>Continue</Button>
-                        {currentStep > 0 ? (
-                          <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
-                        ) : (
-                          <Button variant="ghost" className="w-full">Cancel</Button>
-                        )}
-                      </>
-                    )}
+                {!isInBookingsPhase && isLastCampaignStep && (
+                  <div className="px-4 pb-4">
+                    <Button
+                      className="w-full"
+                      disabled={isDisplay ? !isCurrentStepComplete : false}
+                      onClick={isDisplay ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                    >
+                      {isDisplay ? 'Save campaign' : 'Launch campaign'}
+                    </Button>
                   </div>
                 )}
               </CardSummary>
@@ -1861,9 +1869,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                       </div>
                     </div>
                   </CardSummaryContent>
-                  <div className="px-4 pb-4 flex flex-col gap-2">
-                    {bookingSubStep === null ? (
-                      <>
+                  {(bookingSubStep === null || bookingSubStep === bookingSubStepLabels.length - 1) && (
+                    <div className="px-4 pb-4">
+                      {bookingSubStep === null ? (
                         <Button
                           className="w-full"
                           disabled={bookings.length === 0}
@@ -1871,20 +1879,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                         >
                           Launch campaign
                         </Button>
-                        <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
-                      </>
-                    ) : bookingSubStep < bookingSubStepLabels.length - 1 ? (
-                      <>
-                        <Button className="w-full" onClick={() => setBookingSubStep(s => (s ?? 0) + 1)}>Continue</Button>
-                        <Button variant="outline" className="w-full" onClick={() => bookingSubStep === 0 ? setBookingSubStep(null) : setBookingSubStep(s => (s ?? 1) - 1)}>Back</Button>
-                      </>
-                    ) : (
-                      <>
+                      ) : (
                         <Button className="w-full" onClick={saveBooking}>Create booking</Button>
-                        <Button variant="outline" className="w-full" onClick={() => setBookingSubStep(s => (s ?? 1) - 1)}>Back</Button>
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </CardSummary>
               )}
             </div>

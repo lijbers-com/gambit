@@ -1509,52 +1509,36 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                 <div className="space-y-4">
                   {/* Booking list view */}
                   {bookingSubStep === null && (
-                    <>
-                      {/* Campaign saved banner */}
-                      <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                          <Check size={16} className="text-white" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm text-green-800">Campaign saved</div>
-                          <div className="text-xs text-green-700 mt-0.5">
-                            {campaignName}
-                            {dateRange?.from && dateRange?.to && ` · ${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
-                            {budgetAmount && ` · €${Number(budgetAmount).toLocaleString()}`}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Existing bookings */}
-                      {bookings.length > 0 && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-muted-foreground">
-                            {bookings.length} booking{bookings.length !== 1 ? 's' : ''} added
-                          </div>
-                          {bookings.map((booking, i) => (
-                            <div key={booking.id} className="rounded-xl border bg-white p-4 flex items-center justify-between">
-                              <div>
-                                <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  {booking.startDate ? booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
-                                  {booking.targetValue && ` · ${booking.targetMode === 'inclusive' ? '+' : '–'} ${booking.targetValue}`}
-                                </div>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Bookings</CardTitle>
+                        <CardDescription>Add one or more bookings to your campaign</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {/* Existing bookings */}
+                        {bookings.map((booking, i) => (
+                          <div key={booking.id} className="rounded-lg border bg-slate-50 p-4 flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {booking.startDate ? booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
+                                {booking.targetValue && ` · ${booking.targetMode === 'inclusive' ? '+' : '–'} ${booking.targetValue}`}
                               </div>
-                              <Button variant="outline" size="sm" onClick={() => removeBooking(booking.id)}>Remove</Button>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                            <Button variant="outline" size="sm" onClick={() => removeBooking(booking.id)}>Remove</Button>
+                          </div>
+                        ))}
 
-                      {/* Add booking CTA */}
-                      <button
-                        className="w-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-6 text-center"
-                        onClick={() => setBookingSubStep(0)}
-                      >
-                        <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
-                        <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
-                      </button>
-                    </>
+                        {/* Add booking CTA */}
+                        <button
+                          className="w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-5 text-center"
+                          onClick={() => setBookingSubStep(0)}
+                        >
+                          <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
+                          <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
+                        </button>
+                      </CardContent>
+                    </Card>
                   )}
 
                   {/* Booking sub-wizard */}

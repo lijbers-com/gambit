@@ -182,6 +182,13 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
+    id: 6,
+    name: "Ad CRM",
+    type: "single" as const,
+    icon: { lucide: "Handshake" },
+    url: "/ad-crm",
+  },
+  {
     id: 8,
     name: "Configuration",
     type: "title" as const,

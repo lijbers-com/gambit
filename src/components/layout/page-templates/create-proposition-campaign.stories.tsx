@@ -224,11 +224,7 @@ const getWizardSteps = (propositionType: string) => {
       { id: 'setup', label: 'Setup' },
       { id: 'advertiser', label: 'Advertiser' },
       { id: 'budget', label: 'Run time & budget' },
-      { id: 'booking', label: 'Booking setup' },
-      { id: 'line-targeting', label: 'Targeting' },
-      { id: 'delivery', label: 'Delivery behavior' },
-      { id: 'delivery-objectives', label: 'Delivery objectives' },
-      { id: 'pricing', label: 'Pricing' },
+      { id: 'bookings', label: 'Bookings' },
     ];
   }
   const base = [
@@ -365,6 +361,17 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
 
   // Display-specific steps state
   const isDisplay = propositionType === 'display';
+  // Bookings list (Display)
+  const [bookings, setBookings] = React.useState<{
+    id: string; name: string; startDate?: Date; startTime: string;
+    endDate?: Date; endTime: string; activeDays: string[];
+    targetMode: string; targetKeywordType: string; targetValue: string;
+    optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
+    exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
+    deliveryLimit: boolean; pricingModel: boolean; competeWithRTB: boolean;
+  }[]>([]);
+  const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
+  const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives', 'Pricing'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(undefined);
@@ -399,6 +406,27 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   ];
   const toggleDay = (id: string) => setActiveDays(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
 
+  const saveBooking = () => {
+    setBookings(prev => [...prev, {
+      id: String(Date.now()),
+      name: bookingName, startDate: bookingStartDate, startTime: bookingStartTime,
+      endDate: bookingEndDate, endTime: bookingEndTime, activeDays: [...activeDays],
+      targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
+      optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
+      priorityOverride, reachOverride, deliveryLimit, pricingModel, competeWithRTB,
+    }]);
+    // Reset form for next booking
+    setBookingSubStep(null);
+    setBookingName(''); setBookingStartDate(undefined); setBookingEndDate(undefined);
+    setBookingStartTime('00:00'); setBookingEndTime('23:59');
+    setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
+    setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
+    setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
+    setDeliveryLimit(false); setPricingModel(false); setCompeteWithRTB(false);
+  };
+  const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
+
   // Derived data
   const selectedGoalData = goals.find((g) => g.id === selectedGoal);
   const selectedBrandData = brandOptions.find((b) => b.value === selectedBrand);
@@ -414,7 +442,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
     : selectedGoal !== null && selectedAudiences.length > 0;
   const isKeywordsComplete = isSponsoredProducts ? (selectedKeywords.length > 0 || selectedCategories.length > 0) : true;
 
-  const isBookingComplete = bookingName.trim() !== '' && bookingStartDate !== undefined;
+  // Display-specific derived helpers
+  const displayCampaignSteps = isDisplay ? wizardSteps.filter(s => s.id !== 'bookings') : wizardSteps;
+  const isInBookingsPhase = isDisplay && currentStepId === 'bookings';
+  const isLastCampaignStep = isDisplay ? currentStepId === 'budget' : currentStep === wizardSteps.length - 1;
+
   const isCurrentStepComplete = (() => {
     switch (currentStepId) {
       case 'setup': return isSetupComplete;
@@ -422,11 +454,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
       case 'budget': return isBudgetComplete;
       case 'targeting': return isTargetingComplete;
       case 'keywords': return isKeywordsComplete;
-      case 'booking': return isBookingComplete;
-      case 'line-targeting': return true;
-      case 'delivery': return true;
-      case 'delivery-objectives': return true;
-      case 'pricing': return true;
+      case 'bookings': return bookings.length > 0;
       default: return false;
     }
   })();
@@ -652,38 +680,9 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
         });
         return vals.length > 0 ? vals : null;
       }
-      case 'booking': {
-        const vals: string[] = [];
-        if (bookingName.trim()) vals.push(bookingName);
-        if (bookingStartDate) vals.push(`${bookingStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}`);
-        if (activeDays.length < 7) vals.push(activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', '));
-        return vals.length > 0 ? vals : null;
-      }
-      case 'line-targeting': {
-        const vals: string[] = [];
-        if (lineTargetValue) vals.push(`${lineTargetMode === 'inclusive' ? '+' : '–'} ${lineTargetValue}`);
-        return vals.length > 0 ? vals : null;
-      }
-      case 'delivery': {
-        const vals: string[] = [];
-        if (optimizeForCPC) vals.push('Optimize for CPC');
-        if (userFrequencyCap) vals.push('Frequency cap');
-        if (deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
-        if (exclusivity) vals.push('Exclusivity');
-        return vals.length > 0 ? vals : null;
-      }
-      case 'delivery-objectives': {
-        const vals: string[] = [];
-        if (priorityOverride) vals.push('Priority override');
-        if (reachOverride) vals.push('Reach override');
-        if (deliveryLimit) vals.push('Delivery limit');
-        return vals.length > 0 ? vals : null;
-      }
-      case 'pricing': {
-        const vals: string[] = [];
-        if (pricingModel) vals.push('Custom pricing');
-        if (competeWithRTB) vals.push('Compete with RTB');
-        return vals.length > 0 ? vals : null;
+      case 'bookings': {
+        if (bookings.length === 0) return null;
+        return bookings.map((b, i) => b.name || `Booking ${i + 1}`);
       }
       default:
         return null;
@@ -1098,7 +1097,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
                       <Button disabled={!isBudgetComplete} onClick={goToNextStep}>
-                        Continue
+                        {isDisplay ? 'Save campaign' : 'Continue'}
                       </Button>
                     </div>
                   </CardContent>
@@ -1505,355 +1504,307 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                 </Card>
               )}
 
-              {/* Step: Booking setup (Display only) */}
-              {currentStepId === 'booking' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Booking setup</CardTitle>
-                    <CardDescription>Configure the booking schedule, active days and position</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Booking name */}
-                    <div className="space-y-2">
-                      <Label>Booking name <span className="text-destructive">*</span></Label>
-                      <Input
-                        value={bookingName}
-                        onChange={(e) => setBookingName(e.target.value)}
-                        placeholder="Enter booking name"
-                      />
-                    </div>
-
-                    {/* Schedule */}
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold">Schedule</Label>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm mb-1 flex items-center gap-1.5">
-                            Start date and time <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">!</span>
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <DateRangePicker
-                              dateRange={bookingStartDate ? { from: bookingStartDate } : undefined}
-                              onDateRangeChange={(r) => setBookingStartDate(r?.from)}
-                              placeholder="MM/DD/YYYY"
-                            />
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
-                              <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
-                            </div>
-                          </div>
+              {/* Step: Bookings (Display only) */}
+              {currentStepId === 'bookings' && (
+                <div className="space-y-4">
+                  {/* Booking list view */}
+                  {bookingSubStep === null && (
+                    <>
+                      {/* Campaign saved banner */}
+                      <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                          <Check size={16} className="text-white" />
                         </div>
                         <div>
-                          <label className="block text-sm mb-1">End date and time</label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <DateRangePicker
-                              dateRange={bookingEndDate ? { from: bookingEndDate } : undefined}
-                              onDateRangeChange={(r) => setBookingEndDate(r?.from)}
-                              placeholder="MM/DD/YYYY"
-                            />
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
-                              <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
+                          <div className="font-semibold text-sm text-green-800">Campaign saved</div>
+                          <div className="text-xs text-green-700 mt-0.5">
+                            {campaignName}
+                            {dateRange?.from && dateRange?.to && ` · ${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                            {budgetAmount && ` · €${Number(budgetAmount).toLocaleString()}`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Existing bookings */}
+                      {bookings.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            {bookings.length} booking{bookings.length !== 1 ? 's' : ''} added
+                          </div>
+                          {bookings.map((booking, i) => (
+                            <div key={booking.id} className="rounded-xl border bg-white p-4 flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {booking.startDate ? booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
+                                  {booking.targetValue && ` · ${booking.targetMode === 'inclusive' ? '+' : '–'} ${booking.targetValue}`}
+                                </div>
+                              </div>
+                              <Button variant="outline" size="sm" onClick={() => removeBooking(booking.id)}>Remove</Button>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Active days */}
-                    <div className="rounded-lg border p-4 space-y-1">
-                      <button
-                        className="w-full flex items-center justify-between text-sm font-semibold"
-                        onClick={() => setActiveDaysOpen(v => !v)}
-                      >
-                        Active days
-                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${activeDaysOpen ? '' : '-rotate-90'}`} />
-                      </button>
-                      {activeDaysOpen && (
-                        <div className="pt-3 space-y-3">
-                          <div className="flex gap-2">
-                            {dayLabels.map(day => (
-                              <button
-                                key={day.id}
-                                onClick={() => toggleDay(day.id)}
-                                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-                              >
-                                {day.label}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <span>Select:</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                            <span>·</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                            <span>·</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
-                          </div>
+                          ))}
                         </div>
                       )}
-                    </div>
 
-                    {/* Position */}
-                    <div className="rounded-lg border p-4 space-y-1">
+                      {/* Add booking CTA */}
                       <button
-                        className="w-full flex items-center justify-between text-sm font-semibold"
-                        onClick={() => setPositionOpen(v => !v)}
+                        className="w-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-6 text-center"
+                        onClick={() => setBookingSubStep(0)}
                       >
-                        Position
-                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${positionOpen ? '' : '-rotate-90'}`} />
+                        <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
+                        <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
                       </button>
-                      {positionOpen && (
-                        <div className="pt-3 space-y-3">
-                          <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
-                            {(['channels', 'positions'] as const).map(tab => (
-                              <button
-                                key={tab}
-                                onClick={() => setPositionTab(tab)}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${positionTab === tab ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                              >
-                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </>
+                  )}
+
+                  {/* Booking sub-wizard */}
+                  {bookingSubStep !== null && (
+                    <>
+                      {/* Booking setup step */}
+                      {bookingSubStep === 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Booking setup</CardTitle>
+                            <CardDescription>Configure the booking schedule, active days and position</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                              <Label>Booking name <span className="text-destructive">*</span></Label>
+                              <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
+                            </div>
+                            <div className="space-y-3">
+                              <Label className="text-sm font-semibold">Schedule</Label>
+                              <div>
+                                <label className="block text-sm mb-1 flex items-center gap-1.5">
+                                  Start date and time <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">!</span>
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <DateRangePicker dateRange={bookingStartDate ? { from: bookingStartDate } : undefined} onDateRangeChange={(r) => setBookingStartDate(r?.from)} placeholder="MM/DD/YYYY" />
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
+                                    <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm mb-1">End date and time</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <DateRangePicker dateRange={bookingEndDate ? { from: bookingEndDate } : undefined} onDateRangeChange={(r) => setBookingEndDate(r?.from)} placeholder="MM/DD/YYYY" />
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Calendar className="w-4 h-4" /></span>
+                                    <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="rounded-lg border p-4 space-y-1">
+                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setActiveDaysOpen(v => !v)}>
+                                Active days <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${activeDaysOpen ? '' : '-rotate-90'}`} />
                               </button>
-                            ))}
-                          </div>
-                          <Input
-                            value={positionSearch}
-                            onChange={(e) => setPositionSearch(e.target.value)}
-                            placeholder="Search..."
-                            className="w-full"
-                          />
-                          <div className="text-xs text-muted-foreground">
-                            {positionTab === 'positions' ? 'Search and select ad positions' : 'Search and select channels'}
-                          </div>
-                        </div>
+                              {activeDaysOpen && (
+                                <div className="pt-3 space-y-3">
+                                  <div className="flex gap-2">
+                                    {dayLabels.map(day => (
+                                      <button key={day.id} onClick={() => toggleDay(day.id)}
+                                        className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                        {day.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <span>Select:</span>
+                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
+                                    <span>·</span>
+                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                                    <span>·</span>
+                                    <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="rounded-lg border p-4 space-y-1">
+                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setPositionOpen(v => !v)}>
+                                Position <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${positionOpen ? '' : '-rotate-90'}`} />
+                              </button>
+                              {positionOpen && (
+                                <div className="pt-3 space-y-3">
+                                  <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
+                                    {(['channels', 'positions'] as const).map(tab => (
+                                      <button key={tab} onClick={() => setPositionTab(tab)}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${positionTab === tab ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search..." className="w-full" />
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
-                    </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button disabled={!isBookingComplete} onClick={goToNextStep}>Continue</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      {/* Targeting step */}
+                      {bookingSubStep === 1 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Targeting</CardTitle>
+                            <CardDescription>Set inclusive or exclusive targeting rules for this booking</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="rounded-lg border p-4 space-y-4">
+                              <Label className="text-sm font-semibold">Targets</Label>
+                              <div className="flex items-center justify-between">
+                                <div className="flex rounded-lg bg-muted p-1 gap-1">
+                                  {(['inclusive', 'exclusive'] as const).map(mode => (
+                                    <button key={mode} onClick={() => setLineTargetMode(mode)}
+                                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${lineTargetMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-1.5" />Download template</Button>
+                                  <Button size="sm"><Upload className="w-4 h-4 mr-1.5" />Upload CSV</Button>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <select value={lineTargetKeywordType} onChange={(e) => setLineTargetKeywordType(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background min-w-[150px]">
+                                  {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                                <select value={lineTargetValue} onChange={(e) => setLineTargetValue(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background flex-1">
+                                  <option value="">Select target</option>
+                                  {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
 
-              {/* Step: Targeting (Display only) */}
-              {currentStepId === 'line-targeting' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Targeting</CardTitle>
-                    <CardDescription>Set inclusive or exclusive targeting rules for this booking</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="rounded-lg border p-4 space-y-4">
-                      <Label className="text-sm font-semibold">Targets</Label>
-                      <div className="flex items-center justify-between">
-                        <div className="flex rounded-lg bg-muted p-1 gap-1">
-                          {(['inclusive', 'exclusive'] as const).map(mode => (
-                            <button
-                              key={mode}
-                              onClick={() => setLineTargetMode(mode)}
-                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${lineTargetMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                            >
-                              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-1.5" />Download template</Button>
-                          <Button size="sm"><Upload className="w-4 h-4 mr-1.5" />Upload CSV</Button>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <select
-                          value={lineTargetKeywordType}
-                          onChange={(e) => setLineTargetKeywordType(e.target.value)}
-                          className="border rounded-md px-3 py-2 text-sm bg-background min-w-[150px]"
-                        >
-                          {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={lineTargetValue}
-                          onChange={(e) => setLineTargetValue(e.target.value)}
-                          className="border rounded-md px-3 py-2 text-sm bg-background flex-1"
-                        >
-                          <option value="">Select target</option>
-                          {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button onClick={goToNextStep}>Continue</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      {/* Delivery behavior step */}
+                      {bookingSubStep === 2 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Delivery behavior</CardTitle>
+                            <CardDescription>Configure how your ads are delivered</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {[
+                              { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
+                              { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap },
+                            ].map(({ label, checked, onChange }) => (
+                              <div key={label} className="flex items-center justify-between p-4 rounded-lg border">
+                                <span className="font-medium text-sm">{label}</span>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+                                  <Switch checked={checked} onCheckedChange={onChange} />
+                                </div>
+                              </div>
+                            ))}
+                            <div className="rounded-lg border p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-sm">Delivery method</span>
+                                <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+                              </div>
+                              <select value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm bg-background">
+                                {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                              </select>
+                              <p className="text-xs text-muted-foreground">Follows the default setting that is configured for your account (Frontloaded).</p>
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Exclusivity</span>
+                              <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
 
-              {/* Step: Delivery behavior (Display only) */}
-              {currentStepId === 'delivery' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Delivery behavior</CardTitle>
-                    <CardDescription>Configure how your ads are delivered</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {[
-                      { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC, info: true },
-                      { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap, info: true },
-                    ].map(({ label, checked, onChange, info }) => (
-                      <div key={label} className="flex items-center justify-between p-4 rounded-lg border">
-                        <span className="font-medium text-sm">{label}</span>
-                        <div className="flex items-center gap-3">
-                          {info && <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>}
-                          <Switch checked={checked} onCheckedChange={onChange} />
-                        </div>
-                      </div>
-                    ))}
-                    <div className="rounded-lg border p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">Delivery method</span>
-                        <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
-                      </div>
-                      <select
-                        value={deliveryMethod}
-                        onChange={(e) => setDeliveryMethod(e.target.value)}
-                        className="w-full border rounded-md px-3 py-2 text-sm bg-background"
-                      >
-                        {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground">Follows the default setting that is configured for your account (Frontloaded).</p>
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Exclusivity</span>
-                      <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button onClick={goToNextStep}>Continue</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      {/* Delivery objectives step */}
+                      {bookingSubStep === 3 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Delivery objectives</CardTitle>
+                            <CardDescription>Override delivery priority, reach and impression limits</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Priority</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
+                                <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Reach</span>
+                              <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Delivery limit</span>
+                              <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
 
-              {/* Step: Delivery objectives (Display only) */}
-              {currentStepId === 'delivery-objectives' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Delivery objectives</CardTitle>
-                    <CardDescription>Override delivery priority, reach and impression limits</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Priority</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
-                        <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Reach</span>
-                      <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Delivery limit</span>
-                      <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      <Button onClick={goToNextStep}>Continue</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Step: Pricing (Display only) */}
-              {currentStepId === 'pricing' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Pricing</CardTitle>
-                    <CardDescription>Set the pricing model and RTB competition settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Pricing model</span>
-                      <Switch checked={pricingModel} onCheckedChange={setPricingModel} />
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <span className="font-medium text-sm">Compete with RTB</span>
-                      <Switch checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      {/* Pricing step */}
+                      {bookingSubStep === 4 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Pricing</CardTitle>
+                            <CardDescription>Set the pricing model and RTB competition settings</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Pricing model</span>
+                              <Switch checked={pricingModel} onCheckedChange={setPricingModel} />
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                              <span className="font-medium text-sm">Compete with RTB</span>
+                              <Switch checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
 
             </div>
 
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
+              {/* Campaign summary card — always visible */}
               <CardSummary>
                 <CardHeader>
                   <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
                   <div className="relative pl-12">
-                    {/* Vertical timeline line */}
                     <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-
                     <div className="space-y-4">
-                      {wizardSteps.map((step, index) => {
-                        const status = getStepStatus(index);
+                      {displayCampaignSteps.map((step, index) => {
+                        const status = isInBookingsPhase ? 'completed' : getStepStatus(index);
                         const stepValues = getStepValues(step.id);
-
                         return (
                           <div key={step.id} className="relative flex items-start -ml-12">
-                            {/* Circle on the timeline */}
                             <div className="w-10 flex justify-center">
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                                  status === 'completed'
-                                    ? 'bg-primary text-primary-foreground'
-                                    : status === 'active'
-                                      ? 'bg-background text-primary border border-primary'
-                                      : 'bg-background text-muted-foreground border border-border'
-                                }`}
-                              >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
                                 {status === 'completed' ? <Check size={14} /> : index + 1}
                               </div>
                             </div>
-                            {/* Step content */}
                             <div className="ml-3 flex-1 min-w-0 pt-1">
-                              <button
-                                type="button"
-                                className={`text-sm text-left ${
-                                  status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'
-                                } ${status === 'completed' ? 'hover:underline cursor-pointer' : ''}`}
-                                onClick={() => {
-                                  if (status === 'completed') setCurrentStep(index);
-                                }}
-                                disabled={status !== 'completed'}
-                              >
+                              <button type="button"
+                                className={`text-sm text-left ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'} ${status === 'completed' && !isInBookingsPhase ? 'hover:underline cursor-pointer' : ''}`}
+                                onClick={() => { if (status === 'completed' && !isInBookingsPhase) goToStepById(step.id); }}
+                                disabled={status !== 'completed' || isInBookingsPhase}>
                                 {step.label}
                               </button>
-                              {(status === 'completed' || status === 'active') && stepValues && stepValues.length > 0 ? (
-                                <div className="mt-1 space-y-0.5">
-                                  {stepValues.map((v, i) => (
-                                    <div key={i} className="text-xs text-muted-foreground">{v}</div>
-                                  ))}
-                                </div>
+                              {status === 'completed' && stepValues ? (
+                                <div className="text-sm text-muted-foreground mt-0.5">{Array.isArray(stepValues) ? stepValues.join(', ') : stepValues}</div>
                               ) : status === 'active' ? (
-                                <div className="text-xs text-muted-foreground italic mt-0.5">
-                                  Not filled in
-                                </div>
+                                <div className="text-xs text-muted-foreground italic mt-0.5">{step.id === 'setup' ? 'Not filled in' : 'Not selected'}</div>
                               ) : null}
                             </div>
                           </div>
@@ -1862,32 +1813,96 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </div>
                   </div>
                 </CardSummaryContent>
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  {currentStep < wizardSteps.length - 1 ? (
-                    <>
-                      <Button className="w-full" disabled={!isCurrentStepComplete} onClick={goToNextStep}>Continue</Button>
-                      {currentStep > 0 ? (
+                {!isInBookingsPhase && (
+                  <div className="px-4 pb-4 flex flex-col gap-2">
+                    {isLastCampaignStep ? (
+                      <>
+                        <Button
+                          className="w-full"
+                          disabled={isDisplay ? !isCurrentStepComplete : false}
+                          onClick={isDisplay ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                        >
+                          {isDisplay ? 'Save campaign' : 'Launch campaign'}
+                        </Button>
                         <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
-                      ) : (
-                        <Button variant="ghost" className="w-full">Cancel</Button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          const name = campaignName || 'New Campaign';
-                          window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`;
-                        }}
-                      >
-                        Launch campaign
-                      </Button>
-                      <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
-                    </>
-                  )}
-                </div>
+                      </>
+                    ) : (
+                      <>
+                        <Button className="w-full" disabled={!isCurrentStepComplete} onClick={goToNextStep}>Continue</Button>
+                        {currentStep > 0 ? (
+                          <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
+                        ) : (
+                          <Button variant="ghost" className="w-full">Cancel</Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </CardSummary>
+
+              {/* Booking card — only shown after campaign is saved */}
+              {isInBookingsPhase && (
+                <CardSummary>
+                  <CardHeader>
+                    <CardSummaryTitle>
+                      {bookingSubStep === null
+                        ? (bookings.length > 0 ? `${bookings.length} booking${bookings.length !== 1 ? 's' : ''}` : 'Bookings')
+                        : 'New booking'}
+                    </CardSummaryTitle>
+                  </CardHeader>
+                  <CardSummaryContent>
+                    <div className="relative pl-12">
+                      <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
+                      <div className="space-y-4">
+                        {bookingSubStepLabels.map((label, index) => {
+                          const status: 'completed' | 'active' | 'pending' =
+                            bookingSubStep === null ? 'pending'
+                            : index < bookingSubStep ? 'completed'
+                            : index === bookingSubStep ? 'active'
+                            : 'pending';
+                          return (
+                            <div key={label} className="relative flex items-start -ml-12">
+                              <div className="w-10 flex justify-center">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
+                                  {status === 'completed' ? <Check size={14} /> : index + 1}
+                                </div>
+                              </div>
+                              <div className="ml-3 flex-1 min-w-0 pt-1">
+                                <div className={`text-sm ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'}`}>{label}</div>
+                                {status === 'active' && <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </CardSummaryContent>
+                  <div className="px-4 pb-4 flex flex-col gap-2">
+                    {bookingSubStep === null ? (
+                      <>
+                        <Button
+                          className="w-full"
+                          disabled={bookings.length === 0}
+                          onClick={() => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                        >
+                          Launch campaign
+                        </Button>
+                        <Button variant="outline" className="w-full" onClick={goToPrevStep}>Back</Button>
+                      </>
+                    ) : bookingSubStep < bookingSubStepLabels.length - 1 ? (
+                      <>
+                        <Button className="w-full" onClick={() => setBookingSubStep(s => (s ?? 0) + 1)}>Continue</Button>
+                        <Button variant="outline" className="w-full" onClick={() => bookingSubStep === 0 ? setBookingSubStep(null) : setBookingSubStep(s => (s ?? 1) - 1)}>Back</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button className="w-full" onClick={saveBooking}>Create booking</Button>
+                        <Button variant="outline" className="w-full" onClick={() => setBookingSubStep(s => (s ?? 1) - 1)}>Back</Button>
+                      </>
+                    )}
+                  </div>
+                </CardSummary>
+              )}
             </div>
           </div>
         </div>

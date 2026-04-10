@@ -168,6 +168,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [pendingBudget, setPendingBudget] = React.useState<string | null>(null);
     const [internalCampaignId, setInternalCampaignId] = React.useState(campaignIdProp);
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
+    const [settingsDirty, setSettingsDirty] = React.useState(false);
 
     // Available proposition types for adding new campaigns
     const propositionTypes = [
@@ -1451,9 +1452,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         ) : (
                         <div className="space-y-5">
                           {internalCampaignId && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">ID</span>
-                              <span className="text-sm font-medium text-foreground">{internalCampaignId}</span>
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">ID</Label>
+                              <input
+                                type="text"
+                                value={internalCampaignId}
+                                disabled
+                                className="w-full h-9 bg-muted border border-border px-3 py-1 rounded-md text-sm text-muted-foreground cursor-not-allowed"
+                              />
                             </div>
                           )}
                           <div className="space-y-2">
@@ -1471,6 +1477,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               onChange={(val) => {
                                 setInternalAdvertiser(val);
                                 onAdvertiserChange?.(val);
+                                setSettingsDirty(true);
                               }}
                               placeholder="Select advertiser"
                               className="bg-background border-border"
@@ -1485,6 +1492,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                                 value={totalBudgetInput}
                                 onChange={(e) => {
                                   setTotalBudgetInput(e.target.value);
+                                  setSettingsDirty(true);
                                   const newTotal = parseFloat(e.target.value) || 0;
                                   const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
                                   const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
@@ -1556,7 +1564,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               { label: 'Premium shoppers', value: 'premium-shoppers' },
                             ]}
                             value={audience}
-                            onChange={onAudienceChange || (() => {})}
+                            onChange={(val) => { (onAudienceChange || (() => {}))(val); setSettingsDirty(true); }}
                             placeholder="Select audience"
                             className="bg-background border-border"
                           />
@@ -1578,12 +1586,27 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           <Label className="text-sm text-muted-foreground">Run time</Label>
                           <DateRangePicker
                             dateRange={dateRange}
-                            onDateRangeChange={onDateRangeChange}
+                            onDateRangeChange={(range) => {
+                              onDateRangeChange?.(range);
+                              setSettingsDirty(true);
+                            }}
                             placeholder="Select campaign dates"
                             className="bg-background border-border"
                             showPresets={true}
                           />
                         </div>
+
+                        {/* Save button (non-guided, when settings changed) */}
+                        {!isGuidedSettingsPhase && settingsDirty && (
+                          <div className="pt-1">
+                            <Button
+                              className="w-full"
+                              onClick={() => setSettingsDirty(false)}
+                            >
+                              Save settings
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Guided setup: Cancel + Continue buttons */}
                         {isGuidedSettingsPhase && (

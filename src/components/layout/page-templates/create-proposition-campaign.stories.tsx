@@ -2104,40 +2104,6 @@ const SimplifiedSPWizard = () => {
         }}
       >
         <div className="space-y-3">
-          {/* Metric cards */}
-          <MetricRow
-            metrics={[
-              {
-                key: 'budget',
-                label: 'Budget',
-                value: budget.trim() !== '' ? `€${Number(budget).toLocaleString()}` : '-',
-                subMetric: budget.trim() !== '' ? 'Total campaign budget' : 'No budget set',
-              },
-              {
-                key: 'advertiser',
-                label: 'Advertiser',
-                value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? '-',
-                subMetric: 'Selected advertiser',
-              },
-              {
-                key: 'runtime',
-                label: 'Run time',
-                value: startDate ? (endDate ? `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} days` : 'Open-ended') : '-',
-                subMetric: startDate ? `${formatDate(startDate)}${endDate ? ` – ${formatDate(endDate)}` : ''}` : 'No dates selected',
-              },
-              {
-                key: 'cpc',
-                label: 'CPC bid',
-                value: biddingCPC.trim() !== '' ? `€${biddingCPC}` : '-',
-                subMetric: 'Cost per click',
-              },
-            ]}
-            selectedKeys={['budget', 'advertiser', 'runtime', 'cpc']}
-            maxVisible={4}
-            defaultVariant="default"
-            removable={false}
-          />
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0 space-y-4">

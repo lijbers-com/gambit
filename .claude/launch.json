@@ -3,16 +3,23 @@
   "configurations": [
     {
       "name": "nextjs-dev",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["next", "dev"],
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["node_modules/.bin/next", "dev"],
       "port": 3000,
       "autoPort": true
     },
     {
       "name": "storybook",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["storybook", "dev", "-p", "6006"],
-      "port": 6006
+      "runtimeExecutable": "/usr/local/bin/npm",
+      "runtimeArgs": ["run", "storybook"],
+      "port": 6006,
+      "autoPort": true
+    },
+    {
+      "name": "storybook-6007",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["node_modules/.bin/storybook", "dev", "-p", "6007", "--no-open", "--ci"],
+      "port": 6007
     }
   ]
 }

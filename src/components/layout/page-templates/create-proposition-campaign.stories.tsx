@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { SelectionList } from '@/components/ui/selection-list';
-import { DateRangePicker } from '@/components/ui/date-picker';
+import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -2005,6 +2005,13 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
 
 // --- Simplified SP Wizard (V2: 2 steps: Campaign Details + Booking) ---
 
+const walletOptions = [
+  { label: 'Summer 2026 Wallet – PepsiCo', value: 'summer-wallet' },
+  { label: 'Q3 Trade Budget – Nestlé', value: 'q3-wallet' },
+  { label: 'Holiday Wallet – Heineken', value: 'holiday-wallet' },
+  { label: 'Core Brand Wallet – Unilever', value: 'core-wallet' },
+];
+
 const SimplifiedSPWizard = () => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -2013,111 +2020,48 @@ const SimplifiedSPWizard = () => {
 
   const wizardSteps = [
     { id: 'campaign-details', label: 'Campaign details' },
-    { id: 'bookings', label: 'Booking' },
+    { id: 'booking', label: 'Booking' },
   ];
 
   const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepId = wizardSteps[currentStep]?.id;
 
-  // Campaign details state
+  // ── Step 1: Campaign details ──
   const [campaignName, setCampaignName] = React.useState('');
-  const [poNumber, setPoNumber] = React.useState('');
-  const [selectedMediaPlan, setSelectedMediaPlan] = React.useState('');
+  const [externalId, setExternalId] = React.useState('');
+  const [budget, setBudget] = React.useState('');
   const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
-  const [selectedBrand, setSelectedBrand] = React.useState('');
-  const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
-  const [retailProductSearch, setRetailProductSearch] = React.useState('');
-  const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
-  const [budgetAmount, setBudgetAmount] = React.useState('');
+  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+
+  // ── Step 2: Booking ──
+  // General information card
+  const [bookingCampaignName, setBookingCampaignName] = React.useState('');
+  const [selectedWallet, setSelectedWallet] = React.useState('');
+  const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(undefined);
+  const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(undefined);
+  // Budget and bidding card
+  const [totalBudget, setTotalBudget] = React.useState('');
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [biddingCPC, setBiddingCPC] = React.useState('');
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
+  // Targeting card
+  const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
 
-  // Booking state
-  const [bookings, setBookings] = React.useState<{
-    id: string; name: string; startDate?: Date; startTime: string;
-    endDate?: Date; endTime: string; activeDays: string[];
-    targetMode: string; targetKeywordType: string; targetValue: string;
-    optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
-    exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
-    deliveryLimit: boolean; pricingModel: boolean; competeWithRTB: boolean;
-  }[]>([]);
-  const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives', 'Pricing'];
-  const [bookingName, setBookingName] = React.useState('');
-  const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
-  const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
-  const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
-  const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-  const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
-  const [positionOpen, setPositionOpen] = React.useState(true);
-  const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
-  const [positionSearch, setPositionSearch] = React.useState('');
-  const [lineTargetMode, setLineTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
-  const [lineTargetKeywordType, setLineTargetKeywordType] = React.useState('Search Keyword');
-  const [lineTargetValue, setLineTargetValue] = React.useState('');
-  const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
-  const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
-  const [deliveryMethod, setDeliveryMethod] = React.useState('Account setting');
-  const [exclusivity, setExclusivity] = React.useState(false);
-  const [priorityOverride, setPriorityOverride] = React.useState(false);
-  const [reachOverride, setReachOverride] = React.useState(false);
-  const [deliveryLimit, setDeliveryLimit] = React.useState(false);
-  const [pricingModel, setPricingModel] = React.useState(false);
-  const [competeWithRTB, setCompeteWithRTB] = React.useState(false);
+  // Completion checks
+  const isCampaignDetailsComplete =
+    campaignName.trim() !== '' &&
+    budget.trim() !== '' &&
+    selectedAdvertiser !== '' &&
+    startDate !== undefined;
 
-  const dayLabels = [
-    { id: 'mo', label: 'Mo' }, { id: 'tu', label: 'Tu' }, { id: 'we', label: 'We' },
-    { id: 'th', label: 'Th' }, { id: 'fr', label: 'Fr' }, { id: 'sa', label: 'Sa' }, { id: 'su', label: 'Su' },
-  ];
-  const toggleDay = (id: string) => setActiveDays(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
-
-  const saveBooking = () => {
-    setBookings(prev => [...prev, {
-      id: String(Date.now()),
-      name: bookingName, startDate: bookingDateRange?.from, startTime: bookingStartTime,
-      endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
-      targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
-      optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
-      priorityOverride, reachOverride, deliveryLimit, pricingModel, competeWithRTB,
-    }]);
-    setBookingSubStep(null);
-    setBookingName(''); setBookingDateRange(undefined);
-    setBookingStartTime('00:00'); setBookingEndTime('23:59');
-    setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-    setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
-    setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
-    setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
-    setDeliveryLimit(false); setPricingModel(false); setCompeteWithRTB(false);
-  };
-  const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
-
-  // Derived
-  const filteredRetailProducts = retailProducts.filter(product =>
-    product.name.toLowerCase().includes(retailProductSearch.toLowerCase()) ||
-    product.id.includes(retailProductSearch)
-  );
-  const handleRetailProductSelect = (product: { id: string; name: string }) => {
-    if (!selectedRetailProducts.includes(product.id)) setSelectedRetailProducts([...selectedRetailProducts, product.id]);
-    setRetailProductSearch(''); setShowRetailProductResults(false);
-  };
-  const removeRetailProduct = (productId: string) => setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('[data-dropdown-container]')) setShowRetailProductResults(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const isCampaignDetailsComplete = campaignName.trim() !== '' && selectedBrand !== '' &&
-    budgetAmount.trim() !== '' && dailyBudget.trim() !== '' && biddingCPC.trim() !== '' &&
-    dateRange?.from !== undefined && dateRange?.to !== undefined;
-
-  const isInBookingsPhase = currentStepId === 'bookings';
+  const isBookingComplete =
+    bookingCampaignName.trim() !== '' &&
+    selectedWallet !== '' &&
+    bookingStartDate !== undefined &&
+    totalBudget.trim() !== '' &&
+    dailyBudget.trim() !== '' &&
+    biddingCPC.trim() !== '';
 
   const getStepStatus = (stepIndex: number): 'completed' | 'active' | 'pending' => {
     if (stepIndex < currentStep) return 'completed';
@@ -2127,17 +2071,23 @@ const SimplifiedSPWizard = () => {
 
   const getCampaignDetailsSummary = (): string[] => {
     const vals: string[] = [];
-    const mediaPlanData = mediaPlanOptions.find(m => m.value === selectedMediaPlan);
-    if (mediaPlanData) vals.push(mediaPlanData.label);
     if (campaignName.trim()) vals.push(campaignName);
-    const brandData = brandOptions.find(b => b.value === selectedBrand);
-    if (brandData) vals.push(brandData.label);
-    if (dateRange?.from && dateRange?.to) {
-      vals.push(`${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`);
-    }
-    if (budgetAmount.trim()) vals.push(`€${budgetAmount}`);
+    const advData = advertiserOptions.find(a => a.value === selectedAdvertiser);
+    if (advData) vals.push(advData.label);
+    if (budget.trim()) vals.push(`€${budget}`);
+    if (startDate) vals.push(startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
     return vals;
   };
+
+  const getBookingSummary = (): string[] => {
+    const vals: string[] = [];
+    if (bookingCampaignName.trim()) vals.push(bookingCampaignName);
+    if (totalBudget.trim()) vals.push(`€${totalBudget}`);
+    if (selectedLocalBrands.length > 0) vals.push(`${selectedLocalBrands.length} brand${selectedLocalBrands.length !== 1 ? 's' : ''}`);
+    return vals;
+  };
+
+  const formatDate = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
 
   return (
     <MenuContextProvider>
@@ -2160,22 +2110,20 @@ const SimplifiedSPWizard = () => {
               {
                 key: 'budget',
                 label: 'Budget',
-                value: budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : '-',
-                subMetric: budgetAmount.trim() !== ''
-                  ? (dateRange?.from && dateRange?.to
-                    ? `€${(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(0)}/day`
-                    : 'No dates set')
-                  : 'No budget set',
+                value: budget.trim() !== '' ? `€${Number(budget).toLocaleString()}` : '-',
+                subMetric: budget.trim() !== '' ? 'Total campaign budget' : 'No budget set',
+              },
+              {
+                key: 'advertiser',
+                label: 'Advertiser',
+                value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? '-',
+                subMetric: 'Selected advertiser',
               },
               {
                 key: 'runtime',
                 label: 'Run time',
-                value: dateRange?.from && dateRange?.to
-                  ? `${Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days`
-                  : '-',
-                subMetric: dateRange?.from
-                  ? `${dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}${dateRange.to ? ` – ${dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}` : ''}`
-                  : 'No dates selected',
+                value: startDate ? (endDate ? `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} days` : 'Open-ended') : '-',
+                subMetric: startDate ? `${formatDate(startDate)}${endDate ? ` – ${formatDate(endDate)}` : ''}` : 'No dates selected',
               },
               {
                 key: 'cpc',
@@ -2183,14 +2131,8 @@ const SimplifiedSPWizard = () => {
                 value: biddingCPC.trim() !== '' ? `€${biddingCPC}` : '-',
                 subMetric: 'Cost per click',
               },
-              {
-                key: 'bookings',
-                label: 'Bookings',
-                value: bookings.length > 0 ? String(bookings.length) : '-',
-                subMetric: bookings.length > 0 ? `${bookings.length} booking${bookings.length !== 1 ? 's' : ''} added` : 'No bookings yet',
-              },
             ]}
-            selectedKeys={['budget', 'runtime', 'cpc', 'bookings']}
+            selectedKeys={['budget', 'advertiser', 'runtime', 'cpc']}
             maxVisible={4}
             defaultVariant="default"
             removable={false}
@@ -2198,472 +2140,251 @@ const SimplifiedSPWizard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main content */}
-            <div className="lg:col-span-2 min-w-0">
+            <div className="lg:col-span-2 min-w-0 space-y-4">
 
-              {/* Step 1: Campaign Details */}
+              {/* ── Step 1: Campaign details ── */}
               {currentStepId === 'campaign-details' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Campaign details</CardTitle>
-                    <CardDescription>
-                      Fill in all the details for your sponsored products campaign
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-
-                      {/* Media plan */}
-                      <div className="space-y-2">
-                        <Label>Media plan <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <CardContent className="pt-6">
+                    {/* Row 1: Name + External ID */}
+                    <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="v2-name">Name <span className="text-destructive">*</span></Label>
                         <Input
-                          dropdown
-                          options={mediaPlanOptions}
-                          value={selectedMediaPlan}
-                          onChange={(value: string) => setSelectedMediaPlan(value)}
-                          placeholder="Select a media plan"
-                        />
-                        <div className="text-xs text-muted-foreground">Link this campaign to an existing media plan</div>
-                      </div>
-
-                      {/* Campaign name */}
-                      <div className="space-y-2">
-                        <Label htmlFor="sp-v2-campaign-name">Campaign name <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-v2-campaign-name"
-                          placeholder="e.g. Summer Sale 2026"
+                          id="v2-name"
+                          placeholder="e.g. 11743347_SL_MS_Powerade_Q4_2026"
                           value={campaignName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
-                          hint="Give your campaign a descriptive name to easily identify it later"
                         />
                       </div>
-
-                      {/* PO number */}
-                      <div className="space-y-2">
-                        <Label htmlFor="sp-v2-po-number">PO number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="v2-ext-id">External ID <span className="text-destructive">*</span></Label>
                         <Input
-                          id="sp-v2-po-number"
-                          placeholder="e.g. PO-123456"
-                          value={poNumber}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
+                          id="v2-ext-id"
+                          placeholder="e.g. 11743347"
+                          value={externalId}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExternalId(e.target.value)}
                         />
                       </div>
+                    </div>
 
-                      <div className="border-t pt-6 space-y-2">
-                        <div className="text-sm font-semibold text-foreground mb-4">Advertiser</div>
-
-                        {/* Advertiser */}
-                        <div className="space-y-2">
-                          <Label>Advertiser</Label>
-                          <Input
-                            dropdown
-                            options={advertiserOptions}
-                            value={selectedAdvertiser}
-                            onChange={(value: string) => setSelectedAdvertiser(value)}
-                            placeholder="Select an advertiser"
-                          />
-                        </div>
-
-                        {/* Brand */}
-                        <div className="space-y-2 pt-2">
-                          <Label>Brand <span className="text-destructive">*</span></Label>
-                          <Input
-                            dropdown
-                            options={brandOptions}
-                            value={selectedBrand}
-                            onChange={(value: string) => setSelectedBrand(value)}
-                            placeholder="Select a brand"
-                          />
-                          <div className="text-xs text-muted-foreground">Choose the brand this campaign will advertise for</div>
-                        </div>
-
-                        {/* SKU */}
-                        <div className="space-y-2 pt-2">
-                          <Label>SKU <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                          <div className="relative" data-dropdown-container>
-                            <SearchInput
-                              value={retailProductSearch}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                setRetailProductSearch(e.target.value);
-                                setShowRetailProductResults(e.target.value.length > 0);
-                              }}
-                              onClick={() => setShowRetailProductResults(true)}
-                              placeholder="Select product by name or ID..."
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {!retailProductSearch && (
-                                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">Suggestions</div>
-                                )}
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                    <div
-                                      key={product.id}
-                                      className={`p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 ${selectedRetailProducts.includes(product.id) ? 'bg-primary/5' : ''}`}
-                                      onClick={() => handleRetailProductSelect(product)}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm">{product.name}</span>
-                                        <span className="text-xs text-muted-foreground">#{product.id}</span>
-                                      </div>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-sm text-muted-foreground">No products found</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <SelectionList
-                            variant="list"
-                            items={selectedRetailProducts
-                              .map((id) => retailProducts.find((p) => p.id === id))
-                              .filter(Boolean)
-                              .map((p) => ({ id: p!.id, label: p!.name, meta: `#${p!.id}`, image: p!.image }))}
-                            onRemove={(id) => removeRetailProduct(id)}
-                            className="mt-2"
-                          />
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              {selectedRetailProducts.length} SKU{selectedRetailProducts.length !== 1 ? 's' : ''} selected
-                            </div>
-                          )}
-                        </div>
+                    {/* Row 2: Budget + Advertiser */}
+                    <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="v2-budget">Budget <span className="text-destructive">*</span></Label>
+                        <Input
+                          id="v2-budget"
+                          type="number"
+                          placeholder="e.g. 200000"
+                          value={budget}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
+                        />
                       </div>
+                      <div className="space-y-1.5">
+                        <Label>Advertiser <span className="text-destructive">*</span></Label>
+                        <Input
+                          dropdown
+                          options={advertiserOptions}
+                          value={selectedAdvertiser}
+                          onChange={(value: string) => setSelectedAdvertiser(value)}
+                          placeholder="Select an advertiser"
+                        />
+                      </div>
+                    </div>
 
-                      <div className="border-t pt-6 space-y-2">
-                        <div className="text-sm font-semibold text-foreground mb-4">Run time & budget</div>
+                    {/* Row 3: Start Date + End Date */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="space-y-1.5">
+                        <Label>Start Date <span className="text-destructive">*</span></Label>
+                        <DatePicker
+                          date={startDate}
+                          onDateChange={setStartDate}
+                          placeholder="Select start date"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>End Date</Label>
+                        <DatePicker
+                          date={endDate}
+                          onDateChange={setEndDate}
+                          placeholder="Select end date"
+                        />
+                      </div>
+                    </div>
 
-                        {/* Run time */}
-                        <div className="space-y-2">
-                          <Label>Run time <span className="text-destructive">*</span></Label>
-                          <DateRangePicker
-                            dateRange={dateRange}
-                            onDateRangeChange={setDateRange}
-                            placeholder="Select start and end date"
-                            showPresets
-                          />
-                          <div className="text-xs text-muted-foreground">Your campaign will automatically start and stop on the selected dates</div>
+                    {/* Metadata divider */}
+                    <div className="border-t pt-4 pb-2">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Created by:</span>
+                          <span className="ml-2 text-foreground">—</span>
                         </div>
-
-                        {/* Budget fields */}
-                        <div className="grid grid-cols-3 gap-4 pt-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="sp-v2-budget">Total budget <span className="text-destructive">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="sp-v2-budget"
-                                type="number"
-                                placeholder="e.g. 5000"
-                                value={budgetAmount}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="sp-v2-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="sp-v2-daily-budget"
-                                type="number"
-                                placeholder="e.g. 200"
-                                value={dailyBudget}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="sp-v2-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="sp-v2-cpc"
-                                type="number"
-                                placeholder="e.g. 0.50"
-                                value={biddingCPC}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
-                          </div>
+                        <div>
+                          <span className="text-muted-foreground">Created:</span>
+                          <span className="ml-2 text-foreground">—</span>
                         </div>
-
-                        {/* Budget notification */}
-                        <div className="flex items-center justify-between p-4 rounded-lg border mt-2">
-                          <span className="text-sm">Send me an email with budget notifications</span>
-                          <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
+                        <div>
+                          <span className="text-muted-foreground">Updated by:</span>
+                          <span className="ml-2 text-foreground">—</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Updated:</span>
+                          <span className="ml-2 text-foreground">—</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost">Cancel</Button>
-                      <Button disabled={!isCampaignDetailsComplete} onClick={() => setCurrentStep(1)}>
-                        Continue
+                    <div className="flex justify-end pt-4">
+                      <Button
+                        disabled={!isCampaignDetailsComplete}
+                        onClick={() => setCurrentStep(1)}
+                        className="flex items-center gap-2"
+                      >
+                        Save
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Step 2: Bookings */}
-              {currentStepId === 'bookings' && (
+              {/* ── Step 2: Booking (3 cards) ── */}
+              {currentStepId === 'booking' && (
                 <div className="space-y-4">
-                  {bookingSubStep === null && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Booking</CardTitle>
-                        <CardDescription>Add one or more bookings to your campaign</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {bookings.map((booking, i) => (
-                          <div key={booking.id} className="rounded-lg border bg-slate-50 p-4 flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {booking.startDate ? booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
-                                {booking.targetValue && ` · ${booking.targetMode === 'inclusive' ? '+' : '–'} ${booking.targetValue}`}
-                              </div>
-                            </div>
-                            <Button variant="outline" size="sm" onClick={() => removeBooking(booking.id)}>Remove</Button>
-                          </div>
-                        ))}
-                        <button
-                          className="w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-5 text-center"
-                          onClick={() => setBookingSubStep(0)}
-                        >
-                          <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
-                          <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
-                        </button>
-                        <div className="flex justify-start mt-2">
-                          <Button variant="outline" size="sm" onClick={() => setCurrentStep(0)}>Back</Button>
+
+                  {/* Card 1: General information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">General information</CardTitle>
+                      <CardDescription>Please fill in all the required* fields.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="bk-name">Campaign name <span className="text-destructive">*</span></Label>
+                        <Input
+                          id="bk-name"
+                          placeholder="e.g. Test campaign"
+                          value={bookingCampaignName}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Wallet <span className="text-destructive">*</span></Label>
+                        <Input
+                          dropdown
+                          options={walletOptions}
+                          value={selectedWallet}
+                          onChange={(value: string) => setSelectedWallet(value)}
+                          placeholder="Select wallet"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label>Start date <span className="text-destructive">*</span></Label>
+                          <DatePicker
+                            date={bookingStartDate}
+                            onDateChange={setBookingStartDate}
+                            placeholder="Select start date"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                        <div className="space-y-1.5">
+                          <Label>End date</Label>
+                          <DatePicker
+                            date={bookingEndDate}
+                            onDateChange={setBookingEndDate}
+                            placeholder="Select end date"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                  {bookingSubStep !== null && (
-                    <>
-                      {bookingSubStep === 0 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Booking setup</CardTitle>
-                            <CardDescription>Configure the booking schedule, active days and position</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-6">
-                            <div className="space-y-2">
-                              <Label>Booking name <span className="text-destructive">*</span></Label>
-                              <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
-                            </div>
-                            <div className="space-y-3">
-                              <Label className="text-sm font-semibold">Schedule</Label>
-                              <DateRangePicker dateRange={bookingDateRange} onDateRangeChange={setBookingDateRange} placeholder="Select start and end date" />
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                  <label className="block text-sm text-muted-foreground">Start time</label>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                    <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
-                                  </div>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="block text-sm text-muted-foreground">End time</label>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                    <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rounded-lg border p-4 space-y-1">
-                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setActiveDaysOpen(v => !v)}>
-                                Active days <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${activeDaysOpen ? '' : '-rotate-90'}`} />
-                              </button>
-                              {activeDaysOpen && (
-                                <div className="pt-3 space-y-3">
-                                  <div className="flex gap-2">
-                                    {dayLabels.map(day => (
-                                      <button key={day.id} onClick={() => toggleDay(day.id)}
-                                        className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                        {day.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <span>Select:</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                                    <span>·</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                                    <span>·</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                            <div className="rounded-lg border p-4 space-y-1">
-                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setPositionOpen(v => !v)}>
-                                Position <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${positionOpen ? '' : '-rotate-90'}`} />
-                              </button>
-                              {positionOpen && (
-                                <div className="pt-3 space-y-3">
-                                  <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
-                                    {(['channels', 'positions'] as const).map(tab => (
-                                      <button key={tab} onClick={() => setPositionTab(tab)}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${positionTab === tab ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search..." className="w-full" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                  {/* Card 2: Budget and bidding */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">Budget and bidding</CardTitle>
+                      <CardDescription>What are you trying to achieve with this campaign?</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="bk-total">Total budget <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="bk-total"
+                            type="number"
+                            placeholder="10.00"
+                            value={totalBudget}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="bk-daily">Daily budget <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="bk-daily"
+                            type="number"
+                            placeholder="1.00"
+                            value={dailyBudget}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="bk-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="bk-cpc"
+                            type="number"
+                            placeholder="0.50"
+                            value={biddingCPC}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
+                        <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
+                        <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                      {bookingSubStep === 1 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Targeting</CardTitle>
-                            <CardDescription>Set inclusive or exclusive targeting rules for this booking</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="rounded-lg border p-4 space-y-4">
-                              <Label className="text-sm font-semibold">Targets</Label>
-                              <div className="flex items-center justify-between">
-                                <div className="flex rounded-lg bg-muted p-1 gap-1">
-                                  {(['inclusive', 'exclusive'] as const).map(mode => (
-                                    <button key={mode} onClick={() => setLineTargetMode(mode)}
-                                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${lineTargetMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-1.5" />Download template</Button>
-                                  <Button size="sm"><Upload className="w-4 h-4 mr-1.5" />Upload CSV</Button>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <select value={lineTargetKeywordType} onChange={(e) => setLineTargetKeywordType(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background min-w-[150px]">
-                                  {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                                <select value={lineTargetValue} onChange={(e) => setLineTargetValue(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background flex-1">
-                                  <option value="">Select target</option>
-                                  {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                              </div>
+                  {/* Card 3: Targeting */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">Targeting</CardTitle>
+                      <CardDescription>Which great local brand would you like to target?</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {localBrands.map((brand) => {
+                        const isSelected = selectedLocalBrands.includes(brand.id);
+                        return (
+                          <button
+                            key={brand.id}
+                            type="button"
+                            onClick={() => setSelectedLocalBrands(prev =>
+                              prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
+                            )}
+                            className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
+                          >
+                            <div className={cn(
+                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                              isSelected && "bg-primary text-primary-foreground"
+                            )}>
+                              {isSelected && <Check className="h-3 w-3" />}
                             </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                            <span className="text-sm">{brand.label}</span>
+                          </button>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
 
-                      {bookingSubStep === 2 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Delivery behavior</CardTitle>
-                            <CardDescription>Configure how your ads are delivered</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {[
-                              { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
-                              { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap },
-                            ].map(({ label, checked, onChange }) => (
-                              <div key={label} className="flex items-center justify-between p-4 rounded-lg border">
-                                <span className="font-medium text-sm">{label}</span>
-                                <div className="flex items-center gap-3">
-                                  <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
-                                  <Switch checked={checked} onCheckedChange={onChange} />
-                                </div>
-                              </div>
-                            ))}
-                            <div className="rounded-lg border p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm">Delivery method</span>
-                                <select value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background">
-                                  {['Account setting', 'Even', 'Accelerated', 'Front-loaded'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Exclusivity</span>
-                              <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {bookingSubStep === 3 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Delivery objectives</CardTitle>
-                            <CardDescription>Set override options for delivery priority and reach</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Priority</span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
-                                <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Reach</span>
-                              <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Delivery limit</span>
-                              <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(4)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {bookingSubStep === 4 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Pricing</CardTitle>
-                            <CardDescription>Set the pricing model and RTB competition settings</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Pricing model</span>
-                              <Switch checked={pricingModel} onCheckedChange={setPricingModel} />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Compete with RTB</span>
-                              <Switch checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(3)}>Back</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </>
-                  )}
+                  {/* Navigation */}
+                  <div className="flex justify-between pt-1">
+                    <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
+                    <Button
+                      disabled={!isBookingComplete}
+                      onClick={() => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; }}
+                    >
+                      Save &amp; continue
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -2671,161 +2392,6 @@ const SimplifiedSPWizard = () => {
 
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
-              {/* New booking card — shown while actively creating a booking */}
-              {isInBookingsPhase && bookingSubStep !== null && (() => {
-                const getLiveBookingStepValues = (stepIndex: number): string[] | null => {
-                  switch (stepIndex) {
-                    case 0: {
-                      const vals: string[] = [];
-                      if (bookingDateRange?.from) vals.push(`${bookingDateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}${bookingDateRange.to ? ` – ${bookingDateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${bookingEndTime}` : ''}`);
-                      if (activeDays.length < 7) vals.push(activeDays.join(', '));
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 1: {
-                      const vals: string[] = [];
-                      if (lineTargetValue) vals.push(`${lineTargetKeywordType}: ${lineTargetValue}`);
-                      if (lineTargetMode !== 'inclusive') vals.push(lineTargetMode);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 2: {
-                      const vals: string[] = [];
-                      if (deliveryMethod && deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
-                      if (optimizeForCPC) vals.push('Optimize for CPC');
-                      if (userFrequencyCap) vals.push('Frequency cap on');
-                      if (exclusivity) vals.push('Exclusivity on');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 3: {
-                      const vals: string[] = [];
-                      if (priorityOverride) vals.push('Priority override');
-                      if (reachOverride) vals.push('Reach override');
-                      if (deliveryLimit) vals.push('Delivery limit set');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 4: {
-                      const vals: string[] = [];
-                      if (pricingModel) vals.push('Custom pricing');
-                      if (competeWithRTB) vals.push('Compete with RTB');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    default: return null;
-                  }
-                };
-                return (
-                  <CardSummary>
-                    <CardHeader>
-                      <CardSummaryTitle>New booking</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      <div className="relative pl-12">
-                        <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-                        <div className="space-y-4">
-                          {bookingSubStepLabels.map((label, index) => {
-                            const status: 'completed' | 'active' | 'pending' =
-                              index < bookingSubStep ? 'completed'
-                              : index === bookingSubStep ? 'active'
-                              : 'pending';
-                            const vals = status === 'completed' ? getLiveBookingStepValues(index) : null;
-                            return (
-                              <div key={label} className="relative flex items-start -ml-12">
-                                <div className="w-10 flex justify-center">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
-                                    {status === 'completed' ? <Check size={14} /> : index + 1}
-                                  </div>
-                                </div>
-                                <div className="ml-3 flex-1 min-w-0 pt-1">
-                                  <div className={`text-sm ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'}`}>{label}</div>
-                                  {vals && <div className="text-sm text-muted-foreground mt-0.5">{vals.join(', ')}</div>}
-                                  {status === 'active' && <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </CardSummaryContent>
-                    {bookingSubStep === bookingSubStepLabels.length - 1 && (
-                      <div className="px-4 pb-4">
-                        <Button className="w-full" onClick={saveBooking}>Create booking</Button>
-                      </div>
-                    )}
-                  </CardSummary>
-                );
-              })()}
-
-              {/* Saved booking cards — one per booking */}
-              {isInBookingsPhase && bookings.map((booking, index) => {
-                const getBookingStepValues = (stepIndex: number): string[] | null => {
-                  switch (stepIndex) {
-                    case 0: {
-                      const vals: string[] = [];
-                      if (booking.startDate) vals.push(`${booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${booking.startTime}${booking.endDate ? ` – ${booking.endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${booking.endTime}` : ''}`);
-                      if (booking.activeDays.length < 7) vals.push(`${booking.activeDays.join(', ')}`);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 1: {
-                      const vals: string[] = [];
-                      if (booking.targetValue) vals.push(`${booking.targetKeywordType}: ${booking.targetValue}`);
-                      if (booking.targetMode !== 'inclusive') vals.push(booking.targetMode);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 2: {
-                      const vals: string[] = [];
-                      if (booking.deliveryMethod && booking.deliveryMethod !== 'Account setting') vals.push(booking.deliveryMethod);
-                      if (booking.optimizeForCPC) vals.push('Optimize for CPC');
-                      if (booking.userFrequencyCap) vals.push('Frequency cap on');
-                      if (booking.exclusivity) vals.push('Exclusivity on');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 3: {
-                      const vals: string[] = [];
-                      if (booking.priorityOverride) vals.push('Priority override');
-                      if (booking.reachOverride) vals.push('Reach override');
-                      if (booking.deliveryLimit) vals.push('Delivery limit set');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 4: {
-                      const vals: string[] = [];
-                      if (booking.pricingModel) vals.push('Custom pricing');
-                      if (booking.competeWithRTB) vals.push('Compete with RTB');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    default: return null;
-                  }
-                };
-                return (
-                  <CardSummary key={booking.id}>
-                    <CardHeader>
-                      <CardSummaryTitle>{booking.name || `Booking ${index + 1}`}</CardSummaryTitle>
-                    </CardHeader>
-                    <CardSummaryContent>
-                      <div className="relative pl-12">
-                        <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-                        <div className="space-y-4">
-                          {bookingSubStepLabels.map((label, stepIndex) => {
-                            const vals = getBookingStepValues(stepIndex);
-                            return (
-                              <div key={label} className="relative flex items-start -ml-12">
-                                <div className="w-10 flex justify-center">
-                                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-primary text-primary-foreground">
-                                    <Check size={14} />
-                                  </div>
-                                </div>
-                                <div className="ml-3 flex-1 min-w-0 pt-1">
-                                  <div className="text-sm font-medium">{label}</div>
-                                  {vals && <div className="text-sm text-muted-foreground mt-0.5">{vals.join(', ')}</div>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </CardSummaryContent>
-                  </CardSummary>
-                );
-              })}
-
-              {/* Campaign summary card — always at the bottom */}
               <CardSummary>
                 <CardHeader>
                   <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
@@ -2835,8 +2401,9 @@ const SimplifiedSPWizard = () => {
                     <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
                     <div className="space-y-4">
                       {wizardSteps.map((step, index) => {
-                        const status = isInBookingsPhase && step.id !== 'bookings' ? 'completed' : getStepStatus(index);
-                        const stepValues = step.id === 'campaign-details' ? getCampaignDetailsSummary() : (bookings.length > 0 ? bookings.map((b, i) => b.name || `Booking ${i + 1}`) : null);
+                        const isBookingPhase = currentStepId === 'booking';
+                        const status = isBookingPhase && step.id === 'campaign-details' ? 'completed' : getStepStatus(index);
+                        const stepValues = step.id === 'campaign-details' ? getCampaignDetailsSummary() : getBookingSummary();
                         return (
                           <div key={step.id} className="relative flex items-start -ml-12">
                             <div className="w-10 flex justify-center">
@@ -2847,16 +2414,16 @@ const SimplifiedSPWizard = () => {
                             <div className="ml-3 flex-1 min-w-0 pt-1">
                               <button
                                 type="button"
-                                className={`text-sm text-left ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'} ${status === 'completed' && !isInBookingsPhase ? 'hover:underline cursor-pointer' : ''}`}
+                                className={`text-sm text-left ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'} ${status === 'completed' && step.id === 'campaign-details' ? 'hover:underline cursor-pointer' : ''}`}
                                 onClick={() => { if (step.id === 'campaign-details' && status === 'completed') setCurrentStep(0); }}
-                                disabled={status !== 'completed' || isInBookingsPhase}
+                                disabled={status === 'pending'}
                               >
                                 {step.label}
                               </button>
-                              {status === 'completed' && stepValues && stepValues.length > 0 ? (
+                              {status === 'completed' && stepValues.length > 0 ? (
                                 <div className="text-sm text-muted-foreground mt-0.5">{stepValues.join(', ')}</div>
                               ) : status === 'active' ? (
-                                <div className="text-xs text-muted-foreground italic mt-0.5">{step.id === 'campaign-details' ? 'Not filled in' : 'Not started'}</div>
+                                <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>
                               ) : null}
                             </div>
                           </div>
@@ -2865,17 +2432,6 @@ const SimplifiedSPWizard = () => {
                     </div>
                   </div>
                 </CardSummaryContent>
-                {isInBookingsPhase && bookingSubStep === null && (
-                  <div className="px-4 pb-4">
-                    <Button
-                      className="w-full"
-                      disabled={bookings.length === 0}
-                      onClick={() => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
-                    >
-                      Launch campaign
-                    </Button>
-                  </div>
-                )}
               </CardSummary>
             </div>
           </div>

@@ -2037,7 +2037,7 @@ const SimplifiedSPWizard = () => {
   // ── Step 2: Booking ──
   // General information card
   const [bookingCampaignName, setBookingCampaignName] = React.useState('');
-  const [selectedWallet, setSelectedWallet] = React.useState('');
+  const [selectedCampaign, setSelectedCampaign] = React.useState('');
   const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(undefined);
   const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(undefined);
   // Budget and bidding card
@@ -2057,7 +2057,7 @@ const SimplifiedSPWizard = () => {
 
   const isBookingComplete =
     bookingCampaignName.trim() !== '' &&
-    selectedWallet !== '' &&
+    selectedCampaign.trim() !== '' &&
     bookingStartDate !== undefined &&
     totalBudget.trim() !== '' &&
     dailyBudget.trim() !== '' &&
@@ -2203,7 +2203,15 @@ const SimplifiedSPWizard = () => {
                     <div className="flex justify-end pt-4">
                       <Button
                         disabled={!isCampaignDetailsComplete}
-                        onClick={() => setCurrentStep(1)}
+                        onClick={() => {
+                          // Pre-fill booking step from campaign details
+                          setSelectedCampaign(campaignName);
+                          setBookingCampaignName(campaignName);
+                          if (startDate) setBookingStartDate(startDate);
+                          if (endDate) setBookingEndDate(endDate);
+                          if (budget.trim()) setTotalBudget(budget);
+                          setCurrentStep(1);
+                        }}
                         className="flex items-center gap-2"
                       >
                         Save
@@ -2234,13 +2242,12 @@ const SimplifiedSPWizard = () => {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label>Wallet <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="bk-campaign">Campaign <span className="text-destructive">*</span></Label>
                         <Input
-                          dropdown
-                          options={walletOptions}
-                          value={selectedWallet}
-                          onChange={(value: string) => setSelectedWallet(value)}
-                          placeholder="Select wallet"
+                          id="bk-campaign"
+                          placeholder="Campaign name"
+                          value={selectedCampaign}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedCampaign(e.target.value)}
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">

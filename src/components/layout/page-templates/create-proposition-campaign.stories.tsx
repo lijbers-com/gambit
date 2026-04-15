@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { SelectionList } from '@/components/ui/selection-list';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
@@ -2012,7 +2013,103 @@ const walletOptions = [
   { label: 'Core Brand Wallet – Unilever', value: 'core-wallet' },
 ];
 
-const SimplifiedSPWizard = () => {
+// ── Single-select dropdown with search ──────────────────────────────────────
+interface SearchSelectOption { label: string; value: string; }
+interface SearchSelectProps {
+  options: SearchSelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  id?: string;
+}
+const SearchSelect: React.FC<SearchSelectProps> = ({ options, value, onChange, placeholder = 'Select...', id }) => {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const filtered = options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()));
+  const selected = options.find(o => o.value === value);
+  return (
+    <Popover open={open} onOpenChange={v => { setOpen(v); if (!v) setSearch(''); }}>
+      <PopoverTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          className="flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+        >
+          <span className={cn('flex-1 truncate', !selected && 'text-muted-foreground')}>
+            {selected ? selected.label : placeholder}
+          </span>
+          {value && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={e => { e.stopPropagation(); onChange(''); }}
+              className="ml-1 rounded-full p-0.5 hover:bg-slate-200"
+              aria-label="Clear"
+            >
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            </span>
+          )}
+          <ChevronDown className="w-4 h-4 ml-2 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        style={{ width: 'var(--radix-popover-trigger-width)' }}
+        className="p-0"
+      >
+        <div className="sticky top-0 bg-white border-b border-border">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
+            <input
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="pl-9 pr-3 py-2.5 w-full bg-muted/30 text-sm focus:outline-none border-0"
+              style={{ boxShadow: 'none' }}
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="max-h-60 overflow-y-auto p-1">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">No results</div>
+          ) : (
+            filtered.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-left transition-colors hover:bg-accent',
+                  opt.value === value && 'bg-accent'
+                )}
+                onClick={() => { onChange(opt.value); setOpen(false); setSearch(''); }}
+              >
+                <span className="w-4 shrink-0">
+                  {opt.value === value && <Check className="w-4 h-4" />}
+                </span>
+                {opt.label}
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SPWizardInitialValues {
+  campaignName?: string;
+  externalId?: string;
+  budget?: string;
+  advertiser?: string;
+  mediaPlanLabel?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizardInitialValues } = {}) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
   const routes = getRoutesForTheme(currentTheme);
@@ -2027,12 +2124,35 @@ const SimplifiedSPWizard = () => {
   const currentStepId = wizardSteps[currentStep]?.id;
 
   // ── Step 1: Campaign details ──
-  const [campaignName, setCampaignName] = React.useState('');
-  const [externalId, setExternalId] = React.useState('');
-  const [budget, setBudget] = React.useState('');
-  const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
-  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+  // Resolve mediaPlanLabel → option value (or create dynamic entry)
+  const resolvedMediaPlanValue = React.useMemo(() => {
+    if (!initialValues?.mediaPlanLabel) return '';
+    const match = mediaPlanOptions.find(m =>
+      m.label.toLowerCase() === initialValues.mediaPlanLabel!.toLowerCase()
+    );
+    return match ? match.value : 'prefilled-media-plan';
+  }, [initialValues?.mediaPlanLabel]);
+
+  // Merge a dynamic media plan entry if the label didn't match any static option
+  const mediaPlanOptionsWithDynamic = React.useMemo(() => {
+    if (!initialValues?.mediaPlanLabel) return mediaPlanOptions;
+    const alreadyExists = mediaPlanOptions.some(m =>
+      m.label.toLowerCase() === initialValues.mediaPlanLabel!.toLowerCase()
+    );
+    if (alreadyExists) return mediaPlanOptions;
+    return [
+      { label: initialValues.mediaPlanLabel, value: 'prefilled-media-plan' },
+      ...mediaPlanOptions,
+    ];
+  }, [initialValues?.mediaPlanLabel]);
+
+  const [campaignName, setCampaignName] = React.useState(initialValues?.campaignName ?? '');
+  const [externalId, setExternalId] = React.useState(initialValues?.externalId ?? '');
+  const [budget, setBudget] = React.useState(initialValues?.budget ?? '');
+  const [selectedAdvertiser, setSelectedAdvertiser] = React.useState(initialValues?.advertiser ?? '');
+  const [selectedMediaPlanV2, setSelectedMediaPlanV2] = React.useState(resolvedMediaPlanValue);
+  const [startDate, setStartDate] = React.useState<Date | undefined>(initialValues?.startDate);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(initialValues?.endDate);
 
   // ── Step 2: Booking ──
   // General information card
@@ -2062,6 +2182,21 @@ const SimplifiedSPWizard = () => {
     totalBudget.trim() !== '' &&
     dailyBudget.trim() !== '' &&
     biddingCPC.trim() !== '';
+
+  // Build campaign options for booking step — the just-created campaign appears first
+  const campaignOptionsForBooking = React.useMemo(() => {
+    const base = [
+      { label: 'Summer Promo 2026 – PepsiCo', value: 'summer-promo-2026' },
+      { label: 'Back to School 2026 – Nestlé', value: 'back-to-school-2026' },
+      { label: 'Q3 Awareness 2026 – Heineken', value: 'q3-awareness-2026' },
+      { label: 'Holiday Season 2026 – Unilever', value: 'holiday-2026' },
+    ];
+    if (campaignName.trim()) {
+      const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
+      return [{ label: campaignName, value: key }, ...base];
+    }
+    return base;
+  }, [campaignName]);
 
   const getStepStatus = (stepIndex: number): 'completed' | 'active' | 'pending' => {
     if (stepIndex < currentStep) return 'completed';
@@ -2112,13 +2247,27 @@ const SimplifiedSPWizard = () => {
               {currentStepId === 'campaign-details' && (
                 <Card>
                   <CardContent className="pt-6">
+                    {/* Row 0: Media plan (full width) */}
+                    <div className="mb-5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="v2-media-plan">Media plan</Label>
+                        <SearchSelect
+                          id="v2-media-plan"
+                          options={mediaPlanOptionsWithDynamic}
+                          value={selectedMediaPlanV2}
+                          onChange={setSelectedMediaPlanV2}
+                          placeholder="Select a media plan"
+                        />
+                      </div>
+                    </div>
+
                     {/* Row 1: Name + External ID */}
                     <div className="grid grid-cols-2 gap-4 mb-5">
                       <div className="space-y-1.5">
-                        <Label htmlFor="v2-name">Name <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="v2-name">Campaign name <span className="text-destructive">*</span></Label>
                         <Input
                           id="v2-name"
-                          placeholder="e.g. 11743347_SL_MS_Powerade_Q4_2026"
+                          placeholder="e.g. Summer Sale 2026 – Powerade"
                           value={campaignName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
                         />
@@ -2205,7 +2354,8 @@ const SimplifiedSPWizard = () => {
                         disabled={!isCampaignDetailsComplete}
                         onClick={() => {
                           // Pre-fill booking step from campaign details
-                          setSelectedCampaign(campaignName);
+                          const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
+                          setSelectedCampaign(key);
                           setBookingCampaignName(campaignName);
                           if (startDate) setBookingStartDate(startDate);
                           if (endDate) setBookingEndDate(endDate);
@@ -2233,21 +2383,22 @@ const SimplifiedSPWizard = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-name">Campaign name <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="bk-name"
-                          placeholder="e.g. Test campaign"
-                          value={bookingCampaignName}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
+                        <Label htmlFor="bk-campaign">Campaign <span className="text-destructive">*</span></Label>
+                        <SearchSelect
+                          id="bk-campaign"
+                          options={campaignOptionsForBooking}
+                          value={selectedCampaign}
+                          onChange={setSelectedCampaign}
+                          placeholder="Select a campaign"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-campaign">Campaign <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="bk-name">Booking name <span className="text-destructive">*</span></Label>
                         <Input
-                          id="bk-campaign"
-                          placeholder="Campaign name"
-                          value={selectedCampaign}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedCampaign(e.target.value)}
+                          id="bk-name"
+                          placeholder="e.g. Enter booking name"
+                          value={bookingCampaignName}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -2365,47 +2516,104 @@ const SimplifiedSPWizard = () => {
 
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
+
+              {/* ── Media plan card ── */}
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
+                  <CardSummaryTitle>Media plan</CardSummaryTitle>
                 </CardHeader>
                 <CardSummaryContent>
-                  <div className="relative pl-12">
-                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-                    <div className="space-y-4">
-                      {wizardSteps.map((step, index) => {
-                        const isBookingPhase = currentStepId === 'booking';
-                        const status = isBookingPhase && step.id === 'campaign-details' ? 'completed' : getStepStatus(index);
-                        const stepValues = step.id === 'campaign-details' ? getCampaignDetailsSummary() : getBookingSummary();
-                        return (
-                          <div key={step.id} className="relative flex items-start -ml-12">
-                            <div className="w-10 flex justify-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
-                                {status === 'completed' ? <Check size={14} /> : index + 1}
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1 min-w-0 pt-1">
-                              <button
-                                type="button"
-                                className={`text-sm text-left ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'} ${status === 'completed' && step.id === 'campaign-details' ? 'hover:underline cursor-pointer' : ''}`}
-                                onClick={() => { if (step.id === 'campaign-details' && status === 'completed') setCurrentStep(0); }}
-                                disabled={status === 'pending'}
-                              >
-                                {step.label}
-                              </button>
-                              {status === 'completed' && stepValues.length > 0 ? (
-                                <div className="text-sm text-muted-foreground mt-0.5">{stepValues.join(', ')}</div>
-                              ) : status === 'active' ? (
-                                <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })}
+                  {(() => {
+                    const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
+                    return mp ? (
+                      <p className="text-sm font-medium">{mp.label}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">Not selected</p>
+                    );
+                  })()}
+                </CardSummaryContent>
+              </CardSummary>
+
+              {/* ── Campaign card ── */}
+              <CardSummary>
+                <CardHeader>
+                  <CardSummaryTitle>Campaign</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Name</span>
+                      <span className="font-medium text-right truncate">{campaignName || <span className="italic text-muted-foreground">—</span>}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">External ID</span>
+                      <span className="font-medium text-right truncate">{externalId || <span className="italic text-muted-foreground">—</span>}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Advertiser</span>
+                      <span className="font-medium text-right truncate">
+                        {advertiserOptions.find(a => a.value === selectedAdvertiser)?.label || <span className="italic text-muted-foreground">—</span>}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Budget</span>
+                      <span className="font-medium text-right">{budget ? `€${budget}` : <span className="italic text-muted-foreground">—</span>}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Start date</span>
+                      <span className="font-medium text-right">{startDate ? startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">End date</span>
+                      <span className="font-medium text-right">{endDate ? endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
                     </div>
                   </div>
                 </CardSummaryContent>
               </CardSummary>
+
+              {/* ── Booking card ── */}
+              <CardSummary className={currentStepId === 'campaign-details' ? 'opacity-40 pointer-events-none' : ''}>
+                <CardHeader>
+                  <CardSummaryTitle>Booking</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  {currentStepId === 'campaign-details' ? (
+                    <p className="text-xs text-muted-foreground italic">Complete campaign details first</p>
+                  ) : (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Booking name</span>
+                        <span className="font-medium text-right truncate">{bookingCampaignName || <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Campaign</span>
+                        <span className="font-medium text-right truncate">{campaignOptionsForBooking.find(o => o.value === selectedCampaign)?.label || <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Start date</span>
+                        <span className="font-medium text-right">{bookingStartDate ? bookingStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">End date</span>
+                        <span className="font-medium text-right">{bookingEndDate ? bookingEndDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Total budget</span>
+                        <span className="font-medium text-right">{totalBudget ? `€${totalBudget}` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Daily budget</span>
+                        <span className="font-medium text-right">{dailyBudget ? `€${dailyBudget}` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">CPC bid</span>
+                        <span className="font-medium text-right">{biddingCPC ? `€${biddingCPC}` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardSummaryContent>
+              </CardSummary>
+
             </div>
           </div>
         </div>

@@ -364,7 +364,19 @@ function AllCampaignsPage() {
                             router.push(`/campaigns/${engineType}/${campaign.id}`);
                           }}
                           onEngineAdd={(propositionType) => {
-                            console.log(`Adding ${propositionType} campaign to ${campaign.title}`);
+                            if (propositionType === 'sponsored-products' || propositionType === 'sponsored') {
+                              const params = new URLSearchParams();
+                              params.set('from', 'media-plan');
+                              // Pre-fill campaign details from the media plan
+                              if (campaign.title) params.set('campaignName', campaign.title);
+                              if (campaign.title) params.set('mediaPlanLabel', campaign.title);
+                              if (currentBudget) params.set('budget', currentBudget.replace(/[^0-9.]/g, ''));
+                              if (campaign.dateRange?.from) params.set('startDate', campaign.dateRange.from.toISOString());
+                              if (campaign.dateRange?.to) params.set('endDate', campaign.dateRange.to.toISOString());
+                              router.push(`/create/sponsored-products?${params.toString()}`);
+                            } else {
+                              console.log(`Adding ${propositionType} campaign to ${campaign.title}`);
+                            }
                           }}
                           className="w-full"
                         />

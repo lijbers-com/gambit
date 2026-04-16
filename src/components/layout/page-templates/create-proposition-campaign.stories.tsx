@@ -2807,7 +2807,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 </CardSummaryContent>
               </CardSummary>
 
-              {/* ── Booking card ── */}
+              {/* ── Booking card (includes placements when on sub-step 2) ── */}
               <CardSummary className={currentStepId === 'campaign-details' ? 'opacity-40 pointer-events-none' : ''}>
                 <CardHeader>
                   <CardSummaryTitle>Booking</CardSummaryTitle>
@@ -2845,33 +2845,27 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         <span className="text-muted-foreground shrink-0">CPC bid</span>
                         <span className="font-medium text-right">{biddingCPC ? `€${biddingCPC}` : <span className="italic text-muted-foreground">—</span>}</span>
                       </div>
-                    </div>
-                  )}
-                </CardSummaryContent>
-              </CardSummary>
 
-              {/* ── Placements card (visible on booking sub-step 2) ── */}
-              <CardSummary className={currentStepId !== 'booking' || bookingSubStep < 1 ? 'opacity-40 pointer-events-none' : ''}>
-                <CardHeader>
-                  <CardSummaryTitle>Placements</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  {currentStepId !== 'booking' || bookingSubStep < 1 ? (
-                    <p className="text-xs text-muted-foreground italic">Complete setup first</p>
-                  ) : (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Products</span>
-                        <span className="font-medium text-right">{selectedProducts.length > 0 ? `${selectedProducts.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Keywords</span>
-                        <span className="font-medium text-right">{keywords.length > 0 ? `${keywords.length} keywords` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Categories</span>
-                        <span className="font-medium text-right">{selectedCategories.length > 0 ? `${selectedCategories.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
+                      {/* Placements section — shown once user reaches sub-step 2 */}
+                      {bookingSubStep >= 1 && (
+                        <>
+                          <div className="border-t border-border/50 pt-2 mt-2">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Placements</p>
+                          </div>
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Products</span>
+                            <span className="font-medium text-right">{selectedProducts.length > 0 ? `${selectedProducts.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
+                          </div>
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Keywords</span>
+                            <span className="font-medium text-right">{keywords.length > 0 ? `${keywords.length} keywords` : <span className="italic text-muted-foreground">—</span>}</span>
+                          </div>
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Categories</span>
+                            <span className="font-medium text-right">{selectedCategories.length > 0 ? `${selectedCategories.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </CardSummaryContent>

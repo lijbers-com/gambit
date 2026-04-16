@@ -193,7 +193,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                   <DropdownMenuTrigger asChild>
                     <button className="hover:opacity-75 transition-opacity">
                       <div
-                        className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
+                        className="flex items-center justify-center rounded-lg w-10 h-10 p-1"
                         style={{ backgroundColor: theme.brandAppBg }}
                       >
                         <Logo
@@ -225,7 +225,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                         className="flex items-center gap-3"
                       >
                         <div
-                          className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
+                          className="flex items-center justify-center rounded-lg w-10 h-10 p-1"
                           style={{ backgroundColor: themeOption.brandAppBg }}
                         >
                           <Logo

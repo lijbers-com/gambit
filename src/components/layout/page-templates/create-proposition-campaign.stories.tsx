@@ -2299,13 +2299,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: currentStepId === 'booking'
-            ? bookingCampaignName || campaignName || 'Create sponsored products campaign'
-            : campaignName || 'Create sponsored products campaign',
+            ? bookingCampaignName || 'Untitled'
+            : campaignName || 'Untitled',
           subtitle: currentStepId === 'campaign-details'
             ? 'Step 1 of 3 – Campaign details'
             : currentStepId === 'booking'
               ? bookingSubStep === 0
-                ? 'Step 2 of 3 – Setup'
+                ? 'Step 2 of 3 – Booking setup'
                 : 'Step 3 of 3 – Placements'
               : '',
           headerRight: null,
@@ -2429,7 +2429,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   {/* Card 1: General information */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base font-semibold">General information</CardTitle>
+                      <CardTitle className="text-base font-semibold">Booking setup</CardTitle>
                       <CardDescription>Please fill in all the required* fields.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

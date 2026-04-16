@@ -152,10 +152,42 @@ const goals = [
 ];
 
 const mediaPlanOptions = [
-  { label: 'Summer Sale 2026 – Knorr', value: 'summer-sale-2026' },
-  { label: 'Back to School 2026 – PepsiCo', value: 'back-to-school-2026' },
-  { label: 'Holiday Season 2026 – Nestlé', value: 'holiday-2026' },
-  { label: 'Q3 Awareness – Heineken', value: 'q3-awareness' },
+  {
+    label: 'Summer Sale 2026 – Knorr',
+    value: 'summer-sale-2026',
+    advertiser: 'Unilever',
+    budget: '€850,000',
+    startDate: '01 Jun 2026',
+    endDate: '31 Aug 2026',
+    status: 'In option',
+  },
+  {
+    label: 'Back to School 2026 – PepsiCo',
+    value: 'back-to-school-2026',
+    advertiser: 'PepsiCo',
+    budget: '€620,000',
+    startDate: '01 Aug 2026',
+    endDate: '15 Sep 2026',
+    status: 'Draft',
+  },
+  {
+    label: 'Holiday Season 2026 – Nestlé',
+    value: 'holiday-2026',
+    advertiser: 'Nestlé',
+    budget: '€1,200,000',
+    startDate: '01 Nov 2026',
+    endDate: '31 Dec 2026',
+    status: 'Draft',
+  },
+  {
+    label: 'Q3 Awareness – Heineken',
+    value: 'q3-awareness',
+    advertiser: 'Heineken',
+    budget: '€400,000',
+    startDate: '01 Jul 2026',
+    endDate: '30 Sep 2026',
+    status: 'Ready',
+  },
 ];
 
 const localBrands = [
@@ -2327,36 +2359,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       </div>
                     </div>
 
-                    {/* Metadata divider */}
-                    <div className="border-t pt-4 pb-2">
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Created by:</span>
-                          <span className="ml-2 text-foreground">—</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Created:</span>
-                          <span className="ml-2 text-foreground">—</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Updated by:</span>
-                          <span className="ml-2 text-foreground">—</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Updated:</span>
-                          <span className="ml-2 text-foreground">—</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2">
                       <Button
                         disabled={!isCampaignDetailsComplete}
                         onClick={() => {
                           // Pre-fill booking step from campaign details
                           const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
                           setSelectedCampaign(key);
-                          setBookingCampaignName(campaignName);
+                          setBookingCampaignName('');
                           if (startDate) setBookingStartDate(startDate);
                           if (endDate) setBookingEndDate(endDate);
                           if (budget.trim()) setTotalBudget(budget);
@@ -2364,7 +2374,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         }}
                         className="flex items-center gap-2"
                       >
-                        Save
+                        Create campaign
                       </Button>
                     </div>
                   </CardContent>
@@ -2525,10 +2535,41 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <CardSummaryContent>
                   {(() => {
                     const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
-                    return mp ? (
-                      <p className="text-sm font-medium">{mp.label}</p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">Not selected</p>
+                    if (!mp) return <p className="text-xs text-muted-foreground italic">Not selected</p>;
+                    return (
+                      <div className="space-y-2 text-sm">
+                        <p className="font-medium">{mp.label}</p>
+                        {'advertiser' in mp && mp.advertiser && (
+                          <div className="flex justify-between gap-2 pt-1">
+                            <span className="text-muted-foreground shrink-0">Advertiser</span>
+                            <span className="font-medium text-right truncate">{mp.advertiser}</span>
+                          </div>
+                        )}
+                        {'budget' in mp && mp.budget && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Budget</span>
+                            <span className="font-medium text-right">{mp.budget}</span>
+                          </div>
+                        )}
+                        {'startDate' in mp && mp.startDate && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Start date</span>
+                            <span className="font-medium text-right">{mp.startDate}</span>
+                          </div>
+                        )}
+                        {'endDate' in mp && mp.endDate && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">End date</span>
+                            <span className="font-medium text-right">{mp.endDate}</span>
+                          </div>
+                        )}
+                        {'status' in mp && mp.status && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Status</span>
+                            <span className="font-medium text-right">{mp.status}</span>
+                          </div>
+                        )}
+                      </div>
                     );
                   })()}
                 </CardSummaryContent>

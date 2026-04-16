@@ -111,16 +111,15 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
     <div className="flex h-screen">
       {/* Left side - Theme specific image */}
       {currentTheme === 'retailMedia' ? (
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <Image
-            src="/edge-login.svg"
-            alt="Edge"
-            width={960}
-            height={1080}
-            className="object-cover w-full h-full"
-            priority
-          />
-        </div>
+        <div
+          className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+          style={{
+            backgroundImage: 'url(/edge-login.svg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'top left',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
       ) : (
         <div
           className="hidden lg:flex lg:w-1/2 relative overflow-hidden"

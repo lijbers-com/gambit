@@ -205,7 +205,7 @@ export const SideNavigation = ({
           {theme === 'gambit' || theme === 'retailMedia' ? (
             <div
               className="flex items-center justify-center rounded-lg w-10 h-10 p-2"
-              style={{ backgroundColor: '#1E5032' }}
+              style={{ backgroundColor: '#c8f000' }}
             >
               <Logo theme="auto" className="h-6 w-6" />
             </div>

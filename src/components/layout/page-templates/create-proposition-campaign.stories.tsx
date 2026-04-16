@@ -2298,12 +2298,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: campaignName || 'Create sponsored products campaign',
-          subtitle: currentStepId === 'booking'
-            ? bookingSubStep === 0
-              ? 'Step 1 of 2 – Setup'
-              : 'Step 2 of 2 – Placements'
-            : '',
+          title: currentStepId === 'booking'
+            ? bookingCampaignName || campaignName || 'Create sponsored products campaign'
+            : campaignName || 'Create sponsored products campaign',
+          subtitle: currentStepId === 'campaign-details'
+            ? 'Step 1 of 3 – Campaign details'
+            : currentStepId === 'booking'
+              ? bookingSubStep === 0
+                ? 'Step 2 of 3 – Setup'
+                : 'Step 3 of 3 – Placements'
+              : '',
           headerRight: null,
         }}
       >

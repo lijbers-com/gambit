@@ -174,8 +174,8 @@ export const Logo = ({
 
   const logoConfig = {
     gambit: {
-      src: '/gambit-logo.svg',
-      alt: alt || 'Gambit Logo',
+      src: '/edge-icon.svg',
+      alt: alt || 'Edge Logo',
     },
     'albert-heijn': {
       src: '/ah-logo.svg',

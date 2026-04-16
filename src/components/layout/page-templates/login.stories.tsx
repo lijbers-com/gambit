@@ -353,12 +353,12 @@ const themes = {
     subtitle: 'Retail Media Services',
   },
   retailMedia: {
-    name: 'Retail Media Platform',
-    logo: '/gambit-logo.svg',
-    loginLogo: '/gambit-login-logo.svg', // Custom login page logo
+    name: 'Edge',
+    logo: '/edge-icon.svg',
+    loginLogo: '/edge-login.svg', // Custom login page logo
     backgroundImage: '/gambit-background.svg',
     primaryColor: '#10B981',
-    brandAppBg: '#1E5032', // Special green color for Gambit app icon (exception to standard brand app bg)
+    brandAppBg: '#1E5032', // Special green color for Edge app icon (exception to standard brand app bg)
     title: 'Your retail media toolbox',
     subtitle: 'Maximize your retail advertising impact',
   },

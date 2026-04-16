@@ -2213,6 +2213,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [endDate, setEndDate] = React.useState<Date | undefined>(initialValues?.endDate);
 
   // ── Step 2: Booking ──
+  // Sub-step within booking: 0 = Setup, 1 = Placements
+  const [bookingSubStep, setBookingSubStep] = React.useState(0);
   // General information card
   const [bookingCampaignName, setBookingCampaignName] = React.useState('');
   const [selectedCampaign, setSelectedCampaign] = React.useState('');
@@ -2225,6 +2227,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   // Targeting card
   const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
+  // Placements (sub-step 2)
+  const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = React.useState('');
+  const [keywords, setKeywords] = React.useState<string[]>(['summer sale', 'beverages', 'snacks']);
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
   const isCampaignDetailsComplete =
@@ -2292,7 +2299,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: campaignName || 'Create sponsored products campaign',
-          subtitle: '',
+          subtitle: currentStepId === 'booking'
+            ? bookingSubStep === 0
+              ? 'Step 1 of 2 – Setup'
+              : 'Step 2 of 2 – Placements'
+            : '',
           headerRight: null,
         }}
       >
@@ -2407,8 +2418,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 </Card>
               )}
 
-              {/* ── Step 2: Booking (3 cards) ── */}
-              {currentStepId === 'booking' && (
+              {/* ── Step 2: Booking – Sub-step 1: Setup ── */}
+              {currentStepId === 'booking' && bookingSubStep === 0 && (
                 <div className="space-y-4">
 
                   {/* Card 1: General information */}
@@ -2540,9 +2551,167 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
                     <Button
                       disabled={!isBookingComplete}
+                      onClick={() => setBookingSubStep(1)}
+                    >
+                      Next: Placements
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 2: Booking – Sub-step 2: Placements ── */}
+              {currentStepId === 'booking' && bookingSubStep === 1 && (
+                <div className="space-y-4">
+
+                  {/* Card 1: Retail products */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">Retail products</CardTitle>
+                      <CardDescription>Select the products you want to promote in this booking.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {[
+                        { id: 'prod-001', name: 'Heineken 6-pack 330ml', sku: 'HNK-330-6PK', category: 'Beer' },
+                        { id: 'prod-002', name: 'Heineken 0.0 6-pack 330ml', sku: 'HNK-00-330-6PK', category: 'Beer – Alcohol Free' },
+                        { id: 'prod-003', name: 'Heineken Silver 6-pack 330ml', sku: 'HNK-SLV-330-6PK', category: 'Beer' },
+                        { id: 'prod-004', name: 'Heineken 24-pack 330ml', sku: 'HNK-330-24PK', category: 'Beer' },
+                        { id: 'prod-005', name: 'Heineken 1L bottle', sku: 'HNK-1L-BTL', category: 'Beer' },
+                      ].map((product) => {
+                        const isSelected = selectedProducts.includes(product.id);
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => setSelectedProducts(prev =>
+                              prev.includes(product.id) ? prev.filter(p => p !== product.id) : [...prev, product.id]
+                            )}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
+                              isSelected ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30 hover:bg-muted/30"
+                            )}
+                          >
+                            <div className={cn(
+                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                              isSelected && "bg-primary text-primary-foreground"
+                            )}>
+                              {isSelected && <Check className="h-3 w-3" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">{product.sku} · {product.category}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+
+                  {/* Card 2: Keywords */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">Keywords</CardTitle>
+                      <CardDescription>Add keywords to target shoppers searching for relevant products.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g. beer, lager, party drinks"
+                          value={keywordInput}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeywordInput(e.target.value)}
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key === 'Enter' && keywordInput.trim()) {
+                              setKeywords(prev => [...prev, keywordInput.trim()]);
+                              setKeywordInput('');
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (keywordInput.trim()) {
+                              setKeywords(prev => [...prev, keywordInput.trim()]);
+                              setKeywordInput('');
+                            }
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add
+                        </Button>
+                      </div>
+                      {keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {keywords.map((kw, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                            >
+                              {kw}
+                              <button
+                                type="button"
+                                onClick={() => setKeywords(prev => prev.filter((_, i) => i !== idx))}
+                                className="hover:text-destructive transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Card 3: Categories */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold">Categories</CardTitle>
+                      <CardDescription>Select product categories to broaden your reach.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {[
+                        { id: 'cat-beer', label: 'Beer & Cider', count: '1,240 products' },
+                        { id: 'cat-spirits', label: 'Spirits & Liqueurs', count: '890 products' },
+                        { id: 'cat-wine', label: 'Wine', count: '2,100 products' },
+                        { id: 'cat-soft', label: 'Soft Drinks & Mixers', count: '560 products' },
+                        { id: 'cat-snacks', label: 'Snacks & Crisps', count: '740 products' },
+                        { id: 'cat-party', label: 'Party & Entertaining', count: '320 products' },
+                      ].map((cat) => {
+                        const isSelected = selectedCategories.includes(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedCategories(prev =>
+                              prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
+                            )}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
+                              isSelected ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30 hover:bg-muted/30"
+                            )}
+                          >
+                            <div className={cn(
+                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
+                              isSelected && "bg-primary text-primary-foreground"
+                            )}>
+                              {isSelected && <Check className="h-3 w-3" />}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{cat.label}</p>
+                              <p className="text-xs text-muted-foreground">{cat.count}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between pt-1">
+                    <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                    <Button
                       onClick={() => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; }}
                     >
-                      Save &amp; continue
+                      Save &amp; finish
                     </Button>
                   </div>
                 </div>
@@ -2675,6 +2844,33 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       <div className="flex justify-between gap-2">
                         <span className="text-muted-foreground shrink-0">CPC bid</span>
                         <span className="font-medium text-right">{biddingCPC ? `€${biddingCPC}` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardSummaryContent>
+              </CardSummary>
+
+              {/* ── Placements card (visible on booking sub-step 2) ── */}
+              <CardSummary className={currentStepId !== 'booking' || bookingSubStep < 1 ? 'opacity-40 pointer-events-none' : ''}>
+                <CardHeader>
+                  <CardSummaryTitle>Placements</CardSummaryTitle>
+                </CardHeader>
+                <CardSummaryContent>
+                  {currentStepId !== 'booking' || bookingSubStep < 1 ? (
+                    <p className="text-xs text-muted-foreground italic">Complete setup first</p>
+                  ) : (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Products</span>
+                        <span className="font-medium text-right">{selectedProducts.length > 0 ? `${selectedProducts.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Keywords</span>
+                        <span className="font-medium text-right">{keywords.length > 0 ? `${keywords.length} keywords` : <span className="italic text-muted-foreground">—</span>}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Categories</span>
+                        <span className="font-medium text-right">{selectedCategories.length > 0 ? `${selectedCategories.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
                       </div>
                     </div>
                   )}

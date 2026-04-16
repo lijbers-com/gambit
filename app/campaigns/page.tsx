@@ -175,6 +175,8 @@ function AllCampaignsPage() {
     to: addDays(new Date('2024-06-01'), 180),
   });
   const [newCampaignIds, setNewCampaignIds] = React.useState<Set<string>>(new Set());
+  // Campaigns that have a pending (not-yet-created) sponsored engine row added
+  const [pendingSponsoredEngines, setPendingSponsoredEngines] = React.useState<Set<string>>(new Set());
 
   // Check for newly created campaign from query param
   const newCampaignName = searchParams.get('new');
@@ -323,7 +325,7 @@ function AllCampaignsPage() {
                           hideAutoBudget
                           hideEngineToggle
                           hideEngineActions
-                          guidedSetup={newCampaignIds.has(campaign.id)}
+                          guidedSetup={newCampaignIds.has(campaign.id) || pendingSponsoredEngines.has(campaign.id)}
                           onCancel={() => {
                             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
                             setNewCampaignIds(prev => {
@@ -353,6 +355,25 @@ function AllCampaignsPage() {
                             router.push(`/campaigns/${campaign.campaignType}/${campaign.id}`);
                           }}
                           onEngineEdit={(engineId, engineName) => {
+                            // Pending sponsored engine row — launch the create wizard with pre-fill
+                            const baseType = engineId.replace(/-\d+$/, '');
+                            if (baseType === 'sponsored' && pendingSponsoredEngines.has(campaign.id)) {
+                              setPendingSponsoredEngines(prev => {
+                                const next = new Set(prev);
+                                next.delete(campaign.id);
+                                return next;
+                              });
+                              const params = new URLSearchParams();
+                              params.set('from', 'media-plan');
+                              if (campaign.title) params.set('campaignName', campaign.title);
+                              if (campaign.title) params.set('mediaPlanLabel', campaign.title);
+                              if (currentBudget) params.set('budget', currentBudget.replace(/[^0-9.]/g, ''));
+                              if (campaign.dateRange?.from) params.set('startDate', campaign.dateRange.from.toISOString());
+                              if (campaign.dateRange?.to) params.set('endDate', campaign.dateRange.to.toISOString());
+                              router.push(`/create/sponsored-products?${params.toString()}`);
+                              return;
+                            }
+                            // Existing engine — go to detail page
                             const engineTypeMap: { [key: string]: string } = {
                               'display': 'display',
                               'sponsored': 'sponsored-products',
@@ -360,22 +381,15 @@ function AllCampaignsPage() {
                               'offline': 'offline-instore',
                               'offsite': 'offsite',
                             };
-                            const engineType = engineTypeMap[engineId] || engineId;
+                            const engineType = engineTypeMap[baseType] || baseType;
                             router.push(`/campaigns/${engineType}/${campaign.id}`);
                           }}
                           onEngineAdd={(propositionType) => {
                             if (propositionType === 'sponsored-products' || propositionType === 'sponsored') {
-                              const params = new URLSearchParams();
-                              params.set('from', 'media-plan');
-                              // Pre-fill campaign details from the media plan
-                              if (campaign.title) params.set('campaignName', campaign.title);
-                              if (campaign.title) params.set('mediaPlanLabel', campaign.title);
-                              if (currentBudget) params.set('budget', currentBudget.replace(/[^0-9.]/g, ''));
-                              if (campaign.dateRange?.from) params.set('startDate', campaign.dateRange.from.toISOString());
-                              if (campaign.dateRange?.to) params.set('endDate', campaign.dateRange.to.toISOString());
-                              router.push(`/create/sponsored-products?${params.toString()}`);
-                            } else {
-                              console.log(`Adding ${propositionType} campaign to ${campaign.title}`);
+                              // Mark this campaign as having a pending sponsored engine row.
+                              // The row is already added internally by CampaignSummary;
+                              // the user clicks "Create" on it to launch the wizard.
+                              setPendingSponsoredEngines(prev => new Set(prev).add(campaign.id));
                             }
                           }}
                           className="w-full"

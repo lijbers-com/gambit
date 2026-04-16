@@ -110,66 +110,78 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
   return (
     <div className="flex h-screen">
       {/* Left side - Theme specific image */}
-      <div 
-        className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-        style={{
-          backgroundImage: `url(${theme.backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Content */}
-        <div className="relative z-10 p-12 text-white">
-          <div className="absolute top-80 left-12">
-            <div className="mb-8">
-              {theme.loginLogo ? (
-                <div className={`flex items-start justify-start w-auto ${currentTheme === 'retailMedia' ? 'max-h-[180px]' : 'h-20'}`}>
-                  <Image
-                    src={theme.loginLogo}
+      {currentTheme === 'retailMedia' ? (
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+          <Image
+            src="/edge-login.svg"
+            alt="Edge"
+            width={960}
+            height={1080}
+            className="object-cover w-full h-full"
+            priority
+          />
+        </div>
+      ) : (
+        <div
+          className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+          style={{
+            backgroundImage: `url(${theme.backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Content */}
+          <div className="relative z-10 p-12 text-white">
+            <div className="absolute top-80 left-12">
+              <div className="mb-8">
+                {theme.loginLogo ? (
+                  <div className="flex items-start justify-start w-auto h-20">
+                    <Image
+                      src={theme.loginLogo}
+                      alt={`${theme.name} logo`}
+                      width={200}
+                      height={80}
+                      className="object-contain object-left"
+                      style={{ maxHeight: '80px', width: 'auto' }}
+                      priority
+                    />
+                  </div>
+                ) : (
+                  <Logo
+                    theme={
+                      currentTheme === 'albertHeijn' ? 'albert-heijn' :
+                      currentTheme === 'delhaize' ? 'delhaize' :
+                      currentTheme === 'adusa' ? 'adusa' :
+                      'auto'
+                    }
+                    variant="auto"
                     alt={`${theme.name} logo`}
-                    width={currentTheme === 'retailMedia' ? 450 : 200}
-                    height={currentTheme === 'retailMedia' ? 180 : 80}
-                    className="object-contain object-left"
-                    style={{ maxHeight: currentTheme === 'retailMedia' ? '180px' : '80px', width: 'auto' }}
-                    priority
+                    className="w-auto h-20 !justify-start"
                   />
-                </div>
-              ) : (
-                <Logo
-                  theme={
-                    currentTheme === 'albertHeijn' ? 'albert-heijn' :
-                    currentTheme === 'delhaize' ? 'delhaize' :
-                    currentTheme === 'adusa' ? 'adusa' :
-                    'auto'
-                  }
-                  variant="auto"
-                  alt={`${theme.name} logo`}
-                  className={`w-auto !justify-start ${currentTheme === 'retailMedia' ? 'max-h-[180px]' : 'h-20'}`}
-                />
-              )}
+                )}
+              </div>
+              <h1
+                className="text-4xl font-bold mb-4 w-[400px]"
+                style={{
+                  color:
+                    currentTheme === 'albertHeijn' ? '#253964' :
+                    currentTheme === 'alfaBeta' ? '#FFFFFF' :
+                    currentTheme === 'delhaize' ? '#002948' :
+                    currentTheme === 'adusa' ? '#00644C' :
+                    undefined
+                }}
+              >
+                {theme.title.split('\n').map((line, index, array) => (
+                  <React.Fragment key={index}>
+                    {line}
+                    {index < array.length - 1 && <br />}
+                  </React.Fragment>
+                ))}
+              </h1>
             </div>
-            <h1
-              className="text-4xl font-bold mb-4 w-[400px]"
-              style={{
-                color:
-                  currentTheme === 'albertHeijn' ? '#253964' :
-                  currentTheme === 'alfaBeta' ? '#FFFFFF' :
-                  currentTheme === 'delhaize' ? '#002948' :
-                  currentTheme === 'adusa' ? '#00644C' :
-                  currentTheme === 'retailMedia' ? '#10351F' :
-                  undefined
-              }}
-            >
-              {theme.title.split('\n').map((line, index, array) => (
-                <React.Fragment key={index}>
-                  {line}
-                  {index < array.length - 1 && <br />}
-                </React.Fragment>
-              ))}
-            </h1>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Right side - Login form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">

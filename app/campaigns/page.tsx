@@ -329,7 +329,7 @@ function AllCampaignsPage() {
                           hideAutoBudget
                           hideEngineToggle
                           hideEngineActions
-                          guidedSetup={newCampaignIds.has(campaign.id) || pendingSponsoredEngines.has(campaign.id)}
+                          guidedSetup={newCampaignIds.has(campaign.id)}
                           onCancel={() => {
                             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
                             setNewCampaignIds(prev => {
@@ -369,8 +369,15 @@ function AllCampaignsPage() {
                               });
                               const params = new URLSearchParams();
                               params.set('from', 'media-plan');
-                              if (campaign.title) params.set('campaignName', campaign.title);
+                              // Media plan identity — used for dropdown selection and summary card
                               if (campaign.title) params.set('mediaPlanLabel', campaign.title);
+                              // Media plan details — shown in the summary card
+                              if (currentBudget) params.set('mediaPlanBudget', currentBudget);
+                              if (newAdvertiser) params.set('mediaPlanAdvertiser', newAdvertiser);
+                              if (campaign.dateRange?.from) params.set('mediaPlanStartDate', campaign.dateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+                              if (campaign.dateRange?.to) params.set('mediaPlanEndDate', campaign.dateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+                              params.set('mediaPlanStatus', 'Draft');
+                              // Campaign form pre-fill (budget & dates inherited from media plan)
                               if (currentBudget) params.set('budget', currentBudget.replace(/[^0-9.]/g, ''));
                               if (newAdvertiser) params.set('advertiser', newAdvertiser);
                               if (campaign.dateRange?.from) params.set('startDate', campaign.dateRange.from.toISOString());

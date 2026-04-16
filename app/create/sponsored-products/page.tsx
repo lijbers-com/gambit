@@ -12,6 +12,11 @@ function CreateSponsoredProductsContent() {
   const budget = searchParams.get('budget') ?? undefined;
   const advertiser = searchParams.get('advertiser') ?? undefined;
   const mediaPlanLabel = searchParams.get('mediaPlanLabel') ?? undefined;
+  const mediaPlanAdvertiser = searchParams.get('mediaPlanAdvertiser') ?? undefined;
+  const mediaPlanBudget = searchParams.get('mediaPlanBudget') ?? undefined;
+  const mediaPlanStartDate = searchParams.get('mediaPlanStartDate') ?? undefined;
+  const mediaPlanEndDate = searchParams.get('mediaPlanEndDate') ?? undefined;
+  const mediaPlanStatus = searchParams.get('mediaPlanStatus') ?? undefined;
   const startDateRaw = searchParams.get('startDate');
   const endDateRaw = searchParams.get('endDate');
 
@@ -21,6 +26,11 @@ function CreateSponsoredProductsContent() {
     budget,
     advertiser,
     mediaPlanLabel,
+    mediaPlanAdvertiser,
+    mediaPlanBudget,
+    mediaPlanStartDate,
+    mediaPlanEndDate,
+    mediaPlanStatus,
     startDate: startDateRaw ? new Date(startDateRaw) : undefined,
     endDate: endDateRaw ? new Date(endDateRaw) : undefined,
   };

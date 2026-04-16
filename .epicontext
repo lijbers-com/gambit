@@ -1,0 +1,27 @@
+{
+  "_WARNING": "DO NOT manually edit 'project.id'. Use 'npx @epiccontext/mcp link' to configure.",
+  "version": 1,
+  "project": {
+    "id": "c6e7179f-8459-494c-9b0e-cc65ce48af08",
+    "url": "https://epic-context.vercel.app/acme/tester",
+    "name": "Tester",
+    "slug": "tester"
+  },
+  "auth": {
+    "apiKey": "eck_live_ok6JBIGp2TbwMYzlualzUZi0Gx-jlt2H"
+  },
+  "sync": {
+    "path": "./CONTEXT",
+    "conflictResolution": "timestamp",
+    "autoSync": false,
+    "ignoredPatterns": [
+      "*.tmp",
+      ".DS_Store",
+      "node_modules"
+    ]
+  },
+  "watch": {
+    "debounce": 2000,
+    "pushOnly": false
+  }
+}

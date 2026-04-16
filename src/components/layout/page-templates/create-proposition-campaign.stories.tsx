@@ -2137,6 +2137,11 @@ export interface SPWizardInitialValues {
   budget?: string;
   advertiser?: string;
   mediaPlanLabel?: string;
+  mediaPlanAdvertiser?: string;
+  mediaPlanBudget?: string;
+  mediaPlanStartDate?: string;
+  mediaPlanEndDate?: string;
+  mediaPlanStatus?: string;
   startDate?: Date;
   endDate?: Date;
 }
@@ -2166,6 +2171,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   }, [initialValues?.mediaPlanLabel]);
 
   // Merge a dynamic media plan entry if the label didn't match any static option
+  // Include detail fields (advertiser, budget, dates, status) so the summary card shows them
   const mediaPlanOptionsWithDynamic = React.useMemo(() => {
     if (!initialValues?.mediaPlanLabel) return mediaPlanOptions;
     const alreadyExists = mediaPlanOptions.some(m =>
@@ -2173,15 +2179,35 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     );
     if (alreadyExists) return mediaPlanOptions;
     return [
-      { label: initialValues.mediaPlanLabel, value: 'prefilled-media-plan' },
+      {
+        label: initialValues.mediaPlanLabel,
+        value: 'prefilled-media-plan',
+        ...(initialValues.mediaPlanAdvertiser ? { advertiser: initialValues.mediaPlanAdvertiser } : {}),
+        ...(initialValues.mediaPlanBudget ? { budget: initialValues.mediaPlanBudget } : {}),
+        ...(initialValues.mediaPlanStartDate ? { startDate: initialValues.mediaPlanStartDate } : {}),
+        ...(initialValues.mediaPlanEndDate ? { endDate: initialValues.mediaPlanEndDate } : {}),
+        ...(initialValues.mediaPlanStatus ? { status: initialValues.mediaPlanStatus } : {}),
+      },
       ...mediaPlanOptions,
     ];
-  }, [initialValues?.mediaPlanLabel]);
+  }, [initialValues?.mediaPlanLabel, initialValues?.mediaPlanAdvertiser, initialValues?.mediaPlanBudget, initialValues?.mediaPlanStartDate, initialValues?.mediaPlanEndDate, initialValues?.mediaPlanStatus]);
+
+  // Resolve advertiser value: initialValues.advertiser may be a label or a value
+  const resolvedAdvertiserValue = React.useMemo(() => {
+    if (!initialValues?.advertiser) return '';
+    // Try exact value match first
+    const byValue = advertiserOptions.find(a => a.value === initialValues.advertiser);
+    if (byValue) return byValue.value;
+    // Try label match (advertiser was passed as human-readable label)
+    const byLabel = advertiserOptions.find(a => a.label === initialValues.advertiser);
+    if (byLabel) return byLabel.value;
+    return '';
+  }, [initialValues?.advertiser]);
 
   const [campaignName, setCampaignName] = React.useState(initialValues?.campaignName ?? '');
   const [externalId, setExternalId] = React.useState(initialValues?.externalId ?? '');
   const [budget, setBudget] = React.useState(initialValues?.budget ?? '');
-  const [selectedAdvertiser, setSelectedAdvertiser] = React.useState(initialValues?.advertiser ?? '');
+  const [selectedAdvertiser, setSelectedAdvertiser] = React.useState(resolvedAdvertiserValue);
   const [selectedMediaPlanV2, setSelectedMediaPlanV2] = React.useState(resolvedMediaPlanValue);
   const [startDate, setStartDate] = React.useState<Date | undefined>(initialValues?.startDate);
   const [endDate, setEndDate] = React.useState<Date | undefined>(initialValues?.endDate);

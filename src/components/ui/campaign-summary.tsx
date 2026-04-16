@@ -157,6 +157,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const renameReadyRef = React.useRef(false);
     const [totalBudgetInput, setTotalBudgetInput] = React.useState(budget ? budget.replace(/[^0-9.]/g, '') : '');
     const [showAddDropdown, setShowAddDropdown] = React.useState(false);
+    const [addDropdownPos, setAddDropdownPos] = React.useState<{ top: number; left: number; width: number } | null>(null);
+    const addCampaignBtnRef = React.useRef<HTMLButtonElement>(null);
+    const addCampaignBtnRef2 = React.useRef<HTMLButtonElement>(null);
     const [renamingEngineId, setRenamingEngineId] = React.useState<string | null>(null);
     const [engineNames, setEngineNames] = React.useState<Record<string, string>>({});
     const engineRenameInputRef = React.useRef<HTMLInputElement>(null);
@@ -853,8 +856,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   {/* Add campaign row */}
                   <div className="relative">
                     <button
+                      ref={addCampaignBtnRef}
                       type="button"
-                      onClick={() => setShowAddDropdown(!showAddDropdown)}
+                      onClick={() => {
+                        const rect = addCampaignBtnRef.current?.getBoundingClientRect();
+                        if (rect) setAddDropdownPos({ top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX, width: rect.width });
+                        setShowAddDropdown(v => !v);
+                      }}
                       className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
                     >
                       <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
@@ -862,26 +870,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       </div>
                       <span className="text-sm text-muted-foreground">Add campaign</span>
                     </button>
-                    {showAddDropdown && (
-                      <div className="absolute z-20 w-full mt-1 bg-background border rounded-lg shadow-lg overflow-hidden">
-                        {propositionTypes.map((type) => {
-                          const TypeIcon = type.icon;
-                          return (
-                            <button
-                              key={type.id}
-                              type="button"
-                              onClick={() => handleAddCampaign(type.id)}
-                              className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
-                            >
-                              <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
-                                <TypeIcon size={12} />
-                              </div>
-                              <span className="text-sm">{type.name}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -993,7 +981,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       const detailUrl = getEngineDetailUrl(engine.id);
                       const displayName = engineNames[engine.id] || engine.campaignName;
                       const isEngineRenaming = renamingEngineId === engine.id;
-                      const isPendingEngine = guidedSetup && !createdEngineIds.has(engine.id) && (!engine.status || engine.status === 'new');
+                      const isPendingEngine = !createdEngineIds.has(engine.id) && (!engine.status || engine.status === 'new');
                       const engineStatus = isPendingEngine ? 'pending' : (engine.status || (!engine.campaignName || engine.campaignName === 'Untitled' ? 'new' : undefined));
                       const isNewOrDraft = engineStatus === 'new' || engineStatus === 'draft' || engineStatus === 'pending';
                       const statusBadgeVariant = {
@@ -1179,38 +1167,36 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     })}
 
                     {/* Add campaign row */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddDropdown(!showAddDropdown)}
-                        className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
-                      >
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
-                          <Plus size={14} />
-                        </div>
-                        <span className="text-sm text-muted-foreground">Add campaign</span>
-                      </button>
-                      {showAddDropdown && (
-                        <div className="absolute z-20 w-full mt-1 bg-background border rounded-lg shadow-lg overflow-hidden">
-                          {propositionTypes.map((type) => {
-                            const TypeIcon = type.icon;
-                            return (
-                              <button
-                                key={type.id}
-                                type="button"
-                                onClick={() => handleAddCampaign(type.id)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
-                              >
-                                <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
-                                  <TypeIcon size={12} />
-                                </div>
-                                <span className="text-sm">{type.name}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+                    <DropdownMenu onOpenChange={setShowAddDropdown}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
+                        >
+                          <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                            <Plus size={14} />
+                          </div>
+                          <span className="text-sm text-muted-foreground">Add campaign</span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64">
+                        {propositionTypes.map((type) => {
+                          const TypeIcon = type.icon;
+                          return (
+                            <DropdownMenuItem
+                              key={type.id}
+                              onSelect={() => handleAddCampaign(type.id)}
+                              className="flex items-center gap-3 p-3 cursor-pointer"
+                            >
+                              <div className="w-6 h-6 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                                <TypeIcon size={12} />
+                              </div>
+                              <span className="text-sm">{type.name}</span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   {/* Campaign Agent Section */}
@@ -1318,8 +1304,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     : "lg:col-span-4"
                 )}>
                   <CardSummary>
-                    <CardHeader className="pb-2">
-                      <span className="text-sm font-semibold text-foreground">Settings</span>
+                    <CardHeader>
+                      <CardSummaryTitle>Media plan</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
                       <div className="space-y-5">

@@ -153,35 +153,35 @@ const goals = [
 
 const mediaPlanOptions = [
   {
-    label: 'Summer Sale 2026 – Knorr',
-    value: 'summer-sale-2026',
+    label: 'Unilever H1 2026 – NL Retail',
+    value: 'unilever-h1-2026',
     advertiser: 'Unilever',
     budget: '€850,000',
-    startDate: '01 Jun 2026',
-    endDate: '31 Aug 2026',
+    startDate: '01 Jan 2026',
+    endDate: '30 Jun 2026',
     status: 'In option',
   },
   {
-    label: 'Back to School 2026 – PepsiCo',
-    value: 'back-to-school-2026',
+    label: 'PepsiCo Annual Plan 2026',
+    value: 'pepsico-annual-2026',
     advertiser: 'PepsiCo',
     budget: '€620,000',
-    startDate: '01 Aug 2026',
-    endDate: '15 Sep 2026',
-    status: 'Draft',
-  },
-  {
-    label: 'Holiday Season 2026 – Nestlé',
-    value: 'holiday-2026',
-    advertiser: 'Nestlé',
-    budget: '€1,200,000',
-    startDate: '01 Nov 2026',
+    startDate: '01 Jan 2026',
     endDate: '31 Dec 2026',
     status: 'Draft',
   },
   {
-    label: 'Q3 Awareness – Heineken',
-    value: 'q3-awareness',
+    label: 'Nestlé H2 2026 – Seasonal',
+    value: 'nestle-h2-2026',
+    advertiser: 'Nestlé',
+    budget: '€1,200,000',
+    startDate: '01 Jul 2026',
+    endDate: '31 Dec 2026',
+    status: 'Draft',
+  },
+  {
+    label: 'Heineken Brand Plan Q3 2026',
+    value: 'heineken-q3-2026',
     advertiser: 'Heineken',
     budget: '€400,000',
     startDate: '01 Jul 2026',
@@ -2218,10 +2218,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // Build campaign options for booking step — the just-created campaign appears first
   const campaignOptionsForBooking = React.useMemo(() => {
     const base = [
-      { label: 'Summer Promo 2026 – PepsiCo', value: 'summer-promo-2026' },
-      { label: 'Back to School 2026 – Nestlé', value: 'back-to-school-2026' },
-      { label: 'Q3 Awareness 2026 – Heineken', value: 'q3-awareness-2026' },
-      { label: 'Holiday Season 2026 – Unilever', value: 'holiday-2026' },
+      { label: 'Knorr Summer Sale – Sponsored', value: 'knorr-summer-sale' },
+      { label: 'Lay\'s Back to School – Display', value: 'lays-back-to-school' },
+      { label: 'Heineken Q3 Brand Awareness', value: 'heineken-q3-brand' },
+      { label: 'Maggi Holiday Gifting', value: 'maggi-holiday-gifting' },
     ];
     if (campaignName.trim()) {
       const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');

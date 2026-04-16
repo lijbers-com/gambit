@@ -1009,9 +1009,14 @@ export const GoalSelection: Story = {
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>
                       <Button
                         onClick={() => {
-                          // Navigate to media plans overview with new campaign expanded
                           const name = campaignName || 'New Media plan';
-                          window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                          const params = new URLSearchParams({ new: name });
+                          if (budgetAmount) params.set('budget', budgetAmount);
+                          const advLabel = advertiserOptions.find(a => a.value === selectedAdvertiser)?.label;
+                          if (advLabel) params.set('advertiser', advLabel);
+                          if (dateRange?.from) params.set('startDate', dateRange.from.toISOString());
+                          if (dateRange?.to) params.set('endDate', dateRange.to.toISOString());
+                          window.location.href = `/campaigns?${params.toString()}`;
                         }}
                       >
                         Launch media plan
@@ -1093,7 +1098,13 @@ export const GoalSelection: Story = {
                       className="w-full"
                       onClick={() => {
                         const name = campaignName || 'New Media plan';
-                        window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                        const params = new URLSearchParams({ new: name });
+                        if (budgetAmount) params.set('budget', budgetAmount);
+                        const advLabel = advertiserOptions.find(a => a.value === selectedAdvertiser)?.label;
+                        if (advLabel) params.set('advertiser', advLabel);
+                        if (dateRange?.from) params.set('startDate', dateRange.from.toISOString());
+                        if (dateRange?.to) params.set('endDate', dateRange.to.toISOString());
+                        window.location.href = `/campaigns?${params.toString()}`;
                       }}
                     >
                       Launch media plan
@@ -1644,7 +1655,11 @@ export const NoGoalTargeting: Story = {
                       className="w-full"
                       onClick={() => {
                         const name = campaignName || 'New Media plan';
-                        window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
+                        const params = new URLSearchParams({ new: name });
+                        if (budgetAmount) params.set('budget', budgetAmount);
+                        if (dateRange?.from) params.set('startDate', dateRange.from.toISOString());
+                        if (dateRange?.to) params.set('endDate', dateRange.to.toISOString());
+                        window.location.href = `/campaigns?${params.toString()}`;
                       }}
                     >
                       Launch media plan

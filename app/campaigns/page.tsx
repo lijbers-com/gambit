@@ -178,15 +178,19 @@ function AllCampaignsPage() {
   // Campaigns that have a pending (not-yet-created) sponsored engine row added
   const [pendingSponsoredEngines, setPendingSponsoredEngines] = React.useState<Set<string>>(new Set());
 
-  // Check for newly created campaign from query param
+  // Check for newly created campaign from query params
   const newCampaignName = searchParams.get('new');
+  const newBudget = searchParams.get('budget') ?? '';
+  const newAdvertiser = searchParams.get('advertiser') ?? '';
+  const newStartDate = searchParams.get('startDate');
+  const newEndDate = searchParams.get('endDate');
 
   type CampaignData = typeof campaignSummaryData[number];
   // Dynamic list of campaigns
   const [campaigns, setCampaigns] = React.useState<CampaignData[]>(campaignSummaryData);
   const nextId = React.useRef(campaigns.length + 1);
 
-  // Add newly created campaign from URL param
+  // Add newly created media plan from URL params (includes budget, advertiser, dates from creation flow)
   React.useEffect(() => {
     if (newCampaignName) {
       const newCampaign: CampaignData = {
@@ -196,15 +200,15 @@ function AllCampaignsPage() {
         badge: { text: 'Draft', variant: 'outline' as const },
         goal: '',
         estimatedRoas: '0x',
-        budget: '',
+        budget: newBudget ? `€${newBudget}` : '',
         usedBudget: '',
         totalPrice: '',
         budgetUsagePercentage: 0,
         placements: 0,
         engines: [],
         dateRange: {
-          from: new Date(),
-          to: addDays(new Date(), 30),
+          from: newStartDate ? new Date(newStartDate) : new Date(),
+          to: newEndDate ? new Date(newEndDate) : addDays(new Date(), 30),
         },
         features: [],
       };
@@ -368,6 +372,7 @@ function AllCampaignsPage() {
                               if (campaign.title) params.set('campaignName', campaign.title);
                               if (campaign.title) params.set('mediaPlanLabel', campaign.title);
                               if (currentBudget) params.set('budget', currentBudget.replace(/[^0-9.]/g, ''));
+                              if (newAdvertiser) params.set('advertiser', newAdvertiser);
                               if (campaign.dateRange?.from) params.set('startDate', campaign.dateRange.from.toISOString());
                               if (campaign.dateRange?.to) params.set('endDate', campaign.dateRange.to.toISOString());
                               router.push(`/create/sponsored-products?${params.toString()}`);

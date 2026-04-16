@@ -207,7 +207,7 @@ export const SideNavigation = ({
               className="flex items-center justify-center rounded-lg w-10 h-10 p-1"
               style={{ backgroundColor: '#c8f000' }}
             >
-              <Logo theme="auto" className="h-6 w-6" />
+              <Logo theme="auto" className="h-full w-full" />
             </div>
           ) : (
             <div className="w-10 h-10">

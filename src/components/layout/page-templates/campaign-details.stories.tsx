@@ -639,118 +639,83 @@ const updatedForecastMetrics = [
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -1145,118 +1110,83 @@ export const DigitalInstoreRunning: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -1605,118 +1535,83 @@ export const OfflineInstoreRunning: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -2128,118 +2023,83 @@ export const DisplayRunning: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -2640,118 +2500,83 @@ export const OfflineInstoreInOption: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -3130,118 +2955,83 @@ export const DisplayInOption: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -3952,118 +3742,83 @@ export const SponsoredProductsInOption: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -4675,118 +4430,83 @@ export const SponsoredProductsRunning: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -5265,118 +4985,83 @@ export const OffsiteRunning: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }
@@ -5775,118 +5460,83 @@ export const OffsiteInOption: Story = {
           className="w-full"
           header={
             activeTab === 'details' ? (
-              <form className="space-y-6 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-
-                {/* General information */}
-                <FormSection title="General information" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Please fill in all the required* fields.</p>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-campaign">Campaign <span className="text-destructive">*</span></Label>
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
                         dropdown
-                        options={spCampaignOptions}
+                        options={[
+                          { label: 'Acme Media', value: 'acme' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
-                        placeholder="Select a campaign"
+                        placeholder="Select advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sp-booking-name">Booking name <span className="text-destructive">*</span></Label>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
                       <Input
-                        id="sp-booking-name"
-                        placeholder="e.g. Enter booking name"
+                        dropdown
+                        options={[
+                          { label: 'Brand 1', value: 'brand1' },
+                          { label: 'Brand 2', value: 'brand2' },
+                        ]}
                         value={detailsBookingName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBookingName(e.target.value)}
+                        onChange={setDetailsBookingName}
+                        placeholder="Select brand"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Start date <span className="text-destructive">*</span></Label>
-                        <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Select start date" />
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <Input placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Run Time</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>End date</Label>
-                        <DatePicker date={endDate} onDateChange={setEndDate} placeholder="Select end date" />
+                      <div>
+                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
                   </div>
                 </FormSection>
-
-                {/* Budget and bidding */}
-                <FormSection title="Budget and bidding" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">What are you trying to achieve with this campaign?</p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-total-budget">Total budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-total-budget"
-                          type="number"
-                          placeholder="10.00"
-                          value={detailsTotalBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsTotalBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-daily-budget"
-                          type="number"
-                          placeholder="1.00"
-                          value={detailsDailyBudget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsDailyBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="sp-cpc"
-                          type="number"
-                          placeholder="0.50"
-                          value={detailsCPC}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                      <Switch checked={detailsSendBudgetNotification} onCheckedChange={setDetailsSendBudgetNotification} />
-                      <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* Targeting */}
-                <FormSection title="Targeting" className="mb-0">
-                  <p className="text-sm text-muted-foreground -mt-2 mb-4">Which great local brand would you like to target?</p>
-                  <div className="space-y-1">
-                    {spLocalBrands.map((brand) => {
-                      const isSelected = detailsSelectedBrands.includes(brand.id);
-                      return (
-                        <button
-                          key={brand.id}
-                          type="button"
-                          onClick={() => setDetailsSelectedBrands(prev =>
-                            prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                          )}
-                          className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <div className={cn(
-                            "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span className="text-sm">{brand.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormSection>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-                </div>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
             ) : null
           }

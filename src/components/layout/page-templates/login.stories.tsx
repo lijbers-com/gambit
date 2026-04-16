@@ -210,7 +210,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                             'white'
                           }
                           alt={`${theme.name} logo`}
-                          className="h-6 w-6"
+                          className="h-full w-full"
                         />
                       </div>
                     </button>
@@ -243,7 +243,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                               'white'
                             }
                             alt={`${themeOption.name} logo`}
-                            className="h-6 w-6"
+                            className="h-full w-full"
                           />
                         </div>
                         <span>{themeOption.name}</span>

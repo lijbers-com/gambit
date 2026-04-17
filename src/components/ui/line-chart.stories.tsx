@@ -326,7 +326,7 @@ export const InteractiveForecast: Story = {
             }}
           >
             {/* Spend amount as central element with chevrons */}
-            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-neutral-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
               {/* Left chevron */}
               <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
               

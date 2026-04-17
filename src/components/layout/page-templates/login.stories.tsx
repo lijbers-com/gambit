@@ -183,7 +183,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
       )}
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-neutral-50">
         <Card className="w-full max-w-md border-0 shadow-none bg-transparent">
           <CardContent className="p-0">
             <div className="space-y-6">
@@ -257,12 +257,12 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Sign in</h2>
+                <h2 className="text-2xl font-semibold text-neutral-900">Sign in</h2>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-sm font-normal text-gray-700">
+                  <Label htmlFor="username" className="text-sm font-normal text-neutral-700">
                     Username
                   </Label>
                   <Input
@@ -270,13 +270,13 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full h-11 bg-white border-gray-300"
+                    className="w-full h-11 bg-white border-neutral-300"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-normal text-gray-700">
+                  <Label htmlFor="password" className="text-sm font-normal text-neutral-700">
                     Password
                   </Label>
                   <div className="relative">
@@ -285,13 +285,13 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-11 bg-white border-gray-300 pr-10"
+                      className="w-full h-11 bg-white border-neutral-300 pr-10"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                       tabIndex={-1}
                     >
                       {showPassword ? (
@@ -320,7 +320,7 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
               <div className="space-y-3 text-left">
                 <a 
                   href="#" 
-                  className="block text-sm text-gray-600 hover:text-gray-900 underline"
+                  className="block text-sm text-neutral-600 hover:text-neutral-900 underline"
                   onClick={(e) => {
                     e.preventDefault();
                     alert('Forgot password clicked');
@@ -328,11 +328,11 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                 >
                   Forgot your password?
                 </a>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-neutral-600">
                   No account?{' '}
                   <a 
                     href="#" 
-                    className="text-gray-600 hover:text-gray-900 underline"
+                    className="text-neutral-600 hover:text-neutral-900 underline"
                     onClick={(e) => {
                       e.preventDefault();
                       alert('Create account clicked');

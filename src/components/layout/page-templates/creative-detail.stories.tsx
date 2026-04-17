@@ -521,7 +521,7 @@ export const Display: Story = {
                       {mockBookings.map(item => {
                         const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
-                          <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={item.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Line item: </span>
                               <span className="font-medium">{item.brand} {item.stores} stores</span>
@@ -770,7 +770,7 @@ export const DigitalInStore: Story = {
                       {mockBookings.map(item => {
                         const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
-                          <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={item.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Line item: </span>
                               <span className="font-medium">{item.brand} {item.stores} stores</span>
@@ -983,7 +983,7 @@ export const OfflineInStore: Story = {
                       {mockBookings.map(item => {
                         const isLinked = selectedBookings.some(selected => selected.id === item.id);
                         return (
-                          <div key={item.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={item.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Line item: </span>
                               <span className="font-medium">{item.brand} {item.stores} stores</span>

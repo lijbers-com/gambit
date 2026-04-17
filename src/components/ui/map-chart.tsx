@@ -57,7 +57,7 @@ export function MapChart({
             <div className={`${getCircleSize(store.plays)} ${getCircleColor(store.plays)} rounded-full border-2 border-white shadow-lg transition-all duration-200 hover:scale-110`}>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -tranneutral-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+            <div className="absolute bottom-full left-1/2 transform -tranneutral-x-1/2 mb-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
               <div className="font-medium">{store.name}</div>
               <div>{store.plays.toLocaleString()} plays</div>
             </div>
@@ -66,19 +66,19 @@ export function MapChart({
         
         {/* Legend */}
         <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-          <div className="text-xs font-medium text-gray-700 mb-2">Play Count</div>
+          <div className="text-xs font-medium text-neutral-700 mb-2">Play Count</div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-chart-1 rounded-full"></div>
-              <span className="text-xs text-gray-600">Low (0-2k)</span>
+              <span className="text-xs text-neutral-600">Low (0-2k)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-chart-2 rounded-full"></div>
-              <span className="text-xs text-gray-600">Medium (2-5k)</span>
+              <span className="text-xs text-neutral-600">Medium (2-5k)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-chart-3 rounded-full"></div>
-              <span className="text-xs text-gray-600">High (5k+)</span>
+              <span className="text-xs text-neutral-600">High (5k+)</span>
             </div>
           </div>
         </div>

@@ -250,7 +250,7 @@ export const Primary: Story = {
   render: (args) => (
     <div className="flex h-screen">
       <SideNavigation {...args} />
-      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
+      <div className="flex-1 p-8 bg-neutral-50 ml-[285px]">
         <h1 className="text-2xl font-bold mb-4">Navigation Structure</h1>
         <div className="space-y-4">
           <div>
@@ -303,7 +303,7 @@ export const OpenState: Story = {
   render: (args) => (
     <div className="flex h-screen">
       <SideNavigation {...args} />
-      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
+      <div className="flex-1 p-8 bg-neutral-50 ml-[285px]">
         <h1 className="text-2xl font-bold mb-4">Open State</h1>
         <p>Side navigation is open with full width (270px minimum) showing labels and icons.</p>
       </div>
@@ -494,9 +494,9 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
 
         <div className="mt-auto">
           {args.user && (
-            <a className="flex items-center mb-6 mt-12 pr-2 rounded-md hover:bg-slate-100" href="/profile">
+            <a className="flex items-center mb-6 mt-12 pr-2 rounded-md hover:bg-neutral-100" href="/profile">
               <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                <div className="w-8 h-8 rounded-full bg-neutral-300 flex items-center justify-center text-xs">
                   {args.user.name?.charAt(0) || 'U'}
                 </div>
               </span>
@@ -515,7 +515,7 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="inline-flex items-center justify-center mr-6 p-1 rounded transition-colors focus:outline-none hover:bg-gray-100"
+          className="inline-flex items-center justify-center mr-6 p-1 rounded transition-colors focus:outline-none hover:bg-neutral-100"
           aria-label="Toggle navigation"
         >
           {collapsed ? (
@@ -528,12 +528,12 @@ const InteractiveCollapsedDemo: React.FC<{ args: any }> = ({ args }) => {
             </svg>
           )}
         </button>
-        <span className="text-sm text-gray-600">Interactive Demo: Click the toggle button ←</span>
+        <span className="text-sm text-neutral-600">Interactive Demo: Click the toggle button ←</span>
       </div>
 
       <div className="flex flex-1">
         <DemoSideNavigation />
-        <div className={`flex-1 p-8 bg-gray-50 transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[285px]'}`}>
+        <div className={`flex-1 p-8 bg-neutral-50 transition-all duration-300 ${collapsed ? 'ml-[72px]' : 'ml-[285px]'}`}>
           <h1 className="text-2xl font-bold mb-4">
             {collapsed ? 'Collapsed State (72px)' : 'Expanded State (285px)'}
           </h1>
@@ -599,7 +599,7 @@ export const CollapsedState: Story = {
       <CollapsedMenuProvider>
         <div className="flex h-screen">
           <SideNavigation {...args} />
-          <div className="flex-1 p-8 bg-gray-50 ml-[72px]">
+          <div className="flex-1 p-8 bg-neutral-50 ml-[72px]">
             <h1 className="text-2xl font-bold mb-4">Collapsed State (72px)</h1>
             <p>Side navigation is collapsed showing only icons. Text labels and section titles are hidden.</p>
             <div className="mt-4 p-4 bg-blue-50 rounded-md">
@@ -739,7 +739,7 @@ export const AdvertiserView: Story = {
   render: (args) => (
     <div className="flex h-screen">
       <SideNavigation {...args} />
-      <div className="flex-1 p-8 bg-gray-50 ml-[285px]">
+      <div className="flex-1 p-8 bg-neutral-50 ml-[285px]">
         <h1 className="text-2xl font-bold mb-4">Advertiser View</h1>
         <p className="mb-4">Limited navigation menu for advertiser users with restricted access.</p>
         <div className="space-y-4">

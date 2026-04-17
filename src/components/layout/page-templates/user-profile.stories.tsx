@@ -313,7 +313,7 @@ const UserProfileContent = () => {
                   >
                     <div className="ml-8 space-y-2">
                       {mfaDevices.map((device) => (
-                        <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-md text-sm">
+                        <div key={device.name} className="flex items-center justify-between py-2 px-3 bg-neutral-50 rounded-md text-sm">
                           <div className="flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4 text-foreground/70" />
                             <span>{device.name}</span>

@@ -208,7 +208,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
           </div>
           <div className="space-y-4">
             {keywords.map((kw, index) => (
-              <div key={index} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+              <div key={index} className="flex items-center justify-between py-4 border-b border-neutral-100 last:border-b-0">
                 <div>
                   <div className="font-medium text-base mb-1 capitalize">{kw.keyword}</div>
                   <div className="text-sm text-muted-foreground">
@@ -856,11 +856,11 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                                   .map(product => (
                                     <div
                                       key={product.id}
-                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                      className="px-3 py-2 hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-b-0"
                                       onClick={() => handleRetailProductSelect(product.id)}
                                     >
                                       <div className="text-sm font-medium">{product.name}</div>
-                                      <div className="text-xs text-gray-500">ID: {product.id}</div>
+                                      <div className="text-xs text-neutral-500">ID: {product.id}</div>
                                     </div>
                                   ))}
                                 {retailProducts.filter(product =>
@@ -869,7 +869,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                                    product.id.includes(retailProductSearch)) &&
                                   !selectedRetailProducts.includes(product.id)
                                 ).length === 0 && (
-                                  <div className="px-3 py-2 text-sm text-gray-500">
+                                  <div className="px-3 py-2 text-sm text-neutral-500">
                                     No products found
                                   </div>
                                 )}
@@ -885,10 +885,10 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                                 {selectedRetailProducts.map(productId => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <div key={productId} className="flex items-center justify-between p-2 bg-neutral-50 rounded">
                                       <div className="flex-1">
                                         <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-gray-500">ID: {product.id}</div>
+                                        <div className="text-xs text-neutral-500">ID: {product.id}</div>
                                       </div>
                                       <Button
                                         variant="ghost"

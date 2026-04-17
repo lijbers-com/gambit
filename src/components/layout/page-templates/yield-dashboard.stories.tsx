@@ -2326,7 +2326,7 @@ export const YieldReportView: Story = {
                         ]}
                         data={fillRateReportData}
                         rowKey={(row) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row) => console.log('Navigate to details for', row.retailProduct)}
                       />
                     </div>
@@ -2454,7 +2454,7 @@ export const YieldReportView: Story = {
                           },
                         ]}
                         rowKey={(row) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row) => console.log('Navigate to seasonality details for', row.retailProduct, row.week)}
                       />
                     </div>
@@ -2589,7 +2589,7 @@ export const YieldReportView: Story = {
                           },
                         ]}
                         rowKey={(row) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row) => console.log('Navigate to inventory details for', row.engine, row.retailProduct)}
                       />
                     </div>
@@ -2763,7 +2763,7 @@ export const YieldReportView: Story = {
                           },
                         ]}
                         rowKey={(row) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row) => console.log('Navigate to product details for', row.retailProduct)}
                       />
                     </div>
@@ -2901,7 +2901,7 @@ export const YieldReportView: Story = {
                           },
                         ]}
                         rowKey={(row) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row) => console.log('Navigate to revenue details for', row.engine, row.retailProduct)}
                       />
                     </div>

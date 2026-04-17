@@ -266,19 +266,19 @@ export const WithTableExample: Story = {
         {/* Mock table */}
         <div className="border rounded-lg">
           <table className="w-full">
-            <thead className="border-b bg-gray-50">
+            <thead className="border-b bg-neutral-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Name</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-neutral-900">Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-neutral-900">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-neutral-900">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {tableData.map((row) => (
                 <tr key={row.id}>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{row.status}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{row.date}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-900">{row.name}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-600">{row.status}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-600">{row.date}</td>
                 </tr>
               ))}
             </tbody>

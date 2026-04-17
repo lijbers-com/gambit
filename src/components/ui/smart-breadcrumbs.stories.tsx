@@ -71,7 +71,7 @@ const MockedSmartBreadcrumbs = (props: any) => {
   
   return (
     <div className="w-full">
-      <div className="mb-4 p-3 bg-slate-100 rounded text-sm">
+      <div className="mb-4 p-3 bg-neutral-100 rounded text-sm">
         <strong>Simulated Path:</strong> {props.mockPath || '/campaigns/sponsored-products'}
       </div>
       <SmartBreadcrumbs {...props} />

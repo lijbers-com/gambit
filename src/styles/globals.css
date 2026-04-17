@@ -76,32 +76,32 @@ body[data-theme="retailMedia"] {
   --chart-5: 258  70% 40%;
 
   /* Cream neutral scale (same as :root default) */
-  --neutral-50:  255 249 235;
-  --neutral-100: 245 242 236;
-  --neutral-200: 232 228 221;
-  --neutral-300: 213 208 200;
-  --neutral-400: 187 182 175;
-  --neutral-500: 155 150 144;
-  --neutral-600: 124 120 116;
-  --neutral-700:  97  94  91;
-  --neutral-800:  77  75  72;
-  --neutral-900:  64  62  60;
+  --neutral-50:  255 253 245;
+  --neutral-100: 255 249 235;
+  --neutral-200: 245 242 236;
+  --neutral-300: 232 228 221;
+  --neutral-400: 213 208 200;
+  --neutral-500: 187 182 175;
+  --neutral-600: 155 150 144;
+  --neutral-700: 124 120 116;
+  --neutral-800:  97  94  91;
+  --neutral-900:  77  75  72;
 
   /* Cream-based semantic tokens */
-  --foreground:           24  3%  24%;
-  --card-foreground:      24  3%  24%;
-  --popover-foreground:   24  3%  24%;
-  --primary:              33  3%  29%;
-  --primary-foreground:   43 100% 96%;
+  --foreground:           33  3%  29%;
+  --card-foreground:      33  3%  29%;
+  --popover-foreground:   33  3%  29%;
+  --primary:              24  3%  37%;
+  --primary-foreground:   48 100% 98%;
   --secondary:            40  30% 94%;
   --secondary-foreground: 33  3%  29%;
   --muted:                40  30% 94%;
-  --muted-foreground:     33  6%  59%;
+  --muted-foreground:     33  9%  71%;
   --accent:               40  30% 94%;
   --accent-foreground:    33  3%  29%;
   --border:               40  19% 90%;
   --input:                40  19% 90%;
-  --ring:                 24  3%  24%;
+  --ring:                 33  3%  29%;
 }
 
 [data-theme="adusa"],
@@ -258,37 +258,37 @@ body[data-theme="alfaBeta"] {
        Other themes override these values in their data-theme blocks above.
        Change these 10 values to retheme every neutral surface at once.
     ── */
-    --neutral-50:  255 249 235;   /* #fff9eb  cream-50  */
-    --neutral-100: 245 242 236;   /* #f5f2ec  cream-100 */
-    --neutral-200: 232 228 221;   /* #e8e4dd  cream-200 */
-    --neutral-300: 213 208 200;   /* #d5d0c8  cream-300 */
-    --neutral-400: 187 182 175;   /* #bbb6af  cream-400 */
-    --neutral-500: 155 150 144;   /* #9b9690  cream-500 */
-    --neutral-600: 124 120 116;   /* #7c7874  cream-600 */
-    --neutral-700:  97  94  91;   /* #615e5b  cream-700 */
-    --neutral-800:  77  75  72;   /* #4d4b48  cream-800 */
-    --neutral-900:  64  62  60;   /* #403e3c  cream-900 */
+    --neutral-50:  255 253 245;   /* #fffdf5  cream-50  */
+    --neutral-100: 255 249 235;   /* #fff9eb  cream-100 */
+    --neutral-200: 245 242 236;   /* #f5f2ec  cream-200 */
+    --neutral-300: 232 228 221;   /* #e8e4dd  cream-300 */
+    --neutral-400: 213 208 200;   /* #d5d0c8  cream-400 */
+    --neutral-500: 187 182 175;   /* #bbb6af  cream-500 */
+    --neutral-600: 155 150 144;   /* #9b9690  cream-600 */
+    --neutral-700: 124 120 116;   /* #7c7874  cream-700 */
+    --neutral-800:  97  94  91;   /* #615e5b  cream-800 */
+    --neutral-900:  77  75  72;   /* #4d4b48  cream-900 */
 
     /* Base color tokens — Cream / Edge theme */
     --background: 0 0% 100%;
-    --foreground:           24  3%  24%;    /* cream-900 */
+    --foreground:           33  3%  29%;    /* cream-900 #4d4b48 */
     --card:                 0 0% 100%;
-    --card-foreground:      24  3%  24%;
+    --card-foreground:      33  3%  29%;
     --popover:              0 0% 100%;
-    --popover-foreground:   24  3%  24%;
-    --primary:              33  3%  29%;    /* cream-800 */
-    --primary-foreground:   43 100% 96%;   /* cream-50  */
-    --secondary:            40  30% 94%;   /* cream-100 */
-    --secondary-foreground: 33  3%  29%;   /* cream-800 */
-    --muted:                40  30% 94%;   /* cream-100 */
-    --muted-foreground:     33  6%  59%;   /* cream-500 */
-    --accent:               40  30% 94%;   /* cream-100 */
-    --accent-foreground:    33  3%  29%;   /* cream-800 */
+    --popover-foreground:   33  3%  29%;
+    --primary:              24  3%  37%;    /* cream-800 #615e5b */
+    --primary-foreground:   48 100% 98%;   /* cream-50  #fffdf5 */
+    --secondary:            40  30% 94%;   /* cream-200 #f5f2ec */
+    --secondary-foreground: 33  3%  29%;   /* cream-900 #4d4b48 */
+    --muted:                40  30% 94%;   /* cream-200 #f5f2ec */
+    --muted-foreground:     33  9%  71%;   /* cream-500 #bbb6af */
+    --accent:               40  30% 94%;   /* cream-200 #f5f2ec */
+    --accent-foreground:    33  3%  29%;   /* cream-900 #4d4b48 */
     --destructive:          0  84.2% 60.2%;
-    --destructive-foreground: 40 30% 94%;
-    --border:               40  19% 90%;   /* cream-200 */
-    --input:                40  19% 90%;   /* cream-200 */
-    --ring:                 24  3%  24%;   /* cream-900 */
+    --destructive-foreground: 48 100% 98%;
+    --border:               40  19% 90%;   /* cream-300 #e8e4dd */
+    --input:                40  19% 90%;   /* cream-300 #e8e4dd */
+    --ring:                 33  3%  29%;   /* cream-900 #4d4b48 */
     --radius: 0.5rem;
 
     /* Chart color tokens */
@@ -303,8 +303,8 @@ body[data-theme="alfaBeta"] {
     --brand-accent:  #f5f2ec;
     --brand-app-bg:  #fff9eb;
     --brand-app-bg-hex: #fff9eb;
-    --brand-app-text: #403e3c;
-    --brand-app-hover: #e8e4dd;
+    --brand-app-text: #4d4b48;
+    --brand-app-hover: #f5f2ec;
     --logo-url: url('/edge-icon.svg');
   }
 }

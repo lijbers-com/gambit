@@ -116,7 +116,7 @@ export function AppLayout({
             {...pageHeaderProps}
           />
           {/* Page Content Area */}
-          <div className="w-full p-6 pb-24 min-h-screen bg-white overflow-x-hidden">
+          <div className="w-full p-6 pb-24 min-h-screen bg-neutral-50 overflow-x-hidden">
               <div className="max-w-full">
                 {children}
               </div>

@@ -57,16 +57,16 @@ const GeneralStylesPage = () => (
 
     <h4 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '13px', fontWeight: '600', color: '#9b9690' }}>Gambit / Edge theme — Cream</h4>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.5rem', marginBottom: '1.5rem' }}>
-      <ColorSwatch label="Neutral 50  (cream)" color="#fff9eb" token="bg-neutral-50" />
-      <ColorSwatch label="Neutral 100 (cream)" color="#f5f2ec" token="bg-neutral-100 · --secondary / --muted" />
-      <ColorSwatch label="Neutral 200 (cream)" color="#e8e4dd" token="bg-neutral-200 · --border / --input" />
-      <ColorSwatch label="Neutral 300 (cream)" color="#d5d0c8" token="bg-neutral-300 · dividers" />
-      <ColorSwatch label="Neutral 400 (cream)" color="#bbb6af" token="text-neutral-400 · icons, placeholder" />
-      <ColorSwatch label="Neutral 500 (cream)" color="#9b9690" token="text-neutral-500 · --muted-foreground" />
-      <ColorSwatch label="Neutral 600 (cream)" color="#7c7874" token="text-neutral-600 · secondary text" />
-      <ColorSwatch label="Neutral 700 (cream)" color="#615e5b" token="text-neutral-700 · body text" />
-      <ColorSwatch label="Neutral 800 (cream)" color="#4d4b48" token="text-neutral-800 · --primary" />
-      <ColorSwatch label="Neutral 900 (cream)" color="#403e3c" token="text-neutral-900 · --foreground" />
+      <ColorSwatch label="Neutral 50  (cream)" color="#fffdf5" token="bg-neutral-50 · page background" />
+      <ColorSwatch label="Neutral 100 (cream)" color="#fff9eb" token="bg-neutral-100 · nav / breadcrumb background" />
+      <ColorSwatch label="Neutral 200 (cream)" color="#f5f2ec" token="bg-neutral-200 · --secondary / --muted / hover" />
+      <ColorSwatch label="Neutral 300 (cream)" color="#e8e4dd" token="bg-neutral-300 · --border / --input" />
+      <ColorSwatch label="Neutral 400 (cream)" color="#d5d0c8" token="bg-neutral-400 · dividers" />
+      <ColorSwatch label="Neutral 500 (cream)" color="#bbb6af" token="text-neutral-500 · icons, placeholder" />
+      <ColorSwatch label="Neutral 600 (cream)" color="#9b9690" token="text-neutral-600 · --muted-foreground" />
+      <ColorSwatch label="Neutral 700 (cream)" color="#7c7874" token="text-neutral-700 · secondary text" />
+      <ColorSwatch label="Neutral 800 (cream)" color="#615e5b" token="text-neutral-800 · body text" />
+      <ColorSwatch label="Neutral 900 (cream)" color="#4d4b48" token="text-neutral-900 · --foreground / --primary" />
     </div>
 
     <h4 style={{ marginTop: '0', marginBottom: '0.5rem', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>All other themes — Slate</h4>

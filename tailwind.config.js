@@ -9,6 +9,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Cream palette — Gambit / Edge brand neutral scale.
+        // Referenced by --neutral-* in :root. Kept here for direct use when needed.
+        cream: {
+          50:  '#fff9eb',
+          100: '#f5f2ec',
+          200: '#e8e4dd',
+          300: '#d5d0c8',
+          400: '#bbb6af',
+          500: '#9b9690',
+          600: '#7c7874',
+          700: '#615e5b',
+          800: '#4d4b48',
+          900: '#403e3c',
+          950: '#252422',
+        },
         // Neutral scale — mirrors CSS --neutral-* variables.
         // Change the CSS vars in globals.css to retheme all neutral surfaces at once.
         neutral: {

@@ -71,7 +71,7 @@ export function AppLayout({
   return (
     <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
       {/* Side Navigation */}
-      <div className="h-screen border-r border-border">
+      <div className="h-screen">
       <SideNavigation
         routes={routes}
         logo={logo}
@@ -81,21 +81,21 @@ export function AppLayout({
       </div>
       {/* Main Area */}
       <div className="flex flex-col min-w-0 h-screen overflow-x-hidden">
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Breadcrumb & Header Actions */}
-          <div style={{ background: 'var(--brand-app-bg-hex)' }} className="border-b border-border">
-            <div className="flex items-center justify-between">
-              <SmartBreadcrumbs
-                namespace="gambit"
-                routes={routes}
-                showNavToggle={true}
-                className="flex-1 py-3 relative"
-                {...breadcrumbProps}
-              />
-              <HeaderActions className="pr-6" routes={routes} />
-            </div>
+        {/* Breadcrumb & Header Actions */}
+        <div style={{ background: 'var(--brand-app-bg-hex)' }}>
+          <div className="flex items-center justify-between">
+            <SmartBreadcrumbs
+              namespace="gambit"
+              routes={routes}
+              showNavToggle={true}
+              className="flex-1 py-3 relative"
+              {...breadcrumbProps}
+            />
+            <HeaderActions className="pr-6" routes={routes} />
           </div>
+        </div>
+        {/* Scrollable Page Panel — border follows the rounded-tl curve */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border bg-neutral-50">
           {/* Page Header */}
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}
@@ -116,7 +116,7 @@ export function AppLayout({
             {...pageHeaderProps}
           />
           {/* Page Content Area */}
-          <div className="w-full p-6 pb-24 min-h-screen bg-neutral-50 overflow-x-hidden">
+          <div className="w-full p-6 pb-24 min-h-screen overflow-x-hidden">
               <div className="max-w-full">
                 {children}
               </div>

@@ -47,7 +47,7 @@ body[data-theme="albertHeijn"] {
   --secondary:            210   40%   96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted:                210   40%   96.1%;
-  --muted-foreground:     215.4 16.3% 46.9%;
+  --muted-foreground:     215   20%   36%;   /* slate-600 #475569 */
   --accent:               210   40%   96.1%;
   --accent-foreground:    222.2 47.4% 11.2%;
   --border:               214.3 31.8% 91.4%;
@@ -96,7 +96,7 @@ body[data-theme="retailMedia"] {
   --secondary:            40  30% 94%;
   --secondary-foreground: 33  3%  29%;
   --muted:                40  30% 94%;
-  --muted-foreground:     33  9%  71%;
+  --muted-foreground:     33  5%  59%;   /* cream-600 #9b9690 */
   --accent:               40  30% 94%;
   --accent-foreground:    33  3%  29%;
   --border:               40  19% 90%;
@@ -144,7 +144,7 @@ body[data-theme="adusa"] {
   --secondary:            210   40%   96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted:                210   40%   96.1%;
-  --muted-foreground:     215.4 16.3% 46.9%;
+  --muted-foreground:     215   20%   36%;   /* slate-600 #475569 */
   --accent:               210   40%   96.1%;
   --accent-foreground:    222.2 47.4% 11.2%;
   --border:               214.3 31.8% 91.4%;
@@ -192,7 +192,7 @@ body[data-theme="delhaize"] {
   --secondary:            210   40%   96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted:                210   40%   96.1%;
-  --muted-foreground:     215.4 16.3% 46.9%;
+  --muted-foreground:     215   20%   36%;   /* slate-600 #475569 */
   --accent:               210   40%   96.1%;
   --accent-foreground:    222.2 47.4% 11.2%;
   --border:               214.3 31.8% 91.4%;
@@ -240,7 +240,7 @@ body[data-theme="alfaBeta"] {
   --secondary:            210   40%   96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted:                210   40%   96.1%;
-  --muted-foreground:     215.4 16.3% 46.9%;
+  --muted-foreground:     215   20%   36%;   /* slate-600 #475569 */
   --accent:               210   40%   96.1%;
   --accent-foreground:    222.2 47.4% 11.2%;
   --border:               214.3 31.8% 91.4%;
@@ -281,7 +281,7 @@ body[data-theme="alfaBeta"] {
     --secondary:            40  30% 94%;   /* cream-200 #f5f2ec */
     --secondary-foreground: 33  3%  29%;   /* cream-900 #4d4b48 */
     --muted:                40  30% 94%;   /* cream-200 #f5f2ec */
-    --muted-foreground:     33  9%  71%;   /* cream-500 #bbb6af */
+    --muted-foreground:     33  5%  59%;   /* cream-600 #9b9690 */
     --accent:               40  30% 94%;   /* cream-200 #f5f2ec */
     --accent-foreground:    33  3%  29%;   /* cream-900 #4d4b48 */
     --destructive:          0  84.2% 60.2%;

@@ -183,79 +183,10 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
       )}
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-neutral-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-neutral-50 relative">
         <Card className="w-full max-w-md border-0 shadow-none bg-transparent">
           <CardContent className="p-0">
             <div className="space-y-6">
-              {/* Theme switcher logo above sign in */}
-              <div className="flex justify-start mb-6">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="hover:opacity-75 transition-opacity">
-                      <div
-                        className="flex items-center justify-center rounded-lg w-10 h-10 p-1.5"
-                        style={{ backgroundColor: theme.brandAppBg }}
-                      >
-                        <Logo
-                          theme={
-                            currentTheme === 'albertHeijn' ? 'albert-heijn' :
-                            currentTheme === 'delhaize' ? 'delhaize' :
-                            currentTheme === 'adusa' ? 'adusa' :
-                            currentTheme === 'alfaBeta' ? 'alfa-beta' :
-                            'auto'
-                          }
-                          variant={
-                            theme.brandAppBg === '#ffffff' ? 'auto' :
-                            currentTheme === 'retailMedia' ? 'auto' : // Use original green logo for Gambit
-                            'white'
-                          }
-                          alt={`${theme.name} logo`}
-                          className="h-full w-full"
-                        />
-                      </div>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-56">
-                    <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Object.entries(themes).map(([key, themeOption]) => (
-                      <DropdownMenuItem
-                        key={key}
-                        onClick={() => handleThemeChange(key)}
-                        className="flex items-center gap-3"
-                      >
-                        <div
-                          className="flex items-center justify-center rounded-lg w-10 h-10 p-1.5"
-                          style={{ backgroundColor: themeOption.brandAppBg }}
-                        >
-                          <Logo
-                            theme={
-                              key === 'albertHeijn' ? 'albert-heijn' :
-                              key === 'delhaize' ? 'delhaize' :
-                              key === 'adusa' ? 'adusa' :
-                              key === 'alfaBeta' ? 'alfa-beta' :
-                              key === 'retailMedia' ? 'gambit' :
-                              'auto'
-                            }
-                            variant={
-                              themeOption.brandAppBg === '#ffffff' ? 'auto' :
-                              key === 'retailMedia' ? 'auto' : // Use original green logo for Gambit
-                              'white'
-                            }
-                            alt={`${themeOption.name} logo`}
-                            className="h-full w-full"
-                          />
-                        </div>
-                        <span>{themeOption.name}</span>
-                        {currentTheme === key && (
-                          <div className="ml-auto w-2 h-2 bg-current rounded-full" />
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
               <div>
                 <h2 className="text-2xl font-semibold text-neutral-900">Sign in</h2>
               </div>
@@ -346,6 +277,62 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
             </div>
           </CardContent>
         </Card>
+
+        {/* Powered by edge.os badge — triggers theme switcher */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-0.5 pl-3 pr-2 py-1.5 rounded-full border border-neutral-200 bg-white shadow-sm hover:border-neutral-300 hover:shadow-md transition-all duration-200">
+                <span className="text-xs font-medium text-neutral-500">powered by</span>
+                <Image
+                  src="/edgeos-icon.svg"
+                  alt="edge.os"
+                  width={60}
+                  height={16}
+                  className="h-4 w-auto"
+                />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" side="top" className="w-56 mb-1">
+              <DropdownMenuLabel>Switch theme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Object.entries(themes).map(([key, themeOption]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleThemeChange(key)}
+                  className="flex items-center gap-3"
+                >
+                  <div
+                    className="flex items-center justify-center rounded-lg w-8 h-8 p-1 flex-shrink-0"
+                    style={{ backgroundColor: themeOption.brandAppBg }}
+                  >
+                    <Logo
+                      theme={
+                        key === 'albertHeijn' ? 'albert-heijn' :
+                        key === 'delhaize' ? 'delhaize' :
+                        key === 'adusa' ? 'adusa' :
+                        key === 'alfaBeta' ? 'alfa-beta' :
+                        key === 'retailMedia' ? 'gambit' :
+                        'auto'
+                      }
+                      variant={
+                        themeOption.brandAppBg === '#ffffff' ? 'auto' :
+                        key === 'retailMedia' ? 'auto' :
+                        'white'
+                      }
+                      alt={`${themeOption.name} logo`}
+                      className="h-full w-full"
+                    />
+                  </div>
+                  <span className="text-sm">{themeOption.name}</span>
+                  {currentTheme === key && (
+                    <div className="ml-auto w-2 h-2 bg-current rounded-full" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );

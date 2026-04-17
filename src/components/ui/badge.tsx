@@ -9,7 +9,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-slate-200 bg-slate-100 text-slate-900",
+          "border-neutral-200 bg-neutral-100 text-neutral-900",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
@@ -19,9 +19,9 @@ const badgeVariants = cva(
         warning:
           "border-[#FFEDD5] bg-[#FFF7ED] text-[#EA580C]",
         outline: 
-          "border-slate-200 bg-transparent text-foreground",
+          "border-neutral-200 bg-transparent text-foreground",
         info:
-          "border-slate-200 bg-slate-50 text-slate-600",
+          "border-neutral-200 bg-neutral-50 text-neutral-600",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",

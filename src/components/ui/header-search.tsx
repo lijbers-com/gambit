@@ -148,11 +148,11 @@ function getStatusColor(status?: string): string {
     case 'paused':
     case 'draft':
     case 'in option':
-      return 'bg-slate-100 text-slate-600';
+      return 'bg-neutral-100 text-neutral-600';
     case 'rejected':
       return 'bg-red-100 text-red-700';
     default:
-      return 'bg-slate-100 text-slate-600';
+      return 'bg-neutral-100 text-neutral-600';
   }
 }
 

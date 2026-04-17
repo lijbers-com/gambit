@@ -45,7 +45,7 @@ export function CardWithTabs({
               className={
                 `px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors ` +
                 (activeTab === tab.value
-                  ? 'font-medium bg-white text-card-foreground border-slate-200 z-10'
+                  ? 'font-medium bg-white text-card-foreground border-neutral-200 z-10'
                   : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground')
               }
               style={{ position: 'relative', top: 1 }}
@@ -147,7 +147,7 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-// CardSummary: for summary cards with slate-100 background and 14px body text
+// CardSummary: for summary cards with neutral-100 background and 14px body text
 const CardSummary = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -155,7 +155,7 @@ const CardSummary = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-slate-100 text-card-foreground",
+      "rounded-xl border bg-neutral-100 text-card-foreground",
       className
     )}
     {...props}
@@ -271,7 +271,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (
           <div className="mt-3">
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="w-full bg-neutral-200 rounded-full h-2">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-in-out"
                 style={{ width: `${progress}%` }}
@@ -289,8 +289,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       </CardContent>
       {/* Arrow pointing down from the selected card */}
       {isSelected && (
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-          <div className="w-4 h-4 bg-white border-r border-b border-slate-200 rotate-45 shadow-sm"></div>
+        <div className="absolute -bottom-2 left-1/2 transform -tranneutral-x-1/2">
+          <div className="w-4 h-4 bg-white border-r border-b border-neutral-200 rotate-45 shadow-sm"></div>
         </div>
       )}
     </Card>

@@ -50,14 +50,14 @@ export function MapChart({
         {data.map((store, index) => (
           <div
             key={index}
-            className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+            className="absolute transform -tranneutral-x-1/2 -tranneutral-y-1/2 group cursor-pointer"
             style={{ left: `${store.x}%`, top: `${store.y}%` }}
             title={`${store.name}: ${store.plays.toLocaleString()} plays`}
           >
             <div className={`${getCircleSize(store.plays)} ${getCircleColor(store.plays)} rounded-full border-2 border-white shadow-lg transition-all duration-200 hover:scale-110`}>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+            <div className="absolute bottom-full left-1/2 transform -tranneutral-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
               <div className="font-medium">{store.name}</div>
               <div>{store.plays.toLocaleString()} plays</div>
             </div>

@@ -170,9 +170,9 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           <Dialog>
             <DialogTrigger asChild>
               <div
-                className="border-2 border-dashed border-slate-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-slate-50 transition-colors"
+                className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-neutral-50 transition-colors"
               >
-                <Plus className="h-8 w-8 text-slate-400" />
+                <Plus className="h-8 w-8 text-neutral-400" />
               </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[800px]">

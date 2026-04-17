@@ -78,7 +78,7 @@ export const Filter: React.FC<FilterProps> = ({
           variant="outline"
           className={cn(
             'inline-flex items-center gap-2',
-            selectedLabels.length > 0 && 'bg-slate-100',
+            selectedLabels.length > 0 && 'bg-neutral-100',
             className
           )}
           aria-label={name}
@@ -90,7 +90,7 @@ export const Filter: React.FC<FilterProps> = ({
                 e.stopPropagation();
                 handleClear();
               }}
-              className="ml-2 flex items-center justify-center rounded-full p-1 hover:bg-slate-200 focus:outline-none"
+              className="ml-2 flex items-center justify-center rounded-full p-1 hover:bg-neutral-200 focus:outline-none"
               tabIndex={0}
               aria-label="Clear filter"
               role="button"
@@ -119,7 +119,7 @@ export const Filter: React.FC<FilterProps> = ({
           </div>
         )}
         {customInput && (
-          <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
+          <div className="sticky top-0 z-10 bg-white border-b border-neutral-200">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">
                 <Store className="w-4 h-4" />

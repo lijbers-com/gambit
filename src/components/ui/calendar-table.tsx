@@ -290,7 +290,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   const weekColumnWidth = '100px'; // Fixed width for week columns
 
   return (
-    <div className={cn('overflow-x-auto bg-white border border-neutral-200 rounded-xl', className)}>
+    <div className={cn('overflow-x-auto bg-white border border-border rounded-xl', className)}>
       {/* Main Table */}
       <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * 100)}px`, tableLayout: 'fixed' }}>
         <thead className="bg-neutral-50">
@@ -316,7 +316,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           {/* Commercial Calendar Row */}
           {retailerEvents.length > 0 && (
             <React.Fragment>
-              <tr className="bg-white border-b border-neutral-200">
+              <tr className="bg-white border-b border-border">
                 <td className="px-4 py-[11px] align-middle">
                   <div className="flex items-center gap-3">
                     <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">Events</span>
@@ -396,7 +396,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   return (
                     <tr key={`event-${eventName}`} className={cn(
                       "bg-white",
-                      index === totalEvents - 1 && "border-b border-neutral-200"
+                      index === totalEvents - 1 && "border-b border-border"
                     )}>
                       <td className={cn(
                         "px-4 align-middle",
@@ -473,7 +473,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             <React.Fragment key={product.id}>
               <tr className={cn(
                 'bg-white',
-                productIndex !== mediaProducts.length - 1 && 'border-b border-neutral-200'
+                productIndex !== mediaProducts.length - 1 && 'border-b border-border'
               )}>
                 <td className="px-4 py-[11px] align-middle">
                   <div className="flex items-center gap-3">
@@ -500,7 +500,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 <tr key={booking.id} className={cn(
                   "bg-white",
                   bookingIndex === 0 && "pt-6", // 24px top padding for first row
-                  bookingIndex === product.bookings!.length - 1 && "pb-6 border-b border-neutral-200" // 24px bottom padding and border for last row
+                  bookingIndex === product.bookings!.length - 1 && "pb-6 border-b border-border" // 24px bottom padding and border for last row
                 )}>
                   <td className={cn(
                     "px-4 align-middle",

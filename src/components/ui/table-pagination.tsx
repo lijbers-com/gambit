@@ -73,7 +73,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
 
   return (
     <div className={cn(
-      "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3",
+      "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full bg-neutral-50 border border-border rounded-lg px-4 py-3",
       className
     )}>
       {/* Pagination - Left aligned */}

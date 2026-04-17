@@ -119,7 +119,7 @@ export const Filter: React.FC<FilterProps> = ({
           </div>
         )}
         {customInput && (
-          <div className="sticky top-0 z-10 bg-white border-b border-neutral-200">
+          <div className="sticky top-0 z-10 bg-white border-b border-border">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">
                 <Store className="w-4 h-4" />

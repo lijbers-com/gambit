@@ -71,7 +71,7 @@ export function AppLayout({
   return (
     <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
       {/* Side Navigation */}
-      <div className="h-screen">
+      <div className="h-screen border-r border-border">
       <SideNavigation
         routes={routes}
         logo={logo}
@@ -84,7 +84,7 @@ export function AppLayout({
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* Breadcrumb & Header Actions */}
-          <div style={{ background: 'var(--brand-app-bg-hex)' }}>
+          <div style={{ background: 'var(--brand-app-bg-hex)' }} className="border-b border-border">
             <div className="flex items-center justify-between">
               <SmartBreadcrumbs
                 namespace="gambit"

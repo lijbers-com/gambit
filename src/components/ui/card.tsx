@@ -45,7 +45,7 @@ export function CardWithTabs({
               className={
                 `px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors ` +
                 (activeTab === tab.value
-                  ? 'font-medium bg-white text-card-foreground border-neutral-200 z-10'
+                  ? 'font-medium bg-white text-card-foreground border-border z-10'
                   : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground')
               }
               style={{ position: 'relative', top: 1 }}
@@ -290,7 +290,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       {/* Arrow pointing down from the selected card */}
       {isSelected && (
         <div className="absolute -bottom-2 left-1/2 transform -tranneutral-x-1/2">
-          <div className="w-4 h-4 bg-white border-r border-b border-neutral-200 rotate-45 shadow-sm"></div>
+          <div className="w-4 h-4 bg-white border-r border-b border-border rotate-45 shadow-sm"></div>
         </div>
       )}
     </Card>

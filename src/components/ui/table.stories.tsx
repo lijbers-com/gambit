@@ -96,7 +96,7 @@ const data: Row[] = [
 
 export const Default: Story = {
   render: () => (
-    <div className="p-8 bg-slate-50 min-h-screen">
+    <div className="p-8 bg-neutral-50 min-h-screen">
       <Table columns={columns} data={data} rowKey={(row) => row.id} />
     </div>
   ),
@@ -104,9 +104,9 @@ export const Default: Story = {
 
 export const FixedColumns: Story = {
   render: () => (
-    <div className="p-8 bg-slate-50 min-h-screen">
+    <div className="p-8 bg-neutral-50 min-h-screen">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">The &quot;ID&quot; and &quot;Status&quot; columns are fixed by default. Open the column menu (⋯) to drag columns between the Fixed and Show sections, reorder fixed columns, or unpin them.</p>
+        <p className="text-sm text-neutral-500">The &quot;ID&quot; and &quot;Status&quot; columns are fixed by default. Open the column menu (⋯) to drag columns between the Fixed and Show sections, reorder fixed columns, or unpin them.</p>
       </div>
       <Table
         columns={[
@@ -129,8 +129,8 @@ export const FixedColumns: Story = {
             width: 260,
             render: (row) => (
               <div>
-                <div className="font-medium text-slate-800">{row.player}</div>
-                <div className="text-xs text-slate-500">MAC: {row.mac}</div>
+                <div className="font-medium text-neutral-800">{row.player}</div>
+                <div className="text-xs text-neutral-500">MAC: {row.mac}</div>
               </div>
             ),
           },
@@ -140,7 +140,7 @@ export const FixedColumns: Story = {
             width: 280,
             render: (row) => (
               <div className="flex items-center gap-2">
-                <img src={row.storeLogo} alt="store" className="h-7 w-7 rounded-full bg-slate-100 border border-slate-200" />
+                <img src={row.storeLogo} alt="store" className="h-7 w-7 rounded-full bg-neutral-100 border border-neutral-200" />
                 <span>{row.store}</span>
               </div>
             ),

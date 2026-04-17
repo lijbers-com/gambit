@@ -368,7 +368,7 @@ const NotificationCenterContent = () => {
   const notificationsContent = (
     <div className="relative pl-12 pt-8 pb-8">
       {/* Vertical Timeline Line - starts from first timing badge */}
-      <div className="absolute left-6 top-[30px] bottom-0 w-px bg-slate-300"></div>
+      <div className="absolute left-6 top-[30px] bottom-0 w-px bg-neutral-300"></div>
 
       {/* Timeline Content */}
       <div className="space-y-6">
@@ -377,7 +377,7 @@ const NotificationCenterContent = () => {
             {/* Time Group Header */}
             <div className="relative flex items-center -ml-12">
               {/* Time label positioned on the left of timeline */}
-              <span className="text-sm font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200 mr-4 relative z-10">
+              <span className="text-sm font-medium text-neutral-600 bg-white px-3 py-1 rounded-full border border-neutral-200 mr-4 relative z-10">
                 {group.timeGroup}
               </span>
             </div>
@@ -404,8 +404,8 @@ const NotificationCenterContent = () => {
                 <div key={activity.id} className="relative flex items-start -ml-12">
                   {/* Icon on the timeline */}
                   <div className="w-12 flex justify-center">
-                    <div className="w-8 h-8 bg-white rounded-full border border-slate-300 flex items-center justify-center">
-                      <Icon className="w-4 h-4 text-slate-600" />
+                    <div className="w-8 h-8 bg-white rounded-full border border-neutral-300 flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-neutral-600" />
                     </div>
                   </div>
 
@@ -458,7 +458,7 @@ const NotificationCenterContent = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-slate-600" />
+              <Mail className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
                   Email Notifications
@@ -477,7 +477,7 @@ const NotificationCenterContent = () => {
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <Bell className="w-5 h-5 text-slate-600" />
+              <Bell className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="push-notifications" className="text-base font-medium cursor-pointer">
                   Push Notifications
@@ -502,7 +502,7 @@ const NotificationCenterContent = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <Table className="w-5 h-5 text-slate-600" />
+              <Table className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="campaign-approvals" className="text-base font-medium cursor-pointer">
                   Campaign Approvals
@@ -521,7 +521,7 @@ const NotificationCenterContent = () => {
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <Image className="w-5 h-5 text-slate-600" />
+              <Image className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="creative-updates" className="text-base font-medium cursor-pointer">
                   Creative Updates
@@ -540,7 +540,7 @@ const NotificationCenterContent = () => {
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5 text-slate-600" />
+              <DollarSign className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="budget-alerts" className="text-base font-medium cursor-pointer">
                   Budget Alerts
@@ -559,7 +559,7 @@ const NotificationCenterContent = () => {
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <BarChart3 className="w-5 h-5 text-slate-600" />
+              <BarChart3 className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="performance-reports" className="text-base font-medium cursor-pointer">
                   Performance Reports
@@ -578,7 +578,7 @@ const NotificationCenterContent = () => {
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-slate-600" />
+              <Sparkles className="w-5 h-5 text-neutral-600" />
               <div>
                 <Label htmlFor="ai-recommendations" className="text-base font-medium cursor-pointer">
                   AI Recommendations

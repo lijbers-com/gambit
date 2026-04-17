@@ -1550,7 +1550,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                       <CardContent className="space-y-3">
                         {/* Existing bookings */}
                         {bookings.map((booking, i) => (
-                          <div key={booking.id} className="rounded-lg border bg-slate-50 p-4 flex items-center justify-between">
+                          <div key={booking.id} className="rounded-lg border bg-neutral-50 p-4 flex items-center justify-between">
                             <div>
                               <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
                               <div className="text-xs text-muted-foreground mt-0.5">
@@ -2075,7 +2075,7 @@ const SearchSelect: React.FC<SearchSelectProps> = ({ options, value, onChange, p
               role="button"
               tabIndex={0}
               onClick={e => { e.stopPropagation(); onChange(''); }}
-              className="ml-1 rounded-full p-0.5 hover:bg-slate-200"
+              className="ml-1 rounded-full p-0.5 hover:bg-neutral-200"
               aria-label="Clear"
             >
               <X className="w-3.5 h-3.5 text-muted-foreground" />

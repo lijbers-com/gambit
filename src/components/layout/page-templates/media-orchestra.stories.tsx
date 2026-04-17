@@ -587,10 +587,10 @@ export const Overview = {
             <Dialog>
               <DialogTrigger asChild>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                  className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-neutral-50 transition-colors"
                 >
-                  <Plus className="h-8 w-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-500 font-medium">Add Metric</span>
+                  <Plus className="h-8 w-8 text-neutral-400 mb-2" />
+                  <span className="text-sm text-neutral-500 font-medium">Add Metric</span>
                 </div>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[800px]">

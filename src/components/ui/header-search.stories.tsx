@@ -77,8 +77,8 @@ export const InHeader: Story = {
   render: () => (
     <div className="w-[600px] bg-white p-4 rounded-lg shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="text-sm text-slate-600">
-          <span className="text-slate-900 font-medium">Dashboard</span>
+        <div className="text-sm text-neutral-600">
+          <span className="text-neutral-900 font-medium">Dashboard</span>
           <span className="mx-2">/</span>
           <span>Campaigns</span>
         </div>
@@ -99,8 +99,8 @@ export const WithHeaderActions: Story = {
   render: () => (
     <div className="w-[700px] bg-white p-4 rounded-lg shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="text-sm text-slate-600">
-          <span className="text-slate-900 font-medium">Dashboard</span>
+        <div className="text-sm text-neutral-600">
+          <span className="text-neutral-900 font-medium">Dashboard</span>
           <span className="mx-2">/</span>
           <span>Campaigns</span>
         </div>

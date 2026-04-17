@@ -1018,7 +1018,7 @@ export const DigitalInStore: Story = {
                                   filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
@@ -1039,7 +1039,7 @@ export const DigitalInStore: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                              <div className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -1113,7 +1113,7 @@ export const DigitalInStore: Story = {
                                   filteredRetailProducts.map((product) => (
                                   <div
                                     key={product.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handleRetailProductSelect(product)}
                                   >
                                     <div className="font-medium text-sm">{product.name}</div>
@@ -1136,7 +1136,7 @@ export const DigitalInStore: Story = {
                                 {selectedRetailProducts.map(productId => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                       <div>
                                         <div className="text-sm font-medium">{product.name}</div>
                                         <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -1318,7 +1318,7 @@ export const DigitalInStore: Story = {
                       {mockCreatives.map(creative => {
                         const isLinked = selectedCreatives.some(selected => selected.id === creative.id);
                         return (
-                          <div key={creative.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={creative.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Creative: </span>
                               <span className="font-medium">{creative.name}</span>
@@ -1988,7 +1988,7 @@ export const OfflineInStore: Story = {
                             </>
                           )}
 {selectedLocations.length > 0 && (
-  <div className="mt-6 pt-4 border-t border-slate-200">
+  <div className="mt-6 pt-4 border-t border-neutral-200">
     <h4 className="text-sm font-medium mb-3">Other campaigns in this location</h4>
     <Table
       columns={[
@@ -2174,7 +2174,7 @@ export const OfflineInStore: Story = {
                       {mockCreatives.map(creative => {
                         const isLinked = selectedCreatives.some(selected => selected.id === creative.id);
                         return (
-                          <div key={creative.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={creative.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Creative: </span>
                               <span className="font-medium">{creative.name}</span>
@@ -2415,7 +2415,7 @@ export const SponsoredProducts: Story = {
                                   filteredPlacements.map((placement) => (
                                   <div
                                     key={placement.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handlePlacementSelect(placement)}
                                   >
                                     <div className="font-medium text-sm">{placement.name}</div>
@@ -2436,7 +2436,7 @@ export const SponsoredProducts: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                              <div className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -2510,7 +2510,7 @@ export const SponsoredProducts: Story = {
                                   filteredRetailProducts.map((product) => (
                                   <div
                                     key={product.id}
-                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                     onClick={() => handleRetailProductSelect(product)}
                                   >
                                     <div className="font-medium text-sm">{product.name}</div>
@@ -2533,7 +2533,7 @@ export const SponsoredProducts: Story = {
                                 {selectedRetailProducts.map(productId => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                       <div>
                                         <div className="text-sm font-medium">{product.name}</div>
                                         <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -2715,7 +2715,7 @@ export const SponsoredProducts: Story = {
                       {mockCreatives.map(creative => {
                         const isLinked = selectedCreatives.some(selected => selected.id === creative.id);
                         return (
-                          <div key={creative.id} className="mb-3 pb-2 border-b border-gray-100 last:border-b-0">
+                          <div key={creative.id} className="mb-3 pb-2 border-b border-neutral-100 last:border-b-0">
                             <div className="text-[14px]">
                               <span className="text-muted-foreground">Creative: </span>
                               <span className="font-medium">{creative.name}</span>
@@ -2981,7 +2981,7 @@ export const OffsiteDisplay: Story = {
                               filteredRetailProducts.map(product => (
                                 <div
                                   key={product.id}
-                                  className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                  className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                   onClick={() => handleRetailProductSelect(product)}
                                 >
                                   <div className="font-medium text-sm">{product.name}</div>
@@ -3001,7 +3001,7 @@ export const OffsiteDisplay: Story = {
                           {selectedRetailProducts.map(productId => {
                             const product = retailProducts.find(p => p.id === productId);
                             return product ? (
-                              <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                              <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{product.name}</div>
                                   <div className="text-xs text-muted-foreground">ID: {product.id}</div>

@@ -270,7 +270,7 @@ export const UsageExamples: Story = {
       <div className="space-y-4">
         <div className="space-y-2">
           <h4 className="font-medium">Campaign Dashboard</h4>
-          <div className="bg-slate-50 p-4 rounded-lg space-y-3">
+          <div className="bg-neutral-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-medium">Summer Sale Campaign</span>
               <Badge variant="success" size="large">
@@ -297,7 +297,7 @@ export const UsageExamples: Story = {
 
         <div className="space-y-2">
           <h4 className="font-medium">Performance Metrics</h4>
-          <div className="bg-slate-50 p-4 rounded-lg space-y-3">
+          <div className="bg-neutral-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground w-20">CTR:</span>
               <Badge variant="success">

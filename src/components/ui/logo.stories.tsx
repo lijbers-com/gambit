@@ -144,19 +144,19 @@ export const Comparison: Story = {
     <div className="flex gap-6 items-center flex-wrap">
       <div className="text-center">
         <Logo theme="gambit" />
-        <p className="mt-2 text-sm text-gray-600">Gambit (Original)</p>
+        <p className="mt-2 text-sm text-neutral-600">Gambit (Original)</p>
       </div>
       <div className="text-center">
         <Logo theme="albert-heijn" variant="white" />
-        <p className="mt-2 text-sm text-gray-600">AH (White)</p>
+        <p className="mt-2 text-sm text-neutral-600">AH (White)</p>
       </div>
       <div className="text-center">
         <Logo theme="albert-heijn" variant="blue" />
-        <p className="mt-2 text-sm text-gray-600">AH (Blue)</p>
+        <p className="mt-2 text-sm text-neutral-600">AH (Blue)</p>
       </div>
       <div className="text-center">
         <Logo theme="albert-heijn" variant="original" />
-        <p className="mt-2 text-sm text-gray-600">AH (Original)</p>
+        <p className="mt-2 text-sm text-neutral-600">AH (Original)</p>
       </div>
     </div>
   ),

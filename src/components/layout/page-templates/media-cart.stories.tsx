@@ -197,7 +197,7 @@ export const MediaCart: Story = {
                                 dateRange={dateRange}
                                 onDateRangeChange={setDateRange}
                                 placeholder="Select campaign dates with conversion window"
-                                className="w-full bg-slate-50 border-slate-200"
+                                className="w-full bg-neutral-50 border-neutral-200"
                                 showPresets={true}
                                 showConversionWindow={true}
                                 conversionWindow={conversionWindow}
@@ -366,7 +366,7 @@ export const MediaCart: Story = {
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Budget Usage</div>
                           <div className="font-medium">{campaignData.budgetUsagePercentage}%</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                          <div className="w-full bg-neutral-200 rounded-full h-2 mt-1">
                             <div
                               className="h-2 rounded-full bg-green-500 transition-all"
                               style={{ width: `${campaignData.budgetUsagePercentage}%` }}

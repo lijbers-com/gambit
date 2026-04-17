@@ -1959,7 +1959,7 @@ export const OfflineInstorePerformance: Story = {
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium text-muted-foreground">Audience Performance</h4>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium">Stedelijk</p>
                         <p className="text-xs text-muted-foreground">35% of audience</p>
@@ -1970,7 +1970,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium">Young adult</p>
                         <p className="text-xs text-muted-foreground">28% of audience</p>
@@ -1981,7 +1981,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium">Family with Kids</p>
                         <p className="text-xs text-muted-foreground">25% of audience</p>
@@ -1992,7 +1992,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium">Bonus shoppers</p>
                         <p className="text-xs text-muted-foreground">12% of audience</p>
@@ -2455,7 +2455,7 @@ export const FullReportView: Story = {
                 ]}
                 data={fullReportData}
                 rowKey={row => row.id}
-                rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                 onRowClick={row => {
                   console.log('Navigate to booking details for', row.name);
                 }}
@@ -2796,7 +2796,7 @@ export const ProductReportView: Story = {
                       ]}
                       data={productReportData}
                       rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to product details for', row.productName)}
                     />
                   </div>
@@ -2875,7 +2875,7 @@ export const ProductReportView: Story = {
                       ]}
                       data={audienceReportData}
                       rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to audience details for', row.segment)}
                     />
                   </div>
@@ -2951,7 +2951,7 @@ export const ProductReportView: Story = {
                       ]}
                       data={iroasReportData}
                       rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
                     />
                   </div>
@@ -3029,7 +3029,7 @@ export const ProductReportView: Story = {
                       ]}
                       data={ecomFunnelData}
                       rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to funnel details for', row.step)}
                     />
                   </div>
@@ -3105,7 +3105,7 @@ export const ProductReportView: Story = {
                       ]}
                       data={goalReportData}
                       rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to goal details for', row.goal)}
                     />
                   </div>
@@ -3180,7 +3180,7 @@ export const ProductReportView: Story = {
                           { id: 'NR-005', proposition: 'Display Offsite', campaigns: 3, impressions: 980000, clicks: 2940, ctr: '0.30%', spend: 1400, revenue: 8430, roas: '6.02x', conversions: 710, cpa: '€1.97' },
                         ]}
                         rowKey={(row: { id: string }) => row.id}
-                        rowClassName={() => 'cursor-pointer hover:bg-gray-50'}
+                        rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row: { proposition: string }) => console.log('Navigate to proposition details for', row.proposition)}
                       />
                   </div>
@@ -4142,12 +4142,12 @@ export const FunnelView: Story = {
           {visibleFunnelCards.awareness && visibleFunnelCards.consideration && (
             <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
               <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-gray-300" />
-                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-gray-500">{((considerationData[considerationData.length - 1].totalEngagements / awarenessData[awarenessData.length - 1].totalVolume) * 100).toFixed(1)}% engagement rate</span>
+                <div className="w-px h-3 bg-neutral-300" />
+                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-neutral-500">{((considerationData[considerationData.length - 1].totalEngagements / awarenessData[awarenessData.length - 1].totalVolume) * 100).toFixed(1)}% engagement rate</span>
                 </div>
-                <div className="w-px h-3 bg-gray-300" />
+                <div className="w-px h-3 bg-neutral-300" />
               </div>
             </div>
           )}
@@ -4421,12 +4421,12 @@ export const FunnelView: Story = {
           {visibleFunnelCards.consideration && visibleFunnelCards.purchase && (
             <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
               <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-gray-300" />
-                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-gray-500">{((purchaseData[purchaseData.length - 1].totalUnitsSold / considerationData[considerationData.length - 1].totalEngagements) * 100).toFixed(1)}% conversion rate</span>
+                <div className="w-px h-3 bg-neutral-300" />
+                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-neutral-500">{((purchaseData[purchaseData.length - 1].totalUnitsSold / considerationData[considerationData.length - 1].totalEngagements) * 100).toFixed(1)}% conversion rate</span>
                 </div>
-                <div className="w-px h-3 bg-gray-300" />
+                <div className="w-px h-3 bg-neutral-300" />
               </div>
             </div>
           )}
@@ -4794,12 +4794,12 @@ export const FunnelView: Story = {
           {visibleFunnelCards.purchase && visibleFunnelCards.loyalty && (
             <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
               <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-gray-300" />
-                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-gray-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-gray-500">{loyaltyData[loyaltyData.length - 1].retentionRate}% retention rate</span>
+                <div className="w-px h-3 bg-neutral-300" />
+                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
+                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                  <span className="text-xs font-medium text-neutral-500">{loyaltyData[loyaltyData.length - 1].retentionRate}% retention rate</span>
                 </div>
-                <div className="w-px h-3 bg-gray-300" />
+                <div className="w-px h-3 bg-neutral-300" />
               </div>
             </div>
           )}

@@ -641,7 +641,7 @@ export const GoalSelection: Story = {
                                   filteredRetailProducts.map((product) => (
                                     <div
                                       key={product.id}
-                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                      className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
                                       onClick={() => handleRetailProductSelect(product)}
                                     >
                                       <div className="font-medium text-sm">{product.name}</div>
@@ -661,7 +661,7 @@ export const GoalSelection: Story = {
                                 {selectedRetailProducts.map((productId) => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-slate-50 rounded-md p-2">
+                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
                                       <div>
                                         <div className="text-sm font-medium">{product.name}</div>
                                         <div className="text-xs text-muted-foreground">ID: {product.id}</div>

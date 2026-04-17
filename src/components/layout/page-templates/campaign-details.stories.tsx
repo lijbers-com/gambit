@@ -485,7 +485,7 @@ const updatedForecastMetrics = [
                   }}
                 >
                   {/* Spend amount as central element with chevrons */}
-                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-neutral-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
                     {/* Left chevron */}
                     <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
                     
@@ -3632,7 +3632,7 @@ export const SponsoredProductsInOption: Story = {
                   }}
                 >
                   {/* Spend amount as central element with chevrons */}
-                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center bg-white text-neutral-900 text-xs px-3 py-1.5 rounded-lg shadow-lg border pointer-events-none whitespace-nowrap">
                     {/* Left chevron */}
                     <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
                     
@@ -3681,15 +3681,15 @@ export const SponsoredProductsInOption: Story = {
                 ].map((item) => (
                   <div key={item.category} className="flex items-center justify-between p-4 border rounded-lg bg-white">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{item.category}</h4>
-                      <p className="text-sm text-gray-500">Competition level: {item.competition}</p>
+                      <h4 className="font-medium text-neutral-900">{item.category}</h4>
+                      <p className="text-sm text-neutral-500">Competition level: {item.competition}</p>
                     </div>
                     <div className={`flex items-center space-x-1 ${item.color}`}>
                       {Array.from({ length: item.level }, (_, i) => (
                         <Triangle key={i} className="w-4 h-4 fill-current" />
                       ))}
                       {Array.from({ length: 3 - item.level }, (_, i) => (
-                        <Triangle key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+                        <Triangle key={`empty-${i}`} className="w-4 h-4 text-neutral-300" />
                       ))}
                       <span className="ml-2 text-sm font-medium">{item.competition}</span>
                     </div>

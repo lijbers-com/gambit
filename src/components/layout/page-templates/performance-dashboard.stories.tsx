@@ -3706,9 +3706,18 @@ export const FunnelView: Story = {
                   {
                     name: 'Brand',
                     options: [
-                      { label: 'Unilever', value: 'unilever' },
-                      { label: "Ben & Jerry's", value: 'ben-jerrys' },
-                      { label: 'Dove', value: 'dove' }
+                      { label: 'Unilever', value: 'unilever', description: 'Parent brand' },
+                      { label: "Ben & Jerry's", value: 'ben-jerrys', description: 'Ice cream & frozen' },
+                      { label: 'Dove', value: 'dove', description: 'Personal care' },
+                      { label: 'Axe', value: 'axe', description: 'Personal care' },
+                      { label: 'Hellmann\'s', value: 'hellmanns', description: 'Food & condiments' },
+                      { label: 'Knorr', value: 'knorr', description: 'Food & cooking' },
+                      { label: 'Lipton', value: 'lipton', description: 'Beverages' },
+                      { label: 'Magnum', value: 'magnum', description: 'Ice cream & frozen' },
+                      { label: 'Vaseline', value: 'vaseline', description: 'Personal care' },
+                      { label: 'Rexona', value: 'rexona', description: 'Personal care' },
+                      { label: 'Omo', value: 'omo', description: 'Home care' },
+                      { label: 'Domestos', value: 'domestos', description: 'Home care' },
                     ],
                     selectedValues: brandFilter,
                     onChange: setBrandFilter
@@ -3716,9 +3725,17 @@ export const FunnelView: Story = {
                   {
                     name: 'Campaign',
                     options: [
-                      { label: 'Summer Sale 2024', value: 'summer-2024' },
-                      { label: 'Spring Collection', value: 'spring-2024' },
-                      { label: 'Holiday Special', value: 'holiday-2024' }
+                      { label: 'Summer Sale 2024', value: 'summer-2024', description: 'Jun – Aug 2024' },
+                      { label: 'Spring Collection 2024', value: 'spring-2024', description: 'Mar – May 2024' },
+                      { label: 'Holiday Special 2024', value: 'holiday-2024', description: 'Nov – Dec 2024' },
+                      { label: 'Back to School 2024', value: 'bts-2024', description: 'Aug – Sep 2024' },
+                      { label: 'Black Friday 2024', value: 'bf-2024', description: 'Nov 2024' },
+                      { label: 'Valentine\'s Day 2025', value: 'vday-2025', description: 'Jan – Feb 2025' },
+                      { label: 'Easter Campaign 2025', value: 'easter-2025', description: 'Mar – Apr 2025' },
+                      { label: 'Summer Sale 2025', value: 'summer-2025', description: 'Jun – Aug 2025' },
+                      { label: 'New Year Launch 2025', value: 'ny-2025', description: 'Jan 2025' },
+                      { label: 'Brand Awareness Q1', value: 'awareness-q1', description: 'Jan – Mar 2025' },
+                      { label: 'Loyalty Rewards 2025', value: 'loyalty-2025', description: 'Ongoing' },
                     ],
                     selectedValues: campaignFilter,
                     onChange: setCampaignFilter

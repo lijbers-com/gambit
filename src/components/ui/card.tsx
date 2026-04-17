@@ -271,7 +271,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (
           <div className="mt-3">
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-in-out"
                 style={{ width: `${progress}%` }}
@@ -290,7 +290,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       {/* Arrow pointing down from the selected card */}
       {isSelected && (
         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-          <div className="w-4 h-4 bg-white border-r border-b border-gray-200 rotate-45 shadow-sm"></div>
+          <div className="w-4 h-4 bg-white border-r border-b border-slate-200 rotate-45 shadow-sm"></div>
         </div>
       )}
     </Card>

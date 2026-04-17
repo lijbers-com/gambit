@@ -181,7 +181,7 @@ const SmartBreadcrumbsInner = ({
 
 export const SmartBreadcrumbs = (props: BreadcrumbProps) => {
   return (
-    <Suspense fallback={<div className="h-12 w-full bg-gray-100 animate-pulse rounded" />}>
+    <Suspense fallback={<div className="h-12 w-full bg-slate-100 animate-pulse rounded" />}>
       <SmartBreadcrumbsInner {...props} />
     </Suspense>
   );

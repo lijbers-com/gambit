@@ -62,10 +62,10 @@ body[data-theme="retailMedia"] {
   /* Edge / Gambit Brand-Specific Tokens */
   --brand-theme: gambit;
   --brand-primary: #4d4b48;
-  --brand-app-bg: #ffffff;
-  --brand-app-bg-hex: #ffffff;
+  --brand-app-bg: #fff9eb;
+  --brand-app-bg-hex: #fff9eb;
   --brand-app-text: #403e3c;
-  --brand-app-hover: #f5f2ec;
+  --brand-app-hover: #e8e4dd;
   --logo-url: url('/edge-icon.svg');
 
   /* Chart colors */
@@ -301,10 +301,10 @@ body[data-theme="alfaBeta"] {
     /* Brand-specific tokens — Edge / Gambit default */
     --brand-primary: #4d4b48;
     --brand-accent:  #f5f2ec;
-    --brand-app-bg:  #ffffff;
-    --brand-app-bg-hex: #ffffff;
+    --brand-app-bg:  #fff9eb;
+    --brand-app-bg-hex: #fff9eb;
     --brand-app-text: #403e3c;
-    --brand-app-hover: #f5f2ec;
+    --brand-app-hover: #e8e4dd;
     --logo-url: url('/edge-icon.svg');
   }
 }

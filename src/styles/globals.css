@@ -88,20 +88,20 @@ body[data-theme="retailMedia"] {
   --neutral-900:  77  75  72;
 
   /* Cream-based semantic tokens */
-  --foreground:           33  3%  29%;
-  --card-foreground:      33  3%  29%;
-  --popover-foreground:   33  3%  29%;
-  --primary:              24  3%  37%;
+  --foreground:           33  5%  14%;   /* cream-950 #252422 */
+  --card-foreground:      33  5%  14%;
+  --popover-foreground:   33  5%  14%;
+  --primary:              33  5%  14%;   /* cream-950 #252422 */
   --primary-foreground:   48 100% 98%;
   --secondary:            40  30% 94%;
-  --secondary-foreground: 33  3%  29%;
+  --secondary-foreground: 33  5%  14%;
   --muted:                40  30% 94%;
   --muted-foreground:     33  5%  59%;   /* cream-600 #9b9690 */
   --accent:               40  30% 94%;
-  --accent-foreground:    33  3%  29%;
+  --accent-foreground:    33  5%  14%;
   --border:               40  19% 90%;
   --input:                40  19% 90%;
-  --ring:                 33  3%  29%;
+  --ring:                 33  5%  14%;
 }
 
 [data-theme="adusa"],
@@ -271,19 +271,19 @@ body[data-theme="alfaBeta"] {
 
     /* Base color tokens — Cream / Edge theme */
     --background: 0 0% 100%;
-    --foreground:           33  3%  29%;    /* cream-900 #4d4b48 */
+    --foreground:           33  5%  14%;   /* cream-950 #252422 */
     --card:                 0 0% 100%;
-    --card-foreground:      33  3%  29%;
+    --card-foreground:      33  5%  14%;
     --popover:              0 0% 100%;
-    --popover-foreground:   33  3%  29%;
-    --primary:              24  3%  37%;    /* cream-800 #615e5b */
+    --popover-foreground:   33  5%  14%;
+    --primary:              33  5%  14%;   /* cream-950 #252422 */
     --primary-foreground:   48 100% 98%;   /* cream-50  #fffdf5 */
     --secondary:            40  30% 94%;   /* cream-200 #f5f2ec */
-    --secondary-foreground: 33  3%  29%;   /* cream-900 #4d4b48 */
+    --secondary-foreground: 33  5%  14%;   /* cream-950 #252422 */
     --muted:                40  30% 94%;   /* cream-200 #f5f2ec */
     --muted-foreground:     33  5%  59%;   /* cream-600 #9b9690 */
     --accent:               40  30% 94%;   /* cream-200 #f5f2ec */
-    --accent-foreground:    33  3%  29%;   /* cream-900 #4d4b48 */
+    --accent-foreground:    33  5%  14%;   /* cream-950 #252422 */
     --destructive:          0  84.2% 60.2%;
     --destructive-foreground: 48 100% 98%;
     --border:               40  19% 90%;   /* cream-300 #e8e4dd */

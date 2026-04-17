@@ -621,7 +621,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
-    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-neutral-200 rounded-xl', className)}>
+    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-border rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-neutral-700 table-auto">
         <thead className="bg-neutral-50">
           <tr ref={headerRowRef}>
@@ -716,7 +716,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 key={getRowKey(row, i)}
                 className={cn(
                   'bg-white',
-                  i !== sortedData.length - 1 && 'border-b border-neutral-200',
+                  i !== sortedData.length - 1 && 'border-b border-border',
                   rowClassName ? rowClassName(row) : undefined
                 )}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}

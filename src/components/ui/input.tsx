@@ -107,7 +107,7 @@ export const FileInput: React.FC<FileInputProps> = ({ label = 'File', hint, acce
       <label className="block text-sm font-medium mb-2">{label}</label>
       <label
         htmlFor={props.id || 'custom-file-upload'}
-        className="block border border-dashed border-neutral-200 rounded-lg bg-neutral-50 p-6 text-neutral-400 text-center text-base cursor-pointer select-none transition-colors hover:bg-neutral-100"
+        className="block border border-dashed border-border rounded-lg bg-neutral-50 p-6 text-neutral-400 text-center text-base cursor-pointer select-none transition-colors hover:bg-neutral-100"
       >
         <div className="flex flex-col items-center justify-center gap-2">
           {fileUrl && (

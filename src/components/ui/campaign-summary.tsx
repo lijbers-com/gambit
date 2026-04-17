@@ -529,7 +529,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         {layout === 'vertical' && badge && (
           <Badge
             variant={badge.variant || 'default'}
-            className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-foreground text-background border-foreground z-50"
+            className="absolute -top-3 left-1/2 transform -tranneutral-x-1/2 bg-foreground text-background border-foreground z-50"
           >
             {badge.text}
           </Badge>
@@ -716,7 +716,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Total budget</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       type="number"
                       value={totalBudgetInput}
@@ -814,7 +814,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                           {engine.enabled && (
                             <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <DollarSign className="absolute left-2.5 top-1/2 transform -tranneutral-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={budgetVal || ''}
@@ -1072,7 +1072,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               )}
                             </div>
                             <div className={cn("relative flex-shrink-0", !engine.enabled && "opacity-50")} onClick={(e) => e.stopPropagation()}>
-                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <DollarSign className="absolute left-2.5 top-1/2 transform -tranneutral-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={budgetVal || ''}
@@ -1396,7 +1396,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Total budget</Label>
                             <div className="relative">
-                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <DollarSign className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 h-4 w-4 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={!isGuidedSettingsPhase ? (pendingBudget ?? totalBudgetInput) : totalBudgetInput}
@@ -1472,7 +1472,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Total budget</Label>
                             <div className="relative">
-                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <DollarSign className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 h-4 w-4 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={totalBudgetInput}

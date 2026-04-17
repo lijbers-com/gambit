@@ -9,6 +9,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Neutral scale — mirrors CSS --neutral-* variables.
+        // Change the CSS vars in globals.css to retheme all neutral surfaces at once.
+        neutral: {
+          50:  'rgb(var(--neutral-50))',
+          100: 'rgb(var(--neutral-100))',
+          200: 'rgb(var(--neutral-200))',
+          300: 'rgb(var(--neutral-300))',
+          400: 'rgb(var(--neutral-400))',
+          500: 'rgb(var(--neutral-500))',
+          600: 'rgb(var(--neutral-600))',
+          700: 'rgb(var(--neutral-700))',
+          800: 'rgb(var(--neutral-800))',
+          900: 'rgb(var(--neutral-900))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

@@ -182,9 +182,9 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     }
     
     // Use neutral colors for all cells - no highlighting
-    let colorClass = "text-slate-700"; // Neutral color for all cells
-    let borderColorClass = "border-b-slate-400";
-    let iconColorClass = "text-slate-400";
+    let colorClass = "text-neutral-700"; // Neutral color for all cells
+    let borderColorClass = "border-b-neutral-400";
+    let iconColorClass = "text-neutral-400";
     
     // Removed all color logic - keeping neutral colors for all values
     // No more red/green/orange highlighting based on values
@@ -202,7 +202,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       <td 
         key={weekIndex} 
         className={cn(
-          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-slate-50 transition-colors"
+          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors"
           // Removed thick border and conditional border coloring
         )}
         onClick={handleCellClick}
@@ -290,13 +290,13 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   const weekColumnWidth = '100px'; // Fixed width for week columns
 
   return (
-    <div className={cn('overflow-x-auto bg-white border border-slate-200 rounded-xl', className)}>
+    <div className={cn('overflow-x-auto bg-white border border-neutral-200 rounded-xl', className)}>
       {/* Main Table */}
-      <table className="w-full text-sm text-slate-700" style={{ minWidth: `${240 + (weeks * 100)}px`, tableLayout: 'fixed' }}>
-        <thead className="bg-slate-50">
+      <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * 100)}px`, tableLayout: 'fixed' }}>
+        <thead className="bg-neutral-50">
           <tr>
             <th 
-              className="px-4 py-[11px] text-left font-medium text-slate-600 tracking-wide whitespace-nowrap"
+              className="px-4 py-[11px] text-left font-medium text-neutral-600 tracking-wide whitespace-nowrap"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
               Zones
@@ -304,7 +304,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             {weekNumbers.map(week => (
               <th 
                 key={week} 
-                className="px-4 py-[11px] text-center font-medium text-slate-600 tracking-wide whitespace-nowrap"
+                className="px-4 py-[11px] text-center font-medium text-neutral-600 tracking-wide whitespace-nowrap"
                 style={{ width: weekColumnWidth, minWidth: weekColumnWidth }}
               >
                 Week {week}
@@ -316,18 +316,18 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           {/* Commercial Calendar Row */}
           {retailerEvents.length > 0 && (
             <React.Fragment>
-              <tr className="bg-white border-b border-slate-200">
+              <tr className="bg-white border-b border-neutral-200">
                 <td className="px-4 py-[11px] align-middle">
                   <div className="flex items-center gap-3">
-                    <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">Events</span>
+                    <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">Events</span>
                     <button
                       onClick={toggleCommercialCalendar}
-                      className="ml-auto p-1 rounded-full hover:bg-slate-100 focus:outline-none"
+                      className="ml-auto p-1 rounded-full hover:bg-neutral-100 focus:outline-none"
                     >
                       {isCommercialCalendarOpen ? (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                        <ChevronDown className="w-5 h-5 text-neutral-400" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                        <ChevronRight className="w-5 h-5 text-neutral-400" />
                       )}
                     </button>
                   </div>
@@ -396,7 +396,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   return (
                     <tr key={`event-${eventName}`} className={cn(
                       "bg-white",
-                      index === totalEvents - 1 && "border-b border-slate-200"
+                      index === totalEvents - 1 && "border-b border-neutral-200"
                     )}>
                       <td className={cn(
                         "px-4 align-middle",
@@ -473,19 +473,19 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             <React.Fragment key={product.id}>
               <tr className={cn(
                 'bg-white',
-                productIndex !== mediaProducts.length - 1 && 'border-b border-slate-200'
+                productIndex !== mediaProducts.length - 1 && 'border-b border-neutral-200'
               )}>
                 <td className="px-4 py-[11px] align-middle">
                   <div className="flex items-center gap-3">
-                    <span className="text-[14px] text-slate-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
+                    <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
                     <button
                       onClick={() => toggleRow(product.id)}
-                      className="ml-auto p-1 rounded-full hover:bg-slate-100 focus:outline-none"
+                      className="ml-auto p-1 rounded-full hover:bg-neutral-100 focus:outline-none"
                     >
                       {expandedRows.includes(product.id) ? (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                        <ChevronDown className="w-5 h-5 text-neutral-400" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                        <ChevronRight className="w-5 h-5 text-neutral-400" />
                       )}
                     </button>
                   </div>
@@ -500,7 +500,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 <tr key={booking.id} className={cn(
                   "bg-white",
                   bookingIndex === 0 && "pt-6", // 24px top padding for first row
-                  bookingIndex === product.bookings!.length - 1 && "pb-6 border-b border-slate-200" // 24px bottom padding and border for last row
+                  bookingIndex === product.bookings!.length - 1 && "pb-6 border-b border-neutral-200" // 24px bottom padding and border for last row
                 )}>
                   <td className={cn(
                     "px-4 align-middle",

@@ -303,7 +303,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-xl border bg-slate-100 text-card-foreground text-[14px]",
+          "rounded-xl border bg-neutral-100 text-card-foreground text-[14px]",
           className,
         )}
         {...props}

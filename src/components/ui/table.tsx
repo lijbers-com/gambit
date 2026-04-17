@@ -81,7 +81,7 @@ function ColumnItem({
         className="shrink-0"
       />
       <span className="flex-1 truncate cursor-default" onClick={(e) => { e.stopPropagation(); onCheckedChange(); }}>{header}</span>
-      <GripVertical className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+      <GripVertical className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
     </div>
   );
 }
@@ -399,14 +399,14 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const columnSettingsDropdown = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100">
+        <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-neutral-100">
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" onDragOver={(e: React.DragEvent) => e.preventDefault()}>
         {/* Fixed columns section */}
         <div
-          className="px-2 py-1 text-xs font-medium text-slate-500"
+          className="px-2 py-1 text-xs font-medium text-neutral-500"
           onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
           onDrop={handleDropOnFixedZone}
         >
@@ -431,7 +431,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
           </div>
         ) : (
           <div
-            className="px-2 py-1.5 pb-3 text-xs text-slate-400"
+            className="px-2 py-1.5 pb-3 text-xs text-neutral-400"
             onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
             onDrop={handleDropOnFixedZone}
           >
@@ -440,11 +440,11 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         )}
 
         {/* Separator */}
-        <div className="my-1 h-px bg-slate-200" />
+        <div className="my-1 h-px bg-neutral-200" />
 
         {/* Columns section */}
         <div
-          className="px-2 py-1 text-xs font-medium text-slate-500"
+          className="px-2 py-1 text-xs font-medium text-neutral-500"
           onDragOver={(e: React.DragEvent) => { e.preventDefault(); }}
           onDrop={handleDropOnColumnsZone}
         >
@@ -481,7 +481,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100 focus:outline-none">
+              <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-neutral-100 focus:outline-none">
                 <MoreHorizontal className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>
@@ -621,9 +621,9 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
-    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-slate-200 rounded-xl', className)}>
-      <table className="min-w-full text-[14px] text-slate-700 table-auto">
-        <thead className="bg-slate-50">
+    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-neutral-200 rounded-xl', className)}>
+      <table className="min-w-full text-[14px] text-neutral-700 table-auto">
+        <thead className="bg-neutral-50">
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
@@ -633,10 +633,10 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 <th
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-left font-normal text-slate-500 tracking-wide whitespace-nowrap bg-slate-50',
-                    !isLastFixed && isBeingResized && 'border-r border-slate-400',
-                    isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-slate-400',
-                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
+                    'px-4 py-3 text-left font-normal text-neutral-500 tracking-wide whitespace-nowrap bg-neutral-50',
+                    !isLastFixed && isBeingResized && 'border-r border-neutral-400',
+                    isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-neutral-400',
+                    isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
                     col.className
                   )}
                   onClick={() => col.key !== '__actions' && (col as TableColumn<T>).sortable && handleSort(col as TableColumn<T>)}
@@ -648,8 +648,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     overflow: 'visible',
                     ...(isLastFixed ? {
                       boxShadow: hoverFixedSeparator || isBeingResized
-                        ? '1px 0 0 0 rgb(100 116 139)' // slate-500
-                        : '1px 0 0 0 rgb(203 213 225)', // slate-300
+                        ? '1px 0 0 0 rgb(100 116 139)' // neutral-500
+                        : '1px 0 0 0 rgb(203 213 225)', // neutral-300
                     } : {}),
                     ...getColWidthStyle(col.key),
                   }}
@@ -682,7 +682,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       style={{ height: '100%', transform: 'translateX(50%)' }}
                     >
                       {!isBeingResized && (
-                        <div className="w-px h-3 bg-slate-300 self-center rounded-full" />
+                        <div className="w-px h-3 bg-neutral-300 self-center rounded-full" />
                       )}
                     </div>
                   )}
@@ -694,7 +694,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       style={{ height: '100%', transform: 'translateX(50%)', zIndex: 5 }}
                     >
                       {!isBeingResized && (
-                        <div className="w-px h-3 bg-slate-300 self-center rounded-full" />
+                        <div className="w-px h-3 bg-neutral-300 self-center rounded-full" />
                       )}
                     </div>
                   )}
@@ -706,7 +706,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
         <tbody>
           {sortedData.length === 0 ? (
             <tr>
-              <td colSpan={allCols.length} className="text-center py-8 text-slate-400">
+              <td colSpan={allCols.length} className="text-center py-8 text-neutral-400">
                 No data available
               </td>
             </tr>
@@ -716,7 +716,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 key={getRowKey(row, i)}
                 className={cn(
                   'bg-white',
-                  i !== sortedData.length - 1 && 'border-b border-slate-200',
+                  i !== sortedData.length - 1 && 'border-b border-neutral-200',
                   rowClassName ? rowClassName(row) : undefined
                 )}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -729,8 +729,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                       key={col.key}
                       className={cn(
                         'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
-                        !isLastFixed && resizingColKey === col.key && 'border-r border-slate-400',
-                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-slate-500' : 'border-r border-r-slate-300'),
+                        !isLastFixed && resizingColKey === col.key && 'border-r border-neutral-400',
+                        isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
                         col.className
                       )}
                       style={{
@@ -738,8 +738,8 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                         ...getStickyStyle(col.key),
                         ...(isLastFixed ? {
                           boxShadow: hoverFixedSeparator || resizingColKey === lastFixedColKey
-                            ? '1px 0 0 0 rgb(100 116 139)' // slate-500
-                            : '1px 0 0 0 rgb(203 213 225)', // slate-300
+                            ? '1px 0 0 0 rgb(100 116 139)' // neutral-500
+                            : '1px 0 0 0 rgb(203 213 225)', // neutral-300
                         } : {}),
                         ...getColWidthStyle(col.key),
                       }}

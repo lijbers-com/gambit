@@ -560,14 +560,14 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
     <>
       <style>{`
         /* Override AppLayout for chat template - allow page to grow */
-        .w-full.p-6.pb-24.min-h-screen.bg-slate-50.overflow-x-hidden {
+        .w-full.p-6.pb-24.min-h-screen.bg-neutral-50.overflow-x-hidden {
           min-height: auto !important;
           padding: 0 !important;
           overflow: visible !important;
           background: transparent !important;
         }
       `}</style>
-      <div className="w-full bg-slate-50 min-h-screen">
+      <div className="w-full bg-neutral-50 min-h-screen">
       {/* Content area that shows/hides based on state */}
       <div className="flex flex-col">
         {/* Initial centered content - only show when not started and not animating */}

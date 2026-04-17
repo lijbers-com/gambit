@@ -53,18 +53,34 @@ const GeneralStylesPage = () => (
     <h2>Color Tokens</h2>
 
     <h3>Neutral Scale</h3>
-    <p>All neutral / grey colors in the UI are driven by the <strong><code>--neutral-*</code></strong> CSS variables defined in <code>globals.css</code>. Changing those 10 values instantly rethemes every neutral surface, border, text, and icon across the entire app. Currently set to <strong>Slate</strong>. Use <code>bg-neutral-*</code>, <code>text-neutral-*</code>, <code>border-neutral-*</code> Tailwind classes in components.</p>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-      <ColorSwatch label="Neutral 50" color="#f8fafc" token="bg-neutral-50 · --background (light)" />
-      <ColorSwatch label="Neutral 100" color="#f1f5f9" token="bg-neutral-100 · --secondary / --muted" />
-      <ColorSwatch label="Neutral 200" color="#e2e8f0" token="bg-neutral-200 · --border / --input" />
-      <ColorSwatch label="Neutral 300" color="#cbd5e1" token="bg-neutral-300 · dividers, dashed borders" />
-      <ColorSwatch label="Neutral 400" color="#94a3b8" token="text-neutral-400 · icons, placeholder" />
-      <ColorSwatch label="Neutral 500" color="#64748b" token="text-neutral-500 · muted labels" />
-      <ColorSwatch label="Neutral 600" color="#475569" token="text-neutral-600 · secondary text" />
-      <ColorSwatch label="Neutral 700" color="#334155" token="text-neutral-700 · body text / table rows" />
-      <ColorSwatch label="Neutral 800" color="#1e293b" token="text-neutral-800 · --primary" />
-      <ColorSwatch label="Neutral 900" color="#0f172a" token="text-neutral-900 · --foreground" />
+    <p>All neutral / grey colors in the UI use <code>bg-neutral-*</code> / <code>text-neutral-*</code> / <code>border-neutral-*</code> Tailwind classes. The <strong><code>--neutral-*</code></strong> CSS variables in <code>globals.css</code> are the single source of truth — changing those 10 values instantly rethemes every neutral surface across the app. Each brand theme overrides the scale in its own block.</p>
+
+    <h4 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '13px', fontWeight: '600', color: '#9b9690' }}>Gambit / Edge theme — Cream</h4>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <ColorSwatch label="Neutral 50  (cream)" color="#fff9eb" token="bg-neutral-50" />
+      <ColorSwatch label="Neutral 100 (cream)" color="#f5f2ec" token="bg-neutral-100 · --secondary / --muted" />
+      <ColorSwatch label="Neutral 200 (cream)" color="#e8e4dd" token="bg-neutral-200 · --border / --input" />
+      <ColorSwatch label="Neutral 300 (cream)" color="#d5d0c8" token="bg-neutral-300 · dividers" />
+      <ColorSwatch label="Neutral 400 (cream)" color="#bbb6af" token="text-neutral-400 · icons, placeholder" />
+      <ColorSwatch label="Neutral 500 (cream)" color="#9b9690" token="text-neutral-500 · --muted-foreground" />
+      <ColorSwatch label="Neutral 600 (cream)" color="#7c7874" token="text-neutral-600 · secondary text" />
+      <ColorSwatch label="Neutral 700 (cream)" color="#615e5b" token="text-neutral-700 · body text" />
+      <ColorSwatch label="Neutral 800 (cream)" color="#4d4b48" token="text-neutral-800 · --primary" />
+      <ColorSwatch label="Neutral 900 (cream)" color="#403e3c" token="text-neutral-900 · --foreground" />
+    </div>
+
+    <h4 style={{ marginTop: '0', marginBottom: '0.5rem', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>All other themes — Slate</h4>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.5rem', marginBottom: '2rem' }}>
+      <ColorSwatch label="Neutral 50  (slate)" color="#f8fafc" token="bg-neutral-50" />
+      <ColorSwatch label="Neutral 100 (slate)" color="#f1f5f9" token="bg-neutral-100 · --secondary / --muted" />
+      <ColorSwatch label="Neutral 200 (slate)" color="#e2e8f0" token="bg-neutral-200 · --border / --input" />
+      <ColorSwatch label="Neutral 300 (slate)" color="#cbd5e1" token="bg-neutral-300 · dividers" />
+      <ColorSwatch label="Neutral 400 (slate)" color="#94a3b8" token="text-neutral-400 · icons, placeholder" />
+      <ColorSwatch label="Neutral 500 (slate)" color="#64748b" token="text-neutral-500 · --muted-foreground" />
+      <ColorSwatch label="Neutral 600 (slate)" color="#475569" token="text-neutral-600 · secondary text" />
+      <ColorSwatch label="Neutral 700 (slate)" color="#334155" token="text-neutral-700 · body text" />
+      <ColorSwatch label="Neutral 800 (slate)" color="#1e293b" token="text-neutral-800 · --primary" />
+      <ColorSwatch label="Neutral 900 (slate)" color="#0f172a" token="text-neutral-900 · --foreground" />
     </div>
 
     <h3>Base Theme Tokens</h3>

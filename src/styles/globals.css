@@ -2,120 +2,250 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Slate neutral overrides for non-Gambit themes ──────────────────────────
+   These themes override --neutral-* back to Tailwind Slate and restore
+   the slate-based HSL semantic tokens.
+── */
+
 [data-theme="albertHeijn"],
 html[data-theme="albertHeijn"],
 body[data-theme="albertHeijn"] {
   /* Albert Heijn Brand-Specific Tokens */
-  --brand-theme: albert-heijn; /* Theme identifier for logo component */
-  --brand-primary: #00ADE6; /* Albert Heijn brand primary */
-  --brand-app-bg: #00ADE6; /* Albert Heijn brand app background */
-  --brand-app-bg-hex: #00ADE6; /* Albert Heijn brand app background (HEX) */
-  --brand-app-text: #ffffff; /* Albert Heijn brand app text */
-  --brand-app-hover: #0086B2; /* Albert Heijn brand app hover */
+  --brand-theme: albert-heijn;
+  --brand-primary: #00ADE6;
+  --brand-app-bg: #00ADE6;
+  --brand-app-bg-hex: #00ADE6;
+  --brand-app-text: #ffffff;
+  --brand-app-hover: #0086B2;
   --logo-url: url('/ah-logo.svg');
-  
-  /* Theme-specific chart colors */
-  --chart-1: 201 100% 50%; /* Albert Heijn Blue */
-  --chart-2: 201 100% 35%; /* Albert Heijn Blue Dark */
-  --chart-3: 201 100% 65%; /* Albert Heijn Blue Light */
-  --chart-4: 201 80% 45%; /* Albert Heijn Blue Variant */
-  --chart-5: 201 90% 40%; /* Albert Heijn Blue Accent */
-  
-  /* Keep base theme tokens unchanged for UI consistency */
-  /* Only brand-specific tokens should change */
+
+  /* Chart colors */
+  --chart-1: 201 100% 50%;
+  --chart-2: 201 100% 35%;
+  --chart-3: 201 100% 65%;
+  --chart-4: 201 80% 45%;
+  --chart-5: 201 90% 40%;
+
+  /* Restore slate neutral scale */
+  --neutral-50:  248 250 252;
+  --neutral-100: 241 245 249;
+  --neutral-200: 226 232 240;
+  --neutral-300: 203 213 225;
+  --neutral-400: 148 163 184;
+  --neutral-500: 100 116 139;
+  --neutral-600:  71  85 105;
+  --neutral-700:  51  65  85;
+  --neutral-800:  30  41  59;
+  --neutral-900:  15  23  42;
+
+  /* Restore slate-based semantic tokens */
+  --foreground:           222.2 84%   4.9%;
+  --card-foreground:      222.2 84%   4.9%;
+  --popover-foreground:   222.2 84%   4.9%;
+  --primary:              222.2 47.4% 11.2%;
+  --primary-foreground:   210   40%   98%;
+  --secondary:            210   40%   96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted:                210   40%   96.1%;
+  --muted-foreground:     215.4 16.3% 46.9%;
+  --accent:               210   40%   96.1%;
+  --accent-foreground:    222.2 47.4% 11.2%;
+  --border:               214.3 31.8% 91.4%;
+  --input:                214.3 31.8% 91.4%;
+  --ring:                 222.2 84%   4.9%;
 }
 
 
 [data-theme="retailMedia"],
 html[data-theme="retailMedia"],
 body[data-theme="retailMedia"] {
-  /* Default (Gambit) Brand-Specific Tokens */
-  --brand-theme: gambit; /* Theme identifier for logo component */
-  --brand-primary: #1e293b; /* Gambit brand primary */
-  --brand-app-bg: #ffffff; /* Gambit brand app background */
-  --brand-app-bg-hex: #ffffff; /* Gambit brand app background (HEX) */
-  --brand-app-text: #0f172a; /* Gambit brand app text */
-  --brand-app-hover: #f1f5f9; /* Gambit brand app hover */
-  --logo-url: url('/gambit-logo.svg');
-  
-  /* Theme-specific chart colors */
-  --chart-1: 258 100% 60%; /* Gambit Purple */
-  --chart-2: 258 80% 45%; /* Gambit Purple Dark */
-  --chart-3: 258 100% 75%; /* Gambit Purple Light */
-  --chart-4: 258 90% 50%; /* Gambit Purple Variant */
-  --chart-5: 258 70% 40%; /* Gambit Purple Accent */
-  
-  /* Keep base theme tokens unchanged for UI consistency */
-  /* Only brand-specific tokens should change */
+  /* Edge / Gambit Brand-Specific Tokens */
+  --brand-theme: gambit;
+  --brand-primary: #4d4b48;
+  --brand-app-bg: #ffffff;
+  --brand-app-bg-hex: #ffffff;
+  --brand-app-text: #403e3c;
+  --brand-app-hover: #f5f2ec;
+  --logo-url: url('/edge-icon.svg');
+
+  /* Chart colors */
+  --chart-1: 258 100% 60%;
+  --chart-2: 258  80% 45%;
+  --chart-3: 258 100% 75%;
+  --chart-4: 258  90% 50%;
+  --chart-5: 258  70% 40%;
+
+  /* Cream neutral scale (same as :root default) */
+  --neutral-50:  255 249 235;
+  --neutral-100: 245 242 236;
+  --neutral-200: 232 228 221;
+  --neutral-300: 213 208 200;
+  --neutral-400: 187 182 175;
+  --neutral-500: 155 150 144;
+  --neutral-600: 124 120 116;
+  --neutral-700:  97  94  91;
+  --neutral-800:  77  75  72;
+  --neutral-900:  64  62  60;
+
+  /* Cream-based semantic tokens */
+  --foreground:           24  3%  24%;
+  --card-foreground:      24  3%  24%;
+  --popover-foreground:   24  3%  24%;
+  --primary:              33  3%  29%;
+  --primary-foreground:   43 100% 96%;
+  --secondary:            40  30% 94%;
+  --secondary-foreground: 33  3%  29%;
+  --muted:                40  30% 94%;
+  --muted-foreground:     33  6%  59%;
+  --accent:               40  30% 94%;
+  --accent-foreground:    33  3%  29%;
+  --border:               40  19% 90%;
+  --input:                40  19% 90%;
+  --ring:                 24  3%  24%;
 }
 
 [data-theme="adusa"],
 html[data-theme="adusa"],
 body[data-theme="adusa"] {
   /* ADUSA Theme Brand-Specific Tokens */
-  --brand-theme: adusa; /* Theme identifier for logo component */
-  --brand-primary: #00644C; /* Green brand primary */
-  --brand-app-bg: #00644C; /* Green brand app background */
-  --brand-app-bg-hex: #00644C; /* Green brand app background (HEX) */
-  --brand-app-text: #ffffff; /* Green brand app text */
-  --brand-app-hover: #004A36; /* Green brand app hover (darker) */
+  --brand-theme: adusa;
+  --brand-primary: #00644C;
+  --brand-app-bg: #00644C;
+  --brand-app-bg-hex: #00644C;
+  --brand-app-text: #ffffff;
+  --brand-app-hover: #004A36;
   --logo-url: url('/adusa-logo.svg');
 
-  /* Theme-specific chart colors */
-  --chart-1: 98 56% 51%; /* ADUSA Green #5AC542 */
-  --chart-2: 182 42% 24%; /* ADUSA Dark Green #235455 */
-  --chart-3: 130 35% 41%; /* ADUSA Medium Green #458A4C */
-  --chart-4: 76 65% 71%; /* ADUSA Light Green #C0E187 */
-  --chart-5: 86 40% 49%; /* ADUSA Olive Green #86B547 */
+  /* Chart colors */
+  --chart-1:  98 56% 51%;
+  --chart-2: 182 42% 24%;
+  --chart-3: 130 35% 41%;
+  --chart-4:  76 65% 71%;
+  --chart-5:  86 40% 49%;
 
-  /* Keep base theme tokens unchanged for UI consistency */
-  /* Only brand-specific tokens should change */
+  /* Restore slate neutral scale */
+  --neutral-50:  248 250 252;
+  --neutral-100: 241 245 249;
+  --neutral-200: 226 232 240;
+  --neutral-300: 203 213 225;
+  --neutral-400: 148 163 184;
+  --neutral-500: 100 116 139;
+  --neutral-600:  71  85 105;
+  --neutral-700:  51  65  85;
+  --neutral-800:  30  41  59;
+  --neutral-900:  15  23  42;
+
+  /* Restore slate-based semantic tokens */
+  --foreground:           222.2 84%   4.9%;
+  --card-foreground:      222.2 84%   4.9%;
+  --popover-foreground:   222.2 84%   4.9%;
+  --primary:              222.2 47.4% 11.2%;
+  --primary-foreground:   210   40%   98%;
+  --secondary:            210   40%   96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted:                210   40%   96.1%;
+  --muted-foreground:     215.4 16.3% 46.9%;
+  --accent:               210   40%   96.1%;
+  --accent-foreground:    222.2 47.4% 11.2%;
+  --border:               214.3 31.8% 91.4%;
+  --input:                214.3 31.8% 91.4%;
+  --ring:                 222.2 84%   4.9%;
 }
 
 [data-theme="delhaize"],
 html[data-theme="delhaize"],
 body[data-theme="delhaize"] {
   /* Delhaize Theme Brand-Specific Tokens */
-  --brand-theme: delhaize; /* Theme identifier for logo component */
-  --brand-primary: #CE1230; /* Delhaize brand primary */
-  --brand-app-bg: #CE1230; /* Delhaize brand app background */
-  --brand-app-bg-hex: #CE1230; /* Delhaize brand app background (HEX) */
-  --brand-app-text: #ffffff; /* Delhaize brand app text */
-  --brand-app-hover: #A30E26; /* Delhaize brand app hover (darker) */
+  --brand-theme: delhaize;
+  --brand-primary: #CE1230;
+  --brand-app-bg: #CE1230;
+  --brand-app-bg-hex: #CE1230;
+  --brand-app-text: #ffffff;
+  --brand-app-hover: #A30E26;
   --logo-url: url('/delhaize-logo.svg');
 
-  /* Theme-specific chart colors - using variations of #CE1230 */
-  --chart-1: 350 85% 49%; /* Delhaize Red #CE1230 */
-  --chart-2: 350 85% 35%; /* Delhaize Red Dark */
-  --chart-3: 350 85% 65%; /* Delhaize Red Light */
-  --chart-4: 350 75% 45%; /* Delhaize Red Variant */
-  --chart-5: 350 70% 40%; /* Delhaize Red Accent */
+  /* Chart colors */
+  --chart-1: 350 85% 49%;
+  --chart-2: 350 85% 35%;
+  --chart-3: 350 85% 65%;
+  --chart-4: 350 75% 45%;
+  --chart-5: 350 70% 40%;
 
-  /* Keep base theme tokens unchanged for UI consistency */
-  /* Only brand-specific tokens should change */
+  /* Restore slate neutral scale */
+  --neutral-50:  248 250 252;
+  --neutral-100: 241 245 249;
+  --neutral-200: 226 232 240;
+  --neutral-300: 203 213 225;
+  --neutral-400: 148 163 184;
+  --neutral-500: 100 116 139;
+  --neutral-600:  71  85 105;
+  --neutral-700:  51  65  85;
+  --neutral-800:  30  41  59;
+  --neutral-900:  15  23  42;
+
+  /* Restore slate-based semantic tokens */
+  --foreground:           222.2 84%   4.9%;
+  --card-foreground:      222.2 84%   4.9%;
+  --popover-foreground:   222.2 84%   4.9%;
+  --primary:              222.2 47.4% 11.2%;
+  --primary-foreground:   210   40%   98%;
+  --secondary:            210   40%   96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted:                210   40%   96.1%;
+  --muted-foreground:     215.4 16.3% 46.9%;
+  --accent:               210   40%   96.1%;
+  --accent-foreground:    222.2 47.4% 11.2%;
+  --border:               214.3 31.8% 91.4%;
+  --input:                214.3 31.8% 91.4%;
+  --ring:                 222.2 84%   4.9%;
 }
 
 [data-theme="alfaBeta"],
 html[data-theme="alfaBeta"],
 body[data-theme="alfaBeta"] {
   /* Alfa Beta Theme Brand-Specific Tokens */
-  --brand-theme: alfa-beta; /* Theme identifier for logo component */
-  --brand-primary: #0066CC; /* Alfa Beta brand primary blue */
-  --brand-app-bg: #ffffff; /* Alfa Beta brand app background */
-  --brand-app-bg-hex: #ffffff; /* Alfa Beta brand app background (HEX) */
-  --brand-app-text: #0f172a; /* Alfa Beta brand app text */
-  --brand-app-hover: #f1f5f9; /* Alfa Beta brand app hover */
+  --brand-theme: alfa-beta;
+  --brand-primary: #0066CC;
+  --brand-app-bg: #ffffff;
+  --brand-app-bg-hex: #ffffff;
+  --brand-app-text: #0f172a;
+  --brand-app-hover: #f1f5f9;
   --logo-url: url('/alfabeta-logo.svg');
 
-  /* Theme-specific chart colors - using variations of #0066CC */
-  --chart-1: 211 100% 40%; /* Alfa Beta Blue #0066CC */
-  --chart-2: 211 100% 30%; /* Alfa Beta Blue Dark */
-  --chart-3: 211 100% 55%; /* Alfa Beta Blue Light */
-  --chart-4: 211 90% 45%; /* Alfa Beta Blue Variant */
-  --chart-5: 211 80% 35%; /* Alfa Beta Blue Accent */
+  /* Chart colors */
+  --chart-1: 211 100% 40%;
+  --chart-2: 211 100% 30%;
+  --chart-3: 211 100% 55%;
+  --chart-4: 211  90% 45%;
+  --chart-5: 211  80% 35%;
 
-  /* Keep base theme tokens unchanged for UI consistency */
-  /* Only brand-specific tokens should change */
+  /* Restore slate neutral scale */
+  --neutral-50:  248 250 252;
+  --neutral-100: 241 245 249;
+  --neutral-200: 226 232 240;
+  --neutral-300: 203 213 225;
+  --neutral-400: 148 163 184;
+  --neutral-500: 100 116 139;
+  --neutral-600:  71  85 105;
+  --neutral-700:  51  65  85;
+  --neutral-800:  30  41  59;
+  --neutral-900:  15  23  42;
+
+  /* Restore slate-based semantic tokens */
+  --foreground:           222.2 84%   4.9%;
+  --card-foreground:      222.2 84%   4.9%;
+  --popover-foreground:   222.2 84%   4.9%;
+  --primary:              222.2 47.4% 11.2%;
+  --primary-foreground:   210   40%   98%;
+  --secondary:            210   40%   96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted:                210   40%   96.1%;
+  --muted-foreground:     215.4 16.3% 46.9%;
+  --accent:               210   40%   96.1%;
+  --accent-foreground:    222.2 47.4% 11.2%;
+  --border:               214.3 31.8% 91.4%;
+  --input:                214.3 31.8% 91.4%;
+  --ring:                 222.2 84%   4.9%;
 }
 
 
@@ -124,57 +254,58 @@ body[data-theme="alfaBeta"] {
   body {
     /* ── Neutral scale ─────────────────────────────────────────────────────────
        Single source of truth for all grey/neutral colors in the UI.
-       Change these 10 values to instantly retheme every neutral surface,
-       border, text, and icon across the entire application.
-       Currently set to Tailwind Slate.
+       Default (Gambit / Edge theme): Cream palette.
+       Other themes override these values in their data-theme blocks above.
+       Change these 10 values to retheme every neutral surface at once.
     ── */
-    --neutral-50:  248 250 252;   /* #f8fafc  slate-50  */
-    --neutral-100: 241 245 249;   /* #f1f5f9  slate-100 */
-    --neutral-200: 226 232 240;   /* #e2e8f0  slate-200 */
-    --neutral-300: 203 213 225;   /* #cbd5e1  slate-300 */
-    --neutral-400: 148 163 184;   /* #94a3b8  slate-400 */
-    --neutral-500: 100 116 139;   /* #64748b  slate-500 */
-    --neutral-600:  71  85 105;   /* #475569  slate-600 */
-    --neutral-700:  51  65  85;   /* #334155  slate-700 */
-    --neutral-800:  30  41  59;   /* #1e293b  slate-800 */
-    --neutral-900:  15  23  42;   /* #0f172a  slate-900 */
+    --neutral-50:  255 249 235;   /* #fff9eb  cream-50  */
+    --neutral-100: 245 242 236;   /* #f5f2ec  cream-100 */
+    --neutral-200: 232 228 221;   /* #e8e4dd  cream-200 */
+    --neutral-300: 213 208 200;   /* #d5d0c8  cream-300 */
+    --neutral-400: 187 182 175;   /* #bbb6af  cream-400 */
+    --neutral-500: 155 150 144;   /* #9b9690  cream-500 */
+    --neutral-600: 124 120 116;   /* #7c7874  cream-600 */
+    --neutral-700:  97  94  91;   /* #615e5b  cream-700 */
+    --neutral-800:  77  75  72;   /* #4d4b48  cream-800 */
+    --neutral-900:  64  62  60;   /* #403e3c  cream-900 */
 
-    /* Base color tokens — mapped to neutral scale */
+    /* Base color tokens — Cream / Edge theme */
     --background: 0 0% 100%;
-    --foreground: var(--neutral-900);
-    --card: 0 0% 100%;
-    --card-foreground: var(--neutral-900);
-    --popover: 0 0% 100%;
-    --popover-foreground: var(--neutral-900);
-    --primary: var(--neutral-800);
-    --primary-foreground: var(--neutral-100);
-    --secondary: var(--neutral-100);
-    --secondary-foreground: var(--neutral-800);
-    --muted: var(--neutral-100);
-    --muted-foreground: var(--neutral-500);
-    --accent: var(--neutral-100);
-    --accent-foreground: var(--neutral-800);
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: var(--neutral-100);
-    --border: var(--neutral-200);
-    --input: var(--neutral-200);
-    --ring: var(--neutral-900);
+    --foreground:           24  3%  24%;    /* cream-900 */
+    --card:                 0 0% 100%;
+    --card-foreground:      24  3%  24%;
+    --popover:              0 0% 100%;
+    --popover-foreground:   24  3%  24%;
+    --primary:              33  3%  29%;    /* cream-800 */
+    --primary-foreground:   43 100% 96%;   /* cream-50  */
+    --secondary:            40  30% 94%;   /* cream-100 */
+    --secondary-foreground: 33  3%  29%;   /* cream-800 */
+    --muted:                40  30% 94%;   /* cream-100 */
+    --muted-foreground:     33  6%  59%;   /* cream-500 */
+    --accent:               40  30% 94%;   /* cream-100 */
+    --accent-foreground:    33  3%  29%;   /* cream-800 */
+    --destructive:          0  84.2% 60.2%;
+    --destructive-foreground: 40 30% 94%;
+    --border:               40  19% 90%;   /* cream-200 */
+    --input:                40  19% 90%;   /* cream-200 */
+    --ring:                 24  3%  24%;   /* cream-900 */
     --radius: 0.5rem;
-    
-    /* Chart color tokens - Default theme (keep consistent across all themes) */
-    --chart-1: 221 83% 53%; /* Blue */
-    --chart-2: 142 76% 36%; /* Green */
-    --chart-3: 32 95% 44%; /* Orange */
-    --chart-4: 262 83% 58%; /* Purple */
-    --chart-5: 346 87% 43%; /* Red */
-    
-    /* Brand-specific tokens */
-    --brand-primary: 222.2 47.4% 11.2%; /* Default brand color */
-    --brand-accent: 210 40% 96.1%; /* Default accent */
-    --brand-app-bg: 0 0% 100%; /* Default app background for navigation and breadcrumbs */
-    --brand-app-text: 222.2 84% 4.9%; /* Default text color for navigation elements */
-    --brand-app-hover: 210 40% 96.1%; /* Default hover state for navigation elements */
-    --logo-url: url('/gambit-logo.svg');
+
+    /* Chart color tokens */
+    --chart-1: 221 83% 53%;
+    --chart-2: 142 76% 36%;
+    --chart-3:  32 95% 44%;
+    --chart-4: 262 83% 58%;
+    --chart-5: 346 87% 43%;
+
+    /* Brand-specific tokens — Edge / Gambit default */
+    --brand-primary: #4d4b48;
+    --brand-accent:  #f5f2ec;
+    --brand-app-bg:  #ffffff;
+    --brand-app-bg-hex: #ffffff;
+    --brand-app-text: #403e3c;
+    --brand-app-hover: #f5f2ec;
+    --logo-url: url('/edge-icon.svg');
   }
 }
 
@@ -211,7 +342,7 @@ body[data-theme="alfaBeta"] {
 
 /* Collapsed state: 16px padding */
 .side-navigation[data-collapsed="true"] {
-  padding-left: 16px !important;  
+  padding-left: 16px !important;
   padding-right: 16px !important;
 }
 
@@ -276,9 +407,9 @@ body[data-theme="alfaBeta"] {
 }
 
 /* Specific targeting for navigation items */
-.side-navigation .text-slate-500,
-.side-navigation .text-slate-700,
-.side-navigation .text-slate-400,
+.side-navigation .text-neutral-500,
+.side-navigation .text-neutral-700,
+.side-navigation .text-neutral-400,
 .side-navigation .text-sm {
   color: var(--brand-app-text) !important;
 }
@@ -310,8 +441,7 @@ body[data-theme="alfaBeta"] {
 /* Custom scrollbar for side navigation */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
-  /* Scrollbar will overlay on top of content at the right edge */
+  scrollbar-color: rgba(155, 150, 144, 0.3) transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -323,13 +453,13 @@ body[data-theme="alfaBeta"] {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.3);
+  background-color: rgba(155, 150, 144, 0.3);
   border-radius: 2px;
   border: none;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(148, 163, 184, 0.5);
+  background-color: rgba(155, 150, 144, 0.5);
 }
 
 .custom-scrollbar::-webkit-scrollbar-corner {

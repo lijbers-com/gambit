@@ -12,16 +12,16 @@ module.exports = {
         // Cream palette — Gambit / Edge brand neutral scale.
         // Referenced by --neutral-* in :root. Kept here for direct use when needed.
         cream: {
-          50:  '#fff9eb',
-          100: '#f5f2ec',
-          200: '#e8e4dd',
-          300: '#d5d0c8',
-          400: '#bbb6af',
-          500: '#9b9690',
-          600: '#7c7874',
-          700: '#615e5b',
-          800: '#4d4b48',
-          900: '#403e3c',
+          50:  '#fffdf5',
+          100: '#fff9eb',
+          200: '#f5f2ec',
+          300: '#e8e4dd',
+          400: '#d5d0c8',
+          500: '#bbb6af',
+          600: '#9b9690',
+          700: '#7c7874',
+          800: '#615e5b',
+          900: '#4d4b48',
           950: '#252422',
         },
         // Neutral scale — mirrors CSS --neutral-* variables.

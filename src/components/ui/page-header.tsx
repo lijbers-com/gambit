@@ -64,7 +64,7 @@ export const PageHeader = ({
   };
 
   return (
-    <div className={cn('flex bg-white px-6 pt-6 pb-0 rounded-tl-[24px]', className)}>
+    <div className={cn('flex bg-neutral-50 px-6 pt-6 pb-0 rounded-tl-[24px]', className)}>
       <div className="flex-1">
         <h1
           className="text-3xl font-semibold mb-0"

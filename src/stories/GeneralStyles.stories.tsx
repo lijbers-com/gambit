@@ -51,7 +51,22 @@ const GeneralStylesPage = () => (
     <hr style={{ margin: '2rem 0' }} />
     
     <h2>Color Tokens</h2>
-    
+
+    <h3>Slate — Neutral Scale</h3>
+    <p>All neutral / grey colors in the UI use the <strong>Slate</strong> palette. These map directly to the semantic tokens below and should be the only grey scale used across components.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      <ColorSwatch label="Slate 50" color="#f8fafc" token="bg-slate-50 · --background (light)" />
+      <ColorSwatch label="Slate 100" color="#f1f5f9" token="bg-slate-100 · --secondary / --muted" />
+      <ColorSwatch label="Slate 200" color="#e2e8f0" token="bg-slate-200 · --border / --input" />
+      <ColorSwatch label="Slate 300" color="#cbd5e1" token="bg-slate-300 · dividers, dashed borders" />
+      <ColorSwatch label="Slate 400" color="#94a3b8" token="text-slate-400 · icons, placeholder" />
+      <ColorSwatch label="Slate 500" color="#64748b" token="text-slate-500 · muted labels" />
+      <ColorSwatch label="Slate 600" color="#475569" token="text-slate-600 · secondary text" />
+      <ColorSwatch label="Slate 700" color="#334155" token="text-slate-700 · body text / table rows" />
+      <ColorSwatch label="Slate 800" color="#1e293b" token="text-slate-800 · --primary" />
+      <ColorSwatch label="Slate 900" color="#0f172a" token="text-slate-900 · --foreground" />
+    </div>
+
     <h3>Base Theme Tokens</h3>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
       <ColorSwatch label="Background" color="#ffffff" token="--background" />
@@ -173,6 +188,7 @@ const GeneralStylesPage = () => (
         <li>Reference chart colors using hsl(var(--chart-1)) format in chart configurations</li>
         <li>Prefer CSS custom properties over hardcoded hex values</li>
         <li>Use Tailwind utility classes for consistent spacing and typography</li>
+        <li>Use <strong>slate-*</strong> Tailwind classes for all grey/neutral colors — never gray-*, zinc-*, or neutral-*</li>
       </ul>
     </div>
     
@@ -183,6 +199,7 @@ const GeneralStylesPage = () => (
         <li>Creating theme-specific overrides for every color</li>
         <li>Using base tokens for brand-specific elements</li>
         <li>Mixing semantic and brand tokens inconsistently</li>
+        <li>Using <strong>gray-*</strong>, zinc-*, or neutral-* Tailwind classes — use slate-* instead</li>
       </ul>
     </div>
   </div>

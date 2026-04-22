@@ -223,6 +223,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 { key: 'spendingLimit', header: 'Spending limit', render: row => `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
                 { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                 { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
               ]}
               data={filteredCampaignData}
               rowKey={row => row.id}

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
+import { CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -119,6 +119,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
     const [retailProduct, setRetailProduct] = React.useState<string[]>([]);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
+    const [activeTab, setActiveTab] = React.useState<string>('campaigns');
     const filteredCampaignData = campaignData.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
@@ -147,95 +148,133 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
           ),
         }}
       >
-        <Card className="w-full">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-            <FilterBar
-              filters={[
-                {
-                  name: 'Status',
-                  options: [
-                    { label: 'Running', value: 'running' },
-                    { label: 'Ready', value: 'ready' },
-                    { label: 'In option', value: 'in-option' },
-                    { label: 'Paused', value: 'paused' },
-                  ],
-                  selectedValues: status,
-                  onChange: setStatus,
-                },
-                {
-                  name: 'Advertiser',
-                  options: [
-                    { label: 'Acme Media', value: 'acme-media' },
-                    { label: 'BrandX', value: 'brandx' },
-                    { label: 'MediaWorks', value: 'mediaworks' },
-                    { label: 'AdPartners', value: 'adpartners' },
-                  ],
-                  selectedValues: advertiser,
-                  onChange: setAdvertiser,
-                },
-                {
-                  name: 'Retail Product',
-                  options: [
-                    { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
-                    { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
-                    { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
-                    { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
-                    { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
-                    { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
-                    { label: 'Nike - air max 270 - size 42', value: '612816' },
-                    { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
-                    { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
-                    { label: "Ben & Jerry's - cookie dough - 465ml", value: '614649' },
-                  ],
-                  selectedValues: retailProduct,
-                  onChange: setRetailProduct,
-                },
-              ]}
-              searchValue={''}
-              onSearchChange={() => {}}
-              searchPlaceholder={`Search ${engineType} campaigns...`}
-            />
-            </div>
-            <Button>Add campaign</Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table
-              columns={[
-                { key: 'id', header: 'ID' },
-                { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
-                { key: 'advertiser', header: 'Advertiser' },
-                { key: 'name', header: 'Name' },
-                ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
-                { key: 'products', header: 'Products', render: row => {
-                  const maxShow = 3;
-                  const shown = row.products.images.slice(0, maxShow);
-                  const remaining = row.products.total - shown.length;
-                  return (
-                    <div className="flex items-center gap-1">
-                      {shown.map((img, i) => (
-                        <img key={i} src={img} alt="" className="w-7 h-7 rounded object-cover" />
-                      ))}
-                      {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
+        <CardWithTabs
+          tabs={[
+            {
+              label: 'Media plan details',
+              value: 'details',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Advertiser</p>
+                      <p className="text-sm font-medium">Coca-Cola</p>
                     </div>
-                  );
-                }},
-                { key: 'bookings', header: 'Bookings', render: row => <Badge variant="secondary">{row.bookings}</Badge> },
-                { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
-                { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                { key: 'spendToDate', header: 'Spend to date', render: row => `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-                { key: 'spendingLimit', header: 'Spending limit', render: row => `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-                { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-              ]}
-              data={filteredCampaignData}
-              rowKey={row => row.id}
-              onRowClick={(row) => console.log(`Navigating to campaign: ${row.name} (${row.id})`)}
-            />
-          </CardContent>
-        </Card>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Total budget</p>
+                      <p className="text-sm font-medium">$300,000.00</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Flight dates</p>
+                      <p className="text-sm font-medium">06/01/2024 – 11/30/2024</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Goal</p>
+                      <p className="text-sm font-medium">Awareness</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">PO Number</p>
+                      <p className="text-sm font-medium">PO-2024-00142</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge variant="default">Running</Badge>
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              label: 'Campaigns',
+              value: 'campaigns',
+              content: (
+                <div className="space-y-6 mt-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Status',
+                        options: [
+                          { label: 'Running', value: 'running' },
+                          { label: 'Ready', value: 'ready' },
+                          { label: 'In option', value: 'in-option' },
+                          { label: 'Paused', value: 'paused' },
+                        ],
+                        selectedValues: status,
+                        onChange: setStatus,
+                      },
+                      {
+                        name: 'Advertiser',
+                        options: [
+                          { label: 'Acme Media', value: 'acme-media' },
+                          { label: 'BrandX', value: 'brandx' },
+                          { label: 'MediaWorks', value: 'mediaworks' },
+                          { label: 'AdPartners', value: 'adpartners' },
+                        ],
+                        selectedValues: advertiser,
+                        onChange: setAdvertiser,
+                      },
+                      {
+                        name: 'Retail Product',
+                        options: [
+                          { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
+                          { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
+                          { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
+                          { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
+                          { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
+                          { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
+                          { label: 'Nike - air max 270 - size 42', value: '612816' },
+                          { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
+                          { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
+                          { label: "Ben & Jerry's - cookie dough - 465ml", value: '614649' },
+                        ],
+                        selectedValues: retailProduct,
+                        onChange: setRetailProduct,
+                      },
+                    ]}
+                    searchValue={''}
+                    onSearchChange={() => {}}
+                    searchPlaceholder={`Search ${engineType} campaigns...`}
+                  />
+                  <Table
+                    columns={[
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'advertiser', header: 'Advertiser' },
+                      { key: 'name', header: 'Name' },
+                      ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
+                      { key: 'products', header: 'Products', render: row => {
+                        const maxShow = 3;
+                        const shown = row.products.images.slice(0, maxShow);
+                        const remaining = row.products.total - shown.length;
+                        return (
+                          <div className="flex items-center gap-1">
+                            {shown.map((img, i) => (
+                              <img key={i} src={img} alt="" className="w-7 h-7 rounded object-cover" />
+                            ))}
+                            {remaining > 0 && <span className="text-xs text-muted-foreground ml-0.5">+{remaining}</span>}
+                          </div>
+                        );
+                      }},
+                      { key: 'bookings', header: 'Bookings', render: row => <Badge variant="secondary">{row.bookings}</Badge> },
+                      { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
+                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'spendToDate', header: 'Spend to date', render: row => `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                      { key: 'spendingLimit', header: 'Spending limit', render: row => `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                    ]}
+                    data={filteredCampaignData}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => console.log(`Navigating to campaign: ${row.name} (${row.id})`)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          action={activeTab === 'campaigns' ? <Button>Add campaign</Button> : null}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
       </AppLayout>
       </MenuContextProvider>
     );

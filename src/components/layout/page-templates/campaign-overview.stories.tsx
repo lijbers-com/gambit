@@ -149,6 +149,8 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
       >
         <Card className="w-full">
           <CardHeader>
+            <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
             <FilterBar
               filters={[
                 {
@@ -195,6 +197,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
               onSearchChange={() => {}}
               searchPlaceholder={`Search ${engineType} campaigns...`}
             />
+            </div>
+            <Button>Add campaign</Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Table

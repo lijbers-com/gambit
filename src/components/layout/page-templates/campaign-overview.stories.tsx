@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { DateRangePicker } from '@/components/ui/date-picker';
+import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { FormSection } from '@/components/ui/form-section';
+import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -120,6 +122,15 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
     const [retailProduct, setRetailProduct] = React.useState<string[]>([]);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const [activeTab, setActiveTab] = React.useState<string>('campaigns');
+    // Media plan details form state
+    const [mediaPlanName, setMediaPlanName] = React.useState<string>('Coca-Cola Summer 2024');
+    const [mediaPlanPO, setMediaPlanPO] = React.useState<string>('PO-2024-00142');
+    const [mediaPlanAdvertiser, setMediaPlanAdvertiser] = React.useState<string>('coca-cola');
+    const [mediaPlanBrand, setMediaPlanBrand] = React.useState<string>('coca-cola-brand');
+    const [mediaPlanGoal, setMediaPlanGoal] = React.useState<string>('awareness');
+    const [mediaPlanBudget, setMediaPlanBudget] = React.useState<string>('300000');
+    const [mediaPlanStartDate, setMediaPlanStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
+    const [mediaPlanEndDate, setMediaPlanEndDate] = React.useState<Date | undefined>(new Date('2024-11-30'));
     const filteredCampaignData = campaignData.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
@@ -149,40 +160,97 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
         }}
       >
         <CardWithTabs
+          header={
+            activeTab === 'details' ? (
+              <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
+                <FormSection title="Details" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Media plan name</label>
+                      <Input defaultValue={mediaPlanName} placeholder="Enter media plan name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input defaultValue={mediaPlanPO} placeholder="Enter PO number" />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Advertiser" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Advertiser</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Coca-Cola', value: 'coca-cola' },
+                          { label: 'Unilever', value: 'unilever' },
+                          { label: 'Acme Media', value: 'acme-media' },
+                          { label: 'BrandX', value: 'brandx' },
+                        ]}
+                        value={mediaPlanAdvertiser}
+                        onChange={setMediaPlanAdvertiser}
+                        placeholder="Select advertiser"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Brand</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Coca-Cola', value: 'coca-cola-brand' },
+                          { label: 'Coca-Cola Zero', value: 'coca-cola-zero' },
+                          { label: 'Sprite', value: 'sprite' },
+                          { label: 'Fanta', value: 'fanta' },
+                        ]}
+                        value={mediaPlanBrand}
+                        onChange={setMediaPlanBrand}
+                        placeholder="Select brand"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Campaign">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={mediaPlanGoal}
+                        onChange={setMediaPlanGoal}
+                        placeholder="Select goal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Total budget</label>
+                      <Input defaultValue={mediaPlanBudget} placeholder="Enter budget" type="number" min="0" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-1">Flight dates</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <DatePicker placeholder="Start date" date={mediaPlanStartDate} onDateChange={setMediaPlanStartDate} />
+                      </div>
+                      <div>
+                        <DatePicker placeholder="End date" date={mediaPlanEndDate} onDateChange={setMediaPlanEndDate} />
+                      </div>
+                    </div>
+                  </div>
+                </FormSection>
+                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
+              </form>
+            ) : null
+          }
           tabs={[
             {
               label: 'Media plan details',
               value: 'details',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Advertiser</p>
-                      <p className="text-sm font-medium">Coca-Cola</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Total budget</p>
-                      <p className="text-sm font-medium">$300,000.00</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Flight dates</p>
-                      <p className="text-sm font-medium">06/01/2024 – 11/30/2024</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Goal</p>
-                      <p className="text-sm font-medium">Awareness</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">PO Number</p>
-                      <p className="text-sm font-medium">PO-2024-00142</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant="default">Running</Badge>
-                    </div>
-                  </div>
-                </div>
-              ),
+              content: null,
             },
             {
               label: 'Campaigns',

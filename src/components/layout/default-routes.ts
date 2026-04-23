@@ -228,9 +228,12 @@ export const defaultRoutes: Route[] = [
   {
     id: 13,
     name: "Organisations & users",
-    type: "single" as const,
+    type: "parent" as const,
     icon: { lucide: "OrganisationsIcon" },
-    url: "/configuration/organisations-users",
+    subitems: [
+      { id: 130, name: "Organisations", type: "single" as const, url: "/configuration/organisations-users" },
+      { id: 131, name: "Users", type: "single" as const, url: "/configuration/organisations-users/users" },
+    ],
   },
   {
     id: 14,
@@ -359,4 +362,11 @@ export const extendedRoutes: Route[] = [
     url: "/campaigns/offsite/creative/[creativeId]",
     pattern: "/campaigns/offsite/creative/*",
   },
+  // Organisation routes
+  { id: 300, name: "Organisation Details", type: "hidden" as const, url: "/configuration/organisations-users/[id]", pattern: "/configuration/organisations-users/[id]" },
+  { id: 301, name: "User Details", type: "hidden" as const, url: "/configuration/organisations-users/users/[id]", pattern: "/configuration/organisations-users/users/*" },
+  { id: 302, name: "Contract Details", type: "hidden" as const, url: "/configuration/organisations-users/contracts/[id]", pattern: "/configuration/organisations-users/contracts/*" },
+  { id: 303, name: "Role Details", type: "hidden" as const, url: "/configuration/organisations-users/roles/[id]", pattern: "/configuration/organisations-users/roles/*" },
+  // Brand routes
+  { id: 310, name: "Brand Details", type: "hidden" as const, url: "/configuration/brands-products/[id]", pattern: "/configuration/brands-products/*" },
 ];

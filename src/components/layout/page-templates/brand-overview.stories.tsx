@@ -6,8 +6,6 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
@@ -52,19 +50,6 @@ const productData = [
   { id: 'SKU-012', sku: 'BJY-CDGH-465ML', name: "Ben & Jerry's Cookie Dough 465ml", brand: "Ben & Jerry's", category: 'Frozen', price: '€5.99', status: 'Active' as const },
 ];
 
-const rowActionMenu = (name: string) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <button className="p-1 rounded hover:bg-muted">
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start">
-      <DropdownMenuItem onClick={() => alert(`View ${name}`)}>View</DropdownMenuItem>
-      <DropdownMenuItem onClick={() => alert(`Edit ${name}`)}>Edit</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
 
 export const BrandOverview: Story = {
   render: () => {
@@ -151,7 +136,7 @@ export const BrandOverview: Story = {
                     />
                     <Table
                       columns={[
-                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+
                         { key: 'name', header: 'Name' },
                         { key: 'advertiser', header: 'Advertiser' },
                         { key: 'products', header: 'Products', render: (row) => <Badge variant="secondary">{row.products}</Badge> },
@@ -200,7 +185,7 @@ export const BrandOverview: Story = {
                     />
                     <Table
                       columns={[
-                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+
                         { key: 'sku', header: 'SKU' },
                         { key: 'name', header: 'Name' },
                         { key: 'brand', header: 'Brand' },

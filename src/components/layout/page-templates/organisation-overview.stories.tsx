@@ -6,8 +6,6 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -51,19 +49,6 @@ const userData = [
   { id: 'USR-010', name: 'Lisa de Vries', email: 'l.devries@philips.com', organisation: 'Philips', role: 'Viewer' as const, status: 'Inactive' as const },
 ];
 
-const rowActionMenu = (name: string) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <button className="p-1 rounded hover:bg-muted">
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start">
-      <DropdownMenuItem onClick={() => alert(`Select ${name}`)}>Select</DropdownMenuItem>
-      <DropdownMenuItem onClick={() => alert(`Edit ${name}`)}>Edit</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
 
 export const OrganisationOverview: Story = {
   render: () => {
@@ -150,7 +135,7 @@ export const OrganisationOverview: Story = {
                     />
                     <Table
                       columns={[
-                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+
                         { key: 'name', header: 'Name' },
                         { key: 'brands', header: 'Brands', render: (row) => <Badge variant="secondary">{row.brands}</Badge> },
                         { key: 'type', header: 'Type' },
@@ -198,7 +183,7 @@ export const OrganisationOverview: Story = {
                     />
                     <Table
                       columns={[
-                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+
                         { key: 'name', header: 'Name' },
                         { key: 'email', header: 'Email' },
                         { key: 'organisation', header: 'Organisation' },

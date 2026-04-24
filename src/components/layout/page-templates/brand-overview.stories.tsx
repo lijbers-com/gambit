@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -37,21 +37,65 @@ const brandData = [
   { id: 'BRD-010', name: 'Sensodyne', advertiser: 'Haleon', products: 7, campaigns: 2, status: 'Inactive' as const },
 ];
 
+const productData = [
+  { id: 'SKU-001', sku: 'CC-1000-330ML', name: 'Coca-Cola Classic 330ml Can', brand: 'Coca-Cola', category: 'Beverages', price: '€0.99', status: 'Active' as const },
+  { id: 'SKU-002', sku: 'CC-ZERO-500ML', name: 'Coca-Cola Zero Sugar 500ml Bottle', brand: 'Coca-Cola Zero', category: 'Beverages', price: '€1.29', status: 'Active' as const },
+  { id: 'SKU-003', sku: 'CC-1000-1L', name: 'Coca-Cola Classic 1 Litre Bottle', brand: 'Coca-Cola', category: 'Beverages', price: '€1.89', status: 'Active' as const },
+  { id: 'SKU-004', sku: 'DV-SOAP-200ML', name: 'Dove Beauty Bar Original 200ml', brand: 'Dove', category: 'Personal Care', price: '€2.49', status: 'Active' as const },
+  { id: 'SKU-005', sku: 'DV-SHMP-400ML', name: 'Dove Intensive Repair Shampoo 400ml', brand: 'Dove', category: 'Personal Care', price: '€3.99', status: 'Active' as const },
+  { id: 'SKU-006', sku: 'UNX-SOUP-570ML', name: 'Unox Hollandse Erwtensoep 570ml', brand: 'Unox', category: 'Food', price: '€1.79', status: 'Active' as const },
+  { id: 'SKU-007', sku: 'UNX-WURST-300G', name: 'Unox Rookworst 300g', brand: 'Unox', category: 'Food', price: '€2.89', status: 'Active' as const },
+  { id: 'SKU-008', sku: 'MGN-VAN-440ML', name: 'Magnum Classic Ice Cream 440ml', brand: 'Magnum', category: 'Frozen', price: '€4.49', status: 'Active' as const },
+  { id: 'SKU-009', sku: 'MGN-ALM-440ML', name: 'Magnum Almond Ice Cream 440ml', brand: 'Magnum', category: 'Frozen', price: '€4.49', status: 'Inactive' as const },
+  { id: 'SKU-010', sku: 'HNZ-KTC-460G', name: 'Heinz Tomato Ketchup 460g', brand: 'Heinz', category: 'Condiments', price: '€2.19', status: 'Active' as const },
+  { id: 'SKU-011', sku: 'HNZ-MAYO-400G', name: 'Heinz Seriously Good Mayonnaise 400g', brand: 'Heinz', category: 'Condiments', price: '€2.99', status: 'Active' as const },
+  { id: 'SKU-012', sku: 'BJY-CDGH-465ML', name: "Ben & Jerry's Cookie Dough 465ml", brand: "Ben & Jerry's", category: 'Frozen', price: '€5.99', status: 'Active' as const },
+];
+
+const rowActionMenu = (name: string) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <button className="p-1 rounded hover:bg-muted">
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem onClick={() => alert(`View ${name}`)}>View</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => alert(`Edit ${name}`)}>Edit</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
 export const BrandOverview: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
 
-    const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
-    const [advertiserFilter, setAdvertiserFilter] = React.useState<string[]>([]);
-    const [searchValue, setSearchValue] = React.useState('');
+    const [activeTab, setActiveTab] = React.useState('brands');
 
-    const filteredData = brandData.filter(row => {
-      const statusMatch = statusFilter.length === 0 || statusFilter.includes(row.status.toLowerCase());
-      const advertiserMatch = advertiserFilter.length === 0 || advertiserFilter.includes(row.advertiser.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'));
-      const searchMatch = searchValue === '' || row.name.toLowerCase().includes(searchValue.toLowerCase());
+    // Brands tab state
+    const [brandStatusFilter, setBrandStatusFilter] = React.useState<string[]>([]);
+    const [advertiserFilter, setAdvertiserFilter] = React.useState<string[]>([]);
+    const [brandSearch, setBrandSearch] = React.useState('');
+
+    // Products tab state
+    const [productStatusFilter, setProductStatusFilter] = React.useState<string[]>([]);
+    const [categoryFilter, setCategoryFilter] = React.useState<string[]>([]);
+    const [productSearch, setProductSearch] = React.useState('');
+
+    const filteredBrands = brandData.filter(row => {
+      const statusMatch = brandStatusFilter.length === 0 || brandStatusFilter.includes(row.status.toLowerCase());
+      const advertiserMatch = advertiserFilter.length === 0 || advertiserFilter.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
+      const searchMatch = brandSearch === '' || row.name.toLowerCase().includes(brandSearch.toLowerCase());
       return statusMatch && advertiserMatch && searchMatch;
+    });
+
+    const filteredProducts = productData.filter(row => {
+      const statusMatch = productStatusFilter.length === 0 || productStatusFilter.includes(row.status.toLowerCase());
+      const catMatch = categoryFilter.length === 0 || categoryFilter.includes(row.category.toLowerCase());
+      const searchMatch = productSearch === '' || row.name.toLowerCase().includes(productSearch.toLowerCase()) || row.sku.toLowerCase().includes(productSearch.toLowerCase());
+      return statusMatch && catMatch && searchMatch;
     });
 
     return (
@@ -71,85 +115,111 @@ export const BrandOverview: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
-          <Card className="w-full">
-            <CardHeader>
-              <FilterBar
-                filters={[
-                  {
-                    name: 'Status',
-                    options: [
-                      { label: 'Active', value: 'active' },
-                      { label: 'Inactive', value: 'inactive' },
-                    ],
-                    selectedValues: statusFilter,
-                    onChange: setStatusFilter,
-                  },
-                  {
-                    name: 'Advertiser',
-                    options: [
-                      { label: 'The Coca-Cola Company', value: 'the-coca-cola-company' },
-                      { label: 'Unilever', value: 'unilever' },
-                      { label: 'Kraft Heinz', value: 'kraft-heinz' },
-                      { label: 'Haleon', value: 'haleon' },
-                    ],
-                    selectedValues: advertiserFilter,
-                    onChange: setAdvertiserFilter,
-                  },
-                ]}
-                searchValue={searchValue}
-                onSearchChange={setSearchValue}
-                searchPlaceholder="Search brands..."
-              />
-            </CardHeader>
-            <CardContent>
-              <Table
-                columns={[
-                  {
-                    key: 'actions',
-                    header: '',
-                    render: (row) => (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-1 rounded hover:bg-muted">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem onClick={() => alert(`View ${row.name}`)}>View</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => alert(`Edit ${row.name}`)}>Edit</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ),
-                  },
-                  { key: 'name', header: 'Name' },
-                  { key: 'advertiser', header: 'Advertiser' },
-                  {
-                    key: 'products',
-                    header: 'Products',
-                    render: (row) => <Badge variant="secondary">{row.products}</Badge>,
-                  },
-                  {
-                    key: 'campaigns',
-                    header: 'Campaigns',
-                    render: (row) => <Badge variant="secondary">{row.campaigns}</Badge>,
-                  },
-                  {
-                    key: 'status',
-                    header: 'Status',
-                    render: (row) => (
-                      <Badge variant={row.status === 'Active' ? 'default' : 'destructive'}>{row.status}</Badge>
-                    ),
-                  },
-                ]}
-                data={filteredData}
-                rowKey={(row) => row.id}
-                onRowClick={(row) => alert(`Navigate to ${row.name}`)}
-              />
-              <div className="flex justify-end pt-4">
-                <Button>Add brand</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CardWithTabs
+            tabs={[
+              {
+                label: 'Brands',
+                value: 'brands',
+                content: (
+                  <div className="space-y-6 mt-6">
+                    <FilterBar
+                      filters={[
+                        {
+                          name: 'Status',
+                          options: [
+                            { label: 'Active', value: 'active' },
+                            { label: 'Inactive', value: 'inactive' },
+                          ],
+                          selectedValues: brandStatusFilter,
+                          onChange: setBrandStatusFilter,
+                        },
+                        {
+                          name: 'Advertiser',
+                          options: [
+                            { label: 'The Coca-Cola Company', value: 'the-coca-cola-company' },
+                            { label: 'Unilever', value: 'unilever' },
+                            { label: 'Kraft Heinz', value: 'kraft-heinz' },
+                            { label: 'Haleon', value: 'haleon' },
+                          ],
+                          selectedValues: advertiserFilter,
+                          onChange: setAdvertiserFilter,
+                        },
+                      ]}
+                      searchValue={brandSearch}
+                      onSearchChange={setBrandSearch}
+                      searchPlaceholder="Search brands..."
+                    />
+                    <Table
+                      columns={[
+                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+                        { key: 'name', header: 'Name' },
+                        { key: 'advertiser', header: 'Advertiser' },
+                        { key: 'products', header: 'Products', render: (row) => <Badge variant="secondary">{row.products}</Badge> },
+                        { key: 'campaigns', header: 'Campaigns', render: (row) => <Badge variant="secondary">{row.campaigns}</Badge> },
+                        { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'default' : 'destructive'}>{row.status}</Badge> },
+                      ]}
+                      data={filteredBrands}
+                      rowKey={(row) => row.id}
+                      onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                    />
+                  </div>
+                ),
+              },
+              {
+                label: 'Retail products',
+                value: 'products',
+                content: (
+                  <div className="space-y-6 mt-6">
+                    <FilterBar
+                      filters={[
+                        {
+                          name: 'Status',
+                          options: [
+                            { label: 'Active', value: 'active' },
+                            { label: 'Inactive', value: 'inactive' },
+                          ],
+                          selectedValues: productStatusFilter,
+                          onChange: setProductStatusFilter,
+                        },
+                        {
+                          name: 'Category',
+                          options: [
+                            { label: 'Beverages', value: 'beverages' },
+                            { label: 'Food', value: 'food' },
+                            { label: 'Personal Care', value: 'personal care' },
+                            { label: 'Frozen', value: 'frozen' },
+                            { label: 'Condiments', value: 'condiments' },
+                          ],
+                          selectedValues: categoryFilter,
+                          onChange: setCategoryFilter,
+                        },
+                      ]}
+                      searchValue={productSearch}
+                      onSearchChange={setProductSearch}
+                      searchPlaceholder="Search products or SKU..."
+                    />
+                    <Table
+                      columns={[
+                        { key: 'actions', header: '', render: (row) => rowActionMenu(row.name) },
+                        { key: 'sku', header: 'SKU' },
+                        { key: 'name', header: 'Name' },
+                        { key: 'brand', header: 'Brand' },
+                        { key: 'category', header: 'Category' },
+                        { key: 'price', header: 'Price' },
+                        { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'default' : 'destructive'}>{row.status}</Badge> },
+                      ]}
+                      data={filteredProducts}
+                      rowKey={(row) => row.id}
+                      onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            action={activeTab === 'brands' ? <Button>Add brand</Button> : <Button>Add product</Button>}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </AppLayout>
       </MenuContextProvider>
     );

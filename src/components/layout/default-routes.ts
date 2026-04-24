@@ -228,12 +228,9 @@ export const defaultRoutes: Route[] = [
   {
     id: 13,
     name: "Organisations & users",
-    type: "parent" as const,
+    type: "single" as const,
     icon: { lucide: "OrganisationsIcon" },
-    subitems: [
-      { id: 130, name: "Organisations", type: "single" as const, url: "/configuration/organisations-users" },
-      { id: 131, name: "Users", type: "single" as const, url: "/configuration/organisations-users/users" },
-    ],
+    url: "/configuration/organisations-users",
   },
   {
     id: 14,

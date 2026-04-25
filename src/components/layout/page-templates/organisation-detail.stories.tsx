@@ -162,7 +162,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
       </div>
 
       {/* Right sidebar */}
-      <div className="space-y-6">
+      <div className="space-y-6 pt-14">
         <Card>
           <CardHeader><CardTitle>Users</CardTitle></CardHeader>
           <CardContent>

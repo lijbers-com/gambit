@@ -107,7 +107,7 @@ const ProductDetailContent = ({
       </div>
 
       {/* Right sidebar */}
-      <div className="space-y-6">
+      <div className="space-y-6 pt-14">
         <Card>
           <CardHeader><CardTitle>Brand</CardTitle></CardHeader>
           <CardContent>

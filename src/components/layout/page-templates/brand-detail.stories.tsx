@@ -173,7 +173,7 @@ const BrandDetailContent = ({
       </div>
 
       {/* Right sidebar */}
-      <div className="space-y-6">
+      <div className="space-y-6 pt-14">
         <Card>
           <CardHeader><CardTitle>Organisations</CardTitle></CardHeader>
           <CardContent>

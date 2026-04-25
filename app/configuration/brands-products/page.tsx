@@ -6,18 +6,20 @@ import React from 'react';
 
 export default function BrandsPage() {
   const router = useRouter();
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('[role="menu"]') || target.closest('[data-radix-popper-content-wrapper]')) return;
-      const row = target.closest('tr');
-      if (row && row.querySelector('td')) {
-        const cells = row.querySelectorAll('td');
-        const brandId = Array.from(cells).map(td => td.textContent?.trim()).find(t => t?.startsWith('BRD-'));
-        if (brandId) {
+      const row = target.closest('tr[data-row-id]') as HTMLElement | null;
+      if (row) {
+        const id = row.getAttribute('data-row-id');
+        if (id?.startsWith('BRD-')) {
           e.preventDefault();
-          e.stopPropagation();
-          router.push(`/configuration/brands-products/${brandId}`);
+          router.push(`/configuration/brands-products/${id}`);
+        } else if (id?.startsWith('SKU-')) {
+          e.preventDefault();
+          router.push(`/configuration/brands-products/products/${id}`);
         }
       }
     };

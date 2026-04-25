@@ -11,16 +11,16 @@ export default function OrganisationsPage() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Skip dropdown menu clicks
       if (target.closest('[role="menu"]') || target.closest('[data-radix-popper-content-wrapper]')) return;
-      const row = target.closest('tr');
-      if (row && row.querySelector('td')) {
-        const cells = row.querySelectorAll('td');
-        const orgId = Array.from(cells).map(td => td.textContent?.trim()).find(t => t?.startsWith('ORG-'));
-        if (orgId) {
+      const row = target.closest('tr[data-row-id]') as HTMLElement | null;
+      if (row) {
+        const id = row.getAttribute('data-row-id');
+        if (id?.startsWith('ORG-')) {
           e.preventDefault();
-          e.stopPropagation();
-          router.push(`/configuration/organisations-users/${orgId}`);
+          router.push(`/configuration/organisations-users/${id}`);
+        } else if (id?.startsWith('USR-')) {
+          e.preventDefault();
+          router.push(`/configuration/organisations-users/users/${id}`);
         }
       }
     };

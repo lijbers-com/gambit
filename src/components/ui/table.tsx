@@ -714,6 +714,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
             sortedData.map((row, i) => (
               <tr
                 key={getRowKey(row, i)}
+                data-row-id={String(getRowKey(row, i))}
                 className={cn(
                   'bg-white',
                   i !== sortedData.length - 1 && 'border-b border-border',

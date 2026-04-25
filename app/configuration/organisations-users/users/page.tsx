@@ -12,14 +12,12 @@ export default function UsersPage() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('[role="menu"]') || target.closest('[data-radix-popper-content-wrapper]')) return;
-      const row = target.closest('tr');
-      if (row && row.querySelector('td')) {
-        const cells = row.querySelectorAll('td');
-        const userId = Array.from(cells).map(td => td.textContent?.trim()).find(t => t?.startsWith('USR-'));
-        if (userId) {
+      const row = target.closest('tr[data-row-id]') as HTMLElement | null;
+      if (row) {
+        const id = row.getAttribute('data-row-id');
+        if (id?.startsWith('USR-')) {
           e.preventDefault();
-          e.stopPropagation();
-          router.push(`/configuration/organisations-users/users/${userId}`);
+          router.push(`/configuration/organisations-users/users/${id}`);
         }
       }
     };

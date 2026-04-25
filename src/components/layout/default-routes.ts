@@ -366,4 +366,5 @@ export const extendedRoutes: Route[] = [
   { id: 303, name: "Role Details", type: "hidden" as const, url: "/configuration/organisations-users/roles/[id]", pattern: "/configuration/organisations-users/roles/*" },
   // Brand routes
   { id: 310, name: "Brand Details", type: "hidden" as const, url: "/configuration/brands-products/[id]", pattern: "/configuration/brands-products/*" },
+  { id: 311, name: "Product Details", type: "hidden" as const, url: "/configuration/brands-products/products/[id]", pattern: "/configuration/brands-products/products/*" },
 ];

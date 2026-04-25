@@ -247,16 +247,18 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-4 pt-0">
-        <div>
-          <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
-            {value}
-          </div>
-          {subMetric && variant !== "donut" && (
-            <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
-              {subMetric}
+        {variant !== "donut" && (
+          <div>
+            <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
+              {value}
             </div>
-          )}
-        </div>
+            {subMetric && (
+              <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
+                {subMetric}
+              </div>
+            )}
+          </div>
+        )}
         {variant === "graph" && graphData && (
           <div className="h-10 w-full mt-3">
             <ResponsiveContainer width="100%" height="100%">
@@ -274,7 +276,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </div>
         )}
         {variant === "donut" && donutData && (
-          <div className="flex flex-col items-center pt-4">
+          <div className="relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
                 <Pie
@@ -319,6 +321,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 />
               </PieChart>
             </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-2xl font-bold text-foreground">{value}</span>
+            </div>
           </div>
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (

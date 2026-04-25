@@ -5,7 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { defaultRoutes } from '../default-routes';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { FormSection } from '@/components/ui/form-section';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
@@ -32,7 +34,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
   const [isNonEndemic, setIsNonEndemic] = React.useState(false);
   const [isAgency, setIsAgency] = React.useState(orgType === 'Agency');
   const [isRetailer, setIsRetailer] = React.useState(false);
-  const [status, setStatus] = React.useState<'active' | 'inactive'>('active');
+  const [status, setStatus] = React.useState('active');
 
   const mediaPartners = [
     { id: 'MP-001', name: 'Unilever', brands: 'All', users: 45, debtor: 'Unilever' },
@@ -58,87 +60,61 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
         {/* Details Card */}
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Details</h2>
+            <FormSection title="Details">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  defaultValue={orgName}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
+                <Input defaultValue={orgName} placeholder="Enter organisation name" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Type</label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="advertiser"
                       checked={isAdvertiser}
-                      onChange={e => setIsAdvertiser(e.target.checked)}
-                      className="h-4 w-4"
+                      onCheckedChange={(v) => setIsAdvertiser(!!v)}
                     />
-                    <label htmlFor="advertiser" className="text-sm">Advertiser</label>
+                    <label htmlFor="advertiser" className="text-sm cursor-pointer">Advertiser</label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="nonEndemic"
                       checked={isNonEndemic}
-                      onChange={e => setIsNonEndemic(e.target.checked)}
-                      className="h-4 w-4"
+                      onCheckedChange={(v) => setIsNonEndemic(!!v)}
                     />
-                    <label htmlFor="nonEndemic" className="text-sm">Non-Endemic advertiser</label>
+                    <label htmlFor="nonEndemic" className="text-sm cursor-pointer">Non-Endemic advertiser</label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="agency"
                       checked={isAgency}
-                      onChange={e => setIsAgency(e.target.checked)}
-                      className="h-4 w-4"
+                      onCheckedChange={(v) => setIsAgency(!!v)}
                     />
-                    <label htmlFor="agency" className="text-sm">Agency</label>
+                    <label htmlFor="agency" className="text-sm cursor-pointer">Agency</label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="retailer"
                       checked={isRetailer}
-                      onChange={e => setIsRetailer(e.target.checked)}
-                      className="h-4 w-4"
+                      onCheckedChange={(v) => setIsRetailer(!!v)}
                     />
-                    <label htmlFor="retailer" className="text-sm">Retailer</label>
+                    <label htmlFor="retailer" className="text-sm cursor-pointer">Retailer</label>
                   </div>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Status</label>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      id="statusActive"
-                      name="status"
-                      checked={status === 'active'}
-                      onChange={() => setStatus('active')}
-                      className="h-4 w-4"
-                    />
-                    <label htmlFor="statusActive" className="text-sm">Active</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      id="statusInactive"
-                      name="status"
-                      checked={status === 'inactive'}
-                      onChange={() => setStatus('inactive')}
-                      className="h-4 w-4"
-                    />
-                    <label htmlFor="statusInactive" className="text-sm">Inactive</label>
-                  </div>
-                </div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <Input
+                  dropdown
+                  options={[
+                    { label: 'Active', value: 'active' },
+                    { label: 'Inactive', value: 'inactive' },
+                  ]}
+                  value={status}
+                  onChange={setStatus}
+                  placeholder="Select status"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Description</label>
@@ -151,6 +127,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
                 <Button>Save</Button>
               </div>
             </div>
+            </FormSection>
           </CardContent>
         </Card>
 

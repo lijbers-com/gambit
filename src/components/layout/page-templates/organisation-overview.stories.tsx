@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { CardWithTabs } from '@/components/ui/card';
+import { CardWithTabs, MetricCard } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -99,6 +99,36 @@ export const OrganisationOverview: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <MetricCard
+              label="Total organisations"
+              value="10"
+              subMetric="Registered partners"
+              variant="default"
+            />
+            <MetricCard
+              label="Active organisations"
+              value="8 active"
+              subMetric="2 Inactive"
+              variant="donut"
+              donutData={[{ name: 'Active', value: 8 }, { name: 'Inactive', value: 2 }]}
+            />
+            <MetricCard
+              label="Total users"
+              value="10,075"
+              subMetric="Platform users"
+              variant="graph"
+              graphData={[{value:8200},{value:8750},{value:9100},{value:8900},{value:9400},{value:9800},{value:10075}]}
+              graphColor="hsl(var(--primary))"
+            />
+            <MetricCard
+              label="Active users"
+              value="9,150 active"
+              subMetric="925 Inactive"
+              variant="donut"
+              donutData={[{ name: 'Active', value: 9150 }, { name: 'Inactive', value: 925 }]}
+            />
+          </div>
           <CardWithTabs
             tabs={[
               {

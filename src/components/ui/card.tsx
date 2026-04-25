@@ -1,5 +1,5 @@
 import * as React from "react"
-import { LineChart, Line, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
@@ -196,10 +196,12 @@ export interface MetricCardProps {
   onClick?: () => void;
   onRemove?: () => void;
   className?: string;
-  variant?: "default" | "graph";
+  variant?: "default" | "graph" | "donut";
   graphData?: Array<{ value: number }>;
   graphColor?: string;
   progress?: number;
+  donutData?: Array<{ name: string; value: number }>;
+  donutColors?: string[];
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
@@ -217,6 +219,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     graphData,
     graphColor = "#8884d8",
     progress,
+    donutData,
+    donutColors,
     ...props
   }, ref) => (
     <Card
@@ -244,9 +248,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       </CardHeader>
       <CardContent className="pb-4 pt-0">
         <div>
-          <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
-            {value}
-          </div>
+          {variant !== "donut" && (
+            <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
+              {value}
+            </div>
+          )}
           {subMetric && (
             <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
               {subMetric}
@@ -257,16 +263,48 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           <div className="h-10 w-full mt-3">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={graphData}>
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke={graphColor} 
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={graphColor}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 3, stroke: graphColor, strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        )}
+        {variant === "donut" && donutData && (
+          <div className="flex flex-col items-center mt-1">
+            <ResponsiveContainer width="100%" height={120}>
+              <PieChart>
+                <Pie
+                  data={donutData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={38}
+                  outerRadius={56}
+                  dataKey="value"
+                  strokeWidth={0}
+                  startAngle={90}
+                  endAngle={-270}
+                >
+                  {donutData.map((_, index) => (
+                    <Cell
+                      key={index}
+                      fill={
+                        donutColors?.[index] ??
+                        (index === 0
+                          ? 'hsl(var(--foreground))'
+                          : 'hsl(var(--muted))')
+                      }
+                    />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="text-2xl font-bold text-foreground -mt-1">{value}</div>
           </div>
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (

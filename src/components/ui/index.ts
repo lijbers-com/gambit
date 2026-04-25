@@ -32,7 +32,9 @@ export { BarChartComponent } from "./bar-chart"
 export { LineChartComponent } from "./line-chart"
 export { PieChartComponent } from "./pie-chart"
 export { RadarChartComponent } from "./radar-chart"
-export { ChartShowcase } from "./chart-showcase" 
+export { ChartShowcase } from "./chart-showcase"
+export { ChartFrame } from "./chart-frame"
+export type { ChartFrameProps } from "./chart-frame"
 export * from "./filter-bar";
 export * from "./search-input";
 export * from './tabs';

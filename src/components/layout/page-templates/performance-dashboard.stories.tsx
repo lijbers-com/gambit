@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { LineChartComponent } from '@/components/ui/line-chart';
+import { ChartFrame } from '@/components/ui/chart-frame';
 import { MapChart } from '@/components/ui/map-chart';
 import { PieChartComponent } from '@/components/ui/pie-chart';
 import { RadarChartComponent } from '@/components/ui/radar-chart';
@@ -3875,122 +3876,102 @@ export const FunnelView: Story = {
                     {!volumeDetailsCollapsed && (
                     <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${selectedImpressionKeys.length} gap-4`}>
                       {awarenessMetrics.includes('spaImpressions') && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">SPA Impressions {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].spaImpressions / 1000)}K</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <LineChartComponent
-                              data={awarenessData}
-                              config={{ spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-[120px] w-full"
-                              xAxisDataKey="month"
-                            />
-                            <div className="flex justify-end mt-2">
-                              <Badge variant="success" className="text-xs">+54%</Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ChartFrame
+                          title={`SPA Impressions ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].spaImpressions / 1000)}K`}
+                          chartHeight={120}
+                          footer={<Badge variant="success" className="text-xs">+54%</Badge>}
+                        >
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-full w-full"
+                            xAxisDataKey="month"
+                          />
+                        </ChartFrame>
                       )}
 
                       {awarenessMetrics.includes('impressions') && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">Display Impressions {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].impressions / 1000)}K</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <LineChartComponent
-                              data={awarenessData}
-                              config={{ impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-[120px] w-full"
-                              xAxisDataKey="month"
-                            />
-                            <div className="flex justify-end mt-2">
-                              <Badge variant="success" className="text-xs">+46%</Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ChartFrame
+                          title={`Display Impressions ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].impressions / 1000)}K`}
+                          chartHeight={120}
+                          footer={<Badge variant="success" className="text-xs">+46%</Badge>}
+                        >
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-full w-full"
+                            xAxisDataKey="month"
+                          />
+                        </ChartFrame>
                       )}
 
                       {awarenessMetrics.includes('omiDots') && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">OMI otS {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].omiDots / 1000)}K</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <LineChartComponent
-                              data={awarenessData}
-                              config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-[120px] w-full"
-                              xAxisDataKey="month"
-                            />
-                            <div className="flex justify-end mt-2">
-                              <Badge variant="success" className="text-xs">+68%</Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ChartFrame
+                          title={`OMI otS ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].omiDots / 1000)}K`}
+                          chartHeight={120}
+                          footer={<Badge variant="success" className="text-xs">+68%</Badge>}
+                        >
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-full w-full"
+                            xAxisDataKey="month"
+                          />
+                        </ChartFrame>
                       )}
 
                       {awarenessMetrics.includes('doohSpots') && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">DooH DotS {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].doohSpots / 1000)}K</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <LineChartComponent
-                              data={awarenessData}
-                              config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-[120px] w-full"
-                              xAxisDataKey="month"
-                            />
-                            <div className="flex justify-end mt-2">
-                              <Badge variant="success" className="text-xs">+52%</Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ChartFrame
+                          title={`DooH DotS ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].doohSpots / 1000)}K`}
+                          chartHeight={120}
+                          footer={<Badge variant="success" className="text-xs">+52%</Badge>}
+                        >
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-full w-full"
+                            xAxisDataKey="month"
+                          />
+                        </ChartFrame>
                       )}
                       {awarenessMetrics.includes('offsiteImpressions') && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">Display Offsite {Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].offsiteImpressions / 1000)}K</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <LineChartComponent
-                              data={awarenessData}
-                              config={{ offsiteImpressions: { label: "Display Offsite", color: "hsl(25, 90%, 55%)" } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-[120px] w-full"
-                              xAxisDataKey="month"
-                            />
-                            <div className="flex justify-end mt-2">
-                              <Badge variant="success" className="text-xs">+62%</Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ChartFrame
+                          title={`Display Offsite ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].offsiteImpressions / 1000)}K`}
+                          chartHeight={120}
+                          footer={<Badge variant="success" className="text-xs">+62%</Badge>}
+                        >
+                          <LineChartComponent
+                            data={awarenessData}
+                            config={{ offsiteImpressions: { label: "Display Offsite", color: "hsl(25, 90%, 55%)" } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={false}
+                            className="h-full w-full"
+                            xAxisDataKey="month"
+                          />
+                        </ChartFrame>
                       )}
                     </div>
                     )}
@@ -4264,28 +4245,28 @@ export const FunnelView: Story = {
                     </div>
                     {!volumeDetailsCollapsed && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {considerationEngagementKeys.map((key) => (
-                        <Card key={key}>
-                          <CardHeader>
-                            <CardTitle className="text-sm">
-                              {key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : key === 'omiClicks' ? 'OMI Clicks' : 'Offsite Clicks'} {Math.round(considerationDataRaw[5][key] / 1000)}K
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
+                      {considerationEngagementKeys.map((key) => {
+                        const label = key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : key === 'omiClicks' ? 'OMI Clicks' : 'Offsite Clicks';
+                        return (
+                          <ChartFrame
+                            key={key}
+                            title={`${label} ${Math.round(considerationDataRaw[5][key] / 1000)}K`}
+                            chartHeight={120}
+                          >
                             <LineChartComponent
                               data={considerationData}
-                              config={{ [key]: { label: key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : key === 'omiClicks' ? 'OMI Clicks' : 'Offsite Clicks', color: `hsl(var(--chart-${Math.min(considerationEngagementKeys.indexOf(key) + 1, 5)}))` } }}
+                              config={{ [key]: { label, color: `hsl(var(--chart-${Math.min(considerationEngagementKeys.indexOf(key) + 1, 5)}))` } }}
                               showLegend={false}
                               showGrid={true}
                               showTooltip={true}
                               showXAxis={true}
                               showYAxis={false}
-                              className="h-[120px] w-full"
+                              className="h-full w-full"
                               xAxisDataKey="month"
                             />
-                          </CardContent>
-                        </Card>
-                      ))}
+                          </ChartFrame>
+                        );
+                      })}
                     </div>
                     )}
                   </CardContent>
@@ -4517,12 +4498,14 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span><Badge variant="secondary" className="text-xs cursor-help">Display Offsite {purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}</Badge></span>
-                        </TooltipTrigger>
-                        <TooltipContent>Units sold attributed to Display Offsite campaigns</TooltipContent>
-                      </Tooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge variant="secondary" className="text-xs cursor-help">Display Offsite {purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Units sold attributed to Display Offsite campaigns</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <Plus className="w-3 h-3 text-muted-foreground" />
                       <TooltipProvider>
                         <Tooltip>
@@ -4579,96 +4562,86 @@ export const FunnelView: Story = {
                     </div>
                     {!sovDetailsCollapsed && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Sponsored Products {purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ spaUnitsSold: { label: "SPA Units", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Display {purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ displayUnitsSold: { label: "Display Units", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Display Offsite {purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ offsiteUnitsSold: { label: "Display Offsite Units", color: "hsl(25, 90%, 55%)" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Digital Media In-store {purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ dmiUnitsSold: { label: "DMI Units", color: "hsl(var(--chart-4))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Offline Media In-store {purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={purchaseData}
-                            config={{ omiUnitsSold: { label: "OMI Units", color: "hsl(var(--chart-5))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
+                      <ChartFrame
+                        title={`Sponsored Products ${purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ spaUnitsSold: { label: "SPA Units", color: "hsl(var(--chart-2))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Display ${purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ displayUnitsSold: { label: "Display Units", color: "hsl(var(--chart-3))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Display Offsite ${purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ offsiteUnitsSold: { label: "Display Offsite Units", color: "hsl(25, 90%, 55%)" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Digital Media In-store ${purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ dmiUnitsSold: { label: "DMI Units", color: "hsl(var(--chart-4))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Offline Media In-store ${purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={purchaseData}
+                          config={{ omiUnitsSold: { label: "OMI Units", color: "hsl(var(--chart-5))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
                     </div>
                     )}
                   </CardContent>
@@ -4730,28 +4703,29 @@ export const FunnelView: Story = {
                     </div>
                     {!roasDetailsCollapsed && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key, index) => (
-                        <Card key={key}>
-                          <CardHeader>
-                            <CardTitle className="text-sm">
-                              {key === 'spaRoas' ? 'Sponsored Products' : key === 'displayRoas' ? 'Display' : key === 'dmiRoas' ? 'Digital In-store' : 'Offline In-store'} {purchaseDataRaw[purchaseDataRaw.length - 1][key]}x
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
+                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key, index) => {
+                        const label = key === 'spaRoas' ? 'Sponsored Products' : key === 'displayRoas' ? 'Display' : key === 'dmiRoas' ? 'Digital In-store' : 'Offline In-store';
+                        const tooltipLabel = key === 'spaRoas' ? 'SPA ROAS' : key === 'displayRoas' ? 'Display ROAS' : key === 'dmiRoas' ? 'DMI ROAS' : 'OMI ROAS';
+                        return (
+                          <ChartFrame
+                            key={key}
+                            title={`${label} ${purchaseDataRaw[purchaseDataRaw.length - 1][key]}x`}
+                            chartHeight={120}
+                          >
                             <LineChartComponent
                               data={purchaseData}
-                              config={{ [key]: { label: key === 'spaRoas' ? 'SPA ROAS' : key === 'displayRoas' ? 'Display ROAS' : key === 'dmiRoas' ? 'DMI ROAS' : 'OMI ROAS', color: `hsl(var(--chart-${index + 1}))` } }}
+                              config={{ [key]: { label: tooltipLabel, color: `hsl(var(--chart-${index + 1}))` } }}
                               showLegend={false}
                               showGrid={true}
                               showTooltip={true}
                               showXAxis={true}
                               showYAxis={false}
-                              className="h-[120px] w-full"
+                              className="h-full w-full"
                               xAxisDataKey="month"
                             />
-                          </CardContent>
-                        </Card>
-                      ))}
+                          </ChartFrame>
+                        );
+                      })}
                     </div>
                     )}
                   </CardContent>
@@ -4909,60 +4883,54 @@ export const FunnelView: Story = {
                     </div>
                     {!buyerReachDetailsCollapsed && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Retention Rate {loyaltyData[loyaltyData.length - 1].retentionRate}%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ retentionRate: { label: "Retention Rate %", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Churn Rate {loyaltyData[loyaltyData.length - 1].churnRate}%</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm">Frequency {loyaltyData[loyaltyData.length - 1].frequency}x</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <LineChartComponent
-                            data={loyaltyData}
-                            config={{ frequency: { label: "Frequency", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-[120px] w-full"
-                            xAxisDataKey="month"
-                          />
-                        </CardContent>
-                      </Card>
+                      <ChartFrame
+                        title={`Retention Rate ${loyaltyData[loyaltyData.length - 1].retentionRate}%`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={loyaltyData}
+                          config={{ retentionRate: { label: "Retention Rate %", color: "hsl(var(--chart-2))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Churn Rate ${loyaltyData[loyaltyData.length - 1].churnRate}%`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={loyaltyData}
+                          config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
+                      <ChartFrame
+                        title={`Frequency ${loyaltyData[loyaltyData.length - 1].frequency}x`}
+                        chartHeight={120}
+                      >
+                        <LineChartComponent
+                          data={loyaltyData}
+                          config={{ frequency: { label: "Frequency", color: "hsl(var(--chart-3))" } }}
+                          showLegend={false}
+                          showGrid={true}
+                          showTooltip={true}
+                          showXAxis={true}
+                          showYAxis={false}
+                          className="h-full w-full"
+                          xAxisDataKey="month"
+                        />
+                      </ChartFrame>
                     </div>
                     )}
                   </CardContent>

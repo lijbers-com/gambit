@@ -1,8 +1,24 @@
 import * as React from "react"
 import { LineChart, Line, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
+
+const cardVariants = cva(
+  "group/card rounded-xl border bg-card text-card-foreground",
+  {
+    variants: {
+      padding: {
+        default: "",
+        compact: "",
+      },
+    },
+    defaultVariants: { padding: "default" },
+  }
+)
+
+export type CardPadding = NonNullable<VariantProps<typeof cardVariants>["padding"]>
 
 export interface CardWithTabsTab {
   label: React.ReactNode;
@@ -76,19 +92,20 @@ export function CardWithTabs({
   );
 }
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, padding, ...props }, ref) => (
+    <div
+      ref={ref}
+      data-padding={padding ?? "default"}
+      className={cn(cardVariants({ padding }), className)}
+      {...props}
+    />
+  )
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
@@ -97,7 +114,11 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    data-slot="header"
+    className={cn(
+      "flex flex-col space-y-1.5 p-6 group-data-[padding=compact]/card:p-4 group-data-[padding=compact]/card:pb-2",
+      className
+    )}
     {...props}
   />
 ))
@@ -131,7 +152,15 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div
+    ref={ref}
+    data-slot="content"
+    className={cn(
+      "p-6 pt-0 group-data-[padding=compact]/card:px-4 group-data-[padding=compact]/card:pb-4 group-data-[padding=compact]/card:pt-0",
+      className
+    )}
+    {...props}
+  />
 ))
 CardContent.displayName = "CardContent"
 
@@ -141,7 +170,11 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    data-slot="footer"
+    className={cn(
+      "flex items-center p-6 pt-0 group-data-[padding=compact]/card:px-4 group-data-[padding=compact]/card:pb-4 group-data-[padding=compact]/card:pt-0",
+      className
+    )}
     {...props}
   />
 ))
@@ -225,6 +258,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
   }, ref) => (
     <Card
       ref={ref}
+      padding="compact"
       className={cn(
         "cursor-pointer transition-all duration-200 hover:shadow-md relative group",
         isSelected && "shadow-md",
@@ -241,12 +275,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       )}
-      <CardHeader className="pb-2">
+      <CardHeader>
         <CardTitle className="text-sm font-semibold text-foreground truncate">
           {label}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-4 pt-0">
+      <CardContent>
         {variant !== "donut" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">

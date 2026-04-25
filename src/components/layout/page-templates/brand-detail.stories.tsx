@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,26 @@ const cocaColaOrgs = [
   { id: 'ORG-003', organisation: 'Coca-Cola HQ', type: 'Advertiser', role: 'Admin' },
 ];
 
+const cocaColaCampaigns = [
+  { id: 'C-001', name: 'Summer Refresh 2024', engine: 'Display', status: 'Running', start: '01-06-2024', end: '31-08-2024' },
+  { id: 'C-002', name: 'Zero Sugar Push', engine: 'Sponsored Products', status: 'Ready', start: '01-07-2024', end: '31-07-2024' },
+  { id: 'C-003', name: 'Holiday Season 2024', engine: 'Offsite', status: 'In option', start: '01-11-2024', end: '31-12-2024' },
+];
+
+const unoxCampaigns = [
+  { id: 'C-101', name: 'Winter Warmers Campaign', engine: 'Display', status: 'Running', start: '01-10-2024', end: '28-02-2025' },
+  { id: 'C-102', name: 'Snert Season Sponsored', engine: 'Sponsored Products', status: 'Ready', start: '01-11-2024', end: '31-01-2025' },
+];
+
+const campaignStatusVariant = (status: string) => {
+  switch (status) {
+    case 'Running': return 'default' as const;
+    case 'Ready': return 'secondary' as const;
+    case 'In option': return 'outline' as const;
+    default: return 'outline' as const;
+  }
+};
+
 const unoxProducts = [
   { id: 'SKU-101', sku: 'UNX-SOUP-STD', name: 'Unox Erwtensoep Snert 570ml', category: 'Food', price: '€1.99' },
   { id: 'SKU-102', sku: 'UNX-HOT-4PK', name: 'Unox Knakworst 4-Pack 200g', category: 'Food', price: '€2.49' },
@@ -54,6 +74,7 @@ interface BrandDetailContentProps {
   countryOfOrigin: string;
   products: typeof cocaColaProducts;
   organisations: typeof cocaColaOrgs;
+  campaigns: typeof cocaColaCampaigns;
 }
 
 const BrandDetailContent = ({
@@ -63,10 +84,12 @@ const BrandDetailContent = ({
   countryOfOrigin,
   products,
   organisations,
+  campaigns,
 }: BrandDetailContentProps) => {
   const [advertiser, setAdvertiser] = React.useState(advertiserValue);
   const [brandStatus, setBrandStatus] = React.useState('active');
   const [brandCategory, setBrandCategory] = React.useState(categoryValue);
+  const [activeTab, setActiveTab] = React.useState('products');
 
   return (
     <div className="grid grid-cols-3 gap-6">
@@ -133,26 +156,53 @@ const BrandDetailContent = ({
           </CardContent>
         </Card>
 
-        {/* Products table */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Retail products</h2>
-              <Button variant="outline" size="sm">Add product</Button>
-            </div>
-            <Table
-              columns={[
-                { key: 'sku', header: 'SKU' },
-                { key: 'name', header: 'Name' },
-                { key: 'category', header: 'Category' },
-                { key: 'price', header: 'Price' },
-              ]}
-              data={products}
-              rowKey={(row) => row.id}
-              onRowClick={(row) => alert(`Navigate to ${row.name}`)}
-            />
-          </CardContent>
-        </Card>
+        {/* Products & Campaigns tabs */}
+        <CardWithTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          action={activeTab === 'products' ? <Button size="sm">Add product</Button> : undefined}
+          tabs={[
+            {
+              label: 'Retail products',
+              value: 'products',
+              content: (
+                <div className="mt-4">
+                  <Table
+                    columns={[
+                      { key: 'sku', header: 'SKU' },
+                      { key: 'name', header: 'Name' },
+                      { key: 'category', header: 'Category' },
+                      { key: 'price', header: 'Price' },
+                    ]}
+                    data={products}
+                    rowKey={(row) => row.id}
+                    onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Campaigns',
+              value: 'campaigns',
+              content: (
+                <div className="mt-4">
+                  <Table
+                    columns={[
+                      { key: 'name', header: 'Campaign name' },
+                      { key: 'engine', header: 'Engine' },
+                      { key: 'status', header: 'Status', render: (row) => <Badge variant={campaignStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'start', header: 'Start' },
+                      { key: 'end', header: 'End' },
+                    ]}
+                    data={campaigns}
+                    rowKey={(row) => row.id}
+                    onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
       </div>
 
       {/* Right column — sidebar */}
@@ -207,6 +257,7 @@ export const BrandDetail: Story = {
             countryOfOrigin="United States"
             products={cocaColaProducts}
             organisations={cocaColaOrgs}
+            campaigns={cocaColaCampaigns}
           />
         </AppLayout>
       </MenuContextProvider>
@@ -243,6 +294,7 @@ export const BrandDetailUnox: Story = {
             countryOfOrigin="Netherlands"
             products={unoxProducts}
             organisations={unoxOrgs}
+            campaigns={unoxCampaigns}
           />
         </AppLayout>
       </MenuContextProvider>

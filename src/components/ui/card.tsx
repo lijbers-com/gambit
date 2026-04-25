@@ -260,9 +260,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </div>
         )}
         {variant === "graph" && graphData && (
-          <div className="h-10 w-full mt-3">
+          <div className="h-14 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData}>
+              <LineChart data={graphData} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
                 <Line
                   type="monotone"
                   dataKey="value"
@@ -276,15 +276,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </div>
         )}
         {variant === "donut" && donutData && (
-          <div className="relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={160}>
+          <div className="relative mx-auto aspect-square w-40 md:w-44">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={donutData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={52}
-                  outerRadius={74}
+                  innerRadius="68%"
+                  outerRadius="100%"
                   dataKey="value"
                   strokeWidth={0}
                   startAngle={90}
@@ -322,7 +322,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-2xl font-bold text-foreground">{value}</span>
+              <span className="text-3xl font-bold text-foreground">{value}</span>
             </div>
           </div>
         )}

@@ -8,8 +8,28 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
-import { Copy } from 'lucide-react';
+import { Copy, UserCircle } from 'lucide-react';
 import * as React from 'react';
+
+const InfoRow = ({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+}) => (
+  <div className="p-4 border rounded-lg">
+    <div className="flex items-center gap-3">
+      <Icon className="w-5 h-5 text-foreground/70 shrink-0" />
+      <div>
+        <p className="text-sm font-medium">{title}</p>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      </div>
+    </div>
+  </div>
+);
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Configuration Details',
@@ -134,10 +154,12 @@ const TokenDetailContent = () => {
           <CardContent>
             <div className="space-y-3">
               {users.map((u) => (
-                <div key={u.name}>
-                  <p className="font-medium text-sm">{u.name}</p>
-                  <p className="text-xs text-muted-foreground">{u.organisation} · <Badge variant="outline" className="text-xs h-4">{u.role}</Badge></p>
-                </div>
+                <InfoRow
+                  key={u.name}
+                  icon={UserCircle}
+                  title={u.name}
+                  subtitle={`${u.organisation} · ${u.role}`}
+                />
               ))}
             </div>
           </CardContent>

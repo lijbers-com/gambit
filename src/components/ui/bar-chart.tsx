@@ -81,8 +81,10 @@ export function BarChartComponent({
         accessibilityLayer
         data={data}
         margin={{
-          left: showYAxis ? 32 : 0,
-          right: showRightYAxis ? 32 : 0,
+          left: showYAxis ? 8 : 0,
+          right: showRightYAxis ? 8 : 0,
+          top: 4,
+          bottom: 0,
         }}
       >
         {showGrid && yAxisTicks.map(tick => (

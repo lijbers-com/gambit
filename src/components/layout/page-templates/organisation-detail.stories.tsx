@@ -9,7 +9,33 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { UserCircle, Tag } from 'lucide-react';
 import * as React from 'react';
+
+const InfoRow = ({
+  icon: Icon,
+  title,
+  subtitle,
+  action,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="p-4 border rounded-lg">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Icon className="w-5 h-5 text-foreground/70 shrink-0" />
+        <div>
+          <p className="text-sm font-medium">{title}</p>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
+      </div>
+      {action}
+    </div>
+  </div>
+);
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Configuration Details',
@@ -34,9 +60,9 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
   const [status, setStatus] = React.useState('active');
 
   const mediaPartners = [
-    { id: 'CON-001', name: 'Unilever Standard 2024', brands: 'All', users: 45, debtor: 'Unilever' },
-    { id: 'CON-002', name: 'Coca Cola Premium 2024', brands: 45, users: 45, debtor: 'Unilever' },
-    { id: 'CON-003', name: 'FrieslandCampina Standard 2024', brands: 12, users: 22, debtor: 'FrieslandCampina' },
+    { id: 'CON-001', name: 'Standard Retail Media Agreement 2024', brands: 'All', users: 45, debtor: 'Albert Heijn' },
+    { id: 'CON-002', name: 'Premium Display Package Q4 2024', brands: 8, users: 12, debtor: 'Albert Heijn' },
+    { id: 'CON-003', name: 'Digital In-Store Activation 2025', brands: 3, users: 7, debtor: 'Albert Heijn' },
   ];
 
   const groups = [
@@ -168,10 +194,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
           <CardContent>
             <div className="space-y-3">
               {users.map((u) => (
-                <div key={u.name}>
-                  <p className="font-medium text-sm">{u.name}</p>
-                  <p className="text-xs text-muted-foreground">{u.meta}</p>
-                </div>
+                <InfoRow key={u.name} icon={UserCircle} title={u.name} subtitle={u.meta} />
               ))}
             </div>
           </CardContent>
@@ -181,10 +204,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
           <CardContent>
             <div className="space-y-3">
               {brands.map((brand) => (
-                <div key={brand}>
-                  <p className="font-medium text-sm">{brand}</p>
-                  <p className="text-xs text-muted-foreground">General roles</p>
-                </div>
+                <InfoRow key={brand} icon={Tag} title={brand} subtitle="General roles" />
               ))}
             </div>
             <div className="pt-4 flex justify-end">

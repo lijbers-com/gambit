@@ -8,7 +8,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { Building2, ShieldCheck } from 'lucide-react';
 import * as React from 'react';
+
+const InfoRow = ({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+}) => (
+  <div className="p-4 border rounded-lg">
+    <div className="flex items-center gap-3">
+      <Icon className="w-5 h-5 text-foreground/70 shrink-0" />
+      <div>
+        <p className="text-sm font-medium">{title}</p>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      </div>
+    </div>
+  </div>
+);
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Configuration Details',
@@ -92,21 +113,15 @@ const GroupDetailContent = () => {
         <Card>
           <CardHeader><CardTitle>Organisation</CardTitle></CardHeader>
           <CardContent>
-            <div>
-              <p className="font-medium text-sm">Unilever</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Advertiser · 3,000 users</p>
-            </div>
+            <InfoRow icon={Building2} title="Unilever" subtitle="Advertiser · 3,000 users" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle>Permissions</CardTitle></CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {['Sponsored products', 'Campaign management', 'Reporting'].map((p) => (
-                <div key={p} className="flex items-center justify-between">
-                  <span className="text-sm">{p}</span>
-                  <Badge variant="secondary">Enabled</Badge>
-                </div>
+                <InfoRow key={p} icon={ShieldCheck} title={p} subtitle="Enabled" />
               ))}
             </div>
           </CardContent>

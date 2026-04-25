@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/User Profile',
+  title: 'Page templates/Configuration Details',
   component: AppLayout,
   parameters: {
     layout: 'fullscreen',
@@ -483,7 +483,7 @@ const UserProfileContent = () => {
       </div>
 
       {/* Right column */}
-      <div className="space-y-6">
+      <div className="space-y-6 pt-14">
         {/* Organisation card */}
         <Card>
           <CardHeader>

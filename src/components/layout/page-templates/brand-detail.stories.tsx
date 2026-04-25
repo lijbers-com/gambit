@@ -8,7 +8,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { Building2 } from 'lucide-react';
 import * as React from 'react';
+
+const InfoRow = ({
+  icon: Icon,
+  title,
+  subtitle,
+  action,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="p-4 border rounded-lg">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Icon className="w-5 h-5 text-foreground/70 shrink-0" />
+        <div>
+          <p className="text-sm font-medium">{title}</p>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
+      </div>
+      {action}
+    </div>
+  </div>
+);
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Configuration Details',
@@ -179,10 +205,12 @@ const BrandDetailContent = ({
           <CardContent>
             <div className="space-y-3">
               {organisations.map((org) => (
-                <div key={org.id}>
-                  <p className="font-medium text-sm">{org.organisation}</p>
-                  <p className="text-xs text-muted-foreground">{org.type} · <Badge variant="outline" className="text-xs h-4">{org.role}</Badge></p>
-                </div>
+                <InfoRow
+                  key={org.id}
+                  icon={Building2}
+                  title={org.organisation}
+                  subtitle={`${org.type} · ${org.role}`}
+                />
               ))}
             </div>
             <div className="pt-4 flex justify-end">

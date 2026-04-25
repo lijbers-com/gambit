@@ -114,15 +114,15 @@ export const OrganisationOverview: Story = {
             </Card>
             <MetricCard
               label="Media organisations"
-              value="8 active partners"
-              subMetric="8 Active organisations · 2 Inactive"
+              value="10"
+              subMetric="8 Active · 2 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 8 }, { name: 'Inactive', value: 2 }]}
             />
             <MetricCard
               label="Users"
-              value="9,150 active users"
-              subMetric="9,150 Active users · 925 Inactive"
+              value="10,075"
+              subMetric="9,150 Active · 925 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 9150 }, { name: 'Inactive', value: 925 }]}
             />

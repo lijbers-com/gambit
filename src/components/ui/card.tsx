@@ -245,18 +245,13 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         <CardTitle className="text-sm font-semibold text-foreground truncate">
           {label}
         </CardTitle>
-        {variant === "donut" && subMetric && (
-          <p className="text-xs text-muted-foreground mt-0.5">{subMetric}</p>
-        )}
       </CardHeader>
       <CardContent className="pb-4 pt-0">
         <div>
-          {variant !== "donut" && (
-            <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
-              {value}
-            </div>
-          )}
-          {variant !== "donut" && subMetric && (
+          <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
+            {value}
+          </div>
+          {subMetric && (
             <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
               {subMetric}
             </div>
@@ -279,15 +274,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </div>
         )}
         {variant === "donut" && donutData && (
-          <div className="flex flex-col items-center py-2">
-            <ResponsiveContainer width="100%" height={180}>
+          <div className="flex flex-col items-center pt-4">
+            <ResponsiveContainer width="100%" height={160}>
               <PieChart>
                 <Pie
                   data={donutData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={58}
-                  outerRadius={82}
+                  innerRadius={52}
+                  outerRadius={74}
                   dataKey="value"
                   strokeWidth={0}
                   startAngle={90}
@@ -307,7 +302,6 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="text-xl font-semibold text-foreground mt-1">{value}</div>
           </div>
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (

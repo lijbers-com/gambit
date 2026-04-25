@@ -1,5 +1,5 @@
 import * as React from "react"
-import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
@@ -294,12 +294,29 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                       fill={
                         donutColors?.[index] ??
                         (index === 0
-                          ? 'hsl(var(--foreground))'
-                          : 'hsl(var(--muted))')
+                          ? 'hsl(var(--chart-1))'
+                          : 'hsl(var(--chart-2))')
                       }
                     />
                   ))}
                 </Pie>
+                <Tooltip
+                  cursor={false}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const item = payload[0];
+                    return (
+                      <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-sm flex items-center gap-2">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: item.payload?.fill ?? (item.color as string) }}
+                        />
+                        <span className="text-muted-foreground">{item.name}</span>
+                        <span className="font-semibold ml-1">{(item.value as number).toLocaleString()}</span>
+                      </div>
+                    );
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

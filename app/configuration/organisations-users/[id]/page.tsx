@@ -12,21 +12,20 @@ export default function OrganisationDetailPage() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('[role="menu"]') || target.closest('[data-radix-popper-content-wrapper]')) return;
-      const row = target.closest('tr');
-      if (row && row.querySelector('td')) {
-        const cells = row.querySelectorAll('td');
-        const cellTexts = Array.from(cells).map(td => td.textContent?.trim());
-        const userId = cellTexts.find(t => t?.startsWith('USR-'));
-        if (userId) {
-          e.preventDefault();
-          e.stopPropagation();
-          router.push(`/configuration/organisations-users/users/${userId}`);
-        }
-        const contractId = cellTexts.find(t => t?.startsWith('CON-'));
-        if (contractId) {
-          e.preventDefault();
-          e.stopPropagation();
-          router.push(`/configuration/organisations-users/contracts/${contractId}`);
+      const row = target.closest('tr[data-row-id]') as HTMLElement | null;
+      if (row) {
+        const id = row.getAttribute('data-row-id');
+        if (!id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (id.startsWith('USR-')) {
+          router.push(`/configuration/organisations-users/users/${id}`);
+        } else if (id.startsWith('CON-')) {
+          router.push(`/configuration/organisations-users/contracts/${id}`);
+        } else if (id.startsWith('GRP-')) {
+          router.push(`/configuration/organisations-users/groups/${id}`);
+        } else if (id.startsWith('KEY-')) {
+          router.push(`/configuration/organisations-users/tokens/${id}`);
         }
       }
     };

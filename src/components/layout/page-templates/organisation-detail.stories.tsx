@@ -34,9 +34,9 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
   const [status, setStatus] = React.useState('active');
 
   const mediaPartners = [
-    { id: 'MP-001', name: 'Unilever', brands: 'All', users: 45, debtor: 'Unilever' },
-    { id: 'MP-002', name: 'Coca Cola', brands: 45, users: 45, debtor: 'Unilever' },
-    { id: 'MP-003', name: 'FrieslandCampina', brands: 12, users: 22, debtor: 'FrieslandCampina' },
+    { id: 'CON-001', name: 'Unilever Standard 2024', brands: 'All', users: 45, debtor: 'Unilever' },
+    { id: 'CON-002', name: 'Coca Cola Premium 2024', brands: 45, users: 45, debtor: 'Unilever' },
+    { id: 'CON-003', name: 'FrieslandCampina Standard 2024', brands: 12, users: 22, debtor: 'FrieslandCampina' },
   ];
 
   const groups = [

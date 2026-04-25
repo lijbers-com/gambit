@@ -1,10 +1,10 @@
 'use client';
-import { BrandDetail } from '@/components/layout/page-templates/brand-detail.stories';
+import { GroupDetail } from '@/components/layout/page-templates/group-detail.stories';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import React from 'react';
 
-export default function BrandDetailPage() {
+export default function GroupDetailPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -14,20 +14,18 @@ export default function BrandDetailPage() {
       const row = target.closest('tr[data-row-id]') as HTMLElement | null;
       if (row) {
         const id = row.getAttribute('data-row-id');
-        if (!id) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (id.startsWith('SKU-')) {
-          router.push(`/configuration/brands-products/products/${id}`);
+        if (id?.startsWith('USR-')) {
+          e.preventDefault();
+          e.stopPropagation();
+          router.push(`/configuration/organisations-users/users/${id}`);
         }
-        // Campaign rows are handled by the main campaign app — no navigation here yet
       }
     };
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
   }, [router]);
 
-  const Component = BrandDetail.render as () => React.JSX.Element;
-  if (!Component) return <div>Brand Detail</div>;
+  const Component = GroupDetail.render as () => React.JSX.Element;
+  if (!Component) return <div>Group Detail</div>;
   return <Component />;
 }

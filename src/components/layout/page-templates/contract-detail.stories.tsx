@@ -1,321 +1,239 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { CardWithTabs } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
-import { FormSection } from '@/components/ui/form-section';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
-import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Contract Detail',
+  title: 'Page templates/Configuration Details',
   component: AppLayout,
-  parameters: {
-    layout: 'fullscreen',
-  },
+  parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
 };
-
 export default meta;
 type Story = StoryObj<typeof AppLayout>;
 
-const brandsData = [
-  { id: 'BR-001', brand: 'Coca-Cola Classic', products: 24, spendLimit: '$50,000', status: 'Active' },
-  { id: 'BR-002', brand: 'Coca-Cola Zero Sugar', products: 18, spendLimit: '$30,000', status: 'Active' },
-  { id: 'BR-003', brand: 'Sprite', products: 12, spendLimit: '$20,000', status: 'Inactive' },
+const contractBrands = [
+  { id: 'BRD-001', name: 'Coca-Cola', category: 'Beverages', spendLimit: '€50,000', status: 'Active' as const },
+  { id: 'BRD-002', name: 'Coca-Cola Zero', category: 'Beverages', spendLimit: '€30,000', status: 'Active' as const },
+  { id: 'BRD-003', name: 'Sprite', category: 'Beverages', spendLimit: '€20,000', status: 'Inactive' as const },
 ];
 
-const campaignsData = [
-  { id: 'C-001', campaign: 'Summer Refresh Display', engine: 'Display', status: 'Running', spend: '$12,450' },
-  { id: 'C-002', campaign: 'Zero Sugar Sponsored Push', engine: 'Sponsored Products', status: 'Ready', spend: '$8,200' },
-  { id: 'C-003', campaign: 'Holiday Season Offsite', engine: 'Offsite', status: 'In option', spend: '$5,600' },
+const permissions = [
+  { id: 'p1', label: 'Sponsored products', description: 'Create and manage sponsored product campaigns', enabled: true },
+  { id: 'p2', label: 'Display', description: 'Access display advertising inventory', enabled: true },
+  { id: 'p3', label: 'Digital in-store', description: 'Access digital in-store screens', enabled: false },
+  { id: 'p4', label: 'Offsite', description: 'Run offsite programmatic campaigns', enabled: false },
+  { id: 'p5', label: 'Reporting', description: 'View performance reports and analytics', enabled: true },
 ];
 
 interface ContractDetailContentProps {
-  initialStatus: string;
+  contractName: string;
+  retailer: string;
+  partner: string;
+  partnerType: string;
 }
 
-const ContractDetailContent = ({ initialStatus }: ContractDetailContentProps) => {
+const ContractDetailContent = ({ contractName, retailer, partner, partnerType }: ContractDetailContentProps) => {
   const [activeTab, setActiveTab] = React.useState('details');
-  const [contractStatus, setContractStatus] = React.useState(initialStatus);
   const [contractType, setContractType] = React.useState('standard');
-  const [advertiser, setAdvertiser] = React.useState('coca-cola');
-  const [agency, setAgency] = React.useState('groupm');
-  const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-01-01'));
-  const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-12-31'));
-  const [searchValue, setSearchValue] = React.useState('');
+  const [status, setStatus] = React.useState('active');
+  const [perms, setPerms] = React.useState(permissions);
 
-  const [perm1, setPerm1] = React.useState(true);
-  const [perm2, setPerm2] = React.useState(true);
-  const [perm3, setPerm3] = React.useState(false);
-  const [perm4, setPerm4] = React.useState(true);
-  const [perm5, setPerm5] = React.useState(false);
-  const [perm6, setPerm6] = React.useState(false);
-
-  const statusVariant = (s: string) => {
-    switch (s) {
-      case 'Active': return 'default' as const;
-      case 'Expired': return 'destructive' as const;
-      case 'Draft': return 'outline' as const;
-      case 'Running': return 'default' as const;
-      case 'Ready': return 'secondary' as const;
-      case 'In option': return 'outline' as const;
-      default: return 'outline' as const;
-    }
-  };
+  const togglePerm = (id: string) =>
+    setPerms(p => p.map(x => x.id === id ? { ...x, enabled: !x.enabled } : x));
 
   return (
-    <CardWithTabs
-      header={
-        activeTab === 'details' ? (
-          <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-            <FormSection title="Contract">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <CardWithTabs
+          className="w-full"
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          action={
+            activeTab === 'details' ? <Button>Save</Button> :
+            activeTab === 'brands' ? <Button>Add brand</Button> : null
+          }
+          header={
+            activeTab === 'details' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Name</label>
-                  <Input defaultValue="Agency Partnership — Coca-Cola 2024" placeholder="Enter contract name" />
+                  <label className="block text-sm font-medium mb-1">Contract name</label>
+                  <Input defaultValue={contractName} placeholder="Enter contract name" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Status</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'Active', value: 'active' },
-                      { label: 'Expired', value: 'expired' },
-                      { label: 'Draft', value: 'draft' },
-                    ]}
-                    value={contractStatus}
-                    onChange={setContractStatus}
-                    placeholder="Select status"
-                  />
+                  <label className="block text-sm font-medium mb-1">Type</label>
+                  <Input dropdown options={[
+                    { label: 'Standard', value: 'standard' },
+                    { label: 'Premium', value: 'premium' },
+                    { label: 'Enterprise', value: 'enterprise' },
+                  ]} value={contractType} onChange={setContractType} placeholder="Select type" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Contract type</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'Standard', value: 'standard' },
-                      { label: 'Exclusive', value: 'exclusive' },
-                      { label: 'Co-op', value: 'co-op' },
-                    ]}
-                    value={contractType}
-                    onChange={setContractType}
-                    placeholder="Select contract type"
-                  />
-                </div>
-              </div>
-            </FormSection>
-            <FormSection title="Parties">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Advertiser</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'Coca-Cola', value: 'coca-cola' },
-                      { label: 'Unilever', value: 'unilever' },
-                      { label: 'FrieslandCampina', value: 'frieslandcampina' },
-                    ]}
-                    value={advertiser}
-                    onChange={setAdvertiser}
-                    placeholder="Select advertiser"
-                  />
+                  <label className="block text-sm font-medium mb-1">Retailer</label>
+                  <Input defaultValue={retailer} readOnly className="text-muted-foreground" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Agency</label>
-                  <Input
-                    dropdown
-                    options={[
-                      { label: 'GroupM', value: 'groupm' },
-                      { label: 'Publicis', value: 'publicis' },
-                      { label: 'WPP', value: 'wpp' },
-                      { label: 'OMD', value: 'omd' },
-                    ]}
-                    value={agency}
-                    onChange={setAgency}
-                    placeholder="Select agency"
-                  />
+                  <label className="block text-sm font-medium mb-1">Partner ({partnerType})</label>
+                  <Input defaultValue={partner} readOnly className="text-muted-foreground" />
                 </div>
-              </div>
-            </FormSection>
-            <FormSection title="Duration">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Start date</label>
-                  <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
+                  <Input defaultValue="01-01-2024" placeholder="DD-MM-YYYY" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">End date</label>
-                  <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
+                  <Input defaultValue="31-12-2024" placeholder="DD-MM-YYYY" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Total budget</label>
+                  <Input defaultValue="€500,000" placeholder="Enter total budget" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <Input dropdown options={[
+                    { label: 'Active', value: 'active' },
+                    { label: 'Inactive', value: 'inactive' },
+                    { label: 'Pending', value: 'pending' },
+                  ]} value={status} onChange={setStatus} placeholder="Select status" />
                 </div>
               </div>
-            </FormSection>
-            <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
-          </form>
-        ) : null
-      }
-      tabs={[
-        {
-          label: 'Details',
-          value: 'details',
-          content: null,
-        },
-        {
-          label: 'Brands',
-          value: 'brands',
-          content: (
-            <div className="space-y-6 mt-6">
-              <FilterBar
-                filters={[]}
-                searchValue={searchValue}
-                onSearchChange={setSearchValue}
-                searchPlaceholder="Search brands..."
-              />
-              <Table
-                columns={[
-                  { key: 'brand', header: 'Brand' },
-                  { key: 'products', header: 'Products', render: (row) => <Badge variant="secondary">{row.products}</Badge> },
-                  { key: 'spendLimit', header: 'Spend limit' },
-                  {
-                    key: 'status',
-                    header: 'Status',
-                    render: (row) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge>,
-                  },
-                ]}
-                data={brandsData.filter(b =>
-                  searchValue === '' || b.brand.toLowerCase().includes(searchValue.toLowerCase())
-                )}
-                rowKey={(row) => row.id}
-                onRowClick={(row) => alert(`Navigate to ${row.brand}`)}
-              />
-            </div>
-          ),
-        },
-        {
-          label: 'Campaigns',
-          value: 'campaigns',
-          content: (
-            <div className="space-y-6 mt-6">
-              <Table
-                columns={[
-                  { key: 'campaign', header: 'Campaign' },
-                  { key: 'engine', header: 'Engine' },
-                  {
-                    key: 'status',
-                    header: 'Status',
-                    render: (row) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge>,
-                  },
-                  { key: 'spend', header: 'Spend' },
-                ]}
-                data={campaignsData}
-                rowKey={(row) => row.id}
-                onRowClick={(row) => alert(`Navigate to ${row.campaign}`)}
-              />
-            </div>
-          ),
-        },
-        {
-          label: 'Permissions',
-          value: 'permissions',
-          content: (
-            <div className="space-y-2 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                {[
-                  { id: 'perm1', label: 'Create campaigns', checked: perm1, onChange: setPerm1 },
-                  { id: 'perm2', label: 'Edit budgets', checked: perm2, onChange: setPerm2 },
-                  { id: 'perm3', label: 'Approve creatives', checked: perm3, onChange: setPerm3 },
-                  { id: 'perm4', label: 'View reports', checked: perm4, onChange: setPerm4 },
-                  { id: 'perm5', label: 'Export data', checked: perm5, onChange: setPerm5 },
-                  { id: 'perm6', label: 'Manage users', checked: perm6, onChange: setPerm6 },
-                ].map((perm) => (
-                  <div key={perm.id} className="flex items-center justify-between py-3 border-b">
-                    <Label htmlFor={perm.id} className="text-sm cursor-pointer">{perm.label}</Label>
-                    <Switch
-                      id={perm.id}
-                      checked={perm.checked}
-                      onCheckedChange={perm.onChange}
-                    />
+            ) : null
+          }
+          tabs={[
+            { label: 'Details', value: 'details', content: null },
+            {
+              label: 'Brands',
+              value: 'brands',
+              content: (
+                <div className="mt-6">
+                  <Table
+                    columns={[
+                      { key: 'name', header: 'Brand' },
+                      { key: 'category', header: 'Category' },
+                      { key: 'spendLimit', header: 'Spend limit' },
+                      { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'default' : 'destructive'}>{row.status}</Badge> },
+                    ]}
+                    data={contractBrands}
+                    rowKey={(row) => row.id}
+                    onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Permissions',
+              value: 'permissions',
+              content: (
+                <div className="mt-6">
+                  <div className="border border-border rounded-lg divide-y divide-border">
+                    {perms.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium">{p.label}</p>
+                          <p className="text-xs text-muted-foreground">{p.description}</p>
+                        </div>
+                        <Switch checked={p.enabled} onCheckedChange={() => togglePerm(p.id)} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              ),
+            },
+          ]}
+        />
+      </div>
+
+      {/* Right sidebar */}
+      <div className="space-y-6 pt-14">
+        <Card>
+          <CardHeader><CardTitle>Parties</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Retailer</p>
+                <p className="font-medium text-sm">{retailer}</p>
+              </div>
+              <div className="border-t border-border pt-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{partnerType}</p>
+                <p className="font-medium text-sm">{partner}</p>
               </div>
             </div>
-          ),
-        },
-      ]}
-      action={
-        activeTab === 'brands' ? <Button>Add brand</Button> :
-        activeTab === 'campaigns' ? <Button>Add campaign</Button> :
-        null
-      }
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-    />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Budget</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total budget</span>
+                <span className="font-medium">€500,000</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Spent</span>
+                <span className="font-medium">€212,450</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Remaining</span>
+                <span className="font-medium text-primary">€287,550</span>
+              </div>
+              <div className="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                <div className="bg-primary h-2 rounded-full" style={{ width: '42.5%' }} />
+              </div>
+              <p className="text-xs text-muted-foreground">42.5% used</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
 export const ContractDetail: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
-    const currentTheme = storybookTheme || 'retailMedia';
-    const routes = getRoutesForTheme(currentTheme);
-
+    const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     return (
       <MenuContextProvider>
-        <AppLayout
-          routes={routes}
-          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        <AppLayout routes={routes} logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-          onLogout={() => alert('Logout clicked')}
-          breadcrumbProps={{ namespace: '' }}
-          pageHeaderProps={{
-            title: 'Agency Partnership — Coca-Cola 2024',
-            subtitle: 'Contract between GroupM and Coca-Cola · Active',
-            onEdit: () => alert('Edit clicked'),
-            onExport: () => alert('Export clicked'),
-            onImport: () => alert('Import clicked'),
-            onSettings: () => alert('Settings clicked'),
-          }}
-        >
-          <ContractDetailContent initialStatus="active" />
+          onLogout={() => alert('Logout clicked')} breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{ title: 'Coca-Cola Standard 2024', subtitle: 'Standard · Active · Jan–Dec 2024', onEdit: () => alert('Edit clicked'), onExport: () => alert('Export clicked'), onSettings: () => alert('Settings clicked') }}>
+          <ContractDetailContent
+            contractName="Coca-Cola Standard 2024"
+            retailer="Albert Heijn"
+            partner="The Coca-Cola Company"
+            partnerType="Advertiser"
+          />
         </AppLayout>
       </MenuContextProvider>
     );
   },
 };
 
-export const ContractDetailDraft: Story = {
+export const ContractDetailAgency: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
-    const currentTheme = storybookTheme || 'retailMedia';
-    const routes = getRoutesForTheme(currentTheme);
-
+    const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     return (
       <MenuContextProvider>
-        <AppLayout
-          routes={routes}
-          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        <AppLayout routes={routes} logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-          onLogout={() => alert('Logout clicked')}
-          breadcrumbProps={{ namespace: '' }}
-          pageHeaderProps={{
-            title: 'Agency Partnership — Coca-Cola 2025',
-            subtitle: 'Contract between Publicis and Coca-Cola · Draft',
-            onEdit: () => alert('Edit clicked'),
-            onExport: () => alert('Export clicked'),
-            onImport: () => alert('Import clicked'),
-            onSettings: () => alert('Settings clicked'),
-          }}
-        >
-          <ContractDetailContent initialStatus="draft" />
+          onLogout={() => alert('Logout clicked')} breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{ title: 'GroupM Agency Agreement 2024', subtitle: 'Enterprise · Active · Jan–Dec 2024', onEdit: () => alert('Edit clicked'), onSettings: () => alert('Settings clicked') }}>
+          <ContractDetailContent
+            contractName="GroupM Agency Agreement 2024"
+            retailer="Albert Heijn"
+            partner="GroupM Netherlands"
+            partnerType="Agency"
+          />
         </AppLayout>
       </MenuContextProvider>
     );

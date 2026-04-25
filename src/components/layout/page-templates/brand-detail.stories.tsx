@@ -11,7 +11,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Brand Detail',
+  title: 'Page templates/Configuration Details',
   component: AppLayout,
   parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],

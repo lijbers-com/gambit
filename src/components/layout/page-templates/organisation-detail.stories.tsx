@@ -12,7 +12,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Organisation Detail',
+  title: 'Page templates/Configuration Details',
   component: AppLayout,
   parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
@@ -63,7 +63,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
           className="w-full"
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          action={activeTab === 'details' ? <Button>Save</Button> : activeTab === 'media-partners' ? <Button>Set up Media Partner</Button> : activeTab === 'groups' ? <Button>Add Group</Button> : activeTab === 'api-keys' ? <Button>New token</Button> : null}
+          action={activeTab === 'details' ? <Button>Save</Button> : activeTab === 'contracts' ? <Button>Add contract</Button> : activeTab === 'groups' ? <Button>Add group</Button> : activeTab === 'api-keys' ? <Button>New token</Button> : null}
           header={
             activeTab === 'details' ? (
               <div className="space-y-4 w-full">
@@ -104,16 +104,16 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
           tabs={[
             { label: 'Details', value: 'details', content: null },
             {
-              label: 'Media partners',
-              value: 'media-partners',
+              label: 'Contracts',
+              value: 'contracts',
               content: (
                 <div className="mt-6">
                   <Table
                     columns={[
-                      { key: 'name', header: 'Name' },
+                      { key: 'name', header: 'Contract' },
                       { key: 'brands', header: 'Brands', render: (row) => <Badge variant="secondary">{row.brands}</Badge> },
                       { key: 'users', header: 'Users', render: (row) => <Badge variant="secondary">{row.users}</Badge> },
-                      { key: 'debtor', header: 'Debtor' },
+                      { key: 'debtor', header: 'Retailer' },
                     ]}
                     data={mediaPartners}
                     rowKey={(row) => row.id}

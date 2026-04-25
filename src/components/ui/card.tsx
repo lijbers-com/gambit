@@ -251,7 +251,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
             {value}
           </div>
-          {subMetric && (
+          {subMetric && variant !== "donut" && (
             <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
               {subMetric}
             </div>

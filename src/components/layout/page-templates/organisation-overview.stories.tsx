@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { CardWithTabs, MetricCard } from '@/components/ui/card';
+import { Card, CardContent, CardWithTabs, MetricCard } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
+import { Building2 } from 'lucide-react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -99,32 +100,29 @@ export const OrganisationOverview: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <Card className="flex flex-col">
+              <CardContent className="flex flex-col items-center justify-center flex-1 py-8 px-6 text-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                  <Building2 className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold">My organisation</p>
+                  <p className="text-sm text-muted-foreground mt-1">Settings of the retail organisation</p>
+                </div>
+              </CardContent>
+            </Card>
             <MetricCard
-              label="Total organisations"
-              value="10"
-              subMetric="Registered partners"
-              variant="default"
-            />
-            <MetricCard
-              label="Active organisations"
-              value="8 active"
-              subMetric="2 Inactive"
+              label="Media organisations"
+              value="8 active partners"
+              subMetric="8 Active organisations · 2 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 8 }, { name: 'Inactive', value: 2 }]}
             />
             <MetricCard
-              label="Total users"
-              value="10,075"
-              subMetric="Platform users"
-              variant="graph"
-              graphData={[{value:8200},{value:8750},{value:9100},{value:8900},{value:9400},{value:9800},{value:10075}]}
-              graphColor="hsl(var(--primary))"
-            />
-            <MetricCard
-              label="Active users"
-              value="9,150 active"
-              subMetric="925 Inactive"
+              label="Users"
+              value="9,150 active users"
+              subMetric="9,150 Active users · 925 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 9150 }, { name: 'Inactive', value: 925 }]}
             />

@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { CardWithTabs, MetricCard } from '@/components/ui/card';
+import { Card, CardContent, CardWithTabs, MetricCard } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Button } from '@/components/ui/button';
+import { Tag } from 'lucide-react';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
@@ -100,32 +101,29 @@ export const BrandOverview: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <Card className="flex flex-col">
+              <CardContent className="flex flex-col items-center justify-center flex-1 py-8 px-6 text-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                  <Tag className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold">Brand catalogue</p>
+                  <p className="text-sm text-muted-foreground mt-1">Manage brands and retail products</p>
+                </div>
+              </CardContent>
+            </Card>
             <MetricCard
-              label="Total brands"
-              value="10"
-              subMetric="Registered brands"
-              variant="default"
-            />
-            <MetricCard
-              label="Active brands"
-              value="8 active"
-              subMetric="2 Inactive"
+              label="Brands"
+              value="8 active brands"
+              subMetric="8 Active brands · 2 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 8 }, { name: 'Inactive', value: 2 }]}
             />
             <MetricCard
-              label="Total products"
-              value="12"
-              subMetric="Retail products"
-              variant="graph"
-              graphData={[{value:5},{value:7},{value:8},{value:9},{value:10},{value:11},{value:12}]}
-              graphColor="hsl(var(--primary))"
-            />
-            <MetricCard
-              label="Active products"
-              value="11 active"
-              subMetric="1 Inactive"
+              label="Retail products"
+              value="11 active products"
+              subMetric="11 Active products · 1 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 11 }, { name: 'Inactive', value: 1 }]}
             />

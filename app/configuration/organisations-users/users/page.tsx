@@ -17,12 +17,13 @@ export default function UsersPage() {
         const id = row.getAttribute('data-row-id');
         if (id?.startsWith('USR-')) {
           e.preventDefault();
+          e.stopPropagation();
           router.push(`/configuration/organisations-users/users/${id}`);
         }
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
   }, [router]);
 
   const Component = UsersOverview.render as () => React.JSX.Element;

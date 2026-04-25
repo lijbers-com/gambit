@@ -16,15 +16,17 @@ export default function BrandsPage() {
         const id = row.getAttribute('data-row-id');
         if (id?.startsWith('BRD-')) {
           e.preventDefault();
+          e.stopPropagation();
           router.push(`/configuration/brands-products/${id}`);
         } else if (id?.startsWith('SKU-')) {
           e.preventDefault();
+          e.stopPropagation();
           router.push(`/configuration/brands-products/products/${id}`);
         }
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
   }, [router]);
 
   const Component = BrandOverview.render as () => React.JSX.Element;

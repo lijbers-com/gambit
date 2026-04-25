@@ -17,15 +17,17 @@ export default function OrganisationsPage() {
         const id = row.getAttribute('data-row-id');
         if (id?.startsWith('ORG-')) {
           e.preventDefault();
+          e.stopPropagation();
           router.push(`/configuration/organisations-users/${id}`);
         } else if (id?.startsWith('USR-')) {
           e.preventDefault();
+          e.stopPropagation();
           router.push(`/configuration/organisations-users/users/${id}`);
         }
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
   }, [router]);
 
   const Component = OrganisationOverview.render as () => React.JSX.Element;

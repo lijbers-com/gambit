@@ -30,8 +30,8 @@ export default function OrganisationDetailPage() {
         }
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
   }, [router]);
 
   const Component = OrganisationDetail.render as () => React.JSX.Element;

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,9 @@ import * as React from 'react';
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Organisation Detail',
   component: AppLayout,
-  parameters: {
-    layout: 'fullscreen',
-  },
+  parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
 };
-
 export default meta;
 type Story = StoryObj<typeof AppLayout>;
 
@@ -29,6 +26,7 @@ interface OrganisationDetailProps {
 }
 
 const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps) => {
+  const [activeTab, setActiveTab] = React.useState('details');
   const [isAdvertiser, setIsAdvertiser] = React.useState(orgType === 'Advertiser' || orgType === 'Debtor & Advertiser');
   const [isNonEndemic, setIsNonEndemic] = React.useState(false);
   const [isAgency, setIsAgency] = React.useState(orgType === 'Agency');
@@ -50,183 +48,147 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
     { id: 'KEY-001', name: 'Test token', access: 'Read only', permissions: 'All', date: '17-10-2024' },
   ];
 
-  const brands = ['Unox', 'Unox', 'Unox', 'Unox'];
+  const users = [
+    { name: 'John Smith', meta: 'Admin' },
+    { name: 'Sarah Johnson', meta: 'Campaign Manager' },
+    { name: 'Michael van den Berg', meta: 'Viewer' },
+  ];
+
+  const brands = ['Unox', 'Dove', 'Axe', 'Magnum'];
 
   return (
-    <div className="grid grid-cols-3 gap-6">
-      {/* Left column */}
-      <div className="col-span-2 space-y-6">
-        {/* Details Card */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <Input defaultValue={orgName} placeholder="Enter organisation name" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Type</label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="advertiser"
-                      checked={isAdvertiser}
-                      onCheckedChange={(v) => setIsAdvertiser(!!v)}
-                    />
-                    <label htmlFor="advertiser" className="text-sm cursor-pointer">Advertiser</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="nonEndemic"
-                      checked={isNonEndemic}
-                      onCheckedChange={(v) => setIsNonEndemic(!!v)}
-                    />
-                    <label htmlFor="nonEndemic" className="text-sm cursor-pointer">Non-Endemic advertiser</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="agency"
-                      checked={isAgency}
-                      onCheckedChange={(v) => setIsAgency(!!v)}
-                    />
-                    <label htmlFor="agency" className="text-sm cursor-pointer">Agency</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="retailer"
-                      checked={isRetailer}
-                      onCheckedChange={(v) => setIsRetailer(!!v)}
-                    />
-                    <label htmlFor="retailer" className="text-sm cursor-pointer">Retailer</label>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <CardWithTabs
+          className="w-full"
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          action={activeTab === 'details' ? <Button>Save</Button> : activeTab === 'media-partners' ? <Button>Set up Media Partner</Button> : activeTab === 'groups' ? <Button>Add Group</Button> : activeTab === 'api-keys' ? <Button>New token</Button> : null}
+          header={
+            activeTab === 'details' ? (
+              <div className="space-y-4 w-full">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name</label>
+                  <Input defaultValue={orgName} placeholder="Enter organisation name" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Type</label>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'advertiser', label: 'Advertiser', checked: isAdvertiser, onChange: (v: boolean) => setIsAdvertiser(v) },
+                      { id: 'nonEndemic', label: 'Non-Endemic advertiser', checked: isNonEndemic, onChange: (v: boolean) => setIsNonEndemic(v) },
+                      { id: 'agency', label: 'Agency', checked: isAgency, onChange: (v: boolean) => setIsAgency(v) },
+                      { id: 'retailer', label: 'Retailer', checked: isRetailer, onChange: (v: boolean) => setIsRetailer(v) },
+                    ].map((item) => (
+                      <div key={item.id} className="flex items-center gap-2">
+                        <Checkbox id={item.id} checked={item.checked} onCheckedChange={(v) => item.onChange(!!v)} />
+                        <label htmlFor={item.id} className="text-sm cursor-pointer">{item.label}</label>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <Input
-                  dropdown
-                  options={[
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <Input dropdown options={[
                     { label: 'Active', value: 'active' },
                     { label: 'Inactive', value: 'inactive' },
-                  ]}
-                  value={status}
-                  onChange={setStatus}
-                  placeholder="Select status"
-                />
+                  ]} value={status} onChange={setStatus} placeholder="Select status" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <textarea className="flex border border-input rounded-md w-full p-2 text-sm min-h-[80px] bg-transparent shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Enter description" />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea
-                  className="flex border border-input rounded-md w-full p-2 text-sm min-h-[80px] bg-transparent shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="Enter description"
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button>Save</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Media partners Card */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Media partners you can advertise for</h2>
-            <Table
-              columns={[
-                { key: 'name', header: 'Name' },
-                { key: 'brands', header: 'Brands', render: (row) => <Badge variant="secondary">{row.brands}</Badge> },
-                { key: 'users', header: 'Users', render: (row) => <Badge variant="secondary">{row.users}</Badge> },
-                { key: 'debtor', header: 'Debtor' },
-              ]}
-              data={mediaPartners}
-              rowKey={(row) => row.id}
-              onRowClick={(row) => alert(`Navigate to ${row.name}`)}
-            />
-            <div className="flex justify-end pt-4">
-              <Button>Set up Media Partner</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Groups Card */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Groups</h2>
-            <Table
-              columns={[
-                { key: 'name', header: 'Name' },
-                { key: 'users', header: 'Users', render: (row) => <Badge variant="secondary">{row.users}</Badge> },
-              ]}
-              data={groups}
-              rowKey={(row) => row.id}
-              onRowClick={(row) => alert(`Navigate to ${row.name}`)}
-            />
-            <div className="flex justify-end pt-4">
-              <Button>Add Group</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* API Keys Card */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">API keys</h2>
-            <Table
-              columns={[
-                { key: 'name', header: 'Name' },
-                { key: 'access', header: 'Repository access' },
-                { key: 'permissions', header: 'Repository Permissions' },
-                { key: 'date', header: 'Date' },
-              ]}
-              data={apiKeys}
-              rowKey={(row) => row.id}
-            />
-            <div className="flex justify-end pt-4">
-              <Button>New token</Button>
-            </div>
-          </CardContent>
-        </Card>
+            ) : null
+          }
+          tabs={[
+            { label: 'Details', value: 'details', content: null },
+            {
+              label: 'Media partners',
+              value: 'media-partners',
+              content: (
+                <div className="mt-6">
+                  <Table
+                    columns={[
+                      { key: 'name', header: 'Name' },
+                      { key: 'brands', header: 'Brands', render: (row) => <Badge variant="secondary">{row.brands}</Badge> },
+                      { key: 'users', header: 'Users', render: (row) => <Badge variant="secondary">{row.users}</Badge> },
+                      { key: 'debtor', header: 'Debtor' },
+                    ]}
+                    data={mediaPartners}
+                    rowKey={(row) => row.id}
+                    onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Groups',
+              value: 'groups',
+              content: (
+                <div className="mt-6">
+                  <Table
+                    columns={[
+                      { key: 'name', header: 'Name' },
+                      { key: 'users', header: 'Users', render: (row) => <Badge variant="secondary">{row.users}</Badge> },
+                    ]}
+                    data={groups}
+                    rowKey={(row) => row.id}
+                    onRowClick={(row) => alert(`Navigate to ${row.name}`)}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'API keys',
+              value: 'api-keys',
+              content: (
+                <div className="mt-6">
+                  <Table
+                    columns={[
+                      { key: 'name', header: 'Name' },
+                      { key: 'access', header: 'Repository access' },
+                      { key: 'permissions', header: 'Permissions' },
+                      { key: 'date', header: 'Date' },
+                    ]}
+                    data={apiKeys}
+                    rowKey={(row) => row.id}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
       </div>
 
-      {/* Right column */}
-      <div className="col-span-1 space-y-6">
-        {/* Users Card */}
+      {/* Right sidebar */}
+      <div className="space-y-6">
         <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-3">Users</h2>
+          <CardHeader><CardTitle>Users</CardTitle></CardHeader>
+          <CardContent>
             <div className="space-y-3">
-              <div>
-                <p className="font-medium text-sm">John Smith</p>
-                <p className="text-xs text-muted-foreground">3000 users · 45 brands</p>
-              </div>
-              <div>
-                <p className="font-medium text-sm">Sarah Johnson</p>
-                <p className="text-xs text-muted-foreground">120 users · 12 brands</p>
-              </div>
-              <div>
-                <p className="font-medium text-sm">Michael van den Berg</p>
-                <p className="text-xs text-muted-foreground">45 users · 8 brands</p>
-              </div>
+              {users.map((u) => (
+                <div key={u.name}>
+                  <p className="font-medium text-sm">{u.name}</p>
+                  <p className="text-xs text-muted-foreground">{u.meta}</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-
-        {/* Brands Card */}
         <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-3">Brands</h2>
+          <CardHeader><CardTitle>Brands</CardTitle></CardHeader>
+          <CardContent>
             <div className="space-y-3">
-              {brands.map((brand, i) => (
-                <div key={i}>
+              {brands.map((brand) => (
+                <div key={brand}>
                   <p className="font-medium text-sm">{brand}</p>
                   <p className="text-xs text-muted-foreground">General roles</p>
                 </div>
               ))}
             </div>
-            <div className="flex justify-end pt-4">
-              <Button>Assign/Revoke role</Button>
+            <div className="pt-4 flex justify-end">
+              <Button variant="outline" size="sm">Assign/Revoke role</Button>
             </div>
           </CardContent>
         </Card>
@@ -238,26 +200,13 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
 export const OrganisationDetail: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
-    const currentTheme = storybookTheme || 'retailMedia';
-    const routes = getRoutesForTheme(currentTheme);
-
+    const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     return (
       <MenuContextProvider>
-        <AppLayout
-          routes={routes}
-          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        <AppLayout routes={routes} logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-          onLogout={() => alert('Logout clicked')}
-          breadcrumbProps={{ namespace: '' }}
-          pageHeaderProps={{
-            title: 'Unilever',
-            subtitle: 'Agency · Active',
-            onEdit: () => alert('Edit clicked'),
-            onExport: () => alert('Export clicked'),
-            onImport: () => alert('Import clicked'),
-            onSettings: () => alert('Settings clicked'),
-          }}
-        >
+          onLogout={() => alert('Logout clicked')} breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{ title: 'Unilever', subtitle: 'Agency · Active', onEdit: () => alert('Edit clicked'), onExport: () => alert('Export clicked'), onSettings: () => alert('Settings clicked') }}>
           <OrganisationDetailContent orgName="Unilever" orgType="Agency" />
         </AppLayout>
       </MenuContextProvider>
@@ -268,26 +217,13 @@ export const OrganisationDetail: Story = {
 export const OrganisationDetailAdvertiser: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
-    const currentTheme = storybookTheme || 'retailMedia';
-    const routes = getRoutesForTheme(currentTheme);
-
+    const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     return (
       <MenuContextProvider>
-        <AppLayout
-          routes={routes}
-          logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
+        <AppLayout routes={routes} logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
-          onLogout={() => alert('Logout clicked')}
-          breadcrumbProps={{ namespace: '' }}
-          pageHeaderProps={{
-            title: 'Coca-Cola',
-            subtitle: 'Advertiser · Active',
-            onEdit: () => alert('Edit clicked'),
-            onExport: () => alert('Export clicked'),
-            onImport: () => alert('Import clicked'),
-            onSettings: () => alert('Settings clicked'),
-          }}
-        >
+          onLogout={() => alert('Logout clicked')} breadcrumbProps={{ namespace: '' }}
+          pageHeaderProps={{ title: 'Coca-Cola', subtitle: 'Advertiser · Active', onEdit: () => alert('Edit clicked'), onExport: () => alert('Export clicked'), onSettings: () => alert('Settings clicked') }}>
           <OrganisationDetailContent orgName="Coca-Cola" orgType="Advertiser" />
         </AppLayout>
       </MenuContextProvider>

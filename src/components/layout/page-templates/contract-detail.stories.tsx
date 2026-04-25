@@ -10,9 +10,11 @@ import { Switch } from '@/components/ui/switch';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Building2, Users } from 'lucide-react';
+import { DateRangePicker } from '@/components/ui/date-picker';
+import { DateRange } from 'react-day-picker';
+import * as React from 'react';
 
 type CampaignAccess = 'edit' | 'view' | 'none';
-import * as React from 'react';
 
 const InfoRow = ({
   icon: Icon,
@@ -89,10 +91,13 @@ const AccessToggle = ({ value, onChange }: { value: CampaignAccess; onChange: (v
 
 const ContractDetailContent = ({ contractName, advertiser, partners, brands }: ContractDetailContentProps) => {
   const [activeTab, setActiveTab] = React.useState('details');
-  const [contractType, setContractType] = React.useState('standard');
   const [status, setStatus] = React.useState('active');
   const [perms, setPerms] = React.useState(permissions);
   const [partnerList, setPartnerList] = React.useState(partners);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date('2024-01-01'),
+    to: new Date('2024-12-31'),
+  });
 
   const updateAccess = (id: string, access: CampaignAccess) =>
     setPartnerList(p => p.map(x => x.id === id ? { ...x, campaignAccess: access } : x));
@@ -115,17 +120,9 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
           header={
             activeTab === 'details' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-1">Contract name</label>
                   <Input defaultValue={contractName} placeholder="Enter contract name" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Type</label>
-                  <Input dropdown options={[
-                    { label: 'Standard', value: 'standard' },
-                    { label: 'Premium', value: 'premium' },
-                    { label: 'Enterprise', value: 'enterprise' },
-                  ]} value={contractType} onChange={setContractType} placeholder="Select type" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -139,13 +136,13 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
                     { label: 'Pending', value: 'pending' },
                   ]} value={status} onChange={setStatus} placeholder="Select status" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Start date</label>
-                  <Input defaultValue="01-01-2024" placeholder="DD-MM-YYYY" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">End date</label>
-                  <Input defaultValue="31-12-2024" placeholder="DD-MM-YYYY" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1">Contract period</label>
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    placeholder="Select contract period"
+                  />
                 </div>
               </div>
             ) : null
@@ -248,9 +245,6 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
               {partnerList.map((partner) => (
                 <InfoRow key={partner.id} icon={Users} title={partner.name} subtitle={partner.type} />
               ))}
-            </div>
-            <div className="pt-4 flex justify-end">
-              <Button variant="outline" size="sm">Add partner</Button>
             </div>
           </CardContent>
         </Card>

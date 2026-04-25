@@ -213,9 +213,6 @@ const BrandDetailContent = ({
                 />
               ))}
             </div>
-            <div className="pt-4 flex justify-end">
-              <Button variant="outline" size="sm">Grant access</Button>
-            </div>
           </CardContent>
         </Card>
       </div>

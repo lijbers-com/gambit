@@ -207,9 +207,6 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
                 <InfoRow key={brand} icon={Tag} title={brand} subtitle="General roles" />
               ))}
             </div>
-            <div className="pt-4 flex justify-end">
-              <Button variant="outline" size="sm">Assign/Revoke role</Button>
-            </div>
           </CardContent>
         </Card>
       </div>

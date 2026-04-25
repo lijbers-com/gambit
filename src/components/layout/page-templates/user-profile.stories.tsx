@@ -513,9 +513,6 @@ const UserProfileContent = () => {
               rowKey={(row: typeof roles[0]) => `${row.role}-${row.proposition}`}
               hideActions
             />
-            <div className="pt-4 flex justify-end">
-              <Button>Assign roles</Button>
-            </div>
           </CardContent>
         </Card>
       </div>

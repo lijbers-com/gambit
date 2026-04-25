@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { FormSection } from '@/components/ui/form-section';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
@@ -60,7 +59,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
         {/* Details Card */}
         <Card>
           <CardContent className="p-6">
-            <FormSection title="Details">
+            <h2 className="text-lg font-semibold mb-4">Details</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
@@ -127,7 +126,6 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
                 <Button>Save</Button>
               </div>
             </div>
-            </FormSection>
           </CardContent>
         </Card>
 

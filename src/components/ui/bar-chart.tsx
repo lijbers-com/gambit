@@ -9,7 +9,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { ChartDataPoint, ChartConfig } from "./chart-types"
+import { ChartDataPoint, ChartConfig, formatYAxisTick } from "./chart-types"
 
 export interface BarChartProps {
   data: ChartDataPoint[]
@@ -25,6 +25,7 @@ export interface BarChartProps {
   stacked?: boolean
   horizontal?: boolean
   xAxisDataKey?: string
+  benchmark?: { value: number; label?: string }
 }
 
 export function BarChartComponent({
@@ -41,6 +42,7 @@ export function BarChartComponent({
   stacked = false,
   horizontal = false,
   xAxisDataKey = "month",
+  benchmark,
 }: BarChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
 
@@ -81,8 +83,8 @@ export function BarChartComponent({
         accessibilityLayer
         data={data}
         margin={{
-          left: showYAxis ? 8 : 0,
-          right: showRightYAxis ? 8 : 0,
+          left: showYAxis ? 0 : 0,
+          right: showRightYAxis ? 0 : 0,
           top: 4,
           bottom: 0,
         }}
@@ -96,6 +98,20 @@ export function BarChartComponent({
             yAxisId="left"
           />
         ))}
+        {benchmark != null && (
+          <ReferenceLine
+            y={benchmark.value}
+            yAxisId="left"
+            stroke="hsl(var(--muted-foreground))"
+            strokeDasharray="4 4"
+            strokeOpacity={0.8}
+            label={
+              benchmark.label
+                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
+                : undefined
+            }
+          />
+        )}
         {showXAxis && (
           <XAxis
             dataKey={xAxisDataKey}
@@ -110,16 +126,12 @@ export function BarChartComponent({
             orientation="left"
             tickLine={false}
             axisLine={false}
-            tickMargin={16}
+            tickMargin={8}
             ticks={yAxisTicks}
             domain={yAxisDomain}
-            width={1}
+            width={44}
             style={{ fontSize: '12px' }}
-            tick={({ x, y, payload }) => (
-              <text x={0} y={y} textAnchor="start" fill="currentColor" fontSize="12px" dy={4}>
-                {payload.value}
-              </text>
-            )}
+            tickFormatter={formatYAxisTick}
           />
         )}
         {showRightYAxis && (

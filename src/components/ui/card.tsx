@@ -1,9 +1,10 @@
 import * as React from "react"
-import { LineChart, Line, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
+import { formatYAxisTick } from "./chart-types"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -229,12 +230,18 @@ export interface MetricCardProps {
   onClick?: () => void;
   onRemove?: () => void;
   className?: string;
-  variant?: "default" | "graph" | "donut";
+  variant?: "default" | "graph" | "donut" | "donutLegend" | "barHorizontal" | "barVertical";
   graphData?: Array<{ value: number }>;
   graphColor?: string;
   progress?: number;
   donutData?: Array<{ name: string; value: number }>;
   donutColors?: string[];
+  /** For barHorizontal variant — top categories with a value each */
+  productData?: Array<{ name: string; value: number; color?: string }>;
+  /** For barVertical variant — time-series with a value per period */
+  dateData?: Array<{ date: string; value: number; color?: string }>;
+  /** Optional formatter for chart values (e.g. currency). Defaults to toLocaleString. */
+  valueFormatter?: (value: number) => string;
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
@@ -254,6 +261,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     progress,
     donutData,
     donutColors,
+    productData,
+    dateData,
+    valueFormatter,
     ...props
   }, ref) => (
     <Card
@@ -281,7 +291,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {variant !== "donut" && (
+        {variant !== "donut" && variant !== "donutLegend" && variant !== "barHorizontal" && variant !== "barVertical" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
               {value}
@@ -370,6 +380,131 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             </div>
           </div>
         )}
+        {variant === "donutLegend" && donutData && (() => {
+          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+          const total = donutData.reduce((sum, d) => sum + d.value, 0);
+          const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+          return (
+            <div className="flex flex-col items-center gap-2">
+              <div className="aspect-square w-20">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="62%"
+                      outerRadius="100%"
+                      dataKey="value"
+                      strokeWidth={0}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {donutData.map((_, i) => (
+                        <Cell key={i} fill={colorFor(i)} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="w-full space-y-1 text-xs">
+                {donutData.map((item, i) => {
+                  const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                  return (
+                    <li key={item.name} className="flex items-center gap-1.5 min-w-0">
+                      <span
+                        aria-hidden
+                        className="h-2 w-2 rounded-full shrink-0"
+                        style={{ backgroundColor: colorFor(i) }}
+                      />
+                      <span className="text-muted-foreground truncate">{item.name}</span>
+                      <span className="ml-auto font-medium tabular-nums whitespace-nowrap">
+                        {fmt(item.value)}
+                        <span className="text-muted-foreground ml-1">({pct}%)</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })()}
+        {variant === "barHorizontal" && productData && (() => {
+          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+          const max = Math.max(...productData.map(d => d.value), 0) || 1;
+          return (
+            <ul className="space-y-1.5 text-xs">
+              {productData.slice(0, 5).map((item, i) => {
+                const pct = (item.value / max) * 100;
+                const color = item.color ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+                return (
+                  <li key={item.name} className="space-y-0.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground truncate">{item.name}</span>
+                      <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, backgroundColor: color }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        })()}
+        {variant === "barVertical" && dateData && (() => {
+          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+          const tickFmt = valueFormatter ?? formatYAxisTick;
+          const lastIndex = dateData.length - 1;
+          return (
+            <div className="h-32 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dateData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    width={36}
+                    tickCount={3}
+                    style={{ fontSize: '10px' }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={tickFmt}
+                  />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={4}
+                    style={{ fontSize: '10px' }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    interval={0}
+                    ticks={[dateData[0]?.date, dateData[lastIndex]?.date].filter(Boolean) as string[]}
+                  />
+                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                    {dateData.map((d, i) => (
+                      <Cell key={i} fill={d.color ?? "hsl(var(--chart-1))"} />
+                    ))}
+                  </Bar>
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const item = payload[0];
+                      return (
+                        <div className="rounded-lg border bg-background px-2 py-1.5 shadow-md text-xs">
+                          <div className="text-muted-foreground">{item.payload.date}</div>
+                          <div className="font-semibold tabular-nums">{fmt(item.value as number)}</div>
+                        </div>
+                      );
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        })()}
         {badgeValue && (
           <div className="flex justify-end mt-3">
             <Badge variant={badgeVariant} className="text-xs transition-all duration-500 ease-in-out">

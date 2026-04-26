@@ -20,6 +20,7 @@ import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Input } from '@/components/ui/input';
 import React, { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -29,7 +30,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MetricRow } from '@/components/ui/metric-row';
+import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { Label } from '@/components/ui/label';
 
 const meta: Meta<typeof AppLayout> = {
@@ -3245,6 +3246,13 @@ export const FunnelView: Story = {
     const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
     const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
 
+    // Per-chart channel filters (badges-as-filters)
+    const [engagementChannels, setEngagementChannels] = useState<string[]>(['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks']);
+    const [unitChannels, setUnitChannels] = useState<string[]>(['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold']);
+    const [roasChannels, setRoasChannels] = useState<string[]>(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas']);
+    const toggleChannel = (setter: React.Dispatch<React.SetStateAction<string[]>>, key: string) =>
+      setter(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+
     // Customer segmentation data for Purchase card
     const customerSegmentationData = [
       { name: 'First-time', value: 35 },
@@ -3460,6 +3468,49 @@ export const FunnelView: Story = {
       offsiteImpressions: 'Impressions from display advertising served across external websites, apps, and open web placements',
     };
 
+    const engagementLabels: Record<string, string> = {
+      spaClicks: 'SPA Clicks',
+      displayClicks: 'Display Clicks',
+      doohClicks: 'DOOH Clicks',
+      omiClicks: 'OMI Clicks',
+      offsiteClicks: 'Offsite Clicks',
+    };
+    const engagementColors: Record<string, string> = {
+      spaClicks: 'hsl(var(--chart-1))',
+      displayClicks: 'hsl(var(--chart-2))',
+      doohClicks: 'hsl(var(--chart-3))',
+      omiClicks: 'hsl(var(--chart-4))',
+      offsiteClicks: 'hsl(var(--chart-5))',
+    };
+
+    const unitLabels: Record<string, string> = {
+      spaUnitsSold: 'Sponsored Products',
+      displayUnitsSold: 'Display',
+      dmiUnitsSold: 'Digital Media In-store',
+      omiUnitsSold: 'Offline Media In-store',
+      offsiteUnitsSold: 'Display Offsite',
+    };
+    const unitColors: Record<string, string> = {
+      spaUnitsSold: 'hsl(var(--chart-2))',
+      displayUnitsSold: 'hsl(var(--chart-3))',
+      dmiUnitsSold: 'hsl(var(--chart-4))',
+      omiUnitsSold: 'hsl(var(--chart-5))',
+      offsiteUnitsSold: 'hsl(25, 90%, 55%)',
+    };
+
+    const roasLabels: Record<string, string> = {
+      spaRoas: 'Sponsored Products',
+      displayRoas: 'Display',
+      dmiRoas: 'Digital In-store',
+      omiRoas: 'Offline In-store',
+    };
+    const roasColors: Record<string, string> = {
+      spaRoas: 'hsl(var(--chart-1))',
+      displayRoas: 'hsl(var(--chart-2))',
+      dmiRoas: 'hsl(var(--chart-3))',
+      omiRoas: 'hsl(var(--chart-4))',
+    };
+
     const channelSovTooltips: Record<string, string> = {
       spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
       impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
@@ -3556,6 +3607,49 @@ export const FunnelView: Story = {
       conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
       clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
     };
+
+    // Chart-style metric tiles for the metric row
+    const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
+    const revenueChartMetrics: MetricDefinition[] = [
+      {
+        key: 'revenueByChannel',
+        label: 'Revenue by Channel',
+        value: '€8.8K',
+        variant: 'donutLegend',
+        donutData: [
+          { name: 'Online', value: 5300 },
+          { name: 'Instore', value: 3500 },
+        ],
+        valueFormatter: formatEur,
+      },
+      {
+        key: 'revenueByProduct',
+        label: 'Revenue by Product',
+        value: '€3.2K',
+        variant: 'barHorizontal',
+        productData: [
+          { name: 'Irish Spring 3C Soap', value: 932 },
+          { name: 'SFTSP Coco Btr Scrb', value: 746 },
+          { name: 'SS AB Cln Prt Liq HD', value: 772 },
+          { name: 'SFTSP Ktchn Frsh Hnd', value: 715 },
+          { name: 'SFTSP Frsh Sprs Wtr', value: 415 },
+        ],
+        valueFormatter: formatEur,
+      },
+      {
+        key: 'revenueByDate',
+        label: 'Revenue by Date',
+        value: '€8.6K',
+        variant: 'barVertical',
+        dateData: Array.from({ length: 21 }, (_, i) => {
+          const baseline = 320;
+          const noise = ((i * 73) % 200) - 100;
+          const value = Math.max(120, baseline + noise + (i % 5 === 0 ? 120 : 0));
+          return { date: `Day ${i + 1}`, value };
+        }),
+        valueFormatter: formatEur,
+      },
+    ];
 
     const awarenessConfig = {
       impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
@@ -3760,18 +3854,21 @@ export const FunnelView: Story = {
 
           {/* Top Metric Cards */}
           <MetricRow
-            metrics={Object.entries(metricDefinitions).map(([key, metric]) => ({
-              key,
-              label: metric.label,
-              value: metric.value,
-              badgeValue: metric.badge,
-              badgeVariant: metric.badgeVariant,
-              graphData: topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number })),
-              graphColor: metric.graphColor,
-            }))}
+            metrics={[
+              ...Object.entries(metricDefinitions).map(([key, metric]) => ({
+                key,
+                label: metric.label,
+                value: metric.value,
+                badgeValue: metric.badge,
+                badgeVariant: metric.badgeVariant,
+                graphData: topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number })),
+                graphColor: metric.graphColor,
+              })),
+              ...revenueChartMetrics,
+            ]}
             selectedKeys={selectedTopMetrics}
             onSelectionChange={setSelectedTopMetrics}
-            maxVisible={4}
+            maxVisible={3}
           />
 
           {/* Awareness Card */}
@@ -3826,155 +3923,52 @@ export const FunnelView: Story = {
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
                       <TooltipProvider>
-                        {selectedImpressionKeys.map((key, i) => (
-                          <React.Fragment key={key}>
-                            {i > 0 && <Plus className="w-3 h-3 text-muted-foreground" />}
-                            <Tooltip>
+                        {impressionKeys.map((key) => {
+                          const active = awarenessMetrics.includes(key);
+                          return (
+                            <Tooltip key={key}>
                               <TooltipTrigger asChild>
-                                <span><Badge variant="secondary" className="text-xs cursor-help">{channelLabels[key]} {Math.round((awarenessDataRaw[awarenessDataRaw.length - 1] as any)[key] / 1000)}K</Badge></span>
+                                <button
+                                  type="button"
+                                  onClick={() => setAwarenessMetrics(prev => prev.includes(key) ? prev.filter(m => m !== key) : [...prev, key])}
+                                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+                                >
+                                  <Badge
+                                    variant={active ? "secondary" : "outline"}
+                                    className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
+                                  >
+                                    <span
+                                      aria-hidden
+                                      className="mr-1.5 inline-block h-2 w-2 rounded-full"
+                                      style={{ backgroundColor: channelColors[key] }}
+                                    />
+                                    {channelLabels[key]} {Math.round((awarenessDataRaw[awarenessDataRaw.length - 1] as any)[key] / 1000)}K
+                                  </Badge>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>{channelTooltips[key]}</TooltipContent>
                             </Tooltip>
-                          </React.Fragment>
-                        ))}
+                          );
+                        })}
                       </TooltipProvider>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <LineChartComponent
                       data={awarenessData}
-                      config={{
-                        totalVolume: { label: "Total Volume", color: "hsl(var(--chart-1))" }
-                      }}
+                      config={Object.fromEntries(
+                        selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k] }])
+                      )}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 700000, label: "Target 700K" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      tooltipKeys={Object.fromEntries(
-                        selectedImpressionKeys.map(k => [k, {
-                          spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" },
-                          impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" },
-                          omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" },
-                          doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" },
-                          offsiteImpressions: { label: "Display Offsite", color: "hsl(25, 90%, 55%)" }
-                        }[k]])
-                      )}
                     />
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setVolumeDetailsCollapsed(!volumeDetailsCollapsed)}
-                      >
-                        {volumeDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!volumeDetailsCollapsed && (
-                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${selectedImpressionKeys.length} gap-4`}>
-                      {awarenessMetrics.includes('spaImpressions') && (
-                        <ChartFrame
-                          title={`SPA Impressions ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].spaImpressions / 1000)}K`}
-                          chartHeight={120}
-                          footer={<Badge variant="success" className="text-xs">+54%</Badge>}
-                        >
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ spaImpressions: { label: "SPA Impressions", color: "hsl(var(--chart-2))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-full w-full"
-                            xAxisDataKey="month"
-                          />
-                        </ChartFrame>
-                      )}
-
-                      {awarenessMetrics.includes('impressions') && (
-                        <ChartFrame
-                          title={`Display Impressions ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].impressions / 1000)}K`}
-                          chartHeight={120}
-                          footer={<Badge variant="success" className="text-xs">+46%</Badge>}
-                        >
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ impressions: { label: "Display Impressions", color: "hsl(var(--chart-3))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-full w-full"
-                            xAxisDataKey="month"
-                          />
-                        </ChartFrame>
-                      )}
-
-                      {awarenessMetrics.includes('omiDots') && (
-                        <ChartFrame
-                          title={`OMI otS ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].omiDots / 1000)}K`}
-                          chartHeight={120}
-                          footer={<Badge variant="success" className="text-xs">+68%</Badge>}
-                        >
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ omiDots: { label: "OMI otS", color: "hsl(var(--chart-4))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-full w-full"
-                            xAxisDataKey="month"
-                          />
-                        </ChartFrame>
-                      )}
-
-                      {awarenessMetrics.includes('doohSpots') && (
-                        <ChartFrame
-                          title={`DooH DotS ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].doohSpots / 1000)}K`}
-                          chartHeight={120}
-                          footer={<Badge variant="success" className="text-xs">+52%</Badge>}
-                        >
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ doohSpots: { label: "DooH DotS", color: "hsl(var(--chart-5))" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-full w-full"
-                            xAxisDataKey="month"
-                          />
-                        </ChartFrame>
-                      )}
-                      {awarenessMetrics.includes('offsiteImpressions') && (
-                        <ChartFrame
-                          title={`Display Offsite ${Math.round(awarenessDataRaw[awarenessDataRaw.length - 1].offsiteImpressions / 1000)}K`}
-                          chartHeight={120}
-                          footer={<Badge variant="success" className="text-xs">+62%</Badge>}
-                        >
-                          <LineChartComponent
-                            data={awarenessData}
-                            config={{ offsiteImpressions: { label: "Display Offsite", color: "hsl(25, 90%, 55%)" } }}
-                            showLegend={false}
-                            showGrid={true}
-                            showTooltip={true}
-                            showXAxis={true}
-                            showYAxis={false}
-                            className="h-full w-full"
-                            xAxisDataKey="month"
-                          />
-                        </ChartFrame>
-                      )}
-                    </div>
-                    )}
                   </CardContent>
                 </Card>
 
@@ -4114,7 +4108,8 @@ export const FunnelView: Story = {
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 50000, label: "Target 50K" }}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
                       stacked={true}
@@ -4201,74 +4196,46 @@ export const FunnelView: Story = {
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">SPA Clicks {Math.round(considerationDataRaw[5].spaClicks / 1000)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Display Clicks {Math.round(considerationDataRaw[5].displayClicks / 1000)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">DOOH Clicks {Math.round(considerationDataRaw[5].doohClicks / 1000)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">OMI Clicks {Math.round(considerationDataRaw[5].omiClicks / 1000)}K</Badge>
+                      {considerationEngagementKeys.map((key) => {
+                        const active = engagementChannels.includes(key);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => toggleChannel(setEngagementChannels, key)}
+                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+                          >
+                            <Badge
+                              variant={active ? "secondary" : "outline"}
+                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
+                            >
+                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: engagementColors[key] }} />
+                              {engagementLabels[key]} {Math.round(considerationDataRaw[5][key] / 1000)}K
+                            </Badge>
+                          </button>
+                        );
+                      })}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <LineChartComponent
                       data={considerationData}
-                      config={{
-                        totalEngagements: { label: "Total Engagements", color: "hsl(var(--chart-1))" }
-                      }}
+                      config={Object.fromEntries(
+                        engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k] }])
+                      )}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 20000, label: "Target 20K" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      tooltipKeys={Object.fromEntries(
-                        considerationEngagementKeys.map(k => [k, {
-                          label: k === 'spaClicks' ? 'SPA Clicks' : k === 'displayClicks' ? 'Display Clicks' : k === 'doohClicks' ? 'DOOH Clicks' : k === 'omiClicks' ? 'OMI Clicks' : 'Offsite Clicks',
-                          color: 'transparent'
-                        }])
-                      )}
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+78%</Badge>
                     </div>
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setVolumeDetailsCollapsed(!volumeDetailsCollapsed)}
-                      >
-                        {volumeDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!volumeDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {considerationEngagementKeys.map((key) => {
-                        const label = key === 'spaClicks' ? 'SPA Clicks' : key === 'displayClicks' ? 'Display Clicks' : key === 'doohClicks' ? 'DOOH Clicks' : key === 'omiClicks' ? 'OMI Clicks' : 'Offsite Clicks';
-                        return (
-                          <ChartFrame
-                            key={key}
-                            title={`${label} ${Math.round(considerationDataRaw[5][key] / 1000)}K`}
-                            chartHeight={120}
-                          >
-                            <LineChartComponent
-                              data={considerationData}
-                              config={{ [key]: { label, color: `hsl(var(--chart-${Math.min(considerationEngagementKeys.indexOf(key) + 1, 5)}))` } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-full w-full"
-                              xAxisDataKey="month"
-                            />
-                          </ChartFrame>
-                        );
-                      })}
-                    </div>
-                    )}
                   </CardContent>
                 </Card>
 
@@ -4304,7 +4271,8 @@ export const FunnelView: Story = {
                         showGrid={true}
                         showTooltip={true}
                         showXAxis={true}
-                        showYAxis={false}
+                        showYAxis={true}
+                        benchmark={{ value: 2, label: "Target 2%" }}
                         showDots={true}
                         className="h-[200px] w-full"
                         xAxisDataKey="month"
@@ -4349,7 +4317,8 @@ export const FunnelView: Story = {
                         showGrid={true}
                         showTooltip={true}
                         showXAxis={true}
-                        showYAxis={false}
+                        showYAxis={true}
+                        benchmark={{ value: 1.5, label: "Target 1.5" }}
                         showDots={true}
                         className="h-[200px] w-full"
                         xAxisDataKey="month"
@@ -4399,7 +4368,8 @@ export const FunnelView: Story = {
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 8000, label: "Target 8K" }}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
                       stacked={true}
@@ -4480,170 +4450,46 @@ export const FunnelView: Story = {
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Sponsored Products {purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Units sold attributed to Sponsored Product Ads</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Display {purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Units sold attributed to display advertising</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Display Offsite {purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Units sold attributed to Display Offsite campaigns</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Digital Media In-store {purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Units sold attributed to digital in-store media</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Offline Media In-store {purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Units sold attributed to offline in-store media</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      {purchaseUnitKeys.map((key) => {
+                        const active = unitChannels.includes(key);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => toggleChannel(setUnitChannels, key)}
+                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+                          >
+                            <Badge
+                              variant={active ? "secondary" : "outline"}
+                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
+                            >
+                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: unitColors[key] }} />
+                              {unitLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key].toLocaleString()}
+                            </Badge>
+                          </button>
+                        );
+                      })}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <LineChartComponent
                       data={purchaseData}
-                      config={{
-                        totalUnitsSold: { label: "Total Units Sold", color: "hsl(var(--chart-3))" }
-                      }}
+                      config={Object.fromEntries(
+                        unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k] }])
+                      )}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 2500, label: "Target 2.5K" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      tooltipKeys={{
-                        spaUnitsSold: { label: 'Sponsored Products', color: 'transparent' },
-                        displayUnitsSold: { label: 'Display', color: 'transparent' },
-                        offsiteUnitsSold: { label: 'Display Offsite', color: 'transparent' },
-                        dmiUnitsSold: { label: 'Digital Media In-store', color: 'transparent' },
-                        omiUnitsSold: { label: 'Offline Media In-store', color: 'transparent' },
-                      }}
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+125%</Badge>
                     </div>
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
-                      >
-                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!sovDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <ChartFrame
-                        title={`Sponsored Products ${purchaseData[purchaseData.length - 1].spaUnitsSold.toLocaleString()}`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ spaUnitsSold: { label: "SPA Units", color: "hsl(var(--chart-2))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Display ${purchaseData[purchaseData.length - 1].displayUnitsSold.toLocaleString()}`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ displayUnitsSold: { label: "Display Units", color: "hsl(var(--chart-3))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Display Offsite ${purchaseData[purchaseData.length - 1].offsiteUnitsSold.toLocaleString()}`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ offsiteUnitsSold: { label: "Display Offsite Units", color: "hsl(25, 90%, 55%)" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Digital Media In-store ${purchaseData[purchaseData.length - 1].dmiUnitsSold.toLocaleString()}`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ dmiUnitsSold: { label: "DMI Units", color: "hsl(var(--chart-4))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Offline Media In-store ${purchaseData[purchaseData.length - 1].omiUnitsSold.toLocaleString()}`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={purchaseData}
-                          config={{ omiUnitsSold: { label: "OMI Units", color: "hsl(var(--chart-5))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                    </div>
-                    )}
                   </CardContent>
                 </Card>
 
@@ -4662,72 +4508,46 @@ export const FunnelView: Story = {
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">iROAS {purchaseData[purchaseData.length - 1].iroas}x</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">CPA €{purchaseData[purchaseData.length - 1].cpa}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Adspend €{Math.round(purchaseDataRaw[purchaseDataRaw.length - 1].adspend / 1000)}K</Badge>
+                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key) => {
+                        const active = roasChannels.includes(key);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => toggleChannel(setRoasChannels, key)}
+                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+                          >
+                            <Badge
+                              variant={active ? "secondary" : "outline"}
+                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
+                            >
+                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: roasColors[key] }} />
+                              {roasLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key]}x
+                            </Badge>
+                          </button>
+                        );
+                      })}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <LineChartComponent
                       data={purchaseData}
-                      config={{
-                        roas: { label: "ROAS", color: "hsl(var(--chart-1))" }
-                      }}
+                      config={Object.fromEntries(
+                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k] }])
+                      )}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 4, label: "Target 4x" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      tooltipKeys={{
-                        iroas: { label: 'iROAS', color: 'transparent' },
-                        cpa: { label: 'CPA (€)', color: 'transparent' },
-                        adspend: { label: 'Adspend (€)', color: 'transparent' },
-                      }}
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+82%</Badge>
                     </div>
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setRoasDetailsCollapsed(!roasDetailsCollapsed)}
-                      >
-                        {roasDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!roasDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key, index) => {
-                        const label = key === 'spaRoas' ? 'Sponsored Products' : key === 'displayRoas' ? 'Display' : key === 'dmiRoas' ? 'Digital In-store' : 'Offline In-store';
-                        const tooltipLabel = key === 'spaRoas' ? 'SPA ROAS' : key === 'displayRoas' ? 'Display ROAS' : key === 'dmiRoas' ? 'DMI ROAS' : 'OMI ROAS';
-                        return (
-                          <ChartFrame
-                            key={key}
-                            title={`${label} ${purchaseDataRaw[purchaseDataRaw.length - 1][key]}x`}
-                            chartHeight={120}
-                          >
-                            <LineChartComponent
-                              data={purchaseData}
-                              config={{ [key]: { label: tooltipLabel, color: `hsl(var(--chart-${index + 1}))` } }}
-                              showLegend={false}
-                              showGrid={true}
-                              showTooltip={true}
-                              showXAxis={true}
-                              showYAxis={false}
-                              className="h-full w-full"
-                              xAxisDataKey="month"
-                            />
-                          </ChartFrame>
-                        );
-                      })}
-                    </div>
-                    )}
                   </CardContent>
                 </Card>
 
@@ -4765,7 +4585,8 @@ export const FunnelView: Story = {
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 2500, label: "Target 2.5K" }}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
                       stacked={true}
@@ -4861,7 +4682,8 @@ export const FunnelView: Story = {
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 4000, label: "Target 4K" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
@@ -4966,7 +4788,8 @@ export const FunnelView: Story = {
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
-                      showYAxis={false}
+                      showYAxis={true}
+                      benchmark={{ value: 300, label: "Target €300" }}
                       showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"

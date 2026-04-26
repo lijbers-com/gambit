@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { Plus, X } from "lucide-react"
+import { Plus, Settings2, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { MetricCard, MetricCardProps } from "./card"
@@ -14,7 +14,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "./dialog"
 
 export interface MetricDefinition {
@@ -26,9 +25,18 @@ export interface MetricDefinition {
   graphData?: Array<{ value: number }>
   graphColor?: string
   subMetric?: string
-  variant?: "default" | "graph"
+  variant?: MetricCardProps["variant"]
   /** Time-series data for the expandable chart panel */
   chartData?: Array<{ day: string; value: number }>
+  /** Data for donut / donutLegend variants */
+  donutData?: MetricCardProps["donutData"]
+  donutColors?: MetricCardProps["donutColors"]
+  /** Data for barHorizontal variant */
+  productData?: MetricCardProps["productData"]
+  /** Data for barVertical variant */
+  dateData?: MetricCardProps["dateData"]
+  /** Optional value formatter shared by chart variants */
+  valueFormatter?: MetricCardProps["valueFormatter"]
 }
 
 export interface MetricRowProps {
@@ -43,7 +51,7 @@ export interface MetricRowProps {
   /** Additional class name */
   className?: string
   /** Fallback variant when MetricDefinition doesn't specify one */
-  defaultVariant?: "default" | "graph"
+  defaultVariant?: MetricCardProps["variant"]
   /** Which card shows the isSelected arrow indicator (for chart filtering) */
   activeKey?: string | null
   /** Fires when a card is clicked for selection */
@@ -78,6 +86,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       controlledSelectedKeys ?? metrics.slice(0, 3).map(m => m.key)
     )
     const [internalActiveKey, setInternalActiveKey] = useState<string | null>(null)
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     const selectedKeys = controlledSelectedKeys ?? internalSelectedKeys
     const activeKey = controlledActiveKey !== undefined ? controlledActiveKey : internalActiveKey
@@ -89,23 +98,29 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       onSelectionChange?.(newKeys)
     }
 
-    const addMetric = (key: string) => {
-      if (selectedKeys.length < maxVisible) {
-        updateSelection([...selectedKeys, key])
-      }
-    }
-
     const removeMetric = (key: string) => {
       updateSelection(selectedKeys.filter(k => k !== key))
+    }
+
+    /**
+     * Toggle a metric in the picker. If selecting and already at max,
+     * drops the oldest selected to make room.
+     */
+    const toggleMetric = (key: string) => {
+      if (selectedKeys.includes(key)) {
+        updateSelection(selectedKeys.filter(k => k !== key))
+      } else if (selectedKeys.length >= maxVisible) {
+        updateSelection([...selectedKeys.slice(1), key])
+      } else {
+        updateSelection([...selectedKeys, key])
+      }
     }
 
     const selectedMetrics = selectedKeys
       .map(key => metrics.find(m => m.key === key))
       .filter(Boolean) as MetricDefinition[]
 
-    const availableMetrics = metrics.filter(m => !selectedKeys.includes(m.key))
-
-    const hasDialogContent = availableMetrics.length > 0 || (dialogMetrics?.length ?? 0) > 0
+    const hasDialogContent = metrics.length > 0 || (dialogMetrics?.length ?? 0) > 0
     const showAddButton = hasDialogContent && selectedMetrics.length < maxVisible
 
     const colCount = Math.min(selectedMetrics.length + (showAddButton ? 1 : 0), maxVisible + 1)
@@ -140,7 +155,21 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       : null
 
     return (
-      <div ref={ref} className={cn("space-y-4", className)} {...props}>
+      <div ref={ref} className={cn("space-y-3", className)} {...props}>
+      {hasDialogContent && (
+        <div className="flex items-center justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+            className="text-muted-foreground hover:text-foreground gap-1.5"
+          >
+            <Settings2 className="h-4 w-4" />
+            Edit metrics
+          </Button>
+        </div>
+      )}
       <div
         className={cn(
           `grid grid-cols-1 gap-4`,
@@ -161,65 +190,84 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             variant={metric.variant ?? defaultVariant}
             graphData={metric.graphData}
             graphColor={metric.graphColor}
+            donutData={metric.donutData}
+            donutColors={metric.donutColors}
+            productData={metric.productData}
+            dateData={metric.dateData}
+            valueFormatter={metric.valueFormatter}
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
             onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}
           />
         ))}
         {showAddButton && (
-          <Dialog>
-            <DialogTrigger asChild>
-              <div
-                className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-neutral-50 transition-colors"
-              >
-                <Plus className="h-8 w-8 text-neutral-400" />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
-              <DialogHeader>
-                <DialogTitle>Select a Metric</DialogTitle>
-                <DialogDescription>
-                  Choose a metric to add to your dashboard. Click on any metric card to select it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[500px] overflow-y-auto p-4">
-                <div className="grid grid-cols-3 gap-4">
-                  {availableMetrics.map((metric) => (
-                    <MetricCard
-                      key={metric.key}
-                      label={metric.label}
-                      value={metric.value}
-                      badgeValue={metric.badgeValue}
-                      badgeVariant={metric.badgeVariant}
-                      subMetric={metric.subMetric}
-                      variant={metric.variant ?? defaultVariant}
-                      graphData={metric.graphData}
-                      graphColor={metric.graphColor}
-                      className="cursor-pointer hover:ring-2 hover:ring-primary"
-                      onClick={() => addMetric(metric.key)}
-                    />
-                  ))}
-                  {dialogMetrics?.map((metric) => (
-                    <MetricCard
-                      key={metric.key}
-                      label={metric.label}
-                      value={metric.value}
-                      badgeValue={metric.badgeValue}
-                      badgeVariant={metric.badgeVariant}
-                      subMetric={metric.subMetric}
-                      variant={metric.variant ?? defaultVariant}
-                      graphData={metric.graphData}
-                      graphColor={metric.graphColor}
-                      className="cursor-pointer hover:ring-2 hover:ring-primary"
-                      onClick={() => onDialogMetricClick?.(metric.key)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-neutral-50 transition-colors"
+          >
+            <Plus className="h-8 w-8 text-neutral-400" />
+          </button>
         )}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Edit metrics</DialogTitle>
+            <DialogDescription>
+              Pick up to {maxVisible} metrics to show in the row. Selecting another while {maxVisible} are active drops the oldest.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[500px] overflow-y-auto p-4">
+            <div className="grid grid-cols-3 gap-4">
+              {metrics.map((metric) => {
+                const isPicked = selectedKeys.includes(metric.key)
+                return (
+                  <MetricCard
+                    key={metric.key}
+                    label={metric.label}
+                    value={metric.value}
+                    badgeValue={metric.badgeValue}
+                    badgeVariant={metric.badgeVariant}
+                    subMetric={metric.subMetric}
+                    variant={metric.variant ?? defaultVariant}
+                    graphData={metric.graphData}
+                    graphColor={metric.graphColor}
+                    donutData={metric.donutData}
+                    donutColors={metric.donutColors}
+                    productData={metric.productData}
+                    dateData={metric.dateData}
+                    valueFormatter={metric.valueFormatter}
+                    className={cn(
+                      "cursor-pointer transition-shadow",
+                      isPicked
+                        ? "ring-2 ring-primary shadow-md"
+                        : "hover:ring-2 hover:ring-primary/40 opacity-90 hover:opacity-100"
+                    )}
+                    onClick={() => toggleMetric(metric.key)}
+                  />
+                )
+              })}
+              {dialogMetrics?.map((metric) => (
+                <MetricCard
+                  key={metric.key}
+                  label={metric.label}
+                  value={metric.value}
+                  badgeValue={metric.badgeValue}
+                  badgeVariant={metric.badgeVariant}
+                  subMetric={metric.subMetric}
+                  variant={metric.variant ?? defaultVariant}
+                  graphData={metric.graphData}
+                  graphColor={metric.graphColor}
+                  className="cursor-pointer hover:ring-2 hover:ring-primary"
+                  onClick={() => onDialogMetricClick?.(metric.key)}
+                />
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {chartPanelData && (
         <div className="relative bg-white border rounded-lg p-6">

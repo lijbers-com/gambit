@@ -25,7 +25,8 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus, Info } from 'lucide-react';
-import { LineChart as RechartsLineChart, Line as RechartsLine, ResponsiveContainer } from 'recharts';
+import { LineChart as RechartsLineChart, Line as RechartsLine, ResponsiveContainer, YAxis as RechartsYAxis, XAxis as RechartsXAxis } from 'recharts';
+import { formatYAxisTick } from '@/components/ui/chart-types';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -3878,9 +3879,27 @@ export const FunnelView: Story = {
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
                   <CardTitle>Awareness</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${awarenessCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Total Volume {totalVolumeLabel}</p>
-                    <Badge variant="success" className="text-xs">+64%</Badge>
+                  <div className={cn(
+                    "flex flex-wrap items-center gap-x-4 gap-y-1 transition-all duration-200",
+                    awarenessCollapsed ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
+                  )}>
+                    <span className="text-sm flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Volume</span>
+                      <span className="font-medium text-foreground">{totalVolumeLabel}</span>
+                      <Badge variant="success" className="text-xs">+64%</Badge>
+                    </span>
+                    <span className="h-3 w-px bg-border" aria-hidden />
+                    <span className="text-sm flex items-center gap-1.5">
+                      <span className="text-muted-foreground">SOV</span>
+                      <span className="font-medium text-foreground">45%</span>
+                      <Badge variant="success" className="text-xs">+41%</Badge>
+                    </span>
+                    <span className="h-3 w-px bg-border" aria-hidden />
+                    <span className="text-sm flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Buyer Reach</span>
+                      <span className="font-medium text-foreground">64K</span>
+                      <Badge variant="success" className="text-xs">+92%</Badge>
+                    </span>
                   </div>
                 </div>
                 <Button
@@ -3895,9 +3914,29 @@ export const FunnelView: Story = {
                 </Button>
               </div>
               {awarenessCollapsed && (
-                <div className="h-12 w-full -mb-2">
+                <div className="h-20 w-full -mb-2 mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={awarenessData.map(d => ({ value: d.totalVolume }))}>
+                    <RechartsLineChart
+                      data={awarenessData.map(d => ({ month: d.month, value: d.totalVolume }))}
+                      margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+                    >
+                      <RechartsYAxis
+                        tickLine={false}
+                        axisLine={false}
+                        width={40}
+                        tickCount={3}
+                        style={{ fontSize: '10px' }}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        tickFormatter={formatYAxisTick}
+                      />
+                      <RechartsXAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={4}
+                        style={{ fontSize: '10px' }}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
                       <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-1))", strokeWidth: 2 }} />
                     </RechartsLineChart>
                   </ResponsiveContainer>
@@ -3972,150 +4011,106 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 2 - Total Share of Voice */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Share of Voice 45%
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>{titleTooltips.totalSov}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <TooltipProvider>
-                        {selectedImpressionKeys.map((key, i) => (
-                          <React.Fragment key={key}>
-                            {i > 0 && <Plus className="w-3 h-3 text-muted-foreground" />}
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span><Badge variant="secondary" className="text-xs cursor-help">{channelLabels[key]} {sovChannelData[key as keyof typeof sovChannelData].value}%</Badge></span>
-                              </TooltipTrigger>
-                              <TooltipContent>{channelSovTooltips[key]}</TooltipContent>
-                            </Tooltip>
-                          </React.Fragment>
-                        ))}
-                      </TooltipProvider>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <PieChartComponent
-                      data={sovPieData}
-                      config={sovPieConfig}
-                      showLegend={false}
-                      showTooltip={true}
-                      className="h-[200px] w-full"
-                      nameKey="name"
-                      dataKey="value"
-                      innerRadius={55}
-                      outerRadius={90}
-                      showLabels={true}
-                      labelPosition="inside"
-                      startAngle={90}
-                      endAngle={-270}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+41%</Badge>
-                    </div>
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setSovDetailsCollapsed(!sovDetailsCollapsed)}
-                      >
-                        {sovDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!sovDetailsCollapsed && (
-                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${selectedImpressionKeys.length} gap-4`}>
-                      {selectedImpressionKeys.map((key) => (
-                        <Card key={key}>
-                          <CardHeader>
-                            <CardTitle className="text-sm">{channelLabels[key]} SOV {sovChannelData[key as keyof typeof sovChannelData].value}%</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <PieChartComponent
-                              data={sovChannelData[key as keyof typeof sovChannelData].pieData}
-                              config={sovPieConfig}
-                              showLegend={false}
-                              showTooltip={true}
-                              className="h-[120px] w-full"
-                              nameKey="name"
-                              dataKey="value"
-                              innerRadius={25}
-                              outerRadius={40}
-                              showLabels={true}
-                              labelPosition="inside"
-                              startAngle={90}
-                              endAngle={-270}
-                            />
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {/* Row 2 - Share of Voice + Type of Buyer side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Share of Voice */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        Share of Voice 45%
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>{titleTooltips.totalSov}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                        <Badge variant="secondary" className="text-xs">Your Brand 45%</Badge>
+                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Badge variant="secondary" className="text-xs">Competitors 55%</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <PieChartComponent
+                        data={sovPieData}
+                        config={sovPieConfig}
+                        showLegend={false}
+                        showTooltip={true}
+                        className="h-[200px] w-full"
+                        nameKey="name"
+                        dataKey="value"
+                        innerRadius={55}
+                        outerRadius={90}
+                        showLabels={true}
+                        labelPosition="inside"
+                        startAngle={90}
+                        endAngle={-270}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Badge variant="success" className="text-xs">+41%</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {/* Row 3 - Total Buyer Reach */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Buyer Reach
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>{titleTooltips.totalBuyerReach}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">New-to-brand reach</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Customer that did not have an impression, but now interacted with an ad</TooltipContent>
-                        </Tooltip>
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Lapsed brand reach</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Customer that had impressions, but not between x time and now interacted again</TooltipContent>
-                        </Tooltip>
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span><Badge variant="secondary" className="text-xs cursor-help">Existing brand reach</Badge></span>
-                          </TooltipTrigger>
-                          <TooltipContent>Customer that has an impression before and already had this within x time</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <BarChartComponent
-                      data={buyerReachData}
-                      config={buyerReachConfig}
-                      showLegend={true}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      benchmark={{ value: 50000, label: "Target 50K" }}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      stacked={true}
-                    />
-                  </CardContent>
-                </Card>
+                  {/* Type of Buyer */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        Type of Buyer
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>{titleTooltips.totalBuyerReach}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span><Badge variant="secondary" className="text-xs cursor-help">New-to-brand</Badge></span>
+                            </TooltipTrigger>
+                            <TooltipContent>Customer that did not have an impression, but now interacted with an ad</TooltipContent>
+                          </Tooltip>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span><Badge variant="secondary" className="text-xs cursor-help">Lapsed</Badge></span>
+                            </TooltipTrigger>
+                            <TooltipContent>Customer that had impressions, but not between x time and now interacted again</TooltipContent>
+                          </Tooltip>
+                          <Plus className="w-3 h-3 text-muted-foreground" />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span><Badge variant="secondary" className="text-xs cursor-help">Existing</Badge></span>
+                            </TooltipTrigger>
+                            <TooltipContent>Customer that has an impression before and already had this within x time</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <BarChartComponent
+                        data={buyerReachData}
+                        config={buyerReachConfig}
+                        showLegend={true}
+                        showGrid={true}
+                        showTooltip={true}
+                        showXAxis={true}
+                        showYAxis={true}
+                        benchmark={{ value: 50000, label: "Target 50K" }}
+                        className="h-[200px] w-full"
+                        xAxisDataKey="month"
+                        stacked={true}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
 
                 <Button
                   variant="outline"

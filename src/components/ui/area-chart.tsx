@@ -51,7 +51,12 @@ export function AreaChartComponent({
     const allValues = data.flatMap(item =>
       dataKeys.map(key => typeof item[key] === 'number' ? item[key] as number : 0)
     )
-    const maxValue = Math.max(...allValues)
+    const stackedTotals = stacked
+      ? data.map(item =>
+          dataKeys.reduce((sum, key) => sum + (typeof item[key] === 'number' ? (item[key] as number) : 0), 0)
+        )
+      : []
+    const maxValue = stacked ? Math.max(...stackedTotals) : Math.max(...allValues)
     const minValue = Math.min(...allValues, 0)
 
     // Generate approximately 5-6 ticks
@@ -73,7 +78,7 @@ export function AreaChartComponent({
       : [minValue, maxValue]
 
     return { yAxisTicks: ticks, yAxisDomain: domain }
-  }, [data, dataKeys, showGrid])
+  }, [data, dataKeys, showGrid, stacked])
 
   return (
     <ChartContainer config={config} className={className}>
@@ -86,7 +91,6 @@ export function AreaChartComponent({
           top: 4,
           bottom: 0,
         }}
-        stackOffset={stacked ? "expand" : undefined}
       >
         {showGrid && yAxisTicks.map(tick => (
           <ReferenceLine

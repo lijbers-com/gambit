@@ -3993,20 +3993,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={awarenessData}
                       config={Object.fromEntries(
                         selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
                       benchmark={{ value: 700000, label: "Target 700K" }}
-                      showDots={true}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                   </CardContent>
                 </Card>

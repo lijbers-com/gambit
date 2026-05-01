@@ -9,6 +9,7 @@ import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
+import { ConversionFunnelComponent } from '@/components/ui/conversion-funnel';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { ChartFrame } from '@/components/ui/chart-frame';
 import { MapChart } from '@/components/ui/map-chart';
@@ -3871,6 +3872,54 @@ export const FunnelView: Story = {
             onSelectionChange={setSelectedTopMetrics}
             maxVisible={3}
           />
+
+          {/* Conversion Funnel Breakdown */}
+          {(() => {
+            const funnelStages = [
+              {
+                key: 'awareness',
+                label: 'Awareness',
+                value: awarenessData[awarenessData.length - 1].totalVolume,
+              },
+              {
+                key: 'consideration',
+                label: 'Consideration',
+                value: considerationData[considerationData.length - 1].totalEngagements,
+              },
+              {
+                key: 'purchase',
+                label: 'Purchase',
+                value: purchaseData[purchaseData.length - 1].conversions,
+              },
+              {
+                key: 'loyalty',
+                label: 'Loyalty',
+                value: purchaseData[purchaseData.length - 1].existingBuyers,
+              },
+            ];
+            const overallRate =
+              funnelStages[0].value > 0
+                ? (funnelStages[funnelStages.length - 1].value / funnelStages[0].value) * 100
+                : 0;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Conversion rate breakdown</CardTitle>
+                  <div className="text-3xl font-semibold mt-1">
+                    {overallRate.toFixed(overallRate < 10 ? 2 : 1)}%
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ConversionFunnelComponent
+                    stages={funnelStages}
+                    valueFormatter={(v) =>
+                      v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
+                    }
+                  />
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Awareness Card */}
           {visibleFunnelCards.awareness && (

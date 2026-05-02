@@ -3270,33 +3270,27 @@ export const FunnelView: Story = {
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
 
     // Collapse states for funnel cards
-    const [awarenessCollapsed, setAwarenessCollapsed] = useState(true);
+    const [awarenessCollapsed, setAwarenessCollapsed] = useState(false);
     const [volumeDetailsCollapsed, setVolumeDetailsCollapsed] = useState(false);
     const [sovDetailsCollapsed, setSovDetailsCollapsed] = useState(false);
     const [buyerReachDetailsCollapsed, setBuyerReachDetailsCollapsed] = useState(false);
     const [roasDetailsCollapsed, setRoasDetailsCollapsed] = useState(false);
-    const [considerationCollapsed, setConsiderationCollapsed] = useState(true);
-    const [purchaseCollapsed, setPurchaseCollapsed] = useState(true);
-    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(true);
+    const [considerationCollapsed, setConsiderationCollapsed] = useState(false);
+    const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
+    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
 
-    // Handle Goal filter changes - expand selected card(s) and collapse others
+    // Funnel chart drives which stage card is visible
+    type FunnelStageKey = 'awareness' | 'consideration' | 'purchase' | 'loyalty';
+    const [selectedStage, setSelectedStage] = useState<FunnelStageKey>('awareness');
+
+    // Handle Goal filter changes - select the matching stage tab and swap sales/reach
     useEffect(() => {
       if (goalFilter.length > 0) {
-        // Collapse all cards first
-        setAwarenessCollapsed(true);
-        setConsiderationCollapsed(true);
-        setPurchaseCollapsed(true);
-        setLoyaltyCollapsed(true);
+        const stageGoal = (['awareness', 'consideration', 'purchase', 'loyalty'] as const).find(g =>
+          goalFilter.includes(g)
+        );
+        if (stageGoal) setSelectedStage(stageGoal);
 
-        // Expand only the selected goal card(s)
-        goalFilter.forEach(goal => {
-          if (goal === 'awareness') setAwarenessCollapsed(false);
-          if (goal === 'consideration') setConsiderationCollapsed(false);
-          if (goal === 'purchase') setPurchaseCollapsed(false);
-          if (goal === 'loyalty') setLoyaltyCollapsed(false);
-        });
-
-        // If sales/reach is already selected, swap based on goal filter
         if (goalFilter.includes('awareness')) {
           setSelectedTopMetrics(prev =>
             prev.includes('sales') ? prev.map(m => (m === 'sales' ? 'reach' : m)) : prev
@@ -3307,20 +3301,11 @@ export const FunnelView: Story = {
           );
         }
       } else {
-        // No filter selected - swap reach back to sales if present
         setSelectedTopMetrics(prev =>
           prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
         );
       }
     }, [goalFilter]);
-
-    // Visibility states for dashboard customization
-    const [visibleFunnelCards, setVisibleFunnelCards] = useState({
-      awareness: true,
-      consideration: true,
-      purchase: true,
-      loyalty: true,
-    });
 
     const toggleTopMetric = (metric: string) => {
       setSelectedTopMetrics(prev =>
@@ -3875,12 +3860,12 @@ export const FunnelView: Story = {
               {
                 key: 'purchase',
                 label: 'Purchase',
-                value: purchaseData[purchaseData.length - 1].conversions,
+                value: purchaseData[purchaseData.length - 1].totalUnitsSold,
               },
               {
                 key: 'loyalty',
                 label: 'Loyalty',
-                value: purchaseData[purchaseData.length - 1].existingBuyers,
+                value: loyaltyData[loyaltyData.length - 1].existingBuyers,
               },
             ];
             const overallRate =
@@ -3892,12 +3877,14 @@ export const FunnelView: Story = {
                 <CardHeader>
                   <CardTitle className="text-base">Conversion rate breakdown</CardTitle>
                   <div className="text-3xl font-semibold mt-1">
-                    {overallRate.toFixed(overallRate < 10 ? 2 : 1)}%
+                    {overallRate < 0.1 ? overallRate.toFixed(2) : overallRate.toFixed(1)}%
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <ConversionFunnelComponent
                     stages={funnelStages}
+                    selectedKey={selectedStage}
+                    onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
                     valueFormatter={(v) =>
                       v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
                     }
@@ -3908,7 +3895,7 @@ export const FunnelView: Story = {
           })()}
 
           {/* Awareness Card */}
-          {visibleFunnelCards.awareness && (
+          {selectedStage === 'awareness' && (
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
@@ -4160,22 +4147,8 @@ export const FunnelView: Story = {
           </Card>
           )}
 
-          {/* Funnel flow: Awareness → Consideration */}
-          {visibleFunnelCards.awareness && visibleFunnelCards.consideration && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{((considerationData[considerationData.length - 1].totalEngagements / awarenessData[awarenessData.length - 1].totalVolume) * 100).toFixed(1)}% engagement rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
           {/* Consideration Card */}
-          {visibleFunnelCards.consideration && (
+          {selectedStage === 'consideration' && (
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
@@ -4414,22 +4387,8 @@ export const FunnelView: Story = {
           </Card>
           )}
 
-          {/* Funnel flow: Consideration → Purchase */}
-          {visibleFunnelCards.consideration && visibleFunnelCards.purchase && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{((purchaseData[purchaseData.length - 1].totalUnitsSold / considerationData[considerationData.length - 1].totalEngagements) * 100).toFixed(1)}% conversion rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
           {/* Purchase Card */}
-          {visibleFunnelCards.purchase && (
+          {selectedStage === 'purchase' && (
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
@@ -4631,22 +4590,8 @@ export const FunnelView: Story = {
           </Card>
           )}
 
-          {/* Funnel flow: Purchase → Loyalty */}
-          {visibleFunnelCards.purchase && visibleFunnelCards.loyalty && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{loyaltyData[loyaltyData.length - 1].retentionRate}% retention rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
           {/* Loyalty Card */}
-          {visibleFunnelCards.loyalty && (
+          {selectedStage === 'loyalty' && (
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">

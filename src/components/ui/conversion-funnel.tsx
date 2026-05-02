@@ -16,9 +16,16 @@ export interface ConversionFunnelProps {
   color?: string
   valueFormatter?: (value: number) => string
   barHeight?: number
+  selectedKey?: string
+  onStageClick?: (key: string) => void
 }
 
-const formatPercent = (n: number) => `${n.toFixed(n > 0 && n < 10 ? 1 : 0)}%`
+const formatPercent = (n: number) => {
+  if (n === 0) return "0%"
+  if (n < 0.1) return `${n.toFixed(2)}%`
+  if (n < 10) return `${n.toFixed(1)}%`
+  return `${Math.round(n)}%`
+}
 
 export function ConversionFunnelComponent({
   stages,
@@ -27,11 +34,26 @@ export function ConversionFunnelComponent({
   color = "hsl(var(--chart-1))",
   valueFormatter = (v) => v.toLocaleString(),
   barHeight = 160,
+  selectedKey,
+  onStageClick,
 }: ConversionFunnelProps) {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
   const firstValue = stages[0]?.value ?? 0
   const maxValue = Math.max(...stages.map((s) => s.value), 1)
+  const isInteractive = typeof onStageClick === "function"
+
+  const handleSelect = (key: string) => {
+    if (onStageClick) onStageClick(key)
+  }
+
+  const isSelected = (key: string) =>
+    selectedKey !== undefined && selectedKey === key
+
+  const isDimmed = (i: number, key: string) => {
+    if (selectedKey !== undefined) return !isSelected(key)
+    return hoveredIndex !== null && hoveredIndex !== i
+  }
 
   return (
     <div className={cn("flex flex-col w-full", className)}>
@@ -44,16 +66,29 @@ export function ConversionFunnelComponent({
           const stageRate = firstValue > 0 ? (stage.value / firstValue) * 100 : 0
           const dropOff =
             prev !== null && prev > 0 ? ((prev - stage.value) / prev) * 100 : null
+          const selected = isSelected(stage.key)
 
           return (
             <div
               key={stage.key}
+              role={isInteractive ? "button" : undefined}
+              tabIndex={isInteractive ? 0 : undefined}
+              aria-pressed={isInteractive ? selected : undefined}
               className={cn(
                 "px-4 py-3 border-l border-border first:border-l-0 transition-colors",
-                hoveredIndex === i && "bg-muted/40"
+                isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selected && "bg-muted/60",
+                !selected && hoveredIndex === i && "bg-muted/30"
               )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => isInteractive && handleSelect(stage.key)}
+              onKeyDown={(e) => {
+                if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault()
+                  handleSelect(stage.key)
+                }
+              }}
             >
               <div className="text-xs text-muted-foreground truncate">{stage.label}</div>
               <div className="text-2xl font-semibold leading-tight">
@@ -82,13 +117,18 @@ export function ConversionFunnelComponent({
           const leftPct = (stage.value / maxValue) * 100
           const rightPct = (next / maxValue) * 100
           const isLast = i === stages.length - 1
+          const dimmed = isDimmed(i, stage.key)
 
           return (
             <div
               key={stage.key}
-              className="relative border-l border-border first:border-l-0"
+              className={cn(
+                "relative border-l border-border first:border-l-0",
+                isInteractive && "cursor-pointer"
+              )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => isInteractive && handleSelect(stage.key)}
             >
               <svg
                 className="absolute inset-0 w-full h-full"
@@ -101,13 +141,13 @@ export function ConversionFunnelComponent({
                   width={75}
                   height={leftPct}
                   fill={color}
-                  opacity={hoveredIndex === null || hoveredIndex === i ? 1 : 0.4}
+                  opacity={dimmed ? 0.35 : 1}
                 />
                 {!isLast && (
                   <polygon
                     points={`75,${100 - leftPct} 100,${100 - rightPct} 100,100 75,100`}
                     fill={color}
-                    opacity={hoveredIndex === null || hoveredIndex === i ? 0.3 : 0.15}
+                    opacity={dimmed ? 0.12 : 0.3}
                   />
                 )}
               </svg>

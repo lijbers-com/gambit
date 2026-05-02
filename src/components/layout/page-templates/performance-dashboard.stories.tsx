@@ -3675,6 +3675,34 @@ export const FunnelView: Story = {
       "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
     };
 
+    // Conversion funnel breakdown - drives stage tab selection
+    const funnelStages = [
+      {
+        key: 'awareness',
+        label: 'Awareness',
+        value: awarenessData[awarenessData.length - 1].totalVolume,
+      },
+      {
+        key: 'consideration',
+        label: 'Consideration',
+        value: considerationData[considerationData.length - 1].totalEngagements,
+      },
+      {
+        key: 'purchase',
+        label: 'Purchase',
+        value: purchaseData[purchaseData.length - 1].totalUnitsSold,
+      },
+      {
+        key: 'loyalty',
+        label: 'Loyalty',
+        value: loyaltyData[loyaltyData.length - 1].existingBuyers,
+      },
+    ];
+    const overallFunnelRate =
+      funnelStages[0].value > 0
+        ? (funnelStages[funnelStages.length - 1].value / funnelStages[0].value) * 100
+        : 0;
+
     return (
       <MenuContextProvider>
       <AppLayout
@@ -3844,59 +3872,29 @@ export const FunnelView: Story = {
             maxVisible={3}
           />
 
-          {/* Conversion Funnel Breakdown */}
-          {(() => {
-            const funnelStages = [
-              {
-                key: 'awareness',
-                label: 'Awareness',
-                value: awarenessData[awarenessData.length - 1].totalVolume,
-              },
-              {
-                key: 'consideration',
-                label: 'Consideration',
-                value: considerationData[considerationData.length - 1].totalEngagements,
-              },
-              {
-                key: 'purchase',
-                label: 'Purchase',
-                value: purchaseData[purchaseData.length - 1].totalUnitsSold,
-              },
-              {
-                key: 'loyalty',
-                label: 'Loyalty',
-                value: loyaltyData[loyaltyData.length - 1].existingBuyers,
-              },
-            ];
-            const overallRate =
-              funnelStages[0].value > 0
-                ? (funnelStages[funnelStages.length - 1].value / funnelStages[0].value) * 100
-                : 0;
-            return (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Conversion rate breakdown</CardTitle>
-                  <div className="text-3xl font-semibold mt-1">
-                    {overallRate < 0.1 ? overallRate.toFixed(2) : overallRate.toFixed(1)}%
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ConversionFunnelComponent
-                    stages={funnelStages}
-                    selectedKey={selectedStage}
-                    onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
-                    valueFormatter={(v) =>
-                      v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
-                    }
-                  />
-                </CardContent>
-              </Card>
-            );
-          })()}
-
-          {/* Awareness Card */}
-          {selectedStage === 'awareness' && (
+          {/* Conversion Funnel Breakdown + selected stage section */}
           <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Conversion rate breakdown</CardTitle>
+              <div className="text-3xl font-semibold mt-1">
+                {overallFunnelRate < 0.1 ? overallFunnelRate.toFixed(2) : overallFunnelRate.toFixed(1)}%
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ConversionFunnelComponent
+                stages={funnelStages}
+                selectedKey={selectedStage}
+                onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
+                valueFormatter={(v) =>
+                  v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
+                }
+              />
+            </CardContent>
+
+            <div className="border-t border-border">
+          {/* Awareness section */}
+          {selectedStage === 'awareness' && (
+          <>
             <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
@@ -4144,12 +4142,12 @@ export const FunnelView: Story = {
               </div>
             </CardContent>
             )}
-          </Card>
+          </>
           )}
 
-          {/* Consideration Card */}
+          {/* Consideration section */}
           {selectedStage === 'consideration' && (
-          <Card>
+          <>
             <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
@@ -4384,12 +4382,12 @@ export const FunnelView: Story = {
               </div>
             </CardContent>
             )}
-          </Card>
+          </>
           )}
 
-          {/* Purchase Card */}
+          {/* Purchase section */}
           {selectedStage === 'purchase' && (
-          <Card>
+          <>
             <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
@@ -4587,12 +4585,12 @@ export const FunnelView: Story = {
               </div>
             </CardContent>
             )}
-          </Card>
+          </>
           )}
 
-          {/* Loyalty Card */}
+          {/* Loyalty section */}
           {selectedStage === 'loyalty' && (
-          <Card>
+          <>
             <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex flex-col gap-1 justify-center">
@@ -4780,8 +4778,10 @@ export const FunnelView: Story = {
               </div>
             </CardContent>
             )}
-          </Card>
+          </>
           )}
+            </div>
+          </Card>
         </div>
       </AppLayout>
 

@@ -3263,7 +3263,7 @@ export const FunnelView: Story = {
     ];
 
     // Selected top metrics (can be multiple)
-    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['sales', 'spend', 'roas']);
+    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['revenueByChannel', 'revenueByProduct', 'iroas']);
 
     // Custom Report Dialog state
     const [customReportOpen, setCustomReportOpen] = useState(false);
@@ -3296,35 +3296,21 @@ export const FunnelView: Story = {
           if (goal === 'loyalty') setLoyaltyCollapsed(false);
         });
 
-        // Swap metrics in Performance Overview based on goal filter
+        // If sales/reach is already selected, swap based on goal filter
         if (goalFilter.includes('awareness')) {
-          // Replace 'sales' with 'reach' for awareness
-          setSelectedTopMetrics(prev => {
-            const newMetrics = prev.filter(m => m !== 'sales');
-            if (!newMetrics.includes('reach')) {
-              newMetrics.unshift('reach');
-            }
-            return newMetrics;
-          });
+          setSelectedTopMetrics(prev =>
+            prev.includes('sales') ? prev.map(m => (m === 'sales' ? 'reach' : m)) : prev
+          );
         } else {
-          // Restore 'sales' and remove 'reach' for other goals
-          setSelectedTopMetrics(prev => {
-            const newMetrics = prev.filter(m => m !== 'reach');
-            if (!newMetrics.includes('sales')) {
-              newMetrics.unshift('sales');
-            }
-            return newMetrics;
-          });
+          setSelectedTopMetrics(prev =>
+            prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
+          );
         }
       } else {
-        // No filter selected - restore default with 'sales'
-        setSelectedTopMetrics(prev => {
-          const newMetrics = prev.filter(m => m !== 'reach');
-          if (!newMetrics.includes('sales')) {
-            newMetrics.unshift('sales');
-          }
-          return newMetrics;
-        });
+        // No filter selected - swap reach back to sales if present
+        setSelectedTopMetrics(prev =>
+          prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
+        );
       }
     }, [goalFilter]);
 

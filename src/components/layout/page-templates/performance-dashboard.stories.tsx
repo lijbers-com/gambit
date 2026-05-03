@@ -3698,10 +3698,6 @@ export const FunnelView: Story = {
         value: loyaltyData[loyaltyData.length - 1].existingBuyers,
       },
     ];
-    const overallFunnelRate =
-      funnelStages[0].value > 0
-        ? (funnelStages[funnelStages.length - 1].value / funnelStages[0].value) * 100
-        : 0;
 
     return (
       <MenuContextProvider>
@@ -3875,12 +3871,9 @@ export const FunnelView: Story = {
           {/* Conversion Funnel Breakdown + selected stage section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Conversion rate breakdown</CardTitle>
-              <div className="text-3xl font-semibold mt-1">
-                {overallFunnelRate < 0.1 ? overallFunnelRate.toFixed(2) : overallFunnelRate.toFixed(1)}%
-              </div>
+              <CardTitle className="text-base">Funnel performance</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="px-6 pt-0 pb-0">
               <ConversionFunnelComponent
                 stages={funnelStages}
                 selectedKey={selectedStage}

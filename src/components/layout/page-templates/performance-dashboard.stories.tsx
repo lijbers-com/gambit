@@ -3887,7 +3887,9 @@ export const FunnelView: Story = {
             </div>
           <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
             <CardHeader>
-              <CardTitle className="text-base">Funnel performance</CardTitle>
+              <CardTitle className="text-base">
+                {funnelStages.find(s => s.key === selectedStage)?.label}
+              </CardTitle>
             </CardHeader>
             <CardContent className="px-6 pt-0 pb-0">
               <ConversionFunnelComponent
@@ -3904,9 +3906,6 @@ export const FunnelView: Story = {
           {/* Awareness section */}
           {selectedStage === 'awareness' && (
           <>
-            <CardHeader>
-              <CardTitle>Awareness</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Volume with selected impression type cards */}
@@ -4090,9 +4089,6 @@ export const FunnelView: Story = {
           {/* Consideration section */}
           {selectedStage === 'consideration' && (
           <>
-            <CardHeader>
-              <CardTitle>Consideration</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Engagements */}
@@ -4300,9 +4296,6 @@ export const FunnelView: Story = {
           {/* Purchase section */}
           {selectedStage === 'purchase' && (
           <>
-            <CardHeader>
-              <CardTitle>Purchase</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Units Sold */}
@@ -4473,9 +4466,6 @@ export const FunnelView: Story = {
           {/* Loyalty section */}
           {selectedStage === 'loyalty' && (
           <>
-            <CardHeader>
-              <CardTitle>Loyalty</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Retained Customers */}

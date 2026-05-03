@@ -2635,21 +2635,6 @@ export const ProductReportView: Story = {
       { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '3.50x', organicRevenue: 130000, totalRevenue: 480000 }
     ];
 
-    const ecomFunnelData = [
-      { id: 'STEP-001', step: 'Impressions', value: 15240000, percentage: '100%', dropOff: '0%', ctr: '0.32%', engine: 'All' },
-      { id: 'STEP-002', step: 'Clicks', value: 48850, percentage: '0.32%', dropOff: '99.68%', cartRate: '18.7%', engine: 'All' },
-      { id: 'STEP-003', step: 'Add to Cart', value: 9135, percentage: '0.06%', dropOff: '81.3%', convRate: '4.2%', engine: 'All' },
-      { id: 'STEP-004', step: 'Purchases', value: 384, percentage: '0.003%', dropOff: '95.8%', aov: '€45.60', engine: 'All' }
-    ];
-
-    const goalReportData = [
-      { id: 'GOAL-001', goal: 'Awareness', sponsored: 25, display: 45, digitalInstore: 20, offlineInstore: 10, total: 100 },
-      { id: 'GOAL-002', goal: 'Consideration', sponsored: 35, display: 30, digitalInstore: 25, offlineInstore: 10, total: 100 },
-      { id: 'GOAL-003', goal: 'Intent', sponsored: 40, display: 20, digitalInstore: 25, offlineInstore: 15, total: 100 },
-      { id: 'GOAL-004', goal: 'Purchase', sponsored: 50, display: 15, digitalInstore: 20, offlineInstore: 15, total: 100 },
-      { id: 'GOAL-005', goal: 'Retention', sponsored: 30, display: 12, digitalInstore: 22, offlineInstore: 18, total: 82 }
-    ];
-
     const getStatusBadgeVariant = (status: string) => {
       switch (status.toLowerCase()) {
         case 'active':
@@ -2675,6 +2660,42 @@ export const ProductReportView: Story = {
           return 'secondary';
       }
     };
+
+    // Per-tab chart data
+    const productChartTopProducts = productReportData.slice(0, 5).map(p => ({
+      name: p.productName.length > 18 ? p.productName.slice(0, 18) + '…' : p.productName,
+      revenue: Math.round(p.revenue),
+      buyers: p.purchases,
+    }));
+    const productSalesOverTime = [
+      { month: 'Jan', revenue: 18200, units: 412 },
+      { month: 'Feb', revenue: 24600, units: 538 },
+      { month: 'Mar', revenue: 22100, units: 491 },
+      { month: 'Apr', revenue: 31800, units: 680 },
+      { month: 'May', revenue: 35400, units: 752 },
+      { month: 'Jun', revenue: 42100, units: 894 },
+    ];
+
+    const audienceShareData = audienceReportData.map(a => ({
+      name: a.segment,
+      value: parseInt(a.percentage),
+    }));
+    const audienceSpendRevenue = audienceReportData.map(a => ({
+      segment: a.segment,
+      spend: Math.round(a.spend),
+      revenue: Math.round(a.revenue),
+    }));
+
+    const iroasByEngine = iroasReportData
+      .filter(e => e.engine !== 'Overall')
+      .map(e => ({ engine: e.engine, iroas: parseFloat(e.iroas) }));
+    const revenueSplit = iroasReportData
+      .filter(e => e.engine !== 'Overall')
+      .map(e => ({
+        engine: e.engine,
+        incremental: e.incrementalRevenue,
+        organic: e.organicRevenue,
+      }));
 
     return (
       <MenuContextProvider>
@@ -2712,6 +2733,49 @@ export const ProductReportView: Story = {
                 label: 'Product Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Buyers by product</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={productChartTopProducts}
+                            config={{ buyers: { label: 'Buyers', color: 'hsl(var(--chart-1))' } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="name"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Sales over time</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={productSalesOverTime}
+                            config={{
+                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+                              units: { label: 'Units', color: 'hsl(var(--chart-2))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            showDots={true}
+                            xAxisDataKey="month"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2811,6 +2875,55 @@ export const ProductReportView: Story = {
                 label: 'Audience Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Audience share</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PieChartComponent
+                            data={audienceShareData}
+                            config={{
+                              Stedelijk: { label: 'Stedelijk', color: 'hsl(var(--chart-1))' },
+                              'Young adult': { label: 'Young adult', color: 'hsl(var(--chart-2))' },
+                              'Family with Kids': { label: 'Family with Kids', color: 'hsl(var(--chart-3))' },
+                              'Bonus shoppers': { label: 'Bonus shoppers', color: 'hsl(var(--chart-4))' },
+                            }}
+                            showLegend={true}
+                            showTooltip={true}
+                            className="h-[220px] w-full"
+                            nameKey="name"
+                            dataKey="value"
+                            innerRadius={50}
+                            outerRadius={85}
+                            startAngle={90}
+                            endAngle={-270}
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Spend vs revenue per segment</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={audienceSpendRevenue}
+                            config={{
+                              spend: { label: 'Spend', color: 'hsl(var(--chart-2))' },
+                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="segment"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2890,6 +3003,49 @@ export const ProductReportView: Story = {
                 label: 'IROAS Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">IROAS by engine</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={iroasByEngine}
+                            config={{ iroas: { label: 'IROAS', color: 'hsl(var(--chart-1))' } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="engine"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Incremental vs organic revenue</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={revenueSplit}
+                            config={{
+                              incremental: { label: 'Incremental', color: 'hsl(var(--chart-1))' },
+                              organic: { label: 'Organic', color: 'hsl(var(--chart-3))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="engine"
+                            stacked={true}
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2957,160 +3113,6 @@ export const ProductReportView: Story = {
                       rowKey={row => row.id}
                       rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
-                    />
-                  </div>
-                )
-              },
-              {
-                value: 'ecom-funnel-report',
-                label: 'Ecom Funnel Report',
-                content: (
-                  <div>
-                    {/* FilterBar above table */}
-                    <div className="mb-4 mt-6">
-                      <FilterBar
-                        filters={[
-                          {
-                            name: "Status",
-                            options: [
-                              { label: "Active", value: "active" },
-                              { label: "Paused", value: "paused" },
-                              { label: "Completed", value: "completed" },
-                            ],
-                            selectedValues: statusFilter,
-                            onChange: setStatusFilter,
-                          },
-                          {
-                            name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
-                            selectedValues: categoryFilter,
-                            onChange: setCategoryFilter,
-                          },
-                          {
-                            name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
-                            selectedValues: brandFilter,
-                            onChange: setBrandFilter,
-                          },
-                          {
-                            name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
-                            selectedValues: engineFilter,
-                            onChange: setEngineFilter,
-                          },
-                        ]}
-                        searchValue={searchValue}
-                        onSearchChange={setSearchValue}
-                        searchPlaceholder="Search reports..."
-                      />
-                    </div>
-                    <Table
-                      columns={[
-                        { key: 'step', header: 'Funnel Step', hideable: false },
-                        { key: 'value', header: 'Volume', render: row => row.value.toLocaleString() },
-                        { key: 'percentage', header: 'Percentage' },
-                        { key: 'dropOff', header: 'Drop Off' },
-                        { key: 'ctr', header: 'CTR' },
-                        { key: 'cartRate', header: 'Cart Rate' },
-                        { key: 'convRate', header: 'Conv Rate' },
-                        { key: 'aov', header: 'AOV' },
-                      ]}
-                      data={ecomFunnelData}
-                      rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
-                      onRowClick={row => console.log('Navigate to funnel details for', row.step)}
-                    />
-                  </div>
-                )
-              },
-              {
-                value: 'goal-report',
-                label: 'Goal Report',
-                content: (
-                  <div>
-                    {/* FilterBar above table */}
-                    <div className="mb-4 mt-6">
-                      <FilterBar
-                        filters={[
-                          {
-                            name: "Status",
-                            options: [
-                              { label: "Active", value: "active" },
-                              { label: "Paused", value: "paused" },
-                              { label: "Completed", value: "completed" },
-                            ],
-                            selectedValues: statusFilter,
-                            onChange: setStatusFilter,
-                          },
-                          {
-                            name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
-                            selectedValues: categoryFilter,
-                            onChange: setCategoryFilter,
-                          },
-                          {
-                            name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
-                            selectedValues: brandFilter,
-                            onChange: setBrandFilter,
-                          },
-                          {
-                            name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
-                            selectedValues: engineFilter,
-                            onChange: setEngineFilter,
-                          },
-                        ]}
-                        searchValue={searchValue}
-                        onSearchChange={setSearchValue}
-                        searchPlaceholder="Search reports..."
-                      />
-                    </div>
-                    <Table
-                      columns={[
-                        { key: 'goal', header: 'Goal', hideable: false },
-                        { key: 'sponsored', header: 'Sponsored Products', render: row => `${row.sponsored}%` },
-                        { key: 'display', header: 'Display', render: row => `${row.display}%` },
-                        { key: 'digitalInstore', header: 'Digital In-store', render: row => `${row.digitalInstore}%` },
-                        { key: 'offlineInstore', header: 'Offline In-store', render: row => `${row.offlineInstore}%` },
-                        { key: 'total', header: 'Total Score', render: row => `${row.total}%` },
-                      ]}
-                      data={goalReportData}
-                      rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
-                      onRowClick={row => console.log('Navigate to goal details for', row.goal)}
                     />
                   </div>
                 )

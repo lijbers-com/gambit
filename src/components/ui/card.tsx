@@ -385,8 +385,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           const total = donutData.reduce((sum, d) => sum + d.value, 0);
           const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
           return (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3">
-              <div className="aspect-square w-24">
+            <div className="flex flex-1 items-center gap-4">
+              <div className="aspect-square w-24 shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -407,7 +407,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <ul className="w-full space-y-1 text-xs">
+              <ul className="flex-1 min-w-0 space-y-1 text-xs">
                 {donutData.map((item, i) => {
                   const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
                   return (

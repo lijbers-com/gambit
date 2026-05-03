@@ -108,20 +108,6 @@ export function LineChartComponent({
             yAxisId="left"
           />
         ))}
-        {benchmark != null && (
-          <ReferenceLine
-            y={benchmark.value}
-            yAxisId="left"
-            stroke="hsl(var(--muted-foreground))"
-            strokeDasharray="4 4"
-            strokeOpacity={0.8}
-            label={
-              benchmark.label
-                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
-                : undefined
-            }
-          />
-        )}
         {showXAxis && (
           <XAxis
             dataKey={xAxisDataKey}
@@ -181,6 +167,21 @@ export function LineChartComponent({
             activeDot={false}
           />
         ))}
+        {benchmark != null && (
+          <ReferenceLine
+            y={benchmark.value}
+            yAxisId="left"
+            stroke="hsl(var(--muted-foreground))"
+            strokeDasharray="4 4"
+            strokeOpacity={0.8}
+            ifOverflow="extendDomain"
+            label={
+              benchmark.label
+                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
+                : undefined
+            }
+          />
+        )}
         {showTooltip && (
           <ChartTooltip
             cursor={false}

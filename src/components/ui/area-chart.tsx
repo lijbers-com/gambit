@@ -101,20 +101,6 @@ export function AreaChartComponent({
             yAxisId="left"
           />
         ))}
-        {benchmark != null && (
-          <ReferenceLine
-            y={benchmark.value}
-            yAxisId="left"
-            stroke="hsl(var(--muted-foreground))"
-            strokeDasharray="4 4"
-            strokeOpacity={0.8}
-            label={
-              benchmark.label
-                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
-                : undefined
-            }
-          />
-        )}
         {showXAxis && (
           <XAxis
             dataKey="month"
@@ -163,6 +149,21 @@ export function AreaChartComponent({
             yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
           />
         ))}
+        {benchmark != null && (
+          <ReferenceLine
+            y={benchmark.value}
+            yAxisId="left"
+            stroke="hsl(var(--muted-foreground))"
+            strokeDasharray="4 4"
+            strokeOpacity={0.8}
+            ifOverflow="extendDomain"
+            label={
+              benchmark.label
+                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
+                : undefined
+            }
+          />
+        )}
         {showTooltip && (
           <ChartTooltip
             cursor={false}

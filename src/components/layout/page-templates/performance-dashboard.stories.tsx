@@ -3269,15 +3269,7 @@ export const FunnelView: Story = {
     const [customReportOpen, setCustomReportOpen] = useState(false);
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
 
-    // Collapse states for funnel cards
-    const [awarenessCollapsed, setAwarenessCollapsed] = useState(false);
-    const [volumeDetailsCollapsed, setVolumeDetailsCollapsed] = useState(false);
-    const [sovDetailsCollapsed, setSovDetailsCollapsed] = useState(false);
     const [buyerReachDetailsCollapsed, setBuyerReachDetailsCollapsed] = useState(false);
-    const [roasDetailsCollapsed, setRoasDetailsCollapsed] = useState(false);
-    const [considerationCollapsed, setConsiderationCollapsed] = useState(false);
-    const [purchaseCollapsed, setPurchaseCollapsed] = useState(false);
-    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(false);
 
     // Funnel chart drives which stage card is visible
     type FunnelStageKey = 'awareness' | 'consideration' | 'purchase' | 'loyalty';
@@ -3869,7 +3861,31 @@ export const FunnelView: Story = {
           />
 
           {/* Conversion Funnel Breakdown + selected stage section */}
-          <Card>
+          <div>
+            <div className="flex items-end w-full" style={{ minHeight: 56 }}>
+              <div className="flex gap-0 flex-1">
+                {funnelStages.map((stage) => {
+                  const active = selectedStage === stage.key;
+                  return (
+                    <button
+                      key={stage.key}
+                      type="button"
+                      onClick={() => setSelectedStage(stage.key as FunnelStageKey)}
+                      className={cn(
+                        "px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors",
+                        active
+                          ? "font-medium bg-card text-card-foreground border-border z-10"
+                          : "font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground"
+                      )}
+                      style={{ position: 'relative', top: 1 }}
+                    >
+                      {stage.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
             <CardHeader>
               <CardTitle className="text-base">Funnel performance</CardTitle>
             </CardHeader>
@@ -3888,75 +3904,9 @@ export const FunnelView: Story = {
           {/* Awareness section */}
           {selectedStage === 'awareness' && (
           <>
-            <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Awareness</CardTitle>
-                  <div className={cn(
-                    "flex flex-wrap items-center gap-x-4 gap-y-1 transition-all duration-200",
-                    awarenessCollapsed ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
-                  )}>
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">Volume</span>
-                      <span className="font-medium text-foreground">{totalVolumeLabel}</span>
-                      <Badge variant="success" className="text-xs">+64%</Badge>
-                    </span>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">SOV</span>
-                      <span className="font-medium text-foreground">45%</span>
-                      <Badge variant="success" className="text-xs">+41%</Badge>
-                    </span>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">Buyer Reach</span>
-                      <span className="font-medium text-foreground">64K</span>
-                      <Badge variant="success" className="text-xs">+92%</Badge>
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAwarenessCollapsed(!awarenessCollapsed);
-                  }}
-                >
-                  {awarenessCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {awarenessCollapsed && (
-                <div className="h-20 w-full -mb-2 mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart
-                      data={awarenessData.map(d => ({ month: d.month, value: d.totalVolume }))}
-                      margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
-                    >
-                      <RechartsYAxis
-                        tickLine={false}
-                        axisLine={false}
-                        width={40}
-                        tickCount={3}
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                        tickFormatter={formatYAxisTick}
-                      />
-                      <RechartsXAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={4}
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-1))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle>Awareness</CardTitle>
             </CardHeader>
-            {!awarenessCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Volume with selected impression type cards */}
@@ -4134,44 +4084,15 @@ export const FunnelView: Story = {
                 </Button>
               </div>
             </CardContent>
-            )}
           </>
           )}
 
           {/* Consideration section */}
           {selectedStage === 'consideration' && (
           <>
-            <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Consideration</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Total Engagements {totalEngagementsLabel}</p>
-                    <Badge variant="success" className="text-xs">+78%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConsiderationCollapsed(!considerationCollapsed);
-                  }}
-                >
-                  {considerationCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {considerationCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={considerationData.map(d => ({ value: d.totalEngagements }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-2))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle>Consideration</CardTitle>
             </CardHeader>
-            {!considerationCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Engagements */}
@@ -4373,44 +4294,15 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
           </>
           )}
 
           {/* Purchase section */}
           {selectedStage === 'purchase' && (
           <>
-            <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Purchase</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Total Units Sold {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}</p>
-                    <Badge variant="success" className="text-xs">+125%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPurchaseCollapsed(!purchaseCollapsed);
-                  }}
-                >
-                  {purchaseCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {purchaseCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={purchaseData.map(d => ({ value: d.totalUnitsSold }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-3))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle>Purchase</CardTitle>
             </CardHeader>
-            {!purchaseCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Units Sold */}
@@ -4575,44 +4467,15 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
           </>
           )}
 
           {/* Loyalty section */}
           {selectedStage === 'loyalty' && (
           <>
-            <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Loyalty</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K</p>
-                    <Badge variant="success" className="text-xs">+38%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLoyaltyCollapsed(!loyaltyCollapsed);
-                  }}
-                >
-                  {loyaltyCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {loyaltyCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={loyaltyData.map(d => ({ value: d.existingBuyers }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-4))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle>Loyalty</CardTitle>
             </CardHeader>
-            {!loyaltyCollapsed && (
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Retained Customers */}
@@ -4768,11 +4631,11 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
           </>
           )}
             </div>
           </Card>
+          </div>
         </div>
       </AppLayout>
 

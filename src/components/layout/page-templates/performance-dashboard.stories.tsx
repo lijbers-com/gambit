@@ -3356,6 +3356,19 @@ export const FunnelView: Story = {
       existing: { label: "Existing brand reach", color: "hsl(var(--chart-3))" }
     };
 
+    // Type of Buyer donut - current month snapshot
+    const buyerReachLatest = buyerReachData[buyerReachData.length - 1];
+    const buyerReachPieData = [
+      { name: "New-to-brand", value: buyerReachLatest.newToBrand },
+      { name: "Lapsed", value: buyerReachLatest.lapsed },
+      { name: "Existing", value: buyerReachLatest.existing },
+    ];
+    const buyerReachPieConfig = {
+      "New-to-brand": { label: "New-to-brand", color: "hsl(var(--chart-1))" },
+      "Lapsed": { label: "Lapsed", color: "hsl(var(--chart-2))" },
+      "Existing": { label: "Existing", color: "hsl(var(--chart-3))" },
+    };
+
     // Per-channel SOV data
     const sovChannelData = {
       spaImpressions: { label: "SPA SOV", value: 52, pieData: [{ name: "Your Brand", value: 52 }, { name: "Competitors", value: 48 }] },
@@ -4056,18 +4069,20 @@ export const FunnelView: Story = {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <BarChartComponent
-                        data={buyerReachData}
-                        config={buyerReachConfig}
-                        showLegend={true}
-                        showGrid={true}
+                      <PieChartComponent
+                        data={buyerReachPieData}
+                        config={buyerReachPieConfig}
+                        showLegend={false}
                         showTooltip={true}
-                        showXAxis={true}
-                        showYAxis={true}
-                        benchmark={{ value: 50000, label: "Target 50K" }}
                         className="h-[200px] w-full"
-                        xAxisDataKey="month"
-                        stacked={true}
+                        nameKey="name"
+                        dataKey="value"
+                        innerRadius={55}
+                        outerRadius={90}
+                        showLabels={true}
+                        labelPosition="inside"
+                        startAngle={90}
+                        endAngle={-270}
                       />
                     </CardContent>
                   </Card>

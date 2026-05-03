@@ -3500,12 +3500,12 @@ export const FunnelView: Story = {
 
     // Consideration data - engagements by channel
     const considerationDataRaw = [
-      { month: 'Jan', spaClicks: 5200, displayClicks: 3100, doohClicks: 1800, omiClicks: 1100, offsiteClicks: 820, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
-      { month: 'Feb', spaClicks: 7400, displayClicks: 4400, doohClicks: 2600, omiClicks: 1400, offsiteClicks: 1180, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
-      { month: 'Mar', spaClicks: 6500, displayClicks: 3800, doohClicks: 2200, omiClicks: 1400, offsiteClicks: 1040, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
-      { month: 'Apr', spaClicks: 8600, displayClicks: 5100, doohClicks: 3000, omiClicks: 1700, offsiteClicks: 1380, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
-      { month: 'May', spaClicks: 9300, displayClicks: 5500, doohClicks: 3200, omiClicks: 1800, offsiteClicks: 1490, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
-      { month: 'Jun', spaClicks: 10100, displayClicks: 5900, doohClicks: 3500, omiClicks: 2000, offsiteClicks: 1620, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
+      { month: 'Jan', spaClicks: 20800, displayClicks: 12400, doohClicks: 7200, omiClicks: 4400, offsiteClicks: 3280, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
+      { month: 'Feb', spaClicks: 29600, displayClicks: 17600, doohClicks: 10400, omiClicks: 5600, offsiteClicks: 4720, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
+      { month: 'Mar', spaClicks: 26000, displayClicks: 15200, doohClicks: 8800, omiClicks: 5600, offsiteClicks: 4160, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
+      { month: 'Apr', spaClicks: 34400, displayClicks: 20400, doohClicks: 12000, omiClicks: 6800, offsiteClicks: 5520, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
+      { month: 'May', spaClicks: 37200, displayClicks: 22000, doohClicks: 12800, omiClicks: 7200, offsiteClicks: 5960, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
+      { month: 'Jun', spaClicks: 40400, displayClicks: 23600, doohClicks: 14000, omiClicks: 8000, offsiteClicks: 6480, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
     ];
 
     const considerationEngagementKeys = ['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks', 'offsiteClicks'] as const;
@@ -3522,12 +3522,12 @@ export const FunnelView: Story = {
 
     // Purchase data - revenue and conversions by channel
     const purchaseDataRaw = [
-      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 520, displayUnitsSold: 310, dmiUnitsSold: 220, omiUnitsSold: 150, offsiteUnitsSold: 120, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
-      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 780, displayUnitsSold: 460, dmiUnitsSold: 330, omiUnitsSold: 230, offsiteUnitsSold: 180, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
-      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 670, displayUnitsSold: 400, dmiUnitsSold: 280, omiUnitsSold: 200, offsiteUnitsSold: 155, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
-      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 950, displayUnitsSold: 560, dmiUnitsSold: 400, omiUnitsSold: 290, offsiteUnitsSold: 220, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
-      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 1040, displayUnitsSold: 610, dmiUnitsSold: 430, omiUnitsSold: 320, offsiteUnitsSold: 240, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
-      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 1170, displayUnitsSold: 690, dmiUnitsSold: 490, omiUnitsSold: 350, offsiteUnitsSold: 270, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
+      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 3120, displayUnitsSold: 1860, dmiUnitsSold: 1320, omiUnitsSold: 900, offsiteUnitsSold: 720, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
+      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 4680, displayUnitsSold: 2760, dmiUnitsSold: 1980, omiUnitsSold: 1380, offsiteUnitsSold: 1080, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
+      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 4020, displayUnitsSold: 2400, dmiUnitsSold: 1680, omiUnitsSold: 1200, offsiteUnitsSold: 930, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
+      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 5700, displayUnitsSold: 3360, dmiUnitsSold: 2400, omiUnitsSold: 1740, offsiteUnitsSold: 1320, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
+      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 6240, displayUnitsSold: 3660, dmiUnitsSold: 2580, omiUnitsSold: 1920, offsiteUnitsSold: 1440, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
+      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 7020, displayUnitsSold: 4140, dmiUnitsSold: 2940, omiUnitsSold: 2100, offsiteUnitsSold: 1620, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
     ];
 
     const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
@@ -4211,20 +4211,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={considerationData}
                       config={Object.fromEntries(
                         engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 20000, label: "Target 20K" }}
-                      showDots={true}
+                      benchmark={{ value: 80000, label: "Target 80K" }}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+78%</Badge>
@@ -4451,20 +4450,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
                         unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 2500, label: "Target 2.5K" }}
-                      showDots={true}
+                      benchmark={{ value: 15000, label: "Target 15K" }}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+125%</Badge>

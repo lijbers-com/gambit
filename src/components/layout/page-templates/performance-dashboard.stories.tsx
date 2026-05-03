@@ -3263,7 +3263,7 @@ export const FunnelView: Story = {
     ];
 
     // Selected top metrics (can be multiple)
-    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['revenueByChannel', 'revenueByProduct', 'iroas']);
+    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['revenueByProposition', 'revenueByProduct', 'iroas']);
 
     // Custom Report Dialog state
     const [customReportOpen, setCustomReportOpen] = useState(false);
@@ -3590,13 +3590,29 @@ export const FunnelView: Story = {
     const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
     const revenueChartMetrics: MetricDefinition[] = [
       {
-        key: 'revenueByChannel',
-        label: 'Revenue by Channel',
-        value: '€8.8K',
+        key: 'revenueByProposition',
+        label: 'Revenue by Proposition',
+        value: formatEur(
+          purchaseData[purchaseData.length - 1].spaRevenue +
+          purchaseData[purchaseData.length - 1].displayRevenue +
+          purchaseData[purchaseData.length - 1].dmiRevenue +
+          purchaseData[purchaseData.length - 1].omiRevenue +
+          purchaseData[purchaseData.length - 1].offsiteRevenue
+        ),
         variant: 'donutLegend',
         donutData: [
-          { name: 'Online', value: 5300 },
-          { name: 'Instore', value: 3500 },
+          { name: 'Sponsored Products', value: purchaseData[purchaseData.length - 1].spaRevenue },
+          { name: 'Display', value: purchaseData[purchaseData.length - 1].displayRevenue },
+          { name: 'Digital Media In-store', value: purchaseData[purchaseData.length - 1].dmiRevenue },
+          { name: 'Offline Media In-store', value: purchaseData[purchaseData.length - 1].omiRevenue },
+          { name: 'Display Offsite', value: purchaseData[purchaseData.length - 1].offsiteRevenue },
+        ],
+        donutColors: [
+          'hsl(var(--chart-2))',
+          'hsl(var(--chart-3))',
+          'hsl(var(--chart-4))',
+          'hsl(var(--chart-5))',
+          'hsl(25, 90%, 55%)',
         ],
         valueFormatter: formatEur,
       },

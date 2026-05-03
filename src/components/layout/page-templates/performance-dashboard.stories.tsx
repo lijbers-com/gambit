@@ -3931,7 +3931,7 @@ export const FunnelView: Story = {
               />
             </CardContent>
 
-            <div className="border-t border-border">
+            <div className="pt-6">
           {/* Awareness section */}
           {selectedStage === 'awareness' && (
           <>

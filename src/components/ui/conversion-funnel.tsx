@@ -140,13 +140,13 @@ export function ConversionFunnelComponent({
                   y={100 - leftPct}
                   width={75}
                   height={leftPct}
-                  fill={color}
-                  opacity={dimmed ? 0.35 : 1}
+                  fill={dimmed ? "hsl(var(--muted-foreground))" : color}
+                  opacity={dimmed ? 0.25 : 1}
                 />
                 {!isLast && (
                   <polygon
                     points={`75,${100 - leftPct} 100,${100 - rightPct} 100,100 75,100`}
-                    fill={color}
+                    fill={dimmed ? "hsl(var(--muted-foreground))" : color}
                     opacity={dimmed ? 0.12 : 0.3}
                   />
                 )}

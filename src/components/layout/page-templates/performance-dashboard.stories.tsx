@@ -2621,10 +2621,9 @@ export const ProductReportView: Story = {
     ];
 
     const audienceReportData = [
-      { id: 'AUD-001', segment: 'Stedelijk', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: '25-34', gender: 'Mixed' },
-      { id: 'AUD-002', segment: 'Young adult', impressions: 1480000, clicks: 6100, spend: 3600.75, revenue: 15230.60, roas: '4.23x', percentage: '28%', age: '18-24', gender: 'Mixed' },
-      { id: 'AUD-003', segment: 'Family with Kids', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: '28-45', gender: 'Female' },
-      { id: 'AUD-004', segment: 'Bonus shoppers', impressions: 635000, clicks: 2100, spend: 1450.30, revenue: 4890.20, roas: '3.37x', percentage: '12%', age: '45+', gender: 'Mixed' }
+      { id: 'AUD-001', segment: 'New-to-brand', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-002', segment: 'Lapsed', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-003', segment: 'Existing', impressions: 2115000, clicks: 8200, spend: 4850.50, revenue: 22890.60, roas: '4.72x', percentage: '40%', age: 'All', gender: 'Mixed' }
     ];
 
     const iroasReportData = [
@@ -2662,11 +2661,24 @@ export const ProductReportView: Story = {
     };
 
     // Per-tab chart data
-    const productChartTopProducts = productReportData.slice(0, 5).map(p => ({
-      name: p.productName.length > 18 ? p.productName.slice(0, 18) + '…' : p.productName,
-      revenue: Math.round(p.revenue),
-      buyers: p.purchases,
-    }));
+    const productChartTopProducts = productReportData.slice(0, 5).map((p, i) => {
+      // Vary the new/lapsed/existing split per product for visual interest
+      const splits = [
+        { n: 0.30, l: 0.25, e: 0.45 },
+        { n: 0.40, l: 0.20, e: 0.40 },
+        { n: 0.25, l: 0.30, e: 0.45 },
+        { n: 0.35, l: 0.30, e: 0.35 },
+        { n: 0.20, l: 0.35, e: 0.45 },
+      ];
+      const split = splits[i] ?? splits[0];
+      return {
+        name: p.productName.length > 18 ? p.productName.slice(0, 18) + '…' : p.productName,
+        revenue: Math.round(p.revenue),
+        newToBrand: Math.round(p.purchases * split.n),
+        lapsed: Math.round(p.purchases * split.l),
+        existing: Math.round(p.purchases * split.e),
+      };
+    });
     const productSalesOverTime = [
       { month: 'Jan', revenue: 18200, units: 412 },
       { month: 'Feb', revenue: 24600, units: 538 },
@@ -2742,8 +2754,13 @@ export const ProductReportView: Story = {
                         <CardContent>
                           <BarChartComponent
                             data={productChartTopProducts}
-                            config={{ buyers: { label: 'Buyers', color: 'hsl(var(--chart-1))' } }}
-                            showLegend={false}
+                            config={{
+                              newToBrand: { label: 'New-to-brand', color: 'hsl(var(--chart-1))' },
+                              lapsed: { label: 'Lapsed', color: 'hsl(var(--chart-2))' },
+                              existing: { label: 'Existing', color: 'hsl(var(--chart-3))' },
+                            }}
+                            stacked={true}
+                            showLegend={true}
                             showGrid={true}
                             showTooltip={true}
                             showXAxis={true}
@@ -2885,10 +2902,9 @@ export const ProductReportView: Story = {
                           <PieChartComponent
                             data={audienceShareData}
                             config={{
-                              Stedelijk: { label: 'Stedelijk', color: 'hsl(var(--chart-1))' },
-                              'Young adult': { label: 'Young adult', color: 'hsl(var(--chart-2))' },
-                              'Family with Kids': { label: 'Family with Kids', color: 'hsl(var(--chart-3))' },
-                              'Bonus shoppers': { label: 'Bonus shoppers', color: 'hsl(var(--chart-4))' },
+                              'New-to-brand': { label: 'New-to-brand', color: 'hsl(var(--chart-1))' },
+                              Lapsed: { label: 'Lapsed', color: 'hsl(var(--chart-2))' },
+                              Existing: { label: 'Existing', color: 'hsl(var(--chart-3))' },
                             }}
                             showLegend={true}
                             showTooltip={true}

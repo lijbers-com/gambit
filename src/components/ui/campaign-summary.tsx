@@ -1318,43 +1318,21 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         </div>
                         )}
 
-                        {/* Name & ID (name only in step 1) */}
-                        {guidedSetup && (
-                        isGuidedSettingsPhase ? (
-                        <div className="space-y-5">
-                          <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">Name</Label>
-                            <input
-                              type="text"
-                              value={internalTitle}
-                              onChange={(e) => {
-                                setInternalTitle(e.target.value);
-                                onRename?.(e.target.value);
-                              }}
-                              className="w-full h-9 bg-background border border-border px-3 py-1 rounded-md focus:outline-none focus:border-ring text-sm"
-                              placeholder="Enter name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">ID</Label>
-                            <input
-                              type="text"
-                              value={internalCampaignId}
-                              onChange={(e) => {
-                                setInternalCampaignId(e.target.value);
-                                onCampaignIdChange?.(e.target.value);
-                              }}
-                              className="w-full h-9 bg-background border border-border px-3 py-1 rounded-md focus:outline-none focus:border-ring text-sm"
-                              placeholder="Enter ID"
-                            />
-                          </div>
-                        </div>
-                        ) : (
+                        {/* Name (guided setup, step 1) */}
+                        {guidedSetup && isGuidedSettingsPhase && (
                         <div className="space-y-2">
-                          <Label className="text-sm text-muted-foreground">ID</Label>
-                          <p className="text-sm font-medium text-foreground">{internalCampaignId || '—'}</p>
+                          <Label className="text-sm text-muted-foreground">Name</Label>
+                          <input
+                            type="text"
+                            value={internalTitle}
+                            onChange={(e) => {
+                              setInternalTitle(e.target.value);
+                              onRename?.(e.target.value);
+                            }}
+                            className="w-full h-9 bg-background border border-border px-3 py-1 rounded-md focus:outline-none focus:border-ring text-sm"
+                            placeholder="Enter name"
+                          />
                         </div>
-                        )
                         )}
 
                         {/* Advertiser & Total Budget */}
@@ -1424,17 +1402,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         </div>
                         ) : (
                         <div className="space-y-5">
-                          {internalCampaignId && (
-                            <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">ID</Label>
-                              <input
-                                type="text"
-                                value={internalCampaignId}
-                                disabled
-                                className="w-full h-9 bg-muted border border-border px-3 py-1 rounded-md text-sm text-muted-foreground cursor-not-allowed"
-                              />
-                            </div>
-                          )}
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Advertiser</Label>
                             <Input

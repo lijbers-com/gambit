@@ -961,17 +961,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               )}
 
               {/* Main content area with summary sidebar */}
-              <div className={cn(
-                "grid grid-cols-1 gap-6 transition-all duration-700 ease-in-out",
-                isGuidedSettingsPhase ? "lg:grid-cols-1" : "lg:grid-cols-12"
-              )}>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Left Column - Campaigns & Agent */}
-                <div className={cn(
-                  "lg:order-1 space-y-4 transition-all duration-700 ease-in-out overflow-hidden",
-                  isGuidedSettingsPhase
-                    ? "hidden"
-                    : "lg:col-span-8"
-                )}>
+                <div className="lg:order-1 space-y-4 overflow-hidden lg:col-span-8">
                   {/* Media Propositions */}
                   <div className="space-y-2">
                     {currentEngines.map((engine) => {
@@ -1297,12 +1289,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 </div>
 
                 {/* Right Column - Summary Card */}
-                <div className={cn(
-                  "lg:order-2 transition-all duration-700 ease-in-out",
-                  isGuidedSettingsPhase
-                    ? ""
-                    : "lg:col-span-4"
-                )}>
+                <div className="lg:order-2 lg:col-span-4">
                   <CardSummary>
                     <CardHeader>
                       <CardSummaryTitle>Media plan</CardSummaryTitle>
@@ -1334,7 +1321,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         {/* Name & ID (name only in step 1) */}
                         {guidedSetup && (
                         isGuidedSettingsPhase ? (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Name</Label>
                             <input
@@ -1372,7 +1359,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
                         {/* Advertiser & Total Budget */}
                         {guidedSetup ? (
-                        <div className={isGuidedSettingsPhase ? "grid grid-cols-2 gap-4" : "space-y-5"}>
+                        <div className="space-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Advertiser</Label>
                             <Input

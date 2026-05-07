@@ -326,7 +326,6 @@ function AllCampaignsPage() {
                           hideGoal
                           hideTargeting
                           hideAgent
-                          hideAutoBudget
                           hideEngineToggle
                           hideEngineActions
                           guidedSetup={newCampaignIds.has(campaign.id)}

@@ -777,7 +777,6 @@ export const Campaigns360NoGoalTargeting: Story = {
                             hideGoal
                             hideTargeting
                             hideAgent
-                            hideAutoBudget
                             hideEngineToggle
                             hideEngineActions
                             guidedSetup={newCampaignIds.has(campaign.id)}

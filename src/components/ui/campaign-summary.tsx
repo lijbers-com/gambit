@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, MetricCard, CardSummary, CardSummaryContent, CardSummaryTitle } from './card';
+import { Card, CardContent, CardHeader, CardSummary, CardSummaryContent, CardSummaryTitle } from './card';
+import { MetricRow, MetricDefinition } from './metric-row';
 import { Badge } from './badge';
 import { Input } from './input';
 import { Label } from './label';
@@ -172,6 +173,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalCampaignId, setInternalCampaignId] = React.useState(campaignIdProp);
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
     const [settingsDirty, setSettingsDirty] = React.useState(false);
+    const [selectedMetricKeys, setSelectedMetricKeys] = React.useState<string[]>([
+      'budget-per-proposition',
+      'spend-per-proposition',
+      'impressions',
+      'roas',
+    ]);
 
     // Available proposition types for adding new campaigns
     const propositionTypes = [
@@ -922,43 +929,91 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             // Horizontal Layout
             <div className="space-y-6">
               {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
-              {!isGuidedSettingsPhase && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard
-                  label="Budget"
-                  value={hasBudget ? budget : '—'}
-                  subMetric={hasBudget && totalPrice ? `Total Spend: ${totalPrice}` : undefined}
-                  progress={hasProgress ? calculateBudgetUsage : undefined}
-                  variant="graph"
-                />
-                <MetricCard
-                  label="Est. Impressions"
-                  value={estReach}
-                  subMetric={estReachCurrent}
-                  variant="graph"
-                  progress={reachProgress}
-                  className="transition-all duration-500 ease-in-out"
-                />
-                <MetricCard
-                  label="Est. ROAS"
-                  value={estRoas}
-                  subMetric={estRoasCurrent}
-                  variant="graph"
-                  progress={roasProgress}
-                  className="transition-all duration-500 ease-in-out"
-                />
-                <MetricCard
-                  label="Est. Sales"
-                  value={estSales}
-                  subMetric={estSalesCurrent}
-                  badgeValue={estSalesGrowth}
-                  badgeVariant="success"
-                  variant="graph"
-                  progress={salesProgress}
-                  className="transition-all duration-500 ease-in-out"
-                />
-              </div>
-              )}
+              {!isGuidedSettingsPhase && (() => {
+                const enabledEngines = currentEngines.filter(e => e.enabled);
+                const budgetByEngine = enabledEngines.map(engine => ({
+                  name: engine.name,
+                  value: parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0,
+                }));
+                // Per-engine spend isn't in the data model — distribute the campaign-level
+                // totalPrice proportionally to each engine's share of the total budget.
+                const totalSpendNum = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                const totalEngineBudget = budgetByEngine.reduce((sum, e) => sum + e.value, 0) || 1;
+                const spendByEngine = budgetByEngine.map(e => ({
+                  name: e.name,
+                  value: Math.round((e.value / totalEngineBudget) * totalSpendNum),
+                }));
+                const remainingByEngine = budgetByEngine.map((e, i) => ({
+                  name: e.name,
+                  value: Math.max(e.value - spendByEngine[i].value, 0),
+                }));
+                const remainingNum = Math.max(budgetNumForMetrics - totalSpendNum, 0);
+                // Synthetic conversions: 4% of budget as a stand-in for a real conversion
+                // count until the data model carries one through.
+                const conversionsNum = budgetNumForMetrics * 0.04;
+                const sparkline = (peak: number) => [0.6, 0.7, 0.65, 0.78, 0.82, 0.92, 1].map(r => ({ value: peak * r }));
+
+                const metricsForRow: MetricDefinition[] = [
+                  {
+                    key: 'budget-per-proposition',
+                    label: 'Budget per proposition',
+                    value: hasBudget ? fmtCurrency(budgetNumForMetrics) : '—',
+                    variant: 'barHorizontal',
+                    productData: budgetByEngine,
+                    valueFormatter: (v) => fmtCurrency(v),
+                  },
+                  {
+                    key: 'spend-per-proposition',
+                    label: 'Spend per proposition',
+                    value: hasBudget ? fmtCurrency(totalSpendNum) : '—',
+                    variant: 'barHorizontal',
+                    productData: spendByEngine,
+                    valueFormatter: (v) => fmtCurrency(v),
+                  },
+                  {
+                    key: 'remaining-per-proposition',
+                    label: 'Remaining budget per proposition',
+                    value: hasBudget ? fmtCurrency(remainingNum) : '—',
+                    variant: 'barHorizontal',
+                    productData: remainingByEngine,
+                    valueFormatter: (v) => fmtCurrency(v),
+                  },
+                  {
+                    key: 'impressions',
+                    label: 'Impressions',
+                    value: estReach,
+                    subMetric: estReachCurrent,
+                    variant: 'graph',
+                    graphData: sparkline(budgetNumForMetrics * reachMult),
+                  },
+                  {
+                    key: 'conversions',
+                    label: 'Conversions',
+                    value: hasBudget ? fmtNumber(conversionsNum) : '—',
+                    subMetric: hasProgress ? `Current: ${fmtNumber(conversionsNum * 0.64)}` : undefined,
+                    variant: 'graph',
+                    graphData: sparkline(conversionsNum),
+                  },
+                  {
+                    key: 'roas',
+                    label: 'ROAS',
+                    value: estRoas,
+                    subMetric: estRoasCurrent,
+                    variant: 'graph',
+                    graphData: sparkline(estRoasNum),
+                  },
+                ];
+
+                return (
+                  <MetricRow
+                    metrics={metricsForRow}
+                    selectedKeys={selectedMetricKeys}
+                    onSelectionChange={setSelectedMetricKeys}
+                    maxVisible={4}
+                    defaultVariant="graph"
+                  />
+                );
+              })()}
 
               {/* Main content area with summary sidebar */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">

@@ -1414,10 +1414,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                           {!hideAutoBudget && (
                           <div className="flex items-center justify-between pt-1">
-                            <div className="flex items-center gap-1.5">
-                              <Sparkles className={cn("h-3.5 w-3.5", autoBudgetOptimization ? "text-primary" : "text-muted-foreground")} />
-                              <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                            </div>
+                            <span className="text-sm text-foreground">Auto Budget Optimization</span>
                             <Switch
                               checked={autoBudgetOptimization}
                               onCheckedChange={setAutoBudgetOptimization}

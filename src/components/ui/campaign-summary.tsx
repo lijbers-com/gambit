@@ -1335,7 +1335,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         </div>
                         )}
 
-                        {/* Advertiser & Total Budget */}
+                        {/* Advertiser, Run time, Total Budget, Auto Budget toggle */}
                         {guidedSetup ? (
                         <div className="space-y-5">
                           <div className="space-y-2">
@@ -1356,6 +1356,19 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               }}
                               placeholder="Select advertiser"
                               className="bg-background border-border"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Run time</Label>
+                            <DateRangePicker
+                              dateRange={dateRange}
+                              onDateRangeChange={(range) => {
+                                onDateRangeChange?.(range);
+                                setSettingsDirty(true);
+                              }}
+                              placeholder="Select campaign dates"
+                              className="bg-background border-border"
+                              showPresets={true}
                             />
                           </div>
                           <div className="space-y-2">
@@ -1399,6 +1412,18 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               </div>
                             )}
                           </div>
+                          {!hideAutoBudget && (
+                          <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center gap-1.5">
+                              <Sparkles className={cn("h-3.5 w-3.5", autoBudgetOptimization ? "text-primary" : "text-muted-foreground")} />
+                              <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                            </div>
+                            <Switch
+                              checked={autoBudgetOptimization}
+                              onCheckedChange={setAutoBudgetOptimization}
+                            />
+                          </div>
+                          )}
                         </div>
                         ) : (
                         <div className="space-y-5">
@@ -1421,6 +1446,19 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               }}
                               placeholder="Select advertiser"
                               className="bg-background border-border"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Run time</Label>
+                            <DateRangePicker
+                              dateRange={dateRange}
+                              onDateRangeChange={(range) => {
+                                onDateRangeChange?.(range);
+                                setSettingsDirty(true);
+                              }}
+                              placeholder="Select campaign dates"
+                              className="bg-background border-border"
+                              showPresets={true}
                             />
                           </div>
                           <div className="space-y-2">
@@ -1454,6 +1492,18 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               />
                             </div>
                           </div>
+                          {!hideAutoBudget && (
+                          <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center gap-1.5">
+                              <Sparkles className={cn("h-3.5 w-3.5", autoBudgetOptimization ? "text-primary" : "text-muted-foreground")} />
+                              <span className="text-sm text-foreground">Auto Budget Optimization</span>
+                            </div>
+                            <Switch
+                              checked={autoBudgetOptimization}
+                              onCheckedChange={setAutoBudgetOptimization}
+                            />
+                          </div>
+                          )}
                           {/* Budget breakdown lines (hidden during guided setup first step) */}
                           {!isGuidedSettingsPhase && (() => {
                             const totalBudgetVal = parseFloat(totalBudgetInput) || 0;
@@ -1475,18 +1525,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               </div>
                             );
                           })()}
-                          {!hideAutoBudget && (
-                          <div className="flex items-center justify-between pt-1">
-                            <div className="flex items-center gap-1.5">
-                              <Sparkles className={cn("h-3.5 w-3.5", autoBudgetOptimization ? "text-primary" : "text-muted-foreground")} />
-                              <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                            </div>
-                            <Switch
-                              checked={autoBudgetOptimization}
-                              onCheckedChange={setAutoBudgetOptimization}
-                            />
-                          </div>
-                          )}
                         </div>
                         )}
 
@@ -1520,21 +1558,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                         </div>
                         )}
-
-                        {/* Run Time */}
-                        <div className="space-y-2">
-                          <Label className="text-sm text-muted-foreground">Run time</Label>
-                          <DateRangePicker
-                            dateRange={dateRange}
-                            onDateRangeChange={(range) => {
-                              onDateRangeChange?.(range);
-                              setSettingsDirty(true);
-                            }}
-                            placeholder="Select campaign dates"
-                            className="bg-background border-border"
-                            showPresets={true}
-                          />
-                        </div>
 
                         {/* Save button (non-guided, when settings changed) */}
                         {!isGuidedSettingsPhase && settingsDirty && (

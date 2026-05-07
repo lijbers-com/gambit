@@ -1556,27 +1556,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             />
                           </div>
                           )}
-                          {/* Budget breakdown lines (hidden during guided setup first step) */}
-                          {!isGuidedSettingsPhase && (() => {
-                            const totalBudgetVal = parseFloat(totalBudgetInput) || 0;
-                            const allocatedBudget = currentEngines.reduce((sum, engine) => {
-                              const b = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
-                              return sum + b;
-                            }, 0);
-                            const remaining = Math.max(totalBudgetVal - allocatedBudget, 0);
-                            return (
-                              <div className="space-y-1.5 pt-2">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Budget remaining</span>
-                                  <span className="text-sm font-medium text-foreground">{fmtCurrency(remaining)}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Budget allocated</span>
-                                  <span className="text-sm font-medium text-foreground">{fmtCurrency(allocatedBudget)}</span>
-                                </div>
-                              </div>
-                            );
-                          })()}
                         </div>
                         )}
 

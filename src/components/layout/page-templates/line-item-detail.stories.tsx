@@ -1467,14 +1467,16 @@ export const DigitalInStore: Story = {
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                           </div>
                           {evaluationEnabled && (
-                            <TooltipProvider>
+                            <TooltipProvider delayDuration={150}>
                             <div className="space-y-5 pt-2">
                               <div className="space-y-2">
                                 <div className="flex items-center gap-1.5">
                                   <label className="block text-sm font-medium">Evaluation ID</label>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                        <Info className="h-3.5 w-3.5" />
+                                      </span>
                                     </TooltipTrigger>
                                     <TooltipContent>Reference used to group this booking with related campaigns in evaluation.</TooltipContent>
                                   </Tooltip>
@@ -1491,7 +1493,9 @@ export const DigitalInStore: Story = {
                                   <label className="block text-sm font-medium">Store list corrections</label>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                        <Info className="h-3.5 w-3.5" />
+                                      </span>
                                     </TooltipTrigger>
                                     <TooltipContent>Stores where the campaign actually ran (also fed by the Kafka connector).</TooltipContent>
                                   </Tooltip>
@@ -1593,7 +1597,9 @@ export const DigitalInStore: Story = {
                                   <label className="block text-sm font-medium">Store list excluded</label>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                        <Info className="h-3.5 w-3.5" />
+                                      </span>
                                     </TooltipTrigger>
                                     <TooltipContent>Stores to leave out of the evaluation.</TooltipContent>
                                   </Tooltip>
@@ -1687,7 +1693,9 @@ export const DigitalInStore: Story = {
                                   <label className="block text-sm font-medium">A/B test</label>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                        <Info className="h-3.5 w-3.5" />
+                                      </span>
                                     </TooltipTrigger>
                                     <TooltipContent>Clone this booking and split the stores between the two for an A/B test.</TooltipContent>
                                   </Tooltip>

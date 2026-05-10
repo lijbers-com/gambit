@@ -725,13 +725,15 @@ const updatedForecastMetrics = [
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
-                      <TooltipProvider>
+                      <TooltipProvider delayDuration={150}>
                         <div className="space-y-2 pt-2">
                           <div className="flex items-center gap-1.5 mb-1">
                             <label className="block text-sm font-medium">Evaluation ID</label>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                  <Info className="h-3.5 w-3.5" />
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent>Set by AdOps in the PREP or DONE phase.</TooltipContent>
                             </Tooltip>
@@ -1226,13 +1228,15 @@ export const DigitalInstoreRunning: Story = {
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
-                      <TooltipProvider>
+                      <TooltipProvider delayDuration={150}>
                         <div className="space-y-2 pt-2">
                           <div className="flex items-center gap-1.5 mb-1">
                             <label className="block text-sm font-medium">Evaluation ID</label>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                <span className="inline-flex items-center text-muted-foreground cursor-help">
+                                  <Info className="h-3.5 w-3.5" />
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent>Set by AdOps in the PREP or DONE phase.</TooltipContent>
                             </Tooltip>

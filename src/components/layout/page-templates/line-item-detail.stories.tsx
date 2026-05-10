@@ -18,7 +18,7 @@ import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown } from 'lucide-react';
+import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search } from 'lucide-react';
 import { Switch } from '../../ui/switch';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
@@ -859,6 +859,19 @@ export const DigitalInStore: Story = {
       setExcludedStoreIds(prev => checked ? [...prev, storeId] : prev.filter(id => id !== storeId));
     };
 
+    // Filters shared across all store-selection dialogs in this variant
+    const [storeFilterSearch, setStoreFilterSearch] = React.useState('');
+    const [storeFilterTypes, setStoreFilterTypes] = React.useState<string[]>([]);
+    const [storeFilterLocations, setStoreFilterLocations] = React.useState<string[]>([]);
+    const storeTypeFilterOptions = Array.from(new Set(storesList.map(s => s.type))).map(t => ({ label: t, value: t }));
+    const storeLocationFilterOptions = Array.from(new Set(storesList.map(s => s.location))).map(l => ({ label: l, value: l }));
+    const filteredStoresList = storesList.filter(store => {
+      if (storeFilterSearch && !store.name.toLowerCase().includes(storeFilterSearch.toLowerCase())) return false;
+      if (storeFilterTypes.length > 0 && !storeFilterTypes.includes(store.type)) return false;
+      if (storeFilterLocations.length > 0 && !storeFilterLocations.includes(store.location)) return false;
+      return true;
+    });
+
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -1264,7 +1277,28 @@ export const DigitalInStore: Story = {
                                       <DialogTitle>Selected Stores</DialogTitle>
                                       <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <div className="relative flex-1 min-w-[200px]">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                          placeholder="Search stores..."
+                                          value={storeFilterSearch}
+                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                          className="pl-9"
+                                        />
+                                      </div>
+                                      <Filter
+                                        name="Type"
+                                        options={storeTypeFilterOptions}
+                                        selectedValues={storeFilterTypes}
+                                        onChange={setStoreFilterTypes}
+                                      />
+                                      <Filter
+                                        name="Location"
+                                        options={storeLocationFilterOptions}
+                                        selectedValues={storeFilterLocations}
+                                        onChange={setStoreFilterLocations}
+                                      />
                                       <Button variant="outline">
                                         <Upload className="w-4 h-4 mr-2" />
                                         Upload store list
@@ -1281,12 +1315,13 @@ export const DigitalInStore: Story = {
                                             key: 'select',
                                             header: (
                                               <Checkbox
-                                                checked={selectedStoreIds.length === storesList.length}
+                                                checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
                                                 onCheckedChange={(checked) => {
                                                   if (checked) {
-                                                    setSelectedStoreIds(storesList.map(s => s.id));
+                                                    setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
                                                   } else {
-                                                    setSelectedStoreIds([]);
+                                                    const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                                    setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
                                                   }
                                                 }}
                                               />
@@ -1298,7 +1333,7 @@ export const DigitalInStore: Story = {
                                           { key: 'reach', header: 'Estimated Reach' },
                                           { key: 'status', header: 'Status' }
                                         ]}
-                                        data={storesList.map(store => ({
+                                        data={filteredStoresList.map(store => ({
                                           select: (
                                             <Checkbox
                                               checked={selectedStoreIds.includes(store.id)}
@@ -1456,7 +1491,28 @@ export const DigitalInStore: Story = {
                                         <DialogTitle>Store list corrections</DialogTitle>
                                         <DialogDescription>Mark which of the booking&apos;s stores are part of the corrected list. Pushed via the Kafka connector or curated manually here.</DialogDescription>
                                       </DialogHeader>
-                                      <div className="flex justify-end gap-2">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="relative flex-1 min-w-[200px]">
+                                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                          <Input
+                                            placeholder="Search stores..."
+                                            value={storeFilterSearch}
+                                            onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                            className="pl-9"
+                                          />
+                                        </div>
+                                        <Filter
+                                          name="Type"
+                                          options={storeTypeFilterOptions}
+                                          selectedValues={storeFilterTypes}
+                                          onChange={setStoreFilterTypes}
+                                        />
+                                        <Filter
+                                          name="Location"
+                                          options={storeLocationFilterOptions}
+                                          selectedValues={storeFilterLocations}
+                                          onChange={setStoreFilterLocations}
+                                        />
                                         <Button variant="outline">
                                           <Upload className="w-4 h-4 mr-2" />
                                           Upload store list
@@ -1473,12 +1529,13 @@ export const DigitalInStore: Story = {
                                               key: 'select',
                                               header: (
                                                 <Checkbox
-                                                  checked={correctedStoreIds.length === storesList.length}
+                                                  checked={filteredStoresList.length > 0 && filteredStoresList.every(s => correctedStoreIds.includes(s.id))}
                                                   onCheckedChange={(checked) => {
                                                     if (checked) {
-                                                      setCorrectedStoreIds(storesList.map(s => s.id));
+                                                      setCorrectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
                                                     } else {
-                                                      setCorrectedStoreIds([]);
+                                                      const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                                      setCorrectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
                                                     }
                                                   }}
                                                 />
@@ -1489,7 +1546,7 @@ export const DigitalInStore: Story = {
                                             { key: 'location', header: 'Location' },
                                             { key: 'reach', header: 'Estimated Reach' },
                                           ]}
-                                          data={storesList.map(store => ({
+                                          data={filteredStoresList.map(store => ({
                                             select: (
                                               <Checkbox
                                                 checked={correctedStoreIds.includes(store.id)}
@@ -1529,6 +1586,29 @@ export const DigitalInStore: Story = {
                                         <DialogTitle>Store list excluded</DialogTitle>
                                         <DialogDescription>Mark which of the booking&apos;s stores should be excluded from the evaluation.</DialogDescription>
                                       </DialogHeader>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="relative flex-1 min-w-[200px]">
+                                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                          <Input
+                                            placeholder="Search stores..."
+                                            value={storeFilterSearch}
+                                            onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                            className="pl-9"
+                                          />
+                                        </div>
+                                        <Filter
+                                          name="Type"
+                                          options={storeTypeFilterOptions}
+                                          selectedValues={storeFilterTypes}
+                                          onChange={setStoreFilterTypes}
+                                        />
+                                        <Filter
+                                          name="Location"
+                                          options={storeLocationFilterOptions}
+                                          selectedValues={storeFilterLocations}
+                                          onChange={setStoreFilterLocations}
+                                        />
+                                      </div>
                                       <div className="flex-1 overflow-y-auto min-h-0">
                                         <Table
                                           columns={[
@@ -1536,12 +1616,13 @@ export const DigitalInStore: Story = {
                                               key: 'select',
                                               header: (
                                                 <Checkbox
-                                                  checked={excludedStoreIds.length === storesList.length}
+                                                  checked={filteredStoresList.length > 0 && filteredStoresList.every(s => excludedStoreIds.includes(s.id))}
                                                   onCheckedChange={(checked) => {
                                                     if (checked) {
-                                                      setExcludedStoreIds(storesList.map(s => s.id));
+                                                      setExcludedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
                                                     } else {
-                                                      setExcludedStoreIds([]);
+                                                      const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                                      setExcludedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
                                                     }
                                                   }}
                                                 />
@@ -1552,7 +1633,7 @@ export const DigitalInStore: Story = {
                                             { key: 'location', header: 'Location' },
                                             { key: 'reach', header: 'Estimated Reach' },
                                           ]}
-                                          data={storesList.map(store => ({
+                                          data={filteredStoresList.map(store => ({
                                             select: (
                                               <Checkbox
                                                 checked={excludedStoreIds.includes(store.id)}
@@ -1838,6 +1919,19 @@ export const OfflineInStore: Story = {
       }
     };
 
+    // Filters for the store-selection dialog
+    const [storeFilterSearch, setStoreFilterSearch] = React.useState('');
+    const [storeFilterTypes, setStoreFilterTypes] = React.useState<string[]>([]);
+    const [storeFilterLocations, setStoreFilterLocations] = React.useState<string[]>([]);
+    const storeTypeFilterOptions = Array.from(new Set(storesList.map(s => s.type))).map(t => ({ label: t, value: t }));
+    const storeLocationFilterOptions = Array.from(new Set(storesList.map(s => s.location))).map(l => ({ label: l, value: l }));
+    const filteredStoresList = storesList.filter(store => {
+      if (storeFilterSearch && !store.name.toLowerCase().includes(storeFilterSearch.toLowerCase())) return false;
+      if (storeFilterTypes.length > 0 && !storeFilterTypes.includes(store.type)) return false;
+      if (storeFilterLocations.length > 0 && !storeFilterLocations.includes(store.location)) return false;
+      return true;
+    });
+
     // Retail products data
     const retailProducts = [
       { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
@@ -2103,7 +2197,28 @@ export const OfflineInStore: Story = {
                                       <DialogTitle>Selected Stores</DialogTitle>
                                       <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <div className="relative flex-1 min-w-[200px]">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                          placeholder="Search stores..."
+                                          value={storeFilterSearch}
+                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                          className="pl-9"
+                                        />
+                                      </div>
+                                      <Filter
+                                        name="Type"
+                                        options={storeTypeFilterOptions}
+                                        selectedValues={storeFilterTypes}
+                                        onChange={setStoreFilterTypes}
+                                      />
+                                      <Filter
+                                        name="Location"
+                                        options={storeLocationFilterOptions}
+                                        selectedValues={storeFilterLocations}
+                                        onChange={setStoreFilterLocations}
+                                      />
                                       <Button variant="outline">
                                         <Upload className="w-4 h-4 mr-2" />
                                         Upload store list
@@ -2120,12 +2235,13 @@ export const OfflineInStore: Story = {
                                             key: 'select',
                                             header: (
                                               <Checkbox
-                                                checked={selectedStoreIds.length === storesList.length}
+                                                checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
                                                 onCheckedChange={(checked) => {
                                                   if (checked) {
-                                                    setSelectedStoreIds(storesList.map(s => s.id));
+                                                    setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
                                                   } else {
-                                                    setSelectedStoreIds([]);
+                                                    const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                                    setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
                                                   }
                                                 }}
                                               />
@@ -2137,7 +2253,7 @@ export const OfflineInStore: Story = {
                                           { key: 'reach', header: 'Estimated Reach' },
                                           { key: 'status', header: 'Status' }
                                         ]}
-                                        data={storesList.map(store => ({
+                                        data={filteredStoresList.map(store => ({
                                           select: (
                                             <Checkbox
                                               checked={selectedStoreIds.includes(store.id)}

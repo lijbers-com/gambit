@@ -3,7 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, MetricCard } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
@@ -652,29 +652,7 @@ const updatedForecastMetrics = [
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div className="md:col-span-2 flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-medium text-foreground">Evaluation</span>
-                        <span className="text-xs text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</span>
-                      </div>
-                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
-                    </div>
                   </div>
-                  {evaluationEnabled && (
-                    <Card className="border-primary/30 mt-4">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Evaluation ID</CardTitle>
-                        <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-baseline</span>) added by AdOps in the PREP or DONE phase to cluster this campaign with related ones.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Input
-                          value={evaluationId}
-                          onChange={(e) => setEvaluationId(e.target.value)}
-                          placeholder="Enter evaluation ID"
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -706,7 +684,7 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection title="Campaign" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -737,6 +715,25 @@ const updatedForecastMetrics = [
                         <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Evaluation" className="mb-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</p>
+                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                    </div>
+                    {evaluationEnabled && (
+                      <div className="space-y-2 pt-2">
+                        <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                        <Input
+                          value={evaluationId}
+                          onChange={(e) => setEvaluationId(e.target.value)}
+                          placeholder="e.g. holiday-2025-baseline"
+                        />
+                        <p className="text-xs text-muted-foreground">Free-text reference added by AdOps in the PREP or DONE phase.</p>
+                      </div>
+                    )}
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -1147,29 +1144,7 @@ export const DigitalInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div className="md:col-span-2 flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-medium text-foreground">Evaluation</span>
-                        <span className="text-xs text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</span>
-                      </div>
-                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
-                    </div>
                   </div>
-                  {evaluationEnabled && (
-                    <Card className="border-primary/30 mt-4">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Evaluation ID</CardTitle>
-                        <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-baseline</span>) added by AdOps in the PREP or DONE phase to cluster this campaign with related ones.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Input
-                          value={evaluationId}
-                          onChange={(e) => setEvaluationId(e.target.value)}
-                          placeholder="Enter evaluation ID"
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1201,7 +1176,7 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection title="Campaign" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -1232,6 +1207,25 @@ export const DigitalInstoreRunning: Story = {
                         <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
                       </div>
                     </div>
+                  </div>
+                </FormSection>
+                <FormSection title="Evaluation" className="mb-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</p>
+                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                    </div>
+                    {evaluationEnabled && (
+                      <div className="space-y-2 pt-2">
+                        <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                        <Input
+                          value={evaluationId}
+                          onChange={(e) => setEvaluationId(e.target.value)}
+                          placeholder="e.g. holiday-2025-baseline"
+                        />
+                        <p className="text-xs text-muted-foreground">Free-text reference added by AdOps in the PREP or DONE phase.</p>
+                      </div>
+                    )}
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>

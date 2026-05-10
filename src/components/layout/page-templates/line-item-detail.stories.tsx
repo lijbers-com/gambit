@@ -820,12 +820,45 @@ export const DigitalInStore: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     // Evaluation feature toggle — when on, reveals Evaluation ID, store list
-    // corrections / exclusions, and an A/B clone action so AdOps can cluster
-    // this booking with related campaigns in the evaluation environment.
+    // corrections / exclusions (reusing the booking store dialog), and an A/B
+    // clone action so AdOps can cluster this booking with related campaigns
+    // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
     const [evaluationId, setEvaluationId] = React.useState('');
-    const [storeListCorrected, setStoreListCorrected] = React.useState('');
-    const [storeListExcluded, setStoreListExcluded] = React.useState('');
+    // Booking store selection (ported from Offline in-store)
+    const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
+    const [storeSelectionMode, setStoreSelectionMode] = React.useState<'random' | 'custom' | null>(null);
+    const [showSelectedStoresDialog, setShowSelectedStoresDialog] = React.useState(false);
+    // Evaluation store pickers — reuse the same dialog pattern, separate state
+    const [correctedStoreIds, setCorrectedStoreIds] = React.useState<string[]>([]);
+    const [excludedStoreIds, setExcludedStoreIds] = React.useState<string[]>([]);
+    const [showCorrectedStoresDialog, setShowCorrectedStoresDialog] = React.useState(false);
+    const [showExcludedStoresDialog, setShowExcludedStoresDialog] = React.useState(false);
+
+    // Stores list shared by the booking picker and the evaluation pickers
+    const storesList = [
+      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available' as const },
+      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available' as const },
+      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available' as const },
+      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked' as const },
+      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available' as const },
+      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available' as const },
+      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked' as const },
+      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available' as const },
+      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available' as const },
+      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available' as const },
+    ];
+
+    const handleStoreSelection = (storeId: string, checked: boolean) => {
+      setSelectedStoreIds(prev => checked ? [...prev, storeId] : prev.filter(id => id !== storeId));
+    };
+    const handleCorrectedStoreSelection = (storeId: string, checked: boolean) => {
+      setCorrectedStoreIds(prev => checked ? [...prev, storeId] : prev.filter(id => id !== storeId));
+    };
+    const handleExcludedStoreSelection = (storeId: string, checked: boolean) => {
+      setExcludedStoreIds(prev => checked ? [...prev, storeId] : prev.filter(id => id !== storeId));
+    };
+
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -1008,72 +1041,6 @@ export const DigitalInStore: Story = {
                               className="w-full"
                             />
                           </div>
-                          <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sm font-medium text-foreground">Evaluation</span>
-                              <span className="text-xs text-muted-foreground">Add evaluation specifics so analytics can cluster this booking with related campaigns once it&apos;s done.</span>
-                            </div>
-                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
-                          </div>
-                          {evaluationEnabled && (
-                            <div className="space-y-4 pt-1">
-                              <Card className="border-primary/30">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-base">Evaluation ID</CardTitle>
-                                  <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-1A</span>) used to cluster this booking with related campaigns in the evaluation environment.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <Input
-                                    value={evaluationId}
-                                    onChange={(e) => setEvaluationId(e.target.value)}
-                                    placeholder="Enter evaluation ID"
-                                    className="w-full"
-                                  />
-                                </CardContent>
-                              </Card>
-                              <Card className="border-primary/30">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-base">Store list corrections</CardTitle>
-                                  <CardDescription>Reflects the stores where the campaign actually ran. Pushed via the Kafka connector (campaign ID, booking ID, store number, present / not present, dates, comment) or entered manually below.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <textarea
-                                    value={storeListCorrected}
-                                    onChange={(e) => setStoreListCorrected(e.target.value)}
-                                    placeholder="One correction per line: store-number, present|not-present, date, comment"
-                                    rows={4}
-                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-ring resize-none"
-                                  />
-                                </CardContent>
-                              </Card>
-                              <Card className="border-primary/30">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-base">Store list excluded</CardTitle>
-                                  <CardDescription>Stores to exclude from the evaluation for this booking.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <textarea
-                                    value={storeListExcluded}
-                                    onChange={(e) => setStoreListExcluded(e.target.value)}
-                                    placeholder="Store numbers to exclude (one per line or comma-separated)"
-                                    rows={3}
-                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-ring resize-none"
-                                  />
-                                </CardContent>
-                              </Card>
-                              <Card className="border-primary/30">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-base">A/B test</CardTitle>
-                                  <CardDescription>Clone this booking and split the assigned stores between the two for A/B testing. Most attributes are inherited; the new booking gets its own Booking ID and Evaluation ID (e.g. 1A → 1B).</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <Button variant="outline" type="button">
-                                    Clone for A/B test
-                                  </Button>
-                                </CardContent>
-                              </Card>
-                            </div>
-                          )}
                         </div>
                       </FormSection>
                       
@@ -1271,24 +1238,120 @@ export const DigitalInStore: Story = {
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="relative" data-dropdown-container>
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Store className="w-4 h-4" />
-                              </span>
-                              <Input 
-                                type="number"
-                                value={storeAmount}
-                                onChange={(e) => setStoreAmount(e.target.value)}
-                                placeholder="Enter number of stores" 
-                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                min="1"
-                              />
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex-1" data-dropdown-container>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                  <Store className="w-4 h-4" />
+                                </span>
+                                <Input
+                                  type="number"
+                                  value={storeAmount}
+                                  onChange={(e) => setStoreAmount(e.target.value)}
+                                  placeholder="Enter number of stores"
+                                  className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  min="1"
+                                />
+                              </div>
+                              {storeSelectionMode && (
+                                <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" className="whitespace-nowrap h-10">
+                                      Selected stores
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                                    <DialogHeader>
+                                      <DialogTitle>Selected Stores</DialogTitle>
+                                      <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex justify-end gap-2">
+                                      <Button variant="outline">
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Upload store list
+                                      </Button>
+                                      <Button variant="outline">
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download store list
+                                      </Button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto min-h-0">
+                                      <Table
+                                        columns={[
+                                          {
+                                            key: 'select',
+                                            header: (
+                                              <Checkbox
+                                                checked={selectedStoreIds.length === storesList.length}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setSelectedStoreIds(storesList.map(s => s.id));
+                                                  } else {
+                                                    setSelectedStoreIds([]);
+                                                  }
+                                                }}
+                                              />
+                                            )
+                                          },
+                                          { key: 'name', header: 'Store Name' },
+                                          { key: 'type', header: 'Type' },
+                                          { key: 'location', header: 'Location' },
+                                          { key: 'reach', header: 'Estimated Reach' },
+                                          { key: 'status', header: 'Status' }
+                                        ]}
+                                        data={storesList.map(store => ({
+                                          select: (
+                                            <Checkbox
+                                              checked={selectedStoreIds.includes(store.id)}
+                                              onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
+                                            />
+                                          ),
+                                          name: store.name,
+                                          type: store.type,
+                                          location: store.location,
+                                          reach: store.reach.toLocaleString(),
+                                          status: (
+                                            <Badge
+                                              className={store.status === 'available'
+                                                ? 'bg-green-100 text-green-800 border-green-200'
+                                                : 'bg-orange-100 text-orange-800 border-orange-200'}
+                                            >
+                                              {store.status === 'available' ? 'Available' : 'Booked'}
+                                            </Badge>
+                                          )
+                                        }))}
+                                        className="w-full"
+                                      />
+                                    </div>
+                                    <DialogFooter>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline">Close</Button>
+                                      </DialogTrigger>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
                             </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Button
+                              variant={storeSelectionMode === 'random' ? 'default' : 'outline'}
+                              className="w-full"
+                              onClick={() => setStoreSelectionMode('random')}
+                            >
+                              Generate random stores
+                            </Button>
+                            <Button
+                              variant={storeSelectionMode === 'custom' ? 'default' : 'outline'}
+                              className="w-full"
+                              onClick={() => setStoreSelectionMode('custom')}
+                            >
+                              Set custom stores
+                            </Button>
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
                               ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this booking will target'
+                              : '750 stores available within the run time selected'
                             }
                           </div>
                         </div>
@@ -1353,11 +1416,177 @@ export const DigitalInStore: Story = {
                             />
                           </div>
                         )}
-                        
-                        <CreativeLinkingDialog 
-                          selectedCreatives={selectedCreatives} 
-                          onSelectionChange={setSelectedCreatives} 
+
+                        <CreativeLinkingDialog
+                          selectedCreatives={selectedCreatives}
+                          onSelectionChange={setSelectedCreatives}
                         />
+                      </FormSection>
+
+                      <FormSection title="Evaluation">
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-sm text-muted-foreground">Add evaluation specifics so analytics can cluster this booking with related campaigns once it&apos;s done.</p>
+                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                          </div>
+                          {evaluationEnabled && (
+                            <div className="space-y-5 pt-2">
+                              <div className="space-y-2">
+                                <label className="block text-sm font-medium">Evaluation ID</label>
+                                <Input
+                                  value={evaluationId}
+                                  onChange={(e) => setEvaluationId(e.target.value)}
+                                  placeholder="e.g. holiday-2025-1A"
+                                  className="w-full"
+                                />
+                                <p className="text-xs text-muted-foreground">Free-text reference used to cluster this booking with related campaigns in the evaluation environment.</p>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="block text-sm font-medium">Store list corrections</label>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-muted-foreground flex-1">{correctedStoreIds.length} store{correctedStoreIds.length === 1 ? '' : 's'} marked as corrected</span>
+                                  <Dialog open={showCorrectedStoresDialog} onOpenChange={setShowCorrectedStoresDialog}>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" className="whitespace-nowrap h-10">
+                                        Select corrected stores
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                                      <DialogHeader>
+                                        <DialogTitle>Store list corrections</DialogTitle>
+                                        <DialogDescription>Mark which of the booking&apos;s stores are part of the corrected list. Pushed via the Kafka connector or curated manually here.</DialogDescription>
+                                      </DialogHeader>
+                                      <div className="flex justify-end gap-2">
+                                        <Button variant="outline">
+                                          <Upload className="w-4 h-4 mr-2" />
+                                          Upload store list
+                                        </Button>
+                                        <Button variant="outline">
+                                          <Download className="w-4 h-4 mr-2" />
+                                          Download store list
+                                        </Button>
+                                      </div>
+                                      <div className="flex-1 overflow-y-auto min-h-0">
+                                        <Table
+                                          columns={[
+                                            {
+                                              key: 'select',
+                                              header: (
+                                                <Checkbox
+                                                  checked={correctedStoreIds.length === storesList.length}
+                                                  onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                      setCorrectedStoreIds(storesList.map(s => s.id));
+                                                    } else {
+                                                      setCorrectedStoreIds([]);
+                                                    }
+                                                  }}
+                                                />
+                                              )
+                                            },
+                                            { key: 'name', header: 'Store Name' },
+                                            { key: 'type', header: 'Type' },
+                                            { key: 'location', header: 'Location' },
+                                            { key: 'reach', header: 'Estimated Reach' },
+                                          ]}
+                                          data={storesList.map(store => ({
+                                            select: (
+                                              <Checkbox
+                                                checked={correctedStoreIds.includes(store.id)}
+                                                onCheckedChange={(checked) => handleCorrectedStoreSelection(store.id, checked as boolean)}
+                                              />
+                                            ),
+                                            name: store.name,
+                                            type: store.type,
+                                            location: store.location,
+                                            reach: store.reach.toLocaleString(),
+                                          }))}
+                                          className="w-full"
+                                        />
+                                      </div>
+                                      <DialogFooter>
+                                        <DialogTrigger asChild>
+                                          <Button variant="outline">Close</Button>
+                                        </DialogTrigger>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                                <p className="text-xs text-muted-foreground">Stores where the campaign actually ran. Pushed via the Kafka connector (campaign ID, booking ID, store number, present / not present, dates, comment) or selected from the booking&apos;s stores here.</p>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="block text-sm font-medium">Store list excluded</label>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-muted-foreground flex-1">{excludedStoreIds.length} store{excludedStoreIds.length === 1 ? '' : 's'} excluded</span>
+                                  <Dialog open={showExcludedStoresDialog} onOpenChange={setShowExcludedStoresDialog}>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" className="whitespace-nowrap h-10">
+                                        Select excluded stores
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                                      <DialogHeader>
+                                        <DialogTitle>Store list excluded</DialogTitle>
+                                        <DialogDescription>Mark which of the booking&apos;s stores should be excluded from the evaluation.</DialogDescription>
+                                      </DialogHeader>
+                                      <div className="flex-1 overflow-y-auto min-h-0">
+                                        <Table
+                                          columns={[
+                                            {
+                                              key: 'select',
+                                              header: (
+                                                <Checkbox
+                                                  checked={excludedStoreIds.length === storesList.length}
+                                                  onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                      setExcludedStoreIds(storesList.map(s => s.id));
+                                                    } else {
+                                                      setExcludedStoreIds([]);
+                                                    }
+                                                  }}
+                                                />
+                                              )
+                                            },
+                                            { key: 'name', header: 'Store Name' },
+                                            { key: 'type', header: 'Type' },
+                                            { key: 'location', header: 'Location' },
+                                            { key: 'reach', header: 'Estimated Reach' },
+                                          ]}
+                                          data={storesList.map(store => ({
+                                            select: (
+                                              <Checkbox
+                                                checked={excludedStoreIds.includes(store.id)}
+                                                onCheckedChange={(checked) => handleExcludedStoreSelection(store.id, checked as boolean)}
+                                              />
+                                            ),
+                                            name: store.name,
+                                            type: store.type,
+                                            location: store.location,
+                                            reach: store.reach.toLocaleString(),
+                                          }))}
+                                          className="w-full"
+                                        />
+                                      </div>
+                                      <DialogFooter>
+                                        <DialogTrigger asChild>
+                                          <Button variant="outline">Close</Button>
+                                        </DialogTrigger>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                                <p className="text-xs text-muted-foreground">Stores to exclude from the evaluation for this booking.</p>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="block text-sm font-medium">A/B test</label>
+                                <p className="text-xs text-muted-foreground">Clone this booking and split the assigned stores between the two for an A/B test. Most attributes are inherited; the new booking gets its own Booking ID and Evaluation ID (e.g. 1A → 1B).</p>
+                                <Button variant="outline" type="button">
+                                  Clone for A/B test
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </FormSection>
                     </CardHeader>
                     <CardContent>
@@ -1368,7 +1597,7 @@ export const DigitalInStore: Story = {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 {/* Sidebar */}
                 <div className="flex flex-col gap-4">
                   <SummaryCard

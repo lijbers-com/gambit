@@ -537,6 +537,10 @@ export const Display: Story = {
                         className="w-full"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" className="w-full" />
+                    </div>
 
                     <div className="space-y-4">
                       <div className="font-semibold text-sm">Schedule</div>
@@ -990,12 +994,16 @@ export const DigitalInStore: Story = {
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
-                            <Input 
+                            <Input
                               value={bookingName}
                               onChange={(e) => setBookingName(e.target.value)}
-                              placeholder="Enter booking name" 
+                              placeholder="Enter booking name"
                               className="w-full"
                             />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Evaluation ID</label>
+                            <Input placeholder="Enter evaluation ID" className="w-full" />
                           </div>
                         </div>
                       </FormSection>
@@ -2387,12 +2395,16 @@ export const SponsoredProducts: Story = {
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
-                            <Input 
+                            <Input
                               value={bookingName}
                               onChange={(e) => setBookingName(e.target.value)}
-                              placeholder="Enter booking name" 
+                              placeholder="Enter booking name"
                               className="w-full"
                             />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Evaluation ID</label>
+                            <Input placeholder="Enter evaluation ID" className="w-full" />
                           </div>
                         </div>
                       </FormSection>
@@ -2873,14 +2885,20 @@ export const OffsiteDisplay: Story = {
                 <CardHeader className="space-y-8">
 
                   <FormSection title="Booking details">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Name*</label>
-                      <Input
-                        value={bookingName}
-                        onChange={(e) => setBookingName(e.target.value)}
-                        placeholder="Enter booking name"
-                        className="w-full"
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Name*</label>
+                        <Input
+                          value={bookingName}
+                          onChange={(e) => setBookingName(e.target.value)}
+                          placeholder="Enter booking name"
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Evaluation ID</label>
+                        <Input placeholder="Enter evaluation ID" className="w-full" />
+                      </div>
                     </div>
                   </FormSection>
 

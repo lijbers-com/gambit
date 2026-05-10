@@ -1592,6 +1592,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               <Label>Booking name <span className="text-destructive">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
                             </div>
+                            <div className="space-y-2">
+                              <Label>Evaluation ID</Label>
+                              <Input placeholder="Enter evaluation ID" />
+                            </div>
                             <div className="space-y-3">
                               <Label className="text-sm font-semibold">Schedule</Label>
                               <DateRangePicker
@@ -2451,6 +2455,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           value={bookingCampaignName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
                         />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="bk-evaluation-id">Evaluation ID</Label>
+                        <Input id="bk-evaluation-id" placeholder="Enter evaluation ID" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">

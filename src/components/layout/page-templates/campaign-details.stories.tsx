@@ -650,6 +650,10 @@ const updatedForecastMetrics = [
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -1121,6 +1125,10 @@ export const DigitalInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -1545,6 +1553,10 @@ export const OfflineInstoreRunning: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
                     </div>
                   </div>
                 </FormSection>
@@ -2034,6 +2046,10 @@ export const DisplayRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -2511,6 +2527,10 @@ export const OfflineInstoreInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -2965,6 +2985,10 @@ export const DisplayInOption: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
                     </div>
                   </div>
                 </FormSection>
@@ -3753,6 +3777,10 @@ export const SponsoredProductsInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -4441,6 +4469,10 @@ export const SponsoredProductsRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -4996,6 +5028,10 @@ export const OffsiteRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -5471,6 +5507,10 @@ export const OffsiteInOption: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
+                      <Input placeholder="Enter evaluation ID" />
                     </div>
                   </div>
                 </FormSection>

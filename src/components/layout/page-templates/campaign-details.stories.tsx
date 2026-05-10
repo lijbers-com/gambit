@@ -717,10 +717,10 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Evaluation" className="mb-6">
+                <FormSection title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
-                      <p className="text-sm text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</p>
+                      <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
@@ -731,7 +731,7 @@ const updatedForecastMetrics = [
                           onChange={(e) => setEvaluationId(e.target.value)}
                           placeholder="e.g. holiday-2025-baseline"
                         />
-                        <p className="text-xs text-muted-foreground">Free-text reference added by AdOps in the PREP or DONE phase.</p>
+                        <p className="text-xs text-muted-foreground">Set by AdOps in the PREP or DONE phase.</p>
                       </div>
                     )}
                   </div>
@@ -1209,10 +1209,10 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Evaluation" className="mb-6">
+                <FormSection title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
-                      <p className="text-sm text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</p>
+                      <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
@@ -1223,7 +1223,7 @@ export const DigitalInstoreRunning: Story = {
                           onChange={(e) => setEvaluationId(e.target.value)}
                           placeholder="e.g. holiday-2025-baseline"
                         />
-                        <p className="text-xs text-muted-foreground">Free-text reference added by AdOps in the PREP or DONE phase.</p>
+                        <p className="text-xs text-muted-foreground">Set by AdOps in the PREP or DONE phase.</p>
                       </div>
                     )}
                   </div>

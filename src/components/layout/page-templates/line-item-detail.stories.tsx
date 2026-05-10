@@ -1423,10 +1423,10 @@ export const DigitalInStore: Story = {
                         />
                       </FormSection>
 
-                      <FormSection title="Evaluation">
+                      <FormSection title="Booking evaluation">
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
-                            <p className="text-sm text-muted-foreground">Add evaluation specifics so analytics can cluster this booking with related campaigns once it&apos;s done.</p>
+                            <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                           </div>
                           {evaluationEnabled && (
@@ -1439,7 +1439,7 @@ export const DigitalInStore: Story = {
                                   placeholder="e.g. holiday-2025-1A"
                                   className="w-full"
                                 />
-                                <p className="text-xs text-muted-foreground">Free-text reference used to cluster this booking with related campaigns in the evaluation environment.</p>
+                                <p className="text-xs text-muted-foreground">Reference used to group this booking with related campaigns in evaluation.</p>
                               </div>
                               <div className="space-y-2">
                                 <label className="block text-sm font-medium">Store list corrections</label>
@@ -1512,7 +1512,7 @@ export const DigitalInStore: Story = {
                                     </DialogContent>
                                   </Dialog>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Stores where the campaign actually ran. Pushed via the Kafka connector (campaign ID, booking ID, store number, present / not present, dates, comment) or selected from the booking&apos;s stores here.</p>
+                                <p className="text-xs text-muted-foreground">Stores where the campaign actually ran (also fed by the Kafka connector).</p>
                               </div>
                               <div className="space-y-2">
                                 <label className="block text-sm font-medium">Store list excluded</label>
@@ -1575,11 +1575,11 @@ export const DigitalInStore: Story = {
                                     </DialogContent>
                                   </Dialog>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Stores to exclude from the evaluation for this booking.</p>
+                                <p className="text-xs text-muted-foreground">Stores to leave out of the evaluation.</p>
                               </div>
                               <div className="space-y-2">
                                 <label className="block text-sm font-medium">A/B test</label>
-                                <p className="text-xs text-muted-foreground">Clone this booking and split the assigned stores between the two for an A/B test. Most attributes are inherited; the new booking gets its own Booking ID and Evaluation ID (e.g. 1A → 1B).</p>
+                                <p className="text-xs text-muted-foreground">Clone this booking and split the stores between the two for an A/B test.</p>
                                 <Button variant="outline" type="button">
                                   Clone for A/B test
                                 </Button>

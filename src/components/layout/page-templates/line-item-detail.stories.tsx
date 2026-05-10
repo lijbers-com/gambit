@@ -834,6 +834,7 @@ export const DigitalInStore: Story = {
     const [excludedStoreIds, setExcludedStoreIds] = React.useState<string[]>([]);
     const [showCorrectedStoresDialog, setShowCorrectedStoresDialog] = React.useState(false);
     const [showExcludedStoresDialog, setShowExcludedStoresDialog] = React.useState(false);
+    const [abCloneCreated, setAbCloneCreated] = React.useState(false);
 
     // Stores list shared by the booking picker and the evaluation pickers
     const storesList = [
@@ -1659,11 +1660,30 @@ export const DigitalInStore: Story = {
                                 <p className="text-xs text-muted-foreground">Stores to leave out of the evaluation.</p>
                               </div>
                               <div className="space-y-2">
-                                <label className="block text-sm font-medium">A/B test</label>
+                                <div className="flex items-center gap-2">
+                                  <label className="block text-sm font-medium">A/B test</label>
+                                  {abCloneCreated && <Badge variant="secondary" className="text-xs">Version A</Badge>}
+                                </div>
                                 <p className="text-xs text-muted-foreground">Clone this booking and split the stores between the two for an A/B test.</p>
-                                <Button variant="outline" type="button">
-                                  Clone for A/B test
-                                </Button>
+                                {!abCloneCreated ? (
+                                  <Button variant="outline" type="button" onClick={() => setAbCloneCreated(true)}>
+                                    Clone for A/B test
+                                  </Button>
+                                ) : (
+                                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="space-y-1">
+                                        <div className="text-sm font-medium text-foreground">Cloned for A/B test</div>
+                                        <div className="text-xs text-muted-foreground">
+                                          This booking is now <span className="font-medium text-foreground">Version A</span>. A copy was created as <span className="font-medium text-foreground">Version B</span> with Evaluation ID <span className="font-mono">{(evaluationId || 'eval-id') + '-B'}</span> and the stores split 50/50.
+                                        </div>
+                                      </div>
+                                      <Button variant="ghost" size="sm" type="button" onClick={() => setAbCloneCreated(false)}>
+                                        Undo
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}

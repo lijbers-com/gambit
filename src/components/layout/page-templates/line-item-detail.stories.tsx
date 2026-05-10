@@ -1670,18 +1670,28 @@ export const DigitalInStore: Story = {
                                     Clone for A/B test
                                   </Button>
                                 ) : (
-                                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div className="space-y-1">
-                                        <div className="text-sm font-medium text-foreground">Cloned for A/B test</div>
-                                        <div className="text-xs text-muted-foreground">
-                                          This booking is now <span className="font-medium text-foreground">Version A</span>. A copy was created as <span className="font-medium text-foreground">Version B</span> with Evaluation ID <span className="font-mono">{(evaluationId || 'eval-id') + '-B'}</span> and the stores split 50/50.
-                                        </div>
-                                      </div>
-                                      <Button variant="ghost" size="sm" type="button" onClick={() => setAbCloneCreated(false)}>
-                                        Undo
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-sm text-foreground flex-1">{(bookingName || 'Untitled booking')} <span className="text-muted-foreground">(Version B)</span></span>
+                                      <Button variant="outline" className="whitespace-nowrap h-10" type="button">
+                                        Open Version B
                                       </Button>
                                     </div>
+                                    <div className="rounded-md border bg-muted/30 p-3 space-y-1.5">
+                                      <div className="text-xs font-medium text-foreground">Differences from this booking</div>
+                                      <ul className="text-xs text-muted-foreground space-y-0.5 list-disc pl-4">
+                                        <li>New Booking ID (auto-generated)</li>
+                                        <li>Evaluation ID: <span className="font-mono text-foreground">{(evaluationId || 'eval-id') + '-B'}</span></li>
+                                        <li>Stores: ~50% of the assigned stores (split with Version A)</li>
+                                      </ul>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setAbCloneCreated(false)}
+                                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                    >
+                                      Undo clone
+                                    </button>
                                   </div>
                                 )}
                               </div>

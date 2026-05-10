@@ -15,7 +15,8 @@ import { PieChartComponent } from '@/components/ui/pie-chart';
 import { MapChart } from '@/components/ui/map-chart';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check } from 'lucide-react';
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { Switch } from '../../ui/switch';
@@ -724,15 +725,24 @@ const updatedForecastMetrics = [
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
-                      <div className="space-y-2 pt-2">
-                        <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                        <Input
-                          value={evaluationId}
-                          onChange={(e) => setEvaluationId(e.target.value)}
-                          placeholder="e.g. holiday-2025-baseline"
-                        />
-                        <p className="text-xs text-muted-foreground">Set by AdOps in the PREP or DONE phase.</p>
-                      </div>
+                      <TooltipProvider>
+                        <div className="space-y-2 pt-2">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <label className="block text-sm font-medium">Evaluation ID</label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>Set by AdOps in the PREP or DONE phase.</TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <Input
+                            value={evaluationId}
+                            onChange={(e) => setEvaluationId(e.target.value)}
+                            placeholder="e.g. holiday-2025-baseline"
+                          />
+                        </div>
+                      </TooltipProvider>
                     )}
                   </div>
                 </FormSection>
@@ -1216,15 +1226,24 @@ export const DigitalInstoreRunning: Story = {
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                     {evaluationEnabled && (
-                      <div className="space-y-2 pt-2">
-                        <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                        <Input
-                          value={evaluationId}
-                          onChange={(e) => setEvaluationId(e.target.value)}
-                          placeholder="e.g. holiday-2025-baseline"
-                        />
-                        <p className="text-xs text-muted-foreground">Set by AdOps in the PREP or DONE phase.</p>
-                      </div>
+                      <TooltipProvider>
+                        <div className="space-y-2 pt-2">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <label className="block text-sm font-medium">Evaluation ID</label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>Set by AdOps in the PREP or DONE phase.</TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <Input
+                            value={evaluationId}
+                            onChange={(e) => setEvaluationId(e.target.value)}
+                            placeholder="e.g. holiday-2025-baseline"
+                          />
+                        </div>
+                      </TooltipProvider>
                     )}
                   </div>
                 </FormSection>

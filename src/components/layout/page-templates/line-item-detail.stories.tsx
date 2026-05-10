@@ -18,7 +18,8 @@ import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search } from 'lucide-react';
+import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
@@ -1466,19 +1467,35 @@ export const DigitalInStore: Story = {
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                           </div>
                           {evaluationEnabled && (
+                            <TooltipProvider>
                             <div className="space-y-5 pt-2">
                               <div className="space-y-2">
-                                <label className="block text-sm font-medium">Evaluation ID</label>
+                                <div className="flex items-center gap-1.5">
+                                  <label className="block text-sm font-medium">Evaluation ID</label>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Reference used to group this booking with related campaigns in evaluation.</TooltipContent>
+                                  </Tooltip>
+                                </div>
                                 <Input
                                   value={evaluationId}
                                   onChange={(e) => setEvaluationId(e.target.value)}
                                   placeholder="e.g. holiday-2025-1A"
                                   className="w-full"
                                 />
-                                <p className="text-xs text-muted-foreground">Reference used to group this booking with related campaigns in evaluation.</p>
                               </div>
                               <div className="space-y-2">
-                                <label className="block text-sm font-medium">Store list corrections</label>
+                                <div className="flex items-center gap-1.5">
+                                  <label className="block text-sm font-medium">Store list corrections</label>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Stores where the campaign actually ran (also fed by the Kafka connector).</TooltipContent>
+                                  </Tooltip>
+                                </div>
                                 <div className="flex items-center gap-3">
                                   <span className="text-sm text-muted-foreground flex-1">{correctedStoreIds.length} store{correctedStoreIds.length === 1 ? '' : 's'} marked as corrected</span>
                                   <Dialog open={showCorrectedStoresDialog} onOpenChange={setShowCorrectedStoresDialog}>
@@ -1570,10 +1587,17 @@ export const DigitalInStore: Story = {
                                     </DialogContent>
                                   </Dialog>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Stores where the campaign actually ran (also fed by the Kafka connector).</p>
                               </div>
                               <div className="space-y-2">
-                                <label className="block text-sm font-medium">Store list excluded</label>
+                                <div className="flex items-center gap-1.5">
+                                  <label className="block text-sm font-medium">Store list excluded</label>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Stores to leave out of the evaluation.</TooltipContent>
+                                  </Tooltip>
+                                </div>
                                 <div className="flex items-center gap-3">
                                   <span className="text-sm text-muted-foreground flex-1">{excludedStoreIds.length} store{excludedStoreIds.length === 1 ? '' : 's'} excluded</span>
                                   <Dialog open={showExcludedStoresDialog} onOpenChange={setShowExcludedStoresDialog}>
@@ -1657,14 +1681,18 @@ export const DigitalInStore: Story = {
                                     </DialogContent>
                                   </Dialog>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Stores to leave out of the evaluation.</p>
                               </div>
                               <div className="space-y-2">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                   <label className="block text-sm font-medium">A/B test</label>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Clone this booking and split the stores between the two for an A/B test.</TooltipContent>
+                                  </Tooltip>
                                   {abCloneCreated && <Badge variant="secondary" className="text-xs">Version A</Badge>}
                                 </div>
-                                <p className="text-xs text-muted-foreground">Clone this booking and split the stores between the two for an A/B test.</p>
                                 {!abCloneCreated ? (
                                   <Button variant="outline" type="button" onClick={() => setAbCloneCreated(true)}>
                                     Clone for A/B test
@@ -1696,6 +1724,7 @@ export const DigitalInStore: Story = {
                                 )}
                               </div>
                             </div>
+                            </TooltipProvider>
                           )}
                         </div>
                       </FormSection>

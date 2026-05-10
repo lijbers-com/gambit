@@ -3,7 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
-import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
@@ -177,6 +177,8 @@ export const DigitalInstoreInOption: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('bookings');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
     const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
@@ -634,7 +636,7 @@ const updatedForecastMetrics = [
         <div className="mb-3">
           <ForecastSection />
         </div>
-        
+
         <CardWithTabs
           className="w-full"
           header={
@@ -650,11 +652,29 @@ const updatedForecastMetrics = [
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2 flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-medium text-foreground">Evaluation</span>
+                        <span className="text-xs text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</span>
+                      </div>
+                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                   </div>
+                  {evaluationEnabled && (
+                    <Card className="border-primary/30 mt-4">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Evaluation ID</CardTitle>
+                        <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-baseline</span>) added by AdOps in the PREP or DONE phase to cluster this campaign with related ones.</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Input
+                          value={evaluationId}
+                          onChange={(e) => setEvaluationId(e.target.value)}
+                          placeholder="Enter evaluation ID"
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -930,6 +950,8 @@ export const DigitalInstoreRunning: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [activeTab, setActiveTab] = useState('bookings');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
     const [bookingStatus, setBookingStatus] = useState<string[]>([]);
     const [placement, setPlacement] = useState<string[]>([]);
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
@@ -1109,7 +1131,7 @@ export const DigitalInstoreRunning: Story = {
         <div className="mb-3">
           <ForecastSection />
         </div>
-        
+
         <CardWithTabs
           className="w-full"
           header={
@@ -1125,11 +1147,29 @@ export const DigitalInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2 flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-medium text-foreground">Evaluation</span>
+                        <span className="text-xs text-muted-foreground">Add an Evaluation ID so analytics can cluster this campaign with related ones in the evaluation environment.</span>
+                      </div>
+                      <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                     </div>
                   </div>
+                  {evaluationEnabled && (
+                    <Card className="border-primary/30 mt-4">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Evaluation ID</CardTitle>
+                        <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-baseline</span>) added by AdOps in the PREP or DONE phase to cluster this campaign with related ones.</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Input
+                          value={evaluationId}
+                          onChange={(e) => setEvaluationId(e.target.value)}
+                          placeholder="Enter evaluation ID"
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

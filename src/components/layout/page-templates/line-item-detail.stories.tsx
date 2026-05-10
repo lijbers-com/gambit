@@ -819,6 +819,13 @@ export const DigitalInStore: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
+    // Evaluation feature toggle — when on, reveals Evaluation ID, store list
+    // corrections / exclusions, and an A/B clone action so AdOps can cluster
+    // this booking with related campaigns in the evaluation environment.
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
+    const [storeListCorrected, setStoreListCorrected] = React.useState('');
+    const [storeListExcluded, setStoreListExcluded] = React.useState('');
     // Location options for targeting
     const locationOptions = [
       { label: 'Amsterdam', value: 'amsterdam' },
@@ -1001,10 +1008,72 @@ export const DigitalInStore: Story = {
                               className="w-full"
                             />
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Evaluation ID</label>
-                            <Input placeholder="Enter evaluation ID" className="w-full" />
+                          <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm font-medium text-foreground">Evaluation</span>
+                              <span className="text-xs text-muted-foreground">Add evaluation specifics so analytics can cluster this booking with related campaigns once it&apos;s done.</span>
+                            </div>
+                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
                           </div>
+                          {evaluationEnabled && (
+                            <div className="space-y-4 pt-1">
+                              <Card className="border-primary/30">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-base">Evaluation ID</CardTitle>
+                                  <CardDescription>Free-text reference (e.g. <span className="font-mono">holiday-2025-1A</span>) used to cluster this booking with related campaigns in the evaluation environment.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <Input
+                                    value={evaluationId}
+                                    onChange={(e) => setEvaluationId(e.target.value)}
+                                    placeholder="Enter evaluation ID"
+                                    className="w-full"
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card className="border-primary/30">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-base">Store list corrections</CardTitle>
+                                  <CardDescription>Reflects the stores where the campaign actually ran. Pushed via the Kafka connector (campaign ID, booking ID, store number, present / not present, dates, comment) or entered manually below.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <textarea
+                                    value={storeListCorrected}
+                                    onChange={(e) => setStoreListCorrected(e.target.value)}
+                                    placeholder="One correction per line: store-number, present|not-present, date, comment"
+                                    rows={4}
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-ring resize-none"
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card className="border-primary/30">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-base">Store list excluded</CardTitle>
+                                  <CardDescription>Stores to exclude from the evaluation for this booking.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <textarea
+                                    value={storeListExcluded}
+                                    onChange={(e) => setStoreListExcluded(e.target.value)}
+                                    placeholder="Store numbers to exclude (one per line or comma-separated)"
+                                    rows={3}
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-ring resize-none"
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card className="border-primary/30">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-base">A/B test</CardTitle>
+                                  <CardDescription>Clone this booking and split the assigned stores between the two for A/B testing. Most attributes are inherited; the new booking gets its own Booking ID and Evaluation ID (e.g. 1A → 1B).</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <Button variant="outline" type="button">
+                                    Clone for A/B test
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          )}
                         </div>
                       </FormSection>
                       

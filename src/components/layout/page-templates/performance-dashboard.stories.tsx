@@ -3933,12 +3933,7 @@ export const FunnelView: Story = {
               </Button>
             </div>
           <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {funnelStages.find(s => s.key === selectedStage)?.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pt-0 pb-0">
+            <CardContent className="px-6 pt-6 pb-0">
               <ConversionFunnelComponent
                 stages={funnelStages}
                 selectedKey={selectedStage}

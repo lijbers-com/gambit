@@ -9,6 +9,7 @@ import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
+import { ConversionFunnelComponent } from '@/components/ui/conversion-funnel';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { ChartFrame } from '@/components/ui/chart-frame';
 import { MapChart } from '@/components/ui/map-chart';
@@ -2620,10 +2621,9 @@ export const ProductReportView: Story = {
     ];
 
     const audienceReportData = [
-      { id: 'AUD-001', segment: 'Stedelijk', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: '25-34', gender: 'Mixed' },
-      { id: 'AUD-002', segment: 'Young adult', impressions: 1480000, clicks: 6100, spend: 3600.75, revenue: 15230.60, roas: '4.23x', percentage: '28%', age: '18-24', gender: 'Mixed' },
-      { id: 'AUD-003', segment: 'Family with Kids', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: '28-45', gender: 'Female' },
-      { id: 'AUD-004', segment: 'Bonus shoppers', impressions: 635000, clicks: 2100, spend: 1450.30, revenue: 4890.20, roas: '3.37x', percentage: '12%', age: '45+', gender: 'Mixed' }
+      { id: 'AUD-001', segment: 'New-to-brand', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-002', segment: 'Lapsed', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-003', segment: 'Existing', impressions: 2115000, clicks: 8200, spend: 4850.50, revenue: 22890.60, roas: '4.72x', percentage: '40%', age: 'All', gender: 'Mixed' }
     ];
 
     const iroasReportData = [
@@ -2632,21 +2632,6 @@ export const ProductReportView: Story = {
       { id: 'ENG-003', engine: 'Sponsored Products', incrementalRevenue: 950000, mediaSpend: 245000, iroas: '3.88x', organicRevenue: 410000, totalRevenue: 1360000 },
       { id: 'ENG-004', engine: 'Digital In-store', incrementalRevenue: 420000, mediaSpend: 125000, iroas: '3.36x', organicRevenue: 160000, totalRevenue: 580000 },
       { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '3.50x', organicRevenue: 130000, totalRevenue: 480000 }
-    ];
-
-    const ecomFunnelData = [
-      { id: 'STEP-001', step: 'Impressions', value: 15240000, percentage: '100%', dropOff: '0%', ctr: '0.32%', engine: 'All' },
-      { id: 'STEP-002', step: 'Clicks', value: 48850, percentage: '0.32%', dropOff: '99.68%', cartRate: '18.7%', engine: 'All' },
-      { id: 'STEP-003', step: 'Add to Cart', value: 9135, percentage: '0.06%', dropOff: '81.3%', convRate: '4.2%', engine: 'All' },
-      { id: 'STEP-004', step: 'Purchases', value: 384, percentage: '0.003%', dropOff: '95.8%', aov: '€45.60', engine: 'All' }
-    ];
-
-    const goalReportData = [
-      { id: 'GOAL-001', goal: 'Awareness', sponsored: 25, display: 45, digitalInstore: 20, offlineInstore: 10, total: 100 },
-      { id: 'GOAL-002', goal: 'Consideration', sponsored: 35, display: 30, digitalInstore: 25, offlineInstore: 10, total: 100 },
-      { id: 'GOAL-003', goal: 'Intent', sponsored: 40, display: 20, digitalInstore: 25, offlineInstore: 15, total: 100 },
-      { id: 'GOAL-004', goal: 'Purchase', sponsored: 50, display: 15, digitalInstore: 20, offlineInstore: 15, total: 100 },
-      { id: 'GOAL-005', goal: 'Retention', sponsored: 30, display: 12, digitalInstore: 22, offlineInstore: 18, total: 82 }
     ];
 
     const getStatusBadgeVariant = (status: string) => {
@@ -2674,6 +2659,55 @@ export const ProductReportView: Story = {
           return 'secondary';
       }
     };
+
+    // Per-tab chart data
+    const productChartTopProducts = productReportData.slice(0, 5).map((p, i) => {
+      // Vary the new/lapsed/existing split per product for visual interest
+      const splits = [
+        { n: 0.30, l: 0.25, e: 0.45 },
+        { n: 0.40, l: 0.20, e: 0.40 },
+        { n: 0.25, l: 0.30, e: 0.45 },
+        { n: 0.35, l: 0.30, e: 0.35 },
+        { n: 0.20, l: 0.35, e: 0.45 },
+      ];
+      const split = splits[i] ?? splits[0];
+      return {
+        name: p.productName.length > 18 ? p.productName.slice(0, 18) + '…' : p.productName,
+        revenue: Math.round(p.revenue),
+        newToBrand: Math.round(p.purchases * split.n),
+        lapsed: Math.round(p.purchases * split.l),
+        existing: Math.round(p.purchases * split.e),
+      };
+    });
+    const productSalesOverTime = [
+      { month: 'Jan', revenue: 18200, units: 412 },
+      { month: 'Feb', revenue: 24600, units: 538 },
+      { month: 'Mar', revenue: 22100, units: 491 },
+      { month: 'Apr', revenue: 31800, units: 680 },
+      { month: 'May', revenue: 35400, units: 752 },
+      { month: 'Jun', revenue: 42100, units: 894 },
+    ];
+
+    const audienceShareData = audienceReportData.map(a => ({
+      name: a.segment,
+      value: parseInt(a.percentage),
+    }));
+    const audienceSpendRevenue = audienceReportData.map(a => ({
+      segment: a.segment,
+      spend: Math.round(a.spend),
+      revenue: Math.round(a.revenue),
+    }));
+
+    const iroasByEngine = iroasReportData
+      .filter(e => e.engine !== 'Overall')
+      .map(e => ({ engine: e.engine, iroas: parseFloat(e.iroas) }));
+    const revenueSplit = iroasReportData
+      .filter(e => e.engine !== 'Overall')
+      .map(e => ({
+        engine: e.engine,
+        incremental: e.incrementalRevenue,
+        organic: e.organicRevenue,
+      }));
 
     return (
       <MenuContextProvider>
@@ -2711,6 +2745,54 @@ export const ProductReportView: Story = {
                 label: 'Product Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Buyers by product</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={productChartTopProducts}
+                            config={{
+                              newToBrand: { label: 'New-to-brand', color: 'hsl(var(--chart-1))' },
+                              lapsed: { label: 'Lapsed', color: 'hsl(var(--chart-2))' },
+                              existing: { label: 'Existing', color: 'hsl(var(--chart-3))' },
+                            }}
+                            stacked={true}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="name"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Sales over time</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <LineChartComponent
+                            data={productSalesOverTime}
+                            config={{
+                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+                              units: { label: 'Units', color: 'hsl(var(--chart-2))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            showDots={true}
+                            xAxisDataKey="month"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2810,6 +2892,54 @@ export const ProductReportView: Story = {
                 label: 'Audience Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Audience share</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PieChartComponent
+                            data={audienceShareData}
+                            config={{
+                              'New-to-brand': { label: 'New-to-brand', color: 'hsl(var(--chart-1))' },
+                              Lapsed: { label: 'Lapsed', color: 'hsl(var(--chart-2))' },
+                              Existing: { label: 'Existing', color: 'hsl(var(--chart-3))' },
+                            }}
+                            showLegend={true}
+                            showTooltip={true}
+                            className="h-[220px] w-full"
+                            nameKey="name"
+                            dataKey="value"
+                            innerRadius={50}
+                            outerRadius={85}
+                            startAngle={90}
+                            endAngle={-270}
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Spend vs revenue per segment</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={audienceSpendRevenue}
+                            config={{
+                              spend: { label: 'Spend', color: 'hsl(var(--chart-2))' },
+                              revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="segment"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2889,6 +3019,49 @@ export const ProductReportView: Story = {
                 label: 'IROAS Report',
                 content: (
                   <div>
+                    {/* Charts above filter + table */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">IROAS by engine</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={iroasByEngine}
+                            config={{ iroas: { label: 'IROAS', color: 'hsl(var(--chart-1))' } }}
+                            showLegend={false}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="engine"
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Incremental vs organic revenue</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <BarChartComponent
+                            data={revenueSplit}
+                            config={{
+                              incremental: { label: 'Incremental', color: 'hsl(var(--chart-1))' },
+                              organic: { label: 'Organic', color: 'hsl(var(--chart-3))' },
+                            }}
+                            showLegend={true}
+                            showGrid={true}
+                            showTooltip={true}
+                            showXAxis={true}
+                            showYAxis={true}
+                            xAxisDataKey="engine"
+                            stacked={true}
+                            className="h-[220px] w-full"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
                     {/* FilterBar above table */}
                     <div className="mb-4 mt-6">
                       <FilterBar
@@ -2956,160 +3129,6 @@ export const ProductReportView: Story = {
                       rowKey={row => row.id}
                       rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                       onRowClick={row => console.log('Navigate to IROAS details for', row.engine)}
-                    />
-                  </div>
-                )
-              },
-              {
-                value: 'ecom-funnel-report',
-                label: 'Ecom Funnel Report',
-                content: (
-                  <div>
-                    {/* FilterBar above table */}
-                    <div className="mb-4 mt-6">
-                      <FilterBar
-                        filters={[
-                          {
-                            name: "Status",
-                            options: [
-                              { label: "Active", value: "active" },
-                              { label: "Paused", value: "paused" },
-                              { label: "Completed", value: "completed" },
-                            ],
-                            selectedValues: statusFilter,
-                            onChange: setStatusFilter,
-                          },
-                          {
-                            name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
-                            selectedValues: categoryFilter,
-                            onChange: setCategoryFilter,
-                          },
-                          {
-                            name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
-                            selectedValues: brandFilter,
-                            onChange: setBrandFilter,
-                          },
-                          {
-                            name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
-                            selectedValues: engineFilter,
-                            onChange: setEngineFilter,
-                          },
-                        ]}
-                        searchValue={searchValue}
-                        onSearchChange={setSearchValue}
-                        searchPlaceholder="Search reports..."
-                      />
-                    </div>
-                    <Table
-                      columns={[
-                        { key: 'step', header: 'Funnel Step', hideable: false },
-                        { key: 'value', header: 'Volume', render: row => row.value.toLocaleString() },
-                        { key: 'percentage', header: 'Percentage' },
-                        { key: 'dropOff', header: 'Drop Off' },
-                        { key: 'ctr', header: 'CTR' },
-                        { key: 'cartRate', header: 'Cart Rate' },
-                        { key: 'convRate', header: 'Conv Rate' },
-                        { key: 'aov', header: 'AOV' },
-                      ]}
-                      data={ecomFunnelData}
-                      rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
-                      onRowClick={row => console.log('Navigate to funnel details for', row.step)}
-                    />
-                  </div>
-                )
-              },
-              {
-                value: 'goal-report',
-                label: 'Goal Report',
-                content: (
-                  <div>
-                    {/* FilterBar above table */}
-                    <div className="mb-4 mt-6">
-                      <FilterBar
-                        filters={[
-                          {
-                            name: "Status",
-                            options: [
-                              { label: "Active", value: "active" },
-                              { label: "Paused", value: "paused" },
-                              { label: "Completed", value: "completed" },
-                            ],
-                            selectedValues: statusFilter,
-                            onChange: setStatusFilter,
-                          },
-                          {
-                            name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
-                            selectedValues: categoryFilter,
-                            onChange: setCategoryFilter,
-                          },
-                          {
-                            name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
-                            selectedValues: brandFilter,
-                            onChange: setBrandFilter,
-                          },
-                          {
-                            name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
-                            selectedValues: engineFilter,
-                            onChange: setEngineFilter,
-                          },
-                        ]}
-                        searchValue={searchValue}
-                        onSearchChange={setSearchValue}
-                        searchPlaceholder="Search reports..."
-                      />
-                    </div>
-                    <Table
-                      columns={[
-                        { key: 'goal', header: 'Goal', hideable: false },
-                        { key: 'sponsored', header: 'Sponsored Products', render: row => `${row.sponsored}%` },
-                        { key: 'display', header: 'Display', render: row => `${row.display}%` },
-                        { key: 'digitalInstore', header: 'Digital In-store', render: row => `${row.digitalInstore}%` },
-                        { key: 'offlineInstore', header: 'Offline In-store', render: row => `${row.offlineInstore}%` },
-                        { key: 'total', header: 'Total Score', render: row => `${row.total}%` },
-                      ]}
-                      data={goalReportData}
-                      rowKey={row => row.id}
-                      rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
-                      onRowClick={row => console.log('Navigate to goal details for', row.goal)}
                     />
                   </div>
                 )
@@ -3262,78 +3281,41 @@ export const FunnelView: Story = {
     ];
 
     // Selected top metrics (can be multiple)
-    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['sales', 'spend', 'roas']);
+    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['revenueByProposition', 'revenueByProduct', 'iroas']);
 
     // Custom Report Dialog state
     const [customReportOpen, setCustomReportOpen] = useState(false);
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
 
-    // Collapse states for funnel cards
-    const [awarenessCollapsed, setAwarenessCollapsed] = useState(true);
-    const [volumeDetailsCollapsed, setVolumeDetailsCollapsed] = useState(false);
-    const [sovDetailsCollapsed, setSovDetailsCollapsed] = useState(false);
     const [buyerReachDetailsCollapsed, setBuyerReachDetailsCollapsed] = useState(false);
-    const [roasDetailsCollapsed, setRoasDetailsCollapsed] = useState(false);
-    const [considerationCollapsed, setConsiderationCollapsed] = useState(true);
-    const [purchaseCollapsed, setPurchaseCollapsed] = useState(true);
-    const [loyaltyCollapsed, setLoyaltyCollapsed] = useState(true);
 
-    // Handle Goal filter changes - expand selected card(s) and collapse others
+    // Funnel chart drives which stage card is visible
+    type FunnelStageKey = 'awareness' | 'consideration' | 'purchase' | 'loyalty';
+    const [selectedStage, setSelectedStage] = useState<FunnelStageKey>('awareness');
+
+    // Handle Goal filter changes - select the matching stage tab and swap sales/reach
     useEffect(() => {
       if (goalFilter.length > 0) {
-        // Collapse all cards first
-        setAwarenessCollapsed(true);
-        setConsiderationCollapsed(true);
-        setPurchaseCollapsed(true);
-        setLoyaltyCollapsed(true);
+        const stageGoal = (['awareness', 'consideration', 'purchase', 'loyalty'] as const).find(g =>
+          goalFilter.includes(g)
+        );
+        if (stageGoal) setSelectedStage(stageGoal);
 
-        // Expand only the selected goal card(s)
-        goalFilter.forEach(goal => {
-          if (goal === 'awareness') setAwarenessCollapsed(false);
-          if (goal === 'consideration') setConsiderationCollapsed(false);
-          if (goal === 'purchase') setPurchaseCollapsed(false);
-          if (goal === 'loyalty') setLoyaltyCollapsed(false);
-        });
-
-        // Swap metrics in Performance Overview based on goal filter
         if (goalFilter.includes('awareness')) {
-          // Replace 'sales' with 'reach' for awareness
-          setSelectedTopMetrics(prev => {
-            const newMetrics = prev.filter(m => m !== 'sales');
-            if (!newMetrics.includes('reach')) {
-              newMetrics.unshift('reach');
-            }
-            return newMetrics;
-          });
+          setSelectedTopMetrics(prev =>
+            prev.includes('sales') ? prev.map(m => (m === 'sales' ? 'reach' : m)) : prev
+          );
         } else {
-          // Restore 'sales' and remove 'reach' for other goals
-          setSelectedTopMetrics(prev => {
-            const newMetrics = prev.filter(m => m !== 'reach');
-            if (!newMetrics.includes('sales')) {
-              newMetrics.unshift('sales');
-            }
-            return newMetrics;
-          });
+          setSelectedTopMetrics(prev =>
+            prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
+          );
         }
       } else {
-        // No filter selected - restore default with 'sales'
-        setSelectedTopMetrics(prev => {
-          const newMetrics = prev.filter(m => m !== 'reach');
-          if (!newMetrics.includes('sales')) {
-            newMetrics.unshift('sales');
-          }
-          return newMetrics;
-        });
+        setSelectedTopMetrics(prev =>
+          prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
+        );
       }
     }, [goalFilter]);
-
-    // Visibility states for dashboard customization
-    const [visibleFunnelCards, setVisibleFunnelCards] = useState({
-      awareness: true,
-      consideration: true,
-      purchase: true,
-      loyalty: true,
-    });
 
     const toggleTopMetric = (metric: string) => {
       setSelectedTopMetrics(prev =>
@@ -3390,6 +3372,19 @@ export const FunnelView: Story = {
       newToBrand: { label: "New-to-brand reach", color: "hsl(var(--chart-1))" },
       lapsed: { label: "Lapsed brand reach", color: "hsl(var(--chart-2))" },
       existing: { label: "Existing brand reach", color: "hsl(var(--chart-3))" }
+    };
+
+    // Type of Buyer donut - current month snapshot
+    const buyerReachLatest = buyerReachData[buyerReachData.length - 1];
+    const buyerReachPieData = [
+      { name: "New-to-brand", value: buyerReachLatest.newToBrand },
+      { name: "Lapsed", value: buyerReachLatest.lapsed },
+      { name: "Existing", value: buyerReachLatest.existing },
+    ];
+    const buyerReachPieConfig = {
+      "New-to-brand": { label: "New-to-brand", color: "hsl(var(--chart-1))" },
+      "Lapsed": { label: "Lapsed", color: "hsl(var(--chart-2))" },
+      "Existing": { label: "Existing", color: "hsl(var(--chart-3))" },
     };
 
     // Per-channel SOV data
@@ -3528,12 +3523,12 @@ export const FunnelView: Story = {
 
     // Consideration data - engagements by channel
     const considerationDataRaw = [
-      { month: 'Jan', spaClicks: 5200, displayClicks: 3100, doohClicks: 1800, omiClicks: 1100, offsiteClicks: 820, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
-      { month: 'Feb', spaClicks: 7400, displayClicks: 4400, doohClicks: 2600, omiClicks: 1400, offsiteClicks: 1180, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
-      { month: 'Mar', spaClicks: 6500, displayClicks: 3800, doohClicks: 2200, omiClicks: 1400, offsiteClicks: 1040, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
-      { month: 'Apr', spaClicks: 8600, displayClicks: 5100, doohClicks: 3000, omiClicks: 1700, offsiteClicks: 1380, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
-      { month: 'May', spaClicks: 9300, displayClicks: 5500, doohClicks: 3200, omiClicks: 1800, offsiteClicks: 1490, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
-      { month: 'Jun', spaClicks: 10100, displayClicks: 5900, doohClicks: 3500, omiClicks: 2000, offsiteClicks: 1620, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
+      { month: 'Jan', spaClicks: 20800, displayClicks: 12400, doohClicks: 7200, omiClicks: 4400, offsiteClicks: 3280, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
+      { month: 'Feb', spaClicks: 29600, displayClicks: 17600, doohClicks: 10400, omiClicks: 5600, offsiteClicks: 4720, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
+      { month: 'Mar', spaClicks: 26000, displayClicks: 15200, doohClicks: 8800, omiClicks: 5600, offsiteClicks: 4160, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
+      { month: 'Apr', spaClicks: 34400, displayClicks: 20400, doohClicks: 12000, omiClicks: 6800, offsiteClicks: 5520, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
+      { month: 'May', spaClicks: 37200, displayClicks: 22000, doohClicks: 12800, omiClicks: 7200, offsiteClicks: 5960, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
+      { month: 'Jun', spaClicks: 40400, displayClicks: 23600, doohClicks: 14000, omiClicks: 8000, offsiteClicks: 6480, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
     ];
 
     const considerationEngagementKeys = ['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks', 'offsiteClicks'] as const;
@@ -3550,12 +3545,12 @@ export const FunnelView: Story = {
 
     // Purchase data - revenue and conversions by channel
     const purchaseDataRaw = [
-      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 520, displayUnitsSold: 310, dmiUnitsSold: 220, omiUnitsSold: 150, offsiteUnitsSold: 120, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
-      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 780, displayUnitsSold: 460, dmiUnitsSold: 330, omiUnitsSold: 230, offsiteUnitsSold: 180, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
-      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 670, displayUnitsSold: 400, dmiUnitsSold: 280, omiUnitsSold: 200, offsiteUnitsSold: 155, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
-      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 950, displayUnitsSold: 560, dmiUnitsSold: 400, omiUnitsSold: 290, offsiteUnitsSold: 220, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
-      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 1040, displayUnitsSold: 610, dmiUnitsSold: 430, omiUnitsSold: 320, offsiteUnitsSold: 240, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
-      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 1170, displayUnitsSold: 690, dmiUnitsSold: 490, omiUnitsSold: 350, offsiteUnitsSold: 270, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
+      { month: 'Jan', spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 3120, displayUnitsSold: 1860, dmiUnitsSold: 1320, omiUnitsSold: 900, offsiteUnitsSold: 720, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
+      { month: 'Feb', spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 4680, displayUnitsSold: 2760, dmiUnitsSold: 1980, omiUnitsSold: 1380, offsiteUnitsSold: 1080, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
+      { month: 'Mar', spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 4020, displayUnitsSold: 2400, dmiUnitsSold: 1680, omiUnitsSold: 1200, offsiteUnitsSold: 930, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
+      { month: 'Apr', spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 5700, displayUnitsSold: 3360, dmiUnitsSold: 2400, omiUnitsSold: 1740, offsiteUnitsSold: 1320, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
+      { month: 'May', spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 6240, displayUnitsSold: 3660, dmiUnitsSold: 2580, omiUnitsSold: 1920, offsiteUnitsSold: 1440, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
+      { month: 'Jun', spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 7020, displayUnitsSold: 4140, dmiUnitsSold: 2940, omiUnitsSold: 2100, offsiteUnitsSold: 1620, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
     ];
 
     const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
@@ -3613,13 +3608,29 @@ export const FunnelView: Story = {
     const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
     const revenueChartMetrics: MetricDefinition[] = [
       {
-        key: 'revenueByChannel',
-        label: 'Revenue by Channel',
-        value: '€8.8K',
+        key: 'revenueByProposition',
+        label: 'Revenue by Proposition',
+        value: formatEur(
+          purchaseData[purchaseData.length - 1].spaRevenue +
+          purchaseData[purchaseData.length - 1].displayRevenue +
+          purchaseData[purchaseData.length - 1].dmiRevenue +
+          purchaseData[purchaseData.length - 1].omiRevenue +
+          purchaseData[purchaseData.length - 1].offsiteRevenue
+        ),
         variant: 'donutLegend',
         donutData: [
-          { name: 'Online', value: 5300 },
-          { name: 'Instore', value: 3500 },
+          { name: 'Sponsored Products', value: purchaseData[purchaseData.length - 1].spaRevenue },
+          { name: 'Display', value: purchaseData[purchaseData.length - 1].displayRevenue },
+          { name: 'Digital Media In-store', value: purchaseData[purchaseData.length - 1].dmiRevenue },
+          { name: 'Offline Media In-store', value: purchaseData[purchaseData.length - 1].omiRevenue },
+          { name: 'Display Offsite', value: purchaseData[purchaseData.length - 1].offsiteRevenue },
+        ],
+        donutColors: [
+          'hsl(var(--chart-2))',
+          'hsl(var(--chart-3))',
+          'hsl(var(--chart-4))',
+          'hsl(var(--chart-5))',
+          'hsl(25, 90%, 55%)',
         ],
         valueFormatter: formatEur,
       },
@@ -3702,6 +3713,30 @@ export const FunnelView: Story = {
       "Returning": { label: "Returning Customers", color: "hsl(var(--chart-2))" },
       "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
     };
+
+    // Conversion funnel breakdown - drives stage tab selection
+    const funnelStages = [
+      {
+        key: 'awareness',
+        label: 'Awareness',
+        value: awarenessData[awarenessData.length - 1].totalVolume,
+      },
+      {
+        key: 'consideration',
+        label: 'Consideration',
+        value: considerationData[considerationData.length - 1].totalEngagements,
+      },
+      {
+        key: 'purchase',
+        label: 'Purchase',
+        value: purchaseData[purchaseData.length - 1].totalUnitsSold,
+      },
+      {
+        key: 'loyalty',
+        label: 'Loyalty',
+        value: loyaltyData[loyaltyData.length - 1].existingBuyers,
+      },
+    ];
 
     return (
       <MenuContextProvider>
@@ -3872,78 +3907,52 @@ export const FunnelView: Story = {
             maxVisible={3}
           />
 
-          {/* Awareness Card */}
-          {visibleFunnelCards.awareness && (
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setAwarenessCollapsed(!awarenessCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Awareness</CardTitle>
-                  <div className={cn(
-                    "flex flex-wrap items-center gap-x-4 gap-y-1 transition-all duration-200",
-                    awarenessCollapsed ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
-                  )}>
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">Volume</span>
-                      <span className="font-medium text-foreground">{totalVolumeLabel}</span>
-                      <Badge variant="success" className="text-xs">+64%</Badge>
-                    </span>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">SOV</span>
-                      <span className="font-medium text-foreground">45%</span>
-                      <Badge variant="success" className="text-xs">+41%</Badge>
-                    </span>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="text-sm flex items-center gap-1.5">
-                      <span className="text-muted-foreground">Buyer Reach</span>
-                      <span className="font-medium text-foreground">64K</span>
-                      <Badge variant="success" className="text-xs">+92%</Badge>
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAwarenessCollapsed(!awarenessCollapsed);
-                  }}
-                >
-                  {awarenessCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {awarenessCollapsed && (
-                <div className="h-20 w-full -mb-2 mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart
-                      data={awarenessData.map(d => ({ month: d.month, value: d.totalVolume }))}
-                      margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+          {/* Conversion Funnel Breakdown + selected stage section */}
+          <div>
+            <div className="flex items-end w-full" style={{ minHeight: 56 }}>
+              <div className="flex gap-0 flex-1">
+                {funnelStages.map((stage) => {
+                  const active = selectedStage === stage.key;
+                  return (
+                    <button
+                      key={stage.key}
+                      type="button"
+                      onClick={() => setSelectedStage(stage.key as FunnelStageKey)}
+                      className={cn(
+                        "px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors",
+                        active
+                          ? "font-medium bg-card text-card-foreground border-border z-10"
+                          : "font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground"
+                      )}
+                      style={{ position: 'relative', top: 1 }}
                     >
-                      <RechartsYAxis
-                        tickLine={false}
-                        axisLine={false}
-                        width={40}
-                        tickCount={3}
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                        tickFormatter={formatYAxisTick}
-                      />
-                      <RechartsXAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={4}
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-1))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+                      {stage.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
+            <CardHeader>
+              <CardTitle className="text-base">
+                {funnelStages.find(s => s.key === selectedStage)?.label}
+              </CardTitle>
             </CardHeader>
-            {!awarenessCollapsed && (
+            <CardContent className="px-6 pt-0 pb-0">
+              <ConversionFunnelComponent
+                stages={funnelStages}
+                selectedKey={selectedStage}
+                onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
+                valueFormatter={(v) =>
+                  v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
+                }
+              />
+            </CardContent>
+
+            <div className="pt-6">
+          {/* Awareness section */}
+          {selectedStage === 'awareness' && (
+          <>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Volume with selected impression type cards */}
@@ -3993,20 +4002,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={awarenessData}
                       config={Object.fromEntries(
                         selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
                       benchmark={{ value: 700000, label: "Target 700K" }}
-                      showDots={true}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                   </CardContent>
                 </Card>
@@ -4095,18 +4103,20 @@ export const FunnelView: Story = {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <BarChartComponent
-                        data={buyerReachData}
-                        config={buyerReachConfig}
-                        showLegend={true}
-                        showGrid={true}
+                      <PieChartComponent
+                        data={buyerReachPieData}
+                        config={buyerReachPieConfig}
+                        showLegend={false}
                         showTooltip={true}
-                        showXAxis={true}
-                        showYAxis={true}
-                        benchmark={{ value: 50000, label: "Target 50K" }}
                         className="h-[200px] w-full"
-                        xAxisDataKey="month"
-                        stacked={true}
+                        nameKey="name"
+                        dataKey="value"
+                        innerRadius={55}
+                        outerRadius={90}
+                        showLabels={true}
+                        labelPosition="inside"
+                        startAngle={90}
+                        endAngle={-270}
                       />
                     </CardContent>
                   </Card>
@@ -4122,58 +4132,12 @@ export const FunnelView: Story = {
                 </Button>
               </div>
             </CardContent>
-            )}
-          </Card>
+          </>
           )}
 
-          {/* Funnel flow: Awareness → Consideration */}
-          {visibleFunnelCards.awareness && visibleFunnelCards.consideration && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{((considerationData[considerationData.length - 1].totalEngagements / awarenessData[awarenessData.length - 1].totalVolume) * 100).toFixed(1)}% engagement rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
-          {/* Consideration Card */}
-          {visibleFunnelCards.consideration && (
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setConsiderationCollapsed(!considerationCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Consideration</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${considerationCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Total Engagements {totalEngagementsLabel}</p>
-                    <Badge variant="success" className="text-xs">+78%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConsiderationCollapsed(!considerationCollapsed);
-                  }}
-                >
-                  {considerationCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {considerationCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={considerationData.map(d => ({ value: d.totalEngagements }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-2))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </CardHeader>
-            {!considerationCollapsed && (
+          {/* Consideration section */}
+          {selectedStage === 'consideration' && (
+          <>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Engagements */}
@@ -4213,20 +4177,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={considerationData}
                       config={Object.fromEntries(
                         engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 20000, label: "Target 20K" }}
-                      showDots={true}
+                      benchmark={{ value: 80000, label: "Target 80K" }}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+78%</Badge>
@@ -4376,58 +4339,12 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
-          </Card>
+          </>
           )}
 
-          {/* Funnel flow: Consideration → Purchase */}
-          {visibleFunnelCards.consideration && visibleFunnelCards.purchase && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{((purchaseData[purchaseData.length - 1].totalUnitsSold / considerationData[considerationData.length - 1].totalEngagements) * 100).toFixed(1)}% conversion rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
-          {/* Purchase Card */}
-          {visibleFunnelCards.purchase && (
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setPurchaseCollapsed(!purchaseCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Purchase</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${purchaseCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Total Units Sold {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}</p>
-                    <Badge variant="success" className="text-xs">+125%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPurchaseCollapsed(!purchaseCollapsed);
-                  }}
-                >
-                  {purchaseCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {purchaseCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={purchaseData.map(d => ({ value: d.totalUnitsSold }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-3))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </CardHeader>
-            {!purchaseCollapsed && (
+          {/* Purchase section */}
+          {selectedStage === 'purchase' && (
+          <>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Total Units Sold */}
@@ -4467,20 +4384,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
                         unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k] }])
                       )}
+                      stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 2500, label: "Target 2.5K" }}
-                      showDots={true}
+                      benchmark={{ value: 15000, label: "Target 15K" }}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+125%</Badge>
@@ -4593,58 +4509,12 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
-          </Card>
+          </>
           )}
 
-          {/* Funnel flow: Purchase → Loyalty */}
-          {visibleFunnelCards.purchase && visibleFunnelCards.loyalty && (
-            <div className="relative z-10 flex items-center justify-center" style={{ height: 0, overflow: 'visible' }}>
-              <div className="flex flex-col items-center">
-                <div className="w-px h-3 bg-neutral-300" />
-                <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 shadow-sm">
-                  <svg width="10" height="10" viewBox="0 0 12 12" className="text-neutral-400"><path d="M6 2L6 10M6 10L3 7M6 10L9 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-                  <span className="text-xs font-medium text-neutral-500">{loyaltyData[loyaltyData.length - 1].retentionRate}% retention rate</span>
-                </div>
-                <div className="w-px h-3 bg-neutral-300" />
-              </div>
-            </div>
-          )}
-
-          {/* Loyalty Card */}
-          {visibleFunnelCards.loyalty && (
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setLoyaltyCollapsed(!loyaltyCollapsed)}>
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex flex-col gap-1 justify-center">
-                  <CardTitle>Loyalty</CardTitle>
-                  <div className={`flex items-center gap-2 transition-all duration-200 ${loyaltyCollapsed ? 'opacity-100' : 'opacity-0 h-0'}`}>
-                    <p className="text-sm text-muted-foreground">Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K</p>
-                    <Badge variant="success" className="text-xs">+38%</Badge>
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLoyaltyCollapsed(!loyaltyCollapsed);
-                  }}
-                >
-                  {loyaltyCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
-              </div>
-              {loyaltyCollapsed && (
-                <div className="h-12 w-full -mb-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={loyaltyData.map(d => ({ value: d.existingBuyers }))}>
-                      <RechartsLine type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 3, fill: "white", stroke: "hsl(var(--chart-4))", strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </CardHeader>
-            {!loyaltyCollapsed && (
+          {/* Loyalty section */}
+          {selectedStage === 'loyalty' && (
+          <>
             <CardContent>
               <div className="flex flex-col gap-6">
                 {/* Row 1 - Retained Customers */}
@@ -4800,9 +4670,11 @@ export const FunnelView: Story = {
                 </Card>
               </div>
             </CardContent>
-            )}
-          </Card>
+          </>
           )}
+            </div>
+          </Card>
+          </div>
         </div>
       </AppLayout>
 

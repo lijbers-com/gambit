@@ -154,7 +154,7 @@ export function BarChartComponent({
             dataKey={key}
             fill={`var(--color-${key})`}
             stackId={stacked ? "a" : undefined}
-            radius={4}
+            radius={0}
             yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
           />
         ))}

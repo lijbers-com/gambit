@@ -270,7 +270,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       ref={ref}
       padding="compact"
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md relative group",
+        "cursor-pointer transition-all duration-200 hover:shadow-md relative group flex flex-col h-full",
         isSelected && "shadow-md",
         className
       )}
@@ -290,7 +290,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           {label}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col">
         {variant !== "donut" && variant !== "donutLegend" && variant !== "barHorizontal" && variant !== "barVertical" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
@@ -385,8 +385,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           const total = donutData.reduce((sum, d) => sum + d.value, 0);
           const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
           return (
-            <div className="flex flex-col items-center gap-2">
-              <div className="aspect-square w-20">
+            <div className="flex flex-1 items-center gap-4">
+              <div className="aspect-square w-24 shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -407,7 +407,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <ul className="w-full space-y-1 text-xs">
+              <ul className="flex-1 min-w-0 space-y-1 text-xs">
                 {donutData.map((item, i) => {
                   const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
                   return (
@@ -460,7 +460,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           const tickFmt = valueFormatter ?? formatYAxisTick;
           const lastIndex = dateData.length - 1;
           return (
-            <div className="h-32 w-full">
+            <div className="flex-1 w-full min-h-[8rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dateData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <YAxis

@@ -3941,6 +3941,7 @@ export const FunnelView: Story = {
                 valueFormatter={(v) =>
                   v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
                 }
+                showTooltip={false}
               />
             </CardContent>
 

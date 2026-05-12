@@ -3932,8 +3932,8 @@ export const FunnelView: Story = {
                 Build Report
               </Button>
             </div>
-          <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
-            <CardContent className="px-6 pt-6 pb-0">
+          <Card className={cn("w-full overflow-hidden", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
+            <CardContent className="p-0">
               <ConversionFunnelComponent
                 stages={funnelStages}
                 selectedKey={selectedStage}

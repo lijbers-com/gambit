@@ -77,8 +77,8 @@ export function ConversionFunnelComponent({
               className={cn(
                 "px-4 py-3 border-l border-border first:border-l-0 transition-colors",
                 isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                selected && "bg-muted/60",
-                !selected && hoveredIndex === i && "bg-muted/30"
+                selected && "bg-muted/30",
+                !selected && hoveredIndex === i && "bg-muted/20"
               )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -118,13 +118,16 @@ export function ConversionFunnelComponent({
           const rightPct = (next / maxValue) * 100
           const isLast = i === stages.length - 1
           const dimmed = isDimmed(i, stage.key)
+          const selected = isSelected(stage.key)
 
           return (
             <div
               key={stage.key}
               className={cn(
-                "relative border-l border-border first:border-l-0",
-                isInteractive && "cursor-pointer"
+                "relative border-l border-border first:border-l-0 transition-colors",
+                isInteractive && "cursor-pointer",
+                selected && "bg-muted/30",
+                !selected && hoveredIndex === i && "bg-muted/20"
               )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}

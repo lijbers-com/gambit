@@ -3755,14 +3755,6 @@ export const FunnelView: Story = {
                 dateRange={dateRange}
                 onDateRangeChange={setDateRange}
               />
-              <Button
-                variant="outline"
-                size="default"
-                className="whitespace-nowrap flex-shrink-0"
-                onClick={() => setCustomReportOpen(true)}
-              >
-                Build Report
-              </Button>
             </div>
           ),
         }}
@@ -3909,7 +3901,7 @@ export const FunnelView: Story = {
 
           {/* Conversion Funnel Breakdown + selected stage section */}
           <div>
-            <div className="flex items-end w-full" style={{ minHeight: 56 }}>
+            <div className="flex items-end w-full gap-3" style={{ minHeight: 56 }}>
               <div className="flex gap-0 flex-1">
                 {funnelStages.map((stage) => {
                   const active = selectedStage === stage.key;
@@ -3931,6 +3923,14 @@ export const FunnelView: Story = {
                   );
                 })}
               </div>
+              <Button
+                variant="outline"
+                size="default"
+                className="whitespace-nowrap flex-shrink-0 mb-2"
+                onClick={() => setCustomReportOpen(true)}
+              >
+                Build Report
+              </Button>
             </div>
           <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
             <CardHeader>

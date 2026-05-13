@@ -26,8 +26,6 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Eye, MousePointer, ShoppingCart, Heart, MoreHorizontal, ChevronDown, ChevronUp, Settings2, Plus, Info } from 'lucide-react';
-import { LineChart as RechartsLineChart, Line as RechartsLine, ResponsiveContainer, YAxis as RechartsYAxis, XAxis as RechartsXAxis } from 'recharts';
-import { formatYAxisTick } from '@/components/ui/chart-types';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';

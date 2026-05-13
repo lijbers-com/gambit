@@ -1,5 +1,10 @@
 "use client"
 
+// Hand-rolled in SVG rather than wrapping Recharts' Funnel: this chart
+// needs each stage to be its own clickable column with a synced
+// breakdown header (label + percentage + volume) above the bar — a
+// layout Recharts' Funnel doesn't expose.
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 

@@ -1,5 +1,8 @@
 "use client"
 
+// Hand-rolled SVG geo chart — Recharts has no map primitive. If we
+// outgrow this, react-simple-maps or visx-geo would be the swap.
+
 import * as React from "react"
 
 export interface MapChartProps {

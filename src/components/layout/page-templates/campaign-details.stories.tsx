@@ -15,7 +15,7 @@ import { PieChartComponent } from '@/components/ui/pie-chart';
 import { MapChart } from '@/components/ui/map-chart';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info } from 'lucide-react';
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
@@ -45,6 +45,21 @@ const spBookingLocalBrands = [
   { id: 'stop-shop', label: 'Stop & Shop' },
   { id: 'giant-company', label: 'The Giant Company' },
 ];
+
+// Media plans a campaign can be linked to (prototype data).
+const mediaPlanOptions = [
+  { label: 'Holiday Sale Campaign (C-001)', value: 'C-001' },
+  { label: 'Summer Launch Campaign (C-002)', value: 'C-002' },
+  { label: 'Back to School Promotion (C-003)', value: 'C-003' },
+];
+// Budget cap per media plan — used by the Details tab to warn when
+// a campaign budget exceeds what its media plan can cover.
+const mediaPlanBudgets: Record<string, number> = {
+  'C-001': 15000,
+  'C-002': 8500,
+  'C-003': 25000,
+};
+const mediaPlanHref = (planId: string) => `/campaigns?from=campaign-details&plan=${planId}`;
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Details',
@@ -253,6 +268,8 @@ export const DigitalInstoreInOption: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -653,6 +670,16 @@ const updatedForecastMetrics = [
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -703,7 +730,30 @@ const updatedForecastMetrics = [
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -1034,6 +1084,8 @@ export const DigitalInstoreRunning: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -1156,6 +1208,16 @@ export const DigitalInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -1206,7 +1268,30 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -1525,6 +1610,8 @@ export const OfflineInstoreRunning: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -1665,7 +1752,30 @@ export const OfflineInstoreRunning: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -1987,6 +2097,8 @@ export const DisplayRunning: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -2157,7 +2269,30 @@ export const DisplayRunning: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -2468,6 +2603,8 @@ export const OfflineInstoreInOption: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -2638,7 +2775,30 @@ export const OfflineInstoreInOption: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -2927,6 +3087,8 @@ export const DisplayInOption: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -3097,7 +3259,30 @@ export const DisplayInOption: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -3476,6 +3661,8 @@ export const SponsoredProductsInOption: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -3888,7 +4075,30 @@ export const SponsoredProductsInOption: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -4376,6 +4586,8 @@ export const SponsoredProductsRunning: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('15000');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -4580,7 +4792,30 @@ export const SponsoredProductsRunning: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -4999,6 +5234,8 @@ export const OffsiteRunning: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -5139,7 +5376,30 @@ export const OffsiteRunning: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -5479,6 +5739,8 @@ export const OffsiteInOption: Story = {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
+    const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
     const [detailsSendBudgetNotification, setDetailsSendBudgetNotification] = useState(false);
@@ -5619,7 +5881,30 @@ export const OffsiteInOption: Story = {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
-                      <Input placeholder="Enter budget" type="number" min="0" />
+                      <Input
+                        value={detailsBudget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsBudget(e.target.value)}
+                        placeholder="Enter budget"
+                        type="number"
+                        min="0"
+                      />
+                      {(() => {
+                        const planBudget = mediaPlanBudgets[detailsMediaPlan];
+                        const entered = parseFloat(detailsBudget);
+                        if (!planBudget || !entered || entered <= planBudget) return null;
+                        const planLabel = mediaPlanOptions.find(o => o.value === detailsMediaPlan)?.label ?? detailsMediaPlan;
+                        return (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-300 bg-warning-50 p-3 text-xs text-warning-900">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-warning-600" />
+                            <div className="flex-1">
+                              Budget exceeds the <span className="font-medium">{planLabel}</span> media-plan budget of ${planBudget.toLocaleString()}.{' '}
+                              <a href={mediaPlanHref(detailsMediaPlan)} className="font-medium underline underline-offset-2 hover:text-warning-700">
+                                Open media plan
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="mt-4">

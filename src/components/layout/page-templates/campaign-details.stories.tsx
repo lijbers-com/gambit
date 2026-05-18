@@ -1702,6 +1702,16 @@ export const OfflineInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -2219,6 +2229,16 @@ export const DisplayRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -2725,6 +2745,16 @@ export const OfflineInstoreInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -3208,6 +3238,16 @@ export const DisplayInOption: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
                     </div>
                   </div>
                 </FormSection>
@@ -4025,6 +4065,16 @@ export const SponsoredProductsInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -4742,6 +4792,16 @@ export const SponsoredProductsRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -5326,6 +5386,16 @@ export const OffsiteRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
@@ -5830,6 +5900,16 @@ export const OffsiteInOption: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <Input
+                        dropdown
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                      />
                     </div>
                   </div>
                 </FormSection>

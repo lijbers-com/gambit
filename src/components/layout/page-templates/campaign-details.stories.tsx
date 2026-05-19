@@ -80,6 +80,42 @@ const mediaPlanBudgets: Record<string, number> = {
 };
 const mediaPlanHref = (planId: string) => `/campaigns?from=campaign-details&plan=${planId}`;
 
+// Advertiser + Brand options — long enough to make the search useful.
+const advertiserOptions = [
+  { label: 'Acme Media',         value: 'acme' },
+  { label: 'BrandX',             value: 'brandx' },
+  { label: 'Unilever',           value: 'unilever' },
+  { label: 'Procter & Gamble',   value: 'pg' },
+  { label: 'Nestlé',             value: 'nestle' },
+  { label: 'Coca-Cola',          value: 'coca-cola' },
+  { label: 'PepsiCo',            value: 'pepsico' },
+  { label: 'Mondelez',           value: 'mondelez' },
+  { label: 'Kellogg',            value: 'kellogg' },
+  { label: 'General Mills',      value: 'general-mills' },
+  { label: "L'Oréal",            value: 'loreal' },
+  { label: 'Reckitt',            value: 'reckitt' },
+  { label: 'Heineken',           value: 'heineken' },
+  { label: 'Danone',             value: 'danone' },
+  { label: 'Ferrero',            value: 'ferrero' },
+];
+const brandOptions = [
+  { label: 'Brand 1',          value: 'brand1' },
+  { label: 'Brand 2',          value: 'brand2' },
+  { label: "Knorr",            value: 'knorr' },
+  { label: "Lay's",            value: 'lays' },
+  { label: 'Heineken',         value: 'heineken' },
+  { label: 'Maggi',            value: 'maggi' },
+  { label: 'Pampers',          value: 'pampers' },
+  { label: 'Gillette',         value: 'gillette' },
+  { label: 'Nescafé',          value: 'nescafe' },
+  { label: 'KitKat',           value: 'kitkat' },
+  { label: 'Sprite',           value: 'sprite' },
+  { label: 'Doritos',          value: 'doritos' },
+  { label: "Ben & Jerry's",    value: 'ben-jerrys' },
+  { label: 'Magnum',           value: 'magnum' },
+  { label: 'Oreo',             value: 'oreo' },
+];
+
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Details',
   component: AppLayout,
@@ -705,28 +741,22 @@ const updatedForecastMetrics = [
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -1243,28 +1273,22 @@ export const DigitalInstoreRunning: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -1737,28 +1761,22 @@ export const OfflineInstoreRunning: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -2264,28 +2282,22 @@ export const DisplayRunning: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -2780,28 +2792,22 @@ export const OfflineInstoreInOption: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -3274,28 +3280,22 @@ export const DisplayInOption: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -4100,28 +4100,22 @@ export const SponsoredProductsInOption: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -4827,28 +4821,22 @@ export const SponsoredProductsRunning: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -5421,28 +5409,22 @@ export const OffsiteRunning: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>
@@ -5936,28 +5918,22 @@ export const OffsiteInOption: Story = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Acme Media', value: 'acme' },
-                          { label: 'BrandX', value: 'brandx' },
-                        ]}
+                      <SearchableSelect
+                        options={advertiserOptions}
                         value={detailsCampaign}
                         onChange={setDetailsCampaign}
                         placeholder="Select advertiser"
+                        searchPlaceholder="Search advertisers..."
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Brand</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Brand 1', value: 'brand1' },
-                          { label: 'Brand 2', value: 'brand2' },
-                        ]}
+                      <SearchableSelect
+                        options={brandOptions}
                         value={detailsBookingName}
                         onChange={setDetailsBookingName}
                         placeholder="Select brand"
+                        searchPlaceholder="Search brands..."
                       />
                     </div>
                   </div>

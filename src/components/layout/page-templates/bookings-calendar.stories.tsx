@@ -215,7 +215,7 @@ const BookingCalendarTemplate = ({
   const { startWeek, numberOfWeeks } = getCalendarWeeks(dateRange);
 
   // Handle cell click to open drawer
-  const handleCellClick = (mediaProduct: any, weekNumber: number, value: number | string) => {
+  const handleCellClick = (mediaProduct: any, weekNumber: number, value: any) => {
     setSelectedCell({ mediaProduct, weekNumber, value });
     setDrawerOpen(true);
   };
@@ -1653,7 +1653,7 @@ const OfflineInstoreCalendarTemplate = ({
   const { startWeek, numberOfWeeks } = getCalendarWeeks(dateRange);
 
   // Handle cell click to open drawer
-  const handleCellClick = (mediaProduct: any, weekNumber: number, value: number | string) => {
+  const handleCellClick = (mediaProduct: any, weekNumber: number, value: any) => {
     setSelectedCell({ mediaProduct, weekNumber, value });
     setDrawerOpen(true);
   };
@@ -2007,6 +2007,117 @@ export const DisplayCalendar: Story = {
           { label: 'Transit Displays', value: '4' },
           { label: 'Street Furniture', value: '5' },
           { label: 'LED Screens', value: '6' },
+        ]}
+      />
+    </MenuContextProvider>
+  ),
+};
+
+// ── Fill-rate breakdown variant ────────────────────────────────────────────
+// Same calendar template, but each cell carries a FillRateValue breakdown
+// (booked / confirmed / reserved / available / overbooked / overreserved)
+// rendered as a stacked bar inside the cell. Demonstrates the new
+// FillRateBar visualization that can be reused across propositions.
+const digitalInstoreFillRateData = [
+  {
+    id: '1',
+    name: 'Pui TV Portrait',
+    availability: [
+      { booked: 70, reserved: 10, available: 20 },
+      { booked: 33, confirmed: 20, reserved: 23, available: 24 },
+      { booked: 28, confirmed: 16, reserved: 32, available: 24 },
+      { booked: 10, confirmed:  8, reserved: 41, available: 41 },
+      { booked: 18, confirmed: 12, reserved: 30, available: 40 },
+      { booked: 25, confirmed: 18, reserved: 35, available: 22 },
+      { booked: 45, confirmed: 20, reserved: 25, available: 10 },
+      { booked: 60, confirmed: 15, reserved: 20, available:  5 },
+      { booked: 50, confirmed: 25, reserved: 15, available: 10 },
+      { booked: 40, confirmed: 30, reserved: 20, available: 10 },
+      { booked: 30, confirmed: 20, reserved: 30, available: 20 },
+      { booked: 20, confirmed: 15, reserved: 25, available: 40 },
+    ],
+    storeTypes: ['xl', 'premium', 'compact'],
+    retailProducts: ['rp-001'],
+    bookings: [],
+  },
+  {
+    id: '2',
+    name: 'Beauty TV Portrait',
+    availability: [
+      { booked: 51, available: 49 },
+      { booked: 32, confirmed: 15, reserved: 10, available: 43 },
+      { booked: 17, confirmed: 20, reserved: 27, available: 36 },
+      { booked: 13, confirmed: 11, reserved: 35, available: 41 },
+      { booked: 22, confirmed: 18, reserved: 28, available: 32 },
+      { booked: 35, confirmed: 22, reserved: 18, available: 25 },
+      { booked: 48, confirmed: 24, reserved: 15, available: 13 },
+      { booked: 55, confirmed: 20, reserved: 15, available: 10 },
+      { booked: 45, confirmed: 25, reserved: 20, available: 10 },
+      { booked: 30, confirmed: 28, reserved: 22, available: 20 },
+      { booked: 22, confirmed: 18, reserved: 30, available: 30 },
+      { booked: 18, confirmed: 15, reserved: 27, available: 40 },
+    ],
+    storeTypes: ['xl', 'premium'],
+    retailProducts: ['rp-002'],
+    bookings: [],
+  },
+  {
+    id: '3',
+    name: 'Entrance Landscape',
+    availability: [
+      // The classic overbooked example from the reference design.
+      { booked: 89, confirmed: 0, reserved: 11, overbooked: 23 },
+      { booked: 33, confirmed: 10, reserved: 18, available: 39 },
+      { booked: 15, confirmed: 17, reserved: 22, available: 46 },
+      { booked:  7, confirmed:  3, reserved: 22, available: 68 },
+      { booked: 25, confirmed: 15, reserved: 30, available: 30 },
+      { booked: 40, confirmed: 20, reserved: 25, available: 15 },
+      { booked: 55, confirmed: 22, reserved: 18, available:  5 },
+      { booked: 65, confirmed: 18, reserved: 12, available:  5, overbooked: 8 },
+      { booked: 50, confirmed: 30, reserved: 15, available:  5 },
+      { booked: 40, confirmed: 25, reserved: 25, available: 10 },
+      { booked: 30, confirmed: 18, reserved: 32, available: 20 },
+      { booked: 22, confirmed: 14, reserved: 26, available: 38 },
+    ],
+    storeTypes: ['xl'],
+    retailProducts: ['rp-010'],
+    bookings: [],
+  },
+  {
+    id: '4',
+    name: 'Pharmacy Aisle Screen',
+    availability: [
+      { booked: 29, confirmed: 11, reserved: 10, available: 50 },
+      { booked: 15, confirmed: 15, reserved: 21, available: 49 },
+      { booked:  5, confirmed:  8, reserved: 34, available: 53 },
+      { booked: 12, confirmed:  9, reserved: 22, available: 57 },
+      { booked: 20, confirmed: 14, reserved: 26, available: 40 },
+      { booked: 32, confirmed: 18, reserved: 22, available: 28 },
+      { booked: 45, confirmed: 22, reserved: 18, available: 15 },
+      { booked: 58, confirmed: 18, reserved: 14, available: 10, overreserved: 6 },
+      { booked: 50, confirmed: 25, reserved: 15, available: 10 },
+      { booked: 40, confirmed: 30, reserved: 20, available: 10 },
+      { booked: 28, confirmed: 22, reserved: 30, available: 20 },
+      { booked: 18, confirmed: 14, reserved: 28, available: 40 },
+    ],
+    storeTypes: ['compact'],
+    retailProducts: ['rp-015'],
+    bookings: [],
+  },
+];
+
+export const DigitalInstoreFillRateCalendar: Story = {
+  name: 'Digital In-store Calendar — Fill rate bars',
+  render: () => (
+    <MenuContextProvider>
+      <BookingCalendarTemplate
+        bookingsData={digitalInstoreFillRateData as any}
+        title="Digital In-store Calendar"
+        mediaProductOptions={[
+          { label: 'Pui TV Portrait', value: '1' },
+          { label: 'Beauty TV Portrait', value: '2' },
+          { label: 'Entrance Landscape', value: '3' },
+          { label: 'Pharmacy Aisle Screen', value: '4' },
         ]}
       />
     </MenuContextProvider>

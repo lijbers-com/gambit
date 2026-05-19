@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
 import { Badge } from './badge';
+import { FillRateBar, FillRateValue } from './fill-rate-bar';
 
 export interface Booking {
   id: string;
@@ -13,10 +14,16 @@ export interface Booking {
   variant?: "default" | "success" | "warning" | "destructive";
 }
 
+/** A cell can be a single number/string OR a fill-rate breakdown. */
+export type CalendarCellValue = number | string | FillRateValue;
+
+const isFillRateValue = (v: CalendarCellValue | null | undefined): v is FillRateValue =>
+  typeof v === 'object' && v !== null;
+
 export interface MediaProduct {
   id: string;
   name: string;
-  availability: (number | string)[];
+  availability: CalendarCellValue[];
   bookings?: Booking[];
   isHighlighted?: boolean[];
 }
@@ -32,9 +39,9 @@ export interface CalendarTableProps {
   startWeek?: number;
   retailerEvents?: RetailerEvent[];
   showReach?: boolean;
-  displayType?: 'reach' | 'fillRate' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
+  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
   className?: string;
-  onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: number | string) => void;
+  onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: CalendarCellValue) => void;
   hideGreyCells?: boolean;
   hasRetailProductFilter?: boolean;
 }
@@ -124,9 +131,25 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     return retailerEvents.some(event => event.week === weekNum);
   };
 
-  const renderAvailabilityCell = (value: number | string, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
+  const renderAvailabilityCell = (value: CalendarCellValue, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
     const hasEvent = hasEventInWeek(weekNumbers[weekIndex]);
-    
+
+    // Fill-rate breakdown cell: render the stacked bar + per-segment percentages.
+    if (isFillRateValue(value)) {
+      const handleCellClick = () => {
+        if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
+      };
+      return (
+        <td
+          key={weekIndex}
+          className="px-3 py-[11px] align-middle cursor-pointer hover:bg-neutral-50 transition-colors"
+          onClick={handleCellClick}
+        >
+          <FillRateBar value={value} height={10} showLabels />
+        </td>
+      );
+    }
+
     // Never show empty cells - always display value or dash
     // Removed the null check that returned empty cells
 

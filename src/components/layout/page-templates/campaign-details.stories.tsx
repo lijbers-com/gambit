@@ -19,6 +19,7 @@ import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, In
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
+import { SearchableSelect } from '../../ui/searchable-select';
 import { Switch } from '../../ui/switch';
 import { Label } from '../../ui/label';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,15 @@ const mediaPlanOptions = [
   { label: 'Holiday Sale Campaign (C-001)', value: 'C-001' },
   { label: 'Summer Launch Campaign (C-002)', value: 'C-002' },
   { label: 'Back to School Promotion (C-003)', value: 'C-003' },
+  { label: 'Q4 Brand Awareness (C-004)', value: 'C-004' },
+  { label: 'Black Friday Push (C-005)', value: 'C-005' },
+  { label: 'New Year Always-On (C-006)', value: 'C-006' },
+  { label: 'Valentines Gifting (C-007)', value: 'C-007' },
+  { label: 'Easter Family Meals (C-008)', value: 'C-008' },
+  { label: "Mother's Day Premium (C-009)", value: 'C-009' },
+  { label: 'BBQ & Outdoor Season (C-010)', value: 'C-010' },
+  { label: 'Healthy January (C-011)', value: 'C-011' },
+  { label: 'Spring Garden Goods (C-012)', value: 'C-012' },
 ];
 // Budget cap per media plan — used by the Details tab to warn when
 // a campaign budget exceeds what its media plan can cover.
@@ -58,6 +68,15 @@ const mediaPlanBudgets: Record<string, number> = {
   'C-001': 15000,
   'C-002': 8500,
   'C-003': 25000,
+  'C-004': 40000,
+  'C-005': 60000,
+  'C-006': 18000,
+  'C-007': 9000,
+  'C-008': 14000,
+  'C-009': 22000,
+  'C-010': 30000,
+  'C-011': 12000,
+  'C-012': 16000,
 };
 const mediaPlanHref = (planId: string) => `/campaigns?from=campaign-details&plan=${planId}`;
 
@@ -672,12 +691,12 @@ const updatedForecastMetrics = [
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -1210,12 +1229,12 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -1704,12 +1723,12 @@ export const OfflineInstoreRunning: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -2231,12 +2250,12 @@ export const DisplayRunning: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -2747,12 +2766,12 @@ export const OfflineInstoreInOption: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -3241,12 +3260,12 @@ export const DisplayInOption: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -4067,12 +4086,12 @@ export const SponsoredProductsInOption: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -4794,12 +4813,12 @@ export const SponsoredProductsRunning: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -5388,12 +5407,12 @@ export const OffsiteRunning: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>
@@ -5903,12 +5922,12 @@ export const OffsiteInOption: Story = {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <Input
-                        dropdown
+                      <SearchableSelect
                         options={mediaPlanOptions}
                         value={detailsMediaPlan}
                         onChange={setDetailsMediaPlan}
                         placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
                       />
                     </div>
                   </div>

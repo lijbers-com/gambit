@@ -116,13 +116,15 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       const handleCellClick = () => {
         if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
       };
+      // The padding lives inside FillRateBar's trigger wrapper so the entire
+      // cell-sized box (not just the 10px bar) opens the hover tooltip.
       return (
         <td
           key={weekIndex}
-          className="px-3 py-[11px] align-middle cursor-pointer hover:bg-neutral-50 transition-colors"
+          className="p-0 align-middle hover:bg-neutral-50 transition-colors"
           onClick={handleCellClick}
         >
-          <FillRateBar value={value} height={10} showLabels />
+          <FillRateBar value={value} height={10} showLabels className="px-3 py-[11px]" />
         </td>
       );
     }

@@ -160,44 +160,53 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       </div>
     )
 
-    return (
+    const labelRow = (() => {
+      // Skip "available" (the grey remainder reads as available implicitly)
+      // unless the caller explicitly requested it via labelSegments.
+      const defaultLabelKeys = segmentOrder.filter((k) => k !== "available")
+      const keys = (labelSegments ?? defaultLabelKeys).filter(
+        (k) => (value[k] ?? 0) > 0
+      )
+      if (keys.length === 0) return null
+      return (
+        <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
+          {keys.map((key) => (
+            <span key={key} style={{ color: colors[key] }}>
+              {Math.round(pct(value[key] ?? 0))}%
+            </span>
+          ))}
+        </div>
+      )
+    })()
+
+    const content = (
       <div
-        ref={ref}
         className={cn("w-full flex flex-col gap-1", className)}
         title={hoverTooltip ? undefined : tooltipText}
       >
-        {hoverTooltip ? (
-          <Tooltip>
-            <TooltipTrigger asChild>{bar}</TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className="bg-background text-foreground border border-border p-3 shadow-lg"
-            >
-              {legend}
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          bar
-        )}
-        {showLabels && (() => {
-          // Skip "available" (the grey remainder reads as available implicitly)
-          // unless the caller explicitly requested it via labelSegments.
-          const defaultLabelKeys = segmentOrder.filter((k) => k !== "available")
-          const keys = (labelSegments ?? defaultLabelKeys).filter(
-            (k) => (value[k] ?? 0) > 0
-          )
-          if (keys.length === 0) return null
-          return (
-            <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
-              {keys.map((key) => (
-                <span key={key} style={{ color: colors[key] }}>
-                  {Math.round(pct(value[key] ?? 0))}%
-                </span>
-              ))}
-            </div>
-          )
-        })()}
+        {bar}
+        {showLabels && labelRow}
       </div>
+    )
+
+    if (!hoverTooltip) {
+      return <div ref={ref}>{content}</div>
+    }
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div ref={ref} className="block w-full cursor-pointer">
+            {content}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          className="bg-background text-foreground border border-border p-3 shadow-lg"
+        >
+          {legend}
+        </TooltipContent>
+      </Tooltip>
     )
   }
 )

@@ -3,6 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { CalendarTable } from '@/components/ui/calendar-table';
+import { FillRateValue } from '@/components/ui/fill-rate-bar';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -153,6 +154,35 @@ const retailerEvents = [
   { week: 11, name: 'Year End Clearance' },
   { week: 12, name: 'Year End Clearance' },
 ];
+
+// Synthesize a fill-rate breakdown from a single numeric availability value.
+// Existing calendar data is `number | string` per week (reach counts, fill
+// percentages, etc.). When the user is on the Fill Rate view tab we need a
+// FillRateValue to feed the stacked bar — this maps the raw number into a
+// plausible booked / confirmed / reserved / available / overbooked split so
+// the bar shows variety without requiring per-product hand-curated data.
+const toFillRateBreakdown = (v: number | string | FillRateValue): FillRateValue => {
+  if (typeof v === 'object' && v !== null) return v; // already a breakdown
+  if (typeof v !== 'number' || isNaN(v)) return { available: 100 };
+  // Treat large numbers (reach counts) as "high fill", smaller as percentages,
+  // and negatives as overbooked excess.
+  let fillPct: number;
+  if (v >= 1000) {
+    // Reach/store counts: log-scale to a 30-100% range so big differences read.
+    fillPct = Math.min(100, 30 + Math.log10(v) * 10);
+  } else if (v < 0) {
+    fillPct = 100 + Math.abs(v);
+  } else {
+    fillPct = v;
+  }
+  const capped = Math.min(fillPct, 100);
+  const booked = capped * 0.55;
+  const confirmed = capped * 0.20;
+  const reserved = capped * 0.20;
+  const available = Math.max(0, 100 - capped);
+  const overbooked = fillPct > 100 ? Math.min(fillPct - 100, 40) : 0;
+  return { booked, confirmed, reserved, available, overbooked };
+};
 
 // Shared component for booking calendar functionality
 const BookingCalendarTemplate = ({
@@ -390,14 +420,22 @@ const BookingCalendarTemplate = ({
           </CardHeader>
           <CardContent>
             <CalendarTable
-              mediaProducts={filteredBookingsData}
+              mediaProducts={
+                activeView === 'fillRate'
+                  ? filteredBookingsData.map(p => ({
+                      ...p,
+                      availability: p.availability.map(toFillRateBreakdown),
+                    }))
+                  : filteredBookingsData
+              }
               weeks={numberOfWeeks}
               startWeek={startWeek}
               retailerEvents={adjustedRetailerEvents}
-              showReach={true}
+              showReach={activeView !== 'fillRate'}
               displayType={
-                activeView === 'bookedCampaigns' ? 'fillRate' : 
-                activeView === 'stores' ? 'stores' : 
+                activeView === 'fillRate' ? 'fillRateBar' :
+                activeView === 'revenue' ? 'revenue' :
+                activeView === 'stores' ? 'stores' :
                 'reach'
               }
               onCellClick={handleCellClick}
@@ -1627,6 +1665,7 @@ const OfflineInstoreCalendarTemplate = ({
     { value: 'bookedCampaigns', label: 'Booked campaigns' },
     { value: 'stores', label: 'Available stores' },
     { value: 'reach', label: 'Available reach' },
+    { value: 'fillRate', label: 'Fill Rate' },
   ];
   
   // Calculate weeks to show and start week from date range
@@ -1840,21 +1879,27 @@ const OfflineInstoreCalendarTemplate = ({
           </CardHeader>
           <CardContent>
             <CalendarTable
-              mediaProducts={filteredBookingsData.map(product => ({
-                ...product,
-                availability: activeView === 'bookedCampaigns' 
-                  ? (product.campaignCounts || product.availability)
-                  : activeView === 'reach'
-                  ? (product.reachData || product.availability)
-                  : product.availability
-              }))}
+              mediaProducts={filteredBookingsData.map(product => {
+                const raw =
+                  activeView === 'bookedCampaigns'
+                    ? (product.campaignCounts || product.availability)
+                    : activeView === 'reach'
+                    ? (product.reachData || product.availability)
+                    : product.availability;
+                return {
+                  ...product,
+                  availability:
+                    activeView === 'fillRate' ? raw.map(toFillRateBreakdown) : raw,
+                };
+              })}
               weeks={numberOfWeeks}
               startWeek={startWeek}
               retailerEvents={adjustedRetailerEvents}
-              showReach={true}
+              showReach={activeView !== 'fillRate'}
               displayType={
-                activeView === 'bookedCampaigns' ? 'bookedCampaigns' : 
-                activeView === 'stores' ? 'stores' : 
+                activeView === 'fillRate' ? 'fillRateBar' :
+                activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
+                activeView === 'stores' ? 'stores' :
                 'reach'
               }
               onCellClick={handleCellClick}

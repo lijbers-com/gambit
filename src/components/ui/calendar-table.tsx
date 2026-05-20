@@ -310,12 +310,15 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   };
 
   const zonesColumnWidth = '240px';
-  const weekColumnWidth = '100px'; // Fixed width for week columns
+  // Wider columns when the cells render FillRateBar — the per-segment
+  // percentage labels need room to breathe (a 5% segment at 100px column
+  // gives 5px of label space → unreadable overlap).
+  const weekColumnWidth = displayType === 'fillRateBar' ? '140px' : '100px';
 
   return (
     <div className={cn('overflow-x-auto bg-white border border-border rounded-xl', className)}>
       {/* Main Table */}
-      <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * 100)}px`, tableLayout: 'fixed' }}>
+      <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * parseInt(weekColumnWidth))}px`, tableLayout: 'fixed' }}>
         <thead className="bg-neutral-50">
           <tr>
             <th 

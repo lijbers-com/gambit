@@ -133,26 +133,24 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
             />
           ))}
         </div>
-        {showLabels && (
-          <div className="flex w-full text-[10px] leading-none tabular-nums">
-            {segmentOrder.map((key) => {
-              const raw = value[key] ?? 0
-              if (raw <= 0 || !visibleLabels.includes(key)) return null
-              return (
-                <div
-                  key={key}
-                  className="text-muted-foreground"
-                  style={{
-                    width: `${pct(raw)}%`,
-                    color: colors[key],
-                  }}
-                >
-                  {Math.round(pct(raw))}%
-                </div>
-              )
-            })}
-          </div>
-        )}
+        {showLabels && (() => {
+          // Skip "available" (the grey remainder reads as available implicitly)
+          // unless the caller explicitly requested it via labelSegments.
+          const defaultLabelKeys = segmentOrder.filter((k) => k !== "available")
+          const keys = (labelSegments ?? defaultLabelKeys).filter(
+            (k) => (value[k] ?? 0) > 0
+          )
+          if (keys.length === 0) return null
+          return (
+            <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
+              {keys.map((key) => (
+                <span key={key} style={{ color: colors[key] }}>
+                  {Math.round(pct(value[key] ?? 0))}%
+                </span>
+              ))}
+            </div>
+          )
+        })()}
       </div>
     )
   }

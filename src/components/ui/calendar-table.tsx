@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
 import { Badge } from './badge';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
+import { TooltipProvider } from './tooltip';
 
 export interface Booking {
   id: string;
@@ -292,6 +293,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   const weekColumnWidth = displayType === 'fillRateBar' ? '140px' : '100px';
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className={cn('overflow-x-auto bg-white border border-border rounded-xl', className)}>
       {/* Main Table */}
       <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * parseInt(weekColumnWidth))}px`, tableLayout: 'fixed' }}>
@@ -518,5 +520,6 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         </tbody>
       </table>
     </div>
+    </TooltipProvider>
   );
 };

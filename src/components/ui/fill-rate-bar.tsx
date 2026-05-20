@@ -14,6 +14,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
 
 export type FillRateSegmentKey =
   | "booked"
@@ -79,6 +80,9 @@ export interface FillRateBarProps {
   className?: string
   /** Title attribute for native hover tooltip; defaults to a summary string. */
   title?: string
+  /** Render a Radix tooltip on hover with a structured legend. Requires a
+   *  TooltipProvider somewhere in the parent tree. Default: true. */
+  hoverTooltip?: boolean
 }
 
 export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
@@ -93,6 +97,7 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       segmentLabels,
       className,
       title,
+      hoverTooltip = true,
     },
     ref
   ) => {
@@ -115,24 +120,65 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
 
     const visibleLabels = labelSegments ?? present.map((s) => s.key)
 
+    const bar = (
+      <div
+        className="flex w-full overflow-hidden rounded-sm bg-muted"
+        style={{ height }}
+        role="img"
+        aria-label={tooltipText}
+      >
+        {present.map((s) => (
+          <div
+            key={s.key}
+            style={{
+              width: `${pct(s.raw)}%`,
+              backgroundColor: colors[s.key],
+            }}
+          />
+        ))}
+      </div>
+    )
+
+    const legend = (
+      <div className="space-y-1.5">
+        {segmentOrder.map((key) => {
+          const raw = value[key] ?? 0
+          if (raw <= 0) return null
+          return (
+            <div key={key} className="flex items-center gap-2 text-xs">
+              <span
+                className="h-2.5 w-2.5 rounded-sm shrink-0"
+                style={{ backgroundColor: colors[key] }}
+              />
+              <span className="text-muted-foreground flex-1">{labels[key]}</span>
+              <span className="font-medium tabular-nums text-foreground">
+                {Math.round(pct(raw))}%
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    )
+
     return (
-      <div ref={ref} className={cn("w-full flex flex-col gap-1", className)} title={tooltipText}>
-        <div
-          className="flex w-full overflow-hidden rounded-sm bg-muted"
-          style={{ height }}
-          role="img"
-          aria-label={tooltipText}
-        >
-          {present.map((s) => (
-            <div
-              key={s.key}
-              style={{
-                width: `${pct(s.raw)}%`,
-                backgroundColor: colors[s.key],
-              }}
-            />
-          ))}
-        </div>
+      <div
+        ref={ref}
+        className={cn("w-full flex flex-col gap-1", className)}
+        title={hoverTooltip ? undefined : tooltipText}
+      >
+        {hoverTooltip ? (
+          <Tooltip>
+            <TooltipTrigger asChild>{bar}</TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className="bg-background text-foreground border border-border p-3 shadow-lg"
+            >
+              {legend}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          bar
+        )}
         {showLabels && (() => {
           // Skip "available" (the grey remainder reads as available implicitly)
           // unless the caller explicitly requested it via labelSegments.

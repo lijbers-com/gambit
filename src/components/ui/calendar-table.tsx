@@ -90,19 +90,12 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     };
   };
 
-  // Commercial agenda events pull from the theme's brand shade ramp so
-  // each event reads as a distinct step within the same brand color —
-  // theme-aware automatically (Gambit → purple, AH → cyan, ADUSA → green,
-  // Delhaize → red, Alfa Beta → blue) via --brand-* tokens.
-  const eventShades = [
-    '--brand-800',
-    '--brand-600',
-    '--brand-400',
-    '--brand-700',
-    '--brand-500',
-  ];
+  // Commercial agenda events pull from the same --chart-1 ... --chart-5
+  // tokens the rest of the chart layer uses, so events sit in the same
+  // palette as every chart in the app and the theme switcher retunes them
+  // automatically.
   const getCommercialAgendaColorStyle = (index: number) => {
-    const colorVar = eventShades[index % eventShades.length];
+    const colorVar = `--chart-${(index % 5) + 1}`;
     return {
       backgroundColor: `hsl(var(${colorVar}))`,
       color: 'white',

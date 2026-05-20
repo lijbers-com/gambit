@@ -4,6 +4,7 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { CalendarTable } from '@/components/ui/calendar-table';
 import { FillRateValue } from '@/components/ui/fill-rate-bar';
+import { AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -184,15 +185,50 @@ const toFillRateBreakdown = (v: number | string | FillRateValue): FillRateValue 
   return { booked, confirmed, reserved, available, overbooked };
 };
 
+// Synthesize an available-time breakdown from a numeric availability value
+// (used by digital media in-store, where each loop has spare seconds).
+// Higher base values mean more spare time across loops; the segments shift
+// from "no available" toward "high available" as the input rises.
+const toAvailableTimeBreakdown = (v: number | string | FillRateValue | AvailableTimeValue): AvailableTimeValue => {
+  if (typeof v === 'object' && v !== null) {
+    // Already an availability-shaped object — pass through.
+    if ('noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v) {
+      return v as AvailableTimeValue;
+    }
+    return { noAvailable: 1 };
+  }
+  if (typeof v !== 'number' || isNaN(v)) return { noAvailable: 1 };
+  // Normalize: treat large numbers (reach counts) into a 0-100 capacity score.
+  let pct: number;
+  if (v >= 1000) pct = Math.min(100, 20 + Math.log10(v) * 12);
+  else if (v < 0) pct = 0;
+  else pct = Math.min(100, v);
+  // Distribute across four buckets. As pct rises, weight shifts to higher tiers.
+  const noAvailable = Math.max(0, 100 - pct) * 0.35;
+  const lowAvailable = 25 - Math.abs(pct - 25) * 0.5;
+  const mediumAvailable = 25 - Math.abs(pct - 55) * 0.5;
+  const highAvailable = Math.max(0, pct - 30) * 0.55;
+  return {
+    noAvailable: Math.max(0, noAvailable),
+    lowAvailable: Math.max(2, lowAvailable),
+    mediumAvailable: Math.max(2, mediumAvailable),
+    highAvailable: Math.max(0, highAvailable),
+  };
+};
+
 // Shared component for booking calendar functionality
 const BookingCalendarTemplate = ({
   bookingsData,
   title,
-  mediaProductOptions
+  mediaProductOptions,
+  showAvailableTimeTab = false,
 }: {
   bookingsData: any[],
   title: string,
-  mediaProductOptions: Array<{ label: string, value: string }>
+  mediaProductOptions: Array<{ label: string, value: string }>,
+  /** When true, adds an "Available time" view tab — currently a Digital
+   *  in-store concept (per-loop spare seconds). Off everywhere else. */
+  showAvailableTimeTab?: boolean,
 }) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -219,6 +255,7 @@ const BookingCalendarTemplate = ({
     { value: 'revenue', label: 'Revenue' },
     { value: 'fillRate', label: 'Fill Rate' },
     { value: 'stores', label: 'Available Stores' },
+    ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time' }] : []),
   ];
 
   // Calculate weeks to show and start week from date range
@@ -426,14 +463,20 @@ const BookingCalendarTemplate = ({
                       ...p,
                       availability: p.availability.map(toFillRateBreakdown),
                     }))
+                  : activeView === 'availableTime'
+                  ? filteredBookingsData.map(p => ({
+                      ...p,
+                      availability: p.availability.map(toAvailableTimeBreakdown),
+                    }))
                   : filteredBookingsData
               }
               weeks={numberOfWeeks}
               startWeek={startWeek}
               retailerEvents={adjustedRetailerEvents}
-              showReach={activeView !== 'fillRate'}
+              showReach={activeView !== 'fillRate' && activeView !== 'availableTime'}
               displayType={
                 activeView === 'fillRate' ? 'fillRateBar' :
+                activeView === 'availableTime' ? 'availableTimeBar' :
                 activeView === 'revenue' ? 'revenue' :
                 activeView === 'stores' ? 'stores' :
                 'reach'
@@ -452,14 +495,18 @@ const BookingCalendarTemplate = ({
               Availability: {
                 selectedCell?.value && typeof selectedCell.value === 'object'
                   ? (() => {
-                      const v = selectedCell.value as FillRateValue;
+                      const v = selectedCell.value as FillRateValue & AvailableTimeValue;
                       const parts: string[] = [];
-                      if (v.booked)       parts.push(`Booked ${Math.round(v.booked)}%`);
-                      if (v.confirmed)    parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
-                      if (v.reserved)     parts.push(`Reserved ${Math.round(v.reserved)}%`);
-                      if (v.available)    parts.push(`Available ${Math.round(v.available)}%`);
-                      if (v.overbooked)   parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
-                      if (v.overreserved) parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      if (v.booked)         parts.push(`Booked ${Math.round(v.booked)}%`);
+                      if (v.confirmed)      parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
+                      if (v.reserved)       parts.push(`Reserved ${Math.round(v.reserved)}%`);
+                      if (v.available)      parts.push(`Available ${Math.round(v.available)}%`);
+                      if (v.overbooked)     parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
+                      if (v.overreserved)   parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      if (v.noAvailable)    parts.push(`No available ${Math.round(v.noAvailable)}%`);
+                      if (v.lowAvailable)   parts.push(`Low available ${Math.round(v.lowAvailable)}%`);
+                      if (v.mediumAvailable) parts.push(`Medium available ${Math.round(v.mediumAvailable)}%`);
+                      if (v.highAvailable)  parts.push(`High available ${Math.round(v.highAvailable)}%`);
                       return parts.join(' · ');
                     })()
                   : selectedCell?.value
@@ -1932,14 +1979,18 @@ const OfflineInstoreCalendarTemplate = ({
               Availability: {
                 selectedCell?.value && typeof selectedCell.value === 'object'
                   ? (() => {
-                      const v = selectedCell.value as FillRateValue;
+                      const v = selectedCell.value as FillRateValue & AvailableTimeValue;
                       const parts: string[] = [];
-                      if (v.booked)       parts.push(`Booked ${Math.round(v.booked)}%`);
-                      if (v.confirmed)    parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
-                      if (v.reserved)     parts.push(`Reserved ${Math.round(v.reserved)}%`);
-                      if (v.available)    parts.push(`Available ${Math.round(v.available)}%`);
-                      if (v.overbooked)   parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
-                      if (v.overreserved) parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      if (v.booked)         parts.push(`Booked ${Math.round(v.booked)}%`);
+                      if (v.confirmed)      parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
+                      if (v.reserved)       parts.push(`Reserved ${Math.round(v.reserved)}%`);
+                      if (v.available)      parts.push(`Available ${Math.round(v.available)}%`);
+                      if (v.overbooked)     parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
+                      if (v.overreserved)   parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      if (v.noAvailable)    parts.push(`No available ${Math.round(v.noAvailable)}%`);
+                      if (v.lowAvailable)   parts.push(`Low available ${Math.round(v.lowAvailable)}%`);
+                      if (v.mediumAvailable) parts.push(`Medium available ${Math.round(v.mediumAvailable)}%`);
+                      if (v.highAvailable)  parts.push(`High available ${Math.round(v.highAvailable)}%`);
                       return parts.join(' · ');
                     })()
                   : selectedCell?.value
@@ -2053,6 +2104,7 @@ export const DigitalInstoreCalendar: Story = {
       <BookingCalendarTemplate
         bookingsData={digitalInstoreBookingsData}
         title="Digital In-store Calendar"
+        showAvailableTimeTab
         mediaProductOptions={[
           { label: 'Digital Screens - Entrance', value: '1' },
           { label: 'Interactive Kiosks', value: '2' },
@@ -2186,6 +2238,7 @@ export const DigitalInstoreFillRateCalendar: Story = {
       <BookingCalendarTemplate
         bookingsData={digitalInstoreFillRateData as any}
         title="Digital In-store Calendar"
+        showAvailableTimeTab
         mediaProductOptions={[
           { label: 'Pui TV Portrait', value: '1' },
           { label: 'Beauty TV Portrait', value: '2' },

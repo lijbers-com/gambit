@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
 import { Badge } from './badge';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
+import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
 import { TooltipProvider } from './tooltip';
 
 export interface Booking {
@@ -15,11 +16,16 @@ export interface Booking {
   variant?: "default" | "success" | "warning" | "destructive";
 }
 
-/** A cell can be a single number/string OR a fill-rate breakdown. */
-export type CalendarCellValue = number | string | FillRateValue;
+/** A cell can be a single number/string, a fill-rate breakdown, or an available-time breakdown. */
+export type CalendarCellValue = number | string | FillRateValue | AvailableTimeValue;
 
-const isFillRateValue = (v: CalendarCellValue | null | undefined): v is FillRateValue =>
-  typeof v === 'object' && v !== null;
+const isAvailableTimeValue = (v: any): v is AvailableTimeValue =>
+  typeof v === 'object' && v !== null && (
+    'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v
+  );
+
+const isFillRateValue = (v: any): v is FillRateValue =>
+  typeof v === 'object' && v !== null && !isAvailableTimeValue(v);
 
 export interface MediaProduct {
   id: string;
@@ -40,7 +46,7 @@ export interface CalendarTableProps {
   startWeek?: number;
   retailerEvents?: RetailerEvent[];
   showReach?: boolean;
-  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
+  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
   className?: string;
   onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: CalendarCellValue) => void;
   hideGreyCells?: boolean;
@@ -110,6 +116,22 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
 
   const renderAvailabilityCell = (value: CalendarCellValue, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
     const hasEvent = hasEventInWeek(weekNumbers[weekIndex]);
+
+    // Available-time breakdown cell (DOOH loops): no / low / medium / high.
+    if (isAvailableTimeValue(value)) {
+      const handleCellClick = () => {
+        if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
+      };
+      return (
+        <td
+          key={weekIndex}
+          className="p-0 align-middle hover:bg-neutral-50 transition-colors"
+          onClick={handleCellClick}
+        >
+          <AvailableTimeBar value={value} height={10} showLabels className="px-3 py-[11px]" />
+        </td>
+      );
+    }
 
     // Fill-rate breakdown cell: render the stacked bar + per-segment percentages.
     if (isFillRateValue(value)) {
@@ -289,10 +311,12 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   };
 
   const zonesColumnWidth = '240px';
-  // Wider columns when the cells render FillRateBar — the per-segment
-  // percentage labels need room to breathe (a 5% segment at 100px column
-  // gives 5px of label space → unreadable overlap).
-  const weekColumnWidth = displayType === 'fillRateBar' ? '140px' : '100px';
+  // Wider columns when the cells render a stacked bar (FillRate or
+  // AvailableTime) — the per-segment labels need room to breathe.
+  const weekColumnWidth =
+    displayType === 'fillRateBar' || displayType === 'availableTimeBar'
+      ? '140px'
+      : '100px';
 
   return (
     <TooltipProvider delayDuration={150}>

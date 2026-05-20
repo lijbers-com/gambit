@@ -90,41 +90,24 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     };
   };
 
-  // Theme-specific colors for commercial agenda events only
+  // Commercial agenda events pull from the theme's brand shade ramp so
+  // each event reads as a distinct step within the same brand color —
+  // theme-aware automatically (Gambit → purple, AH → cyan, ADUSA → green,
+  // Delhaize → red, Alfa Beta → blue) via --brand-* tokens.
+  const eventShades = [
+    '--brand-800',
+    '--brand-600',
+    '--brand-400',
+    '--brand-700',
+    '--brand-500',
+  ];
   const getCommercialAgendaColorStyle = (index: number) => {
-    // Check current theme by looking at the document data-theme attribute
-    const currentTheme = typeof window !== 'undefined' ? 
-      document.documentElement.getAttribute('data-theme') || 'retailMedia' : 'retailMedia';
-    
-    if (currentTheme === 'albertHeijn') {
-      // Albert Heijn blue variations for commercial agenda
-      const ahColors = [
-        'hsl(192, 100%, 45%)', // AH Blue
-        'hsl(192, 70%, 35%)',  // Darker AH Blue
-        'hsl(192, 85%, 55%)',  // Light AH Blue
-        'hsl(192, 60%, 25%)',  // Dark AH Blue
-        'hsl(192, 90%, 65%)',  // Very Light AH Blue
-      ];
-      return {
-        backgroundColor: ahColors[index % ahColors.length],
-        color: 'white',
-        borderColor: ahColors[index % ahColors.length],
-      };
-    } else {
-      // Gambit theme variations for commercial agenda
-      const gambitColors = [
-        'hsl(210, 20%, 21%)',  // Gambit Primary Dark
-        'hsl(210, 15%, 35%)',  // Gambit Secondary
-        'hsl(210, 25%, 45%)',  // Gambit Medium
-        'hsl(210, 30%, 55%)',  // Gambit Light
-        'hsl(210, 35%, 65%)',  // Gambit Very Light
-      ];
-      return {
-        backgroundColor: gambitColors[index % gambitColors.length],
-        color: 'white',
-        borderColor: gambitColors[index % gambitColors.length],
-      };
-    }
+    const colorVar = eventShades[index % eventShades.length];
+    return {
+      backgroundColor: `hsl(var(${colorVar}))`,
+      color: 'white',
+      borderColor: `hsl(var(${colorVar}))`,
+    };
   };
 
   const hasEventInWeek = (weekNum: number) => {

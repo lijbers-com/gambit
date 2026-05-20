@@ -449,7 +449,21 @@ const BookingCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              Availability: {selectedCell?.value} | All bookings for this week
+              Availability: {
+                selectedCell?.value && typeof selectedCell.value === 'object'
+                  ? (() => {
+                      const v = selectedCell.value as FillRateValue;
+                      const parts: string[] = [];
+                      if (v.booked)       parts.push(`Booked ${Math.round(v.booked)}%`);
+                      if (v.confirmed)    parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
+                      if (v.reserved)     parts.push(`Reserved ${Math.round(v.reserved)}%`);
+                      if (v.available)    parts.push(`Available ${Math.round(v.available)}%`);
+                      if (v.overbooked)   parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
+                      if (v.overreserved) parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      return parts.join(' · ');
+                    })()
+                  : selectedCell?.value
+              } | All bookings for this week
             </RightDrawerDescription>
           </RightDrawerHeader>
           <RightDrawerBody>
@@ -1915,7 +1929,21 @@ const OfflineInstoreCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              Availability: {selectedCell?.value} | All bookings for this week
+              Availability: {
+                selectedCell?.value && typeof selectedCell.value === 'object'
+                  ? (() => {
+                      const v = selectedCell.value as FillRateValue;
+                      const parts: string[] = [];
+                      if (v.booked)       parts.push(`Booked ${Math.round(v.booked)}%`);
+                      if (v.confirmed)    parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
+                      if (v.reserved)     parts.push(`Reserved ${Math.round(v.reserved)}%`);
+                      if (v.available)    parts.push(`Available ${Math.round(v.available)}%`);
+                      if (v.overbooked)   parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
+                      if (v.overreserved) parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
+                      return parts.join(' · ');
+                    })()
+                  : selectedCell?.value
+              } | All bookings for this week
             </RightDrawerDescription>
           </RightDrawerHeader>
           <RightDrawerBody>

@@ -470,6 +470,7 @@ const BookingCalendarTemplate = ({
                   options: channelOptions ?? mediaProductOptions,
                   selectedValues: channel,
                   onChange: setChannel,
+                  forceSearch: true,
                 }] : []),
                 ...(showPublisherFilter ? [{
                   name: 'Publisher',
@@ -481,6 +482,7 @@ const BookingCalendarTemplate = ({
                   ],
                   selectedValues: publisher,
                   onChange: setPublisher,
+                  forceSearch: true,
                 }] : []),
                 ...(hideStoreAssortmentFilter ? [] : [{
                   name: 'Store assortment',

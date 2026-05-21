@@ -15,6 +15,8 @@ export interface FilterBarFilter {
     placeholder?: string;
     type?: 'text' | 'number';
   };
+  /** Force the search field in the popover even when options is small. */
+  forceSearch?: boolean;
 }
 
 export interface FilterBarProps {
@@ -45,6 +47,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             selectedValues={filter.selectedValues}
             onChange={filter.onChange}
             customInput={filter.customInput}
+            forceSearch={filter.forceSearch}
           />
         ))}
       </div>

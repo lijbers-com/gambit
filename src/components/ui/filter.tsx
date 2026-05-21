@@ -24,6 +24,10 @@ export interface FilterProps {
     placeholder?: string;
     type?: 'text' | 'number';
   };
+  /** Force the search field to render even when the option list is short.
+   *  Useful for filters whose option set grows over time (e.g. Channel,
+   *  Publisher) and where users expect a search box from the first click. */
+  forceSearch?: boolean;
 }
 
 export const Filter: React.FC<FilterProps> = ({
@@ -33,10 +37,11 @@ export const Filter: React.FC<FilterProps> = ({
   onChange,
   className,
   customInput,
+  forceSearch = false,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
-  const showSearch = options.length > 8;
+  const showSearch = forceSearch || options.length > 8;
   const filteredOptions = showSearch
     ? options.filter(opt =>
         opt.label.toLowerCase().includes(search.toLowerCase())

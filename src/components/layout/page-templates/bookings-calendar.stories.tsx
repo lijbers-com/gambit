@@ -318,6 +318,10 @@ const BookingCalendarTemplate = ({
   const [storeType, setStoreType] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
+  // Which tab is currently visible. Kept separate from focusedChannelId so
+  // jumping back to the main tab doesn't close the focused-channel tab —
+  // the user closes that one explicitly via its X icon.
+  const [activeTabValue, setActiveTabValue] = useState<string>('all');
   const [mediaProduct, setMediaProduct] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
@@ -643,7 +647,7 @@ const BookingCalendarTemplate = ({
                 <CalendarTable
                   mediaProducts={transformed}
                   {...commonProps}
-                  onChannelClick={(p) => setFocusedChannelId(p.id)}
+                  onChannelClick={(p) => { setFocusedChannelId(p.id); setActiveTabValue(p.id); }}
                 />
               ),
             },
@@ -655,7 +659,11 @@ const BookingCalendarTemplate = ({
                   <span
                     role="button"
                     aria-label="Close tab"
-                    onClick={(e) => { e.stopPropagation(); setFocusedChannelId(null); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFocusedChannelId(null);
+                      setActiveTabValue('all');
+                    }}
                     className="ml-1 p-0.5 rounded hover:bg-neutral-200 cursor-pointer flex items-center"
                   >
                     <X className="w-3 h-3" />
@@ -675,8 +683,8 @@ const BookingCalendarTemplate = ({
             <CardWithTabs
               className="w-full"
               tabs={tabs}
-              activeTab={focusedChannelId ?? 'all'}
-              onTabChange={(v) => setFocusedChannelId(v === 'all' ? null : v)}
+              activeTab={focusedChannel ? activeTabValue : 'all'}
+              onTabChange={setActiveTabValue}
               header={viewbarHeader}
             />
           );
@@ -1905,6 +1913,10 @@ const OfflineInstoreCalendarTemplate = ({
   const [storeType, setStoreType] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
+  // Which tab is currently visible. Kept separate from focusedChannelId so
+  // jumping back to the main tab doesn't close the focused-channel tab —
+  // the user closes that one explicitly via its X icon.
+  const [activeTabValue, setActiveTabValue] = useState<string>('all');
   const [retailProduct, setRetailProduct] = useState<string[]>([]);
   const [maxStoreAmount, setMaxStoreAmount] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -2204,7 +2216,7 @@ const OfflineInstoreCalendarTemplate = ({
                 <CalendarTable
                   mediaProducts={transformed}
                   {...commonProps}
-                  onChannelClick={(p) => setFocusedChannelId(p.id)}
+                  onChannelClick={(p) => { setFocusedChannelId(p.id); setActiveTabValue(p.id); }}
                 />
               ),
             },
@@ -2216,7 +2228,11 @@ const OfflineInstoreCalendarTemplate = ({
                   <span
                     role="button"
                     aria-label="Close tab"
-                    onClick={(e) => { e.stopPropagation(); setFocusedChannelId(null); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFocusedChannelId(null);
+                      setActiveTabValue('all');
+                    }}
                     className="ml-1 p-0.5 rounded hover:bg-neutral-200 cursor-pointer flex items-center"
                   >
                     <X className="w-3 h-3" />
@@ -2236,8 +2252,8 @@ const OfflineInstoreCalendarTemplate = ({
             <CardWithTabs
               className="w-full"
               tabs={tabs}
-              activeTab={focusedChannelId ?? 'all'}
-              onTabChange={(v) => setFocusedChannelId(v === 'all' ? null : v)}
+              activeTab={focusedChannel ? activeTabValue : 'all'}
+              onTabChange={setActiveTabValue}
               header={viewbarHeader}
             />
           );

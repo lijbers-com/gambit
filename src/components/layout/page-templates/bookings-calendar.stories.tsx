@@ -252,7 +252,9 @@ const BookingCalendarTemplate = ({
   mediaProductOptions,
   showAvailableTimeTab = false,
   hideRevenueTab = false,
+  hideStoresTab = false,
   hideStoreAssortmentFilter = false,
+  hideStoreTypeFilter = false,
   showChannelFilter = false,
   showPublisherFilter = false,
   showBookingsTab = false,
@@ -264,7 +266,12 @@ const BookingCalendarTemplate = ({
   mediaProductOptions: Array<{ label: string, value: string }>,
   showAvailableTimeTab?: boolean,
   hideRevenueTab?: boolean,
+  /** Drop the "Available Stores" view tab — useful for inventory that
+   *  isn't store-based (Display, Sponsored Products). */
+  hideStoresTab?: boolean,
   hideStoreAssortmentFilter?: boolean,
+  /** Drop the Store type filter for inventory that isn't store-based. */
+  hideStoreTypeFilter?: boolean,
   showChannelFilter?: boolean,
   showPublisherFilter?: boolean,
   /** Adds a "Bookings" view tab whose cells show status-colored chips
@@ -299,7 +306,7 @@ const BookingCalendarTemplate = ({
     { value: 'reach', label: 'Impressions' },
     ...(hideRevenueTab ? [] : [{ value: 'revenue', label: 'Revenue' }]),
     { value: 'fillRate', label: 'Fill Rate' },
-    { value: 'stores', label: 'Available Stores' },
+    ...(hideStoresTab ? [] : [{ value: 'stores', label: 'Available Stores' }]),
     ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time' }] : []),
     ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings' }] : []),
   ];
@@ -511,7 +518,7 @@ const BookingCalendarTemplate = ({
                   selectedValues: storeAssortment,
                   onChange: setStoreAssortment,
                 }]),
-                {
+                ...(hideStoreTypeFilter ? [] : [{
                   name: 'Store type',
                   options: [
                     { label: 'To Go', value: 'to-go' },
@@ -522,7 +529,7 @@ const BookingCalendarTemplate = ({
                   ],
                   selectedValues: storeType,
                   onChange: setStoreType,
-                },
+                }]),
               ]}
               hideSearch={true}
             />
@@ -2228,6 +2235,11 @@ export const DisplayCalendar: Story = {
       <BookingCalendarTemplate
         bookingsData={displayBookingsData}
         title="Display Calendar"
+        hideStoresTab
+        hideStoreAssortmentFilter
+        hideStoreTypeFilter
+        showChannelFilter
+        showPublisherFilter
         mediaProductOptions={[
           { label: 'Digital Billboards', value: '1' },
           { label: 'Static Billboards', value: '2' },
@@ -2365,6 +2377,11 @@ export const SponsoredProductCalendar: Story = {
       <BookingCalendarTemplate
         bookingsData={sponsoredProductBookingsData}
         title="Sponsored Product Calendar"
+        hideStoresTab
+        hideStoreAssortmentFilter
+        hideStoreTypeFilter
+        showChannelFilter
+        showPublisherFilter
         mediaProductOptions={[
           { label: 'Featured Product Placement', value: '1' },
           { label: 'Search Sponsored Results', value: '2' },

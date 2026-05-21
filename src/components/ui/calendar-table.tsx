@@ -175,18 +175,20 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           {chips.length === 0 ? (
             <span className="text-sm text-neutral-400">—</span>
           ) : (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center justify-center gap-1 flex-wrap">
               {chips.map((c) => (
                 <div
                   key={c.status}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium tabular-nums"
+                  className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full text-[10px] font-semibold leading-none tabular-nums"
+                  style={{
+                    backgroundColor: bookingStatusColors[c.status],
+                    // Light-green "reserved" needs dark text for contrast;
+                    // every other status has enough contrast against white.
+                    color: c.status === 'reserved' ? 'hsl(var(--success-900))' : 'white',
+                  }}
                   title={`${bookingStatusLabels[c.status]}: ${c.count}`}
                 >
-                  <span
-                    className="h-3 w-3 rounded-sm shrink-0"
-                    style={{ backgroundColor: bookingStatusColors[c.status] }}
-                  />
-                  <span className="text-foreground">{c.count}</span>
+                  {c.count}
                 </div>
               ))}
             </div>
@@ -455,19 +457,18 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 </td>
                 {weekNumbers.map(weekNum => {
                   const eventsInWeek = retailerEvents.filter(event => event.week === weekNum);
-                  
-                  // Group events by name to get unique events for this week
-                  const uniqueEventsInWeek = eventsInWeek.reduce((unique, event) => {
-                    if (!unique.find(e => e.name === event.name)) {
-                      unique.push(event);
-                    }
-                    return unique;
-                  }, [] as RetailerEvent[]);
-                  
+
+                  // Tally count per event name within this week (in case the data
+                  // ever carries multiple entries for the same event in one week).
+                  const countsByEvent = eventsInWeek.reduce((acc, e) => {
+                    acc[e.name] = (acc[e.name] ?? 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>);
+
                   return (
                     <td key={weekNum} className="px-4 py-[11px] align-middle text-center">
                       <div className="flex items-center justify-center gap-1">
-                        {!isCommercialCalendarOpen && uniqueEventsInWeek.map((event, index) => {
+                        {!isCommercialCalendarOpen && Object.entries(countsByEvent).map(([name, count]) => {
                           // Find the event index in the overall event groups to get consistent color
                           const eventGroups = retailerEvents.reduce((groups, e) => {
                             if (!groups[e.name]) {
@@ -476,19 +477,19 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                             groups[e.name].push(e.week);
                             return groups;
                           }, {} as Record<string, number[]>);
-                          
-                          const eventIndex = Object.keys(eventGroups).findIndex(name => name === event.name);
-                          const colorClass = chartColors[eventIndex % chartColors.length];
-                          
+
+                          const eventIndex = Object.keys(eventGroups).findIndex(n => n === name);
+                          const style = getCommercialAgendaColorStyle(eventIndex);
+
                           return (
-                            <Badge 
-                              key={event.name}
-                              variant="default"
-                              className="w-3 h-3 rounded-full p-0 flex items-center justify-center border-0"
-                              style={getCommercialAgendaColorStyle(eventIndex)}
+                            <div
+                              key={name}
+                              className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full text-[10px] font-semibold leading-none tabular-nums"
+                              style={style}
+                              title={`${name}: ${count}`}
                             >
-                              <span className="sr-only">{event.name}</span>
-                            </Badge>
+                              {count}
+                            </div>
                           );
                         })}
                       </div>

@@ -393,13 +393,17 @@ const BookingCalendarTemplate = ({
     week: startWeek + event.week - 1
   }));
 
-  // Adjust bookings data to match the actual week range
+  // Adjust bookings data to match the actual week range. Also map each
+  // booking's legacy status onto the new BookingStatus so the colored
+  // chip bars render correctly under any view (not just the Bookings
+  // tab).
   const adjustedBookingsData = bookingsData.map(product => ({
     ...product,
     bookings: product.bookings?.map((booking: any) => ({
       ...booking,
       startWeek: startWeek + booking.startWeek - 1,
       endWeek: startWeek + booking.endWeek - 1,
+      status: legacyStatusToBookingStatus(booking.status),
     }))
   }));
 
@@ -599,10 +603,6 @@ const BookingCalendarTemplate = ({
                       positions: p.positions?.map((pos: any) => ({
                         ...pos,
                         availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
-                      })),
-                      bookings: (p.bookings ?? []).map((b: any) => ({
-                        ...b,
-                        status: legacyStatusToBookingStatus(b.status),
                       })),
                     }))
                   : filteredBookingsData
@@ -1929,9 +1929,12 @@ const OfflineInstoreCalendarTemplate = ({
       ...booking,
       startWeek: startWeek + booking.startWeek - 1,
       endWeek: startWeek + booking.endWeek - 1,
+      // Map onto BookingStatus so the colored chip bars render under
+      // any view, not only the Bookings tab.
+      status: legacyStatusToBookingStatus(booking.status),
     }))
   }));
-  
+
   // Function to calculate availability reduction based on filters
   const calculateFilteredAvailability = (baseAvailability: number[], product: any, shouldHideGreyCells = false) => {
     let reductionFactor = 1.0;

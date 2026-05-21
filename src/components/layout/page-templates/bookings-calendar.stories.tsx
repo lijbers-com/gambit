@@ -585,9 +585,12 @@ const BookingCalendarTemplate = ({
             </>
           );
 
-          // Apply per-view transform to channel + positions
+          // Apply per-view transform to channel + positions. Impressions
+          // ("reach") gets the same fill-rate breakdown as the Fill Rate
+          // tab because the user wants to read how many of the target
+          // impressions have been used vs how many remain available.
           const transformed =
-            activeView === 'fillRate'
+            activeView === 'fillRate' || activeView === 'reach'
               ? filteredBookingsData.map(p => ({
                   ...p,
                   availability: p.availability.map(toFillRateBreakdown),
@@ -635,9 +638,11 @@ const BookingCalendarTemplate = ({
             weeks: numberOfWeeks,
             startWeek,
             retailerEvents: adjustedRetailerEvents,
-            showReach: activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings',
+            // No eye icons under any bar-mode view (the bar itself carries
+            // the meaning). Impressions is bar-mode now too.
+            showReach: activeView === 'revenue' || activeView === 'stores',
             displayType: (
-              activeView === 'fillRate' ? 'fillRateBar' :
+              activeView === 'fillRate' || activeView === 'reach' ? 'fillRateBar' :
               activeView === 'availableTime' ? 'availableTimeBar' :
               activeView === 'bookings' ? 'bookedCampaigns' :
               activeView === 'revenue' ? 'revenue' :

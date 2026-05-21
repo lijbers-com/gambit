@@ -315,6 +315,7 @@ const BookingCalendarTemplate = ({
   const [channel, setChannel] = useState<string[]>([]);
   const [publisher, setPublisher] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [mediaProduct, setMediaProduct] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
@@ -415,6 +416,10 @@ const BookingCalendarTemplate = ({
     // Publisher filter (data is synthetic so accept any product when no
     // publisher mapping is present yet — kept as a UI hook for now).
     void publisher;
+    // Free-text search matches channel name (case-insensitive).
+    if (searchQuery.trim() && !product.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) {
+      return false;
+    }
 
     // Store type filter
     if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
@@ -558,7 +563,9 @@ const BookingCalendarTemplate = ({
                   onChange: setStoreType,
                 }]),
               ]}
-              hideSearch={true}
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder="Search channels..."
             />
           </CardHeader>
           <CardContent>
@@ -1838,6 +1845,7 @@ const OfflineInstoreCalendarTemplate = ({
   const routes = getRoutesForTheme(currentTheme);
   const [inventoryType, setInventoryType] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [retailProduct, setRetailProduct] = useState<string[]>([]);
   const [maxStoreAmount, setMaxStoreAmount] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -1978,7 +1986,12 @@ const OfflineInstoreCalendarTemplate = ({
     if (retailProduct.length > 0 && !retailProduct.some(productId => product.retailProducts?.includes(productId))) {
       return false;
     }
-    
+
+    // Free-text search (case-insensitive match on channel name).
+    if (searchQuery.trim() && !product.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) {
+      return false;
+    }
+
     return true;
   }).map(product => {
     const shouldHideGreyCells = activeView === 'stores' || activeView === 'reach';
@@ -2066,7 +2079,9 @@ const OfflineInstoreCalendarTemplate = ({
                   onChange: setRetailProduct,
                 },
               ]}
-              hideSearch={true}
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder="Search channels..."
             />
           </CardHeader>
           <CardContent>

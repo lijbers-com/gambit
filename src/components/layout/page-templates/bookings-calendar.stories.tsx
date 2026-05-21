@@ -2240,6 +2240,7 @@ export const DisplayCalendar: Story = {
         hideStoreTypeFilter
         showChannelFilter
         showPublisherFilter
+        showBookingsTab
         mediaProductOptions={[
           { label: 'Digital Billboards', value: '1' },
           { label: 'Static Billboards', value: '2' },

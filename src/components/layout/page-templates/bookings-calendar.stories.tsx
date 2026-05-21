@@ -568,16 +568,31 @@ const BookingCalendarTemplate = ({
                   ? filteredBookingsData.map(p => ({
                       ...p,
                       availability: p.availability.map(toFillRateBreakdown),
+                      positions: p.positions?.map((pos: any) => ({
+                        ...pos,
+                        availability: pos.availability.map(toFillRateBreakdown),
+                      })),
                     }))
                   : activeView === 'availableTime'
                   ? filteredBookingsData.map(p => ({
                       ...p,
                       availability: p.availability.map(toAvailableTimeBreakdown),
+                      positions: p.positions?.map((pos: any) => ({
+                        ...pos,
+                        availability: pos.availability.map(toAvailableTimeBreakdown),
+                      })),
                     }))
                   : activeView === 'bookings'
                   ? filteredBookingsData.map(p => ({
                       ...p,
                       availability: buildBookingsAvailability(p.bookings, numberOfWeeks, startWeek),
+                      // Positions don't carry their own bookings list, so
+                      // their cells render as empty (—) chips — still in
+                      // the Bookings shape so the column visuals match.
+                      positions: p.positions?.map((pos: any) => ({
+                        ...pos,
+                        availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
+                      })),
                       bookings: (p.bookings ?? []).map((b: any) => ({
                         ...b,
                         status: legacyStatusToBookingStatus(b.status),
@@ -2067,6 +2082,15 @@ const OfflineInstoreCalendarTemplate = ({
                   ...product,
                   availability:
                     activeView === 'fillRate' ? raw.map(toFillRateBreakdown) : raw,
+                  // Positions inherit the same per-view shape so they
+                  // render bars when the channel does.
+                  positions: product.positions?.map((pos: any) => ({
+                    ...pos,
+                    availability:
+                      activeView === 'fillRate'
+                        ? pos.availability.map(toFillRateBreakdown)
+                        : pos.availability,
+                  })),
                 };
               })}
               weeks={numberOfWeeks}

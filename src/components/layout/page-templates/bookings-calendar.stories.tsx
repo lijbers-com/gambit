@@ -186,6 +186,25 @@ const toFillRateBreakdown = (v: number | string | FillRateValue): FillRateValue 
   return { booked, confirmed, reserved, available, overbooked };
 };
 
+// Display-specific fill-rate synthesizer. Same percentage capacity logic
+// as toFillRateBreakdown, but splits the used portion across the sales
+// pathways a Display campaign actually came in through.
+const toDisplayFillRateBreakdown = (v: number | string | FillRateValue): FillRateValue => {
+  if (typeof v === 'object' && v !== null) return v as FillRateValue;
+  if (typeof v !== 'number' || isNaN(v)) return { available: 100 };
+  let fillPct: number;
+  if (v >= 1000) fillPct = Math.min(100, 30 + Math.log10(v) * 10);
+  else if (v < 0) fillPct = 100 + Math.abs(v);
+  else fillPct = v;
+  const capped = Math.min(fillPct, 100);
+  const soldManaged = capped * 0.50;
+  const action = capped * 0.30;
+  const programmatic = capped * 0.20;
+  const available = Math.max(0, 100 - capped);
+  const overbooked = fillPct > 100 ? Math.min(fillPct - 100, 40) : 0;
+  return { soldManaged, action, programmatic, available, overbooked };
+};
+
 // Map legacy booking status strings ("closed-won", "in-option", ...) onto
 // the four semantic statuses the new color codes use.
 const legacyStatusToBookingStatus = (s: string | undefined): 'booked' | 'confirmed' | 'reserved' | 'overbooked' => {
@@ -286,6 +305,7 @@ const BookingCalendarTemplate = ({
   showChannelFilter = false,
   showPublisherFilter = false,
   showBookingsTab = false,
+  fillRateBreakdown = 'booking-states',
   channelOptions,
   publisherOptions,
 }: {
@@ -305,6 +325,11 @@ const BookingCalendarTemplate = ({
   /** Adds a "Bookings" view tab whose cells show status-colored chips
    *  (booked / confirmed / reserved / overbooked) per week. */
   showBookingsTab?: boolean,
+  /** Which fill-rate breakdown the Fill Rate + Impressions bars use.
+   *  - 'booking-states' (default): booked / confirmed / reserved / available
+   *  - 'sales-channels' (Display): sold managed / action / programmatic /
+   *    available. */
+  fillRateBreakdown?: 'booking-states' | 'sales-channels',
   channelOptions?: Array<{ label: string, value: string }>,
   publisherOptions?: Array<{ label: string, value: string }>,
 }) => {
@@ -589,14 +614,17 @@ const BookingCalendarTemplate = ({
           // ("reach") gets the same fill-rate breakdown as the Fill Rate
           // tab because the user wants to read how many of the target
           // impressions have been used vs how many remain available.
+          const fillRateSynth = fillRateBreakdown === 'sales-channels'
+            ? toDisplayFillRateBreakdown
+            : toFillRateBreakdown;
           const transformed =
             activeView === 'fillRate' || activeView === 'reach'
               ? filteredBookingsData.map(p => ({
                   ...p,
-                  availability: p.availability.map(toFillRateBreakdown),
+                  availability: p.availability.map(fillRateSynth),
                   positions: p.positions?.map((pos: any) => ({
                     ...pos,
-                    availability: pos.availability.map(toFillRateBreakdown),
+                    availability: pos.availability.map(fillRateSynth),
                   })),
                 }))
               : activeView === 'availableTime'
@@ -2460,6 +2488,7 @@ export const DisplayCalendar: Story = {
         showChannelFilter
         showPublisherFilter
         showBookingsTab
+        fillRateBreakdown="sales-channels"
         mediaProductOptions={[
           { label: 'Digital Billboards', value: '1' },
           { label: 'Static Billboards', value: '2' },

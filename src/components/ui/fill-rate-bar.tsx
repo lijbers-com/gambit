@@ -23,6 +23,12 @@ export type FillRateSegmentKey =
   | "available"
   | "overbooked"
   | "overreserved"
+  // Sales-channel breakdown — used by Display where each booking
+  // came in via a different sales pathway (managed sales / IO action
+  // / programmatic) rather than going through booking states.
+  | "soldManaged"
+  | "action"
+  | "programmatic"
 
 export interface FillRateValue {
   booked?: number
@@ -31,6 +37,10 @@ export interface FillRateValue {
   available?: number
   overbooked?: number
   overreserved?: number
+  // Display / programmatic sales-channel split
+  soldManaged?: number
+  action?: number
+  programmatic?: number
 }
 
 /** Default color mapping. Override via `segmentColors` for bespoke palettes. */
@@ -41,6 +51,11 @@ export const defaultFillRateColors: Record<FillRateSegmentKey, string> = {
   available:    "rgb(var(--neutral-200))",
   overbooked:   "hsl(var(--destructive-500))",
   overreserved: "hsl(var(--warning-500))",
+  // Sales-channel split reuses the same shade ramp so it visually
+  // matches the booking-state bar.
+  soldManaged:  "hsl(var(--success-900))",
+  action:       "hsl(var(--success-600))",
+  programmatic: "hsl(var(--success-300))",
 }
 
 export const defaultFillRateLabels: Record<FillRateSegmentKey, string> = {
@@ -50,10 +65,16 @@ export const defaultFillRateLabels: Record<FillRateSegmentKey, string> = {
   available:    "Available",
   overbooked:   "Overbooked",
   overreserved: "Overreserved",
+  soldManaged:  "Sold (managed)",
+  action:       "Action",
+  programmatic: "Programmatic",
 }
 
 /** Order in which segments stack left-to-right. */
 const segmentOrder: FillRateSegmentKey[] = [
+  "soldManaged",
+  "action",
+  "programmatic",
   "booked",
   "confirmed",
   "reserved",

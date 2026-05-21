@@ -620,6 +620,10 @@ const BookingCalendarTemplate = ({
                 id: pos.id,
                 name: pos.name,
                 availability: pos.availability,
+                // Bookings belong to the parent channel — share them with every
+                // position row so expanding a position in the focused tab still
+                // shows the booking bars (positions don't carry their own list).
+                bookings: focusedChannel.bookings,
               }))
             : [];
 
@@ -2189,6 +2193,10 @@ const OfflineInstoreCalendarTemplate = ({
                 id: pos.id,
                 name: pos.name,
                 availability: pos.availability,
+                // Bookings belong to the parent channel — share them with every
+                // position row so expanding a position in the focused tab still
+                // shows the booking bars (positions don't carry their own list).
+                bookings: focusedChannel.bookings,
               }))
             : [];
 

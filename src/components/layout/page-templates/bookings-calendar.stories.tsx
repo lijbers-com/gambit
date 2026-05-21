@@ -296,7 +296,7 @@ const BookingCalendarTemplate = ({
   const [conversionWindow, setConversionWindow] = useState<number>(14);
 
   const viewTabs = [
-    { value: 'reach', label: 'Reach' },
+    { value: 'reach', label: 'Impressions' },
     ...(hideRevenueTab ? [] : [{ value: 'revenue', label: 'Revenue' }]),
     { value: 'fillRate', label: 'Fill Rate' },
     { value: 'stores', label: 'Available Stores' },
@@ -1805,7 +1805,7 @@ const OfflineInstoreCalendarTemplate = ({
   const viewTabs = [
     { value: 'bookedCampaigns', label: 'Bookings' },
     { value: 'stores', label: 'Available stores' },
-    { value: 'reach', label: 'Available reach' },
+    { value: 'reach', label: 'Available impressions' },
     { value: 'fillRate', label: 'Fill Rate' },
   ];
   

@@ -717,14 +717,14 @@ const BookingCalendarTemplate = ({
               const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
               if (isAvailableTime) {
                 return (
-                  <div className="mt-3 max-w-md">
+                  <div className="mt-3 w-full">
                     <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
                   </div>
                 );
               }
               if (isFillRate) {
                 return (
-                  <div className="mt-3 max-w-md">
+                  <div className="mt-3 w-full">
                     <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
                   </div>
                 );
@@ -2301,14 +2301,14 @@ const OfflineInstoreCalendarTemplate = ({
               const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
               if (isAvailableTime) {
                 return (
-                  <div className="mt-3 max-w-md">
+                  <div className="mt-3 w-full">
                     <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
                   </div>
                 );
               }
               if (isFillRate) {
                 return (
-                  <div className="mt-3 max-w-md">
+                  <div className="mt-3 w-full">
                     <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
                   </div>
                 );

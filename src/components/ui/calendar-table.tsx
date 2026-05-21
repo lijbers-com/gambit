@@ -620,10 +620,18 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               {/* Expanded positions (ad positions / screens under the channel) */}
               {expandedRows.includes(product.id) && product.positions && product.positions.map((position) => (
                 <tr key={`pos-${position.id}`} className="bg-neutral-50/50">
-                  <td className="px-4 py-[11px] align-middle pl-12">
-                    <span className="text-[13px] text-neutral-600 truncate whitespace-nowrap overflow-hidden">
+                  <td
+                    className="py-[11px] align-middle pl-8 pr-4"
+                    style={{ width: zonesColumnWidth, maxWidth: zonesColumnWidth }}
+                  >
+                    {/* Block-level + truncate so long position names cut off
+                        with an ellipsis instead of bleeding into week cells. */}
+                    <div
+                      className="text-[13px] text-neutral-600 truncate"
+                      title={position.name}
+                    >
                       ↳ {position.name}
-                    </span>
+                    </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
                     renderAvailabilityCell(value, i, { ...product, name: position.name }, undefined)

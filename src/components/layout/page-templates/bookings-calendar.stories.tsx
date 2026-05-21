@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
+import { X } from 'lucide-react';
 import { CalendarTable } from '@/components/ui/calendar-table';
 import { FillRateValue } from '@/components/ui/fill-rate-bar';
 import { AvailableTimeValue } from '@/components/ui/available-time-bar';
@@ -488,47 +489,48 @@ const BookingCalendarTemplate = ({
           ),
         }}
       >
-        <Card className="w-full">
-          <CardHeader>
-            <div className="mb-4">
-              <Viewbar
-                tabs={viewTabs}
-                activeTab={activeView}
-                onTabChange={setActiveView}
-                labels={[]}
-              />
-            </div>
-            <FilterBar
-              filters={[
-                {
-                  name: 'Status',
-                  options: [
-                    { label: 'Closed-won', value: 'closed-won' },
-                    { label: 'In option', value: 'in-option' },
-                  ],
-                  selectedValues: status,
-                  onChange: setStatus,
-                },
-                ...(showChannelFilter ? [{
-                  name: 'Channel',
-                  options: channelOptions ?? mediaProductOptions,
-                  selectedValues: channel,
-                  onChange: setChannel,
-                  forceSearch: true,
-                }] : []),
-                ...(showPublisherFilter ? [{
-                  name: 'Publisher',
-                  options: publisherOptions ?? [
-                    { label: 'Etos', value: 'etos' },
-                    { label: 'Albert Heijn', value: 'ah' },
-                    { label: 'Bol', value: 'bol' },
-                    { label: 'Gall & Gall', value: 'gall' },
-                  ],
-                  selectedValues: publisher,
-                  onChange: setPublisher,
-                  forceSearch: true,
-                }] : []),
-                ...(hideStoreAssortmentFilter ? [] : [{
+        {(() => {
+          const viewbarHeader = (
+            <>
+              <div className="mb-4">
+                <Viewbar
+                  tabs={viewTabs}
+                  activeTab={activeView}
+                  onTabChange={setActiveView}
+                  labels={[]}
+                />
+              </div>
+              <FilterBar
+                filters={[
+                  {
+                    name: 'Status',
+                    options: [
+                      { label: 'Closed-won', value: 'closed-won' },
+                      { label: 'In option', value: 'in-option' },
+                    ],
+                    selectedValues: status,
+                    onChange: setStatus,
+                  },
+                  ...(showChannelFilter ? [{
+                    name: 'Channel',
+                    options: channelOptions ?? mediaProductOptions,
+                    selectedValues: channel,
+                    onChange: setChannel,
+                    forceSearch: true,
+                  }] : []),
+                  ...(showPublisherFilter ? [{
+                    name: 'Publisher',
+                    options: publisherOptions ?? [
+                      { label: 'Etos', value: 'etos' },
+                      { label: 'Albert Heijn', value: 'ah' },
+                      { label: 'Bol', value: 'bol' },
+                      { label: 'Gall & Gall', value: 'gall' },
+                    ],
+                    selectedValues: publisher,
+                    onChange: setPublisher,
+                    forceSearch: true,
+                  }] : []),
+                  ...(hideStoreAssortmentFilter ? [] : [{
                   name: 'Store assortment',
                   options: [
                     { label: 'RP-001 - Coca-Cola Classic 330ml', value: 'rp-001' },
@@ -564,100 +566,122 @@ const BookingCalendarTemplate = ({
                     { label: 'Premium', value: 'premium' },
                     { label: 'Compact', value: 'compact' },
                   ],
-                  selectedValues: storeType,
-                  onChange: setStoreType,
-                }]),
-              ]}
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
-              searchPlaceholder="Search channels..."
+                    selectedValues: storeType,
+                    onChange: setStoreType,
+                  }]),
+                ]}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Search channels..."
+              />
+            </>
+          );
+
+          // Apply per-view transform to channel + positions
+          const transformed =
+            activeView === 'fillRate'
+              ? filteredBookingsData.map(p => ({
+                  ...p,
+                  availability: p.availability.map(toFillRateBreakdown),
+                  positions: p.positions?.map((pos: any) => ({
+                    ...pos,
+                    availability: pos.availability.map(toFillRateBreakdown),
+                  })),
+                }))
+              : activeView === 'availableTime'
+              ? filteredBookingsData.map(p => ({
+                  ...p,
+                  availability: p.availability.map(toAvailableTimeBreakdown),
+                  positions: p.positions?.map((pos: any) => ({
+                    ...pos,
+                    availability: pos.availability.map(toAvailableTimeBreakdown),
+                  })),
+                }))
+              : activeView === 'bookings'
+              ? filteredBookingsData.map(p => ({
+                  ...p,
+                  availability: buildBookingsAvailability(p.bookings, numberOfWeeks, startWeek),
+                  positions: p.positions?.map((pos: any) => ({
+                    ...pos,
+                    availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
+                  })),
+                }))
+              : filteredBookingsData;
+
+          const focusedChannel = focusedChannelId
+            ? transformed.find(p => p.id === focusedChannelId)
+            : null;
+          const positionsAsRows = focusedChannel
+            ? (focusedChannel.positions ?? []).map((pos: any) => ({
+                id: pos.id,
+                name: pos.name,
+                availability: pos.availability,
+              }))
+            : [];
+
+          const commonProps = {
+            weeks: numberOfWeeks,
+            startWeek,
+            retailerEvents: adjustedRetailerEvents,
+            showReach: activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings',
+            displayType: (
+              activeView === 'fillRate' ? 'fillRateBar' :
+              activeView === 'availableTime' ? 'availableTimeBar' :
+              activeView === 'bookings' ? 'bookedCampaigns' :
+              activeView === 'revenue' ? 'revenue' :
+              activeView === 'stores' ? 'stores' :
+              'reach'
+            ) as 'fillRateBar' | 'availableTimeBar' | 'bookedCampaigns' | 'revenue' | 'stores' | 'reach',
+            onCellClick: handleCellClick,
+          };
+
+          const tabs = [
+            {
+              value: 'all',
+              label: 'All channels',
+              content: (
+                <CalendarTable
+                  mediaProducts={transformed}
+                  {...commonProps}
+                  onChannelClick={(p) => setFocusedChannelId(p.id)}
+                />
+              ),
+            },
+            ...(focusedChannel ? [{
+              value: focusedChannel.id,
+              label: (
+                <span className="inline-flex items-center gap-2">
+                  <span className="truncate max-w-[200px]">{focusedChannel.name}</span>
+                  <span className="text-xs text-muted-foreground">· {positionsAsRows.length}</span>
+                  <span
+                    role="button"
+                    aria-label="Close tab"
+                    onClick={(e) => { e.stopPropagation(); setFocusedChannelId(null); }}
+                    className="ml-1 p-0.5 rounded hover:bg-neutral-200 cursor-pointer flex items-center"
+                  >
+                    <X className="w-3 h-3" />
+                  </span>
+                </span>
+              ),
+              content: (
+                <CalendarTable
+                  mediaProducts={positionsAsRows}
+                  {...commonProps}
+                />
+              ),
+            }] : []),
+          ];
+
+          return (
+            <CardWithTabs
+              className="w-full"
+              tabs={tabs}
+              activeTab={focusedChannelId ?? 'all'}
+              onTabChange={(v) => setFocusedChannelId(v === 'all' ? null : v)}
+              header={viewbarHeader}
             />
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              // Apply per-view transform to channel + positions
-              const transformed =
-                activeView === 'fillRate'
-                  ? filteredBookingsData.map(p => ({
-                      ...p,
-                      availability: p.availability.map(toFillRateBreakdown),
-                      positions: p.positions?.map((pos: any) => ({
-                        ...pos,
-                        availability: pos.availability.map(toFillRateBreakdown),
-                      })),
-                    }))
-                  : activeView === 'availableTime'
-                  ? filteredBookingsData.map(p => ({
-                      ...p,
-                      availability: p.availability.map(toAvailableTimeBreakdown),
-                      positions: p.positions?.map((pos: any) => ({
-                        ...pos,
-                        availability: pos.availability.map(toAvailableTimeBreakdown),
-                      })),
-                    }))
-                  : activeView === 'bookings'
-                  ? filteredBookingsData.map(p => ({
-                      ...p,
-                      availability: buildBookingsAvailability(p.bookings, numberOfWeeks, startWeek),
-                      positions: p.positions?.map((pos: any) => ({
-                        ...pos,
-                        availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
-                      })),
-                    }))
-                  : filteredBookingsData;
-
-              // Focused-channel view: promote that channel's positions to
-              // top-level rows so the user can focus on them when there are
-              // too many to skim inline.
-              const focusedChannel = focusedChannelId
-                ? transformed.find(p => p.id === focusedChannelId)
-                : null;
-              const tableData = focusedChannel
-                ? (focusedChannel.positions ?? []).map((pos: any) => ({
-                    id: pos.id,
-                    name: pos.name,
-                    availability: pos.availability,
-                  }))
-                : transformed;
-
-              return (
-                <div className="space-y-3">
-                  {focusedChannel && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <button
-                        type="button"
-                        onClick={() => setFocusedChannelId(null)}
-                        className="text-muted-foreground hover:text-foreground hover:underline underline-offset-2 focus:outline-none cursor-pointer"
-                      >
-                        ← All channels
-                      </button>
-                      <span className="text-neutral-400">/</span>
-                      <span className="font-medium text-foreground">{focusedChannel.name}</span>
-                      <span className="text-xs text-muted-foreground">· {tableData.length} position{tableData.length === 1 ? '' : 's'}</span>
-                    </div>
-                  )}
-                  <CalendarTable
-                    mediaProducts={tableData}
-                    weeks={numberOfWeeks}
-                    startWeek={startWeek}
-                    retailerEvents={adjustedRetailerEvents}
-                    showReach={activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings'}
-                    displayType={
-                      activeView === 'fillRate' ? 'fillRateBar' :
-                      activeView === 'availableTime' ? 'availableTimeBar' :
-                      activeView === 'bookings' ? 'bookedCampaigns' :
-                      activeView === 'revenue' ? 'revenue' :
-                      activeView === 'stores' ? 'stores' :
-                      'reach'
-                    }
-                    onCellClick={handleCellClick}
-                    onChannelClick={focusedChannel ? undefined : (p) => setFocusedChannelId(p.id)}
-                  />
-                </div>
-              );
-            })()}
-          </CardContent>
-        </Card>
+          );
+        })()}
 
         <RightDrawerContent>
           <RightDrawerHeader>
@@ -2069,130 +2093,157 @@ const OfflineInstoreCalendarTemplate = ({
           ),
         }}
       >
-        <Card className="w-full">
-          <CardHeader>
-            <div className="mb-4">
-              <Viewbar
-                tabs={viewTabs}
-                activeTab={activeView}
-                onTabChange={setActiveView}
-                labels={[]}
+        {(() => {
+          const viewbarHeader = (
+            <>
+              <div className="mb-4">
+                <Viewbar
+                  tabs={viewTabs}
+                  activeTab={activeView}
+                  onTabChange={setActiveView}
+                  labels={[]}
+                />
+              </div>
+              <FilterBar
+                filters={[
+                  {
+                    name: 'Inventory type',
+                    options: [
+                      { label: 'Small Package', value: 'package-small' },
+                      { label: 'Medium Package', value: 'package-medium' },
+                      { label: 'Large Package', value: 'package-large' },
+                    ],
+                    selectedValues: inventoryType,
+                    onChange: setInventoryType,
+                  },
+                  {
+                    name: 'Store type',
+                    options: [
+                      { label: 'AH DNAH', value: 'ah-dnah' },
+                      { label: 'AH XL', value: 'ah-xl' },
+                    ],
+                    selectedValues: storeType,
+                    onChange: setStoreType,
+                  },
+                  {
+                    name: 'Retail Product',
+                    options: [
+                      { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
+                      { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
+                      { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
+                      { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
+                      { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
+                      { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
+                      { label: 'Nike - air max 270 - size 42', value: '612816' },
+                      { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
+                      { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
+                      { label: 'Ben & Jerry\'s - cookie dough - 465ml', value: '614649' },
+                    ],
+                    selectedValues: retailProduct,
+                    onChange: setRetailProduct,
+                  },
+                ]}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Search channels..."
               />
-            </div>
-            <FilterBar
-              filters={[
-                {
-                  name: 'Inventory type',
-                  options: [
-                    { label: 'Small Package', value: 'package-small' },
-                    { label: 'Medium Package', value: 'package-medium' },
-                    { label: 'Large Package', value: 'package-large' },
-                  ],
-                  selectedValues: inventoryType,
-                  onChange: setInventoryType,
-                },
-                {
-                  name: 'Store type',
-                  options: [
-                    { label: 'AH DNAH', value: 'ah-dnah' },
-                    { label: 'AH XL', value: 'ah-xl' },
-                  ],
-                  selectedValues: storeType,
-                  onChange: setStoreType,
-                },
-                {
-                  name: 'Retail Product',
-                  options: [
-                    { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
-                    { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
-                    { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
-                    { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
-                    { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
-                    { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
-                    { label: 'Nike - air max 270 - size 42', value: '612816' },
-                    { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
-                    { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
-                    { label: 'Ben & Jerry\'s - cookie dough - 465ml', value: '614649' },
-                  ],
-                  selectedValues: retailProduct,
-                  onChange: setRetailProduct,
-                },
-              ]}
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
-              searchPlaceholder="Search channels..."
+            </>
+          );
+
+          const transformed = filteredBookingsData.map(product => {
+            const raw =
+              activeView === 'bookedCampaigns'
+                ? (product.campaignCounts || product.availability)
+                : activeView === 'reach'
+                ? (product.reachData || product.availability)
+                : product.availability;
+            return {
+              ...product,
+              availability:
+                activeView === 'fillRate' ? raw.map(toFillRateBreakdown) : raw,
+              positions: product.positions?.map((pos: any) => ({
+                ...pos,
+                availability:
+                  activeView === 'fillRate'
+                    ? pos.availability.map(toFillRateBreakdown)
+                    : pos.availability,
+              })),
+            };
+          });
+          const focusedChannel = focusedChannelId
+            ? transformed.find(p => p.id === focusedChannelId)
+            : null;
+          const positionsAsRows = focusedChannel
+            ? (focusedChannel.positions ?? []).map((pos: any) => ({
+                id: pos.id,
+                name: pos.name,
+                availability: pos.availability,
+              }))
+            : [];
+
+          const commonProps = {
+            weeks: numberOfWeeks,
+            startWeek,
+            retailerEvents: adjustedRetailerEvents,
+            showReach: activeView !== 'fillRate',
+            displayType: (
+              activeView === 'fillRate' ? 'fillRateBar' :
+              activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
+              activeView === 'stores' ? 'stores' :
+              'reach'
+            ) as 'fillRateBar' | 'bookedCampaigns' | 'stores' | 'reach',
+            onCellClick: handleCellClick,
+            hideGreyCells: activeView === 'stores' || activeView === 'reach',
+            hasRetailProductFilter: retailProduct.length > 0,
+          };
+
+          const tabs = [
+            {
+              value: 'all',
+              label: 'All channels',
+              content: (
+                <CalendarTable
+                  mediaProducts={transformed}
+                  {...commonProps}
+                  onChannelClick={(p) => setFocusedChannelId(p.id)}
+                />
+              ),
+            },
+            ...(focusedChannel ? [{
+              value: focusedChannel.id,
+              label: (
+                <span className="inline-flex items-center gap-2">
+                  <span className="truncate max-w-[200px]">{focusedChannel.name}</span>
+                  <span className="text-xs text-muted-foreground">· {positionsAsRows.length}</span>
+                  <span
+                    role="button"
+                    aria-label="Close tab"
+                    onClick={(e) => { e.stopPropagation(); setFocusedChannelId(null); }}
+                    className="ml-1 p-0.5 rounded hover:bg-neutral-200 cursor-pointer flex items-center"
+                  >
+                    <X className="w-3 h-3" />
+                  </span>
+                </span>
+              ),
+              content: (
+                <CalendarTable
+                  mediaProducts={positionsAsRows}
+                  {...commonProps}
+                />
+              ),
+            }] : []),
+          ];
+
+          return (
+            <CardWithTabs
+              className="w-full"
+              tabs={tabs}
+              activeTab={focusedChannelId ?? 'all'}
+              onTabChange={(v) => setFocusedChannelId(v === 'all' ? null : v)}
+              header={viewbarHeader}
             />
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const transformed = filteredBookingsData.map(product => {
-                const raw =
-                  activeView === 'bookedCampaigns'
-                    ? (product.campaignCounts || product.availability)
-                    : activeView === 'reach'
-                    ? (product.reachData || product.availability)
-                    : product.availability;
-                return {
-                  ...product,
-                  availability:
-                    activeView === 'fillRate' ? raw.map(toFillRateBreakdown) : raw,
-                  positions: product.positions?.map((pos: any) => ({
-                    ...pos,
-                    availability:
-                      activeView === 'fillRate'
-                        ? pos.availability.map(toFillRateBreakdown)
-                        : pos.availability,
-                  })),
-                };
-              });
-              const focusedChannel = focusedChannelId
-                ? transformed.find(p => p.id === focusedChannelId)
-                : null;
-              const tableData = focusedChannel
-                ? (focusedChannel.positions ?? []).map((pos: any) => ({
-                    id: pos.id,
-                    name: pos.name,
-                    availability: pos.availability,
-                  }))
-                : transformed;
-              return (
-                <div className="space-y-3">
-                  {focusedChannel && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <button
-                        type="button"
-                        onClick={() => setFocusedChannelId(null)}
-                        className="text-muted-foreground hover:text-foreground hover:underline underline-offset-2 focus:outline-none cursor-pointer"
-                      >
-                        ← All channels
-                      </button>
-                      <span className="text-neutral-400">/</span>
-                      <span className="font-medium text-foreground">{focusedChannel.name}</span>
-                      <span className="text-xs text-muted-foreground">· {tableData.length} position{tableData.length === 1 ? '' : 's'}</span>
-                    </div>
-                  )}
-                  <CalendarTable
-                    mediaProducts={tableData}
-                    weeks={numberOfWeeks}
-                    startWeek={startWeek}
-                    retailerEvents={adjustedRetailerEvents}
-                    showReach={activeView !== 'fillRate'}
-                    displayType={
-                      activeView === 'fillRate' ? 'fillRateBar' :
-                      activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
-                      activeView === 'stores' ? 'stores' :
-                      'reach'
-                    }
-                    onCellClick={handleCellClick}
-                    hideGreyCells={activeView === 'stores' || activeView === 'reach'}
-                    hasRetailProductFilter={retailProduct.length > 0}
-                    onChannelClick={focusedChannel ? undefined : (p) => setFocusedChannelId(p.id)}
-                  />
-                </div>
-              );
-            })()}
-          </CardContent>
-        </Card>
+          );
+        })()}
 
         <RightDrawerContent>
           <RightDrawerHeader>

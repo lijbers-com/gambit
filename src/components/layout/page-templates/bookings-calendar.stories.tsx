@@ -185,6 +185,35 @@ const toFillRateBreakdown = (v: number | string | FillRateValue): FillRateValue 
   return { booked, confirmed, reserved, available, overbooked };
 };
 
+// Map legacy booking status strings ("closed-won", "in-option", ...) onto
+// the four semantic statuses the new color codes use.
+const legacyStatusToBookingStatus = (s: string | undefined): 'booked' | 'confirmed' | 'reserved' | 'overbooked' => {
+  switch (s) {
+    case 'closed-won': return 'booked';
+    case 'running':    return 'confirmed';
+    case 'ready':      return 'confirmed';
+    case 'in-option':  return 'reserved';
+    case 'draft':      return 'reserved';
+    default:           return 'reserved';
+  }
+};
+
+// Given a list of bookings, build a per-week BookingsCellValue. Each week
+// gets a tally of bookings overlapping that week, bucketed by status.
+const buildBookingsAvailability = (bookings: any[] | undefined, weekCount: number, startWeek: number): { bookingStatusCounts: Partial<Record<'booked' | 'confirmed' | 'reserved' | 'overbooked', number>> }[] => {
+  return Array.from({ length: weekCount }, (_, i) => {
+    const weekNum = startWeek + i;
+    const counts: Partial<Record<'booked' | 'confirmed' | 'reserved' | 'overbooked', number>> = {};
+    (bookings ?? []).forEach((b: any) => {
+      if (b.startWeek <= weekNum && weekNum <= b.endWeek) {
+        const s = legacyStatusToBookingStatus(b.status);
+        counts[s] = (counts[s] ?? 0) + 1;
+      }
+    });
+    return { bookingStatusCounts: counts };
+  });
+};
+
 // Synthesize an available-time breakdown from a numeric availability value
 // (used by digital media in-store, where each loop has spare seconds).
 // Higher base values mean more spare time across loops; the segments shift
@@ -222,19 +251,35 @@ const BookingCalendarTemplate = ({
   title,
   mediaProductOptions,
   showAvailableTimeTab = false,
+  hideRevenueTab = false,
+  hideStoreAssortmentFilter = false,
+  showChannelFilter = false,
+  showPublisherFilter = false,
+  showBookingsTab = false,
+  channelOptions,
+  publisherOptions,
 }: {
   bookingsData: any[],
   title: string,
   mediaProductOptions: Array<{ label: string, value: string }>,
-  /** When true, adds an "Available time" view tab — currently a Digital
-   *  in-store concept (per-loop spare seconds). Off everywhere else. */
   showAvailableTimeTab?: boolean,
+  hideRevenueTab?: boolean,
+  hideStoreAssortmentFilter?: boolean,
+  showChannelFilter?: boolean,
+  showPublisherFilter?: boolean,
+  /** Adds a "Bookings" view tab whose cells show status-colored chips
+   *  (booked / confirmed / reserved / overbooked) per week. */
+  showBookingsTab?: boolean,
+  channelOptions?: Array<{ label: string, value: string }>,
+  publisherOptions?: Array<{ label: string, value: string }>,
 }) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
   const routes = getRoutesForTheme(currentTheme);
   const [status, setStatus] = useState<string[]>([]);
   const [storeAssortment, setStoreAssortment] = useState<string[]>([]);
+  const [channel, setChannel] = useState<string[]>([]);
+  const [publisher, setPublisher] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
   const [mediaProduct, setMediaProduct] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -252,10 +297,11 @@ const BookingCalendarTemplate = ({
 
   const viewTabs = [
     { value: 'reach', label: 'Reach' },
-    { value: 'revenue', label: 'Revenue' },
+    ...(hideRevenueTab ? [] : [{ value: 'revenue', label: 'Revenue' }]),
     { value: 'fillRate', label: 'Fill Rate' },
     { value: 'stores', label: 'Available Stores' },
     ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time' }] : []),
+    ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings' }] : []),
   ];
 
   // Calculate weeks to show and start week from date range
@@ -328,6 +374,13 @@ const BookingCalendarTemplate = ({
     if (mediaProduct.length > 0 && !mediaProduct.includes(product.id)) {
       return false;
     }
+    // Channel filter (rows are channels)
+    if (channel.length > 0 && !channel.includes(product.id)) {
+      return false;
+    }
+    // Publisher filter (data is synthetic so accept any product when no
+    // publisher mapping is present yet — kept as a UI hook for now).
+    void publisher;
 
     // Store type filter
     if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
@@ -412,7 +465,24 @@ const BookingCalendarTemplate = ({
                   selectedValues: status,
                   onChange: setStatus,
                 },
-                {
+                ...(showChannelFilter ? [{
+                  name: 'Channel',
+                  options: channelOptions ?? mediaProductOptions,
+                  selectedValues: channel,
+                  onChange: setChannel,
+                }] : []),
+                ...(showPublisherFilter ? [{
+                  name: 'Publisher',
+                  options: publisherOptions ?? [
+                    { label: 'Etos', value: 'etos' },
+                    { label: 'Albert Heijn', value: 'ah' },
+                    { label: 'Bol', value: 'bol' },
+                    { label: 'Gall & Gall', value: 'gall' },
+                  ],
+                  selectedValues: publisher,
+                  onChange: setPublisher,
+                }] : []),
+                ...(hideStoreAssortmentFilter ? [] : [{
                   name: 'Store assortment',
                   options: [
                     { label: 'RP-001 - Coca-Cola Classic 330ml', value: 'rp-001' },
@@ -438,7 +508,7 @@ const BookingCalendarTemplate = ({
                   ],
                   selectedValues: storeAssortment,
                   onChange: setStoreAssortment,
-                },
+                }]),
                 {
                   name: 'Store type',
                   options: [
@@ -468,15 +538,25 @@ const BookingCalendarTemplate = ({
                       ...p,
                       availability: p.availability.map(toAvailableTimeBreakdown),
                     }))
+                  : activeView === 'bookings'
+                  ? filteredBookingsData.map(p => ({
+                      ...p,
+                      availability: buildBookingsAvailability(p.bookings, numberOfWeeks, startWeek),
+                      bookings: (p.bookings ?? []).map((b: any) => ({
+                        ...b,
+                        status: legacyStatusToBookingStatus(b.status),
+                      })),
+                    }))
                   : filteredBookingsData
               }
               weeks={numberOfWeeks}
               startWeek={startWeek}
               retailerEvents={adjustedRetailerEvents}
-              showReach={activeView !== 'fillRate' && activeView !== 'availableTime'}
+              showReach={activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings'}
               displayType={
                 activeView === 'fillRate' ? 'fillRateBar' :
                 activeView === 'availableTime' ? 'availableTimeBar' :
+                activeView === 'bookings' ? 'bookedCampaigns' :
                 activeView === 'revenue' ? 'revenue' :
                 activeView === 'stores' ? 'stores' :
                 'reach'
@@ -1723,7 +1803,7 @@ const OfflineInstoreCalendarTemplate = ({
   const [conversionWindow, setConversionWindow] = useState<number>(14);
   
   const viewTabs = [
-    { value: 'bookedCampaigns', label: 'Booked campaigns' },
+    { value: 'bookedCampaigns', label: 'Bookings' },
     { value: 'stores', label: 'Available stores' },
     { value: 'reach', label: 'Available reach' },
     { value: 'fillRate', label: 'Fill Rate' },
@@ -2102,9 +2182,30 @@ export const DigitalInstoreCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={digitalInstoreBookingsData}
+        bookingsData={digitalInstoreBookingsData.map((p, idx) => ({
+          ...p,
+          // Each channel gets two prototype ad positions so the
+          // chevron drill-down has something to reveal.
+          positions: [
+            {
+              id: `${p.id}-pos-a`,
+              name: `${p.name} — Position A`,
+              availability: p.availability.map((v: any) => Math.max(0, (typeof v === 'number' ? v : 0) - 5 - idx)),
+            },
+            {
+              id: `${p.id}-pos-b`,
+              name: `${p.name} — Position B`,
+              availability: p.availability.map((v: any) => Math.max(0, (typeof v === 'number' ? v : 0) - 10 - idx)),
+            },
+          ],
+        }))}
         title="Digital In-store Calendar"
         showAvailableTimeTab
+        hideRevenueTab
+        hideStoreAssortmentFilter
+        showChannelFilter
+        showPublisherFilter
+        showBookingsTab
         mediaProductOptions={[
           { label: 'Digital Screens - Entrance', value: '1' },
           { label: 'Interactive Kiosks', value: '2' },
@@ -2239,6 +2340,11 @@ export const DigitalInstoreFillRateCalendar: Story = {
         bookingsData={digitalInstoreFillRateData as any}
         title="Digital In-store Calendar"
         showAvailableTimeTab
+        hideRevenueTab
+        hideStoreAssortmentFilter
+        showChannelFilter
+        showPublisherFilter
+        showBookingsTab
         mediaProductOptions={[
           { label: 'Pui TV Portrait', value: '1' },
           { label: 'Beauty TV Portrait', value: '2' },

@@ -6,6 +6,8 @@ import { FillRateBar, FillRateValue } from './fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
 import { TooltipProvider } from './tooltip';
 
+export type BookingStatus = 'booked' | 'confirmed' | 'reserved' | 'overbooked';
+
 export interface Booking {
   id: string;
   name: string;
@@ -14,10 +16,42 @@ export interface Booking {
   stores: number;
   color?: string;
   variant?: "default" | "success" | "warning" | "destructive";
+  /** Semantic booking status. When set, the badge uses the matching
+   *  --success-* / --warning-* token regardless of `variant`. */
+  status?: BookingStatus;
 }
 
-/** A cell can be a single number/string, a fill-rate breakdown, or an available-time breakdown. */
-export type CalendarCellValue = number | string | FillRateValue | AvailableTimeValue;
+/** One drill-down level under a channel — typically a screen or banner position. */
+export interface Position {
+  id: string;
+  name: string;
+  availability: CalendarCellValue[];
+}
+
+/** Color mapping for the four booking statuses, pulled from the
+ *  shared accent ramps so each theme retunes automatically. */
+export const bookingStatusColors: Record<BookingStatus, string> = {
+  booked:     'hsl(var(--success-900))',
+  confirmed:  'hsl(var(--success-600))',
+  reserved:   'hsl(var(--success-300))',
+  overbooked: 'hsl(var(--warning-500))',
+};
+export const bookingStatusLabels: Record<BookingStatus, string> = {
+  booked: 'Booked', confirmed: 'Confirmed', reserved: 'Reserved', overbooked: 'Overbooked',
+};
+
+/** Booking-status counts for a single calendar cell — used by the
+ *  Bookings view tab on the digital media in-store calendar. */
+export type BookingsCellValue = {
+  bookingStatusCounts: Partial<Record<BookingStatus, number>>;
+};
+
+/** A cell can be a single number/string, a fill-rate breakdown, an
+ *  available-time breakdown, or per-status booking counts. */
+export type CalendarCellValue = number | string | FillRateValue | AvailableTimeValue | BookingsCellValue;
+
+const isBookingsCellValue = (v: any): v is BookingsCellValue =>
+  typeof v === 'object' && v !== null && 'bookingStatusCounts' in v;
 
 const isAvailableTimeValue = (v: any): v is AvailableTimeValue =>
   typeof v === 'object' && v !== null && (
@@ -25,7 +59,7 @@ const isAvailableTimeValue = (v: any): v is AvailableTimeValue =>
   );
 
 const isFillRateValue = (v: any): v is FillRateValue =>
-  typeof v === 'object' && v !== null && !isAvailableTimeValue(v);
+  typeof v === 'object' && v !== null && !isAvailableTimeValue(v) && !isBookingsCellValue(v);
 
 export interface MediaProduct {
   id: string;
@@ -33,6 +67,10 @@ export interface MediaProduct {
   availability: CalendarCellValue[];
   bookings?: Booking[];
   isHighlighted?: boolean[];
+  /** When provided, expanding the channel row reveals these positions
+   *  before the bookings — typically screens or banner positions on
+   *  this channel. */
+  positions?: Position[];
 }
 
 export interface RetailerEvent {
@@ -116,6 +154,46 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
 
   const renderAvailabilityCell = (value: CalendarCellValue, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
     const hasEvent = hasEventInWeek(weekNumbers[weekIndex]);
+
+    // Bookings cell: small status-colored count chips
+    // (■4 ■1 = 4 booked + 1 reserved).
+    if (isBookingsCellValue(value)) {
+      const handleCellClick = () => {
+        if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
+      };
+      const counts = value.bookingStatusCounts;
+      const order: BookingStatus[] = ['booked', 'confirmed', 'reserved', 'overbooked'];
+      const chips = order
+        .map((status) => ({ status, count: counts[status] ?? 0 }))
+        .filter((c) => c.count > 0);
+      return (
+        <td
+          key={weekIndex}
+          className="px-3 py-[11px] align-middle cursor-pointer hover:bg-neutral-50 transition-colors"
+          onClick={handleCellClick}
+        >
+          {chips.length === 0 ? (
+            <span className="text-sm text-neutral-400">—</span>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              {chips.map((c) => (
+                <div
+                  key={c.status}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium tabular-nums"
+                  title={`${bookingStatusLabels[c.status]}: ${c.count}`}
+                >
+                  <span
+                    className="h-3 w-3 rounded-sm shrink-0"
+                    style={{ backgroundColor: bookingStatusColors[c.status] }}
+                  />
+                  <span className="text-foreground">{c.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </td>
+      );
+    }
 
     // Available-time breakdown cell (DOOH loops): no / low / medium / high.
     if (isAvailableTimeValue(value)) {
@@ -284,12 +362,25 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           )}
         >
           <div style={{ minHeight: 32 }} className="flex items-center">
-            <Badge 
-              variant={booking.variant || "default"}
-              className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden"
-            >
-              {booking.name}
-            </Badge>
+            {booking.status ? (
+              <div
+                className="w-full px-3 py-1 rounded-md text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden"
+                style={{
+                  backgroundColor: bookingStatusColors[booking.status],
+                  color: booking.status === 'reserved' ? 'hsl(var(--success-900))' : 'white',
+                }}
+                title={`${booking.name} (${bookingStatusLabels[booking.status]})`}
+              >
+                {booking.name}
+              </div>
+            ) : (
+              <Badge
+                variant={booking.variant || "default"}
+                className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden"
+              >
+                {booking.name}
+              </Badge>
+            )}
           </div>
         </td>
       );
@@ -525,6 +616,20 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 )}
               </tr>
               
+              {/* Expanded positions (ad positions / screens under the channel) */}
+              {expandedRows.includes(product.id) && product.positions && product.positions.map((position) => (
+                <tr key={`pos-${position.id}`} className="bg-neutral-50/50">
+                  <td className="px-4 py-[11px] align-middle pl-12">
+                    <span className="text-[13px] text-neutral-600 truncate whitespace-nowrap overflow-hidden">
+                      ↳ {position.name}
+                    </span>
+                  </td>
+                  {position.availability.slice(0, weeks).map((value, i) =>
+                    renderAvailabilityCell(value, i, { ...product, name: position.name }, undefined)
+                  )}
+                </tr>
+              ))}
+
               {/* Expanded bookings */}
               {expandedRows.includes(product.id) && product.bookings && product.bookings.map((booking, bookingIndex) => (
                 <tr key={booking.id} className={cn(

@@ -638,7 +638,7 @@ const BookingCalendarTemplate = ({
           const tabs = [
             {
               value: 'all',
-              label: 'All channels',
+              label: title,
               content: (
                 <CalendarTable
                   mediaProducts={transformed}
@@ -652,7 +652,6 @@ const BookingCalendarTemplate = ({
               label: (
                 <span className="inline-flex items-center gap-2">
                   <span className="truncate max-w-[200px]">{focusedChannel.name}</span>
-                  <span className="text-xs text-muted-foreground">· {positionsAsRows.length}</span>
                   <span
                     role="button"
                     aria-label="Close tab"
@@ -2200,7 +2199,7 @@ const OfflineInstoreCalendarTemplate = ({
           const tabs = [
             {
               value: 'all',
-              label: 'All channels',
+              label: title,
               content: (
                 <CalendarTable
                   mediaProducts={transformed}
@@ -2214,7 +2213,6 @@ const OfflineInstoreCalendarTemplate = ({
               label: (
                 <span className="inline-flex items-center gap-2">
                   <span className="truncate max-w-[200px]">{focusedChannel.name}</span>
-                  <span className="text-xs text-muted-foreground">· {positionsAsRows.length}</span>
                   <span
                     role="button"
                     aria-label="Close tab"

@@ -316,6 +316,7 @@ const BookingCalendarTemplate = ({
   const [publisher, setPublisher] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
   const [mediaProduct, setMediaProduct] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
@@ -573,8 +574,9 @@ const BookingCalendarTemplate = ({
             />
           </CardHeader>
           <CardContent>
-            <CalendarTable
-              mediaProducts={
+            {(() => {
+              // Apply per-view transform to channel + positions
+              const transformed =
                 activeView === 'fillRate'
                   ? filteredBookingsData.map(p => ({
                       ...p,
@@ -597,30 +599,63 @@ const BookingCalendarTemplate = ({
                   ? filteredBookingsData.map(p => ({
                       ...p,
                       availability: buildBookingsAvailability(p.bookings, numberOfWeeks, startWeek),
-                      // Positions don't carry their own bookings list, so
-                      // their cells render as empty (—) chips — still in
-                      // the Bookings shape so the column visuals match.
                       positions: p.positions?.map((pos: any) => ({
                         ...pos,
                         availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
                       })),
                     }))
-                  : filteredBookingsData
-              }
-              weeks={numberOfWeeks}
-              startWeek={startWeek}
-              retailerEvents={adjustedRetailerEvents}
-              showReach={activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings'}
-              displayType={
-                activeView === 'fillRate' ? 'fillRateBar' :
-                activeView === 'availableTime' ? 'availableTimeBar' :
-                activeView === 'bookings' ? 'bookedCampaigns' :
-                activeView === 'revenue' ? 'revenue' :
-                activeView === 'stores' ? 'stores' :
-                'reach'
-              }
-              onCellClick={handleCellClick}
-            />
+                  : filteredBookingsData;
+
+              // Focused-channel view: promote that channel's positions to
+              // top-level rows so the user can focus on them when there are
+              // too many to skim inline.
+              const focusedChannel = focusedChannelId
+                ? transformed.find(p => p.id === focusedChannelId)
+                : null;
+              const tableData = focusedChannel
+                ? (focusedChannel.positions ?? []).map((pos: any) => ({
+                    id: pos.id,
+                    name: pos.name,
+                    availability: pos.availability,
+                  }))
+                : transformed;
+
+              return (
+                <div className="space-y-3">
+                  {focusedChannel && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setFocusedChannelId(null)}
+                        className="text-muted-foreground hover:text-foreground hover:underline underline-offset-2 focus:outline-none cursor-pointer"
+                      >
+                        ← All channels
+                      </button>
+                      <span className="text-neutral-400">/</span>
+                      <span className="font-medium text-foreground">{focusedChannel.name}</span>
+                      <span className="text-xs text-muted-foreground">· {tableData.length} position{tableData.length === 1 ? '' : 's'}</span>
+                    </div>
+                  )}
+                  <CalendarTable
+                    mediaProducts={tableData}
+                    weeks={numberOfWeeks}
+                    startWeek={startWeek}
+                    retailerEvents={adjustedRetailerEvents}
+                    showReach={activeView !== 'fillRate' && activeView !== 'availableTime' && activeView !== 'bookings'}
+                    displayType={
+                      activeView === 'fillRate' ? 'fillRateBar' :
+                      activeView === 'availableTime' ? 'availableTimeBar' :
+                      activeView === 'bookings' ? 'bookedCampaigns' :
+                      activeView === 'revenue' ? 'revenue' :
+                      activeView === 'stores' ? 'stores' :
+                      'reach'
+                    }
+                    onCellClick={handleCellClick}
+                    onChannelClick={focusedChannel ? undefined : (p) => setFocusedChannelId(p.id)}
+                  />
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
@@ -1846,6 +1881,7 @@ const OfflineInstoreCalendarTemplate = ({
   const [inventoryType, setInventoryType] = useState<string[]>([]);
   const [storeType, setStoreType] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
   const [retailProduct, setRetailProduct] = useState<string[]>([]);
   const [maxStoreAmount, setMaxStoreAmount] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -2088,8 +2124,8 @@ const OfflineInstoreCalendarTemplate = ({
             />
           </CardHeader>
           <CardContent>
-            <CalendarTable
-              mediaProducts={filteredBookingsData.map(product => {
+            {(() => {
+              const transformed = filteredBookingsData.map(product => {
                 const raw =
                   activeView === 'bookedCampaigns'
                     ? (product.campaignCounts || product.availability)
@@ -2100,8 +2136,6 @@ const OfflineInstoreCalendarTemplate = ({
                   ...product,
                   availability:
                     activeView === 'fillRate' ? raw.map(toFillRateBreakdown) : raw,
-                  // Positions inherit the same per-view shape so they
-                  // render bars when the channel does.
                   positions: product.positions?.map((pos: any) => ({
                     ...pos,
                     availability:
@@ -2110,21 +2144,53 @@ const OfflineInstoreCalendarTemplate = ({
                         : pos.availability,
                   })),
                 };
-              })}
-              weeks={numberOfWeeks}
-              startWeek={startWeek}
-              retailerEvents={adjustedRetailerEvents}
-              showReach={activeView !== 'fillRate'}
-              displayType={
-                activeView === 'fillRate' ? 'fillRateBar' :
-                activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
-                activeView === 'stores' ? 'stores' :
-                'reach'
-              }
-              onCellClick={handleCellClick}
-              hideGreyCells={activeView === 'stores' || activeView === 'reach'}
-              hasRetailProductFilter={retailProduct.length > 0}
-            />
+              });
+              const focusedChannel = focusedChannelId
+                ? transformed.find(p => p.id === focusedChannelId)
+                : null;
+              const tableData = focusedChannel
+                ? (focusedChannel.positions ?? []).map((pos: any) => ({
+                    id: pos.id,
+                    name: pos.name,
+                    availability: pos.availability,
+                  }))
+                : transformed;
+              return (
+                <div className="space-y-3">
+                  {focusedChannel && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setFocusedChannelId(null)}
+                        className="text-muted-foreground hover:text-foreground hover:underline underline-offset-2 focus:outline-none cursor-pointer"
+                      >
+                        ← All channels
+                      </button>
+                      <span className="text-neutral-400">/</span>
+                      <span className="font-medium text-foreground">{focusedChannel.name}</span>
+                      <span className="text-xs text-muted-foreground">· {tableData.length} position{tableData.length === 1 ? '' : 's'}</span>
+                    </div>
+                  )}
+                  <CalendarTable
+                    mediaProducts={tableData}
+                    weeks={numberOfWeeks}
+                    startWeek={startWeek}
+                    retailerEvents={adjustedRetailerEvents}
+                    showReach={activeView !== 'fillRate'}
+                    displayType={
+                      activeView === 'fillRate' ? 'fillRateBar' :
+                      activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
+                      activeView === 'stores' ? 'stores' :
+                      'reach'
+                    }
+                    onCellClick={handleCellClick}
+                    hideGreyCells={activeView === 'stores' || activeView === 'reach'}
+                    hasRetailProductFilter={retailProduct.length > 0}
+                    onChannelClick={focusedChannel ? undefined : (p) => setFocusedChannelId(p.id)}
+                  />
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 

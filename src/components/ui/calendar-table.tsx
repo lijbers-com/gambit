@@ -87,6 +87,14 @@ export interface CalendarTableProps {
   displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
   className?: string;
   onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: CalendarCellValue) => void;
+  /** Fires when the channel name (left column) is clicked. Use to open a
+   *  focused view of that channel's positions. When omitted, the channel
+   *  name stays static. */
+  onChannelClick?: (mediaProduct: MediaProduct) => void;
+  /** Cap on how many position rows render inline under an expanded channel.
+   *  When the channel has more positions, a "+N more positions" link appears
+   *  that fires onChannelClick to open the focused view. Default 5. */
+  maxInlinePositions?: number;
   hideGreyCells?: boolean;
   hasRetailProductFilter?: boolean;
 }
@@ -101,7 +109,9 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   className,
   onCellClick,
   hideGreyCells = false,
-  hasRetailProductFilter = false
+  hasRetailProductFilter = false,
+  onChannelClick,
+  maxInlinePositions = 5,
 }) => {
   const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
   const [isCommercialCalendarOpen, setIsCommercialCalendarOpen] = React.useState(true);
@@ -599,7 +609,18 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               )}>
                 <td className="px-4 py-[11px] align-middle">
                   <div className="flex items-center gap-3">
-                    <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
+                    {onChannelClick ? (
+                      <button
+                        type="button"
+                        onClick={() => onChannelClick(product)}
+                        className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden text-left hover:text-foreground hover:underline underline-offset-2 focus:outline-none focus-visible:underline cursor-pointer"
+                        title={`Open ${product.name}`}
+                      >
+                        {product.name}
+                      </button>
+                    ) : (
+                      <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
+                    )}
                     <button
                       onClick={() => toggleRow(product.id)}
                       className="ml-auto p-1 rounded-full hover:bg-neutral-100 focus:outline-none"
@@ -612,13 +633,13 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     </button>
                   </div>
                 </td>
-                {product.availability.slice(0, weeks).map((value, i) => 
+                {product.availability.slice(0, weeks).map((value, i) =>
                   renderAvailabilityCell(value, i, product, product.isHighlighted?.[i])
                 )}
               </tr>
-              
-              {/* Expanded positions (ad positions / screens under the channel) */}
-              {expandedRows.includes(product.id) && product.positions && product.positions.map((position) => (
+
+              {/* Expanded positions (ad positions / screens under the channel) — capped at maxInlinePositions */}
+              {expandedRows.includes(product.id) && product.positions && product.positions.slice(0, maxInlinePositions).map((position) => (
                 <tr key={`pos-${position.id}`} className="bg-neutral-50/50">
                   <td
                     className="py-[11px] align-middle pl-8 pr-4"
@@ -638,6 +659,32 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   )}
                 </tr>
               ))}
+
+              {/* "+N more positions" row — appears when the channel has more
+                  positions than maxInlinePositions and points the user at
+                  the focused view (opened via onChannelClick). */}
+              {expandedRows.includes(product.id) && product.positions && product.positions.length > maxInlinePositions && (
+                <tr className="bg-neutral-50/50">
+                  <td
+                    colSpan={weeks + 1}
+                    className="py-[9px] align-middle pl-8 pr-4"
+                  >
+                    {onChannelClick ? (
+                      <button
+                        type="button"
+                        onClick={() => onChannelClick(product)}
+                        className="text-[12px] text-muted-foreground hover:text-foreground hover:underline underline-offset-2 focus:outline-none focus-visible:underline cursor-pointer"
+                      >
+                        +{product.positions.length - maxInlinePositions} more position{product.positions.length - maxInlinePositions === 1 ? '' : 's'} — open {product.name} →
+                      </button>
+                    ) : (
+                      <span className="text-[12px] text-muted-foreground">
+                        +{product.positions.length - maxInlinePositions} more position{product.positions.length - maxInlinePositions === 1 ? '' : 's'}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              )}
 
               {/* Expanded bookings */}
               {expandedRows.includes(product.id) && product.bookings && product.bookings.map((booking, bookingIndex) => (

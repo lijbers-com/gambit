@@ -169,7 +169,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className="px-3 py-[11px] align-middle cursor-pointer hover:bg-neutral-50 transition-colors"
+          className="px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors"
           onClick={handleCellClick}
         >
           {chips.length === 0 ? (

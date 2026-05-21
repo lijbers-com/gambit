@@ -245,6 +245,33 @@ const toAvailableTimeBreakdown = (v: number | string | FillRateValue | Available
   };
 };
 
+// Varied ad-position counts cycled across the products in each calendar.
+// Mixing small / large counts (including 0) is the easiest way to stress-test
+// the drill-down — long lists, single positions, and "no positions" states
+// all appear in a single calendar.
+const positionCountCycle = [3, 5, 2, 8, 1, 4, 6, 0, 7, 2];
+
+const transformPositionValue = (v: any, deduct: number) => {
+  // Numbers: deduct a little so each position reads slightly less full than
+  // the parent channel. Non-numeric cells (FillRateValue, AvailableTimeValue,
+  // BookingsCellValue, plain strings) pass through unchanged.
+  if (typeof v === 'number') return Math.max(0, v - deduct);
+  return v;
+};
+
+const withPositions = <T extends { id: string; name: string; availability: any[] }>(data: T[]): T[] => {
+  return data.map((p, idx) => {
+    const count = positionCountCycle[idx % positionCountCycle.length];
+    if (count === 0) return p; // channel intentionally has no drill-down
+    const positions = Array.from({ length: count }, (_, i) => ({
+      id: `${p.id}-pos-${i}`,
+      name: `${p.name} — Position ${String.fromCharCode(65 + i)}`,
+      availability: p.availability.map((v) => transformPositionValue(v, 5 + i * 4)),
+    }));
+    return { ...p, positions } as T;
+  });
+};
+
 // Shared component for booking calendar functionality
 const BookingCalendarTemplate = ({
   bookingsData,
@@ -1766,7 +1793,7 @@ export const GeneralBookingsCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={generalBookingsData}
+        bookingsData={withPositions(generalBookingsData)}
         title="Bookings Calendar"
         mediaProductOptions={[
           { label: 'Digital Display - Homepage', value: '1' },
@@ -2166,12 +2193,12 @@ export const OfflineInstoreCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <OfflineInstoreCalendarTemplate
-        bookingsData={offlineInstoreBookingsData.map(product => ({
+        bookingsData={withPositions(offlineInstoreBookingsData.map(product => ({
           ...product,
           storeTypes: ['ah-dnah', 'ah-xl'], // Add sample store types
           retailProducts: ['606983', '607124', '608456'], // Add sample retail products
           campaignCounts: [3, 7, 2, 8, 12, 5, 1, 9, 4, 6, 0, 11] // Number of booked campaigns (0-12) for each week
-        }))}
+        })))}
         title="Offline In-store Calendar"
         mediaProductOptions={[
           { label: 'End Cap Displays', value: '1' },
@@ -2191,23 +2218,7 @@ export const DigitalInstoreCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={digitalInstoreBookingsData.map((p, idx) => ({
-          ...p,
-          // Each channel gets two prototype ad positions so the
-          // chevron drill-down has something to reveal.
-          positions: [
-            {
-              id: `${p.id}-pos-a`,
-              name: `${p.name} — Position A`,
-              availability: p.availability.map((v: any) => Math.max(0, (typeof v === 'number' ? v : 0) - 5 - idx)),
-            },
-            {
-              id: `${p.id}-pos-b`,
-              name: `${p.name} — Position B`,
-              availability: p.availability.map((v: any) => Math.max(0, (typeof v === 'number' ? v : 0) - 10 - idx)),
-            },
-          ],
-        }))}
+        bookingsData={withPositions(digitalInstoreBookingsData)}
         title="Digital In-store Calendar"
         showAvailableTimeTab
         hideRevenueTab
@@ -2233,7 +2244,7 @@ export const DisplayCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={displayBookingsData}
+        bookingsData={withPositions(displayBookingsData)}
         title="Display Calendar"
         hideStoresTab
         hideStoreAssortmentFilter
@@ -2352,7 +2363,7 @@ export const DigitalInstoreFillRateCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={digitalInstoreFillRateData as any}
+        bookingsData={withPositions(digitalInstoreFillRateData as any)}
         title="Digital In-store Calendar"
         showAvailableTimeTab
         hideRevenueTab
@@ -2376,7 +2387,7 @@ export const SponsoredProductCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={sponsoredProductBookingsData}
+        bookingsData={withPositions(sponsoredProductBookingsData)}
         title="Sponsored Product Calendar"
         hideStoresTab
         hideStoreAssortmentFilter

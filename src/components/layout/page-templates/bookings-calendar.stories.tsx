@@ -4,8 +4,8 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import { CalendarTable } from '@/components/ui/calendar-table';
-import { FillRateValue } from '@/components/ui/fill-rate-bar';
-import { AvailableTimeValue } from '@/components/ui/available-time-bar';
+import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
+import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -509,6 +509,10 @@ const BookingCalendarTemplate = ({
                   {
                     name: 'Status',
                     options: [
+                      { label: 'Booked', value: 'booked' },
+                      { label: 'Confirmed', value: 'confirmed' },
+                      { label: 'Reserved', value: 'reserved' },
+                      { label: 'Overbooked', value: 'overbooked' },
                       { label: 'Closed-won', value: 'closed-won' },
                       { label: 'In option', value: 'in-option' },
                     ],
@@ -700,26 +704,33 @@ const BookingCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              Availability: {
-                selectedCell?.value && typeof selectedCell.value === 'object'
-                  ? (() => {
-                      const v = selectedCell.value as FillRateValue & AvailableTimeValue;
-                      const parts: string[] = [];
-                      if (v.booked)         parts.push(`Booked ${Math.round(v.booked)}%`);
-                      if (v.confirmed)      parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
-                      if (v.reserved)       parts.push(`Reserved ${Math.round(v.reserved)}%`);
-                      if (v.available)      parts.push(`Available ${Math.round(v.available)}%`);
-                      if (v.overbooked)     parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
-                      if (v.overreserved)   parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
-                      if (v.noAvailable)    parts.push(`No available ${Math.round(v.noAvailable)}%`);
-                      if (v.lowAvailable)   parts.push(`Low available ${Math.round(v.lowAvailable)}%`);
-                      if (v.mediumAvailable) parts.push(`Medium available ${Math.round(v.mediumAvailable)}%`);
-                      if (v.highAvailable)  parts.push(`High available ${Math.round(v.highAvailable)}%`);
-                      return parts.join(' · ');
-                    })()
-                  : selectedCell?.value
-              } | All bookings for this week
+              {selectedCell?.value && typeof selectedCell.value === 'object'
+                ? 'All bookings for this week'
+                : <>Availability: {selectedCell?.value ?? '—'} · All bookings for this week</>}
             </RightDrawerDescription>
+            {/* Render the live bar visualization for FillRateValue /
+                AvailableTimeValue cells so the breakdown is visible at
+                a glance instead of as a long comma-separated string. */}
+            {selectedCell?.value && typeof selectedCell.value === 'object' && (() => {
+              const v = selectedCell.value as FillRateValue & AvailableTimeValue;
+              const isFillRate = 'booked' in v || 'confirmed' in v || 'reserved' in v || 'available' in v || 'overbooked' in v || 'overreserved' in v;
+              const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
+              if (isAvailableTime) {
+                return (
+                  <div className="mt-3 max-w-md">
+                    <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
+                  </div>
+                );
+              }
+              if (isFillRate) {
+                return (
+                  <div className="mt-3 max-w-md">
+                    <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">
@@ -735,6 +746,10 @@ const BookingCalendarTemplate = ({
                   {
                     name: 'Status',
                     options: [
+                      { label: 'Booked', value: 'booked' },
+                      { label: 'Confirmed', value: 'confirmed' },
+                      { label: 'Reserved', value: 'reserved' },
+                      { label: 'Overbooked', value: 'overbooked' },
                       { label: 'Closed-won', value: 'closed-won' },
                       { label: 'In option', value: 'in-option' },
                     ],
@@ -2273,26 +2288,33 @@ const OfflineInstoreCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              Availability: {
-                selectedCell?.value && typeof selectedCell.value === 'object'
-                  ? (() => {
-                      const v = selectedCell.value as FillRateValue & AvailableTimeValue;
-                      const parts: string[] = [];
-                      if (v.booked)         parts.push(`Booked ${Math.round(v.booked)}%`);
-                      if (v.confirmed)      parts.push(`Confirmed ${Math.round(v.confirmed)}%`);
-                      if (v.reserved)       parts.push(`Reserved ${Math.round(v.reserved)}%`);
-                      if (v.available)      parts.push(`Available ${Math.round(v.available)}%`);
-                      if (v.overbooked)     parts.push(`Overbooked ${Math.round(v.overbooked)}%`);
-                      if (v.overreserved)   parts.push(`Overreserved ${Math.round(v.overreserved)}%`);
-                      if (v.noAvailable)    parts.push(`No available ${Math.round(v.noAvailable)}%`);
-                      if (v.lowAvailable)   parts.push(`Low available ${Math.round(v.lowAvailable)}%`);
-                      if (v.mediumAvailable) parts.push(`Medium available ${Math.round(v.mediumAvailable)}%`);
-                      if (v.highAvailable)  parts.push(`High available ${Math.round(v.highAvailable)}%`);
-                      return parts.join(' · ');
-                    })()
-                  : selectedCell?.value
-              } | All bookings for this week
+              {selectedCell?.value && typeof selectedCell.value === 'object'
+                ? 'All bookings for this week'
+                : <>Availability: {selectedCell?.value ?? '—'} · All bookings for this week</>}
             </RightDrawerDescription>
+            {/* Render the live bar visualization for FillRateValue /
+                AvailableTimeValue cells so the breakdown is visible at
+                a glance instead of as a long comma-separated string. */}
+            {selectedCell?.value && typeof selectedCell.value === 'object' && (() => {
+              const v = selectedCell.value as FillRateValue & AvailableTimeValue;
+              const isFillRate = 'booked' in v || 'confirmed' in v || 'reserved' in v || 'available' in v || 'overbooked' in v || 'overreserved' in v;
+              const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
+              if (isAvailableTime) {
+                return (
+                  <div className="mt-3 max-w-md">
+                    <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
+                  </div>
+                );
+              }
+              if (isFillRate) {
+                return (
+                  <div className="mt-3 max-w-md">
+                    <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">

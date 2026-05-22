@@ -43,19 +43,25 @@ export interface FillRateValue {
   programmatic?: number
 }
 
-/** Default color mapping. Override via `segmentColors` for bespoke palettes. */
+/** Default color mapping. Pulls from the per-theme chart shade ramp
+ *  (--chart-50 ... --chart-950) so each theme retunes the bar's
+ *  palette automatically. Override via `segmentColors` for bespoke
+ *  per-cell palettes.
+ *
+ *  Overbooked / overreserved deliberately stay on destructive /
+ *  warning — those are semantic alert states, not chart data. */
 export const defaultFillRateColors: Record<FillRateSegmentKey, string> = {
-  booked:       "hsl(var(--success-900))",
-  confirmed:    "hsl(var(--success-600))",
-  reserved:     "hsl(var(--success-300))",
+  booked:       "hsl(var(--chart-800))",
+  confirmed:    "hsl(var(--chart-500))",
+  reserved:     "hsl(var(--chart-300))",
   available:    "rgb(var(--neutral-200))",
   overbooked:   "hsl(var(--destructive-500))",
   overreserved: "hsl(var(--warning-500))",
-  // Sales-channel split reuses the same shade ramp so it visually
+  // Sales-channel split reuses the same shade slots so it visually
   // matches the booking-state bar.
-  soldManaged:  "hsl(var(--success-900))",
-  action:       "hsl(var(--success-600))",
-  programmatic: "hsl(var(--success-300))",
+  soldManaged:  "hsl(var(--chart-800))",
+  action:       "hsl(var(--chart-500))",
+  programmatic: "hsl(var(--chart-300))",
 }
 
 export const defaultFillRateLabels: Record<FillRateSegmentKey, string> = {

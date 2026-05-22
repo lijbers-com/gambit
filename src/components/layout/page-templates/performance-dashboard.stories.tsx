@@ -3451,7 +3451,7 @@ export const FunnelView: Story = {
       impressions: 'hsl(var(--chart-3))',
       omiDots: 'hsl(var(--chart-4))',
       doohSpots: 'hsl(var(--chart-5))',
-      offsiteImpressions: 'hsl(25, 90%, 55%)',
+      offsiteImpressions: 'hsl(var(--chart-1))',
     };
 
     const channelTooltips: Record<string, string> = {
@@ -3489,7 +3489,7 @@ export const FunnelView: Story = {
       displayUnitsSold: 'hsl(var(--chart-3))',
       dmiUnitsSold: 'hsl(var(--chart-4))',
       omiUnitsSold: 'hsl(var(--chart-5))',
-      offsiteUnitsSold: 'hsl(25, 90%, 55%)',
+      offsiteUnitsSold: 'hsl(var(--chart-1))',
     };
 
     const roasLabels: Record<string, string> = {
@@ -3628,7 +3628,7 @@ export const FunnelView: Story = {
           'hsl(var(--chart-3))',
           'hsl(var(--chart-4))',
           'hsl(var(--chart-5))',
-          'hsl(25, 90%, 55%)',
+          'hsl(var(--chart-1))',
         ],
         valueFormatter: formatEur,
       },

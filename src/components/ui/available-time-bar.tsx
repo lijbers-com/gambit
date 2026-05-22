@@ -28,11 +28,13 @@ export interface AvailableTimeValue {
   thresholds?: Partial<Record<AvailableTimeSegmentKey, string>>
 }
 
-/** Default color mapping. */
+/** Default color mapping. Pulls from the per-theme chart shade ramp
+ *  so the bar retunes per theme. highAvailable keeps the warning
+ *  amber because "lots of unsold loop time" is an attention state. */
 export const defaultAvailableTimeColors: Record<AvailableTimeSegmentKey, string> = {
-  noAvailable:     "hsl(var(--success-900))",
-  lowAvailable:    "hsl(var(--success-600))",
-  mediumAvailable: "hsl(var(--success-300))",
+  noAvailable:     "hsl(var(--chart-800))",
+  lowAvailable:    "hsl(var(--chart-500))",
+  mediumAvailable: "hsl(var(--chart-300))",
   highAvailable:   "hsl(var(--warning-500))",
 }
 

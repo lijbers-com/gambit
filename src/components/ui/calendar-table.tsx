@@ -17,7 +17,8 @@ export interface Booking {
   color?: string;
   variant?: "default" | "success" | "warning" | "destructive";
   /** Semantic booking status. When set, the badge uses the matching
-   *  --success-* / --warning-* token regardless of `variant`. */
+   *  per-theme chart shade for booked/confirmed/reserved and the
+   *  warning token for overbooked regardless of `variant`. */
   status?: BookingStatus;
 }
 
@@ -28,12 +29,14 @@ export interface Position {
   availability: CalendarCellValue[];
 }
 
-/** Color mapping for the four booking statuses, pulled from the
- *  shared accent ramps so each theme retunes automatically. */
+/** Color mapping for the four booking statuses. Booked / Confirmed /
+ *  Reserved pull from the per-theme chart shade ramp so each theme
+ *  retunes automatically; overbooked stays on the warning ramp
+ *  because it's a semantic alert state (not chart data). */
 export const bookingStatusColors: Record<BookingStatus, string> = {
-  booked:     'hsl(var(--success-900))',
-  confirmed:  'hsl(var(--success-600))',
-  reserved:   'hsl(var(--success-300))',
+  booked:     'hsl(var(--chart-800))',
+  confirmed:  'hsl(var(--chart-500))',
+  reserved:   'hsl(var(--chart-300))',
   overbooked: 'hsl(var(--warning-500))',
 };
 export const bookingStatusLabels: Record<BookingStatus, string> = {
@@ -194,7 +197,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     backgroundColor: bookingStatusColors[c.status],
                     // Light-green "reserved" needs dark text for contrast;
                     // every other status has enough contrast against white.
-                    color: c.status === 'reserved' ? 'hsl(var(--success-900))' : 'white',
+                    color: c.status === 'reserved' ? 'hsl(var(--chart-900))' : 'white',
                   }}
                   title={`${bookingStatusLabels[c.status]}: ${c.count}`}
                 >
@@ -379,7 +382,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 className="w-full px-3 py-1 rounded-md text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden"
                 style={{
                   backgroundColor: bookingStatusColors[booking.status],
-                  color: booking.status === 'reserved' ? 'hsl(var(--success-900))' : 'white',
+                  color: booking.status === 'reserved' ? 'hsl(var(--chart-900))' : 'white',
                 }}
                 title={`${booking.name} (${bookingStatusLabels[booking.status]})`}
               >

@@ -64,6 +64,9 @@ export interface MetricRowProps {
   onDialogMetricClick?: (key: string) => void
   /** Whether to show built-in chart panel when clicking a metric that has chartData */
   showCharts?: boolean
+  /** Suppress the "Edit metrics" affordance and the picker dialog entirely.
+   *  Use for fixed, non-configurable rows (e.g. cell drawer summaries). */
+  hideEditButton?: boolean
 }
 
 const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
@@ -80,6 +83,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     dialogMetrics,
     onDialogMetricClick,
     showCharts = false,
+    hideEditButton = false,
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
@@ -121,7 +125,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       .filter(Boolean) as MetricDefinition[]
 
     const hasDialogContent = metrics.length > 0 || (dialogMetrics?.length ?? 0) > 0
-    const showAddButton = hasDialogContent && selectedMetrics.length < maxVisible
+    const showAddButton = hasDialogContent && !hideEditButton && selectedMetrics.length < maxVisible
 
     const colCount = Math.min(selectedMetrics.length + (showAddButton ? 1 : 0), maxVisible + 1)
 
@@ -156,7 +160,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
 
     return (
       <div ref={ref} className={cn("space-y-3", className)} {...props}>
-      {hasDialogContent && (
+      {hasDialogContent && !hideEditButton && (
         <div className="flex items-center justify-end">
           <Button
             type="button"

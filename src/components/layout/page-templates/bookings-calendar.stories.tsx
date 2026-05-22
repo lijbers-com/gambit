@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { CalendarTable } from '@/components/ui/calendar-table';
 import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
+import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -767,6 +768,56 @@ const BookingCalendarTemplate = ({
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">
+              {(() => {
+                // Fixed 3-card summary for the clicked cell: fill rate,
+                // impressions and availability. No edit affordance — these
+                // three are the canonical drawer summary.
+                const v = (selectedCell?.value && typeof selectedCell.value === 'object')
+                  ? selectedCell.value as FillRateValue
+                  : null;
+                const used = v
+                  ? ((v.booked ?? 0) + (v.confirmed ?? 0) + (v.reserved ?? 0) +
+                     (v.soldManaged ?? 0) + (v.action ?? 0) + (v.programmatic ?? 0))
+                  : 0;
+                const available = v?.available ?? Math.max(0, 100 - used);
+                const overbooked = (v?.overbooked ?? 0) + (v?.overreserved ?? 0);
+                // Synthetic impressions count derived from fill rate so the
+                // card has a value to display. Real number when prop wired up.
+                const targetImpressions = 12500;
+                const usedImpressions = Math.round(targetImpressions * Math.min(used, 100) / 100);
+                const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
+                const summaryMetrics: MetricDefinition[] = [
+                  {
+                    key: 'fillRate',
+                    label: 'Fill rate',
+                    value: `${Math.round(used)}%`,
+                    badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
+                    badgeVariant: overbooked > 0 ? 'destructive' : undefined,
+                  },
+                  {
+                    key: 'impressions',
+                    label: 'Impressions',
+                    value: fmtK(usedImpressions),
+                    subMetric: `of ${fmtK(targetImpressions)} target`,
+                  },
+                  {
+                    key: 'availability',
+                    label: 'Availability',
+                    value: `${Math.round(available)}%`,
+                    subMetric: 'remaining capacity',
+                  },
+                ];
+                return (
+                  <MetricRow
+                    metrics={summaryMetrics}
+                    selectedKeys={summaryMetrics.map(m => m.key)}
+                    maxVisible={3}
+                    defaultVariant="default"
+                    removable={false}
+                    hideEditButton
+                  />
+                );
+              })()}
               <Viewbar
                 tabs={viewTabs}
                 activeTab={activeView}
@@ -2351,6 +2402,56 @@ const OfflineInstoreCalendarTemplate = ({
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">
+              {(() => {
+                // Fixed 3-card summary for the clicked cell: fill rate,
+                // impressions and availability. No edit affordance — these
+                // three are the canonical drawer summary.
+                const v = (selectedCell?.value && typeof selectedCell.value === 'object')
+                  ? selectedCell.value as FillRateValue
+                  : null;
+                const used = v
+                  ? ((v.booked ?? 0) + (v.confirmed ?? 0) + (v.reserved ?? 0) +
+                     (v.soldManaged ?? 0) + (v.action ?? 0) + (v.programmatic ?? 0))
+                  : 0;
+                const available = v?.available ?? Math.max(0, 100 - used);
+                const overbooked = (v?.overbooked ?? 0) + (v?.overreserved ?? 0);
+                // Synthetic impressions count derived from fill rate so the
+                // card has a value to display. Real number when prop wired up.
+                const targetImpressions = 12500;
+                const usedImpressions = Math.round(targetImpressions * Math.min(used, 100) / 100);
+                const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
+                const summaryMetrics: MetricDefinition[] = [
+                  {
+                    key: 'fillRate',
+                    label: 'Fill rate',
+                    value: `${Math.round(used)}%`,
+                    badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
+                    badgeVariant: overbooked > 0 ? 'destructive' : undefined,
+                  },
+                  {
+                    key: 'impressions',
+                    label: 'Impressions',
+                    value: fmtK(usedImpressions),
+                    subMetric: `of ${fmtK(targetImpressions)} target`,
+                  },
+                  {
+                    key: 'availability',
+                    label: 'Availability',
+                    value: `${Math.round(available)}%`,
+                    subMetric: 'remaining capacity',
+                  },
+                ];
+                return (
+                  <MetricRow
+                    metrics={summaryMetrics}
+                    selectedKeys={summaryMetrics.map(m => m.key)}
+                    maxVisible={3}
+                    defaultVariant="default"
+                    removable={false}
+                    hideEditButton
+                  />
+                );
+              })()}
               <Viewbar
                 tabs={viewTabs}
                 activeTab={activeView}

@@ -32,9 +32,24 @@ body[data-theme="albertHeijn"] {
   --brand-900: 201  80% 18%;
   --brand-950: 201  75% 10%;
 
-  /* Chart colors — inherit the Sky shade palette from :root for now.
-     Add explicit --chart-1 ... --chart-5 overrides here when you want
-     this theme to differ from the default. */
+  /* Chart shade ramp — Sky for now; swap values to retune this theme. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
+  /* Chart slot aliases — which shade each chart series uses. */
+  --chart-1: var(--chart-700);   /* deep primary */
+  --chart-2: var(--chart-500);   /* mid */
+  --chart-3: var(--chart-300);   /* light */
+  --chart-4: var(--chart-800);   /* very deep */
+  --chart-5: var(--chart-400);   /* bright mid */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -91,9 +106,24 @@ body[data-theme="retailMedia"] {
   --brand-900: 258  80% 18%;
   --brand-950: 258  75% 10%;
 
-  /* Chart colors — inherit the Sky shade palette from :root for now.
-     Add explicit --chart-1 ... --chart-5 overrides here when you want
-     this theme to differ from the default. */
+  /* Chart shade ramp — Sky for now; swap values to retune this theme. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
+  /* Chart slot aliases — which shade each chart series uses. */
+  --chart-1: var(--chart-700);   /* deep primary */
+  --chart-2: var(--chart-500);   /* mid */
+  --chart-3: var(--chart-300);   /* light */
+  --chart-4: var(--chart-800);   /* very deep */
+  --chart-5: var(--chart-400);   /* bright mid */
 
   /* Cream neutral scale (same as :root default) */
   --neutral-50:  255 253 245;
@@ -149,9 +179,24 @@ body[data-theme="adusa"] {
   --brand-900: 162 95% 12%;
   --brand-950: 162 95%  8%;
 
-  /* Chart colors — inherit the Sky shade palette from :root for now.
-     Add explicit --chart-1 ... --chart-5 overrides here when you want
-     this theme to differ from the default. */
+  /* Chart shade ramp — Sky for now; swap values to retune this theme. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
+  /* Chart slot aliases — which shade each chart series uses. */
+  --chart-1: var(--chart-700);   /* deep primary */
+  --chart-2: var(--chart-500);   /* mid */
+  --chart-3: var(--chart-300);   /* light */
+  --chart-4: var(--chart-800);   /* very deep */
+  --chart-5: var(--chart-400);   /* bright mid */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -207,9 +252,24 @@ body[data-theme="delhaize"] {
   --brand-900: 350 75% 18%;
   --brand-950: 350 70% 10%;
 
-  /* Chart colors — inherit the Sky shade palette from :root for now.
-     Add explicit --chart-1 ... --chart-5 overrides here when you want
-     this theme to differ from the default. */
+  /* Chart shade ramp — Sky for now; swap values to retune this theme. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
+  /* Chart slot aliases — which shade each chart series uses. */
+  --chart-1: var(--chart-700);   /* deep primary */
+  --chart-2: var(--chart-500);   /* mid */
+  --chart-3: var(--chart-300);   /* light */
+  --chart-4: var(--chart-800);   /* very deep */
+  --chart-5: var(--chart-400);   /* bright mid */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -265,9 +325,24 @@ body[data-theme="alfaBeta"] {
   --brand-900: 211  85% 18%;
   --brand-950: 211  80% 10%;
 
-  /* Chart colors — inherit the Sky shade palette from :root for now.
-     Add explicit --chart-1 ... --chart-5 overrides here when you want
-     this theme to differ from the default. */
+  /* Chart shade ramp — Sky for now; swap values to retune this theme. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
+  /* Chart slot aliases — which shade each chart series uses. */
+  --chart-1: var(--chart-700);   /* deep primary */
+  --chart-2: var(--chart-500);   /* mid */
+  --chart-3: var(--chart-300);   /* light */
+  --chart-4: var(--chart-800);   /* very deep */
+  --chart-5: var(--chart-400);   /* bright mid */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -341,16 +416,28 @@ body[data-theme="alfaBeta"] {
     --ring:                 33  3%  29%;   /* cream-900 #4d4b48 */
     --radius: 0.5rem;
 
-    /* Chart color tokens — Sky shade ramp from shadcn/ui.
-       Same palette across every theme for now; add per-theme
-       overrides in the [data-theme] blocks above when you're ready
-       to tune. Reds and oranges are deliberately excluded — those
-       hues stay reserved for warning + error states. */
-    --chart-1: 201 96% 32%;   /* sky-700 (deep, primary) */
-    --chart-2: 199 89% 48%;   /* sky-500 (mid) */
-    --chart-3: 199 95% 74%;   /* sky-300 (light) */
-    --chart-4: 201 90% 27%;   /* sky-800 (very deep) */
-    --chart-5: 198 93% 60%;   /* sky-400 (bright mid) */
+    /* Chart shade ramp — default Sky palette. Each [data-theme]
+       block above ships its own copy so per-theme tuning is just a
+       matter of editing the values in place. Reds and oranges are
+       deliberately excluded so they stay reserved for warning +
+       error states elsewhere in the UI. */
+    --chart-50:  204 100% 97%;
+    --chart-100: 204 94% 94%;
+    --chart-200: 201 94% 86%;
+    --chart-300: 199 95% 74%;
+    --chart-400: 198 93% 60%;
+    --chart-500: 199 89% 48%;
+    --chart-600: 200 98% 39%;
+    --chart-700: 201 96% 32%;
+    --chart-800: 201 90% 27%;
+    --chart-900: 202 80% 24%;
+    --chart-950: 204 80% 16%;
+    /* Chart slot aliases — which shade each chart series uses. */
+    --chart-1: var(--chart-700);   /* deep primary */
+    --chart-2: var(--chart-500);   /* mid */
+    --chart-3: var(--chart-300);   /* light */
+    --chart-4: var(--chart-800);   /* very deep */
+    --chart-5: var(--chart-400);   /* bright mid */
 
     /* Brand shade ramp — default = Gambit purple (hue ~258°).
        Overridden in each [data-theme] block above. Tune values per

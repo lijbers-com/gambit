@@ -146,11 +146,33 @@ const GeneralStylesPage = () => (
     
     <h3>Chart Color Tokens</h3>
     <p>
-      Every chart in the app reads from the same 5 tokens (<code>--chart-1</code> through
-      <code>--chart-5</code>). The active theme&apos;s <code>[data-theme]</code> block in
-      <code>globals.css</code> determines their values; switch themes via the
-      Storybook toolbar to see the swatches retune live. Reds and oranges are
-      excluded — those hues stay reserved for warning + error states.
+      Each theme ships a full <code>--chart-50</code> … <code>--chart-950</code>
+      shade ramp plus five slot aliases (<code>--chart-1</code> through{' '}
+      <code>--chart-5</code>) that pick which shade each chart series uses.
+      Switch themes via the Storybook toolbar to see the swatches retune
+      live. Reds and oranges are excluded — those hues stay reserved for
+      warning + error states.
+    </p>
+    <h4 style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '14px', fontWeight: 600 }}>
+      Shade ramp
+    </h4>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      {[50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((step) => (
+        <ColorSwatch
+          key={step}
+          label={`Chart ${step}`}
+          color={`hsl(var(--chart-${step}))`}
+          token={`--chart-${step}`}
+        />
+      ))}
+    </div>
+    <h4 style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '14px', fontWeight: 600 }}>
+      Series slots
+    </h4>
+    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: 0 }}>
+      Chart components consume these five slots in order. Re-point a slot at
+      a different shade (e.g. <code>--chart-1: var(--chart-500)</code>) per
+      theme to change which shade that series gets.
     </p>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
       {[1, 2, 3, 4, 5].map((n) => (

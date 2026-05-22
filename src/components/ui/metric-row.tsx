@@ -37,6 +37,8 @@ export interface MetricDefinition {
   dateData?: MetricCardProps["dateData"]
   /** Optional value formatter shared by chart variants */
   valueFormatter?: MetricCardProps["valueFormatter"]
+  /** Bespoke chart node rendered in the card body (e.g. a FillRateBar). */
+  chart?: MetricCardProps["chart"]
 }
 
 export interface MetricRowProps {
@@ -199,6 +201,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             productData={metric.productData}
             dateData={metric.dateData}
             valueFormatter={metric.valueFormatter}
+            chart={metric.chart}
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
             onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}

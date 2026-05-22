@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/car
 import { X } from 'lucide-react';
 import { CalendarTable } from '@/components/ui/calendar-table';
 import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
-import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
+import { AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
@@ -738,33 +738,8 @@ const BookingCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              {selectedCell?.value && typeof selectedCell.value === 'object'
-                ? 'All bookings for this week'
-                : <>Availability: {selectedCell?.value ?? '—'} · All bookings for this week</>}
+              All bookings for this week
             </RightDrawerDescription>
-            {/* Render the live bar visualization for FillRateValue /
-                AvailableTimeValue cells so the breakdown is visible at
-                a glance instead of as a long comma-separated string. */}
-            {selectedCell?.value && typeof selectedCell.value === 'object' && (() => {
-              const v = selectedCell.value as FillRateValue & AvailableTimeValue;
-              const isFillRate = 'booked' in v || 'confirmed' in v || 'reserved' in v || 'available' in v || 'overbooked' in v || 'overreserved' in v;
-              const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
-              if (isAvailableTime) {
-                return (
-                  <div className="mt-3 w-full">
-                    <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
-                  </div>
-                );
-              }
-              if (isFillRate) {
-                return (
-                  <div className="mt-3 w-full">
-                    <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
-                  </div>
-                );
-              }
-              return null;
-            })()}
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">
@@ -793,6 +768,8 @@ const BookingCalendarTemplate = ({
                     value: `${Math.round(used)}%`,
                     badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
                     badgeVariant: overbooked > 0 ? 'destructive' : undefined,
+                    // Same stacked bar the user clicked in the calendar cell.
+                    chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
                   },
                   {
                     key: 'impressions',
@@ -2372,33 +2349,8 @@ const OfflineInstoreCalendarTemplate = ({
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
             </RightDrawerTitle>
             <RightDrawerDescription>
-              {selectedCell?.value && typeof selectedCell.value === 'object'
-                ? 'All bookings for this week'
-                : <>Availability: {selectedCell?.value ?? '—'} · All bookings for this week</>}
+              All bookings for this week
             </RightDrawerDescription>
-            {/* Render the live bar visualization for FillRateValue /
-                AvailableTimeValue cells so the breakdown is visible at
-                a glance instead of as a long comma-separated string. */}
-            {selectedCell?.value && typeof selectedCell.value === 'object' && (() => {
-              const v = selectedCell.value as FillRateValue & AvailableTimeValue;
-              const isFillRate = 'booked' in v || 'confirmed' in v || 'reserved' in v || 'available' in v || 'overbooked' in v || 'overreserved' in v;
-              const isAvailableTime = 'noAvailable' in v || 'lowAvailable' in v || 'mediumAvailable' in v || 'highAvailable' in v;
-              if (isAvailableTime) {
-                return (
-                  <div className="mt-3 w-full">
-                    <AvailableTimeBar value={v} height={14} showLabels hoverTooltip={false} />
-                  </div>
-                );
-              }
-              if (isFillRate) {
-                return (
-                  <div className="mt-3 w-full">
-                    <FillRateBar value={v} height={14} showLabels hoverTooltip={false} />
-                  </div>
-                );
-              }
-              return null;
-            })()}
           </RightDrawerHeader>
           <RightDrawerBody>
             <div className="space-y-6">
@@ -2427,6 +2379,8 @@ const OfflineInstoreCalendarTemplate = ({
                     value: `${Math.round(used)}%`,
                     badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
                     badgeVariant: overbooked > 0 ? 'destructive' : undefined,
+                    // Same stacked bar the user clicked in the calendar cell.
+                    chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
                   },
                   {
                     key: 'impressions',

@@ -242,6 +242,10 @@ export interface MetricCardProps {
   dateData?: Array<{ date: string; value: number; color?: string }>;
   /** Optional formatter for chart values (e.g. currency). Defaults to toLocaleString. */
   valueFormatter?: (value: number) => string;
+  /** Arbitrary content rendered in the card body below the value — use to
+   *  drop in a bespoke chart (e.g. a FillRateBar) that the built-in
+   *  variants don't cover. */
+  chart?: React.ReactNode;
 }
 
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
@@ -264,6 +268,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     productData,
     dateData,
     valueFormatter,
+    chart,
     ...props
   }, ref) => (
     <Card
@@ -303,6 +308,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             )}
           </div>
         )}
+        {chart && <div className="mt-4">{chart}</div>}
         {variant === "graph" && graphData && (
           <div className="h-14 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">

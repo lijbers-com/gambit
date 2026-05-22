@@ -3930,17 +3930,23 @@ export const FunnelView: Story = {
                 Build Report
               </Button>
             </div>
-          <Card className={cn("w-full overflow-hidden", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
-            <CardContent className="p-0">
-              <ConversionFunnelComponent
-                stages={funnelStages}
-                selectedKey={selectedStage}
-                onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
-                valueFormatter={(v) =>
-                  v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
-                }
-                showTooltip={false}
-              />
+          <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
+            <CardContent className="px-6 pt-6 pb-0">
+              {/* Funnel chart in its own bordered card, like Total Volume below.
+                  Inner content is flush (p-0) so the bars run to the card edge. */}
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  <ConversionFunnelComponent
+                    stages={funnelStages}
+                    selectedKey={selectedStage}
+                    onStageClick={(key) => setSelectedStage(key as FunnelStageKey)}
+                    valueFormatter={(v) =>
+                      v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
+                    }
+                    showTooltip={false}
+                  />
+                </CardContent>
+              </Card>
             </CardContent>
 
             <div className="pt-6">

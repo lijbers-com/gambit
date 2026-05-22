@@ -32,12 +32,13 @@ body[data-theme="albertHeijn"] {
   --brand-900: 201  80% 18%;
   --brand-950: 201  75% 10%;
 
-  /* Chart colors */
-  --chart-1: 201 100% 50%;
-  --chart-2: 201 100% 35%;
-  --chart-3: 201 100% 65%;
-  --chart-4: 201 80% 45%;
-  --chart-5: 201 90% 40%;
+  /* Chart colors — Albert Heijn palette (sky-led, no red/orange).
+     Starter values from shadcn/tailwind 500 shades; tune per theme. */
+  --chart-1: 198 93% 60%;   /* sky */
+  --chart-2: 239 84% 67%;   /* indigo */
+  --chart-3: 160 84% 39%;   /* emerald */
+  --chart-4: 258 90% 66%;   /* violet */
+  --chart-5: 173 80% 40%;   /* teal */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -94,12 +95,13 @@ body[data-theme="retailMedia"] {
   --brand-900: 258  80% 18%;
   --brand-950: 258  75% 10%;
 
-  /* Chart colors */
-  --chart-1: 258 100% 60%;
-  --chart-2: 258  80% 45%;
-  --chart-3: 258 100% 75%;
-  --chart-4: 258  90% 50%;
-  --chart-5: 258  70% 40%;
+  /* Chart colors — Gambit / Edge palette (violet-led, no red/orange).
+     Starter values from shadcn/tailwind 500 shades; tune per theme. */
+  --chart-1: 258 90% 66%;   /* violet */
+  --chart-2: 173 80% 40%;   /* teal */
+  --chart-3: 330 81% 60%;   /* pink */
+  --chart-4: 239 84% 67%;   /* indigo */
+  --chart-5: 160 84% 39%;   /* emerald */
 
   /* Cream neutral scale (same as :root default) */
   --neutral-50:  255 253 245;
@@ -155,12 +157,13 @@ body[data-theme="adusa"] {
   --brand-900: 162 95% 12%;
   --brand-950: 162 95%  8%;
 
-  /* Chart colors */
-  --chart-1:  98 56% 51%;
-  --chart-2: 182 42% 24%;
-  --chart-3: 130 35% 41%;
-  --chart-4:  76 65% 71%;
-  --chart-5:  86 40% 49%;
+  /* Chart colors — ADUSA palette (emerald-led, no red/orange).
+     Starter values from shadcn/tailwind 500 shades; tune per theme. */
+  --chart-1: 160 84% 39%;   /* emerald */
+  --chart-2: 217 91% 60%;   /* blue */
+  --chart-3: 271 91% 65%;   /* purple */
+  --chart-4: 330 81% 60%;   /* pink */
+  --chart-5: 173 80% 40%;   /* teal */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -216,12 +219,14 @@ body[data-theme="delhaize"] {
   --brand-900: 350 75% 18%;
   --brand-950: 350 70% 10%;
 
-  /* Chart colors */
-  --chart-1: 350 85% 49%;
-  --chart-2: 350 85% 35%;
-  --chart-3: 350 85% 65%;
-  --chart-4: 350 75% 45%;
-  --chart-5: 350 70% 40%;
+  /* Chart colors — Delhaize palette (no red in charts; reds and
+     oranges are reserved for warning/error states in the UI).
+     Starter values from shadcn/tailwind 500 shades; tune per theme. */
+  --chart-1: 271 91% 65%;   /* purple */
+  --chart-2: 173 80% 40%;   /* teal */
+  --chart-3: 330 81% 60%;   /* pink */
+  --chart-4: 239 84% 67%;   /* indigo */
+  --chart-5: 160 84% 39%;   /* emerald */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -277,12 +282,13 @@ body[data-theme="alfaBeta"] {
   --brand-900: 211  85% 18%;
   --brand-950: 211  80% 10%;
 
-  /* Chart colors */
-  --chart-1: 211 100% 40%;
-  --chart-2: 211 100% 30%;
-  --chart-3: 211 100% 55%;
-  --chart-4: 211  90% 45%;
-  --chart-5: 211  80% 35%;
+  /* Chart colors — Alfa Beta palette (blue-led, no red/orange).
+     Starter values from shadcn/tailwind 500 shades; tune per theme. */
+  --chart-1: 217 91% 60%;   /* blue */
+  --chart-2: 258 90% 66%;   /* violet */
+  --chart-3: 160 84% 39%;   /* emerald */
+  --chart-4: 330 81% 60%;   /* pink */
+  --chart-5: 173 80% 40%;   /* teal */
 
   /* Restore slate neutral scale */
   --neutral-50:  248 250 252;
@@ -356,12 +362,15 @@ body[data-theme="alfaBeta"] {
     --ring:                 33  3%  29%;   /* cream-900 #4d4b48 */
     --radius: 0.5rem;
 
-    /* Chart color tokens */
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 76% 36%;
-    --chart-3:  32 95% 44%;
-    --chart-4: 262 83% 58%;
-    --chart-5: 346 87% 43%;
+    /* Chart color tokens — default palette (mirrors Gambit/Edge).
+       Reds and oranges are reserved for warning/error states in the
+       UI, so this palette stays in the violet → emerald range.
+       Each [data-theme] block above overrides with its own 5 hues. */
+    --chart-1: 258 90% 66%;   /* violet */
+    --chart-2: 173 80% 40%;   /* teal */
+    --chart-3: 330 81% 60%;   /* pink */
+    --chart-4: 239 84% 67%;   /* indigo */
+    --chart-5: 160 84% 39%;   /* emerald */
 
     /* Brand shade ramp — default = Gambit purple (hue ~258°).
        Overridden in each [data-theme] block above. Tune values per

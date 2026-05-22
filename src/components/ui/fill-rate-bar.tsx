@@ -188,20 +188,33 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
     )
 
     const labelRow = (() => {
-      // Skip "available" (the grey remainder reads as available implicitly)
-      // unless the caller explicitly requested it via labelSegments.
-      const defaultLabelKeys = segmentOrder.filter((k) => k !== "available")
-      const keys = (labelSegments ?? defaultLabelKeys).filter(
-        (k) => (value[k] ?? 0) > 0
-      )
-      if (keys.length === 0) return null
+      // Roll the row up into two numbers:
+      // - Left: total filled portion (everything used, in chart-shade colors)
+      // - Right: the headroom indicator — overbooked first (red) if any,
+      //   otherwise available (muted grey).
+      // The per-segment percentages are still in the hover tooltip.
+      const usedKeys: FillRateSegmentKey[] = [
+        "booked", "confirmed", "reserved",
+        "soldManaged", "action", "programmatic",
+      ]
+      const usedTotal = usedKeys.reduce((sum, k) => sum + (value[k] ?? 0), 0)
+      const availableRaw = value.available ?? 0
+      const overbookedRaw = (value.overbooked ?? 0) + (value.overreserved ?? 0)
+      if (usedTotal <= 0 && availableRaw <= 0 && overbookedRaw <= 0) return null
+
+      const usedPct = Math.round(pct(usedTotal))
+      const rightPct = overbookedRaw > 0 ? Math.round(pct(overbookedRaw)) : Math.round(pct(availableRaw))
+      const rightLabel = overbookedRaw > 0 ? '+' : ''
+      const rightColor = overbookedRaw > 0
+        ? colors.overbooked
+        : 'rgb(var(--neutral-500))'
+
       return (
         <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
-          {keys.map((key) => (
-            <span key={key} style={{ color: colors[key] }}>
-              {Math.round(pct(value[key] ?? 0))}%
-            </span>
-          ))}
+          <span style={{ color: colors.booked }}>{usedPct}%</span>
+          {(availableRaw > 0 || overbookedRaw > 0) && (
+            <span style={{ color: rightColor }}>{rightLabel}{rightPct}%</span>
+          )}
         </div>
       )
     })()

@@ -15,6 +15,7 @@ body[data-theme="albertHeijn"] {
   --brand-primary: #00ADE6;
   --brand-app-bg: #00ADE6;
   --brand-app-bg-hex: #00ADE6;
+  --brand-page-bg-hex: #fafafa;
   --brand-app-text: #ffffff;
   --brand-app-hover: #0086B2;
   --logo-url: url('/ah-logo.svg');
@@ -88,7 +89,8 @@ body[data-theme="retailMedia"] {
   --brand-theme: gambit;
   --brand-primary: #4d4b48;
   --brand-app-bg: #fff9eb;
-  --brand-app-bg-hex: #fff9eb;
+  --brand-app-bg-hex: #ffffff;
+  --brand-page-bg-hex: #fff9eb;
   --brand-app-text: #403e3c;
   --brand-app-hover: #e8e4dd;
   --logo-url: url('/edge-icon.svg');
@@ -162,6 +164,7 @@ body[data-theme="adusa"] {
   --brand-primary: #00644C;
   --brand-app-bg: #00644C;
   --brand-app-bg-hex: #00644C;
+  --brand-page-bg-hex: #fafafa;
   --brand-app-text: #ffffff;
   --brand-app-hover: #004A36;
   --logo-url: url('/adusa-logo.svg');
@@ -235,6 +238,7 @@ body[data-theme="delhaize"] {
   --brand-primary: #CE1230;
   --brand-app-bg: #CE1230;
   --brand-app-bg-hex: #CE1230;
+  --brand-page-bg-hex: #fafafa;
   --brand-app-text: #ffffff;
   --brand-app-hover: #A30E26;
   --logo-url: url('/delhaize-logo.svg');
@@ -308,6 +312,7 @@ body[data-theme="alfaBeta"] {
   --brand-primary: #0066CC;
   --brand-app-bg: #ffffff;
   --brand-app-bg-hex: #ffffff;
+  --brand-page-bg-hex: #fafafa;
   --brand-app-text: #0f172a;
   --brand-app-hover: #f1f5f9;
   --logo-url: url('/alfabeta-logo.svg');
@@ -518,7 +523,8 @@ body[data-theme="alfaBeta"] {
     --brand-primary: #4d4b48;
     --brand-accent:  #f5f2ec;
     --brand-app-bg:  #fff9eb;
-    --brand-app-bg-hex: #fff9eb;
+    --brand-app-bg-hex: #ffffff;
+    --brand-page-bg-hex: #fff9eb;
     --brand-app-text: #4d4b48;
     --brand-app-hover: #f5f2ec;
     --logo-url: url('/edge-icon.svg');

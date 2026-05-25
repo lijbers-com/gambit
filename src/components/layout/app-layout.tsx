@@ -95,7 +95,7 @@ export function AppLayout({
           </div>
         </div>
         {/* Scrollable Page Panel — border follows the rounded-tl curve */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border bg-neutral-50">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border" style={{ background: 'var(--brand-page-bg-hex, #fafafa)' }}>
           {/* Page Header */}
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}

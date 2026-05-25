@@ -147,6 +147,23 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
 
     const visibleLabels = labelSegments ?? present.map((s) => s.key)
 
+    // Rolled-up numbers shared by the inside-bar labels and the below-bar row:
+    // - filled: everything used (booked / confirmed / reserved / sales channels)
+    // - right: overbooked (red, prefixed +) if any, otherwise available (grey)
+    const usedKeys: FillRateSegmentKey[] = [
+      "booked", "confirmed", "reserved",
+      "soldManaged", "action", "programmatic",
+    ]
+    const usedTotal = usedKeys.reduce((s, k) => s + (value[k] ?? 0), 0)
+    const availableRaw = value.available ?? 0
+    const overbookedRaw = (value.overbooked ?? 0) + (value.overreserved ?? 0)
+    const hasRollup = usedTotal > 0 || availableRaw > 0 || overbookedRaw > 0
+    const usedPct = Math.round(pct(usedTotal))
+    const rightPct = overbookedRaw > 0 ? Math.round(pct(overbookedRaw)) : Math.round(pct(availableRaw))
+    const rightPrefix = overbookedRaw > 0 ? '+' : ''
+    const rightColor = overbookedRaw > 0 ? colors.overbooked : 'rgb(var(--neutral-500))'
+    const showRight = availableRaw > 0 || overbookedRaw > 0
+
     const bar = (
       <div
         className="flex w-full overflow-hidden rounded-sm bg-muted"
@@ -187,37 +204,15 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       </div>
     )
 
-    const labelRow = (() => {
-      // Roll the row up into two numbers:
-      // - Left: total filled portion (everything used, in chart-shade colors)
-      // - Right: the headroom indicator — overbooked first (red) if any,
-      //   otherwise available (muted grey).
-      // The per-segment percentages are still in the hover tooltip.
-      const usedKeys: FillRateSegmentKey[] = [
-        "booked", "confirmed", "reserved",
-        "soldManaged", "action", "programmatic",
-      ]
-      const usedTotal = usedKeys.reduce((sum, k) => sum + (value[k] ?? 0), 0)
-      const availableRaw = value.available ?? 0
-      const overbookedRaw = (value.overbooked ?? 0) + (value.overreserved ?? 0)
-      if (usedTotal <= 0 && availableRaw <= 0 && overbookedRaw <= 0) return null
-
-      const usedPct = Math.round(pct(usedTotal))
-      const rightPct = overbookedRaw > 0 ? Math.round(pct(overbookedRaw)) : Math.round(pct(availableRaw))
-      const rightLabel = overbookedRaw > 0 ? '+' : ''
-      const rightColor = overbookedRaw > 0
-        ? colors.overbooked
-        : 'rgb(var(--neutral-500))'
-
-      return (
-        <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
-          <span style={{ color: colors.booked }}>{usedPct}%</span>
-          {(availableRaw > 0 || overbookedRaw > 0) && (
-            <span style={{ color: rightColor }}>{rightLabel}{rightPct}%</span>
-          )}
-        </div>
-      )
-    })()
+    // Below-bar variant of the rolled-up numbers (used when not labelsInside).
+    const labelRow = hasRollup ? (
+      <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
+        <span style={{ color: colors.booked }}>{usedPct}%</span>
+        {showRight && (
+          <span style={{ color: rightColor }}>{rightPrefix}{rightPct}%</span>
+        )}
+      </div>
+    ) : null
 
     const content = (
       <div

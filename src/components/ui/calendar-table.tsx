@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, T
 import { Badge } from './badge';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
-import { TooltipProvider } from './tooltip';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './tooltip';
 
 export type BookingStatus = 'booked' | 'confirmed' | 'reserved' | 'overbooked';
 
@@ -94,6 +94,9 @@ export interface CalendarTableProps {
    *  focused view of that channel's positions. When omitted, the channel
    *  name stays static. */
   onChannelClick?: (mediaProduct: MediaProduct) => void;
+  /** Fires when a booking ("project") bar is clicked. Use to open the
+   *  campaign detail page. When omitted, the bar isn't interactive. */
+  onBookingClick?: (booking: Booking) => void;
   /** Cap on how many position rows render inline under an expanded channel.
    *  When the channel has more positions, a "+N more positions" link appears
    *  that fires onChannelClick to open the focused view. Default 5. */
@@ -114,6 +117,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   hideGreyCells = false,
   hasRetailProductFilter = false,
   onChannelClick,
+  onBookingClick,
   maxInlinePositions = 5,
 }) => {
   const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
@@ -379,7 +383,14 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           <div style={{ minHeight: 32 }} className="flex items-center">
             {booking.status ? (
               <div
-                className="w-full px-3 py-1 rounded-md text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden"
+                role={onBookingClick ? 'button' : undefined}
+                tabIndex={onBookingClick ? 0 : undefined}
+                onClick={onBookingClick ? (e) => { e.stopPropagation(); onBookingClick(booking); } : undefined}
+                onKeyDown={onBookingClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBookingClick(booking); } } : undefined}
+                className={cn(
+                  "w-full px-3 py-1 rounded-full text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden",
+                  onBookingClick && "cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                )}
                 style={{
                   backgroundColor: bookingStatusColors[booking.status],
                   color: booking.status === 'reserved' ? 'hsl(var(--chart-900))' : 'white',
@@ -391,7 +402,14 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             ) : (
               <Badge
                 variant={booking.variant || "default"}
-                className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden"
+                role={onBookingClick ? 'button' : undefined}
+                tabIndex={onBookingClick ? 0 : undefined}
+                onClick={onBookingClick ? (e) => { e.stopPropagation(); onBookingClick(booking); } : undefined}
+                onKeyDown={onBookingClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBookingClick(booking); } } : undefined}
+                className={cn(
+                  "w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden",
+                  onBookingClick && "cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                )}
               >
                 {booking.name}
               </Badge>
@@ -570,13 +588,39 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                               )}
                             >
                               <div style={{ minHeight: 32 }} className="flex items-center justify-center">
-                                <Badge 
-                                  variant="default"
-                                  className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden border-0"
-                                  style={getCommercialAgendaColorStyle(index)}
-                                >
-                                  {eventName}
-                                </Badge>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge
+                                      variant="default"
+                                      className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden border-0 cursor-default"
+                                      style={getCommercialAgendaColorStyle(index)}
+                                    >
+                                      {eventName}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="bg-background text-foreground border border-border p-3 shadow-lg max-w-xs"
+                                  >
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className="h-2.5 w-2.5 rounded-sm shrink-0"
+                                          style={getCommercialAgendaColorStyle(index)}
+                                        />
+                                        <span className="font-semibold">{eventName}</span>
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {startWeek === endWeek
+                                          ? `Week ${startWeek}`
+                                          : `Week ${startWeek} – Week ${endWeek} · ${sortedWeeks.length} weeks`}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        Retail event — campaigns running this period may see higher demand.
+                                      </div>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             </td>
                           );

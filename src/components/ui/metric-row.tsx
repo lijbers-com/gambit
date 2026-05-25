@@ -69,6 +69,10 @@ export interface MetricRowProps {
   /** Suppress the "Edit metrics" affordance and the picker dialog entirely.
    *  Use for fixed, non-configurable rows (e.g. cell drawer summaries). */
   hideEditButton?: boolean
+  /** Lay the cards out in a single horizontally-scrolling row instead of a
+   *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
+   *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
+  scrollable?: boolean
 }
 
 const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
@@ -86,6 +90,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     onDialogMetricClick,
     showCharts = false,
     hideEditButton = false,
+    scrollable = false,
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
@@ -178,11 +183,15 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       )}
       <div
         className={cn(
-          `grid grid-cols-1 gap-4`,
-          colCount === 2 && "md:grid-cols-2",
-          colCount === 3 && "md:grid-cols-3",
-          colCount === 4 && "md:grid-cols-4",
-          colCount >= 5 && "md:grid-cols-5",
+          scrollable
+            ? "flex gap-4 overflow-x-auto pb-1"
+            : cn(
+                `grid grid-cols-1 gap-4`,
+                colCount === 2 && "md:grid-cols-2",
+                colCount === 3 && "md:grid-cols-3",
+                colCount === 4 && "md:grid-cols-4",
+                colCount >= 5 && "md:grid-cols-5",
+              ),
         )}
       >
         {selectedMetrics.map((metric) => (
@@ -202,6 +211,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             dateData={metric.dateData}
             valueFormatter={metric.valueFormatter}
             chart={metric.chart}
+            className={scrollable ? "min-w-[220px] shrink-0 h-auto" : undefined}
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
             onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}

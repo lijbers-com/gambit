@@ -51,10 +51,15 @@ export const Viewbar: React.FC<ViewbarProps> = ({ labels, tabs, activeTab, onTab
         </div>
       )}
       {labels.length === 0 && <div />}
-      <Tabs value={activeTab} onValueChange={onTabChange} className="w-auto">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={onTabChange} className="w-auto min-w-0">
+        <TabsList className="max-w-full">
           {tabs.map(tab => (
-            <TabsTrigger key={tab.value} value={tab.value} disabled={tab.disabled}>
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              disabled={tab.disabled}
+              className="min-w-0 whitespace-nowrap overflow-hidden text-ellipsis"
+            >
               {tab.label}
             </TabsTrigger>
           ))}

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/car
 import { X } from 'lucide-react';
 import { CalendarTable } from '@/components/ui/calendar-table';
 import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
-import { AvailableTimeValue } from '@/components/ui/available-time-bar';
+import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Viewbar } from '@/components/ui/viewbar';
@@ -204,6 +204,73 @@ const toDisplayFillRateBreakdown = (v: number | string | FillRateValue): FillRat
   const available = Math.max(0, 100 - capped);
   const overbooked = fillPct > 100 ? Math.min(fillPct - 100, 40) : 0;
   return { soldManaged, action, programmatic, available, overbooked };
+};
+
+// Build one summary card per view tab the calendar exposes, so the cell
+// drawer surfaces every metric the calendar has (Impressions, Fill rate,
+// Available stores, Available time, Bookings, ...) rather than hiding them
+// behind tabs. Values are synthesized from the clicked cell's fill-rate
+// breakdown + the week's booking count so each card has something to show.
+const buildDrawerMetrics = (
+  viewTabs: Array<{ value: string; label: string }>,
+  value: number | string | FillRateValue | null | undefined,
+  bookingCount: number,
+): MetricDefinition[] => {
+  const v = (value && typeof value === 'object') ? value as FillRateValue : null;
+  const used = v
+    ? ((v.booked ?? 0) + (v.confirmed ?? 0) + (v.reserved ?? 0) +
+       (v.soldManaged ?? 0) + (v.action ?? 0) + (v.programmatic ?? 0))
+    : 0;
+  const available = v?.available ?? Math.max(0, 100 - used);
+  const overbooked = (v?.overbooked ?? 0) + (v?.overreserved ?? 0);
+  const targetImpressions = 12500;
+  const usedImpressions = Math.round(targetImpressions * Math.min(used, 100) / 100);
+  const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
+  const totalStores = 240;
+  const availStores = Math.round(available / 100 * totalStores);
+
+  return viewTabs.map(({ value: key, label }): MetricDefinition => {
+    switch (key) {
+      case 'fillRate':
+        return {
+          key,
+          label,
+          value: `${Math.round(used)}%`,
+          badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
+          badgeVariant: overbooked > 0 ? 'destructive' : undefined,
+          chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
+        };
+      case 'reach':
+        return { key, label, value: fmtK(usedImpressions), subMetric: `of ${fmtK(targetImpressions)} target` };
+      case 'revenue':
+        return { key, label, value: `€${fmtK(usedImpressions * 4)}`, subMetric: 'gross booked' };
+      case 'stores':
+        return { key, label, value: `${availStores}`, subMetric: `of ${totalStores} stores` };
+      case 'availableTime': {
+        // Synthesize a loop-tier split (no / low / medium / high available
+        // time) from the cell's used vs. available capacity so the card
+        // shows the same stacked bar the calendar's Available time view does.
+        const availTime: AvailableTimeValue = {
+          noAvailable: used,
+          lowAvailable: available * 0.45,
+          mediumAvailable: available * 0.35,
+          highAvailable: available * 0.20,
+        };
+        return {
+          key,
+          label,
+          value: `${Math.round(available / 100 * 168)}h`,
+          subMetric: 'of 168h / week',
+          chart: <AvailableTimeBar value={availTime} height={10} showLabels hoverTooltip={false} />,
+        };
+      }
+      case 'bookings':
+      case 'bookedCampaigns':
+        return { key, label, value: `${bookingCount}`, subMetric: bookingCount === 1 ? 'booking' : 'bookings' };
+      default:
+        return { key, label, value: `${Math.round(used)}%` };
+    }
+  });
 };
 
 // Map legacy booking status strings ("closed-won", "in-option", ...) onto
@@ -679,6 +746,7 @@ const BookingCalendarTemplate = ({
               'reach'
             ) as 'fillRateBar' | 'availableTimeBar' | 'bookedCampaigns' | 'revenue' | 'stores' | 'reach',
             onCellClick: handleCellClick,
+            onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
           };
 
           const tabs = [
@@ -744,64 +812,27 @@ const BookingCalendarTemplate = ({
           <RightDrawerBody>
             <div className="space-y-6">
               {(() => {
-                // Fixed 3-card summary for the clicked cell: fill rate,
-                // impressions and availability. No edit affordance — these
-                // three are the canonical drawer summary.
-                const v = (selectedCell?.value && typeof selectedCell.value === 'object')
-                  ? selectedCell.value as FillRateValue
-                  : null;
-                const used = v
-                  ? ((v.booked ?? 0) + (v.confirmed ?? 0) + (v.reserved ?? 0) +
-                     (v.soldManaged ?? 0) + (v.action ?? 0) + (v.programmatic ?? 0))
-                  : 0;
-                const available = v?.available ?? Math.max(0, 100 - used);
-                const overbooked = (v?.overbooked ?? 0) + (v?.overreserved ?? 0);
-                // Synthetic impressions count derived from fill rate so the
-                // card has a value to display. Real number when prop wired up.
-                const targetImpressions = 12500;
-                const usedImpressions = Math.round(targetImpressions * Math.min(used, 100) / 100);
-                const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
-                const summaryMetrics: MetricDefinition[] = [
-                  {
-                    key: 'fillRate',
-                    label: 'Fill rate',
-                    value: `${Math.round(used)}%`,
-                    badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
-                    badgeVariant: overbooked > 0 ? 'destructive' : undefined,
-                    // Same stacked bar the user clicked in the calendar cell.
-                    chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
-                  },
-                  {
-                    key: 'impressions',
-                    label: 'Impressions',
-                    value: fmtK(usedImpressions),
-                    subMetric: `of ${fmtK(targetImpressions)} target`,
-                  },
-                  {
-                    key: 'availability',
-                    label: 'Availability',
-                    value: `${Math.round(available)}%`,
-                    subMetric: 'remaining capacity',
-                  },
-                ];
+                // One card per metric this calendar exposes (derived from its
+                // view tabs). The drawer no longer has its own tab bar — every
+                // metric is shown at once and scrolls horizontally if needed.
+                const drawerMetrics = buildDrawerMetrics(
+                  viewTabs,
+                  selectedCell?.value,
+                  getBookingsForWeek().length,
+                );
                 return (
                   <MetricRow
-                    metrics={summaryMetrics}
-                    selectedKeys={summaryMetrics.map(m => m.key)}
-                    maxVisible={3}
+                    metrics={drawerMetrics}
+                    selectedKeys={drawerMetrics.map(m => m.key)}
+                    maxVisible={drawerMetrics.length}
                     defaultVariant="default"
                     removable={false}
                     hideEditButton
+                    scrollable
                   />
                 );
               })()}
-              <Viewbar
-                tabs={viewTabs}
-                activeTab={activeView}
-                onTabChange={setActiveView}
-                labels={[]}
-              />
-              
+
               <FilterBar
                 filters={[
                   {
@@ -2288,6 +2319,7 @@ const OfflineInstoreCalendarTemplate = ({
               'reach'
             ) as 'fillRateBar' | 'bookedCampaigns' | 'stores' | 'reach',
             onCellClick: handleCellClick,
+            onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
             hideGreyCells: activeView === 'stores' || activeView === 'reach',
             hasRetailProductFilter: retailProduct.length > 0,
           };
@@ -2355,64 +2387,27 @@ const OfflineInstoreCalendarTemplate = ({
           <RightDrawerBody>
             <div className="space-y-6">
               {(() => {
-                // Fixed 3-card summary for the clicked cell: fill rate,
-                // impressions and availability. No edit affordance — these
-                // three are the canonical drawer summary.
-                const v = (selectedCell?.value && typeof selectedCell.value === 'object')
-                  ? selectedCell.value as FillRateValue
-                  : null;
-                const used = v
-                  ? ((v.booked ?? 0) + (v.confirmed ?? 0) + (v.reserved ?? 0) +
-                     (v.soldManaged ?? 0) + (v.action ?? 0) + (v.programmatic ?? 0))
-                  : 0;
-                const available = v?.available ?? Math.max(0, 100 - used);
-                const overbooked = (v?.overbooked ?? 0) + (v?.overreserved ?? 0);
-                // Synthetic impressions count derived from fill rate so the
-                // card has a value to display. Real number when prop wired up.
-                const targetImpressions = 12500;
-                const usedImpressions = Math.round(targetImpressions * Math.min(used, 100) / 100);
-                const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
-                const summaryMetrics: MetricDefinition[] = [
-                  {
-                    key: 'fillRate',
-                    label: 'Fill rate',
-                    value: `${Math.round(used)}%`,
-                    badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
-                    badgeVariant: overbooked > 0 ? 'destructive' : undefined,
-                    // Same stacked bar the user clicked in the calendar cell.
-                    chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
-                  },
-                  {
-                    key: 'impressions',
-                    label: 'Impressions',
-                    value: fmtK(usedImpressions),
-                    subMetric: `of ${fmtK(targetImpressions)} target`,
-                  },
-                  {
-                    key: 'availability',
-                    label: 'Availability',
-                    value: `${Math.round(available)}%`,
-                    subMetric: 'remaining capacity',
-                  },
-                ];
+                // One card per metric this calendar exposes (derived from its
+                // view tabs). The drawer no longer has its own tab bar — every
+                // metric is shown at once and scrolls horizontally if needed.
+                const drawerMetrics = buildDrawerMetrics(
+                  viewTabs,
+                  selectedCell?.value,
+                  getBookingsForWeek().length,
+                );
                 return (
                   <MetricRow
-                    metrics={summaryMetrics}
-                    selectedKeys={summaryMetrics.map(m => m.key)}
-                    maxVisible={3}
+                    metrics={drawerMetrics}
+                    selectedKeys={drawerMetrics.map(m => m.key)}
+                    maxVisible={drawerMetrics.length}
                     defaultVariant="default"
                     removable={false}
                     hideEditButton
+                    scrollable
                   />
                 );
               })()}
-              <Viewbar
-                tabs={viewTabs}
-                activeTab={activeView}
-                onTabChange={setActiveView}
-                labels={[]}
-              />
-              
+
               <FilterBar
                 filters={[
                   {

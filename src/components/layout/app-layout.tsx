@@ -69,20 +69,20 @@ export function AppLayout({
   const [conversionWindow, setConversionWindow] = useState<number>(14);
 
   return (
-    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-app-bg-hex)' }}> 
+    <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-nav-bg, var(--brand-app-bg-hex))' }}>
       {/* Side Navigation */}
       <div className="h-screen">
       <SideNavigation
         routes={routes}
         logo={logo}
         className="h-full"
-        style={{ background: 'var(--brand-app-bg-hex)' }}
+        style={{ background: 'var(--brand-nav-bg, var(--brand-app-bg-hex))' }}
       />
       </div>
       {/* Main Area */}
       <div className="flex flex-col min-w-0 h-screen overflow-x-hidden">
         {/* Breadcrumb & Header Actions */}
-        <div style={{ background: 'var(--brand-app-bg-hex)' }}>
+        <div style={{ background: 'var(--brand-nav-bg, var(--brand-app-bg-hex))' }}>
           <div className="flex items-center justify-between">
             <SmartBreadcrumbs
               namespace="gambit"

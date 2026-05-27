@@ -35,6 +35,10 @@ export interface MetricDefinition {
   productData?: MetricCardProps["productData"]
   /** Data for barVertical variant */
   dateData?: MetricCardProps["dateData"]
+  /** Data for budgetStacked variant */
+  budgetData?: MetricCardProps["budgetData"]
+  /** Aggregate row shown bold at the top of barHorizontal / donutLegend */
+  totalRow?: MetricCardProps["totalRow"]
   /** Optional value formatter shared by chart variants */
   valueFormatter?: MetricCardProps["valueFormatter"]
   /** Bespoke chart node rendered in the card body (e.g. a FillRateBar). */
@@ -209,6 +213,8 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             donutColors={metric.donutColors}
             productData={metric.productData}
             dateData={metric.dateData}
+            budgetData={metric.budgetData}
+            totalRow={metric.totalRow}
             valueFormatter={metric.valueFormatter}
             chart={metric.chart}
             className={scrollable ? "min-w-[220px] shrink-0 h-auto" : undefined}
@@ -255,6 +261,8 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
                     donutColors={metric.donutColors}
                     productData={metric.productData}
                     dateData={metric.dateData}
+                    budgetData={metric.budgetData}
+                    totalRow={metric.totalRow}
                     valueFormatter={metric.valueFormatter}
                     className={cn(
                       "cursor-pointer transition-shadow",

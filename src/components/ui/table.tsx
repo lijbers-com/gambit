@@ -623,7 +623,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   return (
     <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-border rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-neutral-700 table-auto">
-        <thead className="bg-neutral-50">
+        <thead className="bg-[var(--brand-page-bg-hex)]">
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
@@ -633,7 +633,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 <th
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-left font-normal text-neutral-500 tracking-wide whitespace-nowrap bg-neutral-50',
+                    'px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]',
                     !isLastFixed && isBeingResized && 'border-r border-neutral-400',
                     isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-neutral-400',
                     isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),

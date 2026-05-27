@@ -1,10 +1,11 @@
 import * as React from "react"
-import { LineChart, Line, PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts'
+import { LineChart, Line, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
 import { formatYAxisTick } from "./chart-types"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -230,7 +231,7 @@ export interface MetricCardProps {
   onClick?: () => void;
   onRemove?: () => void;
   className?: string;
-  variant?: "default" | "graph" | "donut" | "donutLegend" | "barHorizontal" | "barVertical";
+  variant?: "default" | "graph" | "donut" | "donutLegend" | "barHorizontal" | "barVertical" | "budgetStacked";
   graphData?: Array<{ value: number }>;
   graphColor?: string;
   progress?: number;
@@ -240,6 +241,10 @@ export interface MetricCardProps {
   productData?: Array<{ name: string; value: number; color?: string }>;
   /** For barVertical variant — time-series with a value per period */
   dateData?: Array<{ date: string; value: number; color?: string }>;
+  /** For budgetStacked variant — per-proposition spent vs total budget */
+  budgetData?: Array<{ name: string; spent: number; budget: number; color?: string }>;
+  /** For barHorizontal / donutLegend — an aggregate row shown bold at the top */
+  totalRow?: { label: string; value: number };
   /** Optional formatter for chart values (e.g. currency). Defaults to toLocaleString. */
   valueFormatter?: (value: number) => string;
   /** Arbitrary content rendered in the card body below the value — use to
@@ -267,6 +272,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     donutColors,
     productData,
     dateData,
+    budgetData,
+    totalRow,
     valueFormatter,
     chart,
     ...props
@@ -296,7 +303,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {variant !== "donut" && variant !== "donutLegend" && variant !== "barHorizontal" && variant !== "barVertical" && (
+        {variant !== "donut" && variant !== "donutLegend" && variant !== "barHorizontal" && variant !== "barVertical" && variant !== "budgetStacked" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
               {value}
@@ -352,7 +359,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                     />
                   ))}
                 </Pie>
-                <Tooltip
+                <RechartsTooltip
                   cursor={false}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
@@ -414,6 +421,14 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 </ResponsiveContainer>
               </div>
               <ul className="flex-1 min-w-0 space-y-1 text-xs">
+                {totalRow && (
+                  <li className="flex items-center gap-1.5 min-w-0 pb-0.5">
+                    <span className="font-semibold text-foreground truncate">{totalRow.label}</span>
+                    <span className="ml-auto font-semibold tabular-nums whitespace-nowrap text-foreground">
+                      {fmt(totalRow.value)}
+                    </span>
+                  </li>
+                )}
                 {donutData.map((item, i) => {
                   const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
                   return (
@@ -437,28 +452,100 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         })()}
         {variant === "barHorizontal" && productData && (() => {
           const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-          const max = Math.max(...productData.map(d => d.value), 0) || 1;
+          const max = Math.max(...productData.map(d => d.value), totalRow?.value ?? 0, 0) || 1;
+          const rows = [
+            ...(totalRow ? [{ name: totalRow.label, value: totalRow.value, color: "hsl(var(--foreground))", isTotal: true }] : []),
+            ...productData.slice(0, 5).map((item, i) => ({
+              name: item.name,
+              value: item.value,
+              color: item.color ?? `hsl(var(--chart-${(i % 5) + 1}))`,
+              isTotal: false,
+            })),
+          ];
           return (
-            <ul className="space-y-1.5 text-xs">
-              {productData.slice(0, 5).map((item, i) => {
+            <ul className="space-y-2.5 text-xs">
+              {rows.map((item) => {
                 const pct = (item.value / max) * 100;
-                const color = item.color ?? `hsl(var(--chart-${(i % 5) + 1}))`;
                 return (
-                  <li key={item.name} className="space-y-0.5">
+                  <li key={item.name} className={cn("space-y-1", item.isTotal && "pb-1")}>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-muted-foreground truncate">{item.name}</span>
+                      <span className={cn("truncate", item.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>{item.name}</span>
                       <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, backgroundColor: color }}
+                        style={{ width: `${pct}%`, backgroundColor: item.color }}
                       />
                     </div>
                   </li>
                 );
               })}
             </ul>
+          );
+        })()}
+        {variant === "budgetStacked" && budgetData && (() => {
+          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+          const spentColor = "hsl(var(--chart-800))";
+          const remainingColor = "hsl(var(--chart-300))";
+          const totalSpent = budgetData.reduce((sum, d) => sum + d.spent, 0);
+          const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+          const rows = [
+            { name: "Media plan", spent: totalSpent, budget: totalBudget, isTotal: true },
+            ...budgetData.map((d) => ({ name: d.name, spent: d.spent, budget: d.budget, isTotal: false })),
+          ];
+          return (
+            <TooltipProvider>
+              <ul className="space-y-2.5 text-xs">
+                {rows.map((row) => {
+                  const pct = row.budget > 0 ? Math.round((row.spent / row.budget) * 100) : 0;
+                  const spentPct = row.budget > 0 ? (row.spent / row.budget) * 100 : 0;
+                  const remaining = Math.max(row.budget - row.spent, 0);
+                  return (
+                    <li key={row.name} className={cn("space-y-1", row.isTotal && "pb-1")}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={cn("truncate", row.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                          {row.name}
+                        </span>
+                        <span className="tabular-nums whitespace-nowrap text-muted-foreground">
+                          <span className="font-medium text-foreground">{pct}%</span> spent
+                        </span>
+                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer w-full">
+                            <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
+                              <div style={{ width: `${spentPct}%`, backgroundColor: spentColor }} />
+                              <div className="flex-1" style={{ backgroundColor: remainingColor }} />
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-background text-foreground border border-border p-3 shadow-lg">
+                          <div className="space-y-1.5 text-xs">
+                            <div className="font-semibold text-foreground">{row.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border bg-background" />
+                              <span className="text-muted-foreground flex-1">Total budget</span>
+                              <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: spentColor }} />
+                              <span className="text-muted-foreground flex-1">Spend</span>
+                              <span className="font-medium tabular-nums text-foreground">{fmt(row.spent)} ({pct}%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
+                              <span className="text-muted-foreground flex-1">Remaining</span>
+                              <span className="font-medium tabular-nums text-foreground">{fmt(remaining)} ({100 - pct}%)</span>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </li>
+                  );
+                })}
+              </ul>
+            </TooltipProvider>
           );
         })()}
         {variant === "barVertical" && dateData && (() => {
@@ -493,7 +580,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                       <Cell key={i} fill={d.color ?? "hsl(var(--chart-1))"} />
                     ))}
                   </Bar>
-                  <Tooltip
+                  <RechartsTooltip
                     cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;

@@ -24,6 +24,10 @@ export interface CampaignEngine {
   campaignName?: string;
   status?: 'new' | 'draft' | 'ready' | 'in-option' | 'running' | 'paused';
   enabled: boolean;
+  /** Per-proposition budget. Seeds the budget inputs and the metric cards. */
+  budget?: number;
+  /** Per-proposition spend to date. Drives the spent-vs-remaining bars. */
+  spend?: number;
 }
 
 export interface CampaignFeature {
@@ -148,7 +152,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
     const [isCollapsed, setIsCollapsed] = React.useState(!defaultExpanded);
-    const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>({});
+    const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>(() => {
+      const seed: { [key: string]: string } = {};
+      engines.forEach(e => {
+        if (typeof e.budget === 'number') seed[e.id] = `$${e.budget}`;
+      });
+      return seed;
+    });
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
     const [autoTargeting, setAutoTargeting] = React.useState(false);
     const [autoSuggestions, setAutoSuggestions] = React.useState(true);
@@ -174,8 +184,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
     const [settingsDirty, setSettingsDirty] = React.useState(false);
     const [selectedMetricKeys, setSelectedMetricKeys] = React.useState<string[]>([
-      'budget-per-proposition',
-      'spend-per-proposition',
+      'budget-vs-spend',
       'impressions',
       'roas',
     ]);
@@ -406,8 +415,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       }
     }, [engineBudgets]);
 
-    // Distribute budget based on Auto Budget Optimization setting
+    // Distribute budget based on Auto Budget Optimization setting.
+    // Skip the initial mount so seeded per-engine budgets aren't clobbered;
+    // only redistribute when the user actually toggles the setting.
+    const didMountBudgetRef = React.useRef(false);
     React.useEffect(() => {
+      if (!didMountBudgetRef.current) {
+        didMountBudgetRef.current = true;
+        return;
+      }
       if (autoBudgetOptimization) {
         // Calculate total budget
         const total = currentEngines.reduce((sum, engine) => {
@@ -691,7 +707,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         </CardHeader>
 
         {(layout === 'vertical' || !isCollapsed) && (
-          <CardContent className={layout === 'vertical' ? 'space-y-6' : 'p-6'}>
+          <CardContent className={layout === 'vertical' ? 'space-y-6' : 'p-6 pt-0'}>
             {layout === 'vertical' ? (
             // Vertical Layout (updated to match horizontal)
             <div className="space-y-6">
@@ -930,77 +946,83 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             <div className="space-y-6">
               {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
               {!isGuidedSettingsPhase && (() => {
+                // Only propositions actually used in the media plan (enabled engines).
                 const enabledEngines = currentEngines.filter(e => e.enabled);
                 const budgetByEngine = enabledEngines.map(engine => ({
                   name: engine.name,
                   value: parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0,
                 }));
-                // Per-engine spend isn't in the data model — distribute the campaign-level
-                // totalPrice proportionally to each engine's share of the total budget.
-                const totalSpendNum = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
                 const totalEngineBudget = budgetByEngine.reduce((sum, e) => sum + e.value, 0) || 1;
-                const spendByEngine = budgetByEngine.map(e => ({
-                  name: e.name,
-                  value: Math.round((e.value / totalEngineBudget) * totalSpendNum),
+                // Use real per-engine spend when the data carries it; otherwise fall back to
+                // distributing the campaign-level totalPrice proportionally to each engine's budget.
+                const campaignSpendNum = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                const spendByEngine = enabledEngines.map((engine, i) => ({
+                  name: engine.name,
+                  value: typeof engine.spend === 'number'
+                    ? engine.spend
+                    : Math.round((budgetByEngine[i].value / totalEngineBudget) * campaignSpendNum),
                 }));
-                const remainingByEngine = budgetByEngine.map((e, i) => ({
-                  name: e.name,
-                  value: Math.max(e.value - spendByEngine[i].value, 0),
-                }));
-                const remainingNum = Math.max(budgetNumForMetrics - totalSpendNum, 0);
+                // Total spend follows the per-engine breakdown so the card value matches the bars.
+                const totalSpendNum = spendByEngine.reduce((sum, e) => sum + e.value, 0);
                 // Synthetic conversions: 4% of budget as a stand-in for a real conversion
                 // count until the data model carries one through.
                 const conversionsNum = budgetNumForMetrics * 0.04;
-                const sparkline = (peak: number) => [0.6, 0.7, 0.65, 0.78, 0.82, 0.92, 1].map(r => ({ value: peak * r }));
+
+                // Combined budget chart: spent vs total budget per proposition.
+                const budgetVsSpendData = enabledEngines.map((engine, i) => ({
+                  name: engine.name,
+                  spent: spendByEngine[i].value,
+                  budget: budgetByEngine[i].value,
+                }));
+                // Per-proposition breakdowns for the donut/comparison cards.
+                const impressionsByEngine = budgetByEngine.map(e => ({
+                  name: e.name,
+                  value: Math.round(e.value * reachMult),
+                }));
+                const conversionsByEngine = budgetByEngine.map(e => ({
+                  name: e.name,
+                  value: Math.round((e.value / totalEngineBudget) * conversionsNum),
+                }));
+                const roasByEngine = enabledEngines.map(engine => ({
+                  name: engine.name,
+                  value: parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0,
+                }));
 
                 const metricsForRow: MetricDefinition[] = [
                   {
-                    key: 'budget-per-proposition',
-                    label: 'Budget per proposition',
-                    value: hasBudget ? fmtCurrency(budgetNumForMetrics) : '—',
-                    variant: 'barHorizontal',
-                    productData: budgetByEngine,
-                    valueFormatter: (v) => fmtCurrency(v),
-                  },
-                  {
-                    key: 'spend-per-proposition',
-                    label: 'Spend per proposition',
+                    key: 'budget-vs-spend',
+                    label: 'Budget: spent vs remaining',
                     value: hasBudget ? fmtCurrency(totalSpendNum) : '—',
-                    variant: 'barHorizontal',
-                    productData: spendByEngine,
-                    valueFormatter: (v) => fmtCurrency(v),
-                  },
-                  {
-                    key: 'remaining-per-proposition',
-                    label: 'Remaining budget per proposition',
-                    value: hasBudget ? fmtCurrency(remainingNum) : '—',
-                    variant: 'barHorizontal',
-                    productData: remainingByEngine,
+                    variant: 'budgetStacked',
+                    budgetData: budgetVsSpendData,
                     valueFormatter: (v) => fmtCurrency(v),
                   },
                   {
                     key: 'impressions',
-                    label: 'Impressions',
+                    label: 'Impressions per proposition',
                     value: estReach,
-                    subMetric: estReachCurrent,
-                    variant: 'graph',
-                    graphData: sparkline(budgetNumForMetrics * reachMult),
+                    variant: 'donutLegend',
+                    donutData: impressionsByEngine,
+                    totalRow: { label: 'Media plan', value: impressionsByEngine.reduce((s, e) => s + e.value, 0) },
+                    valueFormatter: (v) => fmtNumber(v),
                   },
                   {
                     key: 'conversions',
-                    label: 'Conversions',
+                    label: 'Conversions per proposition',
                     value: hasBudget ? fmtNumber(conversionsNum) : '—',
-                    subMetric: hasProgress ? `Current: ${fmtNumber(conversionsNum * 0.64)}` : undefined,
-                    variant: 'graph',
-                    graphData: sparkline(conversionsNum),
+                    variant: 'donutLegend',
+                    donutData: conversionsByEngine,
+                    totalRow: { label: 'Media plan', value: conversionsByEngine.reduce((s, e) => s + e.value, 0) },
+                    valueFormatter: (v) => fmtNumber(v),
                   },
                   {
                     key: 'roas',
-                    label: 'ROAS',
+                    label: 'ROAS per proposition',
                     value: estRoas,
-                    subMetric: estRoasCurrent,
-                    variant: 'graph',
-                    graphData: sparkline(estRoasNum),
+                    variant: 'barHorizontal',
+                    productData: roasByEngine,
+                    totalRow: { label: 'Media plan', value: estRoasNum },
+                    valueFormatter: (v) => `${v.toFixed(1)}x`,
                   },
                 ];
 
@@ -1009,7 +1031,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     metrics={metricsForRow}
                     selectedKeys={selectedMetricKeys}
                     onSelectionChange={setSelectedMetricKeys}
-                    maxVisible={4}
+                    maxVisible={3}
                     defaultVariant="graph"
                   />
                 );

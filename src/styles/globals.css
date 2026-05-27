@@ -91,6 +91,8 @@ body[data-theme="retailMedia"] {
   --brand-app-bg: #fff9eb;
   --brand-app-bg-hex: #ffffff;
   --brand-page-bg-hex: #fff9eb;
+  /* Navigation chrome (side menu + breadcrumb header) — match the beige page background */
+  --brand-nav-bg: var(--brand-page-bg-hex);
   --brand-app-text: #403e3c;
   --brand-app-hover: #e8e4dd;
   --logo-url: url('/edge-icon.svg');
@@ -525,6 +527,8 @@ body[data-theme="alfaBeta"] {
     --brand-app-bg:  #fff9eb;
     --brand-app-bg-hex: #ffffff;
     --brand-page-bg-hex: #fff9eb;
+    /* Navigation chrome (side menu + breadcrumb header) — match the beige page background */
+    --brand-nav-bg: var(--brand-page-bg-hex);
     --brand-app-text: #4d4b48;
     --brand-app-hover: #f5f2ec;
     --logo-url: url('/edge-icon.svg');
@@ -558,7 +562,7 @@ body[data-theme="alfaBeta"] {
 
 /* Use brand tokens for navigation components */
 .side-navigation {
-  background: var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff)) !important;
+  background: var(--brand-nav-bg, var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff))) !important;
   padding-top: 16px !important;
 }
 
@@ -580,7 +584,7 @@ body[data-theme="alfaBeta"] {
 }
 
 .breadcrumb {
-  background: var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff)) !important;
+  background: var(--brand-nav-bg, var(--brand-app-bg-hex, var(--brand-app-bg, #ffffff))) !important;
   color: var(--brand-app-text) !important;
 }
 

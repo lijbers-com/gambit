@@ -447,18 +447,18 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     <div className={cn('overflow-x-auto bg-white border border-border rounded-xl', className)}>
       {/* Main Table */}
       <table className="w-full text-sm text-neutral-700" style={{ minWidth: `${240 + (weeks * parseInt(weekColumnWidth))}px`, tableLayout: 'fixed' }}>
-        <thead className="bg-neutral-50">
+        <thead className="bg-[var(--brand-page-bg-hex)]">
           <tr>
-            <th 
-              className="px-4 py-[11px] text-left font-medium text-neutral-600 tracking-wide whitespace-nowrap"
+            <th
+              className="h-14 px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
               Zones
             </th>
             {weekNumbers.map(week => (
-              <th 
-                key={week} 
-                className="px-4 py-[11px] text-center font-medium text-neutral-600 tracking-wide whitespace-nowrap"
+              <th
+                key={week}
+                className="h-14 px-4 py-3 text-center font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]"
                 style={{ width: weekColumnWidth, minWidth: weekColumnWidth }}
               >
                 Week {week}

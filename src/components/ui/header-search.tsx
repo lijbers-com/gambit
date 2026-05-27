@@ -304,7 +304,7 @@ export const HeaderSearch = React.forwardRef<HTMLDivElement, HeaderSearchProps>(
                 focused ? 'w-72' : 'w-44'
               )}
             >
-              <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+              <Search className="header-search-icon absolute left-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
               <input
                 ref={inputRef}
                 type="text"
@@ -315,7 +315,7 @@ export const HeaderSearch = React.forwardRef<HTMLDivElement, HeaderSearchProps>(
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={cn(
-                  'h-9 w-full rounded-md border border-input bg-background pl-8 pr-3 text-sm',
+                  'header-search-input h-9 w-full rounded-md border border-input bg-transparent pl-8 pr-3 text-sm',
                   'placeholder:text-muted-foreground',
                   'focus:outline-none focus:ring-1 focus:ring-ring',
                   'transition-all duration-200'

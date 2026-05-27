@@ -1075,7 +1075,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         <div
                           key={engine.id}
                           className={cn(
-                            "rounded-lg border transition-all cursor-pointer hover:border-primary/50",
+                            "rounded-lg border transition-colors cursor-pointer hover:bg-accent",
                             engine.enabled ? 'border-border' : 'border-border/50'
                           )}
                           onClick={() => {

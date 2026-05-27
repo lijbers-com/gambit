@@ -75,7 +75,7 @@ export const HeaderActions = React.forwardRef<
         variant="ghost"
         size="icon"
         onClick={handleNotificationsClick}
-        className="h-9 w-9 relative"
+        className="h-9 w-9 relative border border-input"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -88,7 +88,7 @@ export const HeaderActions = React.forwardRef<
         variant="ghost"
         size="icon"
         onClick={handleOrganisationClick}
-        className="h-9 w-9"
+        className="h-9 w-9 border border-input"
         aria-label="My Organisation"
       >
         <Building2 className="h-5 w-5" />
@@ -98,7 +98,7 @@ export const HeaderActions = React.forwardRef<
         variant="ghost"
         size="icon"
         onClick={handleProfileClick}
-        className="h-9 w-9"
+        className="h-9 w-9 border border-input"
         aria-label="Profile"
       >
         <User className="h-5 w-5" />

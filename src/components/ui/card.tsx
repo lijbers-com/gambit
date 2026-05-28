@@ -282,7 +282,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       ref={ref}
       padding="compact"
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md relative group flex flex-col h-full",
+        "cursor-pointer transition-all duration-200 hover:shadow-md relative group flex flex-col",
         isSelected && "shadow-md",
         className
       )}
@@ -453,14 +453,21 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         {variant === "barHorizontal" && productData && (() => {
           const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
           const max = Math.max(...productData.map(d => d.value), totalRow?.value ?? 0, 0) || 1;
-          const rows = [
-            ...(totalRow ? [{ name: totalRow.label, value: totalRow.value, color: "hsl(var(--foreground))", isTotal: true }] : []),
-            ...productData.slice(0, 5).map((item, i) => ({
-              name: item.name,
-              value: item.value,
-              color: item.color ?? `hsl(var(--chart-${(i % 5) + 1}))`,
-              isTotal: false,
-            })),
+          const colorFor = (i: number, c?: string) => c ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+          const propSegments = productData.slice(0, 5).map((item, i) => ({
+            name: item.name,
+            value: item.value,
+            color: colorFor(i, item.color),
+          }));
+          const propSum = propSegments.reduce((s, p) => s + p.value, 0);
+          type Row =
+            | { name: string; value: number; color: string; isTotal: false }
+            | { name: string; value: number; isTotal: true; segments: typeof propSegments };
+          const rows: Row[] = [
+            ...(totalRow
+              ? [{ name: totalRow.label, value: totalRow.value, isTotal: true as const, segments: propSegments }]
+              : []),
+            ...propSegments.map(p => ({ name: p.name, value: p.value, color: p.color, isTotal: false as const })),
           ];
           return (
             <ul className="space-y-2.5 text-xs">
@@ -473,10 +480,24 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                       <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, backgroundColor: item.color }}
-                      />
+                      {item.isTotal ? (
+                        <div className="flex h-full transition-all duration-500" style={{ width: `${pct}%` }}>
+                          {item.segments.map(seg => (
+                            <div
+                              key={seg.name}
+                              style={{
+                                width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
+                                backgroundColor: seg.color,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, backgroundColor: item.color }}
+                        />
+                      )}
                     </div>
                   </li>
                 );
@@ -486,21 +507,34 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         })()}
         {variant === "budgetStacked" && budgetData && (() => {
           const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-          const spentColor = "hsl(var(--chart-800))";
-          const remainingColor = "hsl(var(--chart-300))";
+          const remainingColor = "rgb(var(--neutral-200))";
+          const colorFor = (i: number, color?: string) => color ?? `hsl(var(--chart-${(i % 5) + 1}))`;
           const totalSpent = budgetData.reduce((sum, d) => sum + d.spent, 0);
           const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
-          const rows = [
-            { name: "Media plan", spent: totalSpent, budget: totalBudget, isTotal: true },
-            ...budgetData.map((d) => ({ name: d.name, spent: d.spent, budget: d.budget, isTotal: false })),
+          type Segment = { name: string; value: number; color: string };
+          // Media plan total: one segment per proposition (each in its own colour).
+          // Per-proposition rows: one segment (that proposition's spend in its colour).
+          const totalSegments: Segment[] = budgetData.map((d, i) => ({
+            name: d.name,
+            value: d.spent,
+            color: colorFor(i, d.color),
+          }));
+          const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
+            { name: "Media plan", budget: totalBudget, segments: totalSegments, isTotal: true },
+            ...budgetData.map((d, i) => ({
+              name: d.name,
+              budget: d.budget,
+              segments: [{ name: d.name, value: d.spent, color: colorFor(i, d.color) }],
+              isTotal: false,
+            })),
           ];
           return (
             <TooltipProvider>
               <ul className="space-y-2.5 text-xs">
                 {rows.map((row) => {
-                  const pct = row.budget > 0 ? Math.round((row.spent / row.budget) * 100) : 0;
-                  const spentPct = row.budget > 0 ? (row.spent / row.budget) * 100 : 0;
-                  const remaining = Math.max(row.budget - row.spent, 0);
+                  const rowSpent = row.segments.reduce((s, seg) => s + seg.value, 0);
+                  const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
+                  const remaining = Math.max(row.budget - rowSpent, 0);
                   return (
                     <li key={row.name} className={cn("space-y-1", row.isTotal && "pb-1")}>
                       <div className="flex items-center justify-between gap-2">
@@ -515,7 +549,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                         <TooltipTrigger asChild>
                           <div className="cursor-pointer w-full">
                             <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
-                              <div style={{ width: `${spentPct}%`, backgroundColor: spentColor }} />
+                              {row.segments.map((seg) => (
+                                <div
+                                  key={seg.name}
+                                  style={{
+                                    width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
+                                    backgroundColor: seg.color,
+                                  }}
+                                />
+                              ))}
                               <div className="flex-1" style={{ backgroundColor: remainingColor }} />
                             </div>
                           </div>
@@ -528,11 +570,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                               <span className="text-muted-foreground flex-1">Total budget</span>
                               <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: spentColor }} />
-                              <span className="text-muted-foreground flex-1">Spend</span>
-                              <span className="font-medium tabular-nums text-foreground">{fmt(row.spent)} ({pct}%)</span>
-                            </div>
+                            {row.segments.map((seg) => (
+                              <div key={seg.name} className="flex items-center gap-2">
+                                <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
+                                <span className="text-muted-foreground flex-1">{row.isTotal ? seg.name : "Spend"}</span>
+                                <span className="font-medium tabular-nums text-foreground">
+                                  {fmt(seg.value)}{row.budget > 0 ? ` (${Math.round((seg.value / row.budget) * 100)}%)` : ''}
+                                </span>
+                              </div>
+                            ))}
                             <div className="flex items-center gap-2">
                               <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
                               <span className="text-muted-foreground flex-1">Remaining</span>

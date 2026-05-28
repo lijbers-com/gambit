@@ -98,7 +98,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
-      controlledSelectedKeys ?? metrics.slice(0, 3).map(m => m.key)
+      controlledSelectedKeys ?? metrics.slice(0, maxVisible).map(m => m.key)
     )
     const [internalActiveKey, setInternalActiveKey] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -117,15 +117,10 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       updateSelection(selectedKeys.filter(k => k !== key))
     }
 
-    /**
-     * Toggle a metric in the picker. If selecting and already at max,
-     * drops the oldest selected to make room.
-     */
+    /** Toggle a metric in the picker. No cap — users can select all. */
     const toggleMetric = (key: string) => {
       if (selectedKeys.includes(key)) {
         updateSelection(selectedKeys.filter(k => k !== key))
-      } else if (selectedKeys.length >= maxVisible) {
-        updateSelection([...selectedKeys.slice(1), key])
       } else {
         updateSelection([...selectedKeys, key])
       }
@@ -136,9 +131,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       .filter(Boolean) as MetricDefinition[]
 
     const hasDialogContent = metrics.length > 0 || (dialogMetrics?.length ?? 0) > 0
-    const showAddButton = hasDialogContent && !hideEditButton && selectedMetrics.length < maxVisible
-
-    const colCount = Math.min(selectedMetrics.length + (showAddButton ? 1 : 0), maxVisible + 1)
+    const showAddButton = hasDialogContent && !hideEditButton && selectedMetrics.length < metrics.length
 
     const handleCardClick = (key: string) => {
       const newKey = activeKey === key ? null : key
@@ -185,19 +178,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           </Button>
         </div>
       )}
-      <div
-        className={cn(
-          scrollable
-            ? "flex gap-4 overflow-x-auto pb-1"
-            : cn(
-                `grid grid-cols-1 gap-4`,
-                colCount === 2 && "md:grid-cols-2",
-                colCount === 3 && "md:grid-cols-3",
-                colCount === 4 && "md:grid-cols-4",
-                colCount >= 5 && "md:grid-cols-5",
-              ),
-        )}
-      >
+      <div className="flex items-stretch gap-4 overflow-x-auto pb-1">
         {selectedMetrics.map((metric) => (
           <MetricCard
             key={metric.key}
@@ -217,21 +198,12 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             totalRow={metric.totalRow}
             valueFormatter={metric.valueFormatter}
             chart={metric.chart}
-            className={scrollable ? "min-w-[220px] shrink-0 h-auto" : undefined}
+            className="flex-1 min-w-[240px]"
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
             onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}
           />
         ))}
-        {showAddButton && (
-          <button
-            type="button"
-            onClick={() => setDialogOpen(true)}
-            className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-neutral-50 transition-colors"
-          >
-            <Plus className="h-8 w-8 text-neutral-400" />
-          </button>
-        )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -239,7 +211,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           <DialogHeader>
             <DialogTitle>Edit metrics</DialogTitle>
             <DialogDescription>
-              Pick up to {maxVisible} metrics to show in the row. Selecting another while {maxVisible} are active drops the oldest.
+              Pick the metrics to show in the row. The row scrolls horizontally if there are more than fit.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[500px] overflow-y-auto p-4">

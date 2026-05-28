@@ -946,6 +946,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             <div className="space-y-6">
               {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
               {!isGuidedSettingsPhase && (() => {
+                // Single source of truth for the per-proposition palette — keeps
+                // the budget segments, ROAS bars, and donut legends in sync.
+                const propositionColorById: Record<string, string> = {
+                  display: 'hsl(var(--chart-1))',
+                  sponsored: 'hsl(var(--chart-2))',
+                  digital: 'hsl(var(--chart-3))',
+                  offline: 'hsl(var(--chart-4))',
+                  offsite: 'hsl(var(--chart-5))',
+                };
+                const propColor = (id: string) => propositionColorById[id] ?? 'hsl(var(--chart-1))';
                 // Only propositions actually used in the media plan (enabled engines).
                 const enabledEngines = currentEngines.filter(e => e.enabled);
                 const budgetByEngine = enabledEngines.map(engine => ({
@@ -973,6 +983,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   name: engine.name,
                   spent: spendByEngine[i].value,
                   budget: budgetByEngine[i].value,
+                  color: propColor(engine.id),
                 }));
                 // Per-proposition breakdowns for the donut/comparison cards.
                 const impressionsByEngine = budgetByEngine.map(e => ({
@@ -986,7 +997,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const roasByEngine = enabledEngines.map(engine => ({
                   name: engine.name,
                   value: parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0,
+                  color: propColor(engine.id),
                 }));
+                // Parallel colour array for the donut legends so each proposition
+                // matches its colour in the budget and ROAS cards.
+                const propositionColors = enabledEngines.map(e => propColor(e.id));
 
                 const metricsForRow: MetricDefinition[] = [
                   {
@@ -1003,6 +1018,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     value: estReach,
                     variant: 'donutLegend',
                     donutData: impressionsByEngine,
+                    donutColors: propositionColors,
                     totalRow: { label: 'Media plan', value: impressionsByEngine.reduce((s, e) => s + e.value, 0) },
                     valueFormatter: (v) => fmtNumber(v),
                   },
@@ -1012,6 +1028,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     value: hasBudget ? fmtNumber(conversionsNum) : '—',
                     variant: 'donutLegend',
                     donutData: conversionsByEngine,
+                    donutColors: propositionColors,
                     totalRow: { label: 'Media plan', value: conversionsByEngine.reduce((s, e) => s + e.value, 0) },
                     valueFormatter: (v) => fmtNumber(v),
                   },

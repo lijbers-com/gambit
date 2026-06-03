@@ -11,6 +11,52 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Copy, UserCircle } from 'lucide-react';
 import * as React from 'react';
 
+/**
+ * Copy text to the clipboard with a graceful fallback.
+ *
+ * The prototype is embedded in a sandboxed iframe by the EpicContext widget,
+ * which blocks the async Clipboard API (`writeText` rejects with
+ * `NotAllowedError`). We try the modern API first, then fall back to the
+ * legacy textarea + `execCommand('copy')` path, and finally swallow any
+ * remaining error so a copy-button click never breaks the UI.
+ */
+const copyToClipboard = (text: string): void => {
+  if (typeof window === 'undefined') return;
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      ta.style.pointerEvents = 'none';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch {
+      /* swallow — copy is a nicety, not a hard requirement */
+    }
+  };
+  const clip = navigator.clipboard;
+  if (clip?.writeText) {
+    // writeText returns a Promise but can also THROW synchronously in some
+    // browsers when the page sits in a permission-denied context (e.g. the
+    // EpicContext widget's sandboxed iframe). Guard both paths.
+    try {
+      const result = clip.writeText(text);
+      // result may be undefined in older shims — only chain when it's thenable.
+      if (result && typeof (result as Promise<void>).catch === 'function') {
+        (result as Promise<void>).catch(fallback);
+      }
+      return;
+    } catch {
+      // fall through to legacy path
+    }
+  }
+  fallback();
+};
+
 const InfoRow = ({
   icon: Icon,
   title,
@@ -81,7 +127,7 @@ const TokenDetailContent = () => {
                     <div className="relative">
                       <Input defaultValue="ghp_1234567890abcdef" readOnly className="text-muted-foreground pr-10 font-mono text-xs" />
                       <button
-                        onClick={() => navigator.clipboard?.writeText('ghp_1234567890abcdef')}
+                        onClick={() => copyToClipboard('ghp_1234567890abcdef')}
                         className="absolute right-2 inset-y-0 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                         title="Copy token"
                       >

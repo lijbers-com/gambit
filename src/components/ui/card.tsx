@@ -432,7 +432,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 {donutData.map((item, i) => {
                   const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
                   return (
-                    <li key={item.name} className="flex items-center gap-1.5 min-w-0">
+                    <li key={`${item.name}-${i}`} className="flex items-center gap-1.5 min-w-0">
                       <span
                         aria-hidden
                         className="h-2 w-2 rounded-full shrink-0"
@@ -471,10 +471,10 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           ];
           return (
             <ul className="space-y-2.5 text-xs">
-              {rows.map((item) => {
+              {rows.map((item, idx) => {
                 const pct = (item.value / max) * 100;
                 return (
-                  <li key={item.name} className={cn("space-y-1", item.isTotal && "pb-1")}>
+                  <li key={`${item.name}-${idx}`} className={cn("space-y-1", item.isTotal && "pb-1")}>
                     <div className="flex items-center justify-between gap-2">
                       <span className={cn("truncate", item.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>{item.name}</span>
                       <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
@@ -482,9 +482,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       {item.isTotal ? (
                         <div className="flex h-full transition-all duration-500" style={{ width: `${pct}%` }}>
-                          {item.segments.map(seg => (
+                          {item.segments.map((seg, segIdx) => (
                             <div
-                              key={seg.name}
+                              key={`${seg.name}-${segIdx}`}
                               style={{
                                 width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
                                 backgroundColor: seg.color,
@@ -531,12 +531,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           return (
             <TooltipProvider>
               <ul className="space-y-2.5 text-xs">
-                {rows.map((row) => {
+                {rows.map((row, idx) => {
                   const rowSpent = row.segments.reduce((s, seg) => s + seg.value, 0);
                   const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
                   const remaining = Math.max(row.budget - rowSpent, 0);
                   return (
-                    <li key={row.name} className={cn("space-y-1", row.isTotal && "pb-1")}>
+                    <li key={`${row.name}-${idx}`} className={cn("space-y-1", row.isTotal && "pb-1")}>
                       <div className="flex items-center justify-between gap-2">
                         <span className={cn("truncate", row.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>
                           {row.name}
@@ -549,9 +549,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                         <TooltipTrigger asChild>
                           <div className="cursor-pointer w-full">
                             <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
-                              {row.segments.map((seg) => (
+                              {row.segments.map((seg, segIdx) => (
                                 <div
-                                  key={seg.name}
+                                  key={`${seg.name}-${segIdx}`}
                                   style={{
                                     width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
                                     backgroundColor: seg.color,
@@ -570,8 +570,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                               <span className="text-muted-foreground flex-1">Total budget</span>
                               <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
                             </div>
-                            {row.segments.map((seg) => (
-                              <div key={seg.name} className="flex items-center gap-2">
+                            {row.segments.map((seg, segIdx) => (
+                              <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
                                 <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
                                 <span className="text-muted-foreground flex-1">{row.isTotal ? seg.name : "Spend"}</span>
                                 <span className="font-medium tabular-nums text-foreground">

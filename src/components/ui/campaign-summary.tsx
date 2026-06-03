@@ -180,6 +180,41 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const isGuidedSettingsPhase = guidedSetup && !guidedSetupComplete;
     const [createdEngineIds, setCreatedEngineIds] = React.useState<Set<string>>(new Set());
     const [pendingBudget, setPendingBudget] = React.useState<string | null>(null);
+
+    // Inline draft state for the Add-campaign form, keyed by engine.id.
+    // While an engine is "pending" (not yet in createdEngineIds), it renders as
+    // an inline form card and the user fills in these fields. On Create we
+    // commit them and the engine collapses to the standard row above.
+    interface PendingEngineDraft {
+      name: string;
+      externalId: string;
+      budget: string;
+      advertiser: string;
+      startDate?: Date;
+      endDate?: Date;
+    }
+    const [pendingEngineDrafts, setPendingEngineDrafts] = React.useState<Record<string, PendingEngineDraft>>({});
+    const getDraft = (engineId: string): PendingEngineDraft =>
+      pendingEngineDrafts[engineId] ?? {
+        name: '',
+        externalId: '',
+        budget: '',
+        advertiser: advertiserProp ?? '',
+      };
+    const updateDraft = (engineId: string, patch: Partial<PendingEngineDraft>) => {
+      setPendingEngineDrafts(prev => ({
+        ...prev,
+        [engineId]: { ...getDraft(engineId), ...patch },
+      }));
+    };
+    const clearDraft = (engineId: string) => {
+      setPendingEngineDrafts(prev => {
+        if (!(engineId in prev)) return prev;
+        const next = { ...prev };
+        delete next[engineId];
+        return next;
+      });
+    };
     const [internalCampaignId, setInternalCampaignId] = React.useState(campaignIdProp);
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
     const [settingsDirty, setSettingsDirty] = React.useState(false);
@@ -214,6 +249,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     };
 
     const engineCounter = React.useRef(internalEngines.length);
+    // Short proposition codes for auto-generated External IDs (matches Adhese / Advendio conventions).
+    const propCodeById: Record<string, string> = {
+      display: 'DIS',
+      sponsored: 'SP',
+      digital: 'DMI',
+      offline: 'OFF',
+      offsite: 'OFS',
+    };
+
     const handleAddCampaign = (propositionType: string) => {
       const propType = propositionTypes.find(p => p.id === propositionType);
       if (propType) {
@@ -228,6 +272,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             enabled: true,
           },
         ]);
+        // Seed inline-form draft with sensible defaults: Untitled name + generated External ID.
+        const propCode = propCodeById[propType.id] ?? 'C';
+        const yearSeg = new Date().getFullYear();
+        const counterSeg = engineCounter.current.toString().padStart(3, '0');
+        const externalId = `${propCode}-${yearSeg}-${counterSeg}`;
+        setPendingEngineDrafts(prev => ({
+          ...prev,
+          [uniqueId]: {
+            name: 'Untitled',
+            externalId,
+            budget: '',
+            advertiser: advertiserProp ?? '',
+          },
+        }));
       }
       if (onEngineAdd) {
         onEngineAdd(propositionType);
@@ -1088,7 +1146,137 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         'running': 'Running',
                         'paused': 'Paused',
                       };
-                      return (
+                      const draft = getDraft(engine.id);
+                      return isPendingEngine ? (
+                        <div
+                          key={engine.id}
+                          className="rounded-lg border border-border bg-background p-4 space-y-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* Form header — proposition icon + name + New badge */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary text-primary-foreground flex-shrink-0">
+                              {IconComponent && <IconComponent size={14} />}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {engine.name} campaign
+                            </span>
+                            <Badge variant="outline" className="text-xs">New</Badge>
+                          </div>
+
+                          {/* Form fields — 2-col grid (Campaign name / External ID, Budget / Advertiser, full-row Campaign dates) */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                              <Input
+                                value={draft.name}
+                                onChange={(e) => updateDraft(engine.id, { name: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">External ID</Label>
+                              <Input
+                                value={draft.externalId}
+                                onChange={(e) => updateDraft(engine.id, { externalId: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Total budget</Label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                                <Input
+                                  type="number"
+                                  value={draft.budget}
+                                  onChange={(e) => updateDraft(engine.id, { budget: e.target.value })}
+                                  placeholder="Enter budget amount"
+                                  className="pl-9 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">Advertiser</Label>
+                              <Input
+                                dropdown
+                                options={advertiserOptions || [
+                                  { label: 'Unilever', value: 'unilever' },
+                                  { label: 'Procter & Gamble', value: 'pg' },
+                                  { label: 'Nestlé', value: 'nestle' },
+                                  { label: 'Coca-Cola', value: 'coca-cola' },
+                                  { label: 'PepsiCo', value: 'pepsico' },
+                                ]}
+                                value={draft.advertiser}
+                                onChange={(val) => updateDraft(engine.id, { advertiser: val })}
+                                placeholder="Select advertiser"
+                                className="bg-background border-border"
+                              />
+                            </div>
+                            <div className="space-y-2 sm:col-span-2">
+                              <Label className="text-sm text-muted-foreground">Campaign dates</Label>
+                              <DateRangePicker
+                                dateRange={
+                                  draft.startDate || draft.endDate
+                                    ? { from: draft.startDate, to: draft.endDate }
+                                    : undefined
+                                }
+                                onDateRangeChange={(range) =>
+                                  updateDraft(engine.id, {
+                                    startDate: range?.from,
+                                    endDate: range?.to,
+                                  })
+                                }
+                                placeholder="Select campaign dates"
+                                className="bg-background border-border"
+                                showPresets
+                              />
+                            </div>
+                          </div>
+
+                          {/* Footer — Cancel removes the engine; Create commits draft, collapses to row */}
+                          <div className="flex items-center justify-between pt-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                clearDraft(engine.id);
+                                setInternalEngines(prev => prev.filter(e => e.id !== engine.id));
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                // Commit draft into the engine + collapse to the standard row.
+                                const budgetNum = parseFloat(draft.budget) || 0;
+                                setInternalEngines(prev => prev.map(e => e.id === engine.id
+                                  ? {
+                                      ...e,
+                                      campaignName: draft.name || 'Untitled',
+                                      status: 'draft' as const,
+                                      budget: budgetNum || undefined,
+                                    }
+                                  : e
+                                ));
+                                if (draft.budget) {
+                                  handleEngineBudgetChange(engine.id, draft.budget);
+                                }
+                                setCreatedEngineIds(prev => new Set(prev).add(engine.id));
+                                if (draft.advertiser && draft.advertiser !== internalAdvertiser) {
+                                  setInternalAdvertiser(draft.advertiser);
+                                  onAdvertiserChange?.(draft.advertiser);
+                                }
+                                if (draft.startDate && draft.endDate) {
+                                  onDateRangeChange?.({ from: draft.startDate, to: draft.endDate });
+                                }
+                                if (onEngineAdd) {
+                                  onEngineAdd(engine.id);
+                                }
+                                clearDraft(engine.id);
+                              }}
+                            >
+                              Create
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
                         <div
                           key={engine.id}
                           className={cn(

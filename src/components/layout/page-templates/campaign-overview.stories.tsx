@@ -180,6 +180,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
           defaultVariant="default"
           removable={false}
           bleedEdges
+          showCharts
         />
         <CardWithTabs
           header={

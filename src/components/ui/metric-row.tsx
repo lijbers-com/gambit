@@ -43,6 +43,12 @@ export interface MetricDefinition {
   valueFormatter?: MetricCardProps["valueFormatter"]
   /** Bespoke chart node rendered in the card body (e.g. a FillRateBar). */
   chart?: MetricCardProps["chart"]
+  /** Custom node rendered in MetricRow's expand-on-click panel BELOW the row.
+   *  Use when the metric needs more than the default line chart — e.g. the
+   *  per-proposition breakdown views on the Media-plans page. If omitted
+   *  and showCharts is on, the row falls back to a line chart using
+   *  chartData (or a deterministic demo series). */
+  expandedContent?: React.ReactNode
 }
 
 export interface MetricRowProps {
@@ -166,7 +172,14 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     }
 
     const activeMetric = selectedMetrics.find(m => m.key === activeKey)
-    const chartPanelData = showCharts && activeKey && activeMetric
+    // When `expandedContent` is set on the active metric, render that bespoke
+    // node in the panel below — used for the per-proposition breakdown views.
+    // Otherwise we fall through to the default line chart (chartData or
+    // a deterministic demo series).
+    const chartPanelCustom = showCharts && activeKey && activeMetric?.expandedContent
+      ? activeMetric.expandedContent
+      : null
+    const chartPanelData = showCharts && activeKey && activeMetric && !chartPanelCustom
       ? (activeMetric.chartData ?? generateDemoChartData(activeKey))
       : null
 
@@ -282,36 +295,41 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
         </DialogContent>
       </Dialog>
 
-      {chartPanelData && (
+      {(chartPanelCustom || chartPanelData) && (
         <div className="relative bg-white border rounded-lg p-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              setInternalActiveKey(null)
-              onActiveKeyChange?.(null)
-            }}
-            aria-label="Close chart"
-            className="absolute top-2 right-2 z-10"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-          <LineChartComponent
-            data={chartPanelData}
-            config={{
-              value: {
-                label: activeMetric?.label || 'Value',
-                color: "hsl(var(--chart-1))",
-              },
-            }}
-            showLegend={false}
-            showGrid={true}
-            showTooltip={true}
-            showXAxis={true}
-            showYAxis={true}
-            className="h-52 w-full"
-            xAxisDataKey="day"
-          />
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="font-semibold text-sm text-foreground">{activeMetric?.label}</div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setInternalActiveKey(null)
+                onActiveKeyChange?.(null)
+              }}
+              aria-label="Close chart"
+              className="h-7 w-7 -mt-1 -mr-1"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          {chartPanelCustom ?? (
+            <LineChartComponent
+              data={chartPanelData!}
+              config={{
+                value: {
+                  label: activeMetric?.label || 'Value',
+                  color: "hsl(var(--chart-1))",
+                },
+              }}
+              showLegend={false}
+              showGrid={true}
+              showTooltip={true}
+              showXAxis={true}
+              showYAxis={true}
+              className="h-52 w-full"
+              xAxisDataKey="day"
+            />
+          )}
         </div>
       )}
       </div>

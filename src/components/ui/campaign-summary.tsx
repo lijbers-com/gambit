@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardSummary, CardSummaryContent, CardSummaryTitle } from './card';
+import { Card, CardContent, CardHeader, CardSummary, CardSummaryContent, CardSummaryTitle, BudgetStackedDetail, DonutLegendDetail, BarHorizontalDetail } from './card';
 import { MetricRow, MetricDefinition } from './metric-row';
 import { Badge } from './badge';
 import { Input } from './input';
@@ -1061,6 +1061,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 // matches its colour in the budget and ROAS cards.
                 const propositionColors = enabledEngines.map(e => propColor(e.id));
 
+                const impressionsTotal = impressionsByEngine.reduce((s, e) => s + e.value, 0);
+                const conversionsTotal = conversionsByEngine.reduce((s, e) => s + e.value, 0);
+                const fmtCurrencyValue = (v: number) => fmtCurrency(v);
+                const fmtNumberValue = (v: number) => fmtNumber(v);
+                const fmtRoas = (v: number) => `${v.toFixed(1)}x`;
+
                 const metricsForRow: MetricDefinition[] = [
                   {
                     key: 'budget-vs-spend',
@@ -1068,7 +1074,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     value: hasBudget ? fmtCurrency(totalSpendNum) : '—',
                     variant: 'budgetStacked',
                     budgetData: budgetVsSpendData,
-                    valueFormatter: (v) => fmtCurrency(v),
+                    valueFormatter: fmtCurrencyValue,
+                    expandedContent: (
+                      <BudgetStackedDetail
+                        budgetData={budgetVsSpendData}
+                        valueFormatter={fmtCurrencyValue}
+                      />
+                    ),
                   },
                   {
                     key: 'impressions',
@@ -1077,8 +1089,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     variant: 'donutLegend',
                     donutData: impressionsByEngine,
                     donutColors: propositionColors,
-                    totalRow: { label: 'Media plan', value: impressionsByEngine.reduce((s, e) => s + e.value, 0) },
-                    valueFormatter: (v) => fmtNumber(v),
+                    totalRow: { label: 'Media plan', value: impressionsTotal },
+                    valueFormatter: fmtNumberValue,
+                    expandedContent: (
+                      <DonutLegendDetail
+                        donutData={impressionsByEngine}
+                        donutColors={propositionColors}
+                        totalRow={{ label: 'Media plan', value: impressionsTotal }}
+                        valueFormatter={fmtNumberValue}
+                      />
+                    ),
                   },
                   {
                     key: 'conversions',
@@ -1087,8 +1107,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     variant: 'donutLegend',
                     donutData: conversionsByEngine,
                     donutColors: propositionColors,
-                    totalRow: { label: 'Media plan', value: conversionsByEngine.reduce((s, e) => s + e.value, 0) },
-                    valueFormatter: (v) => fmtNumber(v),
+                    totalRow: { label: 'Media plan', value: conversionsTotal },
+                    valueFormatter: fmtNumberValue,
+                    expandedContent: (
+                      <DonutLegendDetail
+                        donutData={conversionsByEngine}
+                        donutColors={propositionColors}
+                        totalRow={{ label: 'Media plan', value: conversionsTotal }}
+                        valueFormatter={fmtNumberValue}
+                      />
+                    ),
                   },
                   {
                     key: 'roas',
@@ -1097,7 +1125,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     variant: 'barHorizontal',
                     productData: roasByEngine,
                     totalRow: { label: 'Media plan', value: estRoasNum },
-                    valueFormatter: (v) => `${v.toFixed(1)}x`,
+                    valueFormatter: fmtRoas,
+                    expandedContent: (
+                      <BarHorizontalDetail
+                        productData={roasByEngine}
+                        totalRow={{ label: 'Media plan', value: estRoasNum }}
+                        valueFormatter={fmtRoas}
+                      />
+                    ),
                   },
                 ];
 
@@ -1108,6 +1143,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     onSelectionChange={setSelectedMetricKeys}
                     maxVisible={3}
                     defaultVariant="graph"
+                    showCharts
                   />
                 );
               })()}

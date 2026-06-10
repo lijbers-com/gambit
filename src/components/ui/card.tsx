@@ -253,6 +253,359 @@ export interface MetricCardProps {
   chart?: React.ReactNode;
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Multi-row card bodies render only the "Media plan" aggregate by
+// default so the row stays compact. The full per-proposition
+// breakdown is exposed via separate `<…Detail>` components that
+// MetricRow can drop into its expand-on-click chart panel below
+// the row.
+// ─────────────────────────────────────────────────────────────────────
+
+const colorFromIndex = (i: number, custom?: string) =>
+  custom ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+
+const DonutLegendBody = ({
+  donutData,
+  totalRow,
+  valueFormatter,
+}: {
+  donutData: NonNullable<MetricCardProps['donutData']>;
+  totalRow?: MetricCardProps['totalRow'];
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const total = donutData.reduce((sum, d) => sum + d.value, 0);
+  return (
+    <div className="flex-1 flex flex-col">
+      {totalRow ? (
+        <div>
+          <div className="text-3xl font-bold text-foreground truncate">
+            {fmt(totalRow.value)}
+          </div>
+          <div className="text-sm text-muted-foreground mt-2">{totalRow.label}</div>
+        </div>
+      ) : (
+        <div className="text-3xl font-bold text-foreground truncate">{fmt(total)}</div>
+      )}
+    </div>
+  );
+};
+
+const BarHorizontalBody = ({
+  productData,
+  totalRow,
+  valueFormatter,
+}: {
+  productData: NonNullable<MetricCardProps['productData']>;
+  totalRow?: MetricCardProps['totalRow'];
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const max = Math.max(...productData.map((d) => d.value), totalRow?.value ?? 0, 0) || 1;
+  const propSegments = productData.slice(0, 5).map((item, i) => ({
+    name: item.name,
+    value: item.value,
+    color: colorFromIndex(i, item.color),
+  }));
+  const propSum = propSegments.reduce((s, p) => s + p.value, 0);
+  const totalPct = totalRow ? (totalRow.value / max) * 100 : 0;
+  return (
+    <div className="flex-1 flex flex-col">
+      {totalRow ? (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-foreground truncate">{totalRow.label}</span>
+            <span className="font-medium tabular-nums whitespace-nowrap">{fmt(totalRow.value)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div className="flex h-full" style={{ width: `${totalPct}%` }}>
+              {propSegments.map((seg, segIdx) => (
+                <div
+                  key={`${seg.name}-${segIdx}`}
+                  style={{
+                    width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
+                    backgroundColor: seg.color,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-3xl font-bold text-foreground truncate">{fmt(propSum)}</div>
+      )}
+    </div>
+  );
+};
+
+const BudgetStackedBody = ({
+  budgetData,
+  valueFormatter,
+}: {
+  budgetData: NonNullable<MetricCardProps['budgetData']>;
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const remainingColor = 'rgb(var(--neutral-200))';
+  const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const totalSpent = budgetData.reduce((sum, d) => sum + d.spent, 0);
+  const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+  const totalSegments = budgetData.map((d, i) => ({
+    name: d.name,
+    value: d.spent,
+    color: colorFromIndex(i, d.color),
+  }));
+  return (
+    <div className="flex-1 flex flex-col">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="font-semibold text-foreground truncate">Media plan</span>
+          <span className="tabular-nums whitespace-nowrap text-muted-foreground">
+            <span className="font-medium text-foreground">{pct}%</span> spent
+          </span>
+        </div>
+        <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
+          {totalSegments.map((seg, segIdx) => (
+            <div
+              key={`${seg.name}-${segIdx}`}
+              style={{
+                width: `${totalBudget > 0 ? (seg.value / totalBudget) * 100 : 0}%`,
+                backgroundColor: seg.color,
+              }}
+            />
+          ))}
+          <div className="flex-1" style={{ backgroundColor: remainingColor }} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Full per-proposition detail views — exposed for MetricRow's
+// chart panel via MetricDefinition.expandedContent. ──────────────────
+
+export const DonutLegendDetail = ({
+  donutData,
+  donutColors,
+  totalRow,
+  valueFormatter,
+}: {
+  donutData: NonNullable<MetricCardProps['donutData']>;
+  donutColors?: MetricCardProps['donutColors'];
+  totalRow?: MetricCardProps['totalRow'];
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const total = donutData.reduce((sum, d) => sum + d.value, 0);
+  const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+  return (
+    <div className="flex items-center gap-6">
+      <div className="aspect-square w-40 shrink-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={donutData}
+              cx="50%"
+              cy="50%"
+              innerRadius="62%"
+              outerRadius="100%"
+              dataKey="value"
+              strokeWidth={0}
+              startAngle={90}
+              endAngle={-270}
+            >
+              {donutData.map((_, i) => (
+                <Cell key={i} fill={colorFor(i)} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <ul className="flex-1 min-w-0 space-y-1.5 text-sm">
+        {totalRow && (
+          <li className="flex items-center gap-2 min-w-0 pb-1 border-b border-border">
+            <span className="font-semibold text-foreground truncate">{totalRow.label}</span>
+            <span className="ml-auto font-semibold tabular-nums whitespace-nowrap text-foreground">
+              {fmt(totalRow.value)}
+            </span>
+          </li>
+        )}
+        {donutData.map((item, i) => {
+          const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+          return (
+            <li key={`${item.name}-${i}`} className="flex items-center gap-2 min-w-0">
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: colorFor(i) }} />
+              <span className="text-muted-foreground truncate">{item.name}</span>
+              <span className="ml-auto font-medium tabular-nums whitespace-nowrap">
+                {fmt(item.value)}
+                <span className="text-muted-foreground ml-1">({pct}%)</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};
+
+export const BarHorizontalDetail = ({
+  productData,
+  totalRow,
+  valueFormatter,
+}: {
+  productData: NonNullable<MetricCardProps['productData']>;
+  totalRow?: MetricCardProps['totalRow'];
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const max = Math.max(...productData.map((d) => d.value), totalRow?.value ?? 0, 0) || 1;
+  const propSegments = productData.slice(0, 5).map((item, i) => ({
+    name: item.name,
+    value: item.value,
+    color: colorFromIndex(i, item.color),
+  }));
+  const propSum = propSegments.reduce((s, p) => s + p.value, 0);
+  type Row =
+    | { name: string; value: number; color: string; isTotal: false }
+    | { name: string; value: number; isTotal: true; segments: typeof propSegments };
+  const rows: Row[] = [
+    ...(totalRow ? [{ name: totalRow.label, value: totalRow.value, isTotal: true as const, segments: propSegments }] : []),
+    ...propSegments.map((p) => ({ name: p.name, value: p.value, color: p.color, isTotal: false as const })),
+  ];
+  return (
+    <ul className="space-y-3 text-sm">
+      {rows.map((item, idx) => {
+        const pct = (item.value / max) * 100;
+        return (
+          <li key={`${item.name}-${idx}`} className={cn('space-y-1', item.isTotal && 'pb-2 border-b border-border')}>
+            <div className="flex items-center justify-between gap-2">
+              <span className={cn('truncate', item.isTotal ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
+                {item.name}
+              </span>
+              <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
+            </div>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              {item.isTotal ? (
+                <div className="flex h-full transition-all duration-500" style={{ width: `${pct}%` }}>
+                  {item.segments.map((seg, segIdx) => (
+                    <div
+                      key={`${seg.name}-${segIdx}`}
+                      style={{
+                        width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
+                        backgroundColor: seg.color,
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${pct}%`, backgroundColor: item.color }}
+                />
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+export const BudgetStackedDetail = ({
+  budgetData,
+  valueFormatter,
+}: {
+  budgetData: NonNullable<MetricCardProps['budgetData']>;
+  valueFormatter?: MetricCardProps['valueFormatter'];
+}) => {
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  const remainingColor = 'rgb(var(--neutral-200))';
+  const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  type Segment = { name: string; value: number; color: string };
+  const totalSegments: Segment[] = budgetData.map((d, i) => ({
+    name: d.name,
+    value: d.spent,
+    color: colorFromIndex(i, d.color),
+  }));
+  const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
+    { name: 'Media plan', budget: totalBudget, segments: totalSegments, isTotal: true },
+    ...budgetData.map((d, i) => ({
+      name: d.name,
+      budget: d.budget,
+      segments: [{ name: d.name, value: d.spent, color: colorFromIndex(i, d.color) }],
+      isTotal: false,
+    })),
+  ];
+  return (
+    <TooltipProvider>
+      <ul className="space-y-3 text-sm">
+        {rows.map((row, idx) => {
+          const rowSpent = row.segments.reduce((s, seg) => s + seg.value, 0);
+          const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
+          const remaining = Math.max(row.budget - rowSpent, 0);
+          return (
+            <li key={`${row.name}-${idx}`} className={cn('space-y-1', row.isTotal && 'pb-2 border-b border-border')}>
+              <div className="flex items-center justify-between gap-2">
+                <span className={cn('truncate', row.isTotal ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
+                  {row.name}
+                </span>
+                <span className="tabular-nums whitespace-nowrap text-muted-foreground">
+                  <span className="font-medium text-foreground">{pct}%</span> spent
+                </span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-pointer w-full">
+                    <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
+                      {row.segments.map((seg, segIdx) => (
+                        <div
+                          key={`${seg.name}-${segIdx}`}
+                          style={{
+                            width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
+                            backgroundColor: seg.color,
+                          }}
+                        />
+                      ))}
+                      <div className="flex-1" style={{ backgroundColor: remainingColor }} />
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-background text-foreground border border-border p-3 shadow-lg">
+                  <div className="space-y-1.5 text-xs">
+                    <div className="font-semibold text-foreground">{row.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border bg-background" />
+                      <span className="text-muted-foreground flex-1">Total budget</span>
+                      <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
+                    </div>
+                    {row.segments.map((seg, segIdx) => (
+                      <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
+                        <span className="text-muted-foreground flex-1">{row.isTotal ? seg.name : 'Spend'}</span>
+                        <span className="font-medium tabular-nums text-foreground">
+                          {fmt(seg.value)}
+                          {row.budget > 0 ? ` (${Math.round((seg.value / row.budget) * 100)}%)` : ''}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
+                      <span className="text-muted-foreground flex-1">Remaining</span>
+                      <span className="font-medium tabular-nums text-foreground">
+                        {fmt(remaining)} ({100 - pct}%)
+                      </span>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </li>
+          );
+        })}
+      </ul>
+    </TooltipProvider>
+  );
+};
+
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
   ({
     label,
@@ -393,207 +746,26 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             </div>
           </div>
         )}
-        {variant === "donutLegend" && donutData && (() => {
-          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-          const total = donutData.reduce((sum, d) => sum + d.value, 0);
-          const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
-          return (
-            <div className="flex flex-1 items-center gap-4">
-              <div className="aspect-square w-24 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="62%"
-                      outerRadius="100%"
-                      dataKey="value"
-                      strokeWidth={0}
-                      startAngle={90}
-                      endAngle={-270}
-                    >
-                      {donutData.map((_, i) => (
-                        <Cell key={i} fill={colorFor(i)} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <ul className="flex-1 min-w-0 space-y-1 text-xs">
-                {totalRow && (
-                  <li className="flex items-center gap-1.5 min-w-0 pb-0.5">
-                    <span className="font-semibold text-foreground truncate">{totalRow.label}</span>
-                    <span className="ml-auto font-semibold tabular-nums whitespace-nowrap text-foreground">
-                      {fmt(totalRow.value)}
-                    </span>
-                  </li>
-                )}
-                {donutData.map((item, i) => {
-                  const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
-                  return (
-                    <li key={`${item.name}-${i}`} className="flex items-center gap-1.5 min-w-0">
-                      <span
-                        aria-hidden
-                        className="h-2 w-2 rounded-full shrink-0"
-                        style={{ backgroundColor: colorFor(i) }}
-                      />
-                      <span className="text-muted-foreground truncate">{item.name}</span>
-                      <span className="ml-auto font-medium tabular-nums whitespace-nowrap">
-                        {fmt(item.value)}
-                        <span className="text-muted-foreground ml-1">({pct}%)</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })()}
-        {variant === "barHorizontal" && productData && (() => {
-          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-          const max = Math.max(...productData.map(d => d.value), totalRow?.value ?? 0, 0) || 1;
-          const colorFor = (i: number, c?: string) => c ?? `hsl(var(--chart-${(i % 5) + 1}))`;
-          const propSegments = productData.slice(0, 5).map((item, i) => ({
-            name: item.name,
-            value: item.value,
-            color: colorFor(i, item.color),
-          }));
-          const propSum = propSegments.reduce((s, p) => s + p.value, 0);
-          type Row =
-            | { name: string; value: number; color: string; isTotal: false }
-            | { name: string; value: number; isTotal: true; segments: typeof propSegments };
-          const rows: Row[] = [
-            ...(totalRow
-              ? [{ name: totalRow.label, value: totalRow.value, isTotal: true as const, segments: propSegments }]
-              : []),
-            ...propSegments.map(p => ({ name: p.name, value: p.value, color: p.color, isTotal: false as const })),
-          ];
-          return (
-            <ul className="space-y-2.5 text-xs">
-              {rows.map((item, idx) => {
-                const pct = (item.value / max) * 100;
-                return (
-                  <li key={`${item.name}-${idx}`} className={cn("space-y-1", item.isTotal && "pb-1")}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={cn("truncate", item.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                      <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      {item.isTotal ? (
-                        <div className="flex h-full transition-all duration-500" style={{ width: `${pct}%` }}>
-                          {item.segments.map((seg, segIdx) => (
-                            <div
-                              key={`${seg.name}-${segIdx}`}
-                              style={{
-                                width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
-                                backgroundColor: seg.color,
-                              }}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${pct}%`, backgroundColor: item.color }}
-                        />
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          );
-        })()}
-        {variant === "budgetStacked" && budgetData && (() => {
-          const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-          const remainingColor = "rgb(var(--neutral-200))";
-          const colorFor = (i: number, color?: string) => color ?? `hsl(var(--chart-${(i % 5) + 1}))`;
-          const totalSpent = budgetData.reduce((sum, d) => sum + d.spent, 0);
-          const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
-          type Segment = { name: string; value: number; color: string };
-          // Media plan total: one segment per proposition (each in its own colour).
-          // Per-proposition rows: one segment (that proposition's spend in its colour).
-          const totalSegments: Segment[] = budgetData.map((d, i) => ({
-            name: d.name,
-            value: d.spent,
-            color: colorFor(i, d.color),
-          }));
-          const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
-            { name: "Media plan", budget: totalBudget, segments: totalSegments, isTotal: true },
-            ...budgetData.map((d, i) => ({
-              name: d.name,
-              budget: d.budget,
-              segments: [{ name: d.name, value: d.spent, color: colorFor(i, d.color) }],
-              isTotal: false,
-            })),
-          ];
-          return (
-            <TooltipProvider>
-              <ul className="space-y-2.5 text-xs">
-                {rows.map((row, idx) => {
-                  const rowSpent = row.segments.reduce((s, seg) => s + seg.value, 0);
-                  const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
-                  const remaining = Math.max(row.budget - rowSpent, 0);
-                  return (
-                    <li key={`${row.name}-${idx}`} className={cn("space-y-1", row.isTotal && "pb-1")}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={cn("truncate", row.isTotal ? "font-semibold text-foreground" : "text-muted-foreground")}>
-                          {row.name}
-                        </span>
-                        <span className="tabular-nums whitespace-nowrap text-muted-foreground">
-                          <span className="font-medium text-foreground">{pct}%</span> spent
-                        </span>
-                      </div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer w-full">
-                            <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
-                              {row.segments.map((seg, segIdx) => (
-                                <div
-                                  key={`${seg.name}-${segIdx}`}
-                                  style={{
-                                    width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
-                                    backgroundColor: seg.color,
-                                  }}
-                                />
-                              ))}
-                              <div className="flex-1" style={{ backgroundColor: remainingColor }} />
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-background text-foreground border border-border p-3 shadow-lg">
-                          <div className="space-y-1.5 text-xs">
-                            <div className="font-semibold text-foreground">{row.name}</div>
-                            <div className="flex items-center gap-2">
-                              <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border bg-background" />
-                              <span className="text-muted-foreground flex-1">Total budget</span>
-                              <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
-                            </div>
-                            {row.segments.map((seg, segIdx) => (
-                              <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
-                                <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
-                                <span className="text-muted-foreground flex-1">{row.isTotal ? seg.name : "Spend"}</span>
-                                <span className="font-medium tabular-nums text-foreground">
-                                  {fmt(seg.value)}{row.budget > 0 ? ` (${Math.round((seg.value / row.budget) * 100)}%)` : ''}
-                                </span>
-                              </div>
-                            ))}
-                            <div className="flex items-center gap-2">
-                              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
-                              <span className="text-muted-foreground flex-1">Remaining</span>
-                              <span className="font-medium tabular-nums text-foreground">{fmt(remaining)} ({100 - pct}%)</span>
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </li>
-                  );
-                })}
-              </ul>
-            </TooltipProvider>
-          );
-        })()}
+        {variant === "donutLegend" && donutData && (
+          <DonutLegendBody
+            donutData={donutData}
+            totalRow={totalRow}
+            valueFormatter={valueFormatter}
+          />
+        )}
+        {variant === "barHorizontal" && productData && (
+          <BarHorizontalBody
+            productData={productData}
+            totalRow={totalRow}
+            valueFormatter={valueFormatter}
+          />
+        )}
+        {variant === "budgetStacked" && budgetData && (
+          <BudgetStackedBody
+            budgetData={budgetData}
+            valueFormatter={valueFormatter}
+          />
+        )}
         {variant === "barVertical" && dateData && (() => {
           const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
           const tickFmt = valueFormatter ?? formatYAxisTick;

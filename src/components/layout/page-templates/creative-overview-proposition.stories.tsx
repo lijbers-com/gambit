@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -86,11 +87,13 @@ const offsiteCreatives = [
 interface PropositionCreativeOverviewProps {
   title: string;
   subtitle: string;
+  /** Canonical engine type so we can render the matching icon next to the title. */
+  engineType: string;
   data: typeof displayCreatives;
   formatOptions: { label: string; value: string }[];
 }
 
-const PropositionCreativeOverview = ({ title, subtitle, data, formatOptions }: PropositionCreativeOverviewProps) => {
+const PropositionCreativeOverview = ({ title, subtitle, engineType, data, formatOptions }: PropositionCreativeOverviewProps) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
   const routes = getRoutesForTheme(currentTheme);
@@ -118,6 +121,7 @@ const PropositionCreativeOverview = ({ title, subtitle, data, formatOptions }: P
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title,
+          titleIcon: <PropositionIcon engineType={engineType} />,
           subtitle,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -182,8 +186,9 @@ const PropositionCreativeOverview = ({ title, subtitle, data, formatOptions }: P
 export const Display: Story = {
   render: () => (
     <PropositionCreativeOverview
-      title="Display Creatives"
-      subtitle="Manage display creative assets — banners, videos, and interstitials"
+      title="Creatives"
+      engineType="display"
+      subtitle="All display creatives"
       data={displayCreatives}
       formatOptions={[
         { label: 'Banner', value: 'banner' },
@@ -198,8 +203,9 @@ export const DigitalInStore: Story = {
   name: 'Digital In-Store',
   render: () => (
     <PropositionCreativeOverview
-      title="Digital In-Store Creatives"
-      subtitle="Manage digital in-store creative assets — signage, endcaps, and screens"
+      title="Creatives"
+      engineType="digital-instore"
+      subtitle="All digital in-store creatives"
       data={digitalInstoreCreatives}
       formatOptions={[
         { label: 'Digital Signage', value: 'digital-signage' },
@@ -214,8 +220,9 @@ export const OfflineInStore: Story = {
   name: 'Offline In-Store',
   render: () => (
     <PropositionCreativeOverview
-      title="Offline In-Store Creatives"
-      subtitle="Manage offline in-store creative assets — wobblers, shelf strips, and posters"
+      title="Creatives"
+      engineType="offline-instore"
+      subtitle="All offline in-store creatives"
       data={offlineInstoreCreatives}
       formatOptions={[
         { label: 'Wobbler', value: 'wobbler' },
@@ -230,8 +237,9 @@ export const OfflineInStore: Story = {
 export const Offsite: Story = {
   render: () => (
     <PropositionCreativeOverview
-      title="Offsite Creatives"
-      subtitle="Manage offsite creative assets — display banners, native ads, and video"
+      title="Creatives"
+      engineType="offsite"
+      subtitle="All offsite creatives"
       data={offsiteCreatives}
       formatOptions={[
         { label: 'Display Banner', value: 'display-banner' },

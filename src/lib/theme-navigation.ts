@@ -33,7 +33,7 @@ export const advertiserRoutes: Route[] = [
     id: 0,
     name: "Campaigns",
     type: "parent" as const,
-    icon: { lucide: "Table" },
+    icon: { lucide: "Rows3" },
     subitems: [
       {
         id: 20,
@@ -64,6 +64,44 @@ export const advertiserRoutes: Route[] = [
         name: "Display offsite",
         type: "single" as const,
         url: "/campaigns/offsite"
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: "Bookings",
+    type: "parent" as const,
+    icon: { lucide: "LayoutList" },
+    subitems: [
+      {
+        id: 60,
+        name: "Sponsored products",
+        type: "single" as const,
+        url: "/bookings/sponsored-products"
+      },
+      {
+        id: 61,
+        name: "Display",
+        type: "single" as const,
+        url: "/bookings/display"
+      },
+      {
+        id: 62,
+        name: "Digital in-store",
+        type: "single" as const,
+        url: "/bookings/digital-instore"
+      },
+      {
+        id: 63,
+        name: "Offline instore",
+        type: "single" as const,
+        url: "/bookings/offline-instore"
+      },
+      {
+        id: 64,
+        name: "Display offsite",
+        type: "single" as const,
+        url: "/bookings/offsite"
       }
     ]
   },

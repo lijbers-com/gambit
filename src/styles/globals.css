@@ -637,10 +637,18 @@ body[data-theme="alfaBeta"] {
   color: var(--brand-app-text) !important;
 }
 
-/* Hover states */
+/* Hover + active states.
+ * The .active class is added by NavigationItem / NavigationItemWithSubmenu
+ * when the current pathname matches the link's URL. Sharing the same
+ * background token with :hover means the clicked item keeps the bright
+ * accent (--brand-nav-hover, e.g. #c8f000 in Edge) so the user always
+ * sees where they are in the side nav. */
 .side-navigation a:hover,
 .side-navigation button:hover,
-.side-navigation .parent:hover {
+.side-navigation .parent:hover,
+.side-navigation a.active,
+.side-navigation button.active,
+.side-navigation .parent.active {
   background: var(--brand-nav-hover, var(--brand-app-hover)) !important;
 }
 

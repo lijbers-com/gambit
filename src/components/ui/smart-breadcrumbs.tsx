@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@/lib/router-context';
-import { Suspense, Fragment } from 'react';
+import { Suspense, Fragment, useEffect, useRef, useState } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,6 +9,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  BreadcrumbEllipsis,
 } from './breadcrumb';
 import {
   usePathname,
@@ -130,47 +131,108 @@ const SmartBreadcrumbsInner = ({
     };
   });
 
+  // Unified item array so the render is a single map. The first item is
+  // always "Home"; the rest are the path crumbs (final one is the current
+  // page, no link).
+  type Item =
+    | { kind: 'crumb'; label: string; href: string; isPage: boolean; testId?: string }
+    | { kind: 'ellipsis' };
+  const items: Item[] = [
+    {
+      kind: 'crumb',
+      label: homeTitle,
+      href: constructUrl('/', passQueryParameters, searchParams),
+      isPage: onHomepage,
+      testId: 'root-link',
+    },
+    ...crumbs.map((crumb, index) => ({
+      kind: 'crumb' as const,
+      label: crumb.label,
+      href: constructUrl(crumb.pathName, passQueryParameters, searchParams),
+      isPage: index === crumbs.length - 1,
+      testId: `${getLastPartOfThePath(crumb.pathName)}-link`,
+    })),
+  ];
+
+  // Responsive collapse: when the breadcrumb row overflows the available
+  // width, hide the middle items and surface a "…" so the trail still
+  // fits on one line. We keep Home + the last two crumbs visible so the
+  // user always sees where they came from and where they are.
+  const olRef = useRef<HTMLOListElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  // Stored full-width threshold so we can re-expand without oscillating
+  // (we only un-collapse once the container is comfortably wider than
+  // the last-known fully-rendered scrollWidth).
+  const fullScrollWidthRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+    const el = olRef.current;
+    if (!el) return;
+    const check = () => {
+      if (collapsed) {
+        const threshold = fullScrollWidthRef.current;
+        if (threshold !== null && el.clientWidth >= threshold + 24) {
+          fullScrollWidthRef.current = null;
+          setCollapsed(false);
+        }
+      } else if (el.scrollWidth > el.clientWidth + 1) {
+        fullScrollWidthRef.current = el.scrollWidth;
+        setCollapsed(true);
+      }
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [collapsed, items.length, pathName]);
+
+  // Apply the collapse: keep first + the last two; everything in between
+  // is replaced by a single ellipsis item. Need at least 4 items for
+  // collapsing to make sense (Home + 2 visible = 3, plus the ones being
+  // hidden under "…").
+  const visibleItems: Item[] =
+    collapsed && items.length > 3
+      ? [items[0], { kind: 'ellipsis' }, items[items.length - 2], items[items.length - 1]]
+      : items;
+
   return (
     <Breadcrumb namespace={namespace} showNavToggle={showNavToggle} className={`w-full relative ${className || ''}`}>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link
-              href={constructUrl('/', passQueryParameters, searchParams)}
-              data-testid="root-link"
-            >
-              {homeTitle}
-            </Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        {!onHomepage && <BreadcrumbSeparator />}
-{crumbs.map((crumb, index) => {
-          const url = constructUrl(
-            crumb.pathName,
-            passQueryParameters,
-            searchParams,
-          );
-          const isLast = index === crumbs.length - 1;
-
+      <BreadcrumbList
+        ref={olRef}
+        className="flex flex-nowrap items-center gap-1 overflow-hidden min-w-0"
+      >
+        {visibleItems.map((item, idx) => {
+          const isLast = idx === visibleItems.length - 1;
+          if (item.kind === 'ellipsis') {
+            return (
+              <Fragment key={`ellipsis-${idx}`}>
+                <BreadcrumbItem>
+                  <BreadcrumbEllipsis />
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+              </Fragment>
+            );
+          }
           return (
-            <Fragment key={`crumb-${index}`}>
-              <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage>
-                    {crumb.label}
+            <Fragment key={`crumb-${idx}`}>
+              <BreadcrumbItem className="shrink-0">
+                {item.isPage ? (
+                  <BreadcrumbPage className="whitespace-nowrap">
+                    {item.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link
-                      href={url}
-                      data-testid={`${getLastPartOfThePath(crumb.pathName)}-link`}
+                      href={item.href}
+                      data-testid={item.testId}
+                      className="whitespace-nowrap"
                     >
-                      {crumb.label}
+                      {item.label}
                     </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
-              {!isLast && <BreadcrumbSeparator key={`separator-${index}`} />}
+              {!isLast && <BreadcrumbSeparator className="shrink-0" />}
             </Fragment>
           );
         })}

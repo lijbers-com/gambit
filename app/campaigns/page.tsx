@@ -254,7 +254,7 @@ function AllCampaignsPage() {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Media plans',
-          subtitle: 'Complete overview of all your campaigns across all advertising engines',
+          subtitle: 'All media plans',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),

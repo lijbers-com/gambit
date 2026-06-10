@@ -2,9 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
+import { InsightsTab } from './insights-tab';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { MetricRow } from '@/components/ui/metric-row';
+import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
@@ -13,6 +16,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { addDays } from 'date-fns';
 import * as React from 'react';
@@ -111,6 +115,15 @@ const statusVariant = (status: string) => {
   }
 };
 
+// Per-proposition metric cards now live in src/lib/proposition-metrics.ts
+// so the same set is used on the campaign overview, the campaign detail
+// page, and the booking detail page — values scale down with scope, but
+// the labels stay identical. See getPropositionMetrics().
+
+// Insights tab content lives in ./insights-tab.tsx so the same chart
+// row can be reused on the campaign overview AND every campaign detail
+// page (where it renders with scope='campaign' for narrower values).
+
 const createCampaignOverviewStory = (engineType: string, engineTitle: string) => ({
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
@@ -145,8 +158,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: `Campaigns - ${engineTitle}`,
-          subtitle: `Monitor ${engineType} campaign performance and manage your advertising initiatives`,
+          title: 'Campaigns',
+          titleIcon: <PropositionIcon engineType={engineType} />,
+          subtitle: `All ${engineType} campaigns`,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -159,6 +173,14 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
           ),
         }}
       >
+        <div className="space-y-6">
+        <MetricRow
+          metrics={getPropositionMetrics(engineType, 'overview')}
+          maxVisible={5}
+          defaultVariant="default"
+          removable={false}
+          bleedEdges
+        />
         <CardWithTabs
           header={
             activeTab === 'details' ? (
@@ -338,11 +360,17 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
                 </div>
               ),
             },
+            {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType={engineType} scope="overview" />,
+            },
           ]}
           action={activeTab === 'campaigns' ? <Button>Add campaign</Button> : null}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
+        </div>
       </AppLayout>
       </MenuContextProvider>
     );
@@ -498,7 +526,7 @@ export const Campaigns360: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: 'Media plans',
-            subtitle: 'Complete overview of all your campaigns across all advertising engines',
+            subtitle: 'All media plans',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -705,7 +733,7 @@ export const Campaigns360NoGoalTargeting: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: 'Media plans',
-            subtitle: 'Complete overview of all your campaigns across all advertising engines',
+            subtitle: 'All media plans',
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface RouterContextType {
   pathname: string;
@@ -67,6 +67,9 @@ const navigateInStorybook = (storyId: string) => {
 
 export function RouterProvider({ children }: { children: React.ReactNode }) {
   console.log('=== ROUTER PROVIDER INITIALIZED ===');
+  // NOTE: this provider is currently only mounted for Storybook flows.
+  // In the Next.js app, usePathname() reads window.location directly
+  // (see below) — it doesn't depend on this state.
   const [pathname, setPathname] = useState('/');
   const [query] = useState<Record<string, string>>({});
 
@@ -130,7 +133,59 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function usePathname() {
-  const { pathname } = useContext(RouterContext);
+  // RouterProvider isn't actually mounted in the Next.js app (it only
+  // exists for the Storybook flow), so we can't rely on the context's
+  // pathname here — it'd always be the default '/'. Instead, maintain
+  // our own state synced with the real browser URL via History API
+  // patching + popstate, so callers (notably the side-nav active
+  // marker) always see the current path.
+  //
+  // Hydration safety: we MUST initialise to the same value the server
+  // rendered. The server renders with ctx.pathname (default '/'), so
+  // the client's first render uses the same. The useEffect below then
+  // immediately bumps it to the real URL after mount.
+  const ctx = useContext(RouterContext);
+  const [pathname, setPathname] = useState<string>(ctx.pathname);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Defer the setState to a microtask so we never schedule an update
+    // while React is inside useInsertionEffect — Next's App Router
+    // patches/uses history.pushState from one of those, and reacting
+    // synchronously here would trigger "useInsertionEffect must not
+    // schedule updates."
+    const sync = () => {
+      queueMicrotask(() => {
+        setPathname((prev) =>
+          prev === window.location.pathname ? prev : window.location.pathname
+        );
+      });
+    };
+    sync();
+
+    const origPush = window.history.pushState;
+    const origReplace = window.history.replaceState;
+    window.history.pushState = function (
+      ...args: Parameters<typeof origPush>
+    ) {
+      origPush.apply(window.history, args);
+      sync();
+    };
+    window.history.replaceState = function (
+      ...args: Parameters<typeof origReplace>
+    ) {
+      origReplace.apply(window.history, args);
+      sync();
+    };
+    window.addEventListener('popstate', sync);
+
+    return () => {
+      window.history.pushState = origPush;
+      window.history.replaceState = origReplace;
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
+
   return pathname;
 }
 

@@ -31,6 +31,8 @@ import {
   WalletCards,
   Globe,
   Handshake,
+  Rows3,
+  LayoutList,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
@@ -78,6 +80,8 @@ export const renderIcon = (icon: string) => {
     WalletCards,
     Globe,
     Handshake,
+    Rows3,
+    LayoutList,
     OrganisationsIcon,
     BrandsIcon,
   };

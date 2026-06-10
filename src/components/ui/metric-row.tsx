@@ -77,6 +77,13 @@ export interface MetricRowProps {
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
    *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
   scrollable?: boolean
+  /** Let the horizontal scroll container bleed past the page's left/right
+   *  padding so the carousel scrolls flush with the side-nav border on
+   *  the left and the viewport edge on the right. The first card stays
+   *  aligned with the page header (we use `-mx-6 px-6` so the resting
+   *  inside-padding matches the page's `p-6`). When the cards already
+   *  fit (no scroll), this is a visual no-op. */
+  bleedEdges?: boolean
 }
 
 const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
@@ -95,6 +102,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     showCharts = false,
     hideEditButton = false,
     scrollable = false,
+    bleedEdges = false,
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
@@ -178,7 +186,15 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           </Button>
         </div>
       )}
-      <div className="flex items-stretch gap-4 overflow-x-auto pb-1">
+      <div
+        className={cn(
+          "flex items-stretch gap-4 overflow-x-auto pb-1",
+          // bleedEdges makes the carousel scroll edge-to-edge of the
+          // page column: the box widens by -mx-6 and re-insets via px-6
+          // so the first card stays aligned with the page header.
+          bleedEdges && "-mx-6 px-6"
+        )}
+      >
         {selectedMetrics.map((metric) => (
           <MetricCard
             key={metric.key}

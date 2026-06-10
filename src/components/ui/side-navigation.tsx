@@ -8,7 +8,7 @@ import { useMenu } from '@/hooks/use-menu';
 import { Logo } from './logo';
 import { usePathname as usePathnameContext } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
-import { useEffect, useContext, useState } from 'react';
+import { useEffect, useContext, useState, useRef } from 'react';
 import { ThemeContext } from '@/contexts/theme-context';
 
 // Try to import Next.js pathname
@@ -34,6 +34,14 @@ export interface Route {
   pattern?: string; // For breadcrumb matching with dynamic routes
   disabled?: boolean;
 }
+
+// Module-scoped store for the previous pathname seen by SideNavigation.
+// Lives outside the component so it survives remounts triggered by
+// client-side navigation in Next.js — each page renders its own
+// AppLayout which remounts SideNavigation, so a per-instance useRef
+// would reset on every navigation and the "did the path change?" check
+// would always look like a first mount.
+let lastSeenPathname: string | null = null;
 
 export interface SideNavigationProps {
   routes: Route[];
@@ -62,7 +70,7 @@ export const SideNavigation = ({
   // Use state for theme to make it reactive
   const [theme, setTheme] = useState<string>('gambit');
 
-  const { collapsed, showText, setOpenSubmenu, openSubmenu } = useMenu();
+  const { collapsed, showText, setOpenSubmenu, openSubmenu, setCollapsed } = useMenu();
 
   // Detect and update theme reactively
   useEffect(() => {
@@ -146,6 +154,26 @@ export const SideNavigation = ({
       setOpenSubmenu([]);
     }
   }, [collapsed, setOpenSubmenu]);
+
+  // Auto-collapse the side nav whenever the user navigates to a new path.
+  // We watch pathname rather than the link click so the behaviour fires
+  // regardless of how navigation was triggered (link click, browser back,
+  // programmatic router.push). The previous-pathname tracker lives in a
+  // module-scoped ref instead of useRef because SideNavigation re-mounts
+  // on every navigation — a per-instance ref would always look like a
+  // fresh first mount and the collapse would never fire.
+  useEffect(() => {
+    if (!pathname) return;
+    if (lastSeenPathname === null) {
+      lastSeenPathname = pathname;
+      return;
+    }
+    if (lastSeenPathname !== pathname) {
+      lastSeenPathname = pathname;
+      setOpenSubmenu([]);
+      setCollapsed(true);
+    }
+  }, [pathname, setCollapsed, setOpenSubmenu]);
 
   // filter all parents that dont have subitems and theme-specific items
   const filteredRoutes = routes.filter(
@@ -237,7 +265,7 @@ export const SideNavigation = ({
             if (!shouldShowTitle) return null;
             return (
               <p key={item.id} className={cn(
-                "transition-opacity duration-300 text-xs text-muted-foreground mb-1",
+                "transition-opacity duration-300 text-xs text-muted-foreground mb-1 whitespace-nowrap",
                 index === 0 ? "mt-0" : "mt-6"
               )}>{item.name}</p>
             );

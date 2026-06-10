@@ -5,6 +5,8 @@ import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
+import { getPropositionMetrics } from '@/lib/proposition-metrics';
+import { InsightsTab } from './insights-tab';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +32,7 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 
 // Shared SP-wizard booking form data (used in SP Details tabs)
 const spBookingCampaignOptions = [
@@ -684,7 +687,8 @@ const updatedForecastMetrics = [
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Digital In-store: Summer Launch (In-Option)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="digital-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -975,6 +979,11 @@ const updatedForecastMetrics = [
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="digital-instore" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -1188,16 +1197,16 @@ export const DigitalInstoreRunning: Story = {
       { key: 'cpa', label: 'Cost Per Acquisition', value: '$22.80', subMetric: 'vs. $28 target', badgeValue: '-18.6%', badgeVariant: 'success' },
     ];
 
+    // Unified per-proposition metric cards (same labels as the
+    // /campaigns/digital-instore overview, values scaled to this single
+    // campaign). See getPropositionMetrics().
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
-        selectedKeys={performanceMetrics.map(m => m.id)}
+        metrics={getPropositionMetrics('digital-instore', 'campaign')}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
-        showCharts={true}
-        dialogMetrics={dialogMetricsDigitalInstoreRunning}
-        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        bleedEdges
       />
     );
 
@@ -1220,7 +1229,8 @@ export const DigitalInstoreRunning: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Digital In-store: Summer Launch (Running)',
+            title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="digital-instore" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -1496,6 +1506,11 @@ export const DigitalInstoreRunning: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="digital-instore" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -1680,14 +1695,15 @@ export const OfflineInstoreRunning: Story = {
       { key: 'totalSkuConversions', label: 'Total SKU Conversions', value: '5,212', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+12%', badgeVariant: 'success' },
     ];
 
+    // Unified per-proposition cards — same labels as
+    // /campaigns/offline-instore, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics}
-        selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+        metrics={getPropositionMetrics('offline-instore', 'campaign')}
         maxVisible={5}
         defaultVariant="default"
-        removable={true}
-        showCharts={true}
+        removable={false}
+        bleedEdges
       />
     );
 
@@ -1700,7 +1716,8 @@ export const OfflineInstoreRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Offline In-store: Summer Launch (Running)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1988,6 +2005,11 @@ export const OfflineInstoreRunning: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="offline-instore" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -2201,14 +2223,11 @@ export const DisplayRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
-        selectedKeys={performanceMetrics.map(m => m.id)}
+        metrics={getPropositionMetrics('display', 'campaign')}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
-        showCharts={true}
-        dialogMetrics={dialogMetricsDisplayRunning}
-        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        bleedEdges
       />
     );
 
@@ -2221,7 +2240,8 @@ export const DisplayRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Display: Summer Launch (Running)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="display" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2499,6 +2519,11 @@ export const DisplayRunning: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="display" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -2731,7 +2756,8 @@ export const OfflineInstoreInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Offline In-store: Summer Launch (In-option)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2987,6 +3013,11 @@ export const OfflineInstoreInOption: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="offline-instore" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -3219,7 +3250,8 @@ export const DisplayInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Display: Summer Launch (In-option)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="display" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -3495,6 +3527,11 @@ export const DisplayInOption: Story = {
                   />
                 </div>
               ),
+            },
+            {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="display" scope="campaign" />,
             },
             {
               label: 'Logs',
@@ -4039,7 +4076,8 @@ export const SponsoredProductsInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Sponsored Products: Summer Launch (In-Option)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4419,6 +4457,11 @@ export const SponsoredProductsInOption: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="sponsored-products" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -4740,14 +4783,11 @@ export const SponsoredProductsRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics.map(m => ({ ...m, key: m.id }))}
-        selectedKeys={performanceMetrics.map(m => m.id)}
+        metrics={getPropositionMetrics('sponsored-products', 'campaign')}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
-        showCharts={true}
-        dialogMetrics={dialogMetricsSponsoredProductsRunning}
-        onDialogMetricClick={(key) => console.log(`${key} selected`)}
+        bleedEdges
       />
     );
     
@@ -4760,7 +4800,8 @@ export const SponsoredProductsRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Sponsored Products: Summer Launch (Running)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5151,6 +5192,11 @@ export const SponsoredProductsRunning: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="sponsored-products" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -5328,14 +5374,15 @@ export const OffsiteRunning: Story = {
       { key: 'totalSkuConversions', label: 'Total SKU Conversions', value: '15,246', subMetric: `${conversionWindow}-day attribution`, badgeValue: '+14%', badgeVariant: 'success' },
     ];
 
+    // Unified per-proposition cards — same labels as
+    // /campaigns/offsite, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
-        metrics={performanceMetrics}
-        selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+        metrics={getPropositionMetrics('offsite', 'campaign')}
         maxVisible={5}
         defaultVariant="default"
-        removable={true}
-        showCharts={true}
+        removable={false}
+        bleedEdges
       />
     );
 
@@ -5348,7 +5395,8 @@ export const OffsiteRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Offsite: Summer Launch (Running)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="offsite" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5665,6 +5713,11 @@ export const OffsiteRunning: Story = {
               ),
             },
             {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="offsite" scope="campaign" />,
+            },
+            {
               label: 'Logs',
               value: 'logs',
               content: (
@@ -5857,7 +5910,8 @@ export const OffsiteInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Offsite: Summer Launch (In-option)',
+          title: 'Summer Launch',
+          titleIcon: <PropositionIcon engineType="offsite" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -6171,6 +6225,11 @@ export const OffsiteInOption: Story = {
                   />
                 </div>
               ),
+            },
+            {
+              label: 'Insights',
+              value: 'insights',
+              content: <InsightsTab engineType="offsite" scope="campaign" />,
             },
             {
               label: 'Logs',

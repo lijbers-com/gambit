@@ -19,7 +19,23 @@ interface MenuContextType {
 
 export const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
+/**
+ * MenuContextProvider. If a parent already supplies a MenuContext (the
+ * Next.js root layout does), we pass through the children unchanged so
+ * the root's `collapsed` / `openSubmenu` state survives client-side
+ * navigations between pages. Without this, every story / page template
+ * that wraps its content in `<MenuContextProvider>` would shadow the
+ * root and reset the nav back to expanded on every route change.
+ */
 export function MenuContextProvider({ children }: { children: React.ReactNode }) {
+  const existing = useContext(MenuContext);
+  if (existing) {
+    return <>{children}</>;
+  }
+  return <RootMenuContextProvider>{children}</RootMenuContextProvider>;
+}
+
+function RootMenuContextProvider({ children }: { children: React.ReactNode }) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [activeItem, setActiveItem] = useState<string>('');
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -51,15 +67,22 @@ export function MenuContextProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // Handle text visibility with animation delay
+  //
+  // CLOSING: hide labels first (synchronously), then let the width
+  // transition collapse so labels never overflow a narrowing container.
+  //
+  // OPENING: wait for the 500ms width transition to fully finish before
+  // un-hiding labels. The extra 80ms buffer pushes the reveal past the
+  // browser's final paint of the open state so labels never momentarily
+  // render against an intermediate width (which would cause them to
+  // wrap onto multiple lines).
   useEffect(() => {
     if (collapsed) {
-      // Hide text immediately when collapsing
       setShowText(false);
     } else {
-      // Show text after animation completes when expanding (500ms duration)
       const timer = setTimeout(() => {
         setShowText(true);
-      }, 500);
+      }, 580);
       return () => clearTimeout(timer);
     }
   }, [collapsed]);

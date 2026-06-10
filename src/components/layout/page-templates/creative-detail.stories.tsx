@@ -17,6 +17,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → creative
@@ -346,7 +347,8 @@ export const Display: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Creative Detail - Display',
+          title: 'Creative Detail',
+          titleIcon: <PropositionIcon engineType="display" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -576,7 +578,8 @@ export const DigitalInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Creative Detail - Digital In-Store',
+          title: 'Creative Detail',
+          titleIcon: <PropositionIcon engineType="digital-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -822,7 +825,8 @@ export const OfflineInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Creative Detail - Offline In-Store',
+          title: 'Creative Detail',
+          titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),

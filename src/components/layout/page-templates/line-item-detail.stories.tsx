@@ -25,9 +25,12 @@ import { format } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { cn } from '@/lib/utils';
 import { CalendarTable } from '../../ui/calendar-table';
 import { MetricRow } from '@/components/ui/metric-row';
+import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import type { MetricDefinition } from '@/components/ui/metric-row';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
@@ -408,6 +411,12 @@ export const Display: Story = {
     const [section4Open, setSection4Open] = React.useState(true);
     const [section5Open, setSection5Open] = React.useState(true);
 
+    // Booking template tabs — split the form into three areas:
+    // 1. Booking details (run-time, schedule, active days, position)
+    // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
+    // 3. Creatives (link / upload creatives — placeholder for now)
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+
     // Booking setup
     const [bookingName, setBookingName] = React.useState('');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
@@ -482,7 +491,7 @@ export const Display: Story = {
     const ToggleRow = ({ label, checked, onCheckedChange, info, rightText }: {
       label: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: boolean; rightText?: string;
     }) => (
-      <div className="flex items-center justify-between p-4 rounded-lg border bg-white">
+      <div className="flex items-center justify-between py-2">
         <span className="font-medium text-sm">{label}</span>
         <div className="flex items-center gap-3">
           {info && (
@@ -503,7 +512,8 @@ export const Display: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Booking Detail - Display',
+            title: 'Booking Detail',
+          titleIcon: <PropositionIcon engineType="display" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -513,19 +523,53 @@ export const Display: Story = {
         >
           <div className="mb-3">
             <MetricRow
-              metrics={displayMetrics}
-              selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+              metrics={getPropositionMetrics('display', 'booking')}
               maxVisible={5}
               defaultVariant="default"
-              removable={true}
-              showCharts={true}
+              removable={false}
+              bleedEdges
             />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
 
-              {/* 1. Booking setup */}
-              <div className="rounded-xl border bg-white">
+              {/* Tabs + outer card pair (no gap between them — the tab visually attaches to the card top) */}
+              <div>
+              {/* Tabs: split the form into Booking details / Targeting / Creatives */}
+              <div className="flex gap-0" role="tablist">
+                {[
+                  { value: 'details',    label: 'Booking details' },
+                  { value: 'targeting',  label: 'Targeting' },
+                  { value: 'creatives',  label: 'Creatives' },
+                ].map((t) => (
+                  <button
+                    key={t.value}
+                    role="tab"
+                    aria-selected={bookingTab === t.value}
+                    onClick={() => setBookingTab(t.value as typeof bookingTab)}
+                    className={cn(
+                      'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                      bookingTab === t.value
+                        ? 'font-medium bg-white text-card-foreground border-border z-10'
+                        : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+                    )}
+                    style={{ position: 'relative', top: '1px' }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Single outer card — the tab bar above visually attaches here */}
+              <div
+                className={cn(
+                  'rounded-xl border bg-white',
+                  bookingTab === 'details' && 'rounded-tl-none',
+                )}
+              >
+
+              {/* 1. Booking setup — Booking details tab */}
+              <div className={cn(bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={1} title="Booking setup" open={section1Open} onToggle={() => setSection1Open(v => !v)} />
                 {section1Open && (
                   <div className="px-6 pb-6 space-y-6">
@@ -661,12 +705,12 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* 2. Targeting */}
-              <div className="rounded-xl border bg-white">
+              {/* 2. Targeting — Targeting tab */}
+              <div className={cn(bookingTab !== 'targeting' && 'hidden')}>
                 <SectionHeader number={2} title="Targeting" open={section2Open} onToggle={() => setSection2Open(v => !v)} />
                 {section2Open && (
                   <div className="px-6 pb-6">
-                    <div className="rounded-lg border bg-white p-4 space-y-4">
+                    <div className="space-y-4">
                       <div className="font-semibold text-sm">Targets</div>
                       <div className="flex items-center justify-between">
                         <div className="flex rounded-lg bg-muted p-1 gap-1">
@@ -728,14 +772,14 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* 3. Delivery behavior */}
-              <div className="rounded-xl border bg-white">
+              {/* 3. Delivery behavior — Targeting tab */}
+              <div className={cn(bookingTab !== 'targeting' && 'hidden')}>
                 <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
                 {section3Open && (
                   <div className="px-6 pb-6 space-y-3">
                     <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info />
                     <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info />
-                    <div className="rounded-lg border bg-white p-4 space-y-3">
+                    <div className="space-y-3 py-2">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">Delivery method</span>
                         <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
@@ -762,8 +806,8 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* 4. Delivery objectives */}
-              <div className="rounded-xl border bg-white">
+              {/* 4. Delivery objectives — Targeting tab */}
+              <div className={cn(bookingTab !== 'targeting' && 'hidden')}>
                 <SectionHeader number={4} title="Delivery objectives" open={section4Open} onToggle={() => setSection4Open(v => !v)} />
                 {section4Open && (
                   <div className="px-6 pb-6 space-y-3">
@@ -774,8 +818,8 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* 5. Pricing */}
-              <div className="rounded-xl border bg-white">
+              {/* 5. Pricing — Targeting tab */}
+              <div className={cn(bookingTab !== 'targeting' && 'hidden')}>
                 <SectionHeader number={5} title="Pricing" open={section5Open} onToggle={() => setSection5Open(v => !v)} />
                 {section5Open && (
                   <div className="px-6 pb-6 space-y-3">
@@ -784,6 +828,25 @@ export const Display: Story = {
                   </div>
                 )}
               </div>
+
+              {/* Creatives tab — placeholder pending wiring to /creatives/[type]/[id] */}
+              <div className={cn(bookingTab !== 'creatives' && 'hidden')}>
+                <div className="px-6 py-10 text-center">
+                  <h3 className="text-base font-semibold text-foreground mb-1">Creatives</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Attach existing creatives or upload new ones for this booking.
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button variant="outline">Browse creatives</Button>
+                    <Button><Upload className="w-4 h-4 mr-1" /> Upload creative</Button>
+                  </div>
+                </div>
+              </div>
+
+              </div>
+              {/* end single outer card */}
+              </div>
+              {/* end tabs+card wrapper */}
 
               <div className="flex gap-2 pb-6">
                 <Button variant="outline">Cancel</Button>
@@ -825,6 +888,7 @@ export const DigitalInStore: Story = {
     // clone action so AdOps can cluster this booking with related campaigns
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
     const [evaluationId, setEvaluationId] = React.useState('');
     // Booking store selection (ported from Offline in-store)
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
@@ -1020,7 +1084,8 @@ export const DigitalInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail - Digital In-Store',
+          title: 'Booking Detail',
+          titleIcon: <PropositionIcon engineType="digital-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1030,12 +1095,11 @@ export const DigitalInStore: Story = {
       >
         <div className="mb-3">
           <MetricRow
-            metrics={digitalInstoreMetrics}
-            selectedKeys={['repetitions', 'stores', 'reach', 'roas']}
+            metrics={getPropositionMetrics('digital-instore', 'booking')}
             maxVisible={5}
             defaultVariant="default"
-            removable={true}
-            showCharts={true}
+            removable={false}
+            bleedEdges
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -1043,9 +1107,32 @@ export const DigitalInStore: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 min-w-0">
-                  <Card className="min-w-0">
-                    <CardHeader className="space-y-8">
-                      <FormSection title="Booking details">
+                  <div className="flex gap-0" role="tablist">
+                    {[
+                      { value: 'details',    label: 'Booking details' },
+                      { value: 'targeting',  label: 'Targeting' },
+                      { value: 'creatives',  label: 'Creatives' },
+                    ].map((t) => (
+                      <button
+                        key={t.value}
+                        role="tab"
+                        aria-selected={bookingTab === t.value}
+                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
+                        className={cn(
+                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          bookingTab === t.value
+                            ? 'font-medium bg-white text-card-foreground border-border z-10'
+                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+                        )}
+                        style={{ position: 'relative', top: '1px' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                    <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
@@ -1059,7 +1146,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
                       
-                      <FormSection title="Placement">
+                      <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
@@ -1126,7 +1213,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Run time">
+                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
@@ -1154,7 +1241,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Retail products">
+                      <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Select retail products*</label>
@@ -1224,7 +1311,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store targets">
+                      <FormSection borderless title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="flex gap-3">
                             <Filter
@@ -1249,7 +1336,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Stores">
+                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -1394,7 +1481,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Target">
+                      <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this booking
@@ -1418,7 +1505,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Creatives">
+                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         {selectedCreatives.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
@@ -1460,7 +1547,7 @@ export const DigitalInStore: Story = {
                         />
                       </FormSection>
 
-                      <FormSection title="Booking evaluation">
+                      <FormSection borderless title="Booking evaluation" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
@@ -1811,6 +1898,7 @@ export const OfflineInStore: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
     const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory, setSelectedInventory] = React.useState<any[]>([]);
     const [inventorySearch, setInventorySearch] = React.useState('');
@@ -2145,7 +2233,8 @@ export const OfflineInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail - Offline In-Store',
+          title: 'Booking Detail',
+          titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2155,12 +2244,11 @@ export const OfflineInStore: Story = {
       >
         <div className="mb-3">
           <MetricRow
-            metrics={offlineInstoreMetrics}
-            selectedKeys={['adSpend', 'impressions', 'stores', 'totalSkuRevenue']}
+            metrics={getPropositionMetrics('offline-instore', 'booking')}
             maxVisible={5}
             defaultVariant="default"
-            removable={true}
-            showCharts={true}
+            removable={false}
+            bleedEdges
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -2168,9 +2256,32 @@ export const OfflineInStore: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 min-w-0">
-                  <Card className="min-w-0">
-                    <CardHeader className="space-y-8">
-                      <FormSection title="Preparation">
+                  <div className="flex gap-0" role="tablist">
+                    {[
+                      { value: 'details',    label: 'Booking details' },
+                      { value: 'targeting',  label: 'Targeting' },
+                      { value: 'creatives',  label: 'Creatives' },
+                    ].map((t) => (
+                      <button
+                        key={t.value}
+                        role="tab"
+                        aria-selected={bookingTab === t.value}
+                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
+                        className={cn(
+                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          bookingTab === t.value
+                            ? 'font-medium bg-white text-card-foreground border-border z-10'
+                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+                        )}
+                        style={{ position: 'relative', top: '1px' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                    <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+<FormSection borderless title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <p className="text-sm text-muted-foreground">
                             Complete the steps below to prepare this booking. Set the store list, creative status, printer instructions, and briefing to mark this booking as ready.
@@ -2206,7 +2317,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Run time">
+                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
@@ -2234,7 +2345,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Stores">
+                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -2534,7 +2645,7 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
 
-                      <FormSection title="Creatives">
+                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
@@ -2563,7 +2674,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Printer">
+                      <FormSection borderless title="Printer" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
@@ -2710,6 +2821,7 @@ export const SponsoredProducts: Story = {
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
     const [bookingName, setBookingName] = React.useState('');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -2847,7 +2959,8 @@ export const SponsoredProducts: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail - Sponsored Products',
+          title: 'Booking Detail',
+          titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2857,12 +2970,11 @@ export const SponsoredProducts: Story = {
       >
         <div className="mb-3">
           <MetricRow
-            metrics={sponsoredProductsMetrics}
-            selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+            metrics={getPropositionMetrics('sponsored-products', 'booking')}
             maxVisible={5}
             defaultVariant="default"
-            removable={true}
-            showCharts={true}
+            removable={false}
+            bleedEdges
           />
         </div>
         <div className="flex flex-1 flex-col">
@@ -2870,9 +2982,32 @@ export const SponsoredProducts: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 min-w-0">
-                  <Card className="min-w-0">
-                    <CardHeader className="space-y-8">
-                      <FormSection title="Booking details">
+                  <div className="flex gap-0" role="tablist">
+                    {[
+                      { value: 'details',    label: 'Booking details' },
+                      { value: 'targeting',  label: 'Targeting' },
+                      { value: 'creatives',  label: 'Creatives' },
+                    ].map((t) => (
+                      <button
+                        key={t.value}
+                        role="tab"
+                        aria-selected={bookingTab === t.value}
+                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
+                        className={cn(
+                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          bookingTab === t.value
+                            ? 'font-medium bg-white text-card-foreground border-border z-10'
+                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+                        )}
+                        style={{ position: 'relative', top: '1px' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                    <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
@@ -2890,7 +3025,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
                       
-                      <FormSection title="Placement">
+                      <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
@@ -2957,7 +3092,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Run time">
+                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
@@ -2985,7 +3120,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Retail products">
+                      <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Select retail products*</label>
@@ -3055,7 +3190,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Store targets">
+                      <FormSection borderless title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="flex gap-3">
                             <Filter
@@ -3080,7 +3215,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Stores">
+                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -3107,7 +3242,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Target">
+                      <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this booking
@@ -3131,7 +3266,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection title="Creatives">
+                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         {selectedCreatives.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
@@ -3248,6 +3383,7 @@ export const OffsiteDisplay: Story = {
     const routes = getRoutesForTheme(currentTheme);
 
     const [bookingName, setBookingName] = React.useState('');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
@@ -3341,7 +3477,8 @@ export const OffsiteDisplay: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Booking Detail - Offsite Display',
+            title: 'Booking Detail',
+          titleIcon: <PropositionIcon engineType="offsite" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -3351,21 +3488,42 @@ export const OffsiteDisplay: Story = {
         >
           <div className="mb-3">
             <MetricRow
-              metrics={offsiteDisplayMetrics}
-              selectedKeys={['adSpend', 'impressions', 'ctr', 'totalSkuRevenue']}
+              metrics={getPropositionMetrics('offsite', 'booking')}
               maxVisible={5}
               defaultVariant="default"
-              removable={true}
-              showCharts={true}
+              removable={false}
+              bleedEdges
             />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 min-w-0">
-              <Card className="min-w-0">
-                <CardHeader className="space-y-8">
-
-                  <FormSection title="Booking details">
+              <div className="flex gap-0" role="tablist">
+                    {[
+                      { value: 'details',    label: 'Booking details' },
+                      { value: 'targeting',  label: 'Targeting' },
+                      { value: 'creatives',  label: 'Creatives' },
+                    ].map((t) => (
+                      <button
+                        key={t.value}
+                        role="tab"
+                        aria-selected={bookingTab === t.value}
+                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
+                        className={cn(
+                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          bookingTab === t.value
+                            ? 'font-medium bg-white text-card-foreground border-border z-10'
+                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+                        )}
+                        style={{ position: 'relative', top: '1px' }}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+              <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Name*</label>
@@ -3383,7 +3541,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Placement">
+                  <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-3">
                       <label className="block text-sm font-medium mb-2">Select placement*</label>
                       {offsitePlacements.map(placement => (
@@ -3412,7 +3570,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Run time">
+                  <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -3440,7 +3598,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Budget">
+                  <FormSection borderless title="Budget" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Booking budget*</label>
@@ -3459,7 +3617,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Retail products">
+                  <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <div className="space-y-4">
                       <div className="relative" data-dropdown-container>
                         <label className="block text-sm font-medium mb-2">Select retail products*</label>
@@ -3523,7 +3681,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Targeting">
+                  <FormSection borderless title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium mb-2">Audience</label>
@@ -3593,7 +3751,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection title="Creatives">
+                  <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                     {selectedCreatives.length > 0 && (
                       <div className="mb-4 overflow-x-auto">
                         <Table
@@ -3629,6 +3787,7 @@ export const OffsiteDisplay: Story = {
                       onSelectionChange={setSelectedCreatives}
                     />
                   </FormSection>
+
 
                 </CardHeader>
                 <CardContent>

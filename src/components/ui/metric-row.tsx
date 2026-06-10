@@ -198,7 +198,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             totalRow={metric.totalRow}
             valueFormatter={metric.valueFormatter}
             chart={metric.chart}
-            className="flex-1 min-w-[240px]"
+            className="flex-1 min-w-[200px]"
             onRemove={removable ? () => removeMetric(metric.key) : undefined}
             isSelected={activeKey !== undefined ? activeKey === metric.key : false}
             onClick={(showCharts || onActiveKeyChange) ? () => handleCardClick(metric.key) : undefined}

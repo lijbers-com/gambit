@@ -72,7 +72,11 @@ export const defaultFillRateLabels: Record<FillRateSegmentKey, string> = {
   overbooked:   "Overbooked",
   overreserved: "Overreserved",
   soldManaged:  "Sold (managed)",
-  action:       "Action",
+  // The "action" segment key historically referred to advertiser-driven
+  // sales (advertisers booking via the self-service / Edge Advertiser UI).
+  // "Self service" is the term yield managers actually use — keep the
+  // key name for back-compat but surface the human-readable label.
+  action:       "Self service",
   programmatic: "Programmatic",
 }
 
@@ -110,6 +114,12 @@ export interface FillRateBarProps {
   /** Render a Radix tooltip on hover with a structured legend. Requires a
    *  TooltipProvider somewhere in the parent tree. Default: true. */
   hoverTooltip?: boolean
+  /** When set, the below-bar labels are extended with the absolute volume
+   *  used vs the total — used by the Impressions view so a cell reads
+   *  "85% / 330K" instead of just "85%". The total is the cell's
+   *  impressions target; the used count is derived from the percentage
+   *  already computed inside the bar. */
+  impressionsTotal?: number
 }
 
 export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
@@ -125,9 +135,20 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       className,
       title,
       hoverTooltip = true,
+      impressionsTotal,
     },
     ref
   ) => {
+    // Compact number formatter for the impressions absolute value
+    // (e.g. 330_000 → "330K", 1_250_000 → "1.3M").
+    const fmtK = (n: number): string => {
+      if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+      if (n >= 1_000) {
+        const k = n / 1_000
+        return k >= 100 ? `${Math.round(k)}K` : `${k.toFixed(1)}K`
+      }
+      return `${Math.round(n)}`
+    }
     const colors = { ...defaultFillRateColors, ...segmentColors }
     const labels = { ...defaultFillRateLabels, ...segmentLabels }
 
@@ -204,12 +225,28 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       </div>
     )
 
-    // Below-bar variant of the rolled-up numbers (used when not labelsInside).
+    // Below-bar variant of the rolled-up numbers.
+    //
+    // - Fill-rate view (no `impressionsTotal`): show used% on the left and
+    //   available% (or +over%) on the right — both are useful at a glance.
+    // - Impressions view (`impressionsTotal` set): show ONLY the booked side
+    //   as `used% / 160K`. The right number duplicates the left when the cell
+    //   is 50/50 and adds noise the rest of the time; one label per bar is
+    //   enough for "how much is sold".
+    const impressionsMode = impressionsTotal !== undefined
+    const usedImpressions = impressionsTotal
+      ? Math.round((impressionsTotal * Math.min(usedPct, 100)) / 100)
+      : undefined
+
+    const leftLabel =
+      usedImpressions !== undefined ? `${usedPct}% / ${fmtK(usedImpressions)}` : `${usedPct}%`
+    const rightLabel = `${rightPrefix}${rightPct}%`
+
     const labelRow = hasRollup ? (
       <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
-        <span style={{ color: colors.booked }}>{usedPct}%</span>
-        {showRight && (
-          <span style={{ color: rightColor }}>{rightPrefix}{rightPct}%</span>
+        <span style={{ color: colors.booked }}>{leftLabel}</span>
+        {!impressionsMode && showRight && (
+          <span style={{ color: rightColor }}>{rightLabel}</span>
         )}
       </div>
     ) : null

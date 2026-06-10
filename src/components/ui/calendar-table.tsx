@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
-import { Badge } from './badge';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './tooltip';
@@ -20,6 +19,14 @@ export interface Booking {
    *  per-theme chart shade for booked/confirmed/reserved and the
    *  warning token for overbooked regardless of `variant`. */
   status?: BookingStatus;
+  /** Booked impressions for this campaign. Surfaced on the badge so
+   *  yield managers can read sold volume from the calendar at a glance.
+   *  When omitted, a stable demo value is derived from `stores`. */
+  impressions?: number;
+  /** Booked revenue (€) for this campaign. Surfaced on the badge when
+   *  the calendar is in Revenue view. When omitted, a demo value is
+   *  derived from impressions at €4 CPM. */
+  revenue?: number;
 }
 
 /** One drill-down level under a channel — typically a screen or banner position. */
@@ -64,6 +71,133 @@ const isAvailableTimeValue = (v: any): v is AvailableTimeValue =>
 const isFillRateValue = (v: any): v is FillRateValue =>
   typeof v === 'object' && v !== null && !isAvailableTimeValue(v) && !isBookingsCellValue(v);
 
+// Per-cell impressions target for the Impressions view. Derived from the
+// product id + week index so the value is stable per cell and varied
+// across the grid. Range tuned to 200K–600K so the "85% / 330K" label is
+// readable and feels like real ad inventory. Defensively coerces a missing
+// productId to an empty string so the helper never throws on weird data.
+const computeImpressionsTotal = (productId: string | undefined, weekIndex: number): number => {
+  const seed = String(productId ?? '')
+    .split('')
+    .reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) >>> 0, 0);
+  const mix = (seed + weekIndex * 9301 + 49297) % 233280;
+  const ratio = mix / 233280;        // 0..1
+  // 200K base + up to ~400K extra, rounded to nearest 10K.
+  return Math.round((200_000 + ratio * 400_000) / 10_000) * 10_000;
+};
+
+// Format impressions compactly for the booking-bar badge.
+export const fmtImpressionsCompact = (n: number): string => {
+  if (!Number.isFinite(n) || n < 0) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) {
+    const k = n / 1_000;
+    return k >= 100 ? `${Math.round(k)}K` : `${k.toFixed(1)}K`;
+  }
+  return `${Math.round(n)}`;
+};
+
+// Derive a stable per-booking impressions count from the booking's id +
+// `stores` field. Real data should carry impressions explicitly; this is
+// the fallback for demo bookings that don't. Guards against a missing
+// booking object so the renderer never throws on partial data.
+export const computeBookingImpressions = (booking: { id?: string; stores?: number; impressions?: number } | null | undefined): number => {
+  if (!booking) return 0;
+  if (typeof booking.impressions === 'number') return booking.impressions;
+  const idSeed = String(booking.id ?? '')
+    .split('')
+    .reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) >>> 0, 0);
+  const storesBase = Math.max(50, booking.stores ?? 100);
+  // ~1K-3K impressions per store, varied per booking by id seed.
+  const mult = 1.0 + ((idSeed % 200) / 100); // 1.0 .. 3.0
+  return Math.round(storesBase * mult * 1_000);
+};
+
+// Format € amounts compactly (€420, €4.8K, €1.2M).
+export const fmtRevenueCompact = (n: number): string => {
+  if (!Number.isFinite(n) || n < 0) return '€0';
+  if (n >= 1_000_000) return `€${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) {
+    const k = n / 1_000;
+    return k >= 100 ? `€${Math.round(k)}K` : `€${k.toFixed(1)}K`;
+  }
+  return `€${Math.round(n)}`;
+};
+
+// Derive per-booking revenue. Honour an explicit `revenue` field when the
+// data carries one; otherwise back-calc from impressions at a €4 CPM
+// (€4 per 1000 impressions) — the same CPM the cell-level Revenue view
+// uses in the calendar's demo data.
+export const computeBookingRevenue = (booking: { id?: string; stores?: number; impressions?: number; revenue?: number } | null | undefined): number => {
+  if (!booking) return 0;
+  if (typeof booking.revenue === 'number') return booking.revenue;
+  const impressions = computeBookingImpressions(booking);
+  return Math.round(impressions * 0.004); // €4 CPM
+};
+
+// Decide what value the badge on the booking bar shows for the current
+// calendar view. Impressions / Revenue / Available Stores each surface
+// the matching booking field; views that don't have a meaningful
+// per-booking unit (Fill rate %, Available time, the Bookings status
+// view) fall back to impressions because that's the most useful default.
+type BookingBadgeMode = 'impressions' | 'revenue' | 'stores' | 'time' | 'none';
+
+const bookingBadgeModeFor = (displayType: string | undefined): BookingBadgeMode => {
+  switch (displayType) {
+    case 'impressionsBar':
+    case 'reach':
+      return 'impressions';
+    case 'revenue':
+      return 'revenue';
+    case 'stores':
+      return 'stores';
+    case 'availableTimeBar':
+    case 'availableTime':
+      return 'time';
+    case 'bookedCampaigns':
+    case 'fillRate':
+    case 'fillRateBar':
+    default:
+      // Bookings view + the fill-rate views all keep showing impressions
+      // — yield managers consistently read "how big is this campaign".
+      return 'impressions';
+  }
+};
+
+const formatBookingBadge = (
+  booking: Booking,
+  displayType: string | undefined,
+): { value: string; ariaLabel: string } | null => {
+  const mode = bookingBadgeModeFor(displayType);
+  switch (mode) {
+    case 'revenue': {
+      const v = computeBookingRevenue(booking);
+      const value = fmtRevenueCompact(v);
+      return { value, ariaLabel: `${value} revenue` };
+    }
+    case 'stores': {
+      const v = booking.stores ?? 0;
+      const value = v.toLocaleString();
+      return { value, ariaLabel: `${value} stores` };
+    }
+    case 'time': {
+      // Per-booking "time" doesn't have a real unit; fall through to
+      // impressions which is what yield managers actually want here.
+      const v = computeBookingImpressions(booking);
+      const value = fmtImpressionsCompact(v);
+      return { value, ariaLabel: `${value} impressions` };
+    }
+    case 'none':
+      return null;
+    case 'impressions':
+    default: {
+      const v = computeBookingImpressions(booking);
+      const value = fmtImpressionsCompact(v);
+      return { value, ariaLabel: `${value} impressions` };
+    }
+  }
+};
+
 export interface MediaProduct {
   id: string;
   name: string;
@@ -87,7 +221,7 @@ export interface CalendarTableProps {
   startWeek?: number;
   retailerEvents?: RetailerEvent[];
   showReach?: boolean;
-  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
+  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
   className?: string;
   onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: CalendarCellValue) => void;
   /** Fires when the channel name (left column) is clicked. Use to open a
@@ -152,16 +286,22 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     };
   };
 
-  // Commercial agenda events pull from the same --chart-1 ... --chart-5
-  // tokens the rest of the chart layer uses, so events sit in the same
-  // palette as every chart in the app and the theme switcher retunes them
-  // automatically.
+  // Commercial agenda events use neutral grey shades from the theme palette,
+  // not the chart palette. Sharing the chart palette confused users into
+  // reading events as a third bar segment; greys keep them legible without
+  // competing with the actual data colors.
+  const eventGreyShades: Array<{ bg: string; fg: string }> = [
+    { bg: 'rgb(var(--neutral-700))', fg: 'white' },
+    { bg: 'rgb(var(--neutral-500))', fg: 'white' },
+    { bg: 'rgb(var(--neutral-300))', fg: 'rgb(var(--neutral-900))' },
+    { bg: 'rgb(var(--neutral-200))', fg: 'rgb(var(--neutral-900))' },
+  ];
   const getCommercialAgendaColorStyle = (index: number) => {
-    const colorVar = `--chart-${(index % 5) + 1}`;
+    const shade = eventGreyShades[index % eventGreyShades.length];
     return {
-      backgroundColor: `hsl(var(${colorVar}))`,
-      color: 'white',
-      borderColor: `hsl(var(${colorVar}))`,
+      backgroundColor: shade.bg,
+      color: shade.fg,
+      borderColor: shade.bg,
     };
   };
 
@@ -235,15 +375,28 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       const handleCellClick = () => {
         if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
       };
-      // The padding lives inside FillRateBar's trigger wrapper so the entire
-      // cell-sized box (not just the 10px bar) opens the hover tooltip.
+      // When the calendar is in Impressions mode, derive a stable
+      // per-cell impressions target so the label row shows "85% / 330K"
+      // alongside the percentage. The target is keyed off the product id
+      // + week index so the same cell always renders the same number;
+      // varied across cells so the demo doesn't look uniform.
+      const impressionsTotal =
+        displayType === 'impressionsBar'
+          ? computeImpressionsTotal(mediaProduct.id, weekIndex)
+          : undefined;
       return (
         <td
           key={weekIndex}
           className="p-0 align-middle hover:bg-neutral-50 transition-colors"
           onClick={handleCellClick}
         >
-          <FillRateBar value={value} height={10} showLabels className="px-3 py-[11px]" />
+          <FillRateBar
+            value={value}
+            height={10}
+            showLabels
+            className="px-3 py-[11px]"
+            impressionsTotal={impressionsTotal}
+          />
         </td>
       );
     }
@@ -381,39 +534,74 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           )}
         >
           <div style={{ minHeight: 32 }} className="flex items-center">
-            {booking.status ? (
-              <div
-                role={onBookingClick ? 'button' : undefined}
-                tabIndex={onBookingClick ? 0 : undefined}
-                onClick={onBookingClick ? (e) => { e.stopPropagation(); onBookingClick(booking); } : undefined}
-                onKeyDown={onBookingClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBookingClick(booking); } } : undefined}
-                className={cn(
-                  "w-full px-3 py-1 rounded-full text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden",
-                  onBookingClick && "cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                )}
-                style={{
-                  backgroundColor: bookingStatusColors[booking.status],
-                  color: booking.status === 'reserved' ? 'hsl(var(--chart-900))' : 'white',
-                }}
-                title={`${booking.name} (${bookingStatusLabels[booking.status]})`}
-              >
-                {booking.name}
-              </div>
-            ) : (
-              <Badge
-                variant={booking.variant || "default"}
-                role={onBookingClick ? 'button' : undefined}
-                tabIndex={onBookingClick ? 0 : undefined}
-                onClick={onBookingClick ? (e) => { e.stopPropagation(); onBookingClick(booking); } : undefined}
-                onKeyDown={onBookingClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBookingClick(booking); } } : undefined}
-                className={cn(
-                  "w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden",
-                  onBookingClick && "cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                )}
-              >
-                {booking.name}
-              </Badge>
-            )}
+            {(() => {
+              // The badge value depends on the active view: Impressions
+              // shows volume, Revenue shows €, Available Stores shows
+              // store count, everything else falls back to impressions.
+              const badge = formatBookingBadge(booking, displayType);
+              // Common interactive props + classes shared between the
+              // status-coloured bar and the neutral fallback bar so they
+              // render at the same height / padding / font weight as the
+              // events bar above.
+              const interactive = onBookingClick
+                ? {
+                    role: 'button' as const,
+                    tabIndex: 0,
+                    onClick: (e: React.MouseEvent) => { e.stopPropagation(); onBookingClick(booking); },
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onBookingClick(booking);
+                      }
+                    },
+                  }
+                : {};
+              const sharedClass = cn(
+                "w-full flex items-center gap-2 px-3 py-1 rounded-full text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden",
+                onBookingClick && "cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+              );
+              if (booking.status) {
+                const isLight = booking.status === 'reserved';
+                return (
+                  <div
+                    {...interactive}
+                    className={sharedClass}
+                    style={{
+                      backgroundColor: bookingStatusColors[booking.status],
+                      color: isLight ? 'hsl(var(--chart-900))' : 'white',
+                    }}
+                    title={`${booking.name} (${bookingStatusLabels[booking.status]})${badge ? ` — ${badge.ariaLabel}` : ''}`}
+                  >
+                    <span className="truncate flex-1">{booking.name}</span>
+                    {badge && (
+                      <span
+                        className="shrink-0 tabular-nums text-[10px] font-semibold opacity-90"
+                        aria-label={badge.ariaLabel}
+                      >
+                        {badge.value}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <div
+                  {...interactive}
+                  className={cn(sharedClass, "bg-neutral-100 text-neutral-900 border border-border")}
+                  title={`${booking.name}${badge ? ` — ${badge.ariaLabel}` : ''}`}
+                >
+                  <span className="truncate flex-1">{booking.name}</span>
+                  {badge && (
+                    <span
+                      className="shrink-0 tabular-nums text-[10px] font-semibold text-muted-foreground"
+                      aria-label={badge.ariaLabel}
+                    >
+                      {badge.value}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </td>
       );
@@ -435,10 +623,15 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   };
 
   const zonesColumnWidth = '240px';
-  // Wider columns when the cells render a stacked bar (FillRate or
-  // AvailableTime) — the per-segment labels need room to breathe.
+  // Wider columns when the cells render a stacked bar — the per-segment
+  // labels need room to breathe.
+  //  - `impressionsBar` is the widest (label is "85% / 330K", up to ~12 chars)
+  //  - `fillRateBar` / `availableTimeBar` show shorter "85%" labels
+  //  - simple numeric / status cells stay compact
   const weekColumnWidth =
-    displayType === 'fillRateBar' || displayType === 'availableTimeBar'
+    displayType === 'impressionsBar'
+      ? '160px'
+      : displayType === 'fillRateBar' || displayType === 'availableTimeBar'
       ? '140px'
       : '100px';
 
@@ -453,7 +646,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               className="h-14 px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
-              Zones
+              Media products
             </th>
             {weekNumbers.map(week => (
               <th
@@ -590,13 +783,12 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                               <div style={{ minHeight: 32 }} className="flex items-center justify-center">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Badge
-                                      variant="default"
-                                      className="w-full text-left justify-start truncate max-w-full whitespace-nowrap overflow-hidden border-0 cursor-default"
+                                    <div
+                                      className="w-full px-3 py-1 rounded-full text-left text-xs font-medium truncate max-w-full whitespace-nowrap overflow-hidden cursor-default"
                                       style={getCommercialAgendaColorStyle(index)}
                                     >
                                       {eventName}
-                                    </Badge>
+                                    </div>
                                   </TooltipTrigger>
                                   <TooltipContent
                                     side="top"

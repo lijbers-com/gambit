@@ -2,13 +2,18 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
-import { X } from 'lucide-react';
-import { CalendarTable } from '@/components/ui/calendar-table';
+import { X, Eye, Euro, Percent, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
+import {
+  CalendarTable,
+  computeBookingImpressions,
+  computeBookingRevenue,
+  fmtImpressionsCompact,
+  fmtRevenueCompact,
+} from '@/components/ui/calendar-table';
 import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
 import { FilterBar } from '@/components/ui/filter-bar';
-import { Viewbar } from '@/components/ui/viewbar';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { 
   RightDrawer, 
@@ -26,7 +31,18 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { DateRange } from "react-day-picker";
-import { differenceInWeeks, startOfWeek, getWeek } from "date-fns";
+import { differenceInWeeks, startOfWeek, getWeek, setWeek, format } from "date-fns";
+
+// Render an ISO week number (24, 25, …) as a human-readable date by
+// snapping it to the Monday of that week in the current year. Used to
+// turn the bookings' startWeek/endWeek into Start date / End date in
+// the cell drawer's bookings table.
+const weekToDate = (week: number, year?: number): string => {
+  if (!Number.isFinite(week)) return '—';
+  const base = year ? new Date(year, 0, 4) : new Date(); // Jan 4 is always in ISO week 1
+  const d = setWeek(startOfWeek(base, { weekStartsOn: 1 }), week, { weekStartsOn: 1 });
+  return format(d, 'MMM d, yyyy');
+};
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Bookings Calendar',
@@ -231,17 +247,40 @@ const buildDrawerMetrics = (
 
   return viewTabs.map(({ value: key, label }): MetricDefinition => {
     switch (key) {
-      case 'fillRate':
+      case 'fillRate': {
+        // 90% is the typical retail-media fill-rate target: low enough
+        // to leave room for last-minute demand, high enough to avoid
+        // leaving inventory on the table. Adjust per banner in real data.
+        const fillRateTarget = 90;
         return {
           key,
           label,
           value: `${Math.round(used)}%`,
+          subMetric: `of ${fillRateTarget}% target`,
           badgeValue: overbooked > 0 ? `+${Math.round(overbooked)}% over` : undefined,
           badgeVariant: overbooked > 0 ? 'destructive' : undefined,
           chart: v ? <FillRateBar value={v} height={10} showLabels hoverTooltip={false} /> : undefined,
         };
+      }
       case 'reach':
-        return { key, label, value: fmtK(usedImpressions), subMetric: `of ${fmtK(targetImpressions)} target` };
+        return {
+          key,
+          label,
+          value: fmtK(usedImpressions),
+          subMetric: `of ${fmtK(targetImpressions)} target`,
+          // Same fill-rate breakdown as the calendar cell, but with the
+          // impressions absolute value tagged on the label so the card
+          // reads as a visual progress meter ("85% / 10.6K").
+          chart: v ? (
+            <FillRateBar
+              value={v}
+              height={10}
+              showLabels
+              hoverTooltip={false}
+              impressionsTotal={targetImpressions}
+            />
+          ) : undefined,
+        };
       case 'revenue':
         return { key, label, value: `€${fmtK(usedImpressions * 4)}`, subMetric: 'gross booked' };
       case 'stores':
@@ -339,6 +378,12 @@ const toAvailableTimeBreakdown = (v: number | string | FillRateValue | Available
 // all appear in a single calendar.
 const positionCountCycle = [3, 5, 2, 8, 1, 4, 6, 0, 7, 2];
 
+// A richer cycle for the Display calendar so we can demonstrate the
+// "+N more positions" overflow on channels that genuinely run dozens of
+// banner positions across the publisher network. Some channels are still
+// small (1–3 positions) and one is empty so the full range stays visible.
+const displayPositionCountCycle = [3, 28, 12, 8, 25, 1, 22, 5, 18, 0, 7, 32];
+
 const transformPositionValue = (v: any, deduct: number) => {
   // Numbers: deduct a little so each position reads slightly less full than
   // the parent channel. Non-numeric cells (FillRateValue, AvailableTimeValue,
@@ -347,9 +392,12 @@ const transformPositionValue = (v: any, deduct: number) => {
   return v;
 };
 
-const withPositions = <T extends { id: string; name: string; availability: any[] }>(data: T[]): T[] => {
+const withPositions = <T extends { id: string; name: string; availability: any[] }>(
+  data: T[],
+  cycle: number[] = positionCountCycle,
+): T[] => {
   return data.map((p, idx) => {
-    const count = positionCountCycle[idx % positionCountCycle.length];
+    const count = cycle[idx % cycle.length];
     if (count === 0) return p; // channel intentionally has no drill-down
     const positions = Array.from({ length: count }, (_, i) => ({
       id: `${p.id}-pos-${i}`,
@@ -373,9 +421,12 @@ const BookingCalendarTemplate = ({
   showChannelFilter = false,
   showPublisherFilter = false,
   showBookingsTab = false,
+  showImpressionsTab = false,
   fillRateBreakdown = 'booking-states',
   channelOptions,
   publisherOptions,
+  maxInlinePositions = 5,
+  bookingTableVariant = 'default',
 }: {
   bookingsData: any[],
   title: string,
@@ -393,6 +444,11 @@ const BookingCalendarTemplate = ({
   /** Adds a "Bookings" view tab whose cells show status-colored chips
    *  (booked / confirmed / reserved / overbooked) per week. */
   showBookingsTab?: boolean,
+  /** Adds the "Impressions" view tab. Currently only relevant for the
+   *  Display calendar — sponsored products / digital in-store / offline
+   *  in-store all measure differently and shouldn't surface impressions
+   *  as a top-level view. */
+  showImpressionsTab?: boolean,
   /** Which fill-rate breakdown the Fill Rate + Impressions bars use.
    *  - 'booking-states' (default): booked / confirmed / reserved / available
    *  - 'sales-channels' (Display): sold managed / action / programmatic /
@@ -400,6 +456,16 @@ const BookingCalendarTemplate = ({
   fillRateBreakdown?: 'booking-states' | 'sales-channels',
   channelOptions?: Array<{ label: string, value: string }>,
   publisherOptions?: Array<{ label: string, value: string }>,
+  /** Cap on how many position rows render inline under an expanded channel
+   *  before the "+N more positions" overflow link appears. Default 5; the
+   *  Display calendar passes 20 so heavy channels (banner networks with
+   *  dozens of positions) can show a useful slice before the overflow. */
+  maxInlinePositions?: number,
+  /** Which column set the cell-drawer's bookings table uses.
+   *  - `default`: Booking ID · Campaign Name · Media Product · Stores · Dates
+   *  - `display`: Booking ID · Campaign Name · Media Product · Impressions
+   *    · Revenue · Dates  (Display inventory isn't store-based.) */
+  bookingTableVariant?: 'default' | 'display',
 }) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -422,7 +488,11 @@ const BookingCalendarTemplate = ({
     weekNumber: number;
     value: number | string;
   } | null>(null);
-  const [activeView, setActiveView] = useState('reach');
+  const [activeView, setActiveView] = useState(showImpressionsTab ? 'reach' : 'fillRate');
+  // Which 3 metric cards appear in the cell drawer. State lives here so the
+  // user's pick persists across cell clicks; defaults to the first 3 view
+  // tabs (or fewer if the calendar exposes fewer metrics).
+  const [drawerMetricKeys, setDrawerMetricKeys] = useState<string[] | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
@@ -430,12 +500,12 @@ const BookingCalendarTemplate = ({
   const [conversionWindow, setConversionWindow] = useState<number>(14);
 
   const viewTabs = [
-    { value: 'reach', label: 'Impressions' },
-    ...(hideRevenueTab ? [] : [{ value: 'revenue', label: 'Revenue' }]),
-    { value: 'fillRate', label: 'Fill Rate' },
-    ...(hideStoresTab ? [] : [{ value: 'stores', label: 'Available Stores' }]),
-    ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time' }] : []),
-    ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings' }] : []),
+    ...(showImpressionsTab ? [{ value: 'reach', label: 'Impressions', icon: Eye }] : []),
+    ...(hideRevenueTab ? [] : [{ value: 'revenue', label: 'Revenue', icon: Euro }]),
+    { value: 'fillRate', label: 'Fill Rate', icon: Percent },
+    ...(hideStoresTab ? [] : [{ value: 'stores', label: 'Available Stores', icon: Store }]),
+    ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time', icon: TvMinimalPlay }] : []),
+    ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings', icon: Megaphone }] : []),
   ];
 
   // Calculate weeks to show and start week from date range
@@ -589,15 +659,10 @@ const BookingCalendarTemplate = ({
         {(() => {
           const viewbarHeader = (
             <>
-              <div className="mb-4">
-                <Viewbar
-                  tabs={viewTabs}
-                  activeTab={activeView}
-                  onTabChange={setActiveView}
-                  labels={[]}
-                />
-              </div>
               <FilterBar
+                viewOptions={viewTabs}
+                activeView={activeView}
+                onViewChange={setActiveView}
                 filters={[
                   {
                     name: 'Status',
@@ -673,7 +738,7 @@ const BookingCalendarTemplate = ({
                 ]}
                 searchValue={searchQuery}
                 onSearchChange={setSearchQuery}
-                searchPlaceholder="Search channels..."
+                searchPlaceholder="Search..."
               />
             </>
           );
@@ -738,15 +803,17 @@ const BookingCalendarTemplate = ({
             // the meaning). Impressions is bar-mode now too.
             showReach: activeView === 'revenue' || activeView === 'stores',
             displayType: (
-              activeView === 'fillRate' || activeView === 'reach' ? 'fillRateBar' :
+              activeView === 'reach' ? 'impressionsBar' :
+              activeView === 'fillRate' ? 'fillRateBar' :
               activeView === 'availableTime' ? 'availableTimeBar' :
               activeView === 'bookings' ? 'bookedCampaigns' :
               activeView === 'revenue' ? 'revenue' :
               activeView === 'stores' ? 'stores' :
               'reach'
-            ) as 'fillRateBar' | 'availableTimeBar' | 'bookedCampaigns' | 'revenue' | 'stores' | 'reach',
+            ) as 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'bookedCampaigns' | 'revenue' | 'stores' | 'reach',
             onCellClick: handleCellClick,
             onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
+            maxInlinePositions,
           };
 
           const tabs = [
@@ -800,7 +867,7 @@ const BookingCalendarTemplate = ({
           );
         })()}
 
-        <RightDrawerContent>
+        <RightDrawerContent className="sm:max-w-3xl">
           <RightDrawerHeader>
             <RightDrawerTitle>
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
@@ -812,23 +879,24 @@ const BookingCalendarTemplate = ({
           <RightDrawerBody>
             <div className="space-y-6">
               {(() => {
-                // One card per metric this calendar exposes (derived from its
-                // view tabs). The drawer no longer has its own tab bar — every
-                // metric is shown at once and scrolls horizontally if needed.
+                // Up to 3 metric cards laid out as a responsive grid (no
+                // horizontal scroll). The user can swap which 3 are visible
+                // via MetricRow's built-in "Edit metrics" picker — drawerMetrics
+                // is the pool, drawerMetricKeys is the visible selection.
                 const drawerMetrics = buildDrawerMetrics(
                   viewTabs,
                   selectedCell?.value,
                   getBookingsForWeek().length,
                 );
+                const visibleKeys =
+                  drawerMetricKeys ?? drawerMetrics.slice(0, 3).map(m => m.key);
                 return (
                   <MetricRow
                     metrics={drawerMetrics}
-                    selectedKeys={drawerMetrics.map(m => m.key)}
-                    maxVisible={drawerMetrics.length}
+                    selectedKeys={visibleKeys}
+                    onSelectionChange={setDrawerMetricKeys}
+                    maxVisible={3}
                     defaultVariant="default"
-                    removable={false}
-                    hideEditButton
-                    scrollable
                   />
                 );
               })()}
@@ -902,13 +970,32 @@ const BookingCalendarTemplate = ({
                   { key: 'id', header: 'Booking ID' },
                   { key: 'name', header: 'Campaign Name' },
                   { key: 'mediaProductName', header: 'Media Product' },
-                  { 
-                    key: 'stores', 
-                    header: 'Stores', 
-                    render: row => <Badge variant="secondary">{row.stores}</Badge> 
-                  },
-                  { key: 'startWeek', header: 'Start Week' },
-                  { key: 'endWeek', header: 'End Week' },
+                  ...(bookingTableVariant === 'display'
+                    ? [
+                        {
+                          key: 'impressions',
+                          header: 'Impressions',
+                          render: (row: any) => (
+                            <Badge variant="secondary">{fmtImpressionsCompact(computeBookingImpressions(row))}</Badge>
+                          ),
+                        },
+                        {
+                          key: 'revenue',
+                          header: 'Revenue',
+                          render: (row: any) => (
+                            <Badge variant="secondary">{fmtRevenueCompact(computeBookingRevenue(row))}</Badge>
+                          ),
+                        },
+                      ]
+                    : [
+                        {
+                          key: 'stores',
+                          header: 'Stores',
+                          render: (row: any) => <Badge variant="secondary">{row.stores}</Badge>,
+                        },
+                      ]),
+                  { key: 'startWeek', header: 'Start date', render: (row: any) => weekToDate(row.startWeek) },
+                  { key: 'endWeek', header: 'End date', render: (row: any) => weekToDate(row.endWeek) },
                 ]}
                 data={getBookingsForWeek()}
                 rowKey={row => row.id}
@@ -1800,6 +1887,177 @@ const displayBookingsData = [
       },
     ],
   },
+  {
+    id: '7',
+    name: 'Homepage Hero Banners',
+    availability: [95, 82, 60, 30, 12, 2, -10, 88, 68, 55, 40, 92],
+    storeTypes: ['xl', 'premium'],
+    retailProducts: ['rp-001', 'rp-002', 'rp-010', 'rp-016'],
+    bookings: [
+      {
+        id: 'booking-15',
+        name: 'Heineken - Summer Festival',
+        startWeek: 1,
+        endWeek: 5,
+        stores: 240,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-16',
+        name: 'PlayStation - Holiday Bundle',
+        startWeek: 6,
+        endWeek: 11,
+        stores: 180,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
+  {
+    id: '8',
+    name: 'Category Page Banners',
+    availability: [88, 72, 50, 28, 10, 0, -8, 82, 60, 48, 32, 85],
+    storeTypes: ['xl', 'premium', 'compact'],
+    retailProducts: ['rp-003', 'rp-007', 'rp-011', 'rp-018'],
+    bookings: [
+      {
+        id: 'booking-17',
+        name: 'L\'Oreal - Beauty Category Takeover',
+        startWeek: 2,
+        endWeek: 7,
+        stores: 120,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-18',
+        name: 'Unilever - Personal Care Push',
+        startWeek: 8,
+        endWeek: 12,
+        stores: 95,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
+  {
+    id: '9',
+    name: 'Product Detail Page Banners',
+    availability: [92, 78, 55, 25, 8, 0, -15, 85, 65, 50, 35, 88],
+    storeTypes: ['to-go', 'xl', 'express', 'premium'],
+    retailProducts: ['rp-004', 'rp-005', 'rp-019', 'rp-020'],
+    bookings: [
+      {
+        id: 'booking-19',
+        name: 'Samsung - Galaxy S24 PDP',
+        startWeek: 1,
+        endWeek: 4,
+        stores: 320,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-20',
+        name: 'Apple - iPhone Cross-sell',
+        startWeek: 5,
+        endWeek: 9,
+        stores: 280,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-21',
+        name: 'Microsoft - Surface Pro',
+        startWeek: 10,
+        endWeek: 12,
+        stores: 150,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
+  {
+    id: '10',
+    name: 'Run-of-Site Display',
+    availability: [85, 65, 42, 18, 5, -3, -20, 78, 55, 42, 28, 80],
+    storeTypes: ['to-go', 'xl', 'express', 'premium', 'compact'],
+    retailProducts: ['rp-006', 'rp-009', 'rp-013', 'rp-017'],
+    bookings: [
+      {
+        id: 'booking-22',
+        name: 'Nestlé - KitKat Always-on',
+        startWeek: 1,
+        endWeek: 12,
+        stores: 480,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-23',
+        name: 'Mars - Brand Awareness',
+        startWeek: 3,
+        endWeek: 8,
+        stores: 340,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
+  {
+    id: '11',
+    name: 'Cross-Banner Display (Etos)',
+    availability: [78, 58, 30, 12, 0, -5, -18, 70, 48, 35, 22, 72],
+    storeTypes: ['xl', 'premium', 'compact'],
+    retailProducts: ['rp-006', 'rp-007', 'rp-014', 'rp-020'],
+    bookings: [
+      {
+        id: 'booking-24',
+        name: 'P&G - Pampers Cross-Banner',
+        startWeek: 2,
+        endWeek: 6,
+        stores: 180,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-25',
+        name: 'Gillette - Razor Blades Launch',
+        startWeek: 7,
+        endWeek: 11,
+        stores: 140,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
+  {
+    id: '12',
+    name: 'Connected TV (CTV)',
+    availability: [82, 65, 40, 20, 6, 0, -10, 75, 52, 40, 28, 80],
+    storeTypes: ['xl', 'premium'],
+    retailProducts: ['rp-001', 'rp-008', 'rp-012', 'rp-015'],
+    bookings: [
+      {
+        id: 'booking-26',
+        name: 'Netflix - Q4 Series Drop',
+        startWeek: 1,
+        endWeek: 6,
+        stores: 220,
+        variant: 'default' as const,
+        status: 'closed-won',
+      },
+      {
+        id: 'booking-27',
+        name: 'Disney+ - Holiday Specials',
+        startWeek: 8,
+        endWeek: 12,
+        stores: 195,
+        variant: 'warning' as const,
+        status: 'in-option',
+      },
+    ],
+  },
 ];
 
 // Mock data for sponsored product bookings
@@ -2037,17 +2295,21 @@ const OfflineInstoreCalendarTemplate = ({
     value: number | string;
   } | null>(null);
   const [activeView, setActiveView] = useState('bookedCampaigns');
+  // Which 3 metric cards appear in the cell drawer. State lives here so the
+  // user's pick persists across cell clicks; defaults to the first 3 view tabs.
+  const [drawerMetricKeys, setDrawerMetricKeys] = useState<string[] | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(new Date().getTime() + 11 * 7 * 24 * 60 * 60 * 1000) // 12 weeks from now
   });
   const [conversionWindow, setConversionWindow] = useState<number>(14);
   
+  // Impressions intentionally omitted — only the Display calendar surfaces
+  // impressions as a top-level view (other channels measure differently).
   const viewTabs = [
-    { value: 'bookedCampaigns', label: 'Bookings' },
-    { value: 'stores', label: 'Available stores' },
-    { value: 'reach', label: 'Available impressions' },
-    { value: 'fillRate', label: 'Fill Rate' },
+    { value: 'bookedCampaigns', label: 'Bookings', icon: Megaphone },
+    { value: 'stores', label: 'Available stores', icon: Store },
+    { value: 'fillRate', label: 'Fill Rate', icon: Percent },
   ];
   
   // Calculate weeks to show and start week from date range
@@ -2218,15 +2480,10 @@ const OfflineInstoreCalendarTemplate = ({
         {(() => {
           const viewbarHeader = (
             <>
-              <div className="mb-4">
-                <Viewbar
-                  tabs={viewTabs}
-                  activeTab={activeView}
-                  onTabChange={setActiveView}
-                  labels={[]}
-                />
-              </div>
               <FilterBar
+                viewOptions={viewTabs}
+                activeView={activeView}
+                onViewChange={setActiveView}
                 filters={[
                   {
                     name: 'Inventory type',
@@ -2267,7 +2524,7 @@ const OfflineInstoreCalendarTemplate = ({
                 ]}
                 searchValue={searchQuery}
                 onSearchChange={setSearchQuery}
-                searchPlaceholder="Search channels..."
+                searchPlaceholder="Search..."
               />
             </>
           );
@@ -2375,7 +2632,7 @@ const OfflineInstoreCalendarTemplate = ({
           );
         })()}
 
-        <RightDrawerContent>
+        <RightDrawerContent className="sm:max-w-3xl">
           <RightDrawerHeader>
             <RightDrawerTitle>
               {selectedCell?.mediaProduct?.name || 'Bookings'} - Week {selectedCell?.weekNumber}
@@ -2387,23 +2644,24 @@ const OfflineInstoreCalendarTemplate = ({
           <RightDrawerBody>
             <div className="space-y-6">
               {(() => {
-                // One card per metric this calendar exposes (derived from its
-                // view tabs). The drawer no longer has its own tab bar — every
-                // metric is shown at once and scrolls horizontally if needed.
+                // Up to 3 metric cards laid out as a responsive grid (no
+                // horizontal scroll). The user can swap which 3 are visible
+                // via MetricRow's built-in "Edit metrics" picker — drawerMetrics
+                // is the pool, drawerMetricKeys is the visible selection.
                 const drawerMetrics = buildDrawerMetrics(
                   viewTabs,
                   selectedCell?.value,
                   getBookingsForWeek().length,
                 );
+                const visibleKeys =
+                  drawerMetricKeys ?? drawerMetrics.slice(0, 3).map(m => m.key);
                 return (
                   <MetricRow
                     metrics={drawerMetrics}
-                    selectedKeys={drawerMetrics.map(m => m.key)}
-                    maxVisible={drawerMetrics.length}
+                    selectedKeys={visibleKeys}
+                    onSelectionChange={setDrawerMetricKeys}
+                    maxVisible={3}
                     defaultVariant="default"
-                    removable={false}
-                    hideEditButton
-                    scrollable
                   />
                 );
               })()}
@@ -2455,13 +2713,13 @@ const OfflineInstoreCalendarTemplate = ({
                   { key: 'id', header: 'Booking ID' },
                   { key: 'name', header: 'Campaign Name' },
                   { key: 'mediaProductName', header: 'Media Product' },
-                  { 
-                    key: 'stores', 
-                    header: 'Stores', 
-                    render: row => <Badge variant="secondary">{row.stores}</Badge> 
+                  {
+                    key: 'stores',
+                    header: 'Stores',
+                    render: row => <Badge variant="secondary">{row.stores}</Badge>,
                   },
-                  { key: 'startWeek', header: 'Start Week' },
-                  { key: 'endWeek', header: 'End Week' },
+                  { key: 'startWeek', header: 'Start date', render: row => weekToDate(row.startWeek) },
+                  { key: 'endWeek', header: 'End date', render: row => weekToDate(row.endWeek) },
                 ]}
                 data={getBookingsForWeek()}
                 rowKey={row => row.id}
@@ -2530,7 +2788,7 @@ export const DisplayCalendar: Story = {
   render: () => (
     <MenuContextProvider>
       <BookingCalendarTemplate
-        bookingsData={withPositions(displayBookingsData)}
+        bookingsData={withPositions(displayBookingsData, displayPositionCountCycle)}
         title="Display Calendar"
         hideStoresTab
         hideStoreAssortmentFilter
@@ -2538,7 +2796,10 @@ export const DisplayCalendar: Story = {
         showChannelFilter
         showPublisherFilter
         showBookingsTab
+        showImpressionsTab
         fillRateBreakdown="sales-channels"
+        maxInlinePositions={20}
+        bookingTableVariant="display"
         mediaProductOptions={[
           { label: 'Digital Billboards', value: '1' },
           { label: 'Static Billboards', value: '2' },

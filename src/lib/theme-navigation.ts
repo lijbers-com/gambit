@@ -4,11 +4,6 @@ import { defaultRoutes } from '@/components/layout/default-routes';
 // Advertiser routes with limited access (no Calendar, Yield, or Configuration)
 export const advertiserRoutes: Route[] = [
   {
-    id: 98,
-    name: "Campaign management",
-    type: "title" as const,
-  },
-  {
     id: 100,
     name: "Create",
     type: "create" as const,

@@ -6,6 +6,7 @@ import {
   Store,
   Globe,
   LayoutGrid,
+  WalletCards,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
  *   - Digital in-store   → MonitorPlay
  *   - Offline in-store   → Store
  *   - Offsite display    → Globe
+ *   - Media plans        → WalletCards (same icon used in the nav)
  *   - All / unknown      → LayoutGrid (neutral fallback)
  */
 
@@ -31,6 +33,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'offline-instore': Store,
   offsite: Globe,
   'offsite-display': Globe,
+  'media-plans': WalletCards,
+  'media-plan': WalletCards,
   all: LayoutGrid,
 };
 
@@ -49,20 +53,34 @@ export const getPropositionIcon = (engineType: string): LucideIcon => {
   return ICON_MAP[key] ?? ICON_MAP.all;
 };
 
-export interface PropositionIconProps
-  extends Omit<React.SVGAttributes<SVGSVGElement>, 'children'> {
+export interface PropositionIconProps {
   engineType: string;
-  /** Optional. Defaults to h-6 w-6 (24px) — sized to sit comfortably
-   * next to a text-3xl page title without dominating it. Override via
-   * className for smaller or larger contexts. */
+  /** Optional. Override the badge wrapper class (size/colors).
+   *  Default: a 32×32 dark-on-light rounded badge styled to match the
+   *  per-engine row icons on the campaign-summary card. */
   className?: string;
 }
 
+/**
+ * Renders the proposition icon inside a dark rounded badge — same
+ * treatment as the per-engine rows on the Media-plans `CampaignSummary`
+ * card. Use as the PageHeader `titleIcon` so each proposition has a
+ * consistent, prominent visual anchor next to its page title.
+ */
 export const PropositionIcon: React.FC<PropositionIconProps> = ({
   engineType,
   className,
-  ...rest
 }) => {
   const Icon = getPropositionIcon(engineType);
-  return <Icon className={cn('h-6 w-6 text-muted-foreground shrink-0', className)} {...rest} />;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'inline-flex items-center justify-center shrink-0 rounded-md bg-primary text-primary-foreground h-8 w-8',
+        className,
+      )}
+    >
+      <Icon className="h-4 w-4" />
+    </span>
+  );
 };

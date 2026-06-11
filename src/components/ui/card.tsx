@@ -606,6 +606,92 @@ export const BudgetStackedDetail = ({
   );
 };
 
+// ── Compact, chart-only previews — drop into MetricCardProps.chart so
+// the simple value+sub card grows a small visual breakdown without
+// leaving its single-row layout. The full detail still lives in the
+// click-to-expand panel below the row.
+
+/** Multi-color stacked bar: per-proposition spend vs total budget. */
+export const BudgetStackedMini = ({
+  budgetData,
+}: {
+  budgetData: NonNullable<MetricCardProps['budgetData']>;
+}) => {
+  const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  return (
+    <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
+      {budgetData.map((d, i) => (
+        <div
+          key={`${d.name}-${i}`}
+          style={{
+            width: `${totalBudget > 0 ? (d.spent / totalBudget) * 100 : 0}%`,
+            backgroundColor: colorFromIndex(i, d.color),
+          }}
+        />
+      ))}
+      <div className="flex-1" style={{ backgroundColor: 'rgb(var(--neutral-200))' }} />
+    </div>
+  );
+};
+
+/** Compact donut: per-proposition share of a total. */
+export const DonutMini = ({
+  donutData,
+  donutColors,
+}: {
+  donutData: NonNullable<MetricCardProps['donutData']>;
+  donutColors?: MetricCardProps['donutColors'];
+}) => {
+  const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+  return (
+    <div className="h-16 w-16">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={donutData}
+            cx="50%"
+            cy="50%"
+            innerRadius="60%"
+            outerRadius="100%"
+            dataKey="value"
+            strokeWidth={0}
+            startAngle={90}
+            endAngle={-270}
+          >
+            {donutData.map((_, i) => (
+              <Cell key={i} fill={colorFor(i)} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+/** Stacked vertical bars — one slim bar per proposition value. */
+export const BarHorizontalMini = ({
+  productData,
+}: {
+  productData: NonNullable<MetricCardProps['productData']>;
+}) => {
+  const max = Math.max(...productData.map((d) => d.value), 1);
+  return (
+    <div className="space-y-1">
+      {productData.slice(0, 5).map((item, i) => (
+        <div key={`${item.name}-${i}`} className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${(item.value / max) * 100}%`,
+              backgroundColor: colorFromIndex(i, item.color),
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
   ({
     label,
@@ -656,7 +742,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {variant !== "donut" && variant !== "donutLegend" && variant !== "barHorizontal" && variant !== "barVertical" && variant !== "budgetStacked" && (
+        {variant !== "donut" && variant !== "barVertical" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
               {value}
@@ -746,26 +832,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             </div>
           </div>
         )}
-        {variant === "donutLegend" && donutData && (
-          <DonutLegendBody
-            donutData={donutData}
-            totalRow={totalRow}
-            valueFormatter={valueFormatter}
-          />
-        )}
-        {variant === "barHorizontal" && productData && (
-          <BarHorizontalBody
-            productData={productData}
-            totalRow={totalRow}
-            valueFormatter={valueFormatter}
-          />
-        )}
-        {variant === "budgetStacked" && budgetData && (
-          <BudgetStackedBody
-            budgetData={budgetData}
-            valueFormatter={valueFormatter}
-          />
-        )}
+        {/* donutLegend, barHorizontal and budgetStacked variants render
+            the same simple `value + subMetric + badge` body as the
+            default cards above. Their per-proposition breakdown lives
+            in MetricRow's click-to-expand panel via
+            MetricDefinition.expandedContent (see {Donut,BarHorizontal,
+            BudgetStacked}Detail components below). */}
         {variant === "barVertical" && dateData && (() => {
           const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
           const tickFmt = valueFormatter ?? formatYAxisTick;

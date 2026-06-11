@@ -857,7 +857,7 @@ const updatedForecastMetrics = [
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -1395,7 +1395,7 @@ export const DigitalInstoreRunning: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -1860,7 +1860,7 @@ export const OfflineInstoreRunning: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -2384,7 +2384,7 @@ export const DisplayRunning: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -2900,7 +2900,7 @@ export const OfflineInstoreInOption: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -3394,7 +3394,7 @@ export const DisplayInOption: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -4220,7 +4220,7 @@ export const SponsoredProductsInOption: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -4944,7 +4944,7 @@ export const SponsoredProductsRunning: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -5539,7 +5539,7 @@ export const OffsiteRunning: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },
@@ -6054,7 +6054,7 @@ export const OffsiteInOption: Story = {
           }
           tabs={[
             {
-              label: 'Details',
+              label: 'Campaign details',
               value: 'details',
               content: null,
             },

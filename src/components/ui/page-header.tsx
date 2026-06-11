@@ -120,7 +120,7 @@ export const PageHeader = ({
           data-testid="page-title"
         >
           {titleIcon && (
-            <span className="shrink-0 inline-flex items-center text-muted-foreground">
+            <span className="shrink-0 inline-flex items-center">
               {titleIcon}
             </span>
           )}

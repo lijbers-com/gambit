@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
-import { DatePicker } from '../../ui/date-picker';
+import { DatePicker, DateRangePicker } from '../../ui/date-picker';
+import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
 import { Button } from '../../ui/button';
 import { Alert, AlertTitle, AlertDescription } from '../../ui/alert';
@@ -415,7 +416,19 @@ export const Display: Story = {
     // 1. Booking details (run-time, schedule, active days, position)
     // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
     // 3. Creatives (link / upload creatives — placeholder for now)
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingLogData = [
+      { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
+      { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
+      { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
+    ];
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+    const [logSearch, setLogSearch] = React.useState('');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
 
     // Booking setup
     const [bookingName, setBookingName] = React.useState('');
@@ -541,6 +554,8 @@ export const Display: Story = {
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
+                  { value: 'evaluation', label: 'Evaluation' },
+                  { value: 'logs', label: 'Logs' },
                 ].map((t) => (
                   <button
                     key={t.value}
@@ -650,10 +665,10 @@ export const Display: Story = {
                               <button
                                 key={day.id}
                                 onClick={() => toggleDay(day.id)}
-                                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
                                   activeDays.includes(day.id)
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted text-muted-foreground'
+                                    ? 'bg-background border-primary text-foreground'
+                                    : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
                                 }`}
                               >
                                 {day.label}
@@ -661,12 +676,11 @@ export const Display: Story = {
                             ))}
                           </div>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <span>Select:</span>
                             <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
                             <span className="text-muted-foreground">·</span>
                             <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
                             <span className="text-muted-foreground">·</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
+                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
                           </div>
                         </div>
                       )}
@@ -843,6 +857,85 @@ export const Display: Story = {
                 </div>
               </div>
 
+
+              {/* Logs tab */}
+              <div className={cn(bookingTab !== 'logs' && 'hidden')}>
+                <div className="px-6 py-6 space-y-6">
+                  <FilterBar
+                    filters={[
+                      {
+                        name: 'Users',
+                        options: [
+                  { label: 'Jane Doe', value: 'Jane Doe' },
+                  { label: 'John Smith', value: 'John Smith' },
+                  { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                  { label: 'Mike Johnson', value: 'Mike Johnson' },
+                        ],
+                        selectedValues: logUsers,
+                        onChange: setLogUsers,
+                      },
+                      {
+                        name: 'Actions',
+                        options: [
+                  { label: 'Booking Created', value: 'Booking Created' },
+                  { label: 'Budget Updated', value: 'Budget Updated' },
+                  { label: 'Creative Linked', value: 'Creative Linked' },
+                  { label: 'Status Changed', value: 'Status Changed' },
+                  { label: 'Run time Modified', value: 'Run time Modified' },
+                        ],
+                        selectedValues: logActions,
+                        onChange: setLogActions,
+                      },
+                    ]}
+                    searchValue={logSearch}
+                    onSearchChange={setLogSearch}
+                    searchPlaceholder="Search logs..."
+                  />
+                  <div className="overflow-x-auto">
+                    <Table
+                      columns={[
+                        { key: 'timestamp', header: 'Timestamp' },
+                        { key: 'user', header: 'User' },
+                        { key: 'action', header: 'Action', render: (row) => <Badge variant="outline">{row.action}</Badge> },
+                        { key: 'field', header: 'Field' },
+                        { key: 'oldValue', header: 'Old value' },
+                        { key: 'newValue', header: 'New value' },
+                      ]}
+                      data={bookingLogData.filter((row) => {
+                      const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                      const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                      const searchMatch =
+                        logSearch === '' ||
+                        Object.values(row).some((v) => String(v).toLowerCase().includes(logSearch.toLowerCase()));
+                      return userMatch && actionMatch && searchMatch;
+                    })}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking evaluation tab */}
+              <div className={cn(bookingTab !== 'evaluation' && 'hidden')}>
+                <div className="px-6 py-6 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
+                    <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                  </div>
+                  {evaluationEnabled && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Evaluation ID</label>
+                      <Input
+                        value={evaluationId}
+                        onChange={(e) => setEvaluationId(e.target.value)}
+                        placeholder="e.g. holiday-2025-1A"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
               </div>
               {/* end single outer card */}
               </div>
@@ -888,7 +981,17 @@ export const DigitalInStore: Story = {
     // clone action so AdOps can cluster this booking with related campaigns
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingLogData = [
+      { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
+      { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
+      { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
+    ];
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+    const [logSearch, setLogSearch] = React.useState('');
     const [evaluationId, setEvaluationId] = React.useState('');
     // Booking store selection (ported from Offline in-store)
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
@@ -952,6 +1055,37 @@ export const DigitalInStore: Story = {
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
+    const dInstoreDateRange = React.useMemo<DateRange | undefined>(
+      () => (startDate || endDate ? { from: startDate, to: endDate } : undefined),
+      [startDate, endDate],
+    );
+    const setDInstoreDateRange = (range: DateRange | undefined) => {
+      setStartDate(range?.from);
+      setEndDate(range?.to);
+    };
+    const [dInstoreStartTime, setDInstoreStartTime] = React.useState('00:00');
+    const [dInstoreEndTime, setDInstoreEndTime] = React.useState('23:59');
+    const [dInstoreActiveDays, setDInstoreActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const toggleDInstoreDay = (id: string) =>
+      setDInstoreActiveDays((prev) => (prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]));
+    const [selectedBrands, setSelectedBrands] = React.useState<string[]>([]);
+    const dInstoreBrandOptions = [
+      { label: 'Coca-Cola', value: 'coca-cola' },
+      { label: 'Pepsi', value: 'pepsi' },
+      { label: 'Red Bull', value: 'red-bull' },
+      { label: 'Heineken', value: 'heineken' },
+      { label: 'Knorr', value: 'knorr' },
+      { label: 'Unilever', value: 'unilever' },
+    ];
+    const dayLabels: Array<{ id: string; label: string }> = [
+      { id: 'mo', label: 'Mo' },
+      { id: 'tu', label: 'Tu' },
+      { id: 'we', label: 'We' },
+      { id: 'th', label: 'Th' },
+      { id: 'fr', label: 'Fr' },
+      { id: 'sa', label: 'Sa' },
+      { id: 'su', label: 'Su' },
+    ];
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
     const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
@@ -1016,6 +1150,44 @@ export const DigitalInStore: Story = {
     // Remove retail product
     const removeRetailProduct = (productId: string) => {
       setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Brand multi-select — same search-and-pick pattern as retail products
+    const [brandSearch, setBrandSearch] = React.useState('');
+    const [showBrandResults, setShowBrandResults] = React.useState(false);
+    const filteredBrands = dInstoreBrandOptions.filter(
+      (b) =>
+        b.label.toLowerCase().includes(brandSearch.toLowerCase()) &&
+        !selectedBrands.includes(b.value),
+    );
+    const handleBrandSelect = (brand: { label: string; value: string }) => {
+      if (!selectedBrands.includes(brand.value)) {
+        setSelectedBrands([...selectedBrands, brand.value]);
+      }
+      setBrandSearch('');
+      setShowBrandResults(false);
+    };
+    const removeBrand = (value: string) => {
+      setSelectedBrands(selectedBrands.filter((v) => v !== value));
+    };
+
+    // Audience multi-select — same search-and-pick pattern as brands
+    const [audienceSearch, setAudienceSearch] = React.useState('');
+    const [showAudienceResults, setShowAudienceResults] = React.useState(false);
+    const filteredAudiences = audienceOptions.filter(
+      (a) =>
+        a.label.toLowerCase().includes(audienceSearch.toLowerCase()) &&
+        !selectedAudiences.includes(a.value),
+    );
+    const handleAudienceSelect = (audience: { label: string; value: string }) => {
+      if (!selectedAudiences.includes(audience.value)) {
+        setSelectedAudiences([...selectedAudiences, audience.value]);
+      }
+      setAudienceSearch('');
+      setShowAudienceResults(false);
+    };
+    const removeAudience = (value: string) => {
+      setSelectedAudiences(selectedAudiences.filter((v) => v !== value));
     };
 
     // Calculate estimated reach based on store amount (average reach per store: ~65)
@@ -1112,6 +1284,8 @@ export const DigitalInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'evaluation', label: 'Evaluation' },
+                      { value: 'logs', label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -1143,9 +1317,117 @@ export const DigitalInStore: Story = {
                               className="w-full"
                             />
                           </div>
+                          <div className="space-y-4 min-w-0">
+                            <div className="min-w-0 space-y-2">
+                              <div className="relative" data-dropdown-container>
+                                <label className="block text-sm font-medium mb-2">Brands</label>
+                                <SearchInput
+                                  value={brandSearch}
+                                  onChange={(e) => {
+                                    setBrandSearch(e.target.value);
+                                    setShowBrandResults(true);
+                                  }}
+                                  onClick={() => setShowBrandResults(true)}
+                                  placeholder="Search brands..."
+                                  className="w-full"
+                                />
+                                {showBrandResults && (
+                                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                    {filteredBrands.length > 0 ? (
+                                      filteredBrands.map((brand) => (
+                                        <div
+                                          key={brand.value}
+                                          className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
+                                          onClick={() => handleBrandSelect(brand)}
+                                        >
+                                          <div className="font-medium text-sm">{brand.label}</div>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="p-3 text-center text-sm text-muted-foreground">No brands found</div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              {selectedBrands.length > 0 && (
+                                <div className="space-y-1">
+                                  {selectedBrands.map((value) => {
+                                    const brand = dInstoreBrandOptions.find((b) => b.value === value);
+                                    return brand ? (
+                                      <div key={value} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                        <div className="text-sm font-medium">{brand.label}</div>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeBrand(value)}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ) : null;
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 space-y-2">
+                              <div className="relative" data-dropdown-container>
+                                <label className="block text-sm font-medium mb-2">Retail products</label>
+                                <SearchInput
+                                  value={retailProductSearch}
+                                  onChange={handleRetailProductSearchChange}
+                                  onClick={handleRetailProductClick}
+                                  placeholder="Search product by name or ID..."
+                                  className="w-full"
+                                  icon={<ScanBarcode className="w-4 h-4" />}
+                                />
+                                {showRetailProductResults && (
+                                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                    {filteredRetailProducts.length > 0 ? (
+                                      filteredRetailProducts.map((product) => (
+                                        <div
+                                          key={product.id}
+                                          className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
+                                          onClick={() => handleRetailProductSelect(product)}
+                                        >
+                                          <div className="font-medium text-sm">{product.name}</div>
+                                          <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              {selectedRetailProducts.length > 0 && (
+                                <div className="space-y-1">
+                                  {selectedRetailProducts.map((productId) => {
+                                    const product = retailProducts.find((p) => p.id === productId);
+                                    return product ? (
+                                      <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                        <div>
+                                          <div className="text-sm font-medium">{product.name}</div>
+                                          <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                                        </div>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeRetailProduct(productId)}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ) : null;
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </FormSection>
-                      
+
                       <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="relative" data-dropdown-container>
@@ -1185,7 +1467,7 @@ export const DigitalInStore: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
+                              <div className="flex items-center justify-between bg-muted rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -1204,139 +1486,72 @@ export const DigitalInStore: Story = {
                             </div>
                           )}
 
-                          <div className="text-sm text-muted-foreground">
-                            {selectedPlacement 
-                              ? 'Placement selected for this booking'
-                              : 'Search and select a placement for this booking'
-                            }
-                          </div>
                         </div>
                       </FormSection>
 
                       <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
+                          <div className="min-w-0">
+                            <label className="block text-sm font-medium mb-2">Start &amp; end date*</label>
+                            <DateRangePicker
+                              dateRange={dInstoreDateRange}
+                              onDateRangeChange={setDInstoreDateRange}
+                              placeholder="Select date range"
+                              className="w-full"
+                            />
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">Start date*</label>
-                              <DatePicker 
-                                date={startDate}
-                                onDateChange={setStartDate}
-                                placeholder="Select start date" 
+                              <label className="block text-sm font-medium mb-2">Start time</label>
+                              <Input
+                                type="time"
+                                value={dInstoreStartTime}
+                                onChange={(e) => setDInstoreStartTime(e.target.value)}
                                 className="w-full"
                               />
                             </div>
                             <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">End date*</label>
-                              <DatePicker 
-                                date={endDate}
-                                onDateChange={setEndDate}
-                                placeholder="Select end date" 
+                              <label className="block text-sm font-medium mb-2">End time</label>
+                              <Input
+                                type="time"
+                                value={dInstoreEndTime}
+                                onChange={(e) => setDInstoreEndTime(e.target.value)}
                                 className="w-full"
                               />
                             </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
-                            <SearchInput 
-                              value={retailProductSearch}
-                              onChange={handleRetailProductSearchChange}
-                              onClick={handleRetailProductClick}
-                              placeholder="Select product by name or ID..." 
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handleRetailProductSelect(product)}
+                          <div className="min-w-0">
+                            <label className="block text-sm font-medium mb-2">Active days</label>
+                            <div className="space-y-3">
+                              <div className="flex gap-2 flex-wrap">
+                                {dayLabels.map((day) => (
+                                  <button
+                                    key={day.id}
+                                    type="button"
+                                    onClick={() => toggleDInstoreDay(day.id)}
+                                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
+                                      dInstoreActiveDays.includes(day.id)
+                                        ? 'bg-background border-primary text-foreground'
+                                        : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
+                                    }`}
                                   >
-                                    <div className="font-medium text-sm">{product.name}</div>
-                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No products found
-                                  </div>
-                                )}
+                                    {day.label}
+                                  </button>
+                                ))}
                               </div>
-                            )}
-                          </div>
-                          
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected products:</div>
-                              <div className="space-y-1">
-                                {selectedRetailProducts.map(productId => {
-                                  const product = retailProducts.find(p => p.id === productId);
-                                  return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
-                                      <div>
-                                        <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                      </div>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => removeRetailProduct(productId)}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <Minus className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['sa', 'su'])}>Weekend</button>
+                                <span className="text-muted-foreground">·</span>
+                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                                <span className="text-muted-foreground">·</span>
+                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
                               </div>
                             </div>
-                          )}
-                          
-                          <div className="text-sm text-muted-foreground">
-                            {selectedRetailProducts.length > 0 
-                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this booking'
-                            }
                           </div>
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Location"
-                              options={locationOptions}
-                              selectedValues={selectedLocations}
-                              onChange={setSelectedLocations}
-                            />
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                            />
-                          </div>
-                        </div>
-                      </FormSection>
-
-                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection borderless title="Store list" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -1483,25 +1698,110 @@ export const DigitalInStore: Story = {
 
                       <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this booking
-                          </div>
                           <div className="flex gap-3">
+                            <Filter
+                              name="Location"
+                              options={locationOptions}
+                              selectedValues={selectedLocations}
+                              onChange={setSelectedLocations}
+                            />
                             <Filter
                               name="Store type"
                               options={storeTypeOptions}
                               selectedValues={selectedStoreTypes}
                               onChange={setSelectedStoreTypes}
-                              className="flex-1"
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                              className="flex-1"
                             />
                           </div>
+                          {(selectedLocations.length > 0 || selectedStoreTypes.length > 0) && (
+                            <div className="flex flex-wrap gap-2">
+                              {selectedLocations.map((value) => {
+                                const opt = locationOptions.find((o) => o.value === value);
+                                return opt ? (
+                                  <Badge key={`loc-${value}`} variant="secondary" className="gap-1 pr-1">
+                                    {opt.label}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedLocations(selectedLocations.filter((v) => v !== value))}
+                                      className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                      aria-label={`Remove ${opt.label}`}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </button>
+                                  </Badge>
+                                ) : null;
+                              })}
+                              {selectedStoreTypes.map((value) => {
+                                const opt = storeTypeOptions.find((o) => o.value === value);
+                                return opt ? (
+                                  <Badge key={`st-${value}`} variant="secondary" className="gap-1 pr-1">
+                                    {opt.label}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedStoreTypes(selectedStoreTypes.filter((v) => v !== value))}
+                                      className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                      aria-label={`Remove ${opt.label}`}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </button>
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </FormSection>
+
+                      <FormSection borderless title="Audience" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                        <div className="space-y-2 min-w-0">
+                          <div className="relative" data-dropdown-container>
+                            <SearchInput
+                              value={audienceSearch}
+                              onChange={(e) => {
+                                setAudienceSearch(e.target.value);
+                                setShowAudienceResults(true);
+                              }}
+                              onClick={() => setShowAudienceResults(true)}
+                              placeholder="Search audiences..."
+                              className="w-full"
+                            />
+                            {showAudienceResults && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredAudiences.length > 0 ? (
+                                  filteredAudiences.map((audience) => (
+                                    <div
+                                      key={audience.value}
+                                      className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
+                                      onClick={() => handleAudienceSelect(audience)}
+                                    >
+                                      <div className="font-medium text-sm">{audience.label}</div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-muted-foreground">No audiences found</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {selectedAudiences.length > 0 && (
+                            <div className="space-y-1">
+                              {selectedAudiences.map((value) => {
+                                const audience = audienceOptions.find((a) => a.value === value);
+                                return audience ? (
+                                  <div key={value} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                    <div className="text-sm font-medium">{audience.label}</div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => removeAudience(value)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
                         </div>
                       </FormSection>
 
@@ -1547,7 +1847,64 @@ export const DigitalInStore: Story = {
                         />
                       </FormSection>
 
-                      <FormSection borderless title="Booking evaluation" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <section className={cn(bookingTab !== 'logs' && "hidden")}>
+                        <div className="space-y-6">
+                          <FilterBar
+                            filters={[
+                              {
+                                name: 'Users',
+                                options: [
+                                  { label: 'Jane Doe', value: 'Jane Doe' },
+                                  { label: 'John Smith', value: 'John Smith' },
+                                  { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                                  { label: 'Mike Johnson', value: 'Mike Johnson' },
+                                ],
+                                selectedValues: logUsers,
+                                onChange: setLogUsers,
+                              },
+                              {
+                                name: 'Actions',
+                                options: [
+                                  { label: 'Booking Created', value: 'Booking Created' },
+                                  { label: 'Budget Updated', value: 'Budget Updated' },
+                                  { label: 'Creative Linked', value: 'Creative Linked' },
+                                  { label: 'Status Changed', value: 'Status Changed' },
+                                  { label: 'Run time Modified', value: 'Run time Modified' },
+                                ],
+                                selectedValues: logActions,
+                                onChange: setLogActions,
+                              },
+                            ]}
+                            searchValue={logSearch}
+                            onSearchChange={setLogSearch}
+                            searchPlaceholder="Search logs..."
+                          />
+                          <div className="overflow-x-auto">
+                            <Table
+                              columns={[
+                                { key: 'timestamp', header: 'Timestamp' },
+                                { key: 'user', header: 'User' },
+                                { key: 'action', header: 'Action', render: (row) => <Badge variant="outline">{row.action}</Badge> },
+                                { key: 'field', header: 'Field' },
+                                { key: 'oldValue', header: 'Old value' },
+                                { key: 'newValue', header: 'New value' },
+                              ]}
+                              data={bookingLogData.filter((row) => {
+                              const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                              const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                              const searchMatch =
+                                logSearch === '' ||
+                                Object.values(row).some((v) => String(v).toLowerCase().includes(logSearch.toLowerCase()));
+                              return userMatch && actionMatch && searchMatch;
+                            })}
+                              rowKey={(row) => row.id}
+                              hideActions
+                            />
+                          </div>
+                        </div>
+                      </section>
+
+                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
@@ -1898,7 +2255,19 @@ export const OfflineInStore: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingLogData = [
+      { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
+      { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
+      { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
+    ];
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+    const [logSearch, setLogSearch] = React.useState('');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
     const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
     const [selectedInventory, setSelectedInventory] = React.useState<any[]>([]);
     const [inventorySearch, setInventorySearch] = React.useState('');
@@ -2261,6 +2630,8 @@ export const OfflineInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'evaluation', label: 'Evaluation' },
+                      { value: 'logs', label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -2741,6 +3112,83 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
+                      <section className={cn(bookingTab !== 'logs' && "hidden")}>
+                        <div className="space-y-6">
+                          <FilterBar
+                            filters={[
+                              {
+                                name: 'Users',
+                                options: [
+                                  { label: 'Jane Doe', value: 'Jane Doe' },
+                                  { label: 'John Smith', value: 'John Smith' },
+                                  { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                                  { label: 'Mike Johnson', value: 'Mike Johnson' },
+                                ],
+                                selectedValues: logUsers,
+                                onChange: setLogUsers,
+                              },
+                              {
+                                name: 'Actions',
+                                options: [
+                                  { label: 'Booking Created', value: 'Booking Created' },
+                                  { label: 'Budget Updated', value: 'Budget Updated' },
+                                  { label: 'Creative Linked', value: 'Creative Linked' },
+                                  { label: 'Status Changed', value: 'Status Changed' },
+                                  { label: 'Run time Modified', value: 'Run time Modified' },
+                                ],
+                                selectedValues: logActions,
+                                onChange: setLogActions,
+                              },
+                            ]}
+                            searchValue={logSearch}
+                            onSearchChange={setLogSearch}
+                            searchPlaceholder="Search logs..."
+                          />
+                          <div className="overflow-x-auto">
+                            <Table
+                              columns={[
+                                { key: 'timestamp', header: 'Timestamp' },
+                                { key: 'user', header: 'User' },
+                                { key: 'action', header: 'Action', render: (row) => <Badge variant="outline">{row.action}</Badge> },
+                                { key: 'field', header: 'Field' },
+                                { key: 'oldValue', header: 'Old value' },
+                                { key: 'newValue', header: 'New value' },
+                              ]}
+                              data={bookingLogData.filter((row) => {
+                              const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                              const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                              const searchMatch =
+                                logSearch === '' ||
+                                Object.values(row).some((v) => String(v).toLowerCase().includes(logSearch.toLowerCase()));
+                              return userMatch && actionMatch && searchMatch;
+                            })}
+                              rowKey={(row) => row.id}
+                              hideActions
+                            />
+                          </div>
+                        </div>
+                      </section>
+
+                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
+                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                          </div>
+                          {evaluationEnabled && (
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium">Evaluation ID</label>
+                              <Input
+                                value={evaluationId}
+                                onChange={(e) => setEvaluationId(e.target.value)}
+                                placeholder="e.g. holiday-2025-1A"
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormSection>
+
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
@@ -2821,7 +3269,19 @@ export const SponsoredProducts: Story = {
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
     const [bookingName, setBookingName] = React.useState('');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingLogData = [
+      { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
+      { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
+      { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
+    ];
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+    const [logSearch, setLogSearch] = React.useState('');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -2987,6 +3447,8 @@ export const SponsoredProducts: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'evaluation', label: 'Evaluation' },
+                      { value: 'logs', label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -3064,7 +3526,7 @@ export const SponsoredProducts: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
+                              <div className="flex items-center justify-between bg-muted rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -3161,7 +3623,7 @@ export const SponsoredProducts: Story = {
                                 {selectedRetailProducts.map(productId => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
+                                    <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
                                       <div>
                                         <div className="text-sm font-medium">{product.name}</div>
                                         <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -3307,6 +3769,83 @@ export const SponsoredProducts: Story = {
                           onSelectionChange={setSelectedCreatives} 
                         />
                       </FormSection>
+
+                      <section className={cn(bookingTab !== 'logs' && "hidden")}>
+                        <div className="space-y-6">
+                          <FilterBar
+                            filters={[
+                              {
+                                name: 'Users',
+                                options: [
+                                  { label: 'Jane Doe', value: 'Jane Doe' },
+                                  { label: 'John Smith', value: 'John Smith' },
+                                  { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                                  { label: 'Mike Johnson', value: 'Mike Johnson' },
+                                ],
+                                selectedValues: logUsers,
+                                onChange: setLogUsers,
+                              },
+                              {
+                                name: 'Actions',
+                                options: [
+                                  { label: 'Booking Created', value: 'Booking Created' },
+                                  { label: 'Budget Updated', value: 'Budget Updated' },
+                                  { label: 'Creative Linked', value: 'Creative Linked' },
+                                  { label: 'Status Changed', value: 'Status Changed' },
+                                  { label: 'Run time Modified', value: 'Run time Modified' },
+                                ],
+                                selectedValues: logActions,
+                                onChange: setLogActions,
+                              },
+                            ]}
+                            searchValue={logSearch}
+                            onSearchChange={setLogSearch}
+                            searchPlaceholder="Search logs..."
+                          />
+                          <div className="overflow-x-auto">
+                            <Table
+                              columns={[
+                                { key: 'timestamp', header: 'Timestamp' },
+                                { key: 'user', header: 'User' },
+                                { key: 'action', header: 'Action', render: (row) => <Badge variant="outline">{row.action}</Badge> },
+                                { key: 'field', header: 'Field' },
+                                { key: 'oldValue', header: 'Old value' },
+                                { key: 'newValue', header: 'New value' },
+                              ]}
+                              data={bookingLogData.filter((row) => {
+                              const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                              const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                              const searchMatch =
+                                logSearch === '' ||
+                                Object.values(row).some((v) => String(v).toLowerCase().includes(logSearch.toLowerCase()));
+                              return userMatch && actionMatch && searchMatch;
+                            })}
+                              rowKey={(row) => row.id}
+                              hideActions
+                            />
+                          </div>
+                        </div>
+                      </section>
+
+                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
+                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                          </div>
+                          {evaluationEnabled && (
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium">Evaluation ID</label>
+                              <Input
+                                value={evaluationId}
+                                onChange={(e) => setEvaluationId(e.target.value)}
+                                placeholder="e.g. holiday-2025-1A"
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormSection>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
@@ -3383,7 +3922,19 @@ export const OffsiteDisplay: Story = {
     const routes = getRoutesForTheme(currentTheme);
 
     const [bookingName, setBookingName] = React.useState('');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingLogData = [
+      { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
+      { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
+      { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
+    ];
+    const [logUsers, setLogUsers] = React.useState<string[]>([]);
+    const [logActions, setLogActions] = React.useState<string[]>([]);
+    const [logSearch, setLogSearch] = React.useState('');
+    const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
+    const [evaluationId, setEvaluationId] = React.useState('');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
@@ -3503,6 +4054,8 @@ export const OffsiteDisplay: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'evaluation', label: 'Evaluation' },
+                      { value: 'logs', label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -3658,7 +4211,7 @@ export const OffsiteDisplay: Story = {
                           {selectedRetailProducts.map(productId => {
                             const product = retailProducts.find(p => p.id === productId);
                             return product ? (
-                              <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
+                              <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
                                 <div>
                                   <div className="text-sm font-medium">{product.name}</div>
                                   <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -3787,6 +4340,83 @@ export const OffsiteDisplay: Story = {
                       onSelectionChange={setSelectedCreatives}
                     />
                   </FormSection>
+
+                      <section className={cn(bookingTab !== 'logs' && "hidden")}>
+                        <div className="space-y-6">
+                          <FilterBar
+                            filters={[
+                              {
+                                name: 'Users',
+                                options: [
+                                  { label: 'Jane Doe', value: 'Jane Doe' },
+                                  { label: 'John Smith', value: 'John Smith' },
+                                  { label: 'Sarah Wilson', value: 'Sarah Wilson' },
+                                  { label: 'Mike Johnson', value: 'Mike Johnson' },
+                                ],
+                                selectedValues: logUsers,
+                                onChange: setLogUsers,
+                              },
+                              {
+                                name: 'Actions',
+                                options: [
+                                  { label: 'Booking Created', value: 'Booking Created' },
+                                  { label: 'Budget Updated', value: 'Budget Updated' },
+                                  { label: 'Creative Linked', value: 'Creative Linked' },
+                                  { label: 'Status Changed', value: 'Status Changed' },
+                                  { label: 'Run time Modified', value: 'Run time Modified' },
+                                ],
+                                selectedValues: logActions,
+                                onChange: setLogActions,
+                              },
+                            ]}
+                            searchValue={logSearch}
+                            onSearchChange={setLogSearch}
+                            searchPlaceholder="Search logs..."
+                          />
+                          <div className="overflow-x-auto">
+                            <Table
+                              columns={[
+                                { key: 'timestamp', header: 'Timestamp' },
+                                { key: 'user', header: 'User' },
+                                { key: 'action', header: 'Action', render: (row) => <Badge variant="outline">{row.action}</Badge> },
+                                { key: 'field', header: 'Field' },
+                                { key: 'oldValue', header: 'Old value' },
+                                { key: 'newValue', header: 'New value' },
+                              ]}
+                              data={bookingLogData.filter((row) => {
+                              const userMatch = logUsers.length === 0 || logUsers.includes(row.user);
+                              const actionMatch = logActions.length === 0 || logActions.includes(row.action);
+                              const searchMatch =
+                                logSearch === '' ||
+                                Object.values(row).some((v) => String(v).toLowerCase().includes(logSearch.toLowerCase()));
+                              return userMatch && actionMatch && searchMatch;
+                            })}
+                              rowKey={(row) => row.id}
+                              hideActions
+                            />
+                          </div>
+                        </div>
+                      </section>
+
+                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
+                            <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
+                          </div>
+                          {evaluationEnabled && (
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium">Evaluation ID</label>
+                              <Input
+                                value={evaluationId}
+                                onChange={(e) => setEvaluationId(e.target.value)}
+                                placeholder="e.g. holiday-2025-1A"
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormSection>
 
 
                 </CardHeader>

@@ -2,11 +2,6 @@ import { Route } from '@/components/ui/side-navigation';
 
 export const defaultRoutes: Route[] = [
   {
-    id: 98,
-    name: "Campaign management",
-    type: "title" as const,
-  },
-  {
     id: 100,
     name: "Create",
     type: "create" as const,

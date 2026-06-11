@@ -3,7 +3,20 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardSummary, CardSummaryContent, CardSummaryTitle, BudgetStackedDetail, DonutLegendDetail, BarHorizontalDetail } from './card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardSummary,
+  CardSummaryContent,
+  CardSummaryTitle,
+  BudgetStackedDetail,
+  DonutLegendDetail,
+  BarHorizontalDetail,
+  BudgetStackedMini,
+  DonutMini,
+  BarHorizontalMini,
+} from './card';
 import { MetricRow, MetricDefinition } from './metric-row';
 import { Badge } from './badge';
 import { Input } from './input';
@@ -1067,14 +1080,24 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const fmtNumberValue = (v: number) => fmtNumber(v);
                 const fmtRoas = (v: number) => `${v.toFixed(1)}x`;
 
+                // Total budget across propositions — used as the "of $X budget" sub-line on the Budget card
+                const totalBudgetNum = budgetVsSpendData.reduce((s, d) => s + d.budget, 0);
+                const spentPct = totalBudgetNum > 0 ? Math.round((totalSpendNum / totalBudgetNum) * 100) : 0;
+
                 const metricsForRow: MetricDefinition[] = [
                   {
                     key: 'budget-vs-spend',
-                    label: 'Budget: spent vs remaining',
+                    label: 'Budget',
                     value: hasBudget ? fmtCurrency(totalSpendNum) : '—',
+                    subMetric: hasBudget ? `of ${fmtCurrency(totalBudgetNum)} budget` : undefined,
+                    badgeValue: hasBudget ? `${spentPct}% spent` : undefined,
+                    badgeVariant: 'secondary',
                     variant: 'budgetStacked',
                     budgetData: budgetVsSpendData,
                     valueFormatter: fmtCurrencyValue,
+                    // Compact stacked bar shows per-proposition spend split;
+                    // full per-proposition table lives in the click panel below.
+                    chart: <BudgetStackedMini budgetData={budgetVsSpendData} />,
                     expandedContent: (
                       <BudgetStackedDetail
                         budgetData={budgetVsSpendData}
@@ -1084,13 +1107,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   },
                   {
                     key: 'impressions',
-                    label: 'Impressions per proposition',
+                    label: 'Impressions',
                     value: estReach,
+                    subMetric: 'Media plan',
                     variant: 'donutLegend',
                     donutData: impressionsByEngine,
                     donutColors: propositionColors,
                     totalRow: { label: 'Media plan', value: impressionsTotal },
                     valueFormatter: fmtNumberValue,
+                    chart: (
+                      <DonutMini
+                        donutData={impressionsByEngine}
+                        donutColors={propositionColors}
+                      />
+                    ),
                     expandedContent: (
                       <DonutLegendDetail
                         donutData={impressionsByEngine}
@@ -1102,13 +1132,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   },
                   {
                     key: 'conversions',
-                    label: 'Conversions per proposition',
+                    label: 'Conversions',
                     value: hasBudget ? fmtNumber(conversionsNum) : '—',
+                    subMetric: 'Media plan',
                     variant: 'donutLegend',
                     donutData: conversionsByEngine,
                     donutColors: propositionColors,
                     totalRow: { label: 'Media plan', value: conversionsTotal },
                     valueFormatter: fmtNumberValue,
+                    chart: (
+                      <DonutMini
+                        donutData={conversionsByEngine}
+                        donutColors={propositionColors}
+                      />
+                    ),
                     expandedContent: (
                       <DonutLegendDetail
                         donutData={conversionsByEngine}
@@ -1120,12 +1157,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   },
                   {
                     key: 'roas',
-                    label: 'ROAS per proposition',
+                    label: 'ROAS',
                     value: estRoas,
+                    // Weighted-average ROAS at the Media-plan level isn't quite right;
+                    // the per-proposition breakdown lives in the expand-on-click panel.
+                    subMetric: 'Media plan (weighted)',
                     variant: 'barHorizontal',
                     productData: roasByEngine,
                     totalRow: { label: 'Media plan', value: estRoasNum },
                     valueFormatter: fmtRoas,
+                    chart: <BarHorizontalMini productData={roasByEngine} />,
                     expandedContent: (
                       <BarHorizontalDetail
                         productData={roasByEngine}

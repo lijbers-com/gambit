@@ -12,6 +12,7 @@ import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { DateRange } from 'react-day-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
@@ -254,6 +255,7 @@ function AllCampaignsPage() {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Media plans',
+          titleIcon: <PropositionIcon engineType="media-plans" />,
           subtitle: 'All media plans',
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),

@@ -260,14 +260,28 @@ export const SideNavigation = ({
             showText &&
             (isNextMainType || isNextParentWithSubitems);
 
-          // Title-only items: render the title text or nothing
+          // Title-only items: keep the element mounted at all times so the
+          // vertical rhythm of the nav stays identical between collapsed
+          // and expanded states. We only fade the text in/out — the same
+          // line-height + margins reserve the same space either way, so
+          // sibling rows don't shift up/down as the nav opens or closes.
           if (isTitleType) {
-            if (!shouldShowTitle) return null;
+            const visible = shouldShowTitle;
             return (
-              <p key={item.id} className={cn(
-                "transition-opacity duration-300 text-xs text-muted-foreground mb-1 whitespace-nowrap",
-                index === 0 ? "mt-0" : "mt-6"
-              )}>{item.name}</p>
+              <p
+                key={item.id}
+                aria-hidden={!visible}
+                className={cn(
+                  'transition-opacity duration-300 text-xs text-muted-foreground mb-1 whitespace-nowrap',
+                  index === 0 ? 'mt-0' : 'mt-6',
+                  !visible && 'opacity-0 pointer-events-none select-none',
+                )}
+              >
+                {/* When collapsed we still need a glyph so the line takes
+                    its natural height; a non-breaking space keeps it from
+                    collapsing in the layout. */}
+                {visible ? item.name : ' '}
+              </p>
             );
           }
 

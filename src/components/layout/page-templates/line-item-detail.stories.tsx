@@ -307,6 +307,21 @@ const CampaignDetailsSidebar = () => (
   />
 );
 
+// Shared component for the parent media plan summary (shown on every booking template)
+const MediaPlanSidebar = () => (
+  <SummaryCard
+    title="Media plan"
+    variant="details"
+    items={[
+      { label: 'Media plan', value: 'Summer Launch Plan' },
+      { label: 'Advertiser', value: 'Acme Media' },
+      { label: 'Propositions', value: 'Display, Sponsored products, Digital in-store' },
+      { label: 'Total budget', value: '€42,500' },
+      { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
+    ]}
+  />
+);
+
 // Shared component for creative linking dialog
 const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: { 
   selectedCreatives: any[], 
@@ -962,6 +977,7 @@ export const Display: Story = {
                 ]}
               />
               <CampaignDetailsSidebar />
+              <MediaPlanSidebar />
             </div>
           </div>
         </AppLayout>
@@ -2357,13 +2373,22 @@ export const DigitalInStore: Story = {
                     variant="details"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                      ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
+                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
                       ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
-                      ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
-                      ...(storeLists.length > 0 ? [{ label: 'Stores', value: `${storeLists.reduce((s, l) => s + l.count, 0).toLocaleString()} stores · ${storeLists.length} ${storeLists.length === 1 ? 'list' : 'lists'}` }] : []),
+                      { label: 'Run window', value: `${dInstoreStartTime} - ${dInstoreEndTime} · ${dInstoreActiveDays.length === 7 ? 'every day' : `${dInstoreActiveDays.length} days`}` },
+                      {
+                        label: 'Stores',
+                        value: storeLists.length > 0
+                          ? `${storeLists.reduce((s, l) => s + l.count, 0).toLocaleString()} stores · ${storeLists.length} ${storeLists.length === 1 ? 'list' : 'lists'}`
+                          : 'All stores',
+                      },
+                      ...(allowOverbooking ? [{ label: 'Overbooking', value: 'Allowed' }] : []),
+                      ...(selectedLocations.length > 0 ? [{ label: 'Locations', value: `${selectedLocations.length} selected` }] : []),
                       ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
                       ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
-                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${selectedInventory.length} selected` }] : []),
+                      ...(selectedCreatives.length > 0 ? [{ label: 'Creatives', value: `${selectedCreatives.length} linked` }] : []),
                     ]}
                   />
 
@@ -2397,6 +2422,7 @@ export const DigitalInStore: Story = {
                   */}
 
                   <CampaignDetailsSidebar />
+                  <MediaPlanSidebar />
                 </div>
               </div>
             </div>
@@ -3400,6 +3426,7 @@ export const OfflineInStore: Story = {
                   */}
 
                   <CampaignDetailsSidebar />
+                  <MediaPlanSidebar />
                 </div>
               </div>
             </div>
@@ -4060,6 +4087,7 @@ export const SponsoredProducts: Story = {
                   */}
 
                   <CampaignDetailsSidebar />
+                  <MediaPlanSidebar />
                 </div>
               </div>
             </div>
@@ -4616,6 +4644,7 @@ export const OffsiteDisplay: Story = {
                   { label: 'Runtime', value: '01 Jun, 2024 - 30 Jun, 2024' },
                 ]}
               />
+              <MediaPlanSidebar />
             </div>
           </div>
         </AppLayout>

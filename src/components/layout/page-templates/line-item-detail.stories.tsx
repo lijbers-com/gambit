@@ -1658,7 +1658,7 @@ export const DigitalInStore: Story = {
 
                           {storeLists.length === 0 ? (
                             <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                              All 750 available stores will be used. Generate or add a list to narrow down.
+                              Generate or add a list to narrow down. All 750 available stores will be used.
                             </div>
                           ) : (
                             <div className="space-y-1">

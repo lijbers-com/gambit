@@ -23,7 +23,7 @@ const campaignSummaryData = [
   {
     id: 'C-001',
     campaignType: 'sponsored-products',
-    title: 'Holiday Sale Campaign',
+    title: 'Holiday Sale Plan',
     badge: { text: 'Best ROAS', variant: 'default' as const },
     goal: 'performance-transaction',
     estimatedRoas: '4.8x',
@@ -48,7 +48,7 @@ const campaignSummaryData = [
   {
     id: 'C-002',
     campaignType: 'display',
-    title: 'Summer Launch Campaign',
+    title: 'Summer Launch Plan',
     badge: { text: 'High CTR', variant: 'secondary' as const },
     goal: 'brand-awareness',
     estimatedRoas: '3.2x',
@@ -70,7 +70,7 @@ const campaignSummaryData = [
   {
     id: 'C-003',
     campaignType: 'digital-instore',
-    title: 'Back to School Campaign',
+    title: 'Back to School Plan',
     badge: { text: 'In Option', variant: 'outline' as const },
     goal: 'customer-acquisition',
     estimatedRoas: '5.1x',
@@ -92,7 +92,7 @@ const campaignSummaryData = [
   {
     id: 'C-004',
     campaignType: 'offline-instore',
-    title: 'Black Friday Campaign',
+    title: 'Black Friday Plan',
     badge: { text: 'Paused', variant: 'destructive' as const },
     goal: 'performance-transaction',
     estimatedRoas: '6.2x',
@@ -117,7 +117,7 @@ const campaignSummaryData = [
   {
     id: 'C-005',
     campaignType: 'display',
-    title: 'New Year Campaign',
+    title: 'New Year Plan',
     badge: { text: 'Ready', variant: 'secondary' as const },
     goal: 'retargeting',
     estimatedRoas: '4.5x',

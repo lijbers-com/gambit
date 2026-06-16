@@ -38,7 +38,7 @@ const SelectionList = React.forwardRef<HTMLDivElement, SelectionListProps>(
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg border bg-background hover:bg-muted/30 transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-md border bg-muted/40 hover:bg-muted/60 transition-colors"
           >
             {variant === "switch" && (
               <Switch

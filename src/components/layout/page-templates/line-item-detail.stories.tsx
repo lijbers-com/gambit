@@ -19,7 +19,7 @@ import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { Minus, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info } from 'lucide-react';
+import { X, Check, Shuffle, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { format } from 'date-fns';
@@ -994,9 +994,21 @@ export const DigitalInStore: Story = {
     const [logSearch, setLogSearch] = React.useState('');
     const [evaluationId, setEvaluationId] = React.useState('');
     // Booking store selection (ported from Offline in-store)
-    const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003']);
-    const [storeSelectionMode, setStoreSelectionMode] = React.useState<'random' | 'custom' | null>(null);
+    // Default to all available stores selected (the booked ones are AH004 + AH007);
+    // the user trims down from there via the field or the modal.
+    const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003', 'AH005', 'AH006', 'AH008', 'AH009', 'AH010']);
     const [showSelectedStoresDialog, setShowSelectedStoresDialog] = React.useState(false);
+    // Store lists — empty by default. The user adds lists by generating one or
+    // uploading a custom file; each list is a removable card (like the targets).
+    type StoreListEntry = { id: number; kind: 'generated' | 'custom'; title: string; count: number };
+    const [storeLists, setStoreLists] = React.useState<StoreListEntry[]>([]);
+    const [activeListId, setActiveListId] = React.useState<number | null>(null);
+    const [generateAmount, setGenerateAmount] = React.useState('');
+    const [listAmounts, setListAmounts] = React.useState<Record<number, string>>({});
+    const [listOps, setListOps] = React.useState<Record<number, 'add' | 'set' | 'remove'>>({});
+    const [allowOverbooking, setAllowOverbooking] = React.useState(false);
+    const storeListSeq = React.useRef(0);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
     // Evaluation store pickers — reuse the same dialog pattern, separate state
     const [correctedStoreIds, setCorrectedStoreIds] = React.useState<string[]>([]);
     const [excludedStoreIds, setExcludedStoreIds] = React.useState<string[]>([]);
@@ -1087,7 +1099,6 @@ export const DigitalInStore: Story = {
       { id: 'su', label: 'Su' },
     ];
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
-    const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
@@ -1150,6 +1161,55 @@ export const DigitalInStore: Story = {
     // Remove retail product
     const removeRetailProduct = (productId: string) => {
       setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
+    };
+
+    // Store lists — generate a list, upload a custom file, remove a list, or
+    // open a list in the modal to hand-edit which stores it contains.
+    const addGeneratedList = () => {
+      const parsed = parseInt(generateAmount, 10);
+      const count = !isNaN(parsed) && parsed > 0 ? parsed : 750; // default to all 750 available
+      storeListSeq.current += 1;
+      setStoreLists((prev) => {
+        const n = prev.filter((l) => l.kind === 'generated').length + 1;
+        return [
+          ...prev,
+          { id: storeListSeq.current, kind: 'generated', title: n === 1 ? 'Generated list' : `Generated list ${n}`, count },
+        ];
+      });
+      setGenerateAmount('');
+    };
+    const triggerCustomUpload = () => fileInputRef.current?.click();
+    const handleCustomFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      storeListSeq.current += 1;
+      setStoreLists((prev) => [...prev, { id: storeListSeq.current, kind: 'custom', title: file.name, count: 500 }]);
+      e.target.value = ''; // allow re-uploading the same file
+    };
+    const removeStoreList = (id: number) => setStoreLists((prev) => prev.filter((l) => l.id !== id));
+    // Per-list Add / Set / Remove of stores against that list's count
+    const applyListAmount = (id: number, op: 'add' | 'set' | 'remove') => {
+      const n = parseInt(listAmounts[id] ?? '', 10);
+      if (isNaN(n) || n < 0) return;
+      setStoreLists((prev) =>
+        prev.map((l) =>
+          l.id === id
+            ? { ...l, count: op === 'add' ? l.count + n : op === 'remove' ? Math.max(0, l.count - n) : n }
+            : l,
+        ),
+      );
+      setListAmounts((prev) => ({ ...prev, [id]: '' }));
+      setListOps((prev) => ({ ...prev, [id]: 'add' })); // reset to the standard action
+    };
+    const openListModal = (id: number) => {
+      setActiveListId(id);
+      setShowSelectedStoresDialog(true);
+    };
+    const applyModalSelection = () => {
+      if (activeListId != null) {
+        setStoreLists((prev) => prev.map((l) => (l.id === activeListId ? { ...l, count: selectedStoreIds.length } : l)));
+      }
+      setShowSelectedStoresDialog(false);
     };
 
     // Brand multi-select — same search-and-pick pattern as retail products
@@ -1354,7 +1414,7 @@ export const DigitalInStore: Story = {
                                   {selectedBrands.map((value) => {
                                     const brand = dInstoreBrandOptions.find((b) => b.value === value);
                                     return brand ? (
-                                      <div key={value} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                      <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                         <div className="text-sm font-medium">{brand.label}</div>
                                         <Button
                                           variant="outline"
@@ -1362,7 +1422,7 @@ export const DigitalInStore: Story = {
                                           onClick={() => removeBrand(value)}
                                           className="h-8 w-8 p-0"
                                         >
-                                          <Minus className="h-4 w-4" />
+                                          <X className="h-4 w-4" />
                                         </Button>
                                       </div>
                                     ) : null;
@@ -1405,7 +1465,7 @@ export const DigitalInStore: Story = {
                                   {selectedRetailProducts.map((productId) => {
                                     const product = retailProducts.find((p) => p.id === productId);
                                     return product ? (
-                                      <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                      <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                         <div>
                                           <div className="text-sm font-medium">{product.name}</div>
                                           <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -1416,7 +1476,7 @@ export const DigitalInStore: Story = {
                                           onClick={() => removeRetailProduct(productId)}
                                           className="h-8 w-8 p-0"
                                         >
-                                          <Minus className="h-4 w-4" />
+                                          <X className="h-4 w-4" />
                                         </Button>
                                       </div>
                                     ) : null;
@@ -1467,7 +1527,7 @@ export const DigitalInStore: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-muted rounded-md p-2">
+                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -1480,7 +1540,7 @@ export const DigitalInStore: Story = {
                                   onClick={removePlacement}
                                   className="h-8 w-8 p-0"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
@@ -1552,45 +1612,149 @@ export const DigitalInStore: Story = {
                       </FormSection>
 
                       <FormSection borderless title="Store list" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="flex items-center gap-3">
-                              <div className="relative flex-1" data-dropdown-container>
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                  <Store className="w-4 h-4" />
-                                </span>
-                                <Input
+                        <div className="space-y-3">
+                          {/* Create store lists — generate one or upload a custom file; each is a removable card */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+                              <div className="relative flex min-w-0 flex-1 items-center">
+                                <Store className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground" />
+                                <input
                                   type="number"
-                                  value={storeAmount}
-                                  onChange={(e) => setStoreAmount(e.target.value)}
-                                  placeholder="Enter number of stores"
-                                  className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                   min="1"
+                                  value={generateAmount}
+                                  onChange={(e) => setGenerateAmount(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addGeneratedList();
+                                    }
+                                  }}
+                                  placeholder="Amount of stores to generate"
+                                  className="h-full w-full bg-transparent pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              {storeSelectionMode && (
-                                <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" className="whitespace-nowrap h-10">
-                                      Selected stores
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={addGeneratedList}
+                                className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
+                              >
+                                <Shuffle className="h-4 w-4" />
+                                Generate list
+                              </Button>
+                            </div>
+                            <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={triggerCustomUpload}>
+                              <Upload className="h-4 w-4" />
+                              Add custom list
+                            </Button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept=".csv,.xlsx,.xls,.txt"
+                              className="hidden"
+                              onChange={handleCustomFile}
+                            />
+                          </div>
+
+                          {storeLists.length === 0 ? (
+                            <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                              No store list yet. Generate a list or add a custom one to get started.
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              {storeLists.map((list) => (
+                                <div
+                                  key={list.id}
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openListModal(list.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      openListModal(list.id);
+                                    }
+                                  }}
+                                  className="flex cursor-pointer items-center justify-between gap-3 rounded-md border bg-muted/40 p-2 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                >
+                                  <div className="min-w-0">
+                                    <div className="truncate text-sm font-medium">{list.title} · {list.count.toLocaleString()} stores</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {list.kind === 'custom' ? 'Custom upload · ' : ''}{(list.count * 65).toLocaleString()} reach
+                                    </div>
+                                  </div>
+                                  {/* Per-list controls — stop card click so editing doesn't open the modal */}
+                                  <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring">
+                                      <div className="relative flex items-center">
+                                        <Store className="pointer-events-none absolute left-2 h-4 w-4 text-muted-foreground" />
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          value={listAmounts[list.id] ?? ''}
+                                          onChange={(e) => setListAmounts((prev) => ({ ...prev, [list.id]: e.target.value }))}
+                                          placeholder="Amount"
+                                          className="h-full w-28 bg-transparent pl-8 pr-2 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
+                                      </div>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-full gap-1 rounded-none border-l border-input px-2 text-sm capitalize"
+                                          >
+                                            {listOps[list.id] ?? 'add'}
+                                            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'add' }))}>Add</DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'set' }))}>Set</DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'remove' }))}>Remove</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => applyListAmount(list.id, listOps[list.id] ?? 'add')}
+                                        className="h-full rounded-none border-l border-input px-2"
+                                        aria-label="Apply"
+                                      >
+                                        <Check className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => removeStoreList(list.id)}
+                                      className="h-8 w-8 p-0"
+                                      aria-label={`Remove ${list.title}`}
+                                    >
+                                      <X className="h-4 w-4" />
                                     </Button>
-                                  </DialogTrigger>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Allow overbooking toggle — off by default */}
+                          <label className="flex w-fit cursor-pointer items-center gap-2">
+                            <Switch checked={allowOverbooking} onCheckedChange={setAllowOverbooking} />
+                            <span className="text-sm">Allow overbooking of stores</span>
+                          </label>
+
+                          {/* Controlled store table modal — opened from a list card */}
+                          <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
                                   <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
                                     <DialogHeader>
                                       <DialogTitle>Selected Stores</DialogTitle>
                                       <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <div className="relative flex-1 min-w-[200px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                          placeholder="Search stores..."
-                                          value={storeFilterSearch}
-                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
-                                          className="pl-9"
-                                        />
-                                      </div>
+                                    <div className="flex items-center gap-2">
                                       <Filter
                                         name="Type"
                                         options={storeTypeFilterOptions}
@@ -1603,17 +1767,23 @@ export const DigitalInStore: Story = {
                                         selectedValues={storeFilterLocations}
                                         onChange={setStoreFilterLocations}
                                       />
-                                      <Button variant="outline">
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Upload store list
-                                      </Button>
-                                      <Button variant="outline">
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download store list
+                                      <div className="flex-1" />
+                                      <div className="relative w-[260px]">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                          placeholder="Search stores..."
+                                          value={storeFilterSearch}
+                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                          className="pl-9"
+                                        />
+                                      </div>
+                                      <Button variant="outline" size="icon" aria-label="Download store list">
+                                        <Download className="w-4 h-4" />
                                       </Button>
                                     </div>
                                     <div className="flex-1 overflow-y-auto min-h-0">
                                       <Table
+                                        hideActions
                                         columns={[
                                           {
                                             key: 'select',
@@ -1662,37 +1832,13 @@ export const DigitalInStore: Story = {
                                       />
                                     </div>
                                     <DialogFooter>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline">Close</Button>
-                                      </DialogTrigger>
+                                      <Button variant="outline" onClick={() => setShowSelectedStoresDialog(false)}>Cancel</Button>
+                                      <Button onClick={applyModalSelection}>
+                                        Use {selectedStoreIds.length} {selectedStoreIds.length === 1 ? 'store' : 'stores'}
+                                      </Button>
                                     </DialogFooter>
                                   </DialogContent>
                                 </Dialog>
-                              )}
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <Button
-                              variant={storeSelectionMode === 'random' ? 'default' : 'outline'}
-                              className="w-full"
-                              onClick={() => setStoreSelectionMode('random')}
-                            >
-                              Generate random stores
-                            </Button>
-                            <Button
-                              variant={storeSelectionMode === 'custom' ? 'default' : 'outline'}
-                              className="w-full"
-                              onClick={() => setStoreSelectionMode('custom')}
-                            >
-                              Set custom stores
-                            </Button>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
-                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : '750 stores available within the run time selected'
-                            }
-                          </div>
                         </div>
                       </FormSection>
 
@@ -1701,51 +1847,65 @@ export const DigitalInStore: Story = {
                           <div className="flex gap-3">
                             <Filter
                               name="Location"
+                              keepName
                               options={locationOptions}
                               selectedValues={selectedLocations}
                               onChange={setSelectedLocations}
                             />
                             <Filter
                               name="Store type"
+                              keepName
                               options={storeTypeOptions}
                               selectedValues={selectedStoreTypes}
                               onChange={setSelectedStoreTypes}
                             />
                           </div>
-                          {(selectedLocations.length > 0 || selectedStoreTypes.length > 0) && (
-                            <div className="flex flex-wrap gap-2">
+                          {(selectedLocations.length > 0 || selectedStoreTypes.length > 0) ? (
+                            <div className="space-y-1">
                               {selectedLocations.map((value) => {
                                 const opt = locationOptions.find((o) => o.value === value);
                                 return opt ? (
-                                  <Badge key={`loc-${value}`} variant="secondary" className="gap-1 pr-1">
-                                    {opt.label}
-                                    <button
-                                      type="button"
+                                  <div key={`loc-${value}`} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-medium">{opt.label}</div>
+                                      <div className="text-xs text-muted-foreground">Location</div>
+                                    </div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       onClick={() => setSelectedLocations(selectedLocations.filter((v) => v !== value))}
-                                      className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                      className="h-8 w-8 p-0"
                                       aria-label={`Remove ${opt.label}`}
                                     >
-                                      <Minus className="h-3 w-3" />
-                                    </button>
-                                  </Badge>
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 ) : null;
                               })}
                               {selectedStoreTypes.map((value) => {
                                 const opt = storeTypeOptions.find((o) => o.value === value);
                                 return opt ? (
-                                  <Badge key={`st-${value}`} variant="secondary" className="gap-1 pr-1">
-                                    {opt.label}
-                                    <button
-                                      type="button"
+                                  <div key={`st-${value}`} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-medium">{opt.label}</div>
+                                      <div className="text-xs text-muted-foreground">Store type</div>
+                                    </div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       onClick={() => setSelectedStoreTypes(selectedStoreTypes.filter((v) => v !== value))}
-                                      className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                      className="h-8 w-8 p-0"
                                       aria-label={`Remove ${opt.label}`}
                                     >
-                                      <Minus className="h-3 w-3" />
-                                    </button>
-                                  </Badge>
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 ) : null;
                               })}
+                            </div>
+                          ) : (
+                            <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                              No targets set yet. Add a location or store type to narrow down the audience.
                             </div>
                           )}
                         </div>
@@ -1787,7 +1947,7 @@ export const DigitalInStore: Story = {
                               {selectedAudiences.map((value) => {
                                 const audience = audienceOptions.find((a) => a.value === value);
                                 return audience ? (
-                                  <div key={value} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                  <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                     <div className="text-sm font-medium">{audience.label}</div>
                                     <Button
                                       variant="outline"
@@ -1795,7 +1955,7 @@ export const DigitalInStore: Story = {
                                       onClick={() => removeAudience(value)}
                                       className="h-8 w-8 p-0"
                                     >
-                                      <Minus className="h-4 w-4" />
+                                      <X className="h-4 w-4" />
                                     </Button>
                                   </div>
                                 ) : null;
@@ -1820,7 +1980,7 @@ export const DigitalInStore: Story = {
                                       onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
                                       aria-label="Remove creative"
                                     >
-                                      <Minus className="h-4 w-4" />
+                                      <X className="h-4 w-4" />
                                     </Button>
                                   ),
                                   className: 'w-10 text-center',
@@ -2200,7 +2360,7 @@ export const DigitalInStore: Story = {
                       ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
                       ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
-                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
+                      ...(storeLists.length > 0 ? [{ label: 'Stores', value: `${storeLists.reduce((s, l) => s + l.count, 0).toLocaleString()} stores · ${storeLists.length} ${storeLists.length === 1 ? 'list' : 'lists'}` }] : []),
                       ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
                       ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
                       ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${selectedInventory.length} selected` }] : []),
@@ -2746,16 +2906,7 @@ export const OfflineInStore: Story = {
                                       <DialogTitle>Selected Stores</DialogTitle>
                                       <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <div className="relative flex-1 min-w-[200px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                          placeholder="Search stores..."
-                                          value={storeFilterSearch}
-                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
-                                          className="pl-9"
-                                        />
-                                      </div>
+                                    <div className="flex items-center gap-2">
                                       <Filter
                                         name="Type"
                                         options={storeTypeFilterOptions}
@@ -2768,17 +2919,23 @@ export const OfflineInStore: Story = {
                                         selectedValues={storeFilterLocations}
                                         onChange={setStoreFilterLocations}
                                       />
-                                      <Button variant="outline">
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Upload store list
-                                      </Button>
-                                      <Button variant="outline">
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download store list
+                                      <div className="flex-1" />
+                                      <div className="relative w-[260px]">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                          placeholder="Search stores..."
+                                          value={storeFilterSearch}
+                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                          className="pl-9"
+                                        />
+                                      </div>
+                                      <Button variant="outline" size="icon" aria-label="Download store list">
+                                        <Download className="w-4 h-4" />
                                       </Button>
                                     </div>
                                     <div className="flex-1 overflow-y-auto min-h-0">
                                       <Table
+                                        hideActions
                                         columns={[
                                           {
                                             key: 'select',
@@ -3526,7 +3683,7 @@ export const SponsoredProducts: Story = {
                           {selectedPlacement && (
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between bg-muted rounded-md p-2">
+                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                 <div>
                                   <div className="text-sm font-medium">{selectedPlacement.name}</div>
                                   <div className="text-xs text-muted-foreground mt-1">
@@ -3539,7 +3696,7 @@ export const SponsoredProducts: Story = {
                                   onClick={removePlacement}
                                   className="h-8 w-8 p-0"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
@@ -3623,7 +3780,7 @@ export const SponsoredProducts: Story = {
                                 {selectedRetailProducts.map(productId => {
                                   const product = retailProducts.find(p => p.id === productId);
                                   return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
+                                    <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                       <div>
                                         <div className="text-sm font-medium">{product.name}</div>
                                         <div className="text-xs text-muted-foreground">ID: {product.id}</div>
@@ -3634,7 +3791,7 @@ export const SponsoredProducts: Story = {
                                         onClick={() => removeRetailProduct(productId)}
                                         className="h-8 w-8 p-0"
                                       >
-                                        <Minus className="h-4 w-4" />
+                                        <X className="h-4 w-4" />
                                       </Button>
                                     </div>
                                   ) : null;
@@ -3743,7 +3900,7 @@ export const SponsoredProducts: Story = {
                                       onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
                                       aria-label="Remove creative"
                                     >
-                                      <Minus className="h-4 w-4" />
+                                      <X className="h-4 w-4" />
                                     </Button>
                                   ),
                                   className: 'w-10 text-center',
@@ -4211,13 +4368,13 @@ export const OffsiteDisplay: Story = {
                           {selectedRetailProducts.map(productId => {
                             const product = retailProducts.find(p => p.id === productId);
                             return product ? (
-                              <div key={productId} className="flex items-center justify-between bg-muted rounded-md p-2">
+                              <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
                                 <div>
                                   <div className="text-sm font-medium">{product.name}</div>
                                   <div className="text-xs text-muted-foreground">ID: {product.id}</div>
                                 </div>
                                 <Button variant="outline" size="sm" onClick={() => removeRetailProduct(productId)} className="h-8 w-8 p-0">
-                                  <Minus className="h-4 w-4" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             ) : null;
@@ -4319,7 +4476,7 @@ export const OffsiteDisplay: Story = {
                                   onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
                                   aria-label="Remove creative"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               ),
                               className: 'w-10 text-center',

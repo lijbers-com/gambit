@@ -687,7 +687,7 @@ const updatedForecastMetrics = [
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Digital in-store, Summer Launch',
           titleIcon: <PropositionIcon engineType="digital-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -1229,7 +1229,7 @@ export const DigitalInstoreRunning: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Summer Launch',
+            title: 'Digital in-store, Summer Launch',
           titleIcon: <PropositionIcon engineType="digital-instore" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -1716,7 +1716,7 @@ export const OfflineInstoreRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Offline in-store, Summer Launch',
           titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -2240,7 +2240,7 @@ export const DisplayRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Display, Summer Launch',
           titleIcon: <PropositionIcon engineType="display" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -2756,7 +2756,7 @@ export const OfflineInstoreInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Offline in-store, Summer Launch',
           titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -3250,7 +3250,7 @@ export const DisplayInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Display, Summer Launch',
           titleIcon: <PropositionIcon engineType="display" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -4076,7 +4076,7 @@ export const SponsoredProductsInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Sponsored products, Summer Launch',
           titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -4800,7 +4800,7 @@ export const SponsoredProductsRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Sponsored products, Summer Launch',
           titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -5395,7 +5395,7 @@ export const OffsiteRunning: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Offsite, Summer Launch',
           titleIcon: <PropositionIcon engineType="offsite" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -5910,7 +5910,7 @@ export const OffsiteInOption: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Summer Launch',
+          title: 'Offsite, Summer Launch',
           titleIcon: <PropositionIcon engineType="offsite" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),

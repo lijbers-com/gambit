@@ -28,6 +28,10 @@ export interface FilterProps {
    *  Useful for filters whose option set grows over time (e.g. Channel,
    *  Publisher) and where users expect a search box from the first click. */
   forceSearch?: boolean;
+  /** Keep the trigger showing the filter `name` instead of the selected
+   *  value(s), and hide the inline clear button. Use when the selection is
+   *  already surfaced elsewhere (e.g. as cards below the filter row). */
+  keepName?: boolean;
 }
 
 export const Filter: React.FC<FilterProps> = ({
@@ -38,6 +42,7 @@ export const Filter: React.FC<FilterProps> = ({
   className,
   customInput,
   forceSearch = false,
+  keepName = false,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -67,12 +72,14 @@ export const Filter: React.FC<FilterProps> = ({
     .filter((opt) => selectedValues.includes(opt.value))
     .map((opt) => opt.label);
   let displayLabel = name;
-  if (selectedLabels.length === 1) {
-    displayLabel = selectedLabels[0];
-  } else if (selectedLabels.length === 2) {
-    displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]}`;
-  } else if (selectedLabels.length > 2) {
-    displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]} + ${selectedLabels.length - 2} more`;
+  if (!keepName) {
+    if (selectedLabels.length === 1) {
+      displayLabel = selectedLabels[0];
+    } else if (selectedLabels.length === 2) {
+      displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]}`;
+    } else if (selectedLabels.length > 2) {
+      displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]} + ${selectedLabels.length - 2} more`;
+    }
   }
 
   return (
@@ -89,7 +96,7 @@ export const Filter: React.FC<FilterProps> = ({
           aria-label={name}
         >
           <span className="truncate max-w-[220px]">{displayLabel}</span>
-          {selectedValues.length > 0 && (
+          {selectedValues.length > 0 && !keepName && (
             <span
               onClick={e => {
                 e.stopPropagation();

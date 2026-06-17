@@ -446,7 +446,7 @@ export const Display: Story = {
     const [evaluationId, setEvaluationId] = React.useState('');
 
     // Booking setup
-    const [bookingName, setBookingName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('Display · Summer Launch · Homepage Takeover');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = React.useState('00:00');
     const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
@@ -540,7 +540,7 @@ export const Display: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Booking Detail',
+            title: bookingName || 'Booking Detail',
           titleIcon: <PropositionIcon engineType="display" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -963,10 +963,11 @@ export const Display: Story = {
             </div>
 
             {/* Sidebar */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 lg:mt-[45px]">
               <SummaryCard
                 title="Booking"
                 variant="details"
+                className="bg-white"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
@@ -1077,7 +1078,7 @@ export const DigitalInStore: Story = {
       { label: 'Utrecht', value: 'utrecht' },
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
-    const [bookingName, setBookingName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('Digital in-store · Summer Launch · Entrance Screens');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
@@ -1332,7 +1333,7 @@ export const DigitalInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail',
+          title: bookingName || 'Booking Detail',
           titleIcon: <PropositionIcon engineType="digital-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -2367,10 +2368,11 @@ export const DigitalInStore: Story = {
                 </div>
 
                 {/* Sidebar */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 lg:mt-[45px]">
                   <SummaryCard
                     title="Booking"
                     variant="details"
+                    className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
@@ -2440,7 +2442,7 @@ export const OfflineInStore: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [bookingName, setBookingName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
@@ -2788,7 +2790,7 @@ export const OfflineInStore: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail',
+          title: bookingName || 'Booking Detail',
           titleIcon: <PropositionIcon engineType="offline-instore" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -3383,10 +3385,11 @@ export const OfflineInStore: Story = {
                 </div>
 
                 {/* Sidebar */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 lg:mt-[45px]">
                   <SummaryCard
                     title="Booking"
                     variant="details"
+                    className="bg-white"
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
@@ -3452,7 +3455,7 @@ export const SponsoredProducts: Story = {
       { label: 'Utrecht', value: 'utrecht' },
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
-    const [bookingName, setBookingName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
@@ -3603,7 +3606,7 @@ export const SponsoredProducts: Story = {
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
-          title: 'Booking Detail',
+          title: bookingName || 'Booking Detail',
           titleIcon: <PropositionIcon engineType="sponsored-products" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -4041,10 +4044,11 @@ export const SponsoredProducts: Story = {
                 </div>
                 
                 {/* Sidebar */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 lg:mt-[45px]">
                   <SummaryCard
                     title="Booking"
                     variant="details"
+                    className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
@@ -4106,7 +4110,7 @@ export const OffsiteDisplay: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
 
-    const [bookingName, setBookingName] = React.useState('');
+    const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
@@ -4213,7 +4217,7 @@ export const OffsiteDisplay: Story = {
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Booking Detail',
+            title: bookingName || 'Booking Detail',
           titleIcon: <PropositionIcon engineType="offsite" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -4615,10 +4619,11 @@ export const OffsiteDisplay: Story = {
             </div>
 
             {/* Sidebar */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 lg:mt-[45px]">
               <SummaryCard
                 title="Booking"
                 variant="details"
+                className="bg-white"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(selectedPlacementObj ? [{ label: 'Placement', value: selectedPlacementObj.label }] : []),

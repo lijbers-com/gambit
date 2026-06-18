@@ -116,11 +116,11 @@ export const PageHeader = ({
     <div ref={headerRef} className={cn('flex px-6 pt-6 pb-0', className)}>
       <div className="flex-1 min-w-[300px]">
         <h1
-          className="text-3xl font-semibold mb-0 flex items-center gap-3"
+          className="text-3xl font-semibold mb-0 flex items-start gap-3"
           data-testid="page-title"
         >
           {titleIcon && (
-            <span className="shrink-0 inline-flex items-center">
+            <span className="mt-0.5 shrink-0 inline-flex items-center">
               {titleIcon}
             </span>
           )}

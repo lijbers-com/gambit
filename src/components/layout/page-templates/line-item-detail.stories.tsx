@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
-import { DatePicker, DateRangePicker } from '../../ui/date-picker';
+import { DatePicker, DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
 import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
 import { Button } from '../../ui/button';
@@ -19,10 +19,10 @@ import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { X, Check, Shuffle, Store, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info } from 'lucide-react';
+import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
-import { format } from 'date-fns';
+import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -1015,17 +1015,30 @@ export const DigitalInStore: Story = {
     // the user trims down from there via the field or the modal.
     const [selectedStoreIds, setSelectedStoreIds] = React.useState<string[]>(['AH001', 'AH002', 'AH003', 'AH005', 'AH006', 'AH008', 'AH009', 'AH010']);
     const [showSelectedStoresDialog, setShowSelectedStoresDialog] = React.useState(false);
-    // Store lists — empty by default. The user adds lists by generating one or
-    // uploading a custom file; each list is a removable card (like the targets).
-    type StoreListEntry = { id: number; kind: 'generated' | 'custom'; title: string; count: number };
+    // Stores & displays — the booking can target physical stores OR in-store
+    // displays (screens), shown as two separate sections. Each keeps its own
+    // list, but only one may hold a list at a time (mutual exclusion): once one
+    // section has a list, the other section is disabled.
+    type ListKind = 'stores' | 'displays';
+    type StoreListEntry = { id: number; kind: 'generated' | 'custom' | 'all'; title: string; count: number };
     const [storeLists, setStoreLists] = React.useState<StoreListEntry[]>([]);
+    const [displayLists, setDisplayLists] = React.useState<StoreListEntry[]>([]);
     const [activeListId, setActiveListId] = React.useState<number | null>(null);
-    const [generateAmount, setGenerateAmount] = React.useState('');
-    const [listAmounts, setListAmounts] = React.useState<Record<number, string>>({});
-    const [listOps, setListOps] = React.useState<Record<number, 'add' | 'set' | 'remove'>>({});
-    const [allowOverbooking, setAllowOverbooking] = React.useState(false);
+    const [modalKind, setModalKind] = React.useState<ListKind>('stores');
+    const [genAmounts, setGenAmounts] = React.useState<Record<ListKind, string>>({ stores: '', displays: '' });
+    const [pendingOverbook, setPendingOverbook] = React.useState<{ kind: ListKind; count: number } | null>(null);
+    const [pendingReplace, setPendingReplace] = React.useState<{ kind: ListKind; action: 'generate'; count: number } | { kind: ListKind; action: 'custom' } | null>(null);
     const storeListSeq = React.useRef(0);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    // Per-kind nouns/icons/cap so each section reads correctly.
+    const unitFor = (kind: ListKind) => kind === 'displays'
+      ? { kind, noun: 'display', plural: 'displays', Noun: 'Display', Plural: 'Displays', listLabel: 'display list', Icon: MonitorPlay, max: 1200 }
+      : { kind, noun: 'store', plural: 'stores', Noun: 'Store', Plural: 'Stores', listLabel: 'store list', Icon: Store, max: 750 };
+    const listsFor = (kind: ListKind) => (kind === 'displays' ? displayLists : storeLists);
+    const setListsFor = (kind: ListKind) => (kind === 'displays' ? setDisplayLists : setStoreLists);
+    const setGenAmountFor = (kind: ListKind, v: string) => setGenAmounts((p) => ({ ...p, [kind]: v }));
+    // Mutual exclusion: only one kind may hold a list at a time.
+    const activeKind: ListKind | null = storeLists.length > 0 ? 'stores' : displayLists.length > 0 ? 'displays' : null;
     // Evaluation store pickers — reuse the same dialog pattern, separate state
     const [correctedStoreIds, setCorrectedStoreIds] = React.useState<string[]>([]);
     const [excludedStoreIds, setExcludedStoreIds] = React.useState<string[]>([]);
@@ -1070,20 +1083,49 @@ export const DigitalInStore: Story = {
       return true;
     });
 
-    // Location options for targeting
-    const locationOptions = [
-      { label: 'Amsterdam', value: 'amsterdam' },
-      { label: 'Rotterdam', value: 'rotterdam' },
-      { label: 'Den Haag', value: 'den-haag' },
-      { label: 'Utrecht', value: 'utrecht' },
-      { label: 'Eindhoven', value: 'eindhoven' }
+    // Region options for targeting (CBS landsdelen)
+    const regionOptions = [
+      { label: 'Noord-Nederland', value: 'noord-nederland' },
+      { label: 'Oost-Nederland', value: 'oost-nederland' },
+      { label: 'West-Nederland (Randstad)', value: 'west-nederland' },
+      { label: 'Zuid-Nederland', value: 'zuid-nederland' },
     ];
+    // Provinces — searchable (12 entries)
+    const provinceOptions = [
+      'Groningen', 'Friesland', 'Drenthe', 'Overijssel', 'Flevoland', 'Gelderland',
+      'Utrecht', 'Noord-Holland', 'Zuid-Holland', 'Zeeland', 'Noord-Brabant', 'Limburg',
+    ].map((p) => ({ label: p, value: p.toLowerCase().replace(/\s+/g, '-') }));
+    // Postal-code areas — searchable digit ranges
+    const postalCodeOptions = Array.from({ length: 20 }, (_, i) => {
+      const from = (i + 1) * 500;
+      const to = from + 499;
+      return { label: `${from}–${to}`, value: `pc-${from}` };
+    });
+    // Large, searchable option sets for the granular geo targets
+    const cityOptions = [
+      'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven', 'Groningen', 'Tilburg', 'Almere',
+      'Breda', 'Nijmegen', 'Apeldoorn', 'Haarlem', 'Arnhem', 'Enschede', 'Amersfoort', 'Zaanstad',
+      'Den Bosch', 'Zwolle', 'Leiden', 'Maastricht', 'Dordrecht', 'Ede', 'Alphen aan den Rijn',
+      'Alkmaar', 'Emmen', 'Delft', 'Venlo', 'Deventer', 'Leeuwarden', 'Helmond',
+    ].map((c) => ({ label: c, value: c.toLowerCase().replace(/\s+/g, '-') }));
+    const addressOptions = [
+      'Kalverstraat 1, Amsterdam', 'Coolsingel 105, Rotterdam', 'Grote Marktstraat 8, Den Haag',
+      'Oudegracht 50, Utrecht', 'Demer 24, Eindhoven', 'Herestraat 90, Groningen',
+      'Heuvelstraat 12, Tilburg', 'Stadhuisplein 2, Almere', 'Ginnekenstraat 14, Breda',
+      'Broerstraat 33, Nijmegen', 'Hoofdstraat 180, Apeldoorn', 'Grote Houtstraat 70, Haarlem',
+      'Roggestraat 5, Arnhem', 'Kalanderstraat 1, Enschede', 'Langestraat 45, Amersfoort',
+    ].map((a) => ({ label: a, value: a.toLowerCase().replace(/[^a-z0-9]+/g, '-') }));
+    const [selectedCities, setSelectedCities] = React.useState<string[]>([]);
+    const [selectedAddresses, setSelectedAddresses] = React.useState<string[]>([]);
+    const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
+    const [selectedPostalCodes, setSelectedPostalCodes] = React.useState<string[]>([]);
     const [bookingName, setBookingName] = React.useState('Digital in-store · Summer Launch · Entrance Screens');
     const [placementSearch, setPlacementSearch] = React.useState('');
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
-    const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
-    const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
+    // Default the run time to next week (matches the "Next week" preset)
+    const [startDate, setStartDate] = React.useState<Date | undefined>(() => startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
+    const [endDate, setEndDate] = React.useState<Date | undefined>(() => endOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
     const dInstoreDateRange = React.useMemo<DateRange | undefined>(
       () => (startDate || endDate ? { from: startDate, to: endDate } : undefined),
       [startDate, endDate],
@@ -1121,7 +1163,7 @@ export const DigitalInStore: Story = {
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
-    const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
+    const [selectedRegions, setSelectedRegions] = React.useState<string[]>([]);
     const [selectedInventory] = React.useState<string[]>([]); // Added to fix undefined reference
 
     // Retail products data
@@ -1180,53 +1222,269 @@ export const DigitalInStore: Story = {
       setSelectedRetailProducts(selectedRetailProducts.filter(id => id !== productId));
     };
 
-    // Store lists — generate a list, upload a custom file, remove a list, or
-    // open a list in the modal to hand-edit which stores it contains.
-    const addGeneratedList = () => {
-      const parsed = parseInt(generateAmount, 10);
-      const count = !isNaN(parsed) && parsed > 0 ? parsed : 750; // default to all 750 available
+    // Store / display lists — generate a list, upload a custom file, remove a
+    // list, or open a list in the modal to hand-edit it. All handlers take the
+    // section `kind` so the Stores and Displays sections share one code path.
+    const commitGeneratedList = (kind: ListKind, count: number) => {
       storeListSeq.current += 1;
-      setStoreLists((prev) => {
-        const n = prev.filter((l) => l.kind === 'generated').length + 1;
-        return [
-          ...prev,
-          { id: storeListSeq.current, kind: 'generated', title: n === 1 ? 'Generated list' : `Generated list ${n}`, count },
-        ];
-      });
-      setGenerateAmount('');
+      setListsFor(kind)([{ id: storeListSeq.current, kind: 'generated', title: `Random generated ${unitFor(kind).listLabel}`, count }]);
+    };
+    // Explicit "use all" — turns the implicit default into a confirmed choice.
+    const useAllList = (kind: ListKind) => {
+      storeListSeq.current += 1;
+      setListsFor(kind)([{ id: storeListSeq.current, kind: 'all', title: `All ${unitFor(kind).plural}`, count: unitFor(kind).max }]);
+    };
+    const proceedGenerate = (kind: ListKind, count: number) => {
+      if (count > unitFor(kind).max) {
+        setPendingOverbook({ kind, count }); // confirm before adding already-booked inventory
+        return;
+      }
+      commitGeneratedList(kind, count);
+    };
+    const addGeneratedList = (kind: ListKind) => {
+      const parsed = parseInt(genAmounts[kind], 10);
+      const count = !isNaN(parsed) && parsed > 0 ? parsed : unitFor(kind).max; // default to all available
+      setGenAmountFor(kind, '');
+      if (listsFor(kind).length > 0) {
+        setPendingReplace({ kind, action: 'generate', count }); // confirm before replacing the existing list
+        return;
+      }
+      proceedGenerate(kind, count);
+    };
+    const confirmKeepOverbooked = () => {
+      if (pendingOverbook) commitGeneratedList(pendingOverbook.kind, pendingOverbook.count);
+      setPendingOverbook(null);
+    };
+    const confirmRemoveOverbooked = () => {
+      if (pendingOverbook) commitGeneratedList(pendingOverbook.kind, unitFor(pendingOverbook.kind).max);
+      setPendingOverbook(null);
     };
     const triggerCustomUpload = () => fileInputRef.current?.click();
     const handleCustomFile = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
       storeListSeq.current += 1;
-      setStoreLists((prev) => [...prev, { id: storeListSeq.current, kind: 'custom', title: file.name, count: 500 }]);
+      setListsFor(modalKind)([{ id: storeListSeq.current, kind: 'custom', title: file.name, count: 500 }]);
       e.target.value = ''; // allow re-uploading the same file
+      setShowSelectedStoresDialog(false);
     };
-    const removeStoreList = (id: number) => setStoreLists((prev) => prev.filter((l) => l.id !== id));
-    // Per-list Add / Set / Remove of stores against that list's count
-    const applyListAmount = (id: number, op: 'add' | 'set' | 'remove') => {
-      const n = parseInt(listAmounts[id] ?? '', 10);
-      if (isNaN(n) || n < 0) return;
-      setStoreLists((prev) =>
-        prev.map((l) =>
-          l.id === id
-            ? { ...l, count: op === 'add' ? l.count + n : op === 'remove' ? Math.max(0, l.count - n) : n }
-            : l,
-        ),
-      );
-      setListAmounts((prev) => ({ ...prev, [id]: '' }));
-      setListOps((prev) => ({ ...prev, [id]: 'add' })); // reset to the standard action
-    };
-    const openListModal = (id: number) => {
+    const removeStoreList = (kind: ListKind, id: number) => setListsFor(kind)((prev) => prev.filter((l) => l.id !== id));
+    // Per-list actions: regenerate the list, or trim items that exceed availability
+    const regenerateList = (kind: ListKind, id: number) =>
+      setListsFor(kind)((prev) => prev.map((l) => (l.id === id ? { ...l, count: Math.floor(Math.random() * unitFor(kind).max) + 1 } : l)));
+    const removeOverbookedStores = (kind: ListKind, id: number) =>
+      setListsFor(kind)((prev) => prev.map((l) => (l.id === id ? { ...l, count: Math.min(l.count, unitFor(kind).max) } : l)));
+    const openListModal = (kind: ListKind, id: number) => {
+      setModalKind(kind);
       setActiveListId(id);
       setShowSelectedStoresDialog(true);
     };
+    // "Add custom list" opens the modal in new-list mode (no active list yet)
+    const openCustomListModal = (kind: ListKind) => {
+      if (listsFor(kind).length > 0) {
+        setPendingReplace({ kind, action: 'custom' }); // confirm before replacing the existing list
+        return;
+      }
+      setModalKind(kind);
+      setActiveListId(null);
+      setShowSelectedStoresDialog(true);
+    };
+    // Replace-confirmation outcome
+    const confirmReplace = () => {
+      const pending = pendingReplace;
+      setPendingReplace(null);
+      if (!pending) return;
+      if (pending.action === 'generate') {
+        proceedGenerate(pending.kind, pending.count);
+      } else {
+        setModalKind(pending.kind);
+        setActiveListId(null);
+        setShowSelectedStoresDialog(true);
+      }
+    };
     const applyModalSelection = () => {
       if (activeListId != null) {
-        setStoreLists((prev) => prev.map((l) => (l.id === activeListId ? { ...l, count: selectedStoreIds.length } : l)));
+        setListsFor(modalKind)((prev) => prev.map((l) => (l.id === activeListId ? { ...l, count: selectedStoreIds.length } : l)));
+      } else {
+        storeListSeq.current += 1;
+        setListsFor(modalKind)([{ id: storeListSeq.current, kind: 'custom', title: `Custom ${unitFor(modalKind).listLabel}`, count: selectedStoreIds.length }]);
       }
       setShowSelectedStoresDialog(false);
+    };
+
+    // Renders one target-inventory section (Stores or Displays). Both sections
+    // are shown, but once one holds a list the other is disabled to make the
+    // mutual exclusion clear.
+    const renderTargetListSection = (kind: ListKind) => {
+      const u = unitFor(kind);
+      const lists = listsFor(kind);
+      const blocked = activeKind !== null && activeKind !== kind;
+      const other = blocked ? unitFor(activeKind as ListKind) : null;
+      return (
+        <FormSection
+          key={kind}
+          borderless
+          title={`${u.Noun} list`}
+          className={cn(bookingTab !== 'targeting' && 'hidden')}
+        >
+          {blocked && other ? (
+            <div className="rounded-md border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
+              You&apos;re targeting by {other.plural}. {u.Plural} can&apos;t be used as a target at the same time — remove the {other.listLabel} to switch to {u.plural}.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Create / replace the list (only one allowed — replacing prompts for confirmation) */}
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+                  <div className="relative flex min-w-0 flex-1 items-center">
+                    <u.Icon className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="number"
+                      min="1"
+                      value={genAmounts[kind]}
+                      onChange={(e) => setGenAmountFor(kind, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addGeneratedList(kind);
+                        }
+                      }}
+                      placeholder={`Amount of ${u.plural}`}
+                      className="h-full w-full bg-transparent pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => addGeneratedList(kind)}
+                    className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
+                  >
+                    <Shuffle className="h-4 w-4" />
+                    Random {u.listLabel}
+                  </Button>
+                </div>
+                <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={() => openCustomListModal(kind)}>
+                  <Upload className="h-4 w-4" />
+                  Custom {u.listLabel}
+                </Button>
+              </div>
+
+              {lists.length === 0 ? (
+                <div className="rounded-md border border-dashed p-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Narrow down with a random or custom list — or target all {u.plural}.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={() => useAllList(kind)}>
+                    <u.Icon className="h-4 w-4" />
+                    Use all {u.max.toLocaleString()} {u.plural}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {lists.map((list) => (
+                    <div
+                      key={list.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openListModal(kind, list.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openListModal(kind, list.id);
+                        }
+                      }}
+                      className="cursor-pointer rounded-md border bg-muted/40 p-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            {list.kind === 'generated'
+                              ? <Shuffle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              : list.kind === 'custom'
+                                ? <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                : <u.Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                            <span className="truncate text-sm font-medium">{list.title}</span>
+                            <TooltipProvider delayDuration={150}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                                    aria-label={`${u.Noun} list type`}
+                                  >
+                                    <Info className="h-3.5 w-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[260px]">
+                                  {list.kind === 'generated'
+                                    ? `Randomly generated ${u.listLabel} — the ${u.plural} reshuffle each time you regenerate. Only the amount is fixed, not the specific ${u.plural}.`
+                                    : list.kind === 'custom'
+                                      ? `Custom ${u.listLabel} — a fixed set of specific ${u.plural} you selected or uploaded.`
+                                      : `All available ${u.plural} — every ${u.noun} within the selected run time is targeted.`}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                            <Users className="h-3.5 w-3.5" />
+                            {list.kind === 'custom' ? 'Custom upload · ' : ''}{(list.count * 65).toLocaleString()} reach
+                          </div>
+                          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <u.Icon className="h-3.5 w-3.5" />
+                            {list.count.toLocaleString()} {u.plural}
+                          </div>
+                          {list.count > u.max && (
+                            <div className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-600">
+                              <u.Icon className="h-3.5 w-3.5" />
+                              {(list.count - u.max).toLocaleString()} overbooked {u.plural}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); removeStoreList(kind, list.id); }}
+                          className="h-8 w-8 shrink-0 p-0"
+                          aria-label={`Remove ${list.title}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {/* Action links under the title/reach — stop card click so they don't open the modal */}
+                      {(list.kind === 'generated' || list.count > u.max) && (
+                        <div className="mt-2 flex flex-wrap items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                          {list.kind === 'generated' && (
+                            <button
+                              type="button"
+                              onClick={() => regenerateList(kind, list.id)}
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              Regenerate {u.listLabel}
+                            </button>
+                          )}
+                          {list.count > u.max && (
+                            <button
+                              type="button"
+                              onClick={() => removeOverbookedStores(kind, list.id)}
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Remove {(list.count - u.max).toLocaleString()} overbooked {u.plural}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </FormSection>
+      );
     };
 
     // Brand multi-select — same search-and-pick pattern as retail products
@@ -1575,6 +1833,10 @@ export const DigitalInStore: Story = {
                               onDateRangeChange={setDInstoreDateRange}
                               placeholder="Select date range"
                               className="w-full"
+                              showPresets
+                              presets={futureDateRangePresets}
+                              defaultPreset="Next week"
+                              showWeekNumbers
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
@@ -1628,303 +1890,206 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Store list" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-3">
-                          {/* Create store lists — generate one or upload a custom file; each is a removable card */}
+                      {renderTargetListSection('stores')}
+                      {renderTargetListSection('displays')}
+
+                      {/* Shared confirmations + picker modal — one instance, carries the active section kind */}
+                      <Dialog open={pendingReplace != null} onOpenChange={(open) => { if (!open) setPendingReplace(null); }}>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Replace {unitFor(pendingReplace?.kind ?? 'stores').listLabel}?</DialogTitle>
+                            <DialogDescription>
+                              You already have a {unitFor(pendingReplace?.kind ?? 'stores').listLabel}. Creating a new one will replace the existing list. Do you want to continue?
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setPendingReplace(null)}>Cancel</Button>
+                            <Button onClick={confirmReplace}>Replace list</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog open={pendingOverbook != null} onOpenChange={(open) => { if (!open) setPendingOverbook(null); }}>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Some {unitFor(pendingOverbook?.kind ?? 'stores').plural} are already booked</DialogTitle>
+                            <DialogDescription>
+                              Only {unitFor(pendingOverbook?.kind ?? 'stores').max.toLocaleString()} {unitFor(pendingOverbook?.kind ?? 'stores').plural} are available, but this list has {(pendingOverbook?.count ?? 0).toLocaleString()} —
+                              {' '}{Math.max(0, (pendingOverbook?.count ?? 0) - unitFor(pendingOverbook?.kind ?? 'stores').max).toLocaleString()} are already booked. Do you want to keep or remove them?
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={confirmRemoveOverbooked}>Remove booked {unitFor(pendingOverbook?.kind ?? 'stores').plural}</Button>
+                            <Button onClick={confirmKeepOverbooked}>Keep booked {unitFor(pendingOverbook?.kind ?? 'stores').plural}</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* File input kept mounted so the modal's upload action works */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv,.xlsx,.xls,.txt"
+                        className="hidden"
+                        onChange={handleCustomFile}
+                      />
+
+                      <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
+                        <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                          <DialogHeader>
+                            <DialogTitle>Selected {unitFor(modalKind).Plural}</DialogTitle>
+                            <DialogDescription>View and manage the {unitFor(modalKind).plural} selected for this booking.</DialogDescription>
+                          </DialogHeader>
                           <div className="flex items-center gap-2">
-                            <div className="flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
-                              <div className="relative flex min-w-0 flex-1 items-center">
-                                <Store className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground" />
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={generateAmount}
-                                  onChange={(e) => setGenerateAmount(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      addGeneratedList();
-                                    }
-                                  }}
-                                  placeholder="Amount of stores to generate"
-                                  className="h-full w-full bg-transparent pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={addGeneratedList}
-                                className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
-                              >
-                                <Shuffle className="h-4 w-4" />
-                                Generate list
-                              </Button>
+                            <Filter
+                              name="Type"
+                              options={storeTypeFilterOptions}
+                              selectedValues={storeFilterTypes}
+                              onChange={setStoreFilterTypes}
+                            />
+                            <Filter
+                              name="Location"
+                              options={storeLocationFilterOptions}
+                              selectedValues={storeFilterLocations}
+                              onChange={setStoreFilterLocations}
+                            />
+                            <div className="flex-1" />
+                            <div className="relative w-[260px]">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                placeholder={`Search ${unitFor(modalKind).plural}...`}
+                                value={storeFilterSearch}
+                                onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                className="pl-9"
+                              />
                             </div>
-                            <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={triggerCustomUpload}>
-                              <Upload className="h-4 w-4" />
-                              Add custom list
+                            <Button variant="outline" size="icon" aria-label={`Upload ${unitFor(modalKind).listLabel}`} onClick={triggerCustomUpload}>
+                              <Upload className="w-4 h-4" />
                             </Button>
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept=".csv,.xlsx,.xls,.txt"
-                              className="hidden"
-                              onChange={handleCustomFile}
+                            <Button variant="outline" size="icon" aria-label={`Download ${unitFor(modalKind).listLabel}`}>
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="flex-1 overflow-y-auto min-h-0">
+                            <Table
+                              hideActions
+                              columns={[
+                                {
+                                  key: 'select',
+                                  header: (
+                                    <Checkbox
+                                      checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
+                                        } else {
+                                          const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                          setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
+                                        }
+                                      }}
+                                    />
+                                  )
+                                },
+                                { key: 'name', header: `${unitFor(modalKind).Noun} Name` },
+                                { key: 'type', header: 'Type' },
+                                { key: 'location', header: 'Location' },
+                                { key: 'reach', header: 'Estimated Reach' },
+                                { key: 'status', header: 'Status' }
+                              ]}
+                              data={filteredStoresList.map(store => ({
+                                select: (
+                                  <Checkbox
+                                    checked={selectedStoreIds.includes(store.id)}
+                                    onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
+                                  />
+                                ),
+                                name: store.name,
+                                type: store.type,
+                                location: store.location,
+                                reach: store.reach.toLocaleString(),
+                                status: (
+                                  <Badge
+                                    className={store.status === 'available'
+                                      ? 'bg-green-100 text-green-800 border-green-200'
+                                      : 'bg-orange-100 text-orange-800 border-orange-200'}
+                                  >
+                                    {store.status === 'available' ? 'Available' : 'Booked'}
+                                  </Badge>
+                                )
+                              }))}
+                              className="w-full"
                             />
                           </div>
-
-                          {storeLists.length === 0 ? (
-                            <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                              Generate or add a list to narrow down. All 750 available stores will be used.
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              {storeLists.map((list) => (
-                                <div
-                                  key={list.id}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => openListModal(list.id)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      openListModal(list.id);
-                                    }
-                                  }}
-                                  className="flex cursor-pointer items-center justify-between gap-3 rounded-md border bg-muted/40 p-2 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                >
-                                  <div className="min-w-0">
-                                    <div className="truncate text-sm font-medium">{list.title} · {list.count.toLocaleString()} stores</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {list.kind === 'custom' ? 'Custom upload · ' : ''}{(list.count * 65).toLocaleString()} reach
-                                    </div>
-                                  </div>
-                                  {/* Per-list controls — stop card click so editing doesn't open the modal */}
-                                  <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                    <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring">
-                                      <div className="relative flex items-center">
-                                        <Store className="pointer-events-none absolute left-2 h-4 w-4 text-muted-foreground" />
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          value={listAmounts[list.id] ?? ''}
-                                          onChange={(e) => setListAmounts((prev) => ({ ...prev, [list.id]: e.target.value }))}
-                                          placeholder="Amount"
-                                          className="h-full w-28 bg-transparent pl-8 pr-2 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        />
-                                      </div>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-full gap-1 rounded-none border-l border-input px-2 text-sm capitalize"
-                                          >
-                                            {listOps[list.id] ?? 'add'}
-                                            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'add' }))}>Add</DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'set' }))}>Set</DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => setListOps((prev) => ({ ...prev, [list.id]: 'remove' }))}>Remove</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => applyListAmount(list.id, listOps[list.id] ?? 'add')}
-                                        className="h-full rounded-none border-l border-input px-2"
-                                        aria-label="Apply"
-                                      >
-                                        <Check className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => removeStoreList(list.id)}
-                                      className="h-8 w-8 p-0"
-                                      aria-label={`Remove ${list.title}`}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Allow overbooking toggle — off by default */}
-                          <label className="flex w-fit cursor-pointer items-center gap-2">
-                            <Switch checked={allowOverbooking} onCheckedChange={setAllowOverbooking} />
-                            <span className="text-sm">Allow overbooking of stores</span>
-                          </label>
-
-                          {/* Controlled store table modal — opened from a list card */}
-                          <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
-                                  <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
-                                    <DialogHeader>
-                                      <DialogTitle>Selected Stores</DialogTitle>
-                                      <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="flex items-center gap-2">
-                                      <Filter
-                                        name="Type"
-                                        options={storeTypeFilterOptions}
-                                        selectedValues={storeFilterTypes}
-                                        onChange={setStoreFilterTypes}
-                                      />
-                                      <Filter
-                                        name="Location"
-                                        options={storeLocationFilterOptions}
-                                        selectedValues={storeFilterLocations}
-                                        onChange={setStoreFilterLocations}
-                                      />
-                                      <div className="flex-1" />
-                                      <div className="relative w-[260px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                          placeholder="Search stores..."
-                                          value={storeFilterSearch}
-                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
-                                          className="pl-9"
-                                        />
-                                      </div>
-                                      <Button variant="outline" size="icon" aria-label="Download store list">
-                                        <Download className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto min-h-0">
-                                      <Table
-                                        hideActions
-                                        columns={[
-                                          {
-                                            key: 'select',
-                                            header: (
-                                              <Checkbox
-                                                checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
-                                                onCheckedChange={(checked) => {
-                                                  if (checked) {
-                                                    setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
-                                                  } else {
-                                                    const toRemove = new Set(filteredStoresList.map(s => s.id));
-                                                    setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
-                                                  }
-                                                }}
-                                              />
-                                            )
-                                          },
-                                          { key: 'name', header: 'Store Name' },
-                                          { key: 'type', header: 'Type' },
-                                          { key: 'location', header: 'Location' },
-                                          { key: 'reach', header: 'Estimated Reach' },
-                                          { key: 'status', header: 'Status' }
-                                        ]}
-                                        data={filteredStoresList.map(store => ({
-                                          select: (
-                                            <Checkbox
-                                              checked={selectedStoreIds.includes(store.id)}
-                                              onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
-                                            />
-                                          ),
-                                          name: store.name,
-                                          type: store.type,
-                                          location: store.location,
-                                          reach: store.reach.toLocaleString(),
-                                          status: (
-                                            <Badge
-                                              className={store.status === 'available'
-                                                ? 'bg-green-100 text-green-800 border-green-200'
-                                                : 'bg-orange-100 text-orange-800 border-orange-200'}
-                                            >
-                                              {store.status === 'available' ? 'Available' : 'Booked'}
-                                            </Badge>
-                                          )
-                                        }))}
-                                        className="w-full"
-                                      />
-                                    </div>
-                                    <DialogFooter>
-                                      <Button variant="outline" onClick={() => setShowSelectedStoresDialog(false)}>Cancel</Button>
-                                      <Button onClick={applyModalSelection}>
-                                        Use {selectedStoreIds.length} {selectedStoreIds.length === 1 ? 'store' : 'stores'}
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                        </div>
-                      </FormSection>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowSelectedStoresDialog(false)}>Cancel</Button>
+                            <Button onClick={applyModalSelection}>
+                              Use {selectedStoreIds.length} {selectedStoreIds.length === 1 ? unitFor(modalKind).noun : unitFor(modalKind).plural}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
 
                       <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Location"
-                              keepName
-                              options={locationOptions}
-                              selectedValues={selectedLocations}
-                              onChange={setSelectedLocations}
-                            />
-                            <Filter
-                              name="Store type"
-                              keepName
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                          </div>
-                          {(selectedLocations.length > 0 || selectedStoreTypes.length > 0) ? (
-                            <div className="space-y-1">
-                              {selectedLocations.map((value) => {
-                                const opt = locationOptions.find((o) => o.value === value);
-                                return opt ? (
-                                  <div key={`loc-${value}`} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                    <div className="min-w-0">
-                                      <div className="text-sm font-medium">{opt.label}</div>
-                                      <div className="text-xs text-muted-foreground">Location</div>
-                                    </div>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setSelectedLocations(selectedLocations.filter((v) => v !== value))}
-                                      className="h-8 w-8 p-0"
-                                      aria-label={`Remove ${opt.label}`}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
+                          {(() => {
+                            const targetFilters = [
+                              { key: 'region', name: 'Region', meta: 'Region', options: regionOptions, selected: selectedRegions, setSelected: setSelectedRegions, search: false },
+                              { key: 'province', name: 'Province', meta: 'Province', options: provinceOptions, selected: selectedProvinces, setSelected: setSelectedProvinces, search: true },
+                              { key: 'storeType', name: 'Store type', meta: 'Store type', options: storeTypeOptions, selected: selectedStoreTypes, setSelected: setSelectedStoreTypes, search: false },
+                              { key: 'city', name: 'City', meta: 'City', options: cityOptions, selected: selectedCities, setSelected: setSelectedCities, search: true },
+                              { key: 'postal', name: 'Postal code', meta: 'Postal code', options: postalCodeOptions, selected: selectedPostalCodes, setSelected: setSelectedPostalCodes, search: true },
+                              { key: 'address', name: 'Address', meta: 'Address', options: addressOptions, selected: selectedAddresses, setSelected: setSelectedAddresses, search: true },
+                            ];
+                            const selectedCards: { key: string; meta: string; value: string; label: string; remove: () => void }[] = [];
+                            targetFilters.forEach((f) => {
+                              f.selected.forEach((value) => {
+                                const opt = f.options.find((o) => o.value === value);
+                                if (opt) selectedCards.push({ key: `${f.key}-${value}`, meta: f.meta, value, label: opt.label, remove: () => f.setSelected(f.selected.filter((v) => v !== value)) });
+                              });
+                            });
+                            return (
+                              <>
+                                <div className="flex flex-wrap gap-3">
+                                  {targetFilters.map((f) => (
+                                    <Filter
+                                      key={f.key}
+                                      name={f.name}
+                                      keepName
+                                      forceSearch={f.search}
+                                      options={f.options}
+                                      selectedValues={f.selected}
+                                      onChange={f.setSelected}
+                                    />
+                                  ))}
+                                </div>
+                                {selectedCards.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {selectedCards.map((c) => (
+                                      <div key={c.key} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                        <div className="min-w-0">
+                                          <div className="truncate text-sm font-medium">{c.label}</div>
+                                          <div className="text-xs text-muted-foreground">{c.meta}</div>
+                                        </div>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={c.remove}
+                                          className="h-8 w-8 shrink-0 p-0"
+                                          aria-label={`Remove ${c.label}`}
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
                                   </div>
-                                ) : null;
-                              })}
-                              {selectedStoreTypes.map((value) => {
-                                const opt = storeTypeOptions.find((o) => o.value === value);
-                                return opt ? (
-                                  <div key={`st-${value}`} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                    <div className="min-w-0">
-                                      <div className="text-sm font-medium">{opt.label}</div>
-                                      <div className="text-xs text-muted-foreground">Store type</div>
-                                    </div>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setSelectedStoreTypes(selectedStoreTypes.filter((v) => v !== value))}
-                                      className="h-8 w-8 p-0"
-                                      aria-label={`Remove ${opt.label}`}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
+                                ) : (
+                                  <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                                    No targets set yet. Add a region or store type to narrow down the audience.
                                   </div>
-                                ) : null;
-                              })}
-                            </div>
-                          ) : (
-                            <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                              No targets set yet. Add a location or store type to narrow down the audience.
-                            </div>
-                          )}
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </FormSection>
 
@@ -2358,12 +2523,20 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex gap-2">
-                        <Button variant="outline">Cancel</Button>
-                        <Button>Submit for approval</Button>
-                      </div>
-                    </CardContent>
+                    {/* Logs are read-only — no save/cancel footer there */}
+                    {bookingTab !== 'logs' && (
+                      <CardContent>
+                        <div className="flex gap-2">
+                          <Button variant="outline">Cancel</Button>
+                          <Button>{
+                            bookingTab === 'creatives' ? 'Submit creatives for approval'
+                            : bookingTab === 'targeting' ? 'Save targeting'
+                            : bookingTab === 'evaluation' ? 'Save evaluation'
+                            : 'Save booking details'
+                          }</Button>
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
                 </div>
 
@@ -2380,14 +2553,27 @@ export const DigitalInStore: Story = {
                       ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
                       { label: 'Run window', value: `${dInstoreStartTime} - ${dInstoreEndTime} · ${dInstoreActiveDays.length === 7 ? 'every day' : `${dInstoreActiveDays.length} days`}` },
-                      {
-                        label: 'Stores',
-                        value: storeLists.length > 0
-                          ? `${storeLists.reduce((s, l) => s + l.count, 0).toLocaleString()} stores · ${storeLists.length} ${storeLists.length === 1 ? 'list' : 'lists'}`
-                          : 'All stores',
-                      },
-                      ...(allowOverbooking ? [{ label: 'Overbooking', value: 'Allowed' }] : []),
-                      ...(selectedLocations.length > 0 ? [{ label: 'Locations', value: `${selectedLocations.length} selected` }] : []),
+                      { label: 'Target type', value: activeKind ? unitFor(activeKind).Plural : 'Stores' },
+                      ...(() => {
+                        const su = unitFor(activeKind ?? 'stores');
+                        const sl = activeKind ? listsFor(activeKind) : [];
+                        return [
+                          {
+                            label: su.Plural,
+                            value: sl.length === 0 || (sl.length === 1 && sl[0].kind === 'all')
+                              ? `All ${su.plural}`
+                              : `${sl.reduce((s, l) => s + l.count, 0).toLocaleString()} ${su.plural} · ${sl.length} ${sl.length === 1 ? 'list' : 'lists'}`,
+                          },
+                          ...(sl.some((l) => l.count > su.max)
+                            ? [{ label: 'Overbooking', value: `${sl.reduce((s, l) => s + Math.max(0, l.count - su.max), 0).toLocaleString()} booked ${su.plural} kept` }]
+                            : []),
+                        ];
+                      })(),
+                      ...(selectedRegions.length > 0 ? [{ label: 'Regions', value: `${selectedRegions.length} selected` }] : []),
+                      ...(selectedProvinces.length > 0 ? [{ label: 'Provinces', value: `${selectedProvinces.length} selected` }] : []),
+                      ...(selectedCities.length > 0 ? [{ label: 'Cities', value: `${selectedCities.length} selected` }] : []),
+                      ...(selectedPostalCodes.length > 0 ? [{ label: 'Postal codes', value: `${selectedPostalCodes.length} selected` }] : []),
+                      ...(selectedAddresses.length > 0 ? [{ label: 'Addresses', value: `${selectedAddresses.length} selected` }] : []),
                       ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
                       ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
                       ...(selectedCreatives.length > 0 ? [{ label: 'Creatives', value: `${selectedCreatives.length} linked` }] : []),
@@ -2643,6 +2829,99 @@ export const OfflineInStore: Story = {
       if (storeFilterLocations.length > 0 && !storeFilterLocations.includes(store.location)) return false;
       return true;
     });
+
+    // Store-list builder — same feature as the Digital in-store booking: generate
+    // a list, upload a custom file, regenerate, trim overbooked stores, or open a
+    // list in the modal to hand-edit it. Only one list is allowed at a time.
+    type StoreListEntry = { id: number; kind: 'generated' | 'custom' | 'all'; title: string; count: number };
+    const [storeLists, setStoreLists] = React.useState<StoreListEntry[]>([]);
+    const [activeListId, setActiveListId] = React.useState<number | null>(null);
+    const [generateAmount, setGenerateAmount] = React.useState('');
+    const [pendingOverbookCount, setPendingOverbookCount] = React.useState<number | null>(null);
+    const [pendingReplace, setPendingReplace] = React.useState<{ kind: 'generate'; count: number } | { kind: 'custom' } | null>(null);
+    const storeListSeq = React.useRef(0);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const MAX_AVAILABLE_STORES = 750; // demo cap on available stores
+    const commitGeneratedList = (count: number) => {
+      storeListSeq.current += 1;
+      setStoreLists([{ id: storeListSeq.current, kind: 'generated', title: 'Random generated store list', count }]);
+    };
+    // Explicit "use all" — turns the implicit default into a confirmed choice.
+    const useAllStores = () => {
+      storeListSeq.current += 1;
+      setStoreLists([{ id: storeListSeq.current, kind: 'all', title: 'All stores', count: MAX_AVAILABLE_STORES }]);
+    };
+    const proceedGenerate = (count: number) => {
+      if (count > MAX_AVAILABLE_STORES) {
+        setPendingOverbookCount(count);
+        return;
+      }
+      commitGeneratedList(count);
+    };
+    const addGeneratedList = () => {
+      const parsed = parseInt(generateAmount, 10);
+      const count = !isNaN(parsed) && parsed > 0 ? parsed : MAX_AVAILABLE_STORES;
+      setGenerateAmount('');
+      if (storeLists.length > 0) {
+        setPendingReplace({ kind: 'generate', count });
+        return;
+      }
+      proceedGenerate(count);
+    };
+    const confirmKeepOverbooked = () => {
+      if (pendingOverbookCount != null) commitGeneratedList(pendingOverbookCount);
+      setPendingOverbookCount(null);
+    };
+    const confirmRemoveOverbooked = () => {
+      commitGeneratedList(MAX_AVAILABLE_STORES);
+      setPendingOverbookCount(null);
+    };
+    const triggerCustomUpload = () => fileInputRef.current?.click();
+    const handleCustomFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      storeListSeq.current += 1;
+      setStoreLists([{ id: storeListSeq.current, kind: 'custom', title: file.name, count: 500 }]);
+      e.target.value = '';
+      setShowSelectedStoresDialog(false);
+    };
+    const removeStoreList = (id: number) => setStoreLists((prev) => prev.filter((l) => l.id !== id));
+    const regenerateList = (id: number) =>
+      setStoreLists((prev) => prev.map((l) => (l.id === id ? { ...l, count: Math.floor(Math.random() * MAX_AVAILABLE_STORES) + 1 } : l)));
+    const removeOverbookedStores = (id: number) =>
+      setStoreLists((prev) => prev.map((l) => (l.id === id ? { ...l, count: Math.min(l.count, MAX_AVAILABLE_STORES) } : l)));
+    const openListModal = (id: number) => {
+      setActiveListId(id);
+      setShowSelectedStoresDialog(true);
+    };
+    const openCustomListModal = () => {
+      if (storeLists.length > 0) {
+        setPendingReplace({ kind: 'custom' });
+        return;
+      }
+      setActiveListId(null);
+      setShowSelectedStoresDialog(true);
+    };
+    const confirmReplace = () => {
+      const action = pendingReplace;
+      setPendingReplace(null);
+      if (!action) return;
+      if (action.kind === 'generate') {
+        proceedGenerate(action.count);
+      } else {
+        setActiveListId(null);
+        setShowSelectedStoresDialog(true);
+      }
+    };
+    const applyModalSelection = () => {
+      if (activeListId != null) {
+        setStoreLists((prev) => prev.map((l) => (l.id === activeListId ? { ...l, count: selectedStoreIds.length } : l)));
+      } else {
+        storeListSeq.current += 1;
+        setStoreLists([{ id: storeListSeq.current, kind: 'custom', title: 'Custom store list', count: selectedStoreIds.length }]);
+      }
+      setShowSelectedStoresDialog(false);
+    };
 
     // Retail products data
     const retailProducts = [
@@ -2906,243 +3185,291 @@ export const OfflineInStore: Story = {
 
                       <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="flex items-center gap-3">
-                              <div className="relative flex-1" data-dropdown-container>
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                  <Store className="w-4 h-4" />
-                                </span>
-                                <Input
+                          {/* Create / replace the store list (only one allowed — replacing prompts for confirmation) */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+                              <div className="relative flex min-w-0 flex-1 items-center">
+                                <Store className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground" />
+                                <input
                                   type="number"
-                                  value={storeAmount}
-                                  onChange={(e) => setStoreAmount(e.target.value)}
-                                  placeholder="Enter number of stores"
-                                  className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                   min="1"
+                                  value={generateAmount}
+                                  onChange={(e) => setGenerateAmount(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addGeneratedList();
+                                    }
+                                  }}
+                                  placeholder="Amount of stores"
+                                  className="h-full w-full bg-transparent pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
-                              {storeSelectionMode && (
-                                <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" className="whitespace-nowrap h-10">
-                                      Selected stores
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
-                                    <DialogHeader>
-                                      <DialogTitle>Selected Stores</DialogTitle>
-                                      <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="flex items-center gap-2">
-                                      <Filter
-                                        name="Type"
-                                        options={storeTypeFilterOptions}
-                                        selectedValues={storeFilterTypes}
-                                        onChange={setStoreFilterTypes}
-                                      />
-                                      <Filter
-                                        name="Location"
-                                        options={storeLocationFilterOptions}
-                                        selectedValues={storeFilterLocations}
-                                        onChange={setStoreFilterLocations}
-                                      />
-                                      <div className="flex-1" />
-                                      <div className="relative w-[260px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                          placeholder="Search stores..."
-                                          value={storeFilterSearch}
-                                          onChange={(e) => setStoreFilterSearch(e.target.value)}
-                                          className="pl-9"
-                                        />
-                                      </div>
-                                      <Button variant="outline" size="icon" aria-label="Download store list">
-                                        <Download className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto min-h-0">
-                                      <Table
-                                        hideActions
-                                        columns={[
-                                          {
-                                            key: 'select',
-                                            header: (
-                                              <Checkbox
-                                                checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
-                                                onCheckedChange={(checked) => {
-                                                  if (checked) {
-                                                    setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
-                                                  } else {
-                                                    const toRemove = new Set(filteredStoresList.map(s => s.id));
-                                                    setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
-                                                  }
-                                                }}
-                                              />
-                                            )
-                                          },
-                                          { key: 'name', header: 'Store Name' },
-                                          { key: 'type', header: 'Type' },
-                                          { key: 'location', header: 'Location' },
-                                          { key: 'reach', header: 'Estimated Reach' },
-                                          { key: 'status', header: 'Status' }
-                                        ]}
-                                        data={filteredStoresList.map(store => ({
-                                          select: (
-                                            <Checkbox
-                                              checked={selectedStoreIds.includes(store.id)}
-                                              onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
-                                            />
-                                          ),
-                                          name: store.name,
-                                          type: store.type,
-                                          location: store.location,
-                                          reach: store.reach.toLocaleString(),
-                                          status: (
-                                            <Badge
-                                              className={store.status === 'available'
-                                                ? 'bg-green-100 text-green-800 border-green-200'
-                                                : 'bg-orange-100 text-orange-800 border-orange-200'}
-                                            >
-                                              {store.status === 'available' ? 'Available' : 'Booked'}
-                                            </Badge>
-                                          )
-                                        }))}
-                                        className="w-full"
-                                      />
-                                    </div>
-                                    <DialogFooter>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline">Close</Button>
-                                      </DialogTrigger>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={addGeneratedList}
+                                className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
+                              >
+                                <Shuffle className="h-4 w-4" />
+                                Random store list
+                              </Button>
                             </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <Button
-                              variant={storeSelectionMode === 'random' ? 'default' : 'outline'}
-                              className="w-full"
-                              onClick={() => setStoreSelectionMode('random')}
-                            >
-                              Generate random stores
-                            </Button>
-                            <Button
-                              variant={storeSelectionMode === 'custom' ? 'default' : 'outline'}
-                              className="w-full"
-                              onClick={() => setStoreSelectionMode('custom')}
-                            >
-                              Set custom stores
+                            <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={openCustomListModal}>
+                              <Upload className="h-4 w-4" />
+                              Custom store list
                             </Button>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
-                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : '750 stores available within the run time selected'
-                            }
-                          </div>
-                          {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 750 && (
-                            <>
-                              <Alert variant="warning" className="mt-3">
-                                <AlertTitle>Overbooked</AlertTitle>
-                                <AlertDescription>
-                                  <div className="mb-2">
-                                    You have selected {storeAmount} stores, which exceeds the 750 available stores within the selected run time.
-                                  </div>
-                                  <div className="mb-2">
-                                    There are 2 conflicting bookings booked in the same run time that limit store availability.
-                                  </div>
-                                  <button 
-                                    className="text-orange-600 hover:text-orange-700 underline text-sm font-medium"
-                                    onClick={() => setShowConflictingItemsDialog(true)}
-                                  >
-                                    Resolve conflicts
-                                  </button>
-                                </AlertDescription>
-                              </Alert>
+                          {/* File input kept mounted so the modal's upload action works while editing a list */}
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".csv,.xlsx,.xls,.txt"
+                            className="hidden"
+                            onChange={handleCustomFile}
+                          />
 
-                              <Dialog open={showConflictingItemsDialog} onOpenChange={setShowConflictingItemsDialog}>
-                                <DialogContent className="sm:max-w-3xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Resolve Conflicting Line-Items</DialogTitle>
-                                    <DialogDescription>
-                                      Adjust priorities for bookings running in the same time period. Higher priority items will be allocated stores first.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="mt-4">
-                                    <Table
-                                      columns={[
-                                        { key: 'name', header: 'Booking' },
-                                        { key: 'stores', header: 'Stores Required' },
-                                        { key: 'priority', header: 'Priority' }
-                                      ]}
-                                      data={[
-                                        {
-                                          name: (
-                                            <div>
-                                              <div className="font-medium">{bookingName || 'Current Booking'}</div>
-                                              <div className="text-sm text-muted-foreground">This booking</div>
-                                            </div>
-                                          ),
-                                          stores: `${storeAmount} stores`,
-                                          priority: (
-                                            <DropdownMenu>
-                                              <DropdownMenuTrigger asChild>
-                                                <Button variant="outline" size="sm">
-                                                  Medium
-                                                </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent>
-                                                {priorityOptions.map((priority) => (
-                                                  <DropdownMenuItem key={priority}>
-                                                    {priority}
-                                                  </DropdownMenuItem>
-                                                ))}
-                                              </DropdownMenuContent>
-                                            </DropdownMenu>
-                                          )
-                                        },
-                                        ...conflictingBookings.map((item) => ({
-                                          name: <div className="font-medium">{item.name}</div>,
-                                          stores: `${item.stores} stores`,
-                                          priority: (
-                                            <DropdownMenu>
-                                              <DropdownMenuTrigger asChild>
-                                                <Button variant="outline" size="sm">
-                                                  {item.currentPriority}
-                                                </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent>
-                                                {priorityOptions.map((priority) => (
-                                                  <DropdownMenuItem 
-                                                    key={priority}
-                                                    onClick={() => handlePriorityChange(item.id, priority)}
-                                                  >
-                                                    {priority}
-                                                  </DropdownMenuItem>
-                                                ))}
-                                              </DropdownMenuContent>
-                                            </DropdownMenu>
-                                          )
-                                        }))
-                                      ]}
-                                      className="w-full"
-                                    />
+                          {storeLists.length === 0 ? (
+                            <div className="rounded-md border border-dashed p-4 text-center">
+                              <p className="text-sm text-muted-foreground">
+                                Narrow down with a random or custom list — or target all stores.
+                              </p>
+                              <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={useAllStores}>
+                                <Store className="h-4 w-4" />
+                                Use all {MAX_AVAILABLE_STORES.toLocaleString()} stores
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              {storeLists.map((list) => (
+                                <div
+                                  key={list.id}
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openListModal(list.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      openListModal(list.id);
+                                    }
+                                  }}
+                                  className="cursor-pointer rounded-md border bg-muted/40 p-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <div className="flex min-w-0 items-center gap-1.5">
+                                        {list.kind === 'generated'
+                                          ? <Shuffle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                          : list.kind === 'custom'
+                                            ? <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                            : <Store className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                                        <span className="truncate text-sm font-medium">{list.title}</span>
+                                        <TooltipProvider delayDuration={150}>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <button
+                                                type="button"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="shrink-0 text-muted-foreground hover:text-foreground"
+                                                aria-label="Store list type"
+                                              >
+                                                <Info className="h-3.5 w-3.5" />
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-[260px]">
+                                              {list.kind === 'generated'
+                                                ? 'Randomly generated store list — the stores reshuffle each time you regenerate. Only the amount is fixed, not the specific stores.'
+                                                : list.kind === 'custom'
+                                                  ? 'Custom store list — a fixed set of specific stores you selected or uploaded.'
+                                                  : 'All available stores — every store within the selected run time is targeted.'}
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
+                                      <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Users className="h-3.5 w-3.5" />
+                                        {list.kind === 'custom' ? 'Custom upload · ' : ''}{(list.count * 65).toLocaleString()} reach
+                                      </div>
+                                      <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Store className="h-3.5 w-3.5" />
+                                        {list.count.toLocaleString()} stores
+                                      </div>
+                                      {list.count > MAX_AVAILABLE_STORES && (
+                                        <div className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-600">
+                                          <Store className="h-3.5 w-3.5" />
+                                          {(list.count - MAX_AVAILABLE_STORES).toLocaleString()} overbooked stores
+                                        </div>
+                                      )}
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={(e) => { e.stopPropagation(); removeStoreList(list.id); }}
+                                      className="h-8 w-8 shrink-0 p-0"
+                                      aria-label={`Remove ${list.title}`}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
                                   </div>
-                                  <DialogFooter>
-                                    <Button variant="outline" onClick={() => setShowConflictingItemsDialog(false)}>
-                                      Cancel
-                                    </Button>
-                                    <Button onClick={() => setShowConflictingItemsDialog(false)}>
-                                      Apply Priorities
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            </>
+                                  {/* Action links under the title/reach — stop card click so they don't open the modal */}
+                                  {(list.kind === 'generated' || list.count > MAX_AVAILABLE_STORES) && (
+                                    <div className="mt-2 flex flex-wrap items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                                      {list.kind === 'generated' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => regenerateList(list.id)}
+                                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                                        >
+                                          <RotateCcw className="h-3.5 w-3.5" />
+                                          Regenerate store list
+                                        </button>
+                                      )}
+                                      {list.count > MAX_AVAILABLE_STORES && (
+                                        <button
+                                          type="button"
+                                          onClick={() => removeOverbookedStores(list.id)}
+                                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Remove {(list.count - MAX_AVAILABLE_STORES).toLocaleString()} overbooked stores
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           )}
+
+                          {/* Replace-list confirmation — shown when creating a list while one already exists */}
+                          <Dialog open={pendingReplace != null} onOpenChange={(open) => { if (!open) setPendingReplace(null); }}>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Replace store list?</DialogTitle>
+                                <DialogDescription>
+                                  You already have a store list. Creating a new one will replace the existing list. Do you want to continue?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setPendingReplace(null)}>Cancel</Button>
+                                <Button onClick={confirmReplace}>Replace list</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+
+                          {/* Already-booked stores confirmation — shown when a generated list exceeds availability */}
+                          <Dialog open={pendingOverbookCount != null} onOpenChange={(open) => { if (!open) setPendingOverbookCount(null); }}>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Some stores are already booked</DialogTitle>
+                                <DialogDescription>
+                                  Only {MAX_AVAILABLE_STORES.toLocaleString()} stores are available, but this list has {(pendingOverbookCount ?? 0).toLocaleString()} —
+                                  {' '}{Math.max(0, (pendingOverbookCount ?? 0) - MAX_AVAILABLE_STORES).toLocaleString()} are already booked. Do you want to keep or remove them?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button variant="outline" onClick={confirmRemoveOverbooked}>Remove booked stores</Button>
+                                <Button onClick={confirmKeepOverbooked}>Keep booked stores</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+
+                          {/* Controlled store table modal — opened from a list card */}
+                          <Dialog open={showSelectedStoresDialog} onOpenChange={setShowSelectedStoresDialog}>
+                            <DialogContent className="max-w-4xl w-full max-h-[85vh] flex flex-col">
+                              <DialogHeader>
+                                <DialogTitle>Selected Stores</DialogTitle>
+                                <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
+                              </DialogHeader>
+                              <div className="flex items-center gap-2">
+                                <Filter
+                                  name="Type"
+                                  options={storeTypeFilterOptions}
+                                  selectedValues={storeFilterTypes}
+                                  onChange={setStoreFilterTypes}
+                                />
+                                <Filter
+                                  name="Location"
+                                  options={storeLocationFilterOptions}
+                                  selectedValues={storeFilterLocations}
+                                  onChange={setStoreFilterLocations}
+                                />
+                                <div className="flex-1" />
+                                <div className="relative w-[260px]">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    placeholder="Search stores..."
+                                    value={storeFilterSearch}
+                                    onChange={(e) => setStoreFilterSearch(e.target.value)}
+                                    className="pl-9"
+                                  />
+                                </div>
+                                <Button variant="outline" size="icon" aria-label="Upload store list" onClick={triggerCustomUpload}>
+                                  <Upload className="w-4 h-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" aria-label="Download store list">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              <div className="flex-1 overflow-y-auto min-h-0">
+                                <Table
+                                  hideActions
+                                  columns={[
+                                    {
+                                      key: 'select',
+                                      header: (
+                                        <Checkbox
+                                          checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
+                                            } else {
+                                              const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                              setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
+                                            }
+                                          }}
+                                        />
+                                      )
+                                    },
+                                    { key: 'name', header: 'Store Name' },
+                                    { key: 'type', header: 'Type' },
+                                    { key: 'location', header: 'Location' },
+                                    { key: 'reach', header: 'Estimated Reach' },
+                                    { key: 'status', header: 'Status' }
+                                  ]}
+                                  data={filteredStoresList.map(store => ({
+                                    select: (
+                                      <Checkbox
+                                        checked={selectedStoreIds.includes(store.id)}
+                                        onCheckedChange={(checked) => handleStoreSelection(store.id, checked as boolean)}
+                                      />
+                                    ),
+                                    name: store.name,
+                                    type: store.type,
+                                    location: store.location,
+                                    reach: store.reach.toLocaleString(),
+                                    status: (
+                                      <Badge
+                                        className={store.status === 'available'
+                                          ? 'bg-green-100 text-green-800 border-green-200'
+                                          : 'bg-orange-100 text-orange-800 border-orange-200'}
+                                      >
+                                        {store.status === 'available' ? 'Available' : 'Booked'}
+                                      </Badge>
+                                    )
+                                  }))}
+                                  className="w-full"
+                                />
+                              </div>
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setShowSelectedStoresDialog(false)}>Cancel</Button>
+                                <Button onClick={applyModalSelection}>
+                                  Use {selectedStoreIds.length} {selectedStoreIds.length === 1 ? 'store' : 'stores'}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
 {selectedLocations.length > 0 && (
   <div className="mt-6 pt-4 border-t border-neutral-200">
     <h4 className="text-sm font-medium mb-3">Other campaigns in this location</h4>
@@ -3393,7 +3720,15 @@ export const OfflineInStore: Story = {
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
-                      { label: 'Stores', value: storeAmount ? `${storeAmount} stores${storeSelectionMode ? ' · Store list generated' : ''}` : 'Not set' },
+                      {
+                        label: 'Stores',
+                        value: storeLists.length === 0 || (storeLists.length === 1 && storeLists[0].kind === 'all')
+                          ? 'All stores'
+                          : `${storeLists.reduce((s, l) => s + l.count, 0).toLocaleString()} stores · ${storeLists.length} ${storeLists.length === 1 ? 'list' : 'lists'}`,
+                      },
+                      ...(storeLists.some((l) => l.count > MAX_AVAILABLE_STORES)
+                        ? [{ label: 'Overbooking', value: `${storeLists.reduce((s, l) => s + Math.max(0, l.count - MAX_AVAILABLE_STORES), 0).toLocaleString()} booked stores kept` }]
+                        : []),
                       { label: 'Creatives', value: creativeStatus === 'not-set' ? 'Not set' : creativeStatus === 'received' ? 'Creative received' : 'Creative not approved' },
                       { label: 'Printer', value: printerStatus === 'not-set' ? 'Not set' : printerStatus === 'instruction-send' ? 'Instruction send' : printerStatus === 'delivered' ? 'Delivered' : 'Installed' },
                     ]}

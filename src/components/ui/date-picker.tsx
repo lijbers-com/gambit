@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { format, subDays, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns"
+import { format, subDays, subWeeks, subMonths, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns"
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
@@ -37,6 +37,12 @@ export interface DateRangePickerProps {
   disabled?: boolean
   className?: string
   showPresets?: boolean
+  /** Preset list to use (defaults to the past-looking analytics presets) */
+  presets?: DateRangePreset[]
+  /** Preset label shown as selected by default */
+  defaultPreset?: string
+  /** Show week numbers in the calendar; clicking one selects that whole week */
+  showWeekNumbers?: boolean
   showConversionWindow?: boolean
   conversionWindow?: number
   onConversionWindowChange?: (days: number) => void
@@ -50,7 +56,59 @@ const conversionWindowOptions = [
 ]
 
 // Preset definitions
-const presets = [
+export type DateRangePreset = { label: string; value: () => DateRange }
+
+// Forward-looking presets (e.g. for booking run times)
+export const futureDateRangePresets: DateRangePreset[] = [
+  {
+    label: "This week",
+    value: () => ({
+      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+      to: endOfWeek(new Date(), { weekStartsOn: 1 }),
+    }),
+  },
+  {
+    label: "Next week",
+    value: () => {
+      const next = addWeeks(new Date(), 1)
+      return {
+        from: startOfWeek(next, { weekStartsOn: 1 }),
+        to: endOfWeek(next, { weekStartsOn: 1 }),
+      }
+    },
+  },
+  {
+    label: "Next 2 weeks",
+    value: () => ({
+      from: startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }),
+      to: endOfWeek(addWeeks(new Date(), 2), { weekStartsOn: 1 }),
+    }),
+  },
+  {
+    label: "This month",
+    value: () => ({
+      from: startOfMonth(new Date()),
+      to: endOfMonth(new Date()),
+    }),
+  },
+  {
+    label: "Next month",
+    value: () => {
+      const next = addMonths(new Date(), 1)
+      return { from: startOfMonth(next), to: endOfMonth(next) }
+    },
+  },
+  {
+    label: "Next 7 days",
+    value: () => ({ from: new Date(), to: addDays(new Date(), 6) }),
+  },
+  {
+    label: "Next 30 days",
+    value: () => ({ from: new Date(), to: addDays(new Date(), 29) }),
+  },
+]
+
+const defaultPresets: DateRangePreset[] = [
   {
     label: "Today",
     value: () => ({
@@ -215,10 +273,15 @@ export function DateRangePicker({
   disabled = false,
   className,
   showPresets = false,
+  presets,
+  defaultPreset,
+  showWeekNumbers = false,
   showConversionWindow = false,
   conversionWindow,
   onConversionWindowChange,
 }: DateRangePickerProps) {
+  const presetList = presets ?? defaultPresets
+  const [selectedPreset, setSelectedPreset] = React.useState<string | undefined>(defaultPreset)
   const [fromInputValue, setFromInputValue] = React.useState(
     dateRange?.from ? format(dateRange.from, "dd/MM/yyyy") : ""
   )
@@ -290,9 +353,22 @@ export function DateRangePicker({
     }
   }
 
-  const handlePresetSelect = (preset: typeof presets[0]) => {
-    const range = preset.value()
+  const handlePresetSelect = (preset: DateRangePreset) => {
+    setSelectedPreset(preset.label)
+    onDateRangeChange?.(preset.value())
+  }
+
+  // Any manual edit (calendar/input) clears the active preset
+  const handleManualRangeChange = (range: DateRange | undefined) => {
+    setSelectedPreset(undefined)
     onDateRangeChange?.(range)
+  }
+
+  // Selecting a week via its number sets the range to that whole week
+  const handleWeekSelect = (dates: Date[]) => {
+    if (!dates || dates.length === 0) return
+    setSelectedPreset(undefined)
+    onDateRangeChange?.({ from: dates[0], to: dates[dates.length - 1] })
   }
 
   // Update input when dateRange changes externally
@@ -338,7 +414,7 @@ export function DateRangePicker({
           <div className="border-b p-3 flex-shrink-0 space-y-3">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground block">
-                Enter dates (dd/MM/yyyy)
+                Enter dates
               </label>
               <div className="flex gap-2">
                 <input
@@ -369,7 +445,7 @@ export function DateRangePicker({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
-                    Select preset
+                    {selectedPreset ?? "Select preset"}
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -380,7 +456,7 @@ export function DateRangePicker({
                   avoidCollisions={true}
                   collisionPadding={8}
                 >
-                  {presets.map((preset) => (
+                  {presetList.map((preset) => (
                     <DropdownMenuItem
                       key={preset.label}
                       onClick={() => handlePresetSelect(preset)}
@@ -397,9 +473,12 @@ export function DateRangePicker({
               mode="range"
               defaultMonth={dateRange?.from}
               selected={dateRange}
-              onSelect={onDateRangeChange}
+              onSelect={handleManualRangeChange}
               numberOfMonths={2}
               initialFocus
+              weekStartsOn={showWeekNumbers ? 1 : undefined}
+              showWeekNumber={showWeekNumbers}
+              onWeekClick={showWeekNumbers ? handleWeekSelect : undefined}
             />
           </div>
           {showConversionWindow && (

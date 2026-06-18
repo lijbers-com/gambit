@@ -19,9 +19,12 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  onWeekClick,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+  /** When set (with showWeekNumber), week numbers become clickable to select the whole week */
+  onWeekClick?: (days: Date[]) => void
 }) {
   const defaultClassNames = getDefaultClassNames()
 
@@ -96,7 +99,7 @@ function Calendar({
           defaultClassNames.week_number_header
         ),
         week_number: cn(
-          "text-muted-foreground select-none text-[0.8rem]",
+          "w-[--cell-size] select-none text-[0.8rem] text-muted-foreground/60",
           defaultClassNames.week_number
         ),
         day: cn(
@@ -156,12 +159,23 @@ function Calendar({
           )
         },
         DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
+        WeekNumber: ({ week, children, ...props }) => {
           return (
             <td {...props}>
-              <div className="flex size-[--cell-size] items-center justify-center text-center">
-                {children}
-              </div>
+              {onWeekClick ? (
+                <button
+                  type="button"
+                  onClick={() => onWeekClick(week.days.map((d) => d.date))}
+                  className="flex size-[--cell-size] items-center justify-center rounded-md text-muted-foreground/60 hover:bg-accent hover:text-foreground"
+                  aria-label={`Select week ${week.weekNumber}`}
+                >
+                  {week.weekNumber}
+                </button>
+              ) : (
+                <div className="flex size-[--cell-size] items-center justify-center text-center text-muted-foreground/60">
+                  {children}
+                </div>
+              )}
             </td>
           )
         },

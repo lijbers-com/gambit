@@ -16,6 +16,13 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
+    id: 98,
+    name: "Home",
+    type: "single" as const,
+    icon: { lucide: "Home" },
+    url: "/home",
+  },
+  {
     id: 99,
     name: "Media plans",
     type: "single" as const,
@@ -101,34 +108,9 @@ export const defaultRoutes: Route[] = [
   {
     id: 1,
     name: "Creatives",
-    type: "parent" as const,
+    type: "single" as const,
     icon: { lucide: "ImagePlus" },
-    subitems: [
-      {
-        id: 30,
-        name: "Display",
-        type: "single" as const,
-        url: "/creatives/display",
-      },
-      {
-        id: 31,
-        name: "Digital in-store",
-        type: "single" as const,
-        url: "/creatives/digital-instore",
-      },
-      {
-        id: 32,
-        name: "Offline in-store",
-        type: "single" as const,
-        url: "/creatives/offline-instore",
-      },
-      {
-        id: 33,
-        name: "Offsite",
-        type: "single" as const,
-        url: "/creatives/offsite",
-      },
-    ],
+    url: "/creatives",
   },
   {
     id: 2,

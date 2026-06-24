@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
+import { RetailProductSelect } from '../../ui/retail-product-select';
 import { DatePicker, DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
 import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
@@ -1705,60 +1706,11 @@ export const DigitalInStore: Story = {
                                 </div>
                               )}
                             </div>
-                            <div className="min-w-0 space-y-2">
-                              <div className="relative" data-dropdown-container>
-                                <label className="block text-sm font-medium mb-2">Retail products</label>
-                                <SearchInput
-                                  value={retailProductSearch}
-                                  onChange={handleRetailProductSearchChange}
-                                  onClick={handleRetailProductClick}
-                                  placeholder="Search product by name or ID..."
-                                  className="w-full"
-                                  icon={<ScanBarcode className="w-4 h-4" />}
-                                />
-                                {showRetailProductResults && (
-                                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                    {filteredRetailProducts.length > 0 ? (
-                                      filteredRetailProducts.map((product) => (
-                                        <div
-                                          key={product.id}
-                                          className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                          onClick={() => handleRetailProductSelect(product)}
-                                        >
-                                          <div className="font-medium text-sm">{product.name}</div>
-                                          <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              {selectedRetailProducts.length > 0 && (
-                                <div className="space-y-1">
-                                  {selectedRetailProducts.map((productId) => {
-                                    const product = retailProducts.find((p) => p.id === productId);
-                                    return product ? (
-                                      <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                        <div>
-                                          <div className="text-sm font-medium">{product.name}</div>
-                                          <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                        </div>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => removeRetailProduct(productId)}
-                                          className="h-8 w-8 p-0"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ) : null;
-                                  })}
-                                </div>
-                              )}
-                            </div>
+                            <RetailProductSelect
+                              value={selectedRetailProducts}
+                              onChange={setSelectedRetailProducts}
+                              products={retailProducts}
+                            />
                           </div>
                         </div>
                       </FormSection>
@@ -4105,73 +4057,13 @@ export const SponsoredProducts: Story = {
                       </FormSection>
 
                       <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Select retail products*</label>
-                            <SearchInput 
-                              value={retailProductSearch}
-                              onChange={handleRetailProductSearchChange}
-                              onClick={handleRetailProductClick}
-                              placeholder="Select product by name or ID..." 
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handleRetailProductSelect(product)}
-                                  >
-                                    <div className="font-medium text-sm">{product.name}</div>
-                                    <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No products found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected products:</div>
-                              <div className="space-y-1">
-                                {selectedRetailProducts.map(productId => {
-                                  const product = retailProducts.find(p => p.id === productId);
-                                  return product ? (
-                                    <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                      <div>
-                                        <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                      </div>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => removeRetailProduct(productId)}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="text-sm text-muted-foreground">
-                            {selectedRetailProducts.length > 0 
-                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this booking'
-                            }
-                          </div>
-                        </div>
+                        <RetailProductSelect
+                          value={selectedRetailProducts}
+                          onChange={setSelectedRetailProducts}
+                          products={retailProducts}
+                          label={null}
+                          showCount
+                        />
                       </FormSection>
 
                       <FormSection borderless title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
@@ -4695,67 +4587,13 @@ export const OffsiteDisplay: Story = {
                   </FormSection>
 
                   <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                    <div className="space-y-4">
-                      <div className="relative" data-dropdown-container>
-                        <label className="block text-sm font-medium mb-2">Select retail products*</label>
-                        <SearchInput
-                          value={retailProductSearch}
-                          onChange={(e) => {
-                            setRetailProductSearch(e.target.value);
-                            setShowRetailProductResults(e.target.value.length > 0);
-                          }}
-                          onClick={() => setShowRetailProductResults(true)}
-                          placeholder="Search product by name or ID..."
-                          className="w-full"
-                          icon={<ScanBarcode className="w-4 h-4" />}
-                        />
-                        {showRetailProductResults && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                            {filteredRetailProducts.length > 0 ? (
-                              filteredRetailProducts.map(product => (
-                                <div
-                                  key={product.id}
-                                  className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                  onClick={() => handleRetailProductSelect(product)}
-                                >
-                                  <div className="font-medium text-sm">{product.name}</div>
-                                  <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {selectedRetailProducts.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium">Selected products:</div>
-                          {selectedRetailProducts.map(productId => {
-                            const product = retailProducts.find(p => p.id === productId);
-                            return product ? (
-                              <div key={productId} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                <div>
-                                  <div className="text-sm font-medium">{product.name}</div>
-                                  <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                </div>
-                                <Button variant="outline" size="sm" onClick={() => removeRetailProduct(productId)} className="h-8 w-8 p-0">
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : null;
-                          })}
-                        </div>
-                      )}
-
-                      <div className="text-sm text-muted-foreground">
-                        {selectedRetailProducts.length > 0
-                          ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                          : 'Search and select retail products to advertise in this booking'
-                        }
-                      </div>
-                    </div>
+                    <RetailProductSelect
+                      value={selectedRetailProducts}
+                      onChange={setSelectedRetailProducts}
+                      products={retailProducts}
+                      label={null}
+                      showCount
+                    />
                   </FormSection>
 
                   <FormSection borderless title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>

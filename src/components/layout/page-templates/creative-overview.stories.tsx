@@ -4,11 +4,27 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Eye, CheckCircle2, XCircle, ArrowUpRight } from 'lucide-react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
+
+// Map the creative type label to its detail-route slug (used by the View modal).
+const TYPE_SLUG: Record<string, string> = {
+  'Display': 'display',
+  'Digital In-Store': 'digital-instore',
+  'Offline In-Store': 'offline-instore',
+  'Sponsored Products': 'sponsored-products',
+};
+
+type CreativeRow = {
+  id: string; status: string; type: string; format: string;
+  name: string; campaign: string; bookings: number; created: string; updated: string;
+};
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Creative Overview',
@@ -139,8 +155,13 @@ export const CreativeOverview: Story = {
     const [type, setType] = useState<string[]>([]);
     const [format, setFormat] = useState<string[]>([]);
     const [search, setSearch] = useState('');
-    
-    const filteredCreativeData = creativeData.filter(row => {
+    // Creative rows are stateful so the quick approve/reject actions can update status.
+    const [rows, setRows] = useState<CreativeRow[]>(creativeData);
+    const [viewing, setViewing] = useState<CreativeRow | null>(null);
+    const setRowStatus = (id: string, next: string) =>
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next } : r)));
+
+    const filteredCreativeData = rows.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const typeMatch = type.length === 0 || type.includes(row.type.toLowerCase().replace(/ /g, '-'));
       const formatMatch = format.length === 0 || format.includes(row.format.toLowerCase().replace(/ /g, '-'));
@@ -217,6 +238,34 @@ export const CreativeOverview: Story = {
             <Table
               columns={[
                 { key: 'id', header: 'ID' },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  render: (row) => {
+                    const isApproved = row.status === 'Approved';
+                    const isRejected = row.status === 'Rejected';
+                    return (
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="View creative"
+                          onClick={(e) => { e.stopPropagation(); setViewing(row); }}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm"
+                          className={`h-8 w-8 p-0 ${isRejected ? 'border-red-200 bg-red-50 text-red-600' : 'text-muted-foreground hover:text-red-600'}`}
+                          aria-label="Disapprove creative"
+                          onClick={(e) => { e.stopPropagation(); setRowStatus(row.id, 'Rejected'); }}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm"
+                          className={`h-8 w-8 p-0 ${isApproved ? 'border-green-200 bg-green-50 text-green-700' : 'text-muted-foreground hover:text-green-700'}`}
+                          aria-label="Approve creative"
+                          onClick={(e) => { e.stopPropagation(); setRowStatus(row.id, 'Approved'); }}>
+                          <CheckCircle2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  },
+                },
                 { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                 { key: 'type', header: 'Type', render: row => <Badge variant={typeVariant(row.type)}>{row.type}</Badge> },
                 { key: 'format', header: 'Format' },
@@ -235,8 +284,51 @@ export const CreativeOverview: Story = {
             />
           </CardContent>
         </Card>
+
+        {/* View modal — quick look with a link to the full creative detail page */}
+        <Dialog open={viewing != null} onOpenChange={(open) => { if (!open) setViewing(null); }}>
+          <DialogContent className="max-w-lg">
+            {viewing && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {viewing.name}
+                    <Badge variant={statusVariant(viewing.status)}>{viewing.status}</Badge>
+                  </DialogTitle>
+                  <DialogDescription>{viewing.id} · {viewing.campaign}</DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div><div className="text-xs text-muted-foreground">Type</div><div className="font-medium">{viewing.type}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Format</div><div className="font-medium">{viewing.format}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Bookings</div><div className="font-medium">{viewing.bookings}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Updated</div><div className="font-medium">{new Date(viewing.updated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</div></div>
+                </div>
+                <div className="mt-2 flex aspect-[16/9] items-center justify-center rounded-md border border-dashed bg-muted/40 text-sm text-muted-foreground">
+                  Creative preview
+                </div>
+                <DialogFooter className="gap-2 sm:justify-between">
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => { setRowStatus(viewing.id, 'Rejected'); setViewing(null); }}>
+                      <XCircle className="mr-1.5 h-4 w-4" /> Disapprove
+                    </Button>
+                    <Button onClick={() => { setRowStatus(viewing.id, 'Approved'); setViewing(null); }}>
+                      <CheckCircle2 className="mr-1.5 h-4 w-4" /> Approve
+                    </Button>
+                  </div>
+                  <a
+                    href={`/creatives/${TYPE_SLUG[viewing.type] || 'display'}/${viewing.id}`}
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Open creative
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </AppLayout>
       </MenuContextProvider>
     );
   },
-}; 
+};

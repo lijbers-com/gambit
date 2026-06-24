@@ -7,6 +7,8 @@ import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchInput } from '@/components/ui/search-input';
+import { RetailProductSelect } from '@/components/ui/retail-product-select';
+import { Filter } from '@/components/ui/filter';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -38,6 +40,7 @@ import {
   FileText,
   Globe,
   Minus,
+  Info,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -126,6 +129,90 @@ const goals = [
   },
 ];
 
+// Objectives per goal, following the funnel → objective framework. The chosen
+// objective drives the KPIs the plan is judged on. Purchase and Loyalty are
+// Conversion-stage goals.
+const goalObjectives: Record<string, { stage: string; objectives: string[] }> = {
+  awareness: { stage: 'Awareness', objectives: ['Merkbekendheid', 'Productbekendheid', 'Merk associaties'] },
+  consideration: { stage: 'Consideration', objectives: ['Verhogen merk/product overweging', 'Merk associaties', 'Nieuwe klanten', 'Merkvoorkeur', 'Aankoopintentie'] },
+  purchase: { stage: 'Conversion', objectives: ['Sales', 'Promotie ondersteuning'] },
+  loyalty: { stage: 'Conversion', objectives: ['Sales', 'Promotie ondersteuning'] },
+};
+
+// KPIs the plan is judged on per funnel stage (the funnel → KPI framework).
+// Awareness has no Sales KPIs; Conversion has no standalone Brand KPIs.
+const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: string[] }> = {
+  Awareness: {
+    brand: ['Top of Mind Awareness', 'Spontane merk/productbekendheid', 'Geholpen merk/productbekendheid', 'Reclamebekendheid (Ad-recall)', 'CEP', 'Merk associaties/waardes'],
+    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)'],
+    sales: [],
+  },
+  Consideration: {
+    brand: ['Merk/product overweging', 'Merk associaties/waardes', 'Merkvoorkeur', 'Aankoopintentie'],
+    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)', 'Conversion rate'],
+    sales: ['Sales lift', 'Trial (New to product)', 'New to brand', 'New to Category', 'Koop frequentie', 'Recept in favorieten (allerhande only)'],
+  },
+  Conversion: {
+    brand: [],
+    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)', 'Conversion rate'],
+    sales: ['Sales lift', '(i)ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to Category', 'Sales driver: existing customers (i)', 'Sales driver: sales per customer (i)', 'CLV', 'Redemptie (loyalty product only)', 'Basket size (SIS only)', 'Share of basket (SIS only)', 'Trial (New to product)', 'Repeat', 'Koop frequentie', 'Terugwinnen klanten'],
+  },
+};
+
+// Shared per-step info/summary panel — reused at the bottom of each wizard step
+// to help the user understand the impact of their choices.
+const StepSummary = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="rounded-lg border bg-muted/40 p-4">
+    <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+      <Info className="h-4 w-4 text-muted-foreground" />
+      {title}
+    </div>
+    {children}
+  </div>
+);
+
+// Persistent "Assisted optimisations" card shown at the bottom of each step. The
+// toggle lives in its header, so it stays reachable even when assistance is off
+// (in which case only a short note is shown instead of the guidance).
+const OptimisationCard = ({
+  assisted,
+  onToggle,
+  children,
+}: {
+  assisted: boolean;
+  onToggle: (v: boolean) => void;
+  children: React.ReactNode;
+}) => (
+  <div className={cn('rounded-lg border p-4 transition-colors', assisted ? 'bg-muted/40' : 'bg-transparent')}>
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Sparkles className={cn('h-4 w-4', assisted ? 'text-primary' : 'text-muted-foreground')} />
+        Assisted optimisations
+      </div>
+      <Switch checked={assisted} onCheckedChange={onToggle} />
+    </div>
+    {assisted ? (
+      children
+    ) : (
+      <p className="text-xs text-muted-foreground">
+        Turn on for live metrics, campaign suggestions and budget optimisation as you build the plan.
+      </p>
+    )}
+  </div>
+);
+
+const KpiChipGroup = ({ label, items }: { label: string; items: string[] }) =>
+  items.length === 0 ? null : (
+    <div>
+      <div className="mb-1.5 text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((k) => (
+          <span key={k} className="rounded-full border bg-background px-2 py-0.5 text-xs">{k}</span>
+        ))}
+      </div>
+    </div>
+  );
+
 const advertiserOptions = [
   { label: 'Acme Media', value: 'acme-media' },
   { label: 'Brand Alliance', value: 'brand-alliance' },
@@ -134,13 +221,15 @@ const advertiserOptions = [
   { label: 'Nestlé Trade Marketing', value: 'nestle-trade' },
 ];
 
+// Brands carry lightweight first-party-style metrics so the assisted panels can
+// surface real numbers and optimisation hints instead of generic copy.
 const brandOptions = [
-  { label: 'Coca-Cola', value: 'coca-cola' },
-  { label: 'Unilever', value: 'unilever' },
-  { label: 'Procter & Gamble', value: 'procter-gamble' },
-  { label: 'Nestlé', value: 'nestle' },
-  { label: 'PepsiCo', value: 'pepsico' },
-  { label: 'Heineken', value: 'heineken' },
+  { label: 'Coca-Cola', value: 'coca-cola', category: 'Soft drinks', reach: 6.4, roas: 4.1 },
+  { label: 'Unilever', value: 'unilever', category: 'FMCG', reach: 8.1, roas: 3.6 },
+  { label: 'Procter & Gamble', value: 'procter-gamble', category: 'Personal care', reach: 7.2, roas: 3.9 },
+  { label: 'Nestlé', value: 'nestle', category: 'Food', reach: 7.8, roas: 3.4 },
+  { label: 'PepsiCo', value: 'pepsico', category: 'Snacks & drinks', reach: 6.9, roas: 3.8 },
+  { label: 'Heineken', value: 'heineken', category: 'Beer', reach: 5.3, roas: 4.4 },
 ];
 
 const audienceOptions = [
@@ -249,8 +338,10 @@ const propositions = [
 const wizardSteps = [
   { id: 'setup', label: 'Setup' },
   { id: 'advertiser', label: 'Advertiser' },
+  // Goal/objective drives the KPIs we judge the plan on, so it comes before
+  // run time & budget in the flow.
+  { id: 'targeting', label: 'Goal and objectives' },
   { id: 'budget', label: 'Run time & budget' },
-  { id: 'targeting', label: 'Goals & targets' },
   { id: 'review', label: 'Media plan' },
 ];
 
@@ -269,7 +360,7 @@ export const GoalSelection: Story = {
 
     // Step 2: Advertiser
     const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
-    const [selectedBrand, setSelectedBrand] = React.useState('');
+    const [selectedBrands, setSelectedBrands] = React.useState<string[]>([]);
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
@@ -281,6 +372,7 @@ export const GoalSelection: Story = {
 
     // Step 4: Goals & targets (goal + audience)
     const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
+    const [selectedObjective, setSelectedObjective] = React.useState<string | null>(null);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
@@ -294,17 +386,49 @@ export const GoalSelection: Story = {
       return defaults;
     });
 
+    // Assisted experience — one switch that turns the AI service on or off across
+    // the whole plan: per-step guidance, budget optimization, and AI campaign
+    // presets. When off, the user builds the plan unassisted (no advice, no
+    // suggestions, empty campaigns by default).
+    const [assistedExperience, setAssistedExperience] = React.useState(true);
+    const setAssisted = (on: boolean) => {
+      setAssistedExperience(on);
+      if (!on) setAutoBudgetOptimization(false);
+      else if (budgetAmount.trim() !== '') setAutoBudgetOptimization(true);
+      // Re-point every enabled proposition to an AI preset (on) or empty (off).
+      setPropositionSelections((prev) => {
+        const next: typeof prev = { ...prev };
+        Object.keys(next).forEach((id) => {
+          if (!next[id]) return;
+          const prop = propositions.find((p) => p.id === id);
+          next[id] = on ? { mode: 'preset', presetId: prop?.aiPreset.id } : { mode: 'empty' };
+        });
+        return next;
+      });
+    };
+
     // Derived data
     const selectedGoalData = goals.find((g) => g.id === selectedGoal);
-    const selectedBrandData = brandOptions.find((b) => b.value === selectedBrand);
+    const selectedBrandLabels = brandOptions.filter((b) => selectedBrands.includes(b.value)).map((b) => b.label);
+
+    // Aggregate brand metrics for the assisted optimisation panel on the
+    // Advertiser step — combined reach (de-duplicated for overlap), average
+    // category ROAS, and the categories in scope.
+    const advertiserStats = React.useMemo(() => {
+      const brands = brandOptions.filter((b) => selectedBrands.includes(b.value));
+      const reach = brands.length ? Math.min(brands.reduce((s, b) => s + b.reach, 0) * 0.9, 14) : 0;
+      const roas = brands.length ? brands.reduce((s, b) => s + b.roas, 0) / brands.length : 0;
+      const categories = Array.from(new Set(brands.map((b) => b.category)));
+      return { reach, roas, categories, products: selectedRetailProducts.length };
+    }, [selectedBrands, selectedRetailProducts]);
 
     // Step completion checks
     const isSetupComplete = campaignName.trim() !== '';
-    const isAdvertiserComplete = selectedBrand !== '';
+    const isAdvertiserComplete = selectedBrands.length > 0;
     const isBudgetComplete = budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
-    const isTargetingComplete = selectedGoal !== null && selectedAudiences.length > 0;
+    const isTargetingComplete = selectedGoal !== null && selectedObjective !== null && selectedAudiences.length > 0;
 
-    const isCurrentStepComplete = [isSetupComplete, isAdvertiserComplete, isBudgetComplete, isTargetingComplete, true][currentStep] ?? false;
+    const isCurrentStepComplete = [isSetupComplete, isAdvertiserComplete, isTargetingComplete, isBudgetComplete, true][currentStep] ?? false;
 
     // Audience toggle
     const toggleAudience = (id: string) => {
@@ -380,7 +504,7 @@ export const GoalSelection: Story = {
         case 'advertiser': {
           if (!isAdvertiserComplete) return null;
           const vals: string[] = [];
-          if (selectedBrandData) vals.push(selectedBrandData.label);
+          if (selectedBrandLabels.length > 0) vals.push(selectedBrandLabels.length === 1 ? selectedBrandLabels[0] : selectedBrandLabels.length + ' brands');
           if (selectedRetailProducts.length > 0) vals.push(`${selectedRetailProducts.length} product${selectedRetailProducts.length !== 1 ? 's' : ''} selected`);
           return vals.length > 0 ? vals : null;
         }
@@ -396,6 +520,7 @@ export const GoalSelection: Story = {
           if (!selectedGoal) return null;
           const vals: string[] = [];
           if (selectedGoalData) vals.push(selectedGoalData.title);
+          if (selectedObjective) vals.push(selectedObjective);
           if (selectedAudiences.length > 0) vals.push(`${selectedAudiences.length} audience${selectedAudiences.length !== 1 ? 's' : ''} selected`);
           return vals;
         }
@@ -580,6 +705,9 @@ export const GoalSelection: Story = {
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
                       </div>
+                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
+                        <p className="text-xs text-muted-foreground">Live metrics, KPI guidance and budget suggestions appear on the next steps as you build the plan.</p>
+                      </OptimisationCard>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
@@ -613,80 +741,73 @@ export const GoalSelection: Story = {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="brand">Brand</Label>
-                        <Input
-                          dropdown
+                        <Label htmlFor="brand">Brands</Label>
+                        <Filter
+                          name="Select brands"
+                          keepName
                           options={brandOptions}
-                          value={selectedBrand}
-                          onChange={(value: string) => setSelectedBrand(value)}
-                          placeholder="Select a brand"
+                          selectedValues={selectedBrands}
+                          onChange={setSelectedBrands}
+                          className="w-full justify-between"
                         />
-                        <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Retail products <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                        <div className="space-y-4">
-                          <div className="relative" data-dropdown-container>
-                            <SearchInput
-                              value={retailProductSearch}
-                              onChange={handleRetailProductSearchChange}
-                              onClick={() => setShowRetailProductResults(true)}
-                              placeholder="Select product by name or ID..."
-                              className="w-full"
-                              icon={<ScanBarcode className="w-4 h-4" />}
-                            />
-                            {showRetailProductResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredRetailProducts.length > 0 ? (
-                                  filteredRetailProducts.map((product) => (
-                                    <div
-                                      key={product.id}
-                                      className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                      onClick={() => handleRetailProductSelect(product)}
-                                    >
-                                      <div className="font-medium text-sm">{product.name}</div>
-                                      <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
-                                )}
-                              </div>
-                            )}
+                        {selectedBrands.length > 0 && (
+                          <div className="space-y-1 pt-1">
+                            {selectedBrands.map((value) => {
+                              const opt = brandOptions.find((b) => b.value === value);
+                              return opt ? (
+                                <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                  <div className="text-sm font-medium">{opt.label}</div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedBrands(selectedBrands.filter((v) => v !== value))}
+                                    className="h-8 w-8 shrink-0 p-0"
+                                    aria-label={`Remove ${opt.label}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : null;
+                            })}
                           </div>
-                          {selectedRetailProducts.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected products:</div>
-                              <div className="space-y-1">
-                                {selectedRetailProducts.map((productId) => {
-                                  const product = retailProducts.find(p => p.id === productId);
-                                  return product ? (
-                                    <div key={productId} className="flex items-center justify-between bg-neutral-50 rounded-md p-2">
-                                      <div>
-                                        <div className="text-sm font-medium">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                                      </div>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => removeRetailProduct(productId)}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <Minus className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
+                        )}
+                        <div className="text-xs text-muted-foreground mt-1">Choose the brand(s) this campaign will advertise for</div>
+                      </div>
+                      <RetailProductSelect
+                        value={selectedRetailProducts}
+                        onChange={setSelectedRetailProducts}
+                        optional
+                        showCount
+                      />
+                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
+                        {selectedBrands.length > 0 ? (
+                          <>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <div className="text-xs text-muted-foreground">Est. brand reach</div>
+                                <div className="text-base font-semibold">{advertiserStats.reach.toFixed(1)}M</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">Avg. category ROAS</div>
+                                <div className="text-base font-semibold">{advertiserStats.roas.toFixed(1)}×</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">SKUs in scope</div>
+                                <div className="text-base font-semibold">{advertiserStats.products}</div>
                               </div>
                             </div>
-                          )}
-                          <div className="text-sm text-muted-foreground">
-                            {selectedRetailProducts.length > 0
-                              ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                              : 'Search and select retail products to target for this campaign'}
-                          </div>
-                        </div>
-                      </div>
+                            <p className="mt-3 text-xs text-muted-foreground">
+                              {advertiserStats.categories.length > 1
+                                ? `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns typically improves attribution accuracy.`
+                                : advertiserStats.products === 0
+                                  ? `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average — a strong base for a conversion goal.`
+                                  : `These ${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in ${advertiserStats.categories[0]} historically convert at ${advertiserStats.roas.toFixed(1)}× — good for sales-focused KPIs.`}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">Select a brand to see estimated reach, category ROAS and optimisation suggestions.</p>
+                        )}
+                      </OptimisationCard>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
@@ -698,8 +819,143 @@ export const GoalSelection: Story = {
                 </Card>
               )}
 
-              {/* Step 3: Run time & budget */}
+              {/* Step 3: Goals & targets */}
               {currentStep === 2 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Goal and objectives</CardTitle>
+                    <CardDescription>
+                      Select your campaign goal, the objective the plan is judged on, and the audience to target
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <Label className="mb-3 block">Campaign goal</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {goals.map((goal) => (
+                            <GoalCard
+                              key={goal.id}
+                              icon={goal.icon}
+                              title={goal.title}
+                              description={goal.description}
+                              selected={selectedGoal === goal.id}
+                              onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {selectedGoal && goalObjectives[selectedGoal] && (
+                        <div className="space-y-2">
+                          <Label>Objective</Label>
+                          <Filter
+                            name="Select objective"
+                            keepName
+                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ label: o, value: o }))}
+                            selectedValues={selectedObjective ? [selectedObjective] : []}
+                            onChange={(vals) => setSelectedObjective(vals.length ? vals[vals.length - 1] : null)}
+                            className="w-full justify-between"
+                          />
+                          {selectedObjective && (
+                            <div className="space-y-1 pt-1">
+                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                <div className="text-sm font-medium">{selectedObjective}</div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedObjective(null)}
+                                  className="h-8 w-8 shrink-0 p-0"
+                                  aria-label={`Remove ${selectedObjective}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {goalObjectives[selectedGoal].stage} stage — pick the one objective the plan is judged on.
+                          </div>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Users size={16} />
+                          Audience segments
+                        </Label>
+                        <Filter
+                          name="Select audiences"
+                          keepName
+                          options={audienceOptions.map((a) => ({ label: a.label, value: a.id, description: `Reach ${a.reach} · ${a.description}` }))}
+                          selectedValues={selectedAudiences}
+                          onChange={setSelectedAudiences}
+                          className="w-full justify-between"
+                        />
+                        {selectedAudiences.length > 0 && (
+                          <div className="space-y-1 pt-1">
+                            {selectedAudiences.map((id) => {
+                              const a = audienceOptions.find((x) => x.id === id);
+                              return a ? (
+                                <div key={id} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-medium">{a.label}</div>
+                                    <div className="text-xs text-muted-foreground">Reach: {a.reach}</div>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedAudiences(selectedAudiences.filter((v) => v !== id))}
+                                    className="h-8 w-8 shrink-0 p-0"
+                                    aria-label={`Remove ${a.label}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                        {estimatedReach && (
+                          <div className="mt-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Estimated reach</span>
+                              <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
+                        {selectedGoal && selectedObjective && goalObjectives[selectedGoal] ? (() => {
+                          const stage = goalObjectives[selectedGoal].stage;
+                          const k = funnelKpis[stage];
+                          return (
+                            <>
+                              <p className="mb-3 text-xs text-muted-foreground">
+                                Based on your goal ({goals.find((g) => g.id === selectedGoal)?.title}) and objective ({selectedObjective}), the plan is judged on these {stage}-stage KPIs.
+                              </p>
+                              <div className="space-y-3">
+                                <KpiChipGroup label="Media KPIs" items={k.media} />
+                                <KpiChipGroup label="Sales KPIs" items={k.sales} />
+                                <KpiChipGroup label="Brand KPIs" items={k.brand} />
+                              </div>
+                            </>
+                          );
+                        })() : (
+                          <p className="text-xs text-muted-foreground">Pick a goal and objective to see the KPIs this plan will be judged on.</p>
+                        )}
+                      </OptimisationCard>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
+                      <Button disabled={!isTargetingComplete} onClick={() => setCurrentStep(3)}>
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 4: Run time & budget */}
+              {currentStep === 3 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Run time & budget</CardTitle>
@@ -751,6 +1007,7 @@ export const GoalSelection: Story = {
                           </p>
                         </div>
                       )}
+                      {assistedExperience && (
                       <div className={cn(
                         "rounded-lg border p-4 transition-all",
                         autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
@@ -784,10 +1041,45 @@ export const GoalSelection: Story = {
                           </div>
                         )}
                       </div>
+                      )}
+                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
+                        {budgetAmount.trim() !== '' && dateRange?.from && dateRange?.to ? (() => {
+                          const days = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                          const daily = parseFloat(budgetAmount) / days;
+                          const impressions = Math.round((parseFloat(budgetAmount) / 4.5) * 1000); // ~€4.50 CPM
+                          return (
+                            <>
+                              <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Daily average</div>
+                                  <div className="text-base font-semibold">€{daily.toFixed(0)}/day</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Est. impressions</div>
+                                  <div className="text-base font-semibold">{(impressions / 1000000).toFixed(1)}M</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Flight</div>
+                                  <div className="text-base font-semibold">{days} days</div>
+                                </div>
+                              </div>
+                              <p className="mt-3 text-xs text-muted-foreground">
+                                {daily < 150
+                                  ? `At €${daily.toFixed(0)}/day delivery may be thin — raising the budget builds usable frequency faster.`
+                                  : autoBudgetOptimization
+                                    ? `Auto-optimisation reallocates this €${daily.toFixed(0)}/day to the best-performing propositions in real time — about +18% ROAS on average.`
+                                    : `Turn on auto-optimisation to redistribute this €${daily.toFixed(0)}/day toward the best-performing propositions (~+18% ROAS).`}
+                              </p>
+                            </>
+                          );
+                        })() : (
+                          <p className="text-xs text-muted-foreground">Set a run time and budget to see daily pacing, estimated impressions and budget suggestions.</p>
+                        )}
+                      </OptimisationCard>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
-                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(3)}>
+                      <Button variant="ghost" onClick={() => setCurrentStep(2)}>Back</Button>
+                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(4)}>
                         Continue
                       </Button>
                     </div>
@@ -795,89 +1087,6 @@ export const GoalSelection: Story = {
                 </Card>
               )}
 
-              {/* Step 4: Goals & targets */}
-              {currentStep === 3 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Goals & targets</CardTitle>
-                    <CardDescription>
-                      Select your campaign goal and audience segments to target
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <Label className="mb-3 block">Campaign goal</Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {goals.map((goal) => (
-                            <GoalCard
-                              key={goal.id}
-                              icon={goal.icon}
-                              title={goal.title}
-                              description={goal.description}
-                              selected={selectedGoal === goal.id}
-                              onClick={() => setSelectedGoal(goal.id)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="mb-3 block flex items-center gap-2">
-                          <Users size={16} />
-                          Audience segments
-                        </Label>
-                        <div className="space-y-3">
-                          {audienceOptions.map((audience) => {
-                            const isSelected = selectedAudiences.includes(audience.id);
-                            return (
-                              <button
-                                key={audience.id}
-                                type="button"
-                                onClick={() => toggleAudience(audience.id)}
-                                className={`w-full flex items-start gap-3 p-4 rounded-lg border transition-all text-left ${
-                                  isSelected
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border hover:border-primary/30'
-                                }`}
-                              >
-                                <div
-                                  className={cn(
-                                    "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                                    isSelected && "bg-primary text-primary-foreground"
-                                  )}
-                                >
-                                  {isSelected && <Check className="h-4 w-4" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-sm font-medium">{audience.label}</span>
-                                    <span className="text-xs text-muted-foreground flex-shrink-0">Reach: {audience.reach}</span>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{audience.description}</p>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {estimatedReach && (
-                          <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">Estimated reach</span>
-                              <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(2)}>Back</Button>
-                      <Button disabled={!isTargetingComplete} onClick={() => setCurrentStep(4)}>
-                        Continue
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
 
               {/* Step 5: Media plan */}
               {currentStep === 4 && (
@@ -932,7 +1141,9 @@ export const GoalSelection: Story = {
                                     if (checked) {
                                       setPropositionSelections(prev => ({
                                         ...prev,
-                                        [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id },
+                                        [prop.id]: assistedExperience
+                                          ? { mode: 'preset', presetId: prop.aiPreset.id }
+                                          : { mode: 'empty' },
                                       }));
                                     } else {
                                       setPropositionSelections(prev => ({ ...prev, [prop.id]: null }));
@@ -945,8 +1156,9 @@ export const GoalSelection: Story = {
                             {/* Expanded content when enabled */}
                             {isEnabled && (
                               <div className="px-4 pb-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                  {/* AI preset option */}
+                                <div className={cn('grid gap-3', assistedExperience && 'grid-cols-2')}>
+                                  {/* AI preset option — only in the assisted experience */}
+                                  {assistedExperience && (
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -973,6 +1185,7 @@ export const GoalSelection: Story = {
                                       <span className="text-xs text-muted-foreground">~{prop.aiPreset.estImpressions} imp.</span>
                                     </div>
                                   </button>
+                                  )}
 
                                   {/* Empty campaign option */}
                                   <button
@@ -1004,6 +1217,29 @@ export const GoalSelection: Story = {
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="mt-6">
+                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <div className="text-xs text-muted-foreground">Propositions</div>
+                            <div className="text-base font-semibold">{propositionImpact.selectedCount}/{propositions.length}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">Added reach</div>
+                            <div className="text-base font-semibold">{propositionImpact.additionalReach > 0 ? `+${propositionImpact.additionalReach.toFixed(1)}M` : '–'}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">Added sales</div>
+                            <div className="text-base font-semibold">{propositionImpact.additionalSales > 0 ? `+€${propositionImpact.additionalSales.toLocaleString()}` : '–'}</div>
+                          </div>
+                        </div>
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          {propositionImpact.selectedCount < propositions.length
+                            ? `Enabling the remaining ${propositions.length - propositionImpact.selectedCount} proposition${propositions.length - propositionImpact.selectedCount === 1 ? '' : 's'} typically adds incremental reach for the same audience.`
+                            : 'All propositions enabled — the widest reach for this audience.'}
+                        </p>
+                      </OptimisationCard>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>

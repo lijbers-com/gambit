@@ -124,7 +124,12 @@ const statusVariant = (status: string) => {
 // row can be reused on the campaign overview AND every campaign detail
 // page (where it renders with scope='campaign' for narrower values).
 
-const createCampaignOverviewStory = (engineType: string, engineTitle: string) => ({
+// `showMediaPlanTab` distinguishes the two contexts:
+//  - false → the campaign OVERVIEW reached from the Campaigns menu (all
+//    campaigns of an engine). No "Media plan details" tab.
+//  - true  → the campaign view reached FROM a media plan (linked to it), which
+//    keeps the "Media plan details" tab.
+const createCampaignOverviewStory = (engineType: string, engineTitle: string, showMediaPlanTab = false) => ({
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
@@ -270,11 +275,11 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
             ) : null
           }
           tabs={[
-            {
+            ...(showMediaPlanTab ? [{
               label: 'Media plan details',
               value: 'details',
               content: null,
-            },
+            }] : []),
             {
               label: 'Campaigns',
               value: 'campaigns',
@@ -378,6 +383,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string) =>
   },
 });
 
+// Campaign OVERVIEW (Campaigns menu) — all campaigns of an engine, no Media plan tab.
 export const CampaignOverview: Story = createCampaignOverviewStory('all', 'All Engines');
 
 export const SponsoredProducts: Story = createCampaignOverviewStory('sponsored products', 'Sponsored Products');
@@ -389,6 +395,17 @@ export const DigitalInStore: Story = createCampaignOverviewStory('digital in-sto
 export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline Instore');
 
 export const Offsite: Story = createCampaignOverviewStory('offsite', 'Offsite');
+
+// Campaign view FROM a media plan (linked to it) — keeps the Media plan details tab.
+export const SponsoredProductsFromMediaPlan: Story = createCampaignOverviewStory('sponsored products', 'Sponsored Products', true);
+
+export const DisplayFromMediaPlan: Story = createCampaignOverviewStory('display', 'Display', true);
+
+export const DigitalInStoreFromMediaPlan: Story = createCampaignOverviewStory('digital in-store', 'Digital In-Store', true);
+
+export const OfflineInstoreFromMediaPlan: Story = createCampaignOverviewStory('offline instore', 'Offline Instore', true);
+
+export const OffsiteFromMediaPlan: Story = createCampaignOverviewStory('offsite', 'Offsite', true);
 
 // Campaign data for the card view
 const campaignSummaryData = [

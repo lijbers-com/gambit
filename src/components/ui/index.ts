@@ -1,4 +1,6 @@
 export { Button } from "./button"
+export { RetailProductSelect, defaultRetailProducts } from "./retail-product-select"
+export type { RetailProductSelectProps, RetailProduct } from "./retail-product-select"
 export { SelectionList } from "./selection-list"
 export type { SelectionListProps, SelectionListItem } from "./selection-list"
 export { SummaryCard } from "./summary-card"

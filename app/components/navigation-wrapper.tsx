@@ -25,6 +25,9 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
 
       // Map the navigation routes based on your structure
       const routeMap: Record<string, string> = {
+        // Home
+        '/home': '/home',
+
         // Campaigns
         '/campaigns': '/campaigns',
         '/campaigns/sponsored-products': '/campaigns/sponsored-products',
@@ -33,8 +36,8 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         '/campaigns/offline-instore': '/campaigns/offline-instore',
         '/campaigns/offsite': '/campaigns/offsite',
 
-        // Creatives
-        '/creatives': '/creatives/display',
+        // Creatives — unified overview (all propositions)
+        '/creatives': '/creatives',
         '/creatives/display': '/creatives/display',
         '/creatives/digital-instore': '/creatives/digital-instore',
         '/creatives/offline-instore': '/creatives/offline-instore',

@@ -16,7 +16,7 @@ export default function LoginPage() {
       // Check if it's a login button click
       if (target.tagName === 'BUTTON' && target.textContent?.includes('Sign in')) {
         e.preventDefault();
-        router.push('/campaigns');
+        router.push('/home');
       }
     };
 

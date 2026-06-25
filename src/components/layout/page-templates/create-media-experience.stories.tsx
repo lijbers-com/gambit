@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchInput } from '@/components/ui/search-input';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
+import { OptimisationCard, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -139,6 +140,19 @@ const goalObjectives: Record<string, { stage: string; objectives: string[] }> = 
   loyalty: { stage: 'Conversion', objectives: ['Sales', 'Promotie ondersteuning'] },
 };
 
+// Demo estimates for the headline KPIs we surface in the metric row as the
+// plan is built. Only KPIs with an estimate here are promoted to a metric card.
+const kpiEstimates: Record<string, { value: string; sub: string }> = {
+  'Bereik': { value: '21.6M', sub: 'Estimated reach' },
+  'Frequentie': { value: '3.4', sub: 'Avg. per shopper' },
+  'CTR': { value: '0.84%', sub: 'vs. 0.7% target' },
+  'CPM': { value: '€4.50', sub: 'Blended' },
+  'VCR': { value: '68%', sub: 'Video completion' },
+  'Conversion rate': { value: '2.1%', sub: 'Estimated' },
+  '(i)ROAS': { value: '3.8×', sub: 'Incremental' },
+  'Sales lift': { value: '+12%', sub: 'vs. baseline' },
+};
+
 // KPIs the plan is judged on per funnel stage (the funnel → KPI framework).
 // Awareness has no Sales KPIs; Conversion has no standalone Brand KPIs.
 const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: string[] }> = {
@@ -159,59 +173,7 @@ const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: stri
   },
 };
 
-// Shared per-step info/summary panel — reused at the bottom of each wizard step
-// to help the user understand the impact of their choices.
-const StepSummary = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="rounded-lg border bg-muted/40 p-4">
-    <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-      <Info className="h-4 w-4 text-muted-foreground" />
-      {title}
-    </div>
-    {children}
-  </div>
-);
 
-// Persistent "Assisted optimisations" card shown at the bottom of each step. The
-// toggle lives in its header, so it stays reachable even when assistance is off
-// (in which case only a short note is shown instead of the guidance).
-const OptimisationCard = ({
-  assisted,
-  onToggle,
-  children,
-}: {
-  assisted: boolean;
-  onToggle: (v: boolean) => void;
-  children: React.ReactNode;
-}) => (
-  <div className={cn('rounded-lg border p-4 transition-colors', assisted ? 'bg-muted/40' : 'bg-transparent')}>
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <Sparkles className={cn('h-4 w-4', assisted ? 'text-primary' : 'text-muted-foreground')} />
-        Assisted optimisations
-      </div>
-      <Switch checked={assisted} onCheckedChange={onToggle} />
-    </div>
-    {assisted ? (
-      children
-    ) : (
-      <p className="text-xs text-muted-foreground">
-        Turn on for live metrics, campaign suggestions and budget optimisation as you build the plan.
-      </p>
-    )}
-  </div>
-);
-
-const KpiChipGroup = ({ label, items }: { label: string; items: string[] }) =>
-  items.length === 0 ? null : (
-    <div>
-      <div className="mb-1.5 text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {items.map((k) => (
-          <span key={k} className="rounded-full border bg-background px-2 py-0.5 text-xs">{k}</span>
-        ))}
-      </div>
-    </div>
-  );
 
 const advertiserOptions = [
   { label: 'Acme Media', value: 'acme-media' },
@@ -421,6 +383,18 @@ export const GoalSelection: Story = {
       const categories = Array.from(new Set(brands.map((b) => b.category)));
       return { reach, roas, categories, products: selectedRetailProducts.length };
     }, [selectedBrands, selectedRetailProducts]);
+
+    // KPIs the plan is judged on (per funnel stage) become metric cards in the
+    // top row once a goal + objective are chosen — the row fills in as you go.
+    const kpiMetrics = React.useMemo(() => {
+      if (!selectedGoal || !selectedObjective || !goalObjectives[selectedGoal]) return [];
+      const stage = goalObjectives[selectedGoal].stage;
+      const k = funnelKpis[stage];
+      return [...k.media, ...k.sales]
+        .filter((name) => kpiEstimates[name])
+        .slice(0, 4)
+        .map((name) => ({ key: `kpi-${name}`, label: name, value: kpiEstimates[name].value, subMetric: kpiEstimates[name].sub }));
+    }, [selectedGoal, selectedObjective]);
 
     // Step completion checks
     const isSetupComplete = campaignName.trim() !== '';
@@ -664,9 +638,11 @@ export const GoalSelection: Story = {
                     badgeValue: budgetAmount.trim() !== '' ? (propositionImpact.additionalSales > 0 ? `+€${propositionImpact.additionalSales.toLocaleString()}` : 'Based on avg.') : undefined,
                     badgeVariant: propositionImpact.additionalSales > 0 ? 'success' as const : 'secondary' as const,
                   },
+                  // KPIs for the selected funnel stage, added as you progress.
+                  ...kpiMetrics,
                 ]}
-                selectedKeys={['reach', 'budget', 'roas', 'sales']}
-                maxVisible={4}
+                selectedKeys={['reach', 'budget', 'roas', 'sales', ...kpiMetrics.map((m) => m.key)]}
+                maxVisible={4 + kpiMetrics.length}
                 defaultVariant="default"
                 removable={false}
               />
@@ -705,9 +681,13 @@ export const GoalSelection: Story = {
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
                       </div>
-                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
-                        <p className="text-xs text-muted-foreground">Live metrics, KPI guidance and budget suggestions appear on the next steps as you build the plan.</p>
-                      </OptimisationCard>
+                      <OptimisationCard
+                        assisted={assistedExperience}
+                        onToggle={setAssisted}
+                        items={[
+                          { badge: 'Tip', tone: 'tip', message: 'Keep assisted optimisations on — you get KPI estimates, campaign suggestions and automatic budget optimisation as you build the plan.' },
+                        ]}
+                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
@@ -779,35 +759,30 @@ export const GoalSelection: Story = {
                         optional
                         showCount
                       />
-                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
-                        {selectedBrands.length > 0 ? (
-                          <>
-                            <div className="grid grid-cols-3 gap-3">
-                              <div>
-                                <div className="text-xs text-muted-foreground">Est. brand reach</div>
-                                <div className="text-base font-semibold">{advertiserStats.reach.toFixed(1)}M</div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground">Avg. category ROAS</div>
-                                <div className="text-base font-semibold">{advertiserStats.roas.toFixed(1)}×</div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground">SKUs in scope</div>
-                                <div className="text-base font-semibold">{advertiserStats.products}</div>
-                              </div>
-                            </div>
-                            <p className="mt-3 text-xs text-muted-foreground">
-                              {advertiserStats.categories.length > 1
-                                ? `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns typically improves attribution accuracy.`
-                                : advertiserStats.products === 0
-                                  ? `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average — a strong base for a conversion goal.`
-                                  : `These ${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in ${advertiserStats.categories[0]} historically convert at ${advertiserStats.roas.toFixed(1)}× — good for sales-focused KPIs.`}
-                            </p>
-                          </>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">Select a brand to see estimated reach, category ROAS and optimisation suggestions.</p>
-                        )}
-                      </OptimisationCard>
+                      <OptimisationCard
+                        assisted={assistedExperience}
+                        onToggle={setAssisted}
+                        items={
+                          selectedBrands.length === 0
+                            ? [
+                                { badge: 'Tip', tone: 'tip', message: 'Pick a brand to unlock reach, category ROAS and product insights.' },
+                                { badge: 'AI Insight', tone: 'insight', message: 'First-party data lets us estimate brand reach and category benchmarks instantly.' },
+                              ]
+                            : [
+                                {
+                                  badge: 'AI Insight',
+                                  tone: 'insight' as const,
+                                  message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
+                                },
+                                advertiserStats.products === 0
+                                  ? { badge: 'Tip', tone: 'tip' as const, message: 'Add retail products to enable sales attribution and product-level KPIs.' }
+                                  : { badge: 'AI Insight', tone: 'success' as const, message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` },
+                                ...(advertiserStats.categories.length > 1
+                                  ? [{ badge: 'Tip', tone: 'tip' as const, message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
+                                  : []),
+                              ]
+                        }
+                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
@@ -914,35 +889,31 @@ export const GoalSelection: Story = {
                             })}
                           </div>
                         )}
-                        {estimatedReach && (
-                          <div className="mt-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">Estimated reach</span>
-                              <span className="text-sm font-semibold text-primary">{estimatedReach} shoppers</span>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
-                        {selectedGoal && selectedObjective && goalObjectives[selectedGoal] ? (() => {
-                          const stage = goalObjectives[selectedGoal].stage;
-                          const k = funnelKpis[stage];
-                          return (
-                            <>
-                              <p className="mb-3 text-xs text-muted-foreground">
-                                Based on your goal ({goals.find((g) => g.id === selectedGoal)?.title}) and objective ({selectedObjective}), the plan is judged on these {stage}-stage KPIs.
-                              </p>
-                              <div className="space-y-3">
-                                <KpiChipGroup label="Media KPIs" items={k.media} />
-                                <KpiChipGroup label="Sales KPIs" items={k.sales} />
-                                <KpiChipGroup label="Brand KPIs" items={k.brand} />
-                              </div>
-                            </>
-                          );
-                        })() : (
-                          <p className="text-xs text-muted-foreground">Pick a goal and objective to see the KPIs this plan will be judged on.</p>
-                        )}
-                      </OptimisationCard>
+                      <OptimisationCard
+                        assisted={assistedExperience}
+                        onToggle={setAssisted}
+                        items={
+                          selectedGoal && selectedObjective && goalObjectives[selectedGoal]
+                            ? [
+                                {
+                                  badge: 'AI Insight',
+                                  tone: 'insight' as const,
+                                  message: `${goals.find((g) => g.id === selectedGoal)?.title} + ${selectedObjective} maps to the ${goalObjectives[selectedGoal].stage} stage — the matching KPIs are now in the metric row above.`,
+                                },
+                                goalObjectives[selectedGoal].stage === 'Conversion'
+                                  ? { badge: 'AI Insight', tone: 'insight' as const, message: 'Conversion plans perform best with Sponsored Products + Display working together.' }
+                                  : { badge: 'AI Insight', tone: 'insight' as const, message: 'Awareness goals lean on Display and Digital in-store for broad, high-frequency reach.' },
+                                selectedAudiences.length === 0
+                                  ? { badge: 'Tip', tone: 'tip' as const, message: 'Add one or more audience segments to estimate reach.' }
+                                  : { badge: 'Tip', tone: 'tip' as const, message: `${selectedAudiences.length} audience${selectedAudiences.length === 1 ? '' : 's'} selected — add more to widen reach.` },
+                              ]
+                            : [
+                                { badge: 'Tip', tone: 'tip' as const, message: 'Pick a goal and objective — the KPIs this plan is judged on appear in the metric row.' },
+                                { badge: 'AI Insight', tone: 'insight' as const, message: 'Your goal sets the objective, which sets the Brand, Media and Sales KPIs we report on.' },
+                              ]
+                        }
+                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
@@ -994,88 +965,36 @@ export const GoalSelection: Story = {
                           The maximum total amount for the entire campaign duration
                         </div>
                       </div>
-                      {budgetAmount && dateRange?.from && dateRange?.to && (
-                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Daily average</span>
-                            <span className="text-sm font-semibold text-primary">
-                              €{(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            €{budgetAmount} over {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
-                          </p>
-                        </div>
-                      )}
-                      {assistedExperience && (
-                      <div className={cn(
-                        "rounded-lg border p-4 transition-all",
-                        autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
-                      )}>
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <Sparkles size={14} className={autoBudgetOptimization ? 'text-primary' : 'text-muted-foreground'} />
-                              <span className="text-sm font-medium">Auto budget optimization</span>
-                              {autoBudgetOptimization && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Automatically distribute your budget across propositions based on real-time performance data to maximise ROAS
-                            </p>
-                          </div>
-                          <Switch
-                            checked={autoBudgetOptimization}
-                            onCheckedChange={setAutoBudgetOptimization}
-                          />
-                        </div>
-                        {autoBudgetOptimization && budgetAmount && (
-                          <div className="mt-3 pt-3 border-t border-primary/20 flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                              <TrendingUp size={12} className="text-primary" />
-                              <span className="text-xs text-muted-foreground">Avg. +18% ROAS improvement</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <DollarSign size={12} className="text-primary" />
-                              <span className="text-xs text-muted-foreground">Real-time rebalancing</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      )}
-                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
-                        {budgetAmount.trim() !== '' && dateRange?.from && dateRange?.to ? (() => {
+                      <OptimisationCard
+                        assisted={assistedExperience}
+                        onToggle={setAssisted}
+                        items={(() => {
+                          const autoBudgetAdvice: Advice = autoBudgetOptimization
+                            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).' }
+                            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) } };
+                          if (budgetAmount.trim() === '' || !dateRange?.from || !dateRange?.to) {
+                            return [
+                              ...(budgetAmount.trim() === ''
+                                ? [{ badge: 'Suggestion', tone: 'tip' as const, message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') } }]
+                                : []),
+                              autoBudgetAdvice,
+                            ];
+                          }
                           const days = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
                           const daily = parseFloat(budgetAmount) / days;
-                          const impressions = Math.round((parseFloat(budgetAmount) / 4.5) * 1000); // ~€4.50 CPM
-                          return (
-                            <>
-                              <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                  <div className="text-xs text-muted-foreground">Daily average</div>
-                                  <div className="text-base font-semibold">€{daily.toFixed(0)}/day</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-muted-foreground">Est. impressions</div>
-                                  <div className="text-base font-semibold">{(impressions / 1000000).toFixed(1)}M</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-muted-foreground">Flight</div>
-                                  <div className="text-base font-semibold">{days} days</div>
-                                </div>
-                              </div>
-                              <p className="mt-3 text-xs text-muted-foreground">
-                                {daily < 150
-                                  ? `At €${daily.toFixed(0)}/day delivery may be thin — raising the budget builds usable frequency faster.`
-                                  : autoBudgetOptimization
-                                    ? `Auto-optimisation reallocates this €${daily.toFixed(0)}/day to the best-performing propositions in real time — about +18% ROAS on average.`
-                                    : `Turn on auto-optimisation to redistribute this €${daily.toFixed(0)}/day toward the best-performing propositions (~+18% ROAS).`}
-                              </p>
-                            </>
-                          );
-                        })() : (
-                          <p className="text-xs text-muted-foreground">Set a run time and budget to see daily pacing, estimated impressions and budget suggestions.</p>
-                        )}
-                      </OptimisationCard>
+                          const items: Advice[] = [];
+                          if (daily < 150) {
+                            items.push({ badge: 'Budget Alert', tone: 'alert', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.` });
+                          } else {
+                            items.push({ badge: 'AI Insight', tone: 'insight', message: `€${daily.toFixed(0)}/day over ${days} days is a healthy pace for sustained frequency.` });
+                          }
+                          items.push(autoBudgetAdvice);
+                          if (days < 21) {
+                            items.push({ badge: 'Tip', tone: 'tip', message: 'Flights of 3+ weeks build the frequency needed for awareness and consideration goals.' });
+                          }
+                          return items;
+                        })()}
+                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(2)}>Back</Button>
@@ -1219,27 +1138,19 @@ export const GoalSelection: Story = {
                       })}
                     </div>
                     <div className="mt-6">
-                      <OptimisationCard assisted={assistedExperience} onToggle={setAssisted}>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div>
-                            <div className="text-xs text-muted-foreground">Propositions</div>
-                            <div className="text-base font-semibold">{propositionImpact.selectedCount}/{propositions.length}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Added reach</div>
-                            <div className="text-base font-semibold">{propositionImpact.additionalReach > 0 ? `+${propositionImpact.additionalReach.toFixed(1)}M` : '–'}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Added sales</div>
-                            <div className="text-base font-semibold">{propositionImpact.additionalSales > 0 ? `+€${propositionImpact.additionalSales.toLocaleString()}` : '–'}</div>
-                          </div>
-                        </div>
-                        <p className="mt-3 text-xs text-muted-foreground">
-                          {propositionImpact.selectedCount < propositions.length
-                            ? `Enabling the remaining ${propositions.length - propositionImpact.selectedCount} proposition${propositions.length - propositionImpact.selectedCount === 1 ? '' : 's'} typically adds incremental reach for the same audience.`
-                            : 'All propositions enabled — the widest reach for this audience.'}
-                        </p>
-                      </OptimisationCard>
+                      <OptimisationCard
+                        assisted={assistedExperience}
+                        onToggle={setAssisted}
+                        items={[
+                          propositionImpact.selectedCount < propositions.length
+                            ? { badge: 'Incomplete', tone: 'alert' as const, message: `${propositions.length - propositionImpact.selectedCount} proposition${propositions.length - propositionImpact.selectedCount === 1 ? '' : 's'} disabled — enabling them adds incremental reach for the same audience.` }
+                            : { badge: 'AI Insight', tone: 'success' as const, message: 'All propositions enabled — the widest reach for this audience.' },
+                          { badge: 'AI Insight', tone: 'insight' as const, message: `AI presets picked placements across ${propositionImpact.selectedCount} proposition${propositionImpact.selectedCount === 1 ? '' : 's'} — review or switch any to empty to configure manually.` },
+                          ...(propositionImpact.additionalSales > 0
+                            ? [{ badge: 'AI Insight', tone: 'success' as const, message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from the enabled mix.` }]
+                            : []),
+                        ]}
+                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>

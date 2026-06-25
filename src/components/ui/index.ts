@@ -1,6 +1,8 @@
 export { Button } from "./button"
 export { RetailProductSelect, defaultRetailProducts } from "./retail-product-select"
 export type { RetailProductSelectProps, RetailProduct } from "./retail-product-select"
+export { OptimisationCard, adviceToneClasses } from "./optimisation-card"
+export type { OptimisationCardProps, Advice, AdviceTone } from "./optimisation-card"
 export { SelectionList } from "./selection-list"
 export type { SelectionListProps, SelectionListItem } from "./selection-list"
 export { SummaryCard } from "./summary-card"

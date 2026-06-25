@@ -28,6 +28,7 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
+import { OptimisationCard, type Advice } from './optimisation-card';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
@@ -173,6 +174,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       return seed;
     });
     const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(false);
+    const [assistedOptimisations, setAssistedOptimisations] = React.useState(true);
     const [autoTargeting, setAutoTargeting] = React.useState(false);
     const [autoSuggestions, setAutoSuggestions] = React.useState(true);
     const [internalTitle, setInternalTitle] = React.useState(title);
@@ -1771,15 +1773,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               </div>
                             )}
                           </div>
-                          {!hideAutoBudget && (
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                            <Switch
-                              checked={autoBudgetOptimization}
-                              onCheckedChange={setAutoBudgetOptimization}
-                            />
-                          </div>
-                          )}
+                          {/* Auto budget is now a suggestion inside the Assisted optimisations card below. */}
                         </div>
                         ) : (
                         <div className="space-y-5">
@@ -1848,15 +1842,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               />
                             </div>
                           </div>
-                          {!hideAutoBudget && (
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-sm text-foreground">Auto Budget Optimization</span>
-                            <Switch
-                              checked={autoBudgetOptimization}
-                              onCheckedChange={setAutoBudgetOptimization}
-                            />
-                          </div>
-                          )}
+                          {/* Auto budget is now a suggestion inside the Assisted optimisations card below. */}
                         </div>
                         )}
 
@@ -1927,6 +1913,29 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             )}
                           </div>
                         )}
+                        <OptimisationCard
+                          assisted={assistedOptimisations}
+                          onToggle={setAssistedOptimisations}
+                          items={(() => {
+                            const adviceItems: Advice[] = [];
+                            if (budgetUsagePercentage !== undefined && budgetUsagePercentage >= 80) {
+                              adviceItems.push({ badge: 'Budget Alert', tone: 'alert', message: `"${internalTitle}" is ${budgetUsagePercentage}% through its budget — review pacing to avoid overspend.` });
+                            }
+                            if (!hideAutoBudget) {
+                              adviceItems.push(
+                                autoBudgetOptimization
+                                  ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).' }
+                                  : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) } },
+                              );
+                            }
+                            adviceItems.push({ badge: 'AI Insight', tone: 'insight', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.` });
+                            const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
+                            if (incomplete > 0) {
+                              adviceItems.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
+                            }
+                            return adviceItems;
+                          })()}
+                        />
                       </div>
                     </CardSummaryContent>
                   </CardSummary>

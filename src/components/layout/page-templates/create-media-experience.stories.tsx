@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchInput } from '@/components/ui/search-input';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
-import { OptimisationCard, type Advice } from '@/components/ui/optimisation-card';
+import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -773,6 +773,7 @@ export const GoalSelection: Story = {
                                   badge: 'AI Insight',
                                   tone: 'insight' as const,
                                   message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
+                                  explain: brandReachExplain({ reach: advertiserStats.reach, roas: advertiserStats.roas, category: advertiserStats.categories[0] }),
                                 },
                                 advertiserStats.products === 0
                                   ? { badge: 'Tip', tone: 'tip' as const, message: 'Add retail products to enable sales attribution and product-level KPIs.' }
@@ -900,6 +901,14 @@ export const GoalSelection: Story = {
                                   badge: 'AI Insight',
                                   tone: 'insight' as const,
                                   message: `${goals.find((g) => g.id === selectedGoal)?.title} + ${selectedObjective} maps to the ${goalObjectives[selectedGoal].stage} stage — the matching KPIs are now in the metric row above.`,
+                                  explain: funnelKpiExplain({
+                                    stage: goalObjectives[selectedGoal].stage,
+                                    kpis: [
+                                      ...funnelKpis[goalObjectives[selectedGoal].stage].brand,
+                                      ...funnelKpis[goalObjectives[selectedGoal].stage].media,
+                                      ...funnelKpis[goalObjectives[selectedGoal].stage].sales,
+                                    ],
+                                  }),
                                 },
                                 goalObjectives[selectedGoal].stage === 'Conversion'
                                   ? { badge: 'AI Insight', tone: 'insight' as const, message: 'Conversion plans perform best with Sponsored Products + Display working together.' }
@@ -970,12 +979,12 @@ export const GoalSelection: Story = {
                         onToggle={setAssisted}
                         items={(() => {
                           const autoBudgetAdvice: Advice = autoBudgetOptimization
-                            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).' }
-                            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) } };
+                            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
+                            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() };
                           if (budgetAmount.trim() === '' || !dateRange?.from || !dateRange?.to) {
                             return [
                               ...(budgetAmount.trim() === ''
-                                ? [{ badge: 'Suggestion', tone: 'tip' as const, message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') } }]
+                                ? [{ badge: 'Suggestion', tone: 'tip' as const, message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') }, explain: budgetStarterExplain() }]
                                 : []),
                               autoBudgetAdvice,
                             ];
@@ -984,7 +993,7 @@ export const GoalSelection: Story = {
                           const daily = parseFloat(budgetAmount) / days;
                           const items: Advice[] = [];
                           if (daily < 150) {
-                            items.push({ badge: 'Budget Alert', tone: 'alert', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.` });
+                            items.push({ badge: 'Budget Alert', tone: 'alert', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.`, explain: budgetStarterExplain() });
                           } else {
                             items.push({ badge: 'AI Insight', tone: 'insight', message: `€${daily.toFixed(0)}/day over ${days} days is a healthy pace for sustained frequency.` });
                           }
@@ -1093,10 +1102,10 @@ export const GoalSelection: Story = {
                                         : 'border-border hover:border-primary/30'
                                     )}
                                   >
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
                                       <Sparkles size={14} className="text-primary flex-shrink-0" />
-                                      <span className="text-sm font-medium">Automatic</span>
-                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>
+                                      <span className="text-sm font-medium">Suggested placements</span>
+                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Assisted</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
                                     <div className="flex gap-3 mt-auto">
@@ -1676,10 +1685,10 @@ export const NoGoalTargeting: Story = {
                                         : 'border-border hover:border-primary/30'
                                     )}
                                   >
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
                                       <Sparkles size={14} className="text-primary flex-shrink-0" />
-                                      <span className="text-sm font-medium">Automatic</span>
-                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>
+                                      <span className="text-sm font-medium">Suggested placements</span>
+                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Assisted</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
                                     <div className="flex gap-3 mt-auto">

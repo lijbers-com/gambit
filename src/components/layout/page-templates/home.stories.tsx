@@ -9,6 +9,7 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { ImagePlus, LayoutList, BarChart3, ArrowRight, Sparkles, WalletCards, TrendingUp } from 'lucide-react';
+import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetStarterExplain, type Advice } from '@/components/ui/optimisation-card';
 import React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -83,26 +84,67 @@ const taskWidgets = [
 
 // Media plans surfaced inside a single widget — one needs an action, one is
 // running and its result is worth a look. Each routes to its own destination.
-const mediaPlans = [
+const mediaPlans: Array<{
+  key: string;
+  icon: typeof WalletCards;
+  name: string;
+  status: string;
+  tone: 'amber' | 'green';
+  detail: string;
+  href: string;
+  recommendations: Advice[];
+}> = [
   {
     key: 'summer-launch',
     icon: WalletCards,
     name: 'Summer Launch',
     status: 'Needs approval',
-    tone: 'amber' as const,
+    tone: 'amber',
     detail: 'Waiting for your sign-off before it can go live.',
-    cta: 'Review plan',
     href: '/campaigns',
+    recommendations: [
+      {
+        badge: 'Action',
+        tone: 'alert',
+        message: '"Summer Launch" is waiting for your sign-off — approve it so delivery can start before the flight begins.',
+        action: { label: 'Review & approve', onClick: () => { if (typeof window !== 'undefined') window.location.href = '/campaigns'; } },
+      },
+      {
+        badge: 'Incomplete',
+        tone: 'alert',
+        message: '2 campaigns still need approved creatives before this plan can go live.',
+      },
+      {
+        badge: 'Suggestion',
+        tone: 'tip',
+        message: 'Start with €5,000 — a common budget for plans like this.',
+        explain: budgetStarterExplain(),
+      },
+    ],
   },
   {
     key: 'holiday-sale',
     icon: TrendingUp,
     name: 'Holiday Sale',
     status: 'Running',
-    tone: 'green' as const,
+    tone: 'green',
     detail: 'Live at 4.6× ROAS — 18% above target.',
-    cta: 'See insight',
     href: '/insights',
+    recommendations: [
+      {
+        badge: 'AI Insight',
+        tone: 'success',
+        message: '"Holiday Sale" is live at 4.6× ROAS — 18% above target. Automatic budget could extend the lead (~+18%).',
+        action: { label: 'Set budget to automatic', onClick: () => {} },
+        explain: budgetOptimisationExplain(),
+      },
+      {
+        badge: 'AI Insight',
+        tone: 'insight',
+        message: '"Holiday Sale" could improve CTR by ~23% with optimised targeting parameters.',
+        explain: ctrTargetingExplain(),
+      },
+    ],
   },
 ];
 
@@ -214,59 +256,56 @@ export const Home: Story = {
                 <h2 className="text-lg font-semibold">Your tasks</h2>
                 <Badge variant="secondary">Ad operations</Badge>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                {/* Creatives — primary action */}
-                {renderTaskWidget(taskWidgets[0])}
-
-                {/* Media plans — one widget holding two plan examples */}
-                <Card className="md:col-span-2">
-                  <CardContent className="flex h-full flex-col p-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-foreground">
-                        <WalletCards className="h-5 w-5" />
-                      </div>
-                      <button
-                        type="button"
-                        data-href="/campaigns"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-                      >
-                        View all
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+              {/* Media plans — top row: two plans that need attention, each with
+                  their recommendations rendered with the same OptimisationCard
+                  used inside a media plan. */}
+              <Card className="mb-4">
+                <CardContent className="flex h-full flex-col p-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-foreground">
+                      <WalletCards className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-3 text-sm font-semibold">Media plans</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Plans that need an action or are worth a closer look.</p>
-                    <div className="mt-4 grid flex-1 gap-2 sm:grid-cols-2">
-                      {mediaPlans.map((p) => {
-                        const PlanIcon = p.icon;
-                        return (
-                          <div
-                            key={p.key}
-                            role="button"
-                            tabIndex={0}
-                            data-href={p.href}
-                            className="flex cursor-pointer flex-col rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          >
-                            <div className="flex min-w-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      data-href="/campaigns"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      View all
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <h3 className="mt-3 text-sm font-semibold">Media plans</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Plans that need an action or are worth a closer look.</p>
+                  <div className="mt-4 grid flex-1 gap-4 lg:grid-cols-2">
+                    {mediaPlans.map((p) => {
+                      const PlanIcon = p.icon;
+                      return (
+                        <div key={p.key} className="flex flex-col rounded-lg border bg-muted/30 p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              data-href={p.href}
+                              className="flex min-w-0 items-center gap-1.5 text-left"
+                            >
                               <PlanIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              <span className="truncate text-sm font-medium">{p.name}</span>
-                            </div>
-                            <span className={cn('mt-1.5 inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', planToneClasses[p.tone])}>
+                              <span className="truncate text-sm font-medium hover:underline">{p.name}</span>
+                            </button>
+                            <span className={cn('inline-flex w-fit shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', planToneClasses[p.tone])}>
                               {p.status}
                             </span>
-                            <p className="mt-1.5 text-xs text-muted-foreground">{p.detail}</p>
-                            <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
-                              {p.cta}
-                              <ArrowRight className="h-3.5 w-3.5" />
-                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                          <p className="mt-1.5 text-xs text-muted-foreground">{p.detail}</p>
+                          <OptimisationCard items={p.recommendations} className="mt-3 bg-background" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Bookings + Insights */}
+              {/* Task widgets — creatives, bookings, insights */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {renderTaskWidget(taskWidgets[0])}
                 {renderTaskWidget(taskWidgets[1])}
                 {renderTaskWidget(taskWidgets[2])}
               </div>

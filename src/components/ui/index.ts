@@ -3,6 +3,8 @@ export { RetailProductSelect, defaultRetailProducts } from "./retail-product-sel
 export type { RetailProductSelectProps, RetailProduct } from "./retail-product-select"
 export { OptimisationCard, adviceToneClasses, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain } from "./optimisation-card"
 export type { OptimisationCardProps, Advice, AdviceTone, AdviceExplain } from "./optimisation-card"
+export { ObjectiveKpiSelect, objectiveKpiCatalog, objectiveId, findObjective } from "./objective-kpi-select"
+export type { ObjectiveKpiSelectProps, ObjectiveKpiValue, ObjectiveDef, FunnelDef } from "./objective-kpi-select"
 export { SelectionList } from "./selection-list"
 export type { SelectionListProps, SelectionListItem } from "./selection-list"
 export { SummaryCard } from "./summary-card"

@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { FormSection } from '../../ui/form-section';
+import { ObjectiveKpiSelect, type ObjectiveKpiValue } from '../../ui/objective-kpi-select';
 import { Input } from '../../ui/input';
 import { SearchableSelect } from '../../ui/searchable-select';
 import { Switch } from '../../ui/switch';
@@ -327,6 +328,7 @@ export const DigitalInstoreInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -741,6 +743,9 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
+                </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1143,6 +1148,7 @@ export const DigitalInstoreRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1278,6 +1284,9 @@ export const DigitalInstoreRunning: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1669,6 +1678,7 @@ export const OfflineInstoreRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1773,6 +1783,9 @@ export const OfflineInstoreRunning: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2167,6 +2180,7 @@ export const DisplayRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2297,6 +2311,9 @@ export const DisplayRunning: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2680,6 +2697,7 @@ export const OfflineInstoreInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2813,6 +2831,9 @@ export const OfflineInstoreInOption: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3174,6 +3195,7 @@ export const DisplayInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -3307,6 +3329,9 @@ export const DisplayInOption: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3758,6 +3783,7 @@ export const SponsoredProductsInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -4133,6 +4159,9 @@ export const SponsoredProductsInOption: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4693,6 +4722,7 @@ export const SponsoredProductsRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('15000');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
@@ -4857,6 +4887,9 @@ export const SponsoredProductsRunning: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5348,6 +5381,7 @@ export const OffsiteRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -5452,6 +5486,9 @@ export const OffsiteRunning: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5864,6 +5901,7 @@ export const OffsiteInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -5967,6 +6005,9 @@ export const OffsiteInOption: Story = {
                       />
                     </div>
                   </div>
+                </FormSection>
+                <FormSection title="Objective & KPIs" className="mb-6">
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

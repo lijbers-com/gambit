@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Sparkles, ChevronRight, MessageSquare, Check } from 'lucide-react';
+import { Sparkles, ChevronRight, MessageSquare, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Switch } from './switch';
 import { Button } from './button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
 import { AreaChartComponent } from './area-chart';
@@ -252,26 +251,34 @@ export function funnelKpiExplain(opts: { stage: string; kpis: string[] }): Advic
 }
 
 export interface OptimisationCardProps {
-  assisted: boolean;
-  onToggle: (v: boolean) => void;
-  /** Advice notifications shown in the card (aim for 2–4). */
+  /** Recommendation notifications shown in the card (aim for 2–4). */
   items?: Advice[];
   className?: string;
+  /** @deprecated kept for caller compatibility — recommendations are always shown. */
+  assisted?: boolean;
+  /** @deprecated kept for caller compatibility — the on/off toggle was removed. */
+  onToggle?: (v: boolean) => void;
 }
 
 /**
- * "Assisted optimisations" card — an advice feed styled like the notification
- * centre. Every suggestion is clickable and opens a modal that explains it with
- * data and a chart, lets the user accept the improvement, or ask the Campaign
- * Agent for detail. KPIs/metrics belong in the metric row, not here.
+ * "Recommendations" card — an advice feed styled like the notification centre.
+ * It is always on: every suggestion is clickable and opens a modal that explains
+ * it with data and a chart, and lets the user accept the recommendation, decline
+ * it, or ask the Campaign Agent for detail. KPIs/metrics belong in the metric
+ * row, not here.
  */
-export const OptimisationCard: React.FC<OptimisationCardProps> = ({ assisted, onToggle, items = [], className }) => {
+export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], className }) => {
   const [active, setActive] = React.useState<Advice | null>(null);
   const [question, setQuestion] = React.useState('');
 
   const close = () => {
     setActive(null);
     setQuestion('');
+  };
+
+  const accept = () => {
+    active?.action?.onClick();
+    close();
   };
 
   const askAgent = () => {
@@ -281,21 +288,14 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ assisted, on
   };
 
   return (
-    <div className={cn('rounded-lg border p-4 transition-colors', assisted ? 'bg-muted/40' : 'bg-transparent', className)}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Sparkles className={cn('h-4 w-4', assisted ? 'text-primary' : 'text-muted-foreground')} />
-          Assisted optimisations
-        </div>
-        <Switch checked={assisted} onCheckedChange={onToggle} />
+    <div className={cn('rounded-lg border bg-muted/40 p-4 transition-colors', className)}>
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+        <Sparkles className="h-4 w-4 text-primary" />
+        Recommendations
       </div>
 
-      {!assisted ? (
-        <p className="text-xs text-muted-foreground">
-          Turn on for advice, campaign suggestions and budget optimisation.
-        </p>
-      ) : items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">Advice appears as you make selections.</p>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Recommendations appear as you make selections.</p>
       ) : (
         <ul className="space-y-1">
           {items.map((a, i) => (
@@ -403,19 +403,14 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ assisted, on
               </div>
 
               <DialogFooter className="gap-2 sm:justify-between">
-                <Button variant="ghost" onClick={close}>Not now</Button>
-                {active.action && (
-                  <Button
-                    className="gap-1.5"
-                    onClick={() => {
-                      active.action!.onClick();
-                      close();
-                    }}
-                  >
-                    <Check className="h-4 w-4" />
-                    {active.action.label}
-                  </Button>
-                )}
+                <Button variant="outline" className="gap-1.5" onClick={close}>
+                  <X className="h-4 w-4" />
+                  Decline
+                </Button>
+                <Button className="gap-1.5" onClick={accept}>
+                  <Check className="h-4 w-4" />
+                  {active.action ? active.action.label : 'Accept'}
+                </Button>
               </DialogFooter>
             </>
           )}

@@ -42,6 +42,7 @@ import {
   Globe,
   Minus,
   Info,
+  FlaskConical,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -174,6 +175,32 @@ const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: stri
 };
 
 
+
+// Brand-lift "studies" a user can commission per objective. The available
+// studies follow the funnel → Merk KPI framework — they are the brand KPIs of
+// the selected objective's stage (funnelKpis[stage].brand). A study is included
+// for free once the total media budget clears its threshold; below that it can
+// still be added for the listed one-off fee. Conversion-stage objectives have
+// no brand study (sales attribution is tracked automatically).
+const studyPricing: Record<string, { fee: number; freeThreshold: number }> = {
+  'Top of Mind Awareness': { fee: 1500, freeThreshold: 25000 },
+  'Spontane merk/productbekendheid': { fee: 1500, freeThreshold: 25000 },
+  'Geholpen merk/productbekendheid': { fee: 1500, freeThreshold: 25000 },
+  'Reclamebekendheid (Ad-recall)': { fee: 2500, freeThreshold: 50000 },
+  'CEP': { fee: 3500, freeThreshold: 75000 },
+  'Merk associaties/waardes': { fee: 1500, freeThreshold: 25000 },
+  'Merk/product overweging': { fee: 2000, freeThreshold: 30000 },
+  'Merkvoorkeur': { fee: 2500, freeThreshold: 50000 },
+  'Aankoopintentie': { fee: 2500, freeThreshold: 50000 },
+};
+
+type BrandStudy = { name: string; fee: number; freeThreshold: number };
+
+const getStudiesForStage = (stage: string | undefined): BrandStudy[] =>
+  (stage && funnelKpis[stage]?.brand ? funnelKpis[stage].brand : []).map((name) => ({
+    name,
+    ...(studyPricing[name] ?? { fee: 2000, freeThreshold: 50000 }),
+  }));
 
 const advertiserOptions = [
   { label: 'Acme Media', value: 'acme-media' },
@@ -335,6 +362,7 @@ export const GoalSelection: Story = {
     // Step 4: Goals & targets (goal + audience)
     const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
     const [selectedObjective, setSelectedObjective] = React.useState<string | null>(null);
+    const [selectedStudies, setSelectedStudies] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
@@ -816,7 +844,7 @@ export const GoalSelection: Story = {
                               title={goal.title}
                               description={goal.description}
                               selected={selectedGoal === goal.id}
-                              onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); }}
+                              onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />
                           ))}
                         </div>
@@ -829,7 +857,7 @@ export const GoalSelection: Story = {
                             keepName
                             options={goalObjectives[selectedGoal].objectives.map((o) => ({ label: o, value: o }))}
                             selectedValues={selectedObjective ? [selectedObjective] : []}
-                            onChange={(vals) => setSelectedObjective(vals.length ? vals[vals.length - 1] : null)}
+                            onChange={(vals) => { setSelectedObjective(vals.length ? vals[vals.length - 1] : null); setSelectedStudies([]); }}
                             className="w-full justify-between"
                           />
                           {selectedObjective && (
@@ -839,7 +867,7 @@ export const GoalSelection: Story = {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setSelectedObjective(null)}
+                                  onClick={() => { setSelectedObjective(null); setSelectedStudies([]); }}
                                   className="h-8 w-8 shrink-0 p-0"
                                   aria-label={`Remove ${selectedObjective}`}
                                 >
@@ -853,6 +881,81 @@ export const GoalSelection: Story = {
                           </div>
                         </div>
                       )}
+                      {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
+                        const stage = goalObjectives[selectedGoal].stage;
+                        const studies = getStudiesForStage(stage);
+                        const budgetNum = parseFloat(budgetAmount) || 0;
+                        const studyCost = selectedStudies.reduce((sum, name) => {
+                          const s = studyPricing[name];
+                          if (!s) return sum;
+                          return budgetNum >= s.freeThreshold ? sum : sum + s.fee;
+                        }, 0);
+                        return (
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-2">
+                              <FlaskConical size={16} />
+                              Brand study
+                            </Label>
+                            {studies.length === 0 ? (
+                              <p className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                                No brand-lift study for {stage.toLowerCase()} objectives — sales and ROAS are measured automatically through attribution.
+                              </p>
+                            ) : (
+                              <>
+                                <p className="text-xs text-muted-foreground">
+                                  Measure {selectedObjective} with a brand-lift study. A study is free once your media budget passes its threshold; below that it’s a one-off fee.
+                                </p>
+                                <div className="space-y-1.5">
+                                  {studies.map((study) => {
+                                    const isSelected = selectedStudies.includes(study.name);
+                                    const isFree = budgetNum >= study.freeThreshold;
+                                    return (
+                                      <button
+                                        key={study.name}
+                                        type="button"
+                                        onClick={() => setSelectedStudies(isSelected ? selectedStudies.filter((n) => n !== study.name) : [...selectedStudies, study.name])}
+                                        className={cn(
+                                          'flex w-full items-center justify-between gap-3 rounded-md border p-3 text-left transition-colors',
+                                          isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/40',
+                                        )}
+                                      >
+                                        <div className="flex min-w-0 items-center gap-3">
+                                          <div className={cn(
+                                            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
+                                            isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40',
+                                          )}>
+                                            {isSelected && <Check className="h-3.5 w-3.5" />}
+                                          </div>
+                                          <div className="min-w-0">
+                                            <div className="truncate text-sm font-medium">{study.name}</div>
+                                            <div className="text-xs text-muted-foreground">Brand-lift study</div>
+                                          </div>
+                                        </div>
+                                        <div className="shrink-0 text-right">
+                                          {isFree ? (
+                                            <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">Included</span>
+                                          ) : (
+                                            <>
+                                              <div className="text-sm font-medium">+€{study.fee.toLocaleString()}</div>
+                                              <div className="text-[10px] text-muted-foreground">Free above €{(study.freeThreshold / 1000).toFixed(0)}k</div>
+                                            </>
+                                          )}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                {selectedStudies.length > 0 && (
+                                  <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                                    <span className="text-muted-foreground">{selectedStudies.length} stud{selectedStudies.length === 1 ? 'y' : 'ies'} selected</span>
+                                    <span className="font-medium">{studyCost === 0 ? 'Included with your budget' : `+€${studyCost.toLocaleString()} added`}</span>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="space-y-2">
                         <Label className="flex items-center gap-2">
                           <Users size={16} />
@@ -916,6 +1019,11 @@ export const GoalSelection: Story = {
                                 selectedAudiences.length === 0
                                   ? { badge: 'Tip', tone: 'tip' as const, message: 'Add one or more audience segments to estimate reach.' }
                                   : { badge: 'Tip', tone: 'tip' as const, message: `${selectedAudiences.length} audience${selectedAudiences.length === 1 ? '' : 's'} selected — add more to widen reach.` },
+                                ...(getStudiesForStage(goalObjectives[selectedGoal].stage).length === 0
+                                  ? []
+                                  : selectedStudies.length === 0
+                                    ? [{ badge: 'Tip', tone: 'tip' as const, message: `Add a brand-lift study to prove ${selectedObjective} — most are free once your media budget passes €25k.` }]
+                                    : [{ badge: 'AI Insight', tone: 'success' as const, message: `${selectedStudies.length} brand stud${selectedStudies.length === 1 ? 'y' : 'ies'} selected — measured pre/post against a matched control group, free above the budget threshold.` }]),
                               ]
                             : [
                                 { badge: 'Tip', tone: 'tip' as const, message: 'Pick a goal and objective — the KPIs this plan is judged on appear in the metric row.' },

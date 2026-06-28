@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary,
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ObjectiveKpiSelect, type ObjectiveKpiValue } from '@/components/ui/objective-kpi-select';
 import { SearchInput } from '@/components/ui/search-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -353,6 +354,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
 
   // Step 1: Setup
   const [campaignName, setCampaignName] = React.useState('');
+  const [objectiveKpi, setObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
   const [poNumber, setPoNumber] = React.useState('');
 
   // Step 2: Advertiser
@@ -861,6 +863,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
                       </div>
+                      <ObjectiveKpiSelect value={objectiveKpi} onChange={setObjectiveKpi} />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>

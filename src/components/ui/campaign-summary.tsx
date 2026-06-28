@@ -1657,8 +1657,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     </CardHeader>
                     <CardSummaryContent>
                       <div className="space-y-5">
-                        {/* Goal */}
-                        {!hideGoal && (
+                        {/* Goal (editable in the guided create flow; read-only summary shows it otherwise) */}
+                        {guidedSetup && !hideGoal && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">Goal</Label>
                           <Input
@@ -1776,78 +1776,49 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           {/* Auto budget is now a suggestion inside the Assisted optimisations card below. */}
                         </div>
                         ) : (
-                        <div className="space-y-5">
-                          <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">Advertiser</Label>
-                            <Input
-                              dropdown
-                              options={advertiserOptions || [
-                                { label: 'Unilever', value: 'unilever' },
-                                { label: 'Procter & Gamble', value: 'pg' },
-                                { label: 'Nestlé', value: 'nestle' },
-                                { label: 'Coca-Cola', value: 'coca-cola' },
-                                { label: 'PepsiCo', value: 'pepsico' },
-                              ]}
-                              value={internalAdvertiser}
-                              onChange={(val) => {
-                                setInternalAdvertiser(val);
-                                onAdvertiserChange?.(val);
-                                setSettingsDirty(true);
-                              }}
-                              placeholder="Select advertiser"
-                              className="bg-background border-border"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">Run time</Label>
-                            <DateRangePicker
-                              dateRange={dateRange}
-                              onDateRangeChange={(range) => {
-                                onDateRangeChange?.(range);
-                                setSettingsDirty(true);
-                              }}
-                              placeholder="Select campaign dates"
-                              className="bg-background border-border"
-                              showPresets={true}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">Total budget</Label>
-                            <div className="relative">
-                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <input
-                                type="number"
-                                value={totalBudgetInput}
-                                onChange={(e) => {
-                                  setTotalBudgetInput(e.target.value);
-                                  setSettingsDirty(true);
-                                  const newTotal = parseFloat(e.target.value) || 0;
-                                  const enabledEngines = currentEngines.filter(engine => engine.enabled && engine.id !== 'offline');
-                                  const perEngine = enabledEngines.length > 0 ? newTotal / enabledEngines.length : 0;
-                                  const newBudgets: { [key: string]: string } = {};
-                                  currentEngines.forEach(engine => {
-                                    if (engine.id === 'offline') {
-                                      newBudgets[engine.id] = '$0';
-                                    } else if (engine.enabled) {
-                                      newBudgets[engine.id] = `$${Math.round(perEngine)}`;
-                                    } else {
-                                      newBudgets[engine.id] = '$0';
-                                    }
-                                  });
-                                  setEngineBudgets(newBudgets);
-                                  onBudgetChange?.(`$${e.target.value}`);
-                                }}
-                                className="w-full h-9 bg-background border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                                placeholder="Enter budget amount"
-                              />
+                        // Read-only "all settings" summary (no step indicators). Editing
+                        // happens on the detail/left forms; this just surfaces every setting.
+                        (() => {
+                          const advLabel = (advertiserOptions || []).find((o) => o.value === internalAdvertiser)?.label || internalAdvertiser || '—';
+                          const goalLabel = (goalOptions || []).find((o) => o.value === goal)?.label || (goal ? goal.replace(/-/g, ' ') : '—');
+                          const audienceLabel = (audienceOptions || []).find((o) => o.value === audience)?.label || audience || '—';
+                          const runTime = dateRange?.from && dateRange?.to
+                            ? `${dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                            : '—';
+                          const budgetLabel = totalBudgetInput ? `$${Number(totalBudgetInput).toLocaleString()}` : (hasBudget ? budget : '—');
+                          const SummaryField = ({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) => (
+                            <div className={cn('space-y-0.5', className)}>
+                              <div className="text-sm text-muted-foreground">{label}</div>
+                              <div className="text-sm font-medium text-foreground">{value}</div>
                             </div>
-                          </div>
-                          {/* Auto budget is now a suggestion inside the Assisted optimisations card below. */}
-                        </div>
+                          );
+                          return (
+                            <div className="space-y-4">
+                              {!hideGoal && <SummaryField label="Goal" value={<span className="capitalize">{goalLabel}</span>} />}
+                              <SummaryField label="Advertiser" value={<span className="capitalize">{advLabel}</span>} />
+                              <SummaryField label="Run time" value={runTime} />
+                              <SummaryField label="Total budget" value={budgetLabel} />
+                              {!hideTargeting && <SummaryField label="Targeting" value={audienceLabel} />}
+                              {currentEngines.length > 0 && (
+                                <div className="space-y-1">
+                                  <div className="text-sm text-muted-foreground">Campaigns</div>
+                                  <div className="space-y-1">
+                                    {currentEngines.map((engine) => (
+                                      <div key={engine.id} className="flex items-center justify-between gap-2 text-sm">
+                                        <span className="truncate font-medium text-foreground">{engine.campaignName && engine.campaignName !== 'Untitled' ? engine.campaignName : engine.name}</span>
+                                        <span className="shrink-0 text-xs capitalize text-muted-foreground">{engine.status || (engine.enabled ? 'enabled' : 'disabled')}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()
                         )}
 
-                        {/* Targeting + Auto Targeting */}
-                        {!hideTargeting && (
+                        {/* Targeting + Auto Targeting (editable in the guided create flow only) */}
+                        {guidedSetup && !hideTargeting && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">Targeting</Label>
                           <Input

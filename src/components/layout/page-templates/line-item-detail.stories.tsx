@@ -20,7 +20,7 @@ import { SummaryCard } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw } from 'lucide-react';
+import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw, MoreHorizontal, Copy, ClipboardPaste } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
@@ -1047,18 +1047,20 @@ export const DigitalInStore: Story = {
     const [showExcludedStoresDialog, setShowExcludedStoresDialog] = React.useState(false);
     const [abCloneCreated, setAbCloneCreated] = React.useState(false);
 
-    // Stores list shared by the booking picker and the evaluation pickers
+    // Stores list shared by the booking picker and the evaluation pickers.
+    // `products` lists the retail-product (SKU) ids each store carries in stock —
+    // drives the in-store product filter (a booking only runs where its SKU sells).
     const storesList = [
-      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available' as const },
-      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available' as const },
-      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available' as const },
-      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked' as const },
-      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available' as const },
-      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available' as const },
-      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked' as const },
-      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available' as const },
-      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available' as const },
-      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available' as const },
+      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available' as const, products: ['606983', '607124', '609782', '614038', '612816'] },
+      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available' as const, products: ['606983', '608456', '611205', '614649', '613427'] },
+      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available' as const, products: ['606983', '607124', '610394', '614038'] },
+      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked' as const, products: ['607124', '609782', '612816'] },
+      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available' as const, products: ['606983', '608456', '610394', '611205'] },
+      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available' as const, products: ['609782', '613427', '614649'] },
+      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked' as const, products: ['606983', '607124', '614038'] },
+      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available' as const, products: ['608456', '611205', '612816', '614649'] },
+      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available' as const, products: ['606983', '609782', '610394', '613427'] },
+      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available' as const, products: ['607124', '608456', '614038', '614649'] },
     ];
 
     const handleStoreSelection = (storeId: string, checked: boolean) => {
@@ -1228,7 +1230,7 @@ export const DigitalInStore: Story = {
     // section `kind` so the Stores and Displays sections share one code path.
     const commitGeneratedList = (kind: ListKind, count: number) => {
       storeListSeq.current += 1;
-      setListsFor(kind)([{ id: storeListSeq.current, kind: 'generated', title: `Random generated ${unitFor(kind).listLabel}`, count }]);
+      setListsFor(kind)([{ id: storeListSeq.current, kind: 'generated', title: `Generated ${unitFor(kind).listLabel}`, count }]);
     };
     // Explicit "use all" — turns the implicit default into a confirmed choice.
     const useAllList = (kind: ListKind) => {
@@ -1325,7 +1327,18 @@ export const DigitalInStore: Story = {
         <FormSection
           key={kind}
           borderless
-          title={`${u.Noun} list`}
+          headerClassName="mb-8"
+          title={(
+            <span className="inline-flex items-center gap-2">
+              {`${u.Noun} list`}
+              <span
+                className="inline-flex items-center text-muted-foreground cursor-help"
+                title={`A ${u.listLabel} defines which ${u.plural} this booking runs in. A random list picks a set number of ${u.plural} at random and reshuffles them each time you regenerate; a custom list is a fixed set you select or upload.`}
+              >
+                <Info className="h-4 w-4" />
+              </span>
+            </span>
+          )}
           className={cn(bookingTab !== 'targeting' && 'hidden')}
         >
           {blocked && other ? (
@@ -1361,7 +1374,7 @@ export const DigitalInStore: Story = {
                     className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
                   >
                     <Shuffle className="h-4 w-4" />
-                    Random {u.listLabel}
+                    Generate {u.listLabel}
                   </Button>
                 </div>
                 <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={() => openCustomListModal(kind)}>
@@ -1399,11 +1412,6 @@ export const DigitalInStore: Story = {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex min-w-0 items-center gap-1.5">
-                            {list.kind === 'generated'
-                              ? <Shuffle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              : list.kind === 'custom'
-                                ? <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                : <u.Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
                             <span className="truncate text-sm font-medium">{list.title}</span>
                             <TooltipProvider delayDuration={150}>
                               <Tooltip>
@@ -1455,12 +1463,12 @@ export const DigitalInStore: Story = {
                       </div>
                       {/* Action links under the title/reach — stop card click so they don't open the modal */}
                       {(list.kind === 'generated' || list.count > u.max) && (
-                        <div className="mt-2 flex flex-wrap items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="mt-4 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           {list.kind === 'generated' && (
                             <button
                               type="button"
                               onClick={() => regenerateList(kind, list.id)}
-                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
                               <RotateCcw className="h-3.5 w-3.5" />
                               Regenerate {u.listLabel}
@@ -1470,7 +1478,7 @@ export const DigitalInStore: Story = {
                             <button
                               type="button"
                               onClick={() => removeOverbookedStores(kind, list.id)}
-                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               Remove {(list.count - u.max).toLocaleString()} overbooked {u.plural}
@@ -2749,16 +2757,16 @@ export const OfflineInStore: Story = {
 
     // Store list data for selected stores dialog
     const storesList = [
-      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available' },
-      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available' },
-      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available' },
-      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked' },
-      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available' },
-      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available' },
-      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked' },
-      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available' },
-      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available' },
-      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available' },
+      { id: 'AH001', name: 'AH XL Amsterdam Centraal', type: 'AH XL', location: 'Amsterdam', reach: 12500, status: 'available', products: ['606983', '607124', '609782', '614038', '612816'] },
+      { id: 'AH002', name: 'AH DNAH Rotterdam Zuid', type: 'AH DNAH', location: 'Rotterdam', reach: 11200, status: 'available', products: ['606983', '608456', '611205', '614649', '613427'] },
+      { id: 'AH003', name: 'AH XL Utrecht Centraal', type: 'AH XL', location: 'Utrecht', reach: 10800, status: 'available', products: ['606983', '607124', '610394', '614038'] },
+      { id: 'AH004', name: 'AH DNAH Den Haag Centrum', type: 'AH DNAH', location: 'Den Haag', reach: 9500, status: 'booked', products: ['607124', '609782', '612816'] },
+      { id: 'AH005', name: 'AH XL Eindhoven Airport', type: 'AH XL', location: 'Eindhoven', reach: 8900, status: 'available', products: ['606983', '608456', '610394', '611205'] },
+      { id: 'AH006', name: 'AH DNAH Groningen Grote Markt', type: 'AH DNAH', location: 'Groningen', reach: 7200, status: 'available', products: ['609782', '613427', '614649'] },
+      { id: 'AH007', name: 'AH XL Maastricht Centrum', type: 'AH XL', location: 'Maastricht', reach: 8100, status: 'booked', products: ['606983', '607124', '614038'] },
+      { id: 'AH008', name: 'AH DNAH Almere Stad', type: 'AH DNAH', location: 'Almere', reach: 9200, status: 'available', products: ['608456', '611205', '612816', '614649'] },
+      { id: 'AH009', name: 'AH XL Tilburg Centrum', type: 'AH XL', location: 'Tilburg', reach: 8700, status: 'available', products: ['606983', '609782', '610394', '613427'] },
+      { id: 'AH010', name: 'AH DNAH Breda Centrum', type: 'AH DNAH', location: 'Breda', reach: 7800, status: 'available', products: ['607124', '608456', '614038', '614649'] },
     ];
 
     const handleStoreSelection = (storeId: string, checked: boolean) => {
@@ -2796,7 +2804,7 @@ export const OfflineInStore: Story = {
     const MAX_AVAILABLE_STORES = 750; // demo cap on available stores
     const commitGeneratedList = (count: number) => {
       storeListSeq.current += 1;
-      setStoreLists([{ id: storeListSeq.current, kind: 'generated', title: 'Random generated store list', count }]);
+      setStoreLists([{ id: storeListSeq.current, kind: 'generated', title: 'Generated store list', count }]);
     };
     // Explicit "use all" — turns the implicit default into a confirmed choice.
     const useAllStores = () => {
@@ -2938,8 +2946,63 @@ export const OfflineInStore: Story = {
       return Math.round(numStores * 65);
     };
 
+    // Retail-product (SKU) filter for the booking store list. Pre-set from the
+    // Details-tab product selection so the booking defaults to stores that stock
+    // it; the user can change it (one or multiple) inside the dialog. A booking
+    // only runs where its product is in stock.
+    const [storeFilterProducts, setStoreFilterProducts] = React.useState<string[]>([]);
+    React.useEffect(() => {
+      setStoreFilterProducts(selectedRetailProducts);
+    }, [selectedRetailProducts]);
+    // Over-delivery buffer: extra % of stores added to a generated list so the
+    // booked reach is still delivered if some stores drop out. Default 3%.
+    const [overDeliveryPct, setOverDeliveryPct] = React.useState(3);
+    const retailProductFilterOptions = retailProducts.map((p) => ({ label: `${p.name} (${p.id})`, value: p.id }));
+    // In-store zones (shelf areas) — used as a store-list filter. Larger AH XL
+    // stores carry the full assortment; smaller AH DNAH stores a core subset.
+    const zoneOptions = [
+      { label: 'Drinks', value: 'drinks' },
+      { label: 'Frozen foods', value: 'frozen' },
+      { label: 'Fresh produce', value: 'produce' },
+      { label: 'Bakery', value: 'bakery' },
+      { label: 'Dairy', value: 'dairy' },
+      { label: 'Snacks & confectionery', value: 'snacks' },
+      { label: 'Household', value: 'household' },
+      { label: 'Health & beauty', value: 'health' },
+    ];
+    const storeZonesFor = (store: { type: string }) =>
+      store.type === 'AH XL' ? zoneOptions.map((z) => z.value) : ['drinks', 'dairy', 'snacks', 'household', 'health'];
+    const [storeFilterZones, setStoreFilterZones] = React.useState<string[]>([]);
+    const bookingFilteredStoresList = filteredStoresList.filter(
+      (store) =>
+        (storeFilterProducts.length === 0 || storeFilterProducts.some((pid) => store.products?.includes(pid))) &&
+        (storeFilterZones.length === 0 || storeFilterZones.some((z) => storeZonesFor(store).includes(z))),
+    );
+    const copyStoreList = () => {
+      const rows = bookingFilteredStoresList.filter((s) => selectedStoreIds.includes(s.id));
+      const source = rows.length ? rows : bookingFilteredStoresList;
+      const text = source.map((s) => `${s.id}\t${s.name}\t${s.type}\t${s.location}`).join('\n');
+      if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+    };
+    const pasteStoreList = async () => {
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.readText) return;
+      try {
+        const text = await navigator.clipboard.readText();
+        const tokens = text.split(/[\n,;\t]+/).map((t) => t.trim().toLowerCase()).filter(Boolean);
+        const ids = storesList.filter((s) => tokens.includes(s.id.toLowerCase()) || tokens.includes(s.name.toLowerCase())).map((s) => s.id);
+        if (ids.length) setSelectedStoreIds((prev) => Array.from(new Set([...prev, ...ids])));
+      } catch {
+        /* clipboard read denied — no-op in the prototype */
+      }
+    };
+    // Deterministic per-(store, SKU) stock for the prototype — units on shelf.
+    const skuStockUnits = (storeId: string, pid: string) =>
+      20 + ((storeId + pid).split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 80);
+    const selectedStockForStore = (store: { id: string; products?: string[] }) =>
+      storeFilterProducts.filter((pid) => store.products?.includes(pid)).reduce((sum, pid) => sum + skuStockUnits(store.id, pid), 0);
+
     // Filter inventory based on search and exclude already selected items
-    const filteredInventoryOptions = inventoryOptions.filter(inventory => 
+    const filteredInventoryOptions = inventoryOptions.filter(inventory =>
       (inventory.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
        inventory.description.toLowerCase().includes(inventorySearch.toLowerCase()) ||
        inventory.locations.toLowerCase().includes(inventorySearch.toLowerCase())) &&
@@ -3071,7 +3134,20 @@ export const OfflineInStore: Story = {
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-<FormSection borderless title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
+<FormSection borderless title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
+                        <div className="space-y-2 min-w-0">
+                          <p className="text-sm text-muted-foreground">
+                            Select the retail product(s) this booking advertises. The store list in the Targeting tab pre-filters to stores that have these in stock.
+                          </p>
+                          <RetailProductSelect
+                            value={selectedRetailProducts}
+                            onChange={setSelectedRetailProducts}
+                            products={retailProducts}
+                          />
+                        </div>
+                      </FormSection>
+
+                      <FormSection borderless title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <p className="text-sm text-muted-foreground">
                             Complete the steps below to prepare this booking. Set the store list, creative status, printer instructions, and briefing to mark this booking as ready.
@@ -3135,7 +3211,22 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection
+                        borderless
+                        headerClassName="mb-8"
+                        title={(
+                          <span className="inline-flex items-center gap-2">
+                            Stores
+                            <span
+                              className="inline-flex items-center text-muted-foreground cursor-help"
+                              title="A store list defines which stores this booking runs in. A random list picks a set number of stores at random and reshuffles them each time you regenerate; a custom list is a fixed set of specific stores you select or upload."
+                            >
+                              <Info className="h-4 w-4" />
+                            </span>
+                          </span>
+                        )}
+                        className={cn(bookingTab !== 'targeting' && "hidden")}
+                      >
                         <div className="space-y-4">
                           {/* Create / replace the store list (only one allowed — replacing prompts for confirmation) */}
                           <div className="flex items-center gap-2">
@@ -3164,7 +3255,7 @@ export const OfflineInStore: Story = {
                                 className="h-full shrink-0 gap-1.5 whitespace-nowrap rounded-none border-l border-input px-4 text-sm"
                               >
                                 <Shuffle className="h-4 w-4" />
-                                Random store list
+                                Generate store list
                               </Button>
                             </div>
                             <Button type="button" variant="outline" className="h-10 shrink-0 gap-2" onClick={openCustomListModal}>
@@ -3210,11 +3301,6 @@ export const OfflineInStore: Story = {
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                       <div className="flex min-w-0 items-center gap-1.5">
-                                        {list.kind === 'generated'
-                                          ? <Shuffle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                          : list.kind === 'custom'
-                                            ? <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                            : <Store className="h-4 w-4 shrink-0 text-muted-foreground" />}
                                         <span className="truncate text-sm font-medium">{list.title}</span>
                                         <TooltipProvider delayDuration={150}>
                                           <Tooltip>
@@ -3245,11 +3331,20 @@ export const OfflineInStore: Story = {
                                       <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                                         <Store className="h-3.5 w-3.5" />
                                         {list.count.toLocaleString()} stores
+                                        {list.kind === 'generated' && overDeliveryPct > 0 && (
+                                          <span>(+{Math.round(list.count * overDeliveryPct / 100).toLocaleString()})</span>
+                                        )}
                                       </div>
                                       {list.count > MAX_AVAILABLE_STORES && (
                                         <div className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-600">
                                           <Store className="h-3.5 w-3.5" />
                                           {(list.count - MAX_AVAILABLE_STORES).toLocaleString()} overbooked stores
+                                        </div>
+                                      )}
+                                      {storeFilterProducts.length > 0 && (
+                                        <div className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
+                                          <ScanBarcode className="h-3.5 w-3.5 shrink-0" />
+                                          <span className="min-w-0">{storeFilterProducts.map((pid) => retailProducts.find((p) => p.id === pid)?.name || pid).join(', ')}</span>
                                         </div>
                                       )}
                                     </div>
@@ -3266,22 +3361,36 @@ export const OfflineInStore: Story = {
                                   </div>
                                   {/* Action links under the title/reach — stop card click so they don't open the modal */}
                                   {(list.kind === 'generated' || list.count > MAX_AVAILABLE_STORES) && (
-                                    <div className="mt-2 flex flex-wrap items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                                    <div className="mt-4 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                       {list.kind === 'generated' && (
                                         <button
                                           type="button"
                                           onClick={() => regenerateList(list.id)}
-                                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                                          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                                         >
                                           <RotateCcw className="h-3.5 w-3.5" />
                                           Regenerate store list
                                         </button>
                                       )}
+                                      {list.kind === 'generated' && (
+                                        <div className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm">
+                                          <span>Delivery margin</span>
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            value={overDeliveryPct}
+                                            onChange={(e) => setOverDeliveryPct(Math.max(0, Math.min(100, Number(e.target.value))))}
+                                            className="w-8 border-0 bg-transparent p-0 text-center text-sm font-normal text-foreground focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                          />
+                                          <span className="text-muted-foreground">%</span>
+                                        </div>
+                                      )}
                                       {list.count > MAX_AVAILABLE_STORES && (
                                         <button
                                           type="button"
                                           onClick={() => removeOverbookedStores(list.id)}
-                                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                                          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                                         >
                                           <Trash2 className="h-3.5 w-3.5" />
                                           Remove {(list.count - MAX_AVAILABLE_STORES).toLocaleString()} overbooked stores
@@ -3334,7 +3443,7 @@ export const OfflineInStore: Story = {
                                 <DialogTitle>Selected Stores</DialogTitle>
                                 <DialogDescription>View and manage the stores selected for this booking.</DialogDescription>
                               </DialogHeader>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <Filter
                                   name="Type"
                                   options={storeTypeFilterOptions}
@@ -3346,6 +3455,19 @@ export const OfflineInStore: Story = {
                                   options={storeLocationFilterOptions}
                                   selectedValues={storeFilterLocations}
                                   onChange={setStoreFilterLocations}
+                                />
+                                <Filter
+                                  name="Retail product"
+                                  forceSearch
+                                  options={retailProductFilterOptions}
+                                  selectedValues={storeFilterProducts}
+                                  onChange={setStoreFilterProducts}
+                                />
+                                <Filter
+                                  name="Zone"
+                                  options={zoneOptions}
+                                  selectedValues={storeFilterZones}
+                                  onChange={setStoreFilterZones}
                                 />
                                 <div className="flex-1" />
                                 <div className="relative w-[260px]">
@@ -3363,6 +3485,23 @@ export const OfflineInStore: Story = {
                                 <Button variant="outline" size="icon" aria-label="Download store list">
                                   <Download className="w-4 h-4" />
                                 </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" aria-label="More store list actions">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={copyStoreList}>
+                                      <Copy className="w-4 h-4 mr-2" />
+                                      Copy store list
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={pasteStoreList}>
+                                      <ClipboardPaste className="w-4 h-4 mr-2" />
+                                      Paste store list
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                               <div className="flex-1 overflow-y-auto min-h-0">
                                 <Table
@@ -3372,12 +3511,12 @@ export const OfflineInStore: Story = {
                                       key: 'select',
                                       header: (
                                         <Checkbox
-                                          checked={filteredStoresList.length > 0 && filteredStoresList.every(s => selectedStoreIds.includes(s.id))}
+                                          checked={bookingFilteredStoresList.length > 0 && bookingFilteredStoresList.every(s => selectedStoreIds.includes(s.id))}
                                           onCheckedChange={(checked) => {
                                             if (checked) {
-                                              setSelectedStoreIds(prev => Array.from(new Set([...prev, ...filteredStoresList.map(s => s.id)])));
+                                              setSelectedStoreIds(prev => Array.from(new Set([...prev, ...bookingFilteredStoresList.map(s => s.id)])));
                                             } else {
-                                              const toRemove = new Set(filteredStoresList.map(s => s.id));
+                                              const toRemove = new Set(bookingFilteredStoresList.map(s => s.id));
                                               setSelectedStoreIds(prev => prev.filter(id => !toRemove.has(id)));
                                             }
                                           }}
@@ -3388,9 +3527,10 @@ export const OfflineInStore: Story = {
                                     { key: 'type', header: 'Type' },
                                     { key: 'location', header: 'Location' },
                                     { key: 'reach', header: 'Estimated Reach' },
+                                    ...(storeFilterProducts.length > 0 ? [{ key: 'stock', header: 'Stock level' }] : []),
                                     { key: 'status', header: 'Status' }
                                   ]}
-                                  data={filteredStoresList.map(store => ({
+                                  data={bookingFilteredStoresList.map(store => ({
                                     select: (
                                       <Checkbox
                                         checked={selectedStoreIds.includes(store.id)}
@@ -3401,6 +3541,7 @@ export const OfflineInStore: Story = {
                                     type: store.type,
                                     location: store.location,
                                     reach: store.reach.toLocaleString(),
+                                    stock: storeFilterProducts.length > 0 ? `${selectedStockForStore(store).toLocaleString()} units` : null,
                                     status: (
                                       <Badge
                                         className={store.status === 'available'

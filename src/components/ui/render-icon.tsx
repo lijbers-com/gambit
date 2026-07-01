@@ -33,18 +33,15 @@ import {
   Handshake,
   Rows3,
   LayoutList,
+  CirclePlus,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
 export const renderIcon = (icon: string) => {
-  // Special case: Create icon is a solid circle with a Plus icon
+  // Create uses the standard outline circle-plus so it matches the other
+  // menu icons (no fill; inherits the nav icon stroke colour).
   if (icon === 'CreateIcon') {
-    return (
-      <svg width={20} height={20} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: 'visible', flexShrink: 0 }}>
-        <circle cx="10" cy="10" r="9" fill="currentColor" />
-        <path d="M10 6V14M6 10H14" stroke="var(--brand-app-bg-hex, white)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
+    return <CirclePlus size={20} />;
   }
 
   const icons = {

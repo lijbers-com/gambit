@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Route } from './side-navigation';
 import { renderIcon } from './render-icon';
 import { useMenu } from '@/hooks/use-menu';
+import { navSectionPath } from '@/lib/nav-active';
 
 // Prefer Next's real usePathname in the app so the side-nav active state
 // reflects the current route; fall back to the custom context hook in
@@ -19,7 +20,8 @@ try {
 
 export const NavigationItem = ({ item }: { item: Route }) => {
   const { collapsed, showText } = useMenu();
-  const pathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
+  const rawPathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
+  const pathname = navSectionPath(rawPathname);
 
   const checkActiveUrl = (route?: string) => {
     if (!route) return false;

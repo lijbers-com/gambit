@@ -16,7 +16,12 @@ body[data-theme="albertHeijn"] {
   --brand-app-bg: #00ADE6;
   --brand-app-bg-hex: #00ADE6;
   --brand-page-bg-hex: #fafafa;
-  --brand-app-text: #ffffff;
+  /* Neutral chrome (menu + header) matching the page background; the brand
+     colour is reserved for hover/active highlights — mirrors the Edge theme. */
+  --brand-nav-bg: var(--brand-page-bg-hex);
+  --brand-nav-hover: var(--brand-primary);
+  --brand-nav-active-text: #ffffff;
+  --brand-app-text: #1f2937;
   --brand-app-hover: #0086B2;
   --logo-url: url('/ah-logo.svg');
 
@@ -169,7 +174,12 @@ body[data-theme="adusa"] {
   --brand-app-bg: #00644C;
   --brand-app-bg-hex: #00644C;
   --brand-page-bg-hex: #fafafa;
-  --brand-app-text: #ffffff;
+  /* Neutral chrome (menu + header) matching the page background; the brand
+     colour is reserved for hover/active highlights — mirrors the Edge theme. */
+  --brand-nav-bg: var(--brand-page-bg-hex);
+  --brand-nav-hover: var(--brand-primary);
+  --brand-nav-active-text: #ffffff;
+  --brand-app-text: #1f2937;
   --brand-app-hover: #004A36;
   --logo-url: url('/adusa-logo.svg');
 
@@ -243,7 +253,12 @@ body[data-theme="delhaize"] {
   --brand-app-bg: #CE1230;
   --brand-app-bg-hex: #CE1230;
   --brand-page-bg-hex: #fafafa;
-  --brand-app-text: #ffffff;
+  /* Neutral chrome (menu + header) matching the page background; the brand
+     colour is reserved for hover/active highlights — mirrors the Edge theme. */
+  --brand-nav-bg: var(--brand-page-bg-hex);
+  --brand-nav-hover: var(--brand-primary);
+  --brand-nav-active-text: #ffffff;
+  --brand-app-text: #1f2937;
   --brand-app-hover: #A30E26;
   --logo-url: url('/delhaize-logo.svg');
 
@@ -317,7 +332,12 @@ body[data-theme="alfaBeta"] {
   --brand-app-bg: #ffffff;
   --brand-app-bg-hex: #ffffff;
   --brand-page-bg-hex: #fafafa;
-  --brand-app-text: #0f172a;
+  /* Neutral chrome (menu + header) matching the page background; the brand
+     colour is reserved for hover/active highlights — mirrors the Edge theme. */
+  --brand-nav-bg: var(--brand-page-bg-hex);
+  --brand-nav-hover: var(--brand-primary);
+  --brand-nav-active-text: #ffffff;
+  --brand-app-text: #1f2937;
   --brand-app-hover: #f1f5f9;
   --logo-url: url('/alfabeta-logo.svg');
 
@@ -650,6 +670,20 @@ body[data-theme="alfaBeta"] {
 .side-navigation button.active,
 .side-navigation .parent.active {
   background: var(--brand-nav-hover, var(--brand-app-hover)) !important;
+}
+
+/* On a branded highlight the text/icons flip to a contrasting colour
+ * (--brand-nav-active-text, e.g. white on AH/Delhaize/ADUSA/Alfa-Beta;
+ * defaults to the normal chrome text for the light Edge lime). The
+ * descendant selectors override the broad `.side-navigation *` colour rule. */
+.side-navigation a:hover, .side-navigation a:hover *,
+.side-navigation button:hover, .side-navigation button:hover *,
+.side-navigation .parent:hover, .side-navigation .parent:hover *,
+.side-navigation a.active, .side-navigation a.active *,
+.side-navigation button.active, .side-navigation button.active *,
+.side-navigation .parent.active, .side-navigation .parent.active * {
+  color: var(--brand-nav-active-text, var(--brand-app-text)) !important;
+  stroke: var(--brand-nav-active-text, var(--brand-app-text)) !important;
 }
 
 /* Specific targeting for navigation items */

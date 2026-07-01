@@ -135,8 +135,11 @@ export const SideNavigation = ({
   useEffect(() => {
     if (!pathname) return;
 
-    // Find which menu should be open based on current path
-    const activeMenuId = routes.find(route => 
+    // Only auto-open a submenu when we're directly on one of its subitem
+    // pages. Detail routes (campaign/booking/creative) deliberately do NOT
+    // auto-expand — the parent highlight already shows the section, and
+    // popping the menu open on every navigation feels jarring.
+    const activeMenuId = routes.find(route =>
       route.subitems?.some(subitem => subitem.url === pathname)
     )?.id.toString();
 
@@ -237,10 +240,30 @@ export const SideNavigation = ({
             >
               <Logo theme="auto" className="h-full w-full" />
             </div>
-          ) : (
+          ) : theme === 'alfa-beta' || theme === 'alfaBeta' ? (
+            // Alfa Beta ships an already brand-coloured SVG — show it as-is.
             <div className="w-10 h-10">
               <Logo theme="auto" />
             </div>
+          ) : (
+            // AH / ADUSA / Delhaize ship white-silhouette SVGs — recolour them
+            // to the brand colour via a CSS mask so they read on the neutral chrome.
+            <div
+              className="w-10 h-10"
+              role="img"
+              aria-label="Logo"
+              style={{
+                backgroundColor: 'var(--brand-primary)',
+                WebkitMaskImage: 'var(--logo-url)',
+                maskImage: 'var(--logo-url)',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+              }}
+            />
           )}
         </Link>
       </div>

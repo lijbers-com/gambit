@@ -42,6 +42,25 @@ function RootMenuContextProvider({ children }: { children: React.ReactNode }) {
   const [showText, setShowText] = useState<boolean>(true);
   const [openSubmenu, setOpenSubmenu] = useState<string[]>([]);
 
+  // Persist the collapsed state so it survives full page reloads (some
+  // detail pages navigate with a hard reload, which would otherwise reset
+  // the sidebar to expanded and make it "pop open" on every such navigation).
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('gambit-nav-collapsed');
+      if (saved !== null) setCollapsed(saved === 'true');
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem('gambit-nav-collapsed', String(collapsed));
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, [collapsed]);
+
   const toggleExpanded = useCallback((item: string) => {
     setExpandedItems(prev => 
       prev.includes(item) 

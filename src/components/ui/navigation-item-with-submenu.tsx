@@ -4,6 +4,7 @@ import { Route } from './side-navigation';
 import { renderIcon } from './render-icon';
 import { useMenu } from '@/hooks/use-menu';
 import { usePathname as usePathnameContext } from '@/lib/router-context';
+import { navSectionPath } from '@/lib/nav-active';
 import { Link } from '@/lib/router-context';
 
 // Prefer Next's real usePathname when available (production app) so the
@@ -24,8 +25,21 @@ export const NavigationItemWithSubmenu = ({
   item: Route;
 }) => {
   const { collapsed, showText, setCollapsed, openSubmenu, setOpenSubmenu } = useMenu();
-  const pathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
+  const rawPathname = usePathnameNext ? usePathnameNext() : usePathnameContext();
+  // Booking/creative details live under /campaigns/... but belong to the
+  // Bookings/Creatives sections — remap so the right parent highlights.
+  const pathname = navSectionPath(rawPathname);
   const itemId = item.id.toString();
+
+  // The parent stays highlighted whenever the current path is one of its
+  // subitems or a child of one (e.g. a campaign/booking/creative detail under
+  // /campaigns/display/...). This keeps "where am I" visible even when the
+  // sidebar is collapsed and the subitems aren't shown.
+  const isParentActive = item.subitems?.some(
+    (subitem) =>
+      subitem.url &&
+      (pathname === subitem.url || pathname.startsWith(subitem.url + '/')),
+  );
   
   // Ensure openSubmenu is always an array
   const safeOpenSubmenu = Array.isArray(openSubmenu) ? openSubmenu : [];
@@ -47,7 +61,10 @@ export const NavigationItemWithSubmenu = ({
   return (
     <>
       <span
-        className="parent flex items-center pr-2 rounded-md transition-colors cursor-pointer"
+        className={cn(
+          'parent flex items-center pr-2 rounded-md transition-colors cursor-pointer',
+          isParentActive && 'active',
+        )}
         onClick={() => toggleSubmenu(itemId)}
         data-testid={'nav-' + itemId}
       >

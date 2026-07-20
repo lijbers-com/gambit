@@ -16,7 +16,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
-import { PropositionIcon } from '@/components/ui/proposition-icon';
+import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { addDays } from 'date-fns';
 import * as React from 'react';
@@ -164,7 +164,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Campaigns',
-          titleIcon: <PropositionIcon engineType={engineType} />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           subtitle: `All ${engineType} campaigns`,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -338,7 +338,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'advertiser', header: 'Advertiser' },
                       { key: 'name', header: 'Name' },
                       ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
-                      { key: 'products', header: 'Products', render: row => {
+                      { key: 'products', header: 'Retail products', render: row => {
                         const maxShow = 3;
                         const shown = row.products.images.slice(0, maxShow);
                         const remaining = row.products.total - shown.length;

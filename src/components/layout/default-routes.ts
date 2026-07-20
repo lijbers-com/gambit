@@ -61,7 +61,7 @@ export const defaultRoutes: Route[] = [
       },
       {
         id: 26,
-        name: "Display offsite",
+        name: "Offsite",
         type: "single" as const,
         url: "/campaigns/offsite",
       },
@@ -99,7 +99,7 @@ export const defaultRoutes: Route[] = [
       },
       {
         id: 64,
-        name: "Display offsite",
+        name: "Offsite",
         type: "single" as const,
         url: "/bookings/offsite",
       },

@@ -6,6 +6,7 @@ import { FormSection } from '../../ui/form-section';
 import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
 import { RetailProductSelect } from '../../ui/retail-product-select';
+import { SearchSelectList } from '../../ui/search-select-list';
 import { DatePicker, DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
 import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
@@ -32,7 +33,7 @@ import { CalendarTable } from '../../ui/calendar-table';
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import type { MetricDefinition } from '@/components/ui/metric-row';
-import { PropositionIcon } from '@/components/ui/proposition-icon';
+import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
@@ -542,7 +543,7 @@ export const Display: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: bookingName || 'Booking Detail',
-          titleIcon: <PropositionIcon engineType="display" />,
+          titleIcon: <HierarchyBadge level="booking" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -1601,7 +1602,7 @@ export const DigitalInStore: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <PropositionIcon engineType="digital-instore" />,
+          titleIcon: <HierarchyBadge level="booking" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -3085,7 +3086,7 @@ export const OfflineInStore: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <PropositionIcon engineType="offline-instore" />,
+          titleIcon: <HierarchyBadge level="booking" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4035,7 +4036,7 @@ export const SponsoredProducts: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <PropositionIcon engineType="sponsored-products" />,
+          titleIcon: <HierarchyBadge level="booking" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4498,13 +4499,24 @@ export const OffsiteDisplay: Story = {
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
-    const [selectedPlacement, setSelectedPlacement] = React.useState<string>('');
+    // Offsite is one proposition. Within a booking you first pick the media
+    // product (channel — Display or a Socials platform), then its positions/slots.
+    const [mediaProduct, setMediaProduct] = React.useState<string[]>([]);
+    const [positions, setPositions] = React.useState<string[]>([]);
     const [selectedBudget, setSelectedBudget] = React.useState('');
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [selectedDevices, setSelectedDevices] = React.useState<string[]>([]);
     const [selectedGeos, setSelectedGeos] = React.useState<string[]>([]);
 
-    const offsitePlacements = [
+    // Offsite media products (the channel — Display, or a Socials platform).
+    // The positions/slots the user can pick depend on the chosen media product.
+    const offsiteMediaProducts = [
+      { value: 'display', label: 'Display', description: 'Open-web display · premium retail-media partners' },
+      { value: 'meta', label: 'Socials · Meta', description: 'Facebook & Instagram' },
+      { value: 'pinterest', label: 'Socials · Pinterest', description: 'Pins & shopping ads' },
+      { value: 'tiktok', label: 'Socials · TikTok', description: 'In-feed video' },
+    ];
+    const displayPlacements = [
       { value: 'homepage-hero', label: 'Homepage Hero', description: '970×250 · Above the fold · Premium visibility' },
       { value: 'category-leaderboard', label: 'Category Leaderboard', description: '728×90 · Category pages · High intent audience' },
       { value: 'product-page-rectangle', label: 'Product Page Rectangle', description: '300×250 · Product detail pages · High purchase intent' },
@@ -4513,6 +4525,32 @@ export const OffsiteDisplay: Story = {
       { value: 'newsletter-half-page', label: 'Newsletter Half Page', description: '300×600 · Weekly newsletter · Engaged subscribers' },
       { value: 'mobile-interstitial', label: 'Mobile Interstitial', description: '320×480 · App & mobile web · Full-screen takeover' },
     ];
+    const socialPlacements: Record<string, { value: string; label: string; description: string }[]> = {
+      meta: [
+        { value: 'meta-feed', label: 'Feed', description: 'Facebook & Instagram feed · 1:1 / 4:5' },
+        { value: 'meta-stories', label: 'Stories', description: 'Full-screen vertical · 9:16' },
+        { value: 'meta-reels', label: 'Reels', description: 'Short-form video · 9:16' },
+        { value: 'meta-carousel', label: 'Carousel', description: 'Multi-product swipe · 1:1' },
+      ],
+      pinterest: [
+        { value: 'pin-standard', label: 'Standard Pin', description: 'Static pin · 2:3' },
+        { value: 'pin-video', label: 'Video Pin', description: 'Auto-play video · 2:3 / 1:1' },
+        { value: 'pin-shopping', label: 'Shopping Pin', description: 'Product feed · with pricing' },
+        { value: 'pin-carousel', label: 'Carousel Pin', description: 'Up to 5 images · 2:3' },
+      ],
+      tiktok: [
+        { value: 'tt-infeed', label: 'In-Feed', description: 'For You feed · 9:16' },
+        { value: 'tt-topview', label: 'TopView', description: 'First impression on app open · 9:16' },
+        { value: 'tt-spark', label: 'Spark Ads', description: 'Boosted organic · 9:16' },
+      ],
+    };
+    const positionsByMediaProduct: Record<string, { value: string; label: string; description: string }[]> = {
+      display: displayPlacements,
+      meta: socialPlacements.meta,
+      pinterest: socialPlacements.pinterest,
+      tiktok: socialPlacements.tiktok,
+    };
+    const currentPositions = mediaProduct[0] ? (positionsByMediaProduct[mediaProduct[0]] ?? []) : [];
 
     const retailProducts = [
       { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },
@@ -4574,7 +4612,11 @@ export const OffsiteDisplay: Story = {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const selectedPlacementObj = offsitePlacements.find(p => p.value === selectedPlacement);
+    const mediaProductLabel = offsiteMediaProducts.find(m => m.value === mediaProduct[0])?.label;
+    const positionsSummary = positions
+      .map(pv => currentPositions.find(p => p.value === pv)?.label)
+      .filter(Boolean)
+      .join(', ');
 
     return (
       <MenuContextProvider>
@@ -4586,7 +4628,7 @@ export const OffsiteDisplay: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: bookingName || 'Booking Detail',
-          titleIcon: <PropositionIcon engineType="offsite" />,
+          titleIcon: <HierarchyBadge level="booking" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -4651,32 +4693,26 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <div className="space-y-3">
-                      <label className="block text-sm font-medium mb-2">Select placement*</label>
-                      {offsitePlacements.map(placement => (
-                        <div
-                          key={placement.value}
-                          onClick={() => setSelectedPlacement(placement.value)}
-                          className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
-                            selectedPlacement === placement.value
-                              ? 'border-primary bg-primary/5'
-                              : 'border-input hover:bg-accent'
-                          }`}
-                        >
-                          <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                            selectedPlacement === placement.value ? 'border-primary' : 'border-muted-foreground'
-                          }`}>
-                            {selectedPlacement === placement.value && (
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium">{placement.label}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{placement.description}</div>
-                          </div>
-                        </div>
-                      ))}
+                  <FormSection borderless title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                    <div className="space-y-4">
+                      <SearchSelectList
+                        label="Find media product"
+                        placeholder="Search channel or media product…"
+                        icon={<LayoutDashboard className="w-4 h-4" />}
+                        options={offsiteMediaProducts}
+                        value={mediaProduct}
+                        onChange={(v) => { setMediaProduct(v); setPositions([]); }}
+                        multiple={false}
+                      />
+                      <SearchSelectList
+                        label="Positions / slots"
+                        placeholder="Search position or slot…"
+                        icon={<LayoutDashboard className="w-4 h-4" />}
+                        options={currentPositions}
+                        value={positions}
+                        onChange={setPositions}
+                        disabledHint={mediaProduct.length ? undefined : 'Select a media product first to see its positions.'}
+                      />
                     </div>
                   </FormSection>
 
@@ -4940,7 +4976,8 @@ export const OffsiteDisplay: Story = {
                 className="bg-white"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
-                  ...(selectedPlacementObj ? [{ label: 'Placement', value: selectedPlacementObj.label }] : []),
+                  ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),
+                  ...(positionsSummary ? [{ label: 'Positions', value: positionsSummary }] : []),
                   ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
                   ...(selectedBudget ? [{ label: 'Budget', value: `$${Number(selectedBudget).toLocaleString()}` }] : []),
                   ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),

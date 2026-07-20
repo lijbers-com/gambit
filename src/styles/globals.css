@@ -445,6 +445,19 @@ body[data-theme="alfaBeta"] {
     --ring:                 33  3%  29%;   /* cream-900 #4d4b48 */
     --radius: 0.5rem;
 
+    /* Semantic status-badge tints (success / warning / danger), tokenised from
+       the previously-inline hex — same colours, now on the token system so the
+       badge component no longer hardcodes values. */
+    --badge-success-bg: #ECFDF5;
+    --badge-success-border: #D1FAE5;
+    --badge-success-fg: #059669;
+    --badge-warning-bg: #FFF7ED;
+    --badge-warning-border: #FFEDD5;
+    --badge-warning-fg: #EA580C;
+    --badge-danger-bg: #FEF2F2;
+    --badge-danger-border: #FEE2E2;
+    --badge-danger-fg: #DC2626;
+
     /* Chart shade ramp — default Sky palette. Each [data-theme]
        block above ships its own copy so per-theme tuning is just a
        matter of editing the values in place. Reds and oranges are

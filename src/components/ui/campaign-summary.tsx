@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, type Advice } from './optimisation-card';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
@@ -615,6 +615,34 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       autoBudgetOptimization ? 82 : autoTargeting ? 73 : 64
     ) : undefined;
 
+    // Per-proposition budget vs spend — drives both the collapsed-card budget bar
+    // and (recomputed) the Budget metric card below. Kept in sync via the same palette.
+    const collapsedPropColorById: Record<string, string> = {
+      display: 'hsl(var(--chart-1))',
+      sponsored: 'hsl(var(--chart-2))',
+      digital: 'hsl(var(--chart-3))',
+      offline: 'hsl(var(--chart-4))',
+      offsite: 'hsl(var(--chart-5))',
+    };
+    const collapsedPropColor = (id: string) => collapsedPropColorById[id] ?? 'hsl(var(--chart-1))';
+    const collapsedEnabledEngines = currentEngines.filter(e => e.enabled);
+    const collapsedBudgetByEngine = collapsedEnabledEngines.map(engine => ({
+      value: parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0,
+    }));
+    const collapsedTotalEngineBudget = collapsedBudgetByEngine.reduce((s, e) => s + e.value, 0) || 1;
+    const collapsedCampaignSpend = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+    const collapsedBudgetData = collapsedEnabledEngines.map((engine, i) => ({
+      name: engine.name,
+      spent: typeof engine.spend === 'number'
+        ? engine.spend
+        : Math.round((collapsedBudgetByEngine[i].value / collapsedTotalEngineBudget) * collapsedCampaignSpend),
+      budget: collapsedBudgetByEngine[i].value,
+      color: collapsedPropColor(engine.id),
+    }));
+    const collapsedTotalBudget = collapsedBudgetData.reduce((s, d) => s + d.budget, 0);
+    const collapsedTotalSpend = collapsedBudgetData.reduce((s, d) => s + d.spent, 0);
+    const collapsedSpentPct = collapsedTotalBudget > 0 ? Math.round((collapsedTotalSpend / collapsedTotalBudget) * 100) : 0;
+
     return (
       <Card ref={ref} className={cn(
         'w-full',
@@ -766,15 +794,50 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             )}
           </div>
 
-          {/* Subtitle and Summary Row - Only when collapsed (horizontal layout only) */}
-          {layout !== 'vertical' && isCollapsed && (
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                {internalCampaignId ? `${internalCampaignId} • ` : ''}{!hideGoal ? `${goal.replace(/-/g, ' ')} • ` : ''}{hasBudget ? budget : 'No budget set'} • {dateRange ?
-                  `${dateRange.from?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} - ${dateRange.to?.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}` :
-                  'No dates selected'
-                }
+          {/* Run time + budget highlight — always visible on the media-plan card
+              so the key facts are clear at a glance (the metric cards stay below). */}
+          {layout !== 'vertical' && (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Run time:</span>
+                <span className="font-medium text-foreground">
+                  {dateRange?.from && dateRange?.to
+                    ? `${dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} → ${dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'No dates set'}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Budget:</span>
+                <span className="font-medium text-foreground">{hasBudget ? budget : 'No budget set'}</span>
+              </span>
+              {internalCampaignId && <span className="text-muted-foreground">{internalCampaignId}</span>}
+              <span className="text-muted-foreground">{internalEngines.length} campaign{internalEngines.length === 1 ? '' : 's'}</span>
+              {internalCampaignId && (
+                <a
+                  href={`/campaigns/plan/${internalCampaignId}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                >
+                  View details
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Budget spend bar — collapsed view only, so the media plan's spend split
+              stays visible at a glance without expanding to the metric cards. */}
+          {layout !== 'vertical' && isCollapsed && hasBudget && collapsedBudgetData.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Budget</span>
+                <span className="font-medium text-foreground">
+                  {fmtCurrency(collapsedTotalSpend)} of {fmtCurrency(collapsedTotalBudget)} · {collapsedSpentPct}% spent
+                </span>
               </div>
+              <BudgetStackedMini budgetData={collapsedBudgetData} />
             </div>
           )}
         </CardHeader>
@@ -1799,19 +1862,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               <SummaryField label="Run time" value={runTime} />
                               <SummaryField label="Total budget" value={budgetLabel} />
                               {!hideTargeting && <SummaryField label="Targeting" value={audienceLabel} />}
-                              {currentEngines.length > 0 && (
-                                <div className="space-y-1">
-                                  <div className="text-sm text-muted-foreground">Campaigns</div>
-                                  <div className="space-y-1">
-                                    {currentEngines.map((engine) => (
-                                      <div key={engine.id} className="flex items-center justify-between gap-2 text-sm">
-                                        <span className="truncate font-medium text-foreground">{engine.campaignName && engine.campaignName !== 'Untitled' ? engine.campaignName : engine.name}</span>
-                                        <span className="shrink-0 text-xs capitalize text-muted-foreground">{engine.status || (engine.enabled ? 'enabled' : 'disabled')}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                              {/* Campaign overview removed — the campaign→booking breakdown
+                                  now lives on the media-plan detail page (link in the header). */}
                             </div>
                           );
                         })()

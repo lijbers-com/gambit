@@ -10,7 +10,7 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
-import { PropositionIcon } from '@/components/ui/proposition-icon';
+import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -178,7 +178,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: 'Bookings',
-            titleIcon: <PropositionIcon engineType={engineType} />,
+            titleIcon: <HierarchyBadge level="booking" />,
             subtitle: `All ${engineType} bookings`,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),

@@ -13,11 +13,11 @@ const badgeVariants = cva(
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-[#FEE2E2] bg-[#FEF2F2] text-[#DC2626]",
+          "border-[color:var(--badge-danger-border)] bg-[color:var(--badge-danger-bg)] text-[color:var(--badge-danger-fg)]",
         success:
-          "border-[#D1FAE5] bg-[#ECFDF5] text-[#059669]",
+          "border-[color:var(--badge-success-border)] bg-[color:var(--badge-success-bg)] text-[color:var(--badge-success-fg)]",
         warning:
-          "border-[#FFEDD5] bg-[#FFF7ED] text-[#EA580C]",
+          "border-[color:var(--badge-warning-border)] bg-[color:var(--badge-warning-bg)] text-[color:var(--badge-warning-fg)]",
         outline: 
           "border-border bg-transparent text-foreground",
         info:

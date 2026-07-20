@@ -33,7 +33,23 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
-import { PropositionIcon } from '@/components/ui/proposition-icon';
+import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
+
+// Derived ROAS / conversion-rate table columns. Values are computed from the
+// row's revenue / ad spend / conversions / clicks so we don't duplicate them
+// in the data. Brand-level figures run above the promoted SKU (the brand halo).
+const parseMetric = (v: unknown) => parseFloat(String(v ?? '').replace(/[^0-9.]/g, '')) || 0;
+const roasOf = (revenue: unknown, spend: unknown) => {
+  const s = parseMetric(spend);
+  const r = parseMetric(revenue);
+  return s && r ? `${(r / s).toFixed(1)}x` : '–';
+};
+const convRateOf = (conversions: unknown, clicks: unknown) => {
+  const c = parseMetric(clicks);
+  const n = parseMetric(conversions);
+  return c && n ? `${((n / c) * 100).toFixed(2)}%` : '–';
+};
+const BRAND_HALO = 1.45; // brand revenue/conversions ~45% above the promoted SKU
 
 // Shared SP-wizard booking form data (used in SP Details tabs)
 const spBookingCampaignOptions = [
@@ -690,7 +706,7 @@ const updatedForecastMetrics = [
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Digital in-store, Summer Launch',
-          titleIcon: <PropositionIcon engineType="digital-instore" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1236,7 +1252,7 @@ export const DigitalInstoreRunning: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: 'Digital in-store, Summer Launch',
-          titleIcon: <PropositionIcon engineType="digital-instore" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -1727,7 +1743,7 @@ export const OfflineInstoreRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline in-store, Summer Launch',
-          titleIcon: <PropositionIcon engineType="offline-instore" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2255,7 +2271,7 @@ export const DisplayRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display, Summer Launch',
-          titleIcon: <PropositionIcon engineType="display" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2775,7 +2791,7 @@ export const OfflineInstoreInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline in-store, Summer Launch',
-          titleIcon: <PropositionIcon engineType="offline-instore" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -3273,7 +3289,7 @@ export const DisplayInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display, Summer Launch',
-          titleIcon: <PropositionIcon engineType="display" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4103,7 +4119,7 @@ export const SponsoredProductsInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored products, Summer Launch',
-          titleIcon: <PropositionIcon engineType="sponsored-products" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4289,7 +4305,7 @@ export const SponsoredProductsInOption: Story = {
                     columns={[
                       { key: 'productId', header: 'Product ID' },
                       { key: 'gtin', header: 'GTIN' },
-                      { key: 'image', header: 'Image', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
+                      { key: 'image', header: 'Retail products', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
                       { key: 'productTitle', header: 'Product Title' },
                       { key: 'budget', header: 'Budget' },
                       { key: 'spent', header: 'Spent' },
@@ -4831,7 +4847,7 @@ export const SponsoredProductsRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored products, Summer Launch',
-          titleIcon: <PropositionIcon engineType="sponsored-products" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5017,7 +5033,7 @@ export const SponsoredProductsRunning: Story = {
                     columns={[
                       { key: 'productId', header: 'Product ID' },
                       { key: 'gtin', header: 'GTIN' },
-                      { key: 'image', header: 'Image', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
+                      { key: 'image', header: 'Retail products', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
                       { key: 'productTitle', header: 'Product Title' },
                       { key: 'impressions', header: 'Impressions' },
                       { key: 'clicks', header: 'Clicks' },
@@ -5430,7 +5446,7 @@ export const OffsiteRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offsite, Summer Launch',
-          titleIcon: <PropositionIcon engineType="offsite" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5636,7 +5652,7 @@ export const OffsiteRunning: Story = {
                       { key: 'id', header: 'Booking ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'retailMedia', header: 'Retail Media', render: row => {
+                      { key: 'retailMedia', header: 'Retail products', render: row => {
                         const maxShow = 3;
                         const shown = row.retailMedia.images.slice(0, maxShow);
                         const remaining = row.retailMedia.total - shown.length;
@@ -5669,6 +5685,16 @@ export const OffsiteRunning: Story = {
                       { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
                       { key: 'totalSkuUnits', header: 'Total SKU Units' },
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
+                      { key: 'skuTotalConvRate', header: 'SKU Total Conversion Rate', render: row => convRateOf(row.totalSkuConversions, row.clicks) },
+                      { key: 'skuInstoreRoas', header: 'SKU In-store ROAS', render: row => roasOf(row.instoreSkuRevenue, row.adSpend) },
+                      { key: 'skuInstoreConvRate', header: 'SKU In-store Conversion Rate', render: row => convRateOf(row.instoreSkuConversions, row.clicks) },
+                      { key: 'skuOnlineRoas', header: 'SKU Online ROAS', render: row => roasOf(row.onlineSkuRevenue, row.adSpend) },
+                      { key: 'skuOnlineConvRate', header: 'SKU Online Conversion Rate', render: row => convRateOf(row.onlineSkuConversions, row.clicks) },
+                      { key: 'brandTotalConvRate', header: 'Brand Total Conversion Rate', render: row => convRateOf(parseMetric(row.totalSkuConversions) * BRAND_HALO, row.clicks) },
+                      { key: 'brandInstoreRoas', header: 'Brand In-store ROAS', render: row => roasOf(parseMetric(row.instoreSkuRevenue) * BRAND_HALO, row.adSpend) },
+                      { key: 'brandInstoreConvRate', header: 'Brand In-store Conversion Rate', render: row => convRateOf(parseMetric(row.instoreSkuConversions) * BRAND_HALO, row.clicks) },
+                      { key: 'brandOnlineRoas', header: 'Brand Online ROAS', render: row => roasOf(parseMetric(row.onlineSkuRevenue) * BRAND_HALO, row.adSpend) },
+                      { key: 'brandOnlineConvRate', header: 'Brand Online Conversion Rate', render: row => convRateOf(parseMetric(row.onlineSkuConversions) * BRAND_HALO, row.clicks) },
                     ]}
                     data={bookingData.filter(row => {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
@@ -5949,7 +5975,7 @@ export const OffsiteInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offsite, Summer Launch',
-          titleIcon: <PropositionIcon engineType="offsite" />,
+          titleIcon: <HierarchyBadge level="campaign" />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -6155,7 +6181,7 @@ export const OffsiteInOption: Story = {
                       { key: 'id', header: 'Booking ID' },
                       { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'retailMedia', header: 'Retail Media', render: row => {
+                      { key: 'retailMedia', header: 'Retail products', render: row => {
                         const maxShow = 3;
                         const shown = row.retailMedia.images.slice(0, maxShow);
                         const remaining = row.retailMedia.total - shown.length;
@@ -6187,6 +6213,16 @@ export const OffsiteInOption: Story = {
                       { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
                       { key: 'totalSkuUnits', header: 'Total SKU Units' },
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
+                      { key: 'skuTotalConvRate', header: 'SKU Total Conversion Rate', render: row => convRateOf(row.totalSkuConversions, row.clicks) },
+                      { key: 'skuInstoreRoas', header: 'SKU In-store ROAS', render: row => roasOf(row.instoreSkuRevenue, row.adSpend) },
+                      { key: 'skuInstoreConvRate', header: 'SKU In-store Conversion Rate', render: row => convRateOf(row.instoreSkuConversions, row.clicks) },
+                      { key: 'skuOnlineRoas', header: 'SKU Online ROAS', render: row => roasOf(row.onlineSkuRevenue, row.adSpend) },
+                      { key: 'skuOnlineConvRate', header: 'SKU Online Conversion Rate', render: row => convRateOf(row.onlineSkuConversions, row.clicks) },
+                      { key: 'brandTotalConvRate', header: 'Brand Total Conversion Rate', render: row => convRateOf(parseMetric(row.totalSkuConversions) * BRAND_HALO, row.clicks) },
+                      { key: 'brandInstoreRoas', header: 'Brand In-store ROAS', render: row => roasOf(parseMetric(row.instoreSkuRevenue) * BRAND_HALO, row.adSpend) },
+                      { key: 'brandInstoreConvRate', header: 'Brand In-store Conversion Rate', render: row => convRateOf(parseMetric(row.instoreSkuConversions) * BRAND_HALO, row.clicks) },
+                      { key: 'brandOnlineRoas', header: 'Brand Online ROAS', render: row => roasOf(parseMetric(row.onlineSkuRevenue) * BRAND_HALO, row.adSpend) },
+                      { key: 'brandOnlineConvRate', header: 'Brand Online Conversion Rate', render: row => convRateOf(parseMetric(row.onlineSkuConversions) * BRAND_HALO, row.clicks) },
                     ]}
                     data={bookingData.filter(row => {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);

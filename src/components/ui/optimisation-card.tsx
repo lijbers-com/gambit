@@ -1,10 +1,17 @@
 import * as React from 'react';
-import { Sparkles, ChevronRight, MessageSquare, Check, X } from 'lucide-react';
+import { Sparkles, ChevronRight, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
-import { AreaChartComponent } from './area-chart';
-import { BarChartComponent } from './bar-chart';
+import {
+  RightDrawer,
+  RightDrawerContent,
+  RightDrawerHeader,
+  RightDrawerFooter,
+  RightDrawerTitle,
+  RightDrawerDescription,
+  RightDrawerBody,
+} from './right-drawer';
+import { ConversationTemplate } from './conversation-template';
 import type { ChartDataPoint, ChartConfig } from './chart-types';
 
 export type AdviceTone = 'insight' | 'alert' | 'tip' | 'success';
@@ -295,7 +302,7 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">Recommendations appear as you make selections.</p>
+        <p className="text-sm text-muted-foreground">Recommendations appear as you make selections.</p>
       ) : (
         <ul className="space-y-1">
           {items.map((a, i) => (
@@ -303,106 +310,45 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
               <button
                 type="button"
                 onClick={() => setActive(a)}
-                className="group/advice -mx-2 flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent/70"
+                className="group/advice -mx-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent/70"
               >
-                <p className="flex-1 text-xs text-muted-foreground">
-                  <span className={cn('mr-2 inline-flex items-center rounded-full border px-2 py-0.5 align-middle text-[10px] font-medium', adviceToneClasses[a.tone])}>{a.badge}</span>
+                <p className="flex-1 min-w-0 truncate text-sm text-muted-foreground">
+                  <span className={cn('mr-2 inline-flex items-center rounded-full border px-2 py-0.5 align-middle text-xs font-medium', adviceToneClasses[a.tone])}>{a.badge}</span>
                   {a.message}
                 </p>
-                <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-colors group-hover/advice:text-foreground" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-colors group-hover/advice:text-foreground" />
               </button>
             </li>
           ))}
         </ul>
       )}
 
-      <Dialog open={active != null} onOpenChange={(open) => { if (!open) close(); }}>
-        <DialogContent className="flex max-h-[88vh] max-w-lg flex-col gap-4 overflow-y-auto">
+      <RightDrawer open={active != null} onOpenChange={(open) => { if (!open) close(); }}>
+        <RightDrawerContent className="sm:max-w-xl">
           {active && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+              <RightDrawerHeader onClose={close}>
+                <RightDrawerTitle className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', adviceToneClasses[active.tone])}>{active.badge}</span>
-                </DialogTitle>
-                <DialogDescription className="pt-1 text-sm text-foreground">{active.message}</DialogDescription>
-              </DialogHeader>
+                </RightDrawerTitle>
+                <RightDrawerDescription>Campaign Agent recommendation</RightDrawerDescription>
+              </RightDrawerHeader>
 
-              {active.explain && (
-                <div className="space-y-4">
-                  {active.explain.stats && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {active.explain.stats.map((s, i) => (
-                        <div key={i} className="rounded-lg border p-2.5">
-                          <div className="text-[11px] text-muted-foreground">{s.label}</div>
-                          <div className="text-base font-semibold leading-tight">{s.value}</div>
-                          {s.sub && (
-                            <div className={cn('mt-0.5 text-[10px]', s.tone === 'success' ? 'text-green-600' : 'text-muted-foreground')}>{s.sub}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {active.explain.chart && (
-                    <div>
-                      {active.explain.chart.title && (
-                        <div className="mb-1 text-xs font-medium text-muted-foreground">{active.explain.chart.title}</div>
-                      )}
-                      {active.explain.chart.kind === 'bar' ? (
-                        <BarChartComponent
-                          data={active.explain.chart.data}
-                          config={active.explain.chart.config}
-                          className="h-[190px] w-full"
-                          showLegend
-                          horizontal={active.explain.chart.horizontal}
-                          xAxisDataKey={active.explain.chart.xKey ?? 'month'}
-                        />
-                      ) : (
-                        <AreaChartComponent
-                          data={active.explain.chart.data}
-                          config={active.explain.chart.config}
-                          className="h-[170px] w-full"
-                          showLegend
-                          showRightYAxis={!!active.explain.chart.rightAxisKey}
-                          rightAxisDataKey={active.explain.chart.rightAxisKey}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {active.explain.insights && (
-                    <ul className="space-y-2">
-                      {active.explain.insights.map((it, i) => (
-                        <li key={i} className="flex gap-2 text-xs">
-                          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                          <span className="text-muted-foreground">
-                            <span className="font-medium text-foreground">{it.title}: </span>
-                            {it.text}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">Ask the Campaign Agent</label>
-                <textarea
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask a follow-up to get more detail…"
-                  rows={2}
-                  className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              <RightDrawerBody>
+                <ConversationTemplate
+                  question={active.action ? `Should I ${String(active.action.label).toLowerCase()}?` : 'Can you tell me more about this recommendation?'}
+                  answer={active.message}
+                  stats={active.explain?.stats}
+                  chart={active.explain?.chart}
+                  insights={active.explain?.insights}
+                  followUp={question}
+                  onFollowUpChange={setQuestion}
+                  onAskAgent={askAgent}
                 />
-                <Button variant="outline" size="sm" className="gap-1.5" onClick={askAgent}>
-                  <MessageSquare className="h-4 w-4" />
-                  Ask the agent
-                </Button>
-              </div>
+              </RightDrawerBody>
 
-              <DialogFooter className="gap-2 sm:justify-between">
+              <RightDrawerFooter className="justify-between">
                 <Button variant="outline" className="gap-1.5" onClick={close}>
                   <X className="h-4 w-4" />
                   Decline
@@ -411,11 +357,11 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
                   <Check className="h-4 w-4" />
                   {active.action ? active.action.label : 'Accept'}
                 </Button>
-              </DialogFooter>
+              </RightDrawerFooter>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </RightDrawerContent>
+      </RightDrawer>
     </div>
   );
 };

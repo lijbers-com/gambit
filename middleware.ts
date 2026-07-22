@@ -11,6 +11,14 @@ import { NextRequest, NextResponse } from 'next/server';
  * middleware, so this file has no effect there.
  */
 export function middleware(req: NextRequest) {
+  // Skip the auth gate during local development (`next dev`) so the in-app
+  // browser preview — which can't fill the native Basic Auth prompt — can
+  // load localhost directly. Deployments run with NODE_ENV="production" and
+  // stay password-protected.
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next();
+  }
+
   const basicAuth = req.headers.get('authorization');
   const validUser = process.env.BASIC_AUTH_USER;
   const validPass = process.env.BASIC_AUTH_PASSWORD;

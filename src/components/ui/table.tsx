@@ -716,7 +716,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 key={getRowKey(row, i)}
                 data-row-id={String(getRowKey(row, i))}
                 className={cn(
-                  'bg-white',
+                  'group bg-white transition-colors',
                   i !== sortedData.length - 1 && 'border-b border-border',
                   rowClassName ? rowClassName(row) : undefined
                 )}
@@ -729,7 +729,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     <td
                       key={col.key}
                       className={cn(
-                        'px-4 py-[11px] align-middle whitespace-nowrap bg-white',
+                        'px-4 py-[11px] align-middle whitespace-nowrap bg-white transition-colors group-hover:bg-muted/50',
                         !isLastFixed && resizingColKey === col.key && 'border-r border-neutral-400',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
                         col.className

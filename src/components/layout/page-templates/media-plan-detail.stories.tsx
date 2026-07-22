@@ -10,7 +10,8 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, XCircle, CornerDownRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Plan Detail',
@@ -78,14 +79,16 @@ const planCampaigns: PlanCampaign[] = [
   },
 ];
 
-const engineClass: Record<string, string> = {
-  SP: 'bg-purple-100 text-purple-700 border-purple-200',
-  Display: 'bg-orange-100 text-orange-700 border-orange-200',
+// Proposition shown as icon + text (not a coloured badge).
+const propositionMeta: Record<string, { icon: LucideIcon; label: string }> = {
+  SP: { icon: ListStart, label: 'Sponsored products' },
+  Display: { icon: MonitorSpeaker, label: 'Display' },
 };
-const statusDot: Record<string, string> = {
-  ACTIVE: 'bg-green-500',
-  COMPLETED: 'bg-neutral-400',
-  PAUSED: 'bg-amber-500',
+// Booking status → badge (same treatment as the campaign State badge).
+const statusBadge: Record<string, { variant: 'success' | 'secondary' | 'warning'; label: string }> = {
+  ACTIVE: { variant: 'success', label: 'Active' },
+  COMPLETED: { variant: 'secondary', label: 'Completed' },
+  PAUSED: { variant: 'warning', label: 'Paused' },
 };
 
 // One row type covering both levels so the whole hierarchy renders in a single
@@ -145,23 +148,32 @@ export const MediaPlanDetail: Story = {
             </span>
           ),
       },
-      { key: 'engine', header: 'Engine', render: (r) => (r._type === 'campaign' ? <Badge className={cn('font-medium', engineClass[r.engine!])}>{r.engine}</Badge> : null) },
+      {
+        key: 'proposition', header: 'Proposition', render: (r) => {
+          if (r._type !== 'campaign' || !r.engine) return null;
+          const p = propositionMeta[r.engine];
+          const Icon = p.icon;
+          return (
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <Icon size={15} className="shrink-0 text-muted-foreground" />
+              {p.label}
+            </span>
+          );
+        },
+      },
       {
         key: 'state', header: 'State', render: (r) =>
           r._type === 'campaign' ? (
-            <Badge variant="success">{r.state}</Badge>
+            <Badge variant="secondary">Created</Badge>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs">
-              <span className={cn('h-1.5 w-1.5 rounded-full', statusDot[r.status!])} />
-              {r.status}
-            </span>
+            <Badge variant={statusBadge[r.status!].variant}>{statusBadge[r.status!].label}</Badge>
           ),
       },
       { key: 'budget', header: 'Budget', render: (r) => <span className="tabular-nums">{r.budget}</span> },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span> },
       { key: 'dates', header: 'Dates', render: (r) => <span className="text-muted-foreground">{r.dates}</span> },
       { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span> },
-      { key: 'lock', header: 'Lock', render: (r) => (r._type === 'campaign' ? (r.lock === 'LOCKED' ? <Badge className="bg-neutral-200 text-neutral-800 border-neutral-300">LOCKED</Badge> : <Badge variant="outline">FLEXIBLE</Badge>) : null) },
+      { key: 'lock', header: 'Lock', render: (r) => (r._type === 'campaign' ? (r.lock === 'LOCKED' ? <Badge className="bg-neutral-200 text-neutral-800 border-neutral-300">Locked</Badge> : <Badge variant="outline">Flexible</Badge>) : null) },
       {
         key: 'actions', header: 'Actions', render: (r) =>
           r._type === 'campaign' ? (
@@ -206,7 +218,14 @@ export const MediaPlanDetail: Story = {
                       rowKey={(r) => r._id}
                       hideActions
                       onRowClick={(r) => { if (r._type === 'campaign') toggle(r._id); }}
-                      rowClassName={(r) => (r._type === 'booking' ? '[&>td]:bg-muted/50' : 'cursor-pointer')}
+                      rowClassName={(r) =>
+                        r._type === 'booking'
+                          // Sub rows: lighter base + their own hover, so hovering a
+                          // booking is distinct from hovering a campaign row.
+                          ? '[&>td]:bg-muted/20 [&:hover>td]:bg-muted/40'
+                          // Campaign rows: expanded (selected) gets a darker tone than the hover.
+                          : cn('cursor-pointer', expanded.includes(r._id) && '[&>td]:!bg-muted')
+                      }
                     />
                   </div>
                 ),

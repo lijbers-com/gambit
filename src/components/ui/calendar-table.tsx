@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
+import { ChevronDown, ChevronRight, CornerDownRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './tooltip';
@@ -665,18 +665,20 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             <React.Fragment>
               <tr className="bg-white border-b border-border">
                 <td className="px-4 py-[11px] align-middle">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">Events</span>
+                  <div className="flex items-center gap-2 min-w-0">
                     <button
+                      type="button"
                       onClick={toggleCommercialCalendar}
-                      className="ml-auto p-1 rounded-full hover:bg-neutral-100 focus:outline-none"
+                      className="shrink-0 text-muted-foreground hover:text-foreground focus:outline-none"
+                      aria-label={isCommercialCalendarOpen ? 'Collapse events' : 'Expand events'}
                     >
                       {isCommercialCalendarOpen ? (
-                        <ChevronDown className="w-5 h-5 text-neutral-400" />
+                        <ChevronDown className="h-4 w-4" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-neutral-400" />
+                        <ChevronRight className="h-4 w-4" />
                       )}
                     </button>
+                    <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">Events</span>
                   </div>
                 </td>
                 {weekNumbers.map(weekNum => {
@@ -847,7 +849,19 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 productIndex !== mediaProducts.length - 1 && 'border-b border-border'
               )}>
                 <td className="px-4 py-[11px] align-middle">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleRow(product.id)}
+                      className="shrink-0 text-muted-foreground hover:text-foreground focus:outline-none"
+                      aria-label={expandedRows.includes(product.id) ? `Collapse ${product.name}` : `Expand ${product.name}`}
+                    >
+                      {expandedRows.includes(product.id) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
                     {onChannelClick ? (
                       <button
                         type="button"
@@ -860,16 +874,6 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     ) : (
                       <span className="text-[14px] text-neutral-700 truncate whitespace-nowrap overflow-hidden">{product.name}</span>
                     )}
-                    <button
-                      onClick={() => toggleRow(product.id)}
-                      className="ml-auto p-1 rounded-full hover:bg-neutral-100 focus:outline-none"
-                    >
-                      {expandedRows.includes(product.id) ? (
-                        <ChevronDown className="w-5 h-5 text-neutral-400" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-neutral-400" />
-                      )}
-                    </button>
                   </div>
                 </td>
                 {product.availability.slice(0, weeks).map((value, i) =>
@@ -879,18 +883,20 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
 
               {/* Expanded positions (ad positions / screens under the channel) — capped at maxInlinePositions */}
               {expandedRows.includes(product.id) && product.positions && product.positions.slice(0, maxInlinePositions).map((position) => (
-                <tr key={`pos-${position.id}`} className="bg-neutral-50/50">
+                <tr key={`pos-${position.id}`} className="bg-muted/50">
                   <td
                     className="py-[11px] align-middle pl-8 pr-4"
                     style={{ width: zonesColumnWidth, maxWidth: zonesColumnWidth }}
                   >
-                    {/* Block-level + truncate so long position names cut off
-                        with an ellipsis instead of bleeding into week cells. */}
+                    {/* CornerDownRight indent + truncate so long position names
+                        cut off with an ellipsis instead of bleeding into cells.
+                        Matches the media-plan detail expand/collapse pattern. */}
                     <div
-                      className="text-[13px] text-neutral-600 truncate"
+                      className="flex items-center gap-1.5 min-w-0 text-[13px] text-muted-foreground"
                       title={position.name}
                     >
-                      ↳ {position.name}
+                      <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                      <span className="truncate">{position.name}</span>
                     </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
@@ -903,7 +909,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   positions than maxInlinePositions and points the user at
                   the focused view (opened via onChannelClick). */}
               {expandedRows.includes(product.id) && product.positions && product.positions.length > maxInlinePositions && (
-                <tr className="bg-neutral-50/50">
+                <tr className="bg-muted/50">
                   <td
                     colSpan={weeks + 1}
                     className="py-[9px] align-middle pl-8 pr-4"

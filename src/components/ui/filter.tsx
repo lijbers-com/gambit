@@ -90,7 +90,7 @@ export const Filter: React.FC<FilterProps> = ({
           variant="outline"
           className={cn(
             'inline-flex items-center gap-2',
-            selectedLabels.length > 0 && 'bg-neutral-100',
+            selectedLabels.length > 0 && 'border-primary/40 bg-primary/5 text-foreground',
             className
           )}
           aria-label={name}

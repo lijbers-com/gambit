@@ -13,7 +13,7 @@ import { Filter } from '@/components/ui/filter';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { DateRangePicker } from '@/components/ui/date-picker';
+import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -43,6 +43,7 @@ import {
   Minus,
   Info,
   FlaskConical,
+  Target,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -212,13 +213,16 @@ const advertiserOptions = [
 
 // Brands carry lightweight first-party-style metrics so the assisted panels can
 // surface real numbers and optimisation hints instead of generic copy.
+// `hasRetailProducts` marks brands actually carried in the store — only those
+// expose the retail-product picker (sales attribution). Non-endemic or
+// not-carried brands run without SKUs.
 const brandOptions = [
-  { label: 'Coca-Cola', value: 'coca-cola', category: 'Soft drinks', reach: 6.4, roas: 4.1 },
-  { label: 'Unilever', value: 'unilever', category: 'FMCG', reach: 8.1, roas: 3.6 },
-  { label: 'Procter & Gamble', value: 'procter-gamble', category: 'Personal care', reach: 7.2, roas: 3.9 },
-  { label: 'Nestlé', value: 'nestle', category: 'Food', reach: 7.8, roas: 3.4 },
-  { label: 'PepsiCo', value: 'pepsico', category: 'Snacks & drinks', reach: 6.9, roas: 3.8 },
-  { label: 'Heineken', value: 'heineken', category: 'Beer', reach: 5.3, roas: 4.4 },
+  { label: 'Coca-Cola', value: 'coca-cola', category: 'Soft drinks', reach: 6.4, roas: 4.1, hasRetailProducts: true },
+  { label: 'Unilever', value: 'unilever', category: 'FMCG', reach: 8.1, roas: 3.6, hasRetailProducts: false },
+  { label: 'Procter & Gamble', value: 'procter-gamble', category: 'Personal care', reach: 7.2, roas: 3.9, hasRetailProducts: false },
+  { label: 'Nestlé', value: 'nestle', category: 'Food', reach: 7.8, roas: 3.4, hasRetailProducts: false },
+  { label: 'PepsiCo', value: 'pepsico', category: 'Snacks & drinks', reach: 6.9, roas: 3.8, hasRetailProducts: true },
+  { label: 'Heineken', value: 'heineken', category: 'Beer', reach: 5.3, roas: 4.4, hasRetailProducts: true },
 ];
 
 const audienceOptions = [
@@ -363,6 +367,9 @@ export const GoalSelection: Story = {
     const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
     const [selectedObjective, setSelectedObjective] = React.useState<string | null>(null);
     const [selectedStudies, setSelectedStudies] = React.useState<string[]>([]);
+    // KPIs the user picks for the chosen objective — each can reveal a matching
+    // brand-lift study (research) below.
+    const [selectedKpis, setSelectedKpis] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
@@ -412,6 +419,12 @@ export const GoalSelection: Story = {
       return { reach, roas, categories, products: selectedRetailProducts.length };
     }, [selectedBrands, selectedRetailProducts]);
 
+    // Whether any selected brand is actually carried in the store — gates the
+    // retail-product picker (some advertisers/brands have no SKUs here).
+    const selectedBrandsHaveRetailProducts = selectedBrands.some(
+      (v) => brandOptions.find((b) => b.value === v)?.hasRetailProducts,
+    );
+
     // KPIs the plan is judged on (per funnel stage) become metric cards in the
     // top row once a goal + objective are chosen — the row fills in as you go.
     const kpiMetrics = React.useMemo(() => {
@@ -428,7 +441,8 @@ export const GoalSelection: Story = {
     const isSetupComplete = campaignName.trim() !== '';
     const isAdvertiserComplete = selectedBrands.length > 0;
     const isBudgetComplete = budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
-    const isTargetingComplete = selectedGoal !== null && selectedObjective !== null && selectedAudiences.length > 0;
+    // Audiences are optional — a goal + objective is enough to continue.
+    const isTargetingComplete = selectedGoal !== null && selectedObjective !== null;
 
     const isCurrentStepComplete = [isSetupComplete, isAdvertiserComplete, isTargetingComplete, isBudgetComplete, true][currentStep] ?? false;
 
@@ -709,13 +723,6 @@ export const GoalSelection: Story = {
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
                       </div>
-                      <OptimisationCard
-                        assisted={assistedExperience}
-                        onToggle={setAssisted}
-                        items={[
-                          { badge: 'Tip', tone: 'tip', message: 'Keep assisted optimisations on — you get KPI estimates, campaign suggestions and automatic budget optimisation as you build the plan.' },
-                        ]}
-                      />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
@@ -781,37 +788,38 @@ export const GoalSelection: Story = {
                         )}
                         <div className="text-xs text-muted-foreground mt-1">Choose the brand(s) this campaign will advertise for</div>
                       </div>
-                      <RetailProductSelect
-                        value={selectedRetailProducts}
-                        onChange={setSelectedRetailProducts}
-                        optional
-                        showCount
-                      />
-                      <OptimisationCard
-                        assisted={assistedExperience}
-                        onToggle={setAssisted}
-                        items={
-                          selectedBrands.length === 0
-                            ? [
-                                { badge: 'Tip', tone: 'tip', message: 'Pick a brand to unlock reach, category ROAS and product insights.' },
-                                { badge: 'AI Insight', tone: 'insight', message: 'First-party data lets us estimate brand reach and category benchmarks instantly.' },
-                              ]
-                            : [
-                                {
-                                  badge: 'AI Insight',
-                                  tone: 'insight' as const,
-                                  message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
-                                  explain: brandReachExplain({ reach: advertiserStats.reach, roas: advertiserStats.roas, category: advertiserStats.categories[0] }),
-                                },
-                                advertiserStats.products === 0
+                      {/* Retail products — only surfaced once an advertiser and brand
+                          are chosen, and only for brands actually carried in the store. */}
+                      {selectedAdvertiser && selectedBrands.length > 0 && selectedBrandsHaveRetailProducts && (
+                        <RetailProductSelect
+                          value={selectedRetailProducts}
+                          onChange={setSelectedRetailProducts}
+                          optional
+                          showCount
+                        />
+                      )}
+
+                      {/* Recommendations — only once there is input to base them on. */}
+                      {selectedBrands.length > 0 && (
+                        <OptimisationCard
+                          items={[
+                            {
+                              badge: 'AI Insight',
+                              tone: 'insight' as const,
+                              message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
+                              explain: brandReachExplain({ reach: advertiserStats.reach, roas: advertiserStats.roas, category: advertiserStats.categories[0] }),
+                            },
+                            ...(selectedBrandsHaveRetailProducts
+                              ? [advertiserStats.products === 0
                                   ? { badge: 'Tip', tone: 'tip' as const, message: 'Add retail products to enable sales attribution and product-level KPIs.' }
-                                  : { badge: 'AI Insight', tone: 'success' as const, message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` },
-                                ...(advertiserStats.categories.length > 1
-                                  ? [{ badge: 'Tip', tone: 'tip' as const, message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
-                                  : []),
-                              ]
-                        }
-                      />
+                                  : { badge: 'AI Insight', tone: 'success' as const, message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` }]
+                              : [{ badge: 'Tip', tone: 'tip' as const, message: "This brand has no retail products in-store — focus on reach and brand KPIs; sales attribution won't be available." }]),
+                            ...(advertiserStats.categories.length > 1
+                              ? [{ badge: 'Tip', tone: 'tip' as const, message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
+                              : []),
+                          ]}
+                        />
+                      )}
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
@@ -883,40 +891,73 @@ export const GoalSelection: Story = {
                       )}
                       {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
                         const stage = goalObjectives[selectedGoal].stage;
-                        const studies = getStudiesForStage(stage);
+                        // KPIs for the chosen objective's stage. Brand KPIs have a
+                        // matching brand-lift study (research); if the stage has none,
+                        // sales & ROAS are tracked automatically.
+                        const kpiOptions = funnelKpis[stage]?.brand ?? [];
+                        const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
                         const budgetNum = parseFloat(budgetAmount) || 0;
                         const studyCost = selectedStudies.reduce((sum, name) => {
                           const s = studyPricing[name];
                           if (!s) return sum;
                           return budgetNum >= s.freeThreshold ? sum : sum + s.fee;
                         }, 0);
+                        const removeKpi = (kpi: string) => {
+                          setSelectedKpis(selectedKpis.filter((k) => k !== kpi));
+                          setSelectedStudies(selectedStudies.filter((n) => n !== kpi));
+                        };
+                        // Conversion-stage objectives have no brand KPIs — show nothing.
+                        if (kpiOptions.length === 0) return null;
                         return (
                           <div className="space-y-2">
+                            {/* KPI selector — same Filter component as the objective */}
                             <Label className="flex items-center gap-2">
-                              <FlaskConical size={16} />
-                              Brand study
+                              <Target size={16} />
+                              KPIs
                             </Label>
-                            {studies.length === 0 ? (
-                              <p className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-                                No brand-lift study for {stage.toLowerCase()} objectives — sales and ROAS are measured automatically through attribution.
-                              </p>
-                            ) : (
-                              <>
-                                <p className="text-xs text-muted-foreground">
-                                  Measure {selectedObjective} with a brand-lift study. A study is free once your media budget passes its threshold; below that it’s a one-off fee.
-                                </p>
-                                <div className="space-y-1.5">
-                                  {studies.map((study) => {
-                                    const isSelected = selectedStudies.includes(study.name);
-                                    const isFree = budgetNum >= study.freeThreshold;
-                                    return (
+                            <Filter
+                              name="Select KPIs"
+                              keepName
+                              options={kpiOptions.map((k) => ({ label: k, value: k }))}
+                              selectedValues={activeKpis}
+                              onChange={(vals: string[]) => {
+                                setSelectedKpis(vals);
+                                // Drop research for any KPI that's no longer selected.
+                                setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
+                              }}
+                              className="w-full justify-between"
+                            />
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Pick the KPIs {selectedObjective} is judged on. Each selected KPI can be measured with a matching brand-lift study.
+                            </div>
+
+                            {/* Selected KPIs — name + its matching research (no extra card wrapper) */}
+                            {activeKpis.length > 0 && (
+                              <div className="space-y-3 pt-1">
+                                {activeKpis.map((kpi) => {
+                                  const pricing = studyPricing[kpi] ?? { fee: 2000, freeThreshold: 50000 };
+                                  const isSelected = selectedStudies.includes(kpi);
+                                  const isFree = budgetNum >= pricing.freeThreshold;
+                                  return (
+                                    <div key={kpi} className="space-y-1.5">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0 truncate text-sm font-medium">{kpi}</div>
+                                        <button
+                                          type="button"
+                                          onClick={() => removeKpi(kpi)}
+                                          className="shrink-0 text-muted-foreground hover:text-foreground"
+                                          aria-label={`Remove ${kpi}`}
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                      {/* Matching research (brand-lift study) for this KPI */}
                                       <button
-                                        key={study.name}
                                         type="button"
-                                        onClick={() => setSelectedStudies(isSelected ? selectedStudies.filter((n) => n !== study.name) : [...selectedStudies, study.name])}
+                                        onClick={() => setSelectedStudies(isSelected ? selectedStudies.filter((n) => n !== kpi) : [...selectedStudies, kpi])}
                                         className={cn(
                                           'flex w-full items-center justify-between gap-3 rounded-md border p-3 text-left transition-colors',
-                                          isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/40',
+                                          isSelected ? 'border-primary bg-primary/10 ring-1 ring-primary/40' : 'border-border bg-card hover:border-primary/40',
                                         )}
                                       >
                                         <div className="flex min-w-0 items-center gap-3">
@@ -927,8 +968,11 @@ export const GoalSelection: Story = {
                                             {isSelected && <Check className="h-3.5 w-3.5" />}
                                           </div>
                                           <div className="min-w-0">
-                                            <div className="truncate text-sm font-medium">{study.name}</div>
-                                            <div className="text-xs text-muted-foreground">Brand-lift study</div>
+                                            <div className="flex items-center gap-1.5 text-sm font-medium">
+                                              <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
+                                              Brand-lift study
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">Measures {kpi}</div>
                                           </div>
                                         </div>
                                         <div className="shrink-0 text-right">
@@ -936,22 +980,22 @@ export const GoalSelection: Story = {
                                             <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">Included</span>
                                           ) : (
                                             <>
-                                              <div className="text-sm font-medium">+€{study.fee.toLocaleString()}</div>
-                                              <div className="text-[10px] text-muted-foreground">Free above €{(study.freeThreshold / 1000).toFixed(0)}k</div>
+                                              <div className="text-sm font-medium">+€{pricing.fee.toLocaleString()}</div>
+                                              <div className="text-[10px] text-muted-foreground">Free above €{(pricing.freeThreshold / 1000).toFixed(0)}k</div>
                                             </>
                                           )}
                                         </div>
                                       </button>
-                                    );
-                                  })}
-                                </div>
+                                    </div>
+                                  );
+                                })}
                                 {selectedStudies.length > 0 && (
                                   <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
                                     <span className="text-muted-foreground">{selectedStudies.length} stud{selectedStudies.length === 1 ? 'y' : 'ies'} selected</span>
                                     <span className="font-medium">{studyCost === 0 ? 'Included with your budget' : `+€${studyCost.toLocaleString()} added`}</span>
                                   </div>
                                 )}
-                              </>
+                              </div>
                             )}
                           </div>
                         );
@@ -959,7 +1003,7 @@ export const GoalSelection: Story = {
                       <div className="space-y-2">
                         <Label className="flex items-center gap-2">
                           <Users size={16} />
-                          Audience segments
+                          Audience segments <span className="text-muted-foreground font-normal">(optional)</span>
                         </Label>
                         <Filter
                           name="Select audiences"
@@ -1060,6 +1104,7 @@ export const GoalSelection: Story = {
                           onDateRangeChange={setDateRange}
                           placeholder="Select start and end date"
                           showPresets
+                          presets={futureDateRangePresets}
                         />
                         <div className="text-xs text-muted-foreground">
                           Your campaign will automatically start and stop on the selected dates
@@ -1130,7 +1175,7 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Media plan</CardTitle>
                     <CardDescription>
-                      Toggle propositions on or off and choose a preset campaign or start with an empty configuration.
+                      Toggle propositions on or off, then choose an Assisted campaign (pre-set placements) or Expert mode (set it up yourself).
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1152,6 +1197,23 @@ export const GoalSelection: Story = {
                           >
                             {/* Proposition header with toggle */}
                             <div className="flex items-center gap-3 p-4">
+                              {/* Toggle on the left, next to the proposition it controls. */}
+                              <Switch
+                                checked={isEnabled}
+                                className="shrink-0"
+                                onCheckedChange={(checked: boolean) => {
+                                  if (checked) {
+                                    setPropositionSelections(prev => ({
+                                      ...prev,
+                                      [prop.id]: assistedExperience
+                                        ? { mode: 'preset', presetId: prop.aiPreset.id }
+                                        : { mode: 'empty' },
+                                    }));
+                                  } else {
+                                    setPropositionSelections(prev => ({ ...prev, [prop.id]: null }));
+                                  }
+                                }}
+                              />
                               <div className={cn(
                                 "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                                 isEnabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
@@ -1165,28 +1227,11 @@ export const GoalSelection: Story = {
                                 )}>{prop.name}</span>
                                 <p className="text-xs text-muted-foreground">{prop.description}</p>
                               </div>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                {isEnabled && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {isEmptySelected ? '– reach · – ROAS' : `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS`}
-                                  </span>
-                                )}
-                                <Switch
-                                  checked={isEnabled}
-                                  onCheckedChange={(checked: boolean) => {
-                                    if (checked) {
-                                      setPropositionSelections(prev => ({
-                                        ...prev,
-                                        [prop.id]: assistedExperience
-                                          ? { mode: 'preset', presetId: prop.aiPreset.id }
-                                          : { mode: 'empty' },
-                                      }));
-                                    } else {
-                                      setPropositionSelections(prev => ({ ...prev, [prop.id]: null }));
-                                    }
-                                  }}
-                                />
-                              </div>
+                              {isEnabled && (
+                                <span className="text-xs text-muted-foreground flex-shrink-0">
+                                  {isEmptySelected ? '– reach · – ROAS' : `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS`}
+                                </span>
+                              )}
                             </div>
 
                             {/* Expanded content when enabled */}
@@ -1212,8 +1257,8 @@ export const GoalSelection: Story = {
                                   >
                                     <div className="flex flex-wrap items-center gap-2 mb-2">
                                       <Sparkles size={14} className="text-primary flex-shrink-0" />
-                                      <span className="text-sm font-medium">Suggested placements</span>
-                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Assisted</span>
+                                      <span className="text-sm font-medium">Assisted campaign</span>
+                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Recommended</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
                                     <div className="flex gap-3 mt-auto">
@@ -1241,10 +1286,10 @@ export const GoalSelection: Story = {
                                   >
                                     <div className="flex items-center gap-2 mb-2">
                                       <FileText size={14} className="text-muted-foreground flex-shrink-0" />
-                                      <span className="text-sm font-medium">Empty campaign</span>
+                                      <span className="text-sm font-medium">Expert mode</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                      Start with a blank {prop.name.toLowerCase()} campaign and configure manually
+                                      Set up the {prop.name.toLowerCase()} campaign yourself — full control over placements, budget and targeting.
                                     </p>
                                   </button>
                                 </div>
@@ -1660,6 +1705,7 @@ export const NoGoalTargeting: Story = {
                           onDateRangeChange={setDateRange}
                           placeholder="Select start and end date"
                           showPresets
+                          presets={futureDateRangePresets}
                         />
                         <div className="text-xs text-muted-foreground">
                           Your campaign will automatically start and stop on the selected dates
@@ -1716,7 +1762,7 @@ export const NoGoalTargeting: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Media plan</CardTitle>
                     <CardDescription>
-                      Toggle propositions on or off and choose a preset campaign or start with an empty configuration.
+                      Toggle propositions on or off, then choose an Assisted campaign (pre-set placements) or Expert mode (set it up yourself).
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1795,8 +1841,8 @@ export const NoGoalTargeting: Story = {
                                   >
                                     <div className="flex flex-wrap items-center gap-2 mb-2">
                                       <Sparkles size={14} className="text-primary flex-shrink-0" />
-                                      <span className="text-sm font-medium">Suggested placements</span>
-                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Assisted</span>
+                                      <span className="text-sm font-medium">Assisted campaign</span>
+                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Recommended</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
                                     <div className="flex gap-3 mt-auto">
@@ -1823,10 +1869,10 @@ export const NoGoalTargeting: Story = {
                                   >
                                     <div className="flex items-center gap-2 mb-2">
                                       <FileText size={14} className="text-muted-foreground flex-shrink-0" />
-                                      <span className="text-sm font-medium">Empty campaign</span>
+                                      <span className="text-sm font-medium">Expert mode</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                      Start with a blank {prop.name.toLowerCase()} campaign and configure manually
+                                      Set up the {prop.name.toLowerCase()} campaign yourself — full control over placements, budget and targeting.
                                     </p>
                                   </button>
                                 </div>

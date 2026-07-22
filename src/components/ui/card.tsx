@@ -544,13 +544,13 @@ export const BudgetStackedDetail = ({
           const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
           const remaining = Math.max(row.budget - rowSpent, 0);
           return (
-            <li key={`${row.name}-${idx}`} className={cn('space-y-1', row.isTotal && 'pb-2 border-b border-border')}>
+            <li key={`${row.name}-${idx}`} className={cn('space-y-1', row.isTotal && 'pb-2')}>
               <div className="flex items-center justify-between gap-2">
                 <span className={cn('truncate', row.isTotal ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
                   {row.name}
                 </span>
                 <span className="tabular-nums whitespace-nowrap text-muted-foreground">
-                  <span className="font-medium text-foreground">{pct}%</span> spent
+                  <span className="font-medium text-foreground">{fmt(rowSpent)}</span> of {fmt(row.budget)} · <span className="font-medium text-foreground">{pct}%</span> spent
                 </span>
               </div>
               <Tooltip>
@@ -754,7 +754,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             )}
           </div>
         )}
-        {chart && <div className="mt-4">{chart}</div>}
+        {/* Design-system rule: a metric card is EITHER a main metric (big number)
+            OR a chart — never both. A bespoke chart therefore only renders when the
+            card has no headline value; otherwise the number wins and the detailed
+            chart belongs in the click-to-expand panel (MetricDefinition.expandedContent). */}
+        {chart && !value && <div className="mt-4">{chart}</div>}
         {variant === "graph" && graphData && (
           <div className="h-14 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">

@@ -28,8 +28,8 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
-import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, type Advice } from './optimisation-card';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight } from 'lucide-react';
+import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, type Advice, type AdviceTone } from './optimisation-card';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
@@ -234,7 +234,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalAdvertiser, setInternalAdvertiser] = React.useState(advertiserProp);
     const [settingsDirty, setSettingsDirty] = React.useState(false);
     const [selectedMetricKeys, setSelectedMetricKeys] = React.useState<string[]>([
-      'budget-vs-spend',
       'impressions',
       'roas',
     ]);
@@ -643,6 +642,28 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const collapsedTotalSpend = collapsedBudgetData.reduce((s, d) => s + d.spent, 0);
     const collapsedSpentPct = collapsedTotalBudget > 0 ? Math.round((collapsedTotalSpend / collapsedTotalBudget) * 100) : 0;
 
+    // Recommendations shown in the media-plan card. Extracted so both the
+    // saved-plan layout and the guided-create sidebar render the same list.
+    const adviceItems: Advice[] = (() => {
+      const items: Advice[] = [];
+      if (budgetUsagePercentage !== undefined && budgetUsagePercentage >= 80) {
+        items.push({ badge: 'Budget Alert', tone: 'alert', message: `"${internalTitle}" is ${budgetUsagePercentage}% through its budget — review pacing to avoid overspend.`, explain: budgetPacingExplain() });
+      }
+      if (!hideAutoBudget) {
+        items.push(
+          autoBudgetOptimization
+            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
+            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() },
+        );
+      }
+      items.push({ badge: 'AI Insight', tone: 'insight', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
+      const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
+      if (incomplete > 0) {
+        items.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
+      }
+      return items;
+    })();
+
     return (
       <Card ref={ref} className={cn(
         'w-full',
@@ -660,7 +681,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         )}
         
         <CardHeader
-          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-0.5' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
+          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-2.5' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
           onClick={layout !== 'vertical' ? () => { if (!isRenaming) setIsCollapsed(!isCollapsed); } : undefined}
         >
           {/* Title and Badges Row */}
@@ -740,43 +761,24 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         In-option
                       </Badge>
                     )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            setIsRenaming(true);
-                            setTimeout(() => {
-                              renameInputRef.current?.focus();
-                              renameInputRef.current?.select();
-                            }, 50);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        {onDelete && (
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete();
-                          }} className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Primary action — clear CTA to the media-plan detail page,
+                        visible in both the collapsed and open card states. */}
+                    {internalCampaignId && (
+                      <Button
+                        size="sm"
+                        variant={isCollapsed ? 'outline' : 'default'}
+                        className="gap-1.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const href = `/campaigns/plan/${internalCampaignId}`;
+                          if (router) router.push(href);
+                          else if (typeof window !== 'undefined') window.location.href = href;
+                        }}
+                      >
+                        View details
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    )}
                   </>
                 )}
                 <Button
@@ -797,8 +799,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           {/* Run time + budget highlight — always visible on the media-plan card
               so the key facts are clear at a glance (the metric cards stay below). */}
           {layout !== 'vertical' && (
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
-              <span className="inline-flex items-center gap-1.5">
+            <div className="flex flex-nowrap items-center gap-x-5 text-sm overflow-hidden">
+              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Budget:</span>
+                <span className="font-medium text-foreground">
+                  {hasBudget ? `${collapsedSpentPct}% spent` : 'No budget set'}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Run time:</span>
                 <span className="font-medium text-foreground">
@@ -807,37 +816,41 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     : 'No dates set'}
                 </span>
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Budget:</span>
-                <span className="font-medium text-foreground">{hasBudget ? budget : 'No budget set'}</span>
+              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <Rows3 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Campaigns:</span>
+                <span className="font-medium text-foreground">{internalEngines.length}</span>
               </span>
-              {internalCampaignId && <span className="text-muted-foreground">{internalCampaignId}</span>}
-              <span className="text-muted-foreground">{internalEngines.length} campaign{internalEngines.length === 1 ? '' : 's'}</span>
-              {internalCampaignId && (
-                <a
-                  href={`/campaigns/plan/${internalCampaignId}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-                >
-                  View details
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-              )}
             </div>
           )}
 
-          {/* Budget spend bar — collapsed view only, so the media plan's spend split
-              stays visible at a glance without expanding to the metric cards. */}
-          {layout !== 'vertical' && isCollapsed && hasBudget && collapsedBudgetData.length > 0 && (
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Budget</span>
-                <span className="font-medium text-foreground">
-                  {fmtCurrency(collapsedTotalSpend)} of {fmtCurrency(collapsedTotalBudget)} · {collapsedSpentPct}% spent
-                </span>
+          {/* Budget spend bar — part of the card itself, in the same spot whether
+              collapsed or open. Collapsed shows one multi-colour bar; open expands
+              it in place to a separated bar per campaign. */}
+          {layout !== 'vertical' && hasBudget && collapsedBudgetData.length > 0 && (
+            isCollapsed ? (
+              <div className="pt-1">
+                <BudgetStackedMini budgetData={collapsedBudgetData} />
               </div>
-              <BudgetStackedMini budgetData={collapsedBudgetData} />
+            ) : (
+              <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} />
+              </div>
+            )
+          )}
+
+          {/* Recommendations — its own line below the bar in the collapsed card,
+              broken down by type as plain text (e.g. "1 alert · 1 insight · 1 tip")
+              so the colours don't make the card busy. */}
+          {layout !== 'vertical' && isCollapsed && adviceItems.length > 0 && (
+            <div className="inline-flex items-center gap-1.5 pt-0.5 text-sm text-muted-foreground">
+              <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+              {(() => {
+                const toneLabel: Record<AdviceTone, string> = { insight: 'insight', alert: 'alert', tip: 'tip', success: 'win' };
+                const order: AdviceTone[] = ['alert', 'insight', 'success', 'tip'];
+                const counts = adviceItems.reduce((acc, a) => { acc[a.tone] = (acc[a.tone] ?? 0) + 1; return acc; }, {} as Record<string, number>);
+                return order.filter((t) => counts[t]).map((t) => `${counts[t]} ${toneLabel[t]}${counts[t] === 1 ? '' : 's'}`).join(' · ');
+              })()}
             </div>
           )}
         </CardHeader>
@@ -1080,6 +1093,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           ) : (
             // Horizontal Layout
             <div className="space-y-6">
+              {/* Recommendations — surfaced above the metric cards for saved plans. */}
+              {!guidedSetup && <OptimisationCard items={adviceItems} />}
+
               {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
               {!isGuidedSettingsPhase && (() => {
                 // Single source of truth for the per-proposition palette — keeps
@@ -1151,41 +1167,17 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
                 const metricsForRow: MetricDefinition[] = [
                   {
-                    key: 'budget-vs-spend',
-                    label: 'Budget',
-                    value: hasBudget ? fmtCurrency(totalSpendNum) : '—',
-                    subMetric: hasBudget ? `of ${fmtCurrency(totalBudgetNum)} budget` : undefined,
-                    badgeValue: hasBudget ? `${spentPct}% spent` : undefined,
-                    badgeVariant: 'secondary',
-                    variant: 'budgetStacked',
-                    budgetData: budgetVsSpendData,
-                    valueFormatter: fmtCurrencyValue,
-                    // Compact stacked bar shows per-proposition spend split;
-                    // full per-proposition table lives in the click panel below.
-                    chart: <BudgetStackedMini budgetData={budgetVsSpendData} />,
-                    expandedContent: (
-                      <BudgetStackedDetail
-                        budgetData={budgetVsSpendData}
-                        valueFormatter={fmtCurrencyValue}
-                      />
-                    ),
-                  },
-                  {
                     key: 'impressions',
                     label: 'Impressions',
                     value: estReach,
                     subMetric: 'Media plan',
-                    variant: 'donutLegend',
+                    // Pie per engine — the impressions card is a chart card (value in
+                    // the donut centre), keeping to the "number OR chart" metric rule.
+                    variant: 'donut',
                     donutData: impressionsByEngine,
                     donutColors: propositionColors,
                     totalRow: { label: 'Media plan', value: impressionsTotal },
                     valueFormatter: fmtNumberValue,
-                    chart: (
-                      <DonutMini
-                        donutData={impressionsByEngine}
-                        donutColors={propositionColors}
-                      />
-                    ),
                     expandedContent: (
                       <DonutLegendDetail
                         donutData={impressionsByEngine}
@@ -1247,14 +1239,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     metrics={metricsForRow}
                     selectedKeys={selectedMetricKeys}
                     onSelectionChange={setSelectedMetricKeys}
-                    maxVisible={3}
+                    maxVisible={2}
                     defaultVariant="graph"
                     showCharts
                   />
                 );
               })()}
 
-              {/* Main content area with summary sidebar */}
+              {/* Main content area — the guided create flow keeps the two-column
+                  engines + settings layout; saved plans render a simplified view below. */}
+              {guidedSetup && (
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Left Column - Campaigns & Agent */}
                 <div className="lg:order-1 space-y-4 overflow-hidden lg:col-span-8">
@@ -1936,34 +1930,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             )}
                           </div>
                         )}
-                        <OptimisationCard
-                          assisted={assistedOptimisations}
-                          onToggle={setAssistedOptimisations}
-                          items={(() => {
-                            const adviceItems: Advice[] = [];
-                            if (budgetUsagePercentage !== undefined && budgetUsagePercentage >= 80) {
-                              adviceItems.push({ badge: 'Budget Alert', tone: 'alert', message: `"${internalTitle}" is ${budgetUsagePercentage}% through its budget — review pacing to avoid overspend.`, explain: budgetPacingExplain() });
-                            }
-                            if (!hideAutoBudget) {
-                              adviceItems.push(
-                                autoBudgetOptimization
-                                  ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
-                                  : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() },
-                              );
-                            }
-                            adviceItems.push({ badge: 'AI Insight', tone: 'insight', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
-                            const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
-                            if (incomplete > 0) {
-                              adviceItems.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
-                            }
-                            return adviceItems;
-                          })()}
-                        />
+                        <OptimisationCard items={adviceItems} />
                       </div>
                     </CardSummaryContent>
                   </CardSummary>
                 </div>
               </div>
+              )}
             </div>
 
           )}

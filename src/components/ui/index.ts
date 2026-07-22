@@ -3,6 +3,8 @@ export { RetailProductSelect, defaultRetailProducts } from "./retail-product-sel
 export type { RetailProductSelectProps, RetailProduct } from "./retail-product-select"
 export { OptimisationCard, adviceToneClasses, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain } from "./optimisation-card"
 export type { OptimisationCardProps, Advice, AdviceTone, AdviceExplain } from "./optimisation-card"
+export { ConversationTemplate } from "./conversation-template"
+export type { ConversationTemplateProps, ConversationStat, ConversationChart, ConversationInsight } from "./conversation-template"
 export { HierarchyBadge } from "./hierarchy-badge"
 export type { PlanLevel } from "./hierarchy-badge"
 export { SearchSelectList } from "./search-select-list"

@@ -10,6 +10,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
+import { GoalCard } from '@/components/ui/goal-card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -74,34 +75,6 @@ A step-by-step wizard for creating new media plans.
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-// --- Goal Card Component ---
-
-interface GoalCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  selected?: boolean;
-  onClick?: () => void;
-}
-
-const GoalCard = ({ icon, title, description, selected, onClick }: GoalCardProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`flex flex-col items-start text-left p-6 rounded-lg border-2 transition-all cursor-pointer hover:border-primary/50 hover:shadow-sm h-full ${
-      selected
-        ? 'border-primary bg-primary/5 shadow-sm'
-        : 'border-border bg-card'
-    }`}
-  >
-    <div className={`mb-4 ${selected ? 'text-primary' : 'text-muted-foreground'}`}>
-      {icon}
-    </div>
-    <h3 className="font-semibold text-sm mb-1">{title}</h3>
-    <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
-  </button>
-);
 
 // --- Data ---
 

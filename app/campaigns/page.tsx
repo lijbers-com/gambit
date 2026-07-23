@@ -32,6 +32,7 @@ const campaignSummaryData = [
     totalPrice: '$9,150',
     budgetUsagePercentage: 61,
     placements: 12,
+    bookings: 9,
     engines: [
       { id: 'display', name: 'Display', campaignName: 'Holiday Banners', status: 'running' as const, enabled: true, budget: 5000, spend: 3800 },
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', status: 'running' as const, enabled: true, budget: 4000, spend: 3600 },
@@ -57,6 +58,7 @@ const campaignSummaryData = [
     totalPrice: '$2,125',
     budgetUsagePercentage: 25,
     placements: 8,
+    bookings: 3,
     engines: [
       { id: 'display', name: 'Display', campaignName: 'Summer Banners', status: 'running' as const, enabled: true, budget: 5000, spend: 1500 },
       { id: 'digital', name: 'Digital in-store', campaignName: 'Summer Kiosks', status: 'ready' as const, enabled: true, budget: 3500, spend: 625 },
@@ -79,6 +81,7 @@ const campaignSummaryData = [
     totalPrice: '$4,800',
     budgetUsagePercentage: 40,
     placements: 15,
+    bookings: 4,
     engines: [
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'Back to School Promos', status: 'running' as const, enabled: true, budget: 7000, spend: 3200 },
       { id: 'digital', name: 'Digital in-store', campaignName: 'School Aisle Screens', status: 'running' as const, enabled: true, budget: 5000, spend: 1600 },
@@ -101,6 +104,7 @@ const campaignSummaryData = [
     totalPrice: '$22,750',
     budgetUsagePercentage: 91,
     placements: 20,
+    bookings: 11,
     engines: [
       { id: 'display', name: 'Display', campaignName: 'BF Homepage Takeover', status: 'paused' as const, enabled: true, budget: 8000, spend: 7600 },
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', status: 'paused' as const, enabled: true, budget: 7000, spend: 6500 },
@@ -126,6 +130,7 @@ const campaignSummaryData = [
     totalPrice: '$19,500',
     budgetUsagePercentage: 7,
     placements: 14,
+    bookings: 4,
     engines: [
       { id: 'display', name: 'Display', campaignName: 'NY Retargeting Banners', status: 'ready' as const, enabled: true, budget: 10000, spend: 700 },
       { id: 'sponsored', name: 'Sponsored products', campaignName: 'NY Featured Products', status: 'ready' as const, enabled: true, budget: 8000, spend: 500 },
@@ -206,6 +211,7 @@ function AllCampaignsPage() {
         totalPrice: '',
         budgetUsagePercentage: 0,
         placements: 0,
+        bookings: 0,
         engines: [],
         dateRange: {
           from: newStartDate ? new Date(newStartDate) : new Date(),
@@ -234,6 +240,7 @@ function AllCampaignsPage() {
       totalPrice: '',
       budgetUsagePercentage: 0,
       placements: 0,
+      bookings: 0,
       engines: [],
       dateRange: {
         from: new Date(),
@@ -348,6 +355,7 @@ function AllCampaignsPage() {
                           budgetUsagePercentage={campaign.budgetUsagePercentage}
                           engines={campaign.engines}
                           placements={campaign.placements}
+                          bookings={(campaign as { bookings?: number }).bookings}
                           dateRange={campaign.dateRange}
                           features={campaign.features}
                           onBudgetChange={(newBudget) => {

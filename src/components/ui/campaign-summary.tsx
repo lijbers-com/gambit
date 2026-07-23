@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, type Advice, type AdviceTone } from './optimisation-card';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3 } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
@@ -67,6 +67,8 @@ export interface CampaignSummaryProps {
   budgetUsagePercentage?: number;
   engines: CampaignEngine[];
   placements?: number;
+  /** Total bookings across the plan's campaigns — shown in the meta line. */
+  bookings?: number;
   dateRange?: DateRange;
   features: CampaignFeature[];
   layout?: 'vertical' | 'horizontal';
@@ -118,6 +120,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     budgetUsagePercentage,
     engines,
     placements,
+    bookings,
     dateRange,
     features,
     layout = 'vertical',
@@ -681,7 +684,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         )}
         
         <CardHeader
-          className={`${layout !== 'vertical' && isCollapsed ? 'space-y-2.5' : 'space-y-4'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
+          className={`${layout === 'vertical' ? 'space-y-4' : 'space-y-2.5'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
           onClick={layout !== 'vertical' ? () => { if (!isRenaming) setIsCollapsed(!isCollapsed); } : undefined}
         >
           {/* Title and Badges Row */}
@@ -821,6 +824,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <span className="text-muted-foreground">Campaigns:</span>
                 <span className="font-medium text-foreground">{internalEngines.length}</span>
               </span>
+              {bookings != null && (
+                <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                  <LayoutList className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Bookings:</span>
+                  <span className="font-medium text-foreground">{bookings}</span>
+                </span>
+              )}
             </div>
           )}
 

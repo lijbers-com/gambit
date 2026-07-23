@@ -1327,7 +1327,6 @@ export const DigitalInStore: Story = {
       return (
         <FormSection
           key={kind}
-          borderless
           headerClassName="mb-8"
           title={(
             <span className="inline-flex items-center gap-2">
@@ -1651,7 +1650,7 @@ export const DigitalInStore: Story = {
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
+<FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
@@ -1724,7 +1723,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
@@ -1785,7 +1784,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="min-w-0">
                             <label className="block text-sm font-medium mb-2">Start &amp; end date*</label>
@@ -1990,7 +1989,7 @@ export const DigitalInStore: Story = {
                         </DialogContent>
                       </Dialog>
 
-                      <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           {(() => {
                             const targetFilters = [
@@ -2054,7 +2053,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Audience" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Audience" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-2 min-w-0">
                           <div className="relative" data-dropdown-container>
                             <SearchInput
@@ -2108,7 +2107,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         {selectedCreatives.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
@@ -2207,7 +2206,7 @@ export const DigitalInStore: Story = {
                         </div>
                       </section>
 
-                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                      <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
@@ -3135,7 +3134,7 @@ export const OfflineInStore: Story = {
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-<FormSection borderless title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
+<FormSection title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
                           <p className="text-sm text-muted-foreground">
                             Select the retail product(s) this booking advertises. The store list in the Targeting tab pre-filters to stores that have these in stock.
@@ -3148,7 +3147,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <p className="text-sm text-muted-foreground">
                             Complete the steps below to prepare this booking. Set the store list, creative status, printer instructions, and briefing to mark this booking as ready.
@@ -3184,7 +3183,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
@@ -3213,7 +3212,6 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
                       <FormSection
-                        borderless
                         headerClassName="mb-8"
                         title={(
                           <span className="inline-flex items-center gap-2">
@@ -3622,7 +3620,7 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
 
-                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
@@ -3651,7 +3649,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Printer" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Printer" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
@@ -3775,7 +3773,7 @@ export const OfflineInStore: Story = {
                         </div>
                       </section>
 
-                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                      <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
@@ -4085,7 +4083,7 @@ export const SponsoredProducts: Story = {
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
+<FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
@@ -4103,7 +4101,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
                       
-                      <FormSection borderless title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Find placement*</label>
@@ -4170,7 +4168,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <FormSection title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
                             <div className="min-w-0">
@@ -4198,7 +4196,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <RetailProductSelect
                           value={selectedRetailProducts}
                           onChange={setSelectedRetailProducts}
@@ -4208,7 +4206,7 @@ export const SponsoredProducts: Story = {
                         />
                       </FormSection>
 
-                      <FormSection borderless title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="flex gap-3">
                             <Filter
@@ -4233,7 +4231,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Number of stores*</label>
@@ -4260,7 +4258,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <div className="space-y-4 min-w-0">
                           <div className="text-sm text-muted-foreground mb-4">
                             Add targeting criteria for this booking
@@ -4284,7 +4282,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         {selectedCreatives.length > 0 && (
                           <div className="mb-4 overflow-x-auto">
                             <Table
@@ -4383,7 +4381,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </section>
 
-                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                      <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
@@ -4675,7 +4673,7 @@ export const OffsiteDisplay: Story = {
                   </div>
               <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-<FormSection borderless title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
+<FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Name*</label>
@@ -4693,7 +4691,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                  <FormSection title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <SearchSelectList
                         label="Find media product"
@@ -4716,7 +4714,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
+                  <FormSection title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -4744,7 +4742,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Budget" className={cn(bookingTab !== 'details' && "hidden")}>
+                  <FormSection title="Budget" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Booking budget*</label>
@@ -4763,7 +4761,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                  <FormSection title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <RetailProductSelect
                       value={selectedRetailProducts}
                       onChange={setSelectedRetailProducts}
@@ -4773,7 +4771,7 @@ export const OffsiteDisplay: Story = {
                     />
                   </FormSection>
 
-                  <FormSection borderless title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                  <FormSection title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium mb-2">Audience</label>
@@ -4843,7 +4841,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection borderless title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                  <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                     {selectedCreatives.length > 0 && (
                       <div className="mb-4 overflow-x-auto">
                         <Table
@@ -4937,7 +4935,7 @@ export const OffsiteDisplay: Story = {
                         </div>
                       </section>
 
-                      <FormSection borderless title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
+                      <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>

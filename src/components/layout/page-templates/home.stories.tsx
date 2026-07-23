@@ -93,6 +93,7 @@ const homePlans: Array<{
   usedBudget: string;
   totalPrice: string;
   budgetUsagePercentage: number;
+  bookings: number;
   badge: { text: string; variant: 'outline' | 'success' };
   engines: Array<{ id: string; name: string; campaignName: string; status: 'ready' | 'draft' | 'running'; enabled: boolean; budget: number; spend: number }>;
   dateRange: { from: Date; to: Date };
@@ -104,6 +105,7 @@ const homePlans: Array<{
     usedBudget: '$0',
     totalPrice: '$0',
     budgetUsagePercentage: 0,
+    bookings: 3,
     badge: { text: 'Needs approval', variant: 'outline' },
     engines: [
       { id: 'display', name: 'Display', campaignName: 'Summer Banners', status: 'ready', enabled: true, budget: 3000, spend: 0 },
@@ -118,6 +120,7 @@ const homePlans: Array<{
     usedBudget: '$9,200',
     totalPrice: '$9,150',
     budgetUsagePercentage: 61,
+    bookings: 6,
     badge: { text: 'Running', variant: 'success' },
     engines: [
       { id: 'display', name: 'Display', campaignName: 'Holiday Banners', status: 'running', enabled: true, budget: 5000, spend: 3800 },
@@ -267,6 +270,7 @@ export const Home: Story = {
                         usedBudget={p.usedBudget}
                         totalPrice={p.totalPrice}
                         budgetUsagePercentage={p.budgetUsagePercentage}
+                        bookings={p.bookings}
                         engines={p.engines}
                         dateRange={p.dateRange}
                         features={[]}

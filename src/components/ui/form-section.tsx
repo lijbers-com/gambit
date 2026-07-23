@@ -7,12 +7,12 @@ interface FormSectionProps {
   /** Override the title-row bottom spacing (defaults to `mb-6`). */
   headerClassName?: string;
   /**
-   * Drop the outer card chrome (border + rounded + padding) so the section
-   * can render as a plain content block inside a parent card — used when
-   * the FormSection lives inside a tabbed wrapper that already provides
-   * the card surface.
+   * Opt back into the outer card chrome (border + rounded + padding). Form
+   * sections are borderless by default so every form across the templates
+   * looks the same — a consistent `text-lg` title with the fields below, no
+   * card. Only set this for a rare standalone section not already inside a card.
    */
-  borderless?: boolean;
+  bordered?: boolean;
   /**
    * Optional control rendered on the right-hand side of the title row
    * (e.g. a toggle or action button), vertically aligned with the title.
@@ -20,10 +20,10 @@ interface FormSectionProps {
   action?: React.ReactNode;
 }
 
-export const FormSection: React.FC<FormSectionProps> = ({ title, children, className, borderless, action, headerClassName }) => (
+export const FormSection: React.FC<FormSectionProps> = ({ title, children, className, bordered, action, headerClassName }) => (
   <section
     className={[
-      borderless ? '' : 'border border-border rounded-xl p-6',
+      bordered ? 'border border-border rounded-xl p-6' : '',
       className,
     ]
       .filter(Boolean)

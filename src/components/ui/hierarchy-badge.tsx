@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { WalletCards, Rows3, LayoutList, ChevronRight } from 'lucide-react';
+import { WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type PlanLevel = 'media-plan' | 'campaign' | 'booking';
@@ -12,29 +12,42 @@ const STEPS: { key: PlanLevel; Icon: typeof WalletCards; label: string }[] = [
 
 /**
  * Header indicator that shows where the user is in the Media plan → Campaign →
- * Booking hierarchy. The three level icons (matching the side-nav icons) are
- * shown as a path, with the current level highlighted. Used as the page header's
- * `titleIcon` in place of the proposition icon — the proposition name lives in
- * the title itself.
+ * Booking hierarchy. The level icons (matching the side-nav icons) are rendered
+ * as an overlapping stack — one layer per level from the top down to the current
+ * one, with the current level highlighted and sitting on top. Levels below the
+ * current one aren't shown (e.g. a campaign view stacks Media plan + Campaign,
+ * without Booking). Used as the page header's `titleIcon`.
  */
-export const HierarchyBadge: React.FC<{ level: PlanLevel; className?: string }> = ({ level, className }) => (
-  <span className={cn('inline-flex items-center gap-1', className)} aria-label={`Level: ${STEPS.find(s => s.key === level)?.label}`}>
-    {STEPS.map((step, i) => {
-      const active = step.key === level;
-      return (
-        <React.Fragment key={step.key}>
-          {i > 0 && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
+export const HierarchyBadge: React.FC<{ level: PlanLevel; className?: string }> = ({ level, className }) => {
+  const currentIndex = Math.max(0, STEPS.findIndex((s) => s.key === level));
+  const visible = STEPS.slice(0, currentIndex + 1);
+  return (
+    <span className={cn('inline-flex items-center', className)} aria-label={`Level: ${STEPS[currentIndex]?.label}`}>
+      {visible.map((step, i) => {
+        const last = visible.length - 1;
+        const active = i === last; // current level — on top
+        const lowest = i === 0 && !active; // bottom of the stack
+        return (
           <span
+            key={step.key}
             title={step.label}
+            style={{ zIndex: i + 1 }}
             className={cn(
-              'inline-flex h-8 w-8 items-center justify-center rounded-md',
-              active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+              'relative inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
+              i > 0 && '-ml-3.5',
+              active
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : lowest
+                  // Lowest layer blends into the background.
+                  ? 'bg-transparent text-muted-foreground border-border'
+                  // Intermediate layer — a mid shade between background and active.
+                  : 'bg-muted text-muted-foreground border-border',
             )}
           >
             <step.Icon className="h-4 w-4" />
           </span>
-        </React.Fragment>
-      );
-    })}
-  </span>
-);
+        );
+      })}
+    </span>
+  );
+};

@@ -686,6 +686,41 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       return { level: 'good', message: `"${internalTitle}" is healthy — pacing and delivery are on track.`, explain: budgetOptimisationExplain() };
     })();
 
+    // The at-a-glance detail row (budget / run time / campaigns / bookings). Open
+    // cards show it above the bar; collapsed cards show it below the bar.
+    const detailsRow = (
+      <div className="flex flex-nowrap items-center gap-x-5 text-sm overflow-hidden">
+        <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Budget:</span>
+          <span className="font-medium text-foreground">
+            {hasBudget ? `${collapsedSpentPct}% spent` : 'No budget set'}
+          </span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Run time:</span>
+          <span className="font-medium text-foreground">
+            {dateRange?.from && dateRange?.to
+              ? `${dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} → ${dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+              : 'No dates set'}
+          </span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <Rows3 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Campaigns:</span>
+          <span className="font-medium text-foreground">{internalEngines.length}</span>
+        </span>
+        {bookings != null && (
+          <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+            <LayoutList className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Bookings:</span>
+            <span className="font-medium text-foreground">{bookings}</span>
+          </span>
+        )}
+      </div>
+    );
+
     return (
       <Card ref={ref} className={cn(
         'w-full',
@@ -774,6 +809,17 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               <div className="flex items-center gap-2">
                 {!isGuidedSettingsPhase && (
                   <>
+                    {/* Health status — sits beside the process status so the two read
+                        as distinct signals (how the plan is doing vs. its stage). */}
+                    {healthNotification && (() => {
+                      const HealthIcon = healthConfig[healthNotification.level].Icon;
+                      return (
+                        <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
+                          <HealthIcon className="h-3 w-3" />
+                          {healthConfig[healthNotification.level].label}
+                        </span>
+                      );
+                    })()}
                     {badge ? (
                       <Badge variant={badge.variant || 'default'}>
                         {badge.text}
@@ -823,26 +869,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               card (with its to-do / done split). Details sit below this. */}
           {layout !== 'vertical' && adviceItems.length > 0 && (
             isCollapsed ? (
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                {healthNotification && (() => {
-                  const HealthIcon = healthConfig[healthNotification.level].Icon;
-                  return (
-                    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
-                      <HealthIcon className="h-3 w-3" />
-                      {healthConfig[healthNotification.level].label}
-                    </span>
-                  );
+              <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+                {(() => {
+                  const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
+                  const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
+                  // Count only open (not-done) notifications.
+                  const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
+                  return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(' · ');
                 })()}
-                <span className="inline-flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 shrink-0 text-primary" />
-                  {(() => {
-                    const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
-                    const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
-                    // Count only open (not-done) notifications.
-                    const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
-                    return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(' · ');
-                  })()}
-                </span>
               </div>
             ) : !guidedSetup ? (
               <div onClick={(e) => e.stopPropagation()}>
@@ -851,40 +886,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             ) : null
           )}
 
-          {/* Run time + budget highlight — always visible on the media-plan card
-              so the key facts are clear at a glance (the metric cards stay below). */}
-          {layout !== 'vertical' && (
-            <div className="flex flex-nowrap items-center gap-x-5 text-sm overflow-hidden">
-              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Budget:</span>
-                <span className="font-medium text-foreground">
-                  {hasBudget ? `${collapsedSpentPct}% spent` : 'No budget set'}
-                </span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Run time:</span>
-                <span className="font-medium text-foreground">
-                  {dateRange?.from && dateRange?.to
-                    ? `${dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} → ${dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'No dates set'}
-                </span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                <Rows3 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Campaigns:</span>
-                <span className="font-medium text-foreground">{internalEngines.length}</span>
-              </span>
-              {bookings != null && (
-                <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                  <LayoutList className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Bookings:</span>
-                  <span className="font-medium text-foreground">{bookings}</span>
-                </span>
-              )}
-            </div>
-          )}
+          {/* Open cards show the detail row above the bar. */}
+          {layout !== 'vertical' && !isCollapsed && detailsRow}
 
           {/* Budget spend bar — part of the card itself, in the same spot whether
               collapsed or open. Collapsed shows one multi-colour bar; open expands
@@ -900,6 +903,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               </div>
             )
           )}
+
+          {/* Collapsed cards show the detail row below the bar. */}
+          {layout !== 'vertical' && isCollapsed && detailsRow}
 
         </CardHeader>
 

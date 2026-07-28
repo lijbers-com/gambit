@@ -25,8 +25,7 @@ export const HierarchyBadge: React.FC<{ level: PlanLevel; className?: string }> 
     <span className={cn('inline-flex items-center', className)} aria-label={`Level: ${STEPS[currentIndex]?.label}`}>
       {visible.map((step, i) => {
         const last = visible.length - 1;
-        const active = i === last; // current level — on top
-        const lowest = i === 0 && !active; // bottom of the stack
+        const fromTop = last - i; // 0 = active/top layer
         return (
           <span
             key={step.key}
@@ -35,13 +34,14 @@ export const HierarchyBadge: React.FC<{ level: PlanLevel; className?: string }> 
             className={cn(
               'relative inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
               i > 0 && '-ml-3.5',
-              active
+              fromTop === 0
+                // Current level, on top.
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : lowest
-                  // Lowest layer blends into the background.
-                  ? 'bg-transparent text-muted-foreground border-border'
-                  // Intermediate layer — a mid shade between background and active.
-                  : 'bg-muted text-muted-foreground border-border',
+                : fromTop === 1
+                  // The layer directly under the active one — a mid shade.
+                  ? 'bg-muted text-muted-foreground border-border'
+                  // Only present with three levels: blends into the background.
+                  : 'bg-transparent text-muted-foreground border-border',
             )}
           >
             <step.Icon className="h-4 w-4" />

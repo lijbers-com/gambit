@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchInput } from '@/components/ui/search-input';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
+import { SearchSelectList } from '@/components/ui/search-select-list';
+import { Checkbox } from '@/components/ui/checkbox';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { GoalCard } from '@/components/ui/goal-card';
@@ -44,7 +46,6 @@ import {
   Minus,
   Info,
   FlaskConical,
-  Target,
 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -718,47 +719,22 @@ export const GoalSelection: Story = {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="advertiser">Advertiser</Label>
-                        <Input
-                          dropdown
-                          options={advertiserOptions}
-                          value={selectedAdvertiser}
-                          onChange={(value: string) => setSelectedAdvertiser(value)}
-                          placeholder="Select an advertiser"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="brand">Brands</Label>
-                        <Filter
-                          name="Select brands"
-                          keepName
+                      <SearchSelectList
+                        label="Advertiser"
+                        placeholder="Search advertiser…"
+                        options={advertiserOptions}
+                        value={selectedAdvertiser ? [selectedAdvertiser] : []}
+                        onChange={(vals) => setSelectedAdvertiser(vals[0] ?? '')}
+                        multiple={false}
+                      />
+                      <div>
+                        <SearchSelectList
+                          label="Brands"
+                          placeholder="Search brands…"
                           options={brandOptions}
-                          selectedValues={selectedBrands}
+                          value={selectedBrands}
                           onChange={setSelectedBrands}
-                          className="w-full justify-between"
                         />
-                        {selectedBrands.length > 0 && (
-                          <div className="space-y-1 pt-1">
-                            {selectedBrands.map((value) => {
-                              const opt = brandOptions.find((b) => b.value === value);
-                              return opt ? (
-                                <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                  <div className="text-sm font-medium">{opt.label}</div>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedBrands(selectedBrands.filter((v) => v !== value))}
-                                    className="h-8 w-8 shrink-0 p-0"
-                                    aria-label={`Remove ${opt.label}`}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ) : null;
-                            })}
-                          </div>
-                        )}
                         <div className="text-xs text-muted-foreground mt-1">Choose the brand(s) this campaign will advertise for</div>
                       </div>
                       {/* Retail products — only surfaced once an advertiser and brand
@@ -831,32 +807,15 @@ export const GoalSelection: Story = {
                         </div>
                       </div>
                       {selectedGoal && goalObjectives[selectedGoal] && (
-                        <div className="space-y-2">
-                          <Label>Objective</Label>
-                          <Filter
-                            name="Select objective"
-                            keepName
-                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ label: o, value: o }))}
-                            selectedValues={selectedObjective ? [selectedObjective] : []}
-                            onChange={(vals) => { setSelectedObjective(vals.length ? vals[vals.length - 1] : null); setSelectedStudies([]); }}
-                            className="w-full justify-between"
+                        <div>
+                          <SearchSelectList
+                            label="Objective"
+                            placeholder="Search objective…"
+                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ value: o, label: o }))}
+                            value={selectedObjective ? [selectedObjective] : []}
+                            onChange={(vals) => { setSelectedObjective(vals[0] ?? null); setSelectedStudies([]); }}
+                            multiple={false}
                           />
-                          {selectedObjective && (
-                            <div className="space-y-1 pt-1">
-                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                <div className="text-sm font-medium">{selectedObjective}</div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => { setSelectedObjective(null); setSelectedStudies([]); }}
-                                  className="h-8 w-8 shrink-0 p-0"
-                                  aria-label={`Remove ${selectedObjective}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
                           <div className="text-xs text-muted-foreground mt-1">
                             {goalObjectives[selectedGoal].stage} stage — pick the one objective the plan is judged on.
                           </div>
@@ -875,142 +834,61 @@ export const GoalSelection: Story = {
                           if (!s) return sum;
                           return budgetNum >= s.freeThreshold ? sum : sum + s.fee;
                         }, 0);
-                        const removeKpi = (kpi: string) => {
-                          setSelectedKpis(selectedKpis.filter((k) => k !== kpi));
-                          setSelectedStudies(selectedStudies.filter((n) => n !== kpi));
-                        };
                         // Conversion-stage objectives have no brand KPIs — show nothing.
                         if (kpiOptions.length === 0) return null;
                         return (
                           <div className="space-y-2">
-                            {/* KPI selector — same Filter component as the objective */}
-                            <Label className="flex items-center gap-2">
-                              <Target size={16} />
-                              KPIs
-                            </Label>
-                            <Filter
-                              name="Select KPIs"
-                              keepName
-                              options={kpiOptions.map((k) => ({ label: k, value: k }))}
-                              selectedValues={activeKpis}
-                              onChange={(vals: string[]) => {
+                            <SearchSelectList
+                              label="KPIs"
+                              placeholder="Search KPIs…"
+                              options={kpiOptions.map((k) => ({ value: k, label: k }))}
+                              value={activeKpis}
+                              onChange={(vals) => {
                                 setSelectedKpis(vals);
-                                // Drop research for any KPI that's no longer selected.
                                 setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
                               }}
-                              className="w-full justify-between"
+                              renderSelectedExtra={(opt) => {
+                                const kpi = opt.value;
+                                const pricing = studyPricing[kpi] ?? { fee: 2000, freeThreshold: 50000 };
+                                const isSelected = selectedStudies.includes(kpi);
+                                const isFree = budgetNum >= pricing.freeThreshold;
+                                return (
+                                  <label className="flex cursor-pointer items-center justify-between gap-3">
+                                    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Checkbox
+                                        checked={isSelected}
+                                        onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                      />
+                                      <FlaskConical className="h-3.5 w-3.5" />
+                                      Add a brand-lift study
+                                    </span>
+                                    <span className="shrink-0 text-right text-[10px] text-muted-foreground">
+                                      {isFree ? 'Included' : `+€${pricing.fee.toLocaleString()} · free above €${(pricing.freeThreshold / 1000).toFixed(0)}k`}
+                                    </span>
+                                  </label>
+                                );
+                              }}
                             />
                             <div className="text-xs text-muted-foreground mt-1">
                               Pick the KPIs {selectedObjective} is judged on. Each selected KPI can be measured with a matching brand-lift study.
                             </div>
-
-                            {/* Selected KPIs — name + its matching research (no extra card wrapper) */}
-                            {activeKpis.length > 0 && (
-                              <div className="space-y-3 pt-1">
-                                {activeKpis.map((kpi) => {
-                                  const pricing = studyPricing[kpi] ?? { fee: 2000, freeThreshold: 50000 };
-                                  const isSelected = selectedStudies.includes(kpi);
-                                  const isFree = budgetNum >= pricing.freeThreshold;
-                                  return (
-                                    <div key={kpi} className="space-y-1.5">
-                                      <div className="flex items-center justify-between gap-3">
-                                        <div className="min-w-0 truncate text-sm font-medium">{kpi}</div>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeKpi(kpi)}
-                                          className="shrink-0 text-muted-foreground hover:text-foreground"
-                                          aria-label={`Remove ${kpi}`}
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </button>
-                                      </div>
-                                      {/* Matching research (brand-lift study) for this KPI */}
-                                      <button
-                                        type="button"
-                                        onClick={() => setSelectedStudies(isSelected ? selectedStudies.filter((n) => n !== kpi) : [...selectedStudies, kpi])}
-                                        className={cn(
-                                          'flex w-full items-center justify-between gap-3 rounded-md border p-3 text-left transition-colors',
-                                          isSelected ? 'border-primary bg-primary/10 ring-1 ring-primary/40' : 'border-border bg-card hover:border-primary/40',
-                                        )}
-                                      >
-                                        <div className="flex min-w-0 items-center gap-3">
-                                          <div className={cn(
-                                            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
-                                            isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40',
-                                          )}>
-                                            {isSelected && <Check className="h-3.5 w-3.5" />}
-                                          </div>
-                                          <div className="min-w-0">
-                                            <div className="flex items-center gap-1.5 text-sm font-medium">
-                                              <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
-                                              Brand-lift study
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">Measures {kpi}</div>
-                                          </div>
-                                        </div>
-                                        <div className="shrink-0 text-right">
-                                          {isFree ? (
-                                            <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">Included</span>
-                                          ) : (
-                                            <>
-                                              <div className="text-sm font-medium">+€{pricing.fee.toLocaleString()}</div>
-                                              <div className="text-[10px] text-muted-foreground">Free above €{(pricing.freeThreshold / 1000).toFixed(0)}k</div>
-                                            </>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </div>
-                                  );
-                                })}
-                                {selectedStudies.length > 0 && (
-                                  <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
-                                    <span className="text-muted-foreground">{selectedStudies.length} stud{selectedStudies.length === 1 ? 'y' : 'ies'} selected</span>
-                                    <span className="font-medium">{studyCost === 0 ? 'Included with your budget' : `+€${studyCost.toLocaleString()} added`}</span>
-                                  </div>
-                                )}
+                            {selectedStudies.length > 0 && (
+                              <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                                <span className="text-muted-foreground">{selectedStudies.length} stud{selectedStudies.length === 1 ? 'y' : 'ies'} selected</span>
+                                <span className="font-medium">{studyCost === 0 ? 'Included with your budget' : `+€${studyCost.toLocaleString()} added`}</span>
                               </div>
                             )}
                           </div>
                         );
                       })()}
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          <Users size={16} />
-                          Audience segments <span className="text-muted-foreground font-normal">(optional)</span>
-                        </Label>
-                        <Filter
-                          name="Select audiences"
-                          keepName
-                          options={audienceOptions.map((a) => ({ label: a.label, value: a.id, description: `Reach ${a.reach} · ${a.description}` }))}
-                          selectedValues={selectedAudiences}
-                          onChange={setSelectedAudiences}
-                          className="w-full justify-between"
-                        />
-                        {selectedAudiences.length > 0 && (
-                          <div className="space-y-1 pt-1">
-                            {selectedAudiences.map((id) => {
-                              const a = audienceOptions.find((x) => x.id === id);
-                              return a ? (
-                                <div key={id} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                  <div className="min-w-0">
-                                    <div className="text-sm font-medium">{a.label}</div>
-                                    <div className="text-xs text-muted-foreground">Reach: {a.reach}</div>
-                                  </div>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedAudiences(selectedAudiences.filter((v) => v !== id))}
-                                    className="h-8 w-8 shrink-0 p-0"
-                                    aria-label={`Remove ${a.label}`}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ) : null;
-                            })}
-                          </div>
-                        )}
-                      </div>
+                      <SearchSelectList
+                        label="Audience segments (optional)"
+                        placeholder="Search audience segments…"
+                        icon={<Users className="h-4 w-4" />}
+                        options={audienceOptions.map((a) => ({ value: a.id, label: a.label, description: `Reach ${a.reach} · ${a.description}` }))}
+                        value={selectedAudiences}
+                        onChange={setSelectedAudiences}
+                      />
                       <OptimisationCard
                         assisted={assistedExperience}
                         onToggle={setAssisted}

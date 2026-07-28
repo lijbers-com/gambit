@@ -18,6 +18,8 @@ import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight, CornerDownRight } from 'lucide-react';
 import { addDays } from 'date-fns';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -149,10 +151,44 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     const [mediaPlanBudget, setMediaPlanBudget] = React.useState<string>('300000');
     const [mediaPlanStartDate, setMediaPlanStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [mediaPlanEndDate, setMediaPlanEndDate] = React.useState<Date | undefined>(new Date('2024-11-30'));
+    // Which campaign rows are expanded to reveal their bookings.
+    const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
+    const toggleRow = (id: string) =>
+      setExpandedRows((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     const filteredCampaignData = campaignData.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
       return statusMatch && advertiserMatch;
+    });
+    // Synthesize the bookings that live inside a campaign (the overview only
+    // stores a count). Engines cycle so each booking maps to a real proposition.
+    const bookingsForCampaign = (c: typeof campaignData[number]) =>
+      Array.from({ length: c.bookings }, (_, i) => {
+        const engine = c.engines[i % c.engines.length];
+        return {
+          _type: 'booking' as const,
+          _id: `${c.id}-b${i + 1}`,
+          id: `${c.id}-B${String(i + 1).padStart(2, '0')}`,
+          status: c.status,
+          advertiser: '',
+          name: `${engine} booking ${i + 1}`,
+          engine,
+          parentId: c.id,
+          products: { images: [] as string[], total: 0 },
+          creatives: 0,
+          placements: 0,
+          spendToDate: 0,
+          spendingLimit: 0,
+          start: c.start,
+          end: c.end,
+        };
+      });
+    // Flatten campaigns + (when expanded) their bookings into one row list.
+    type CampaignRow = typeof campaignData[number] & { _type: 'campaign'; _id: string; engine?: string; parentId?: string };
+    type BookingRow = ReturnType<typeof bookingsForCampaign>[number];
+    const tableRows: (CampaignRow | BookingRow)[] = filteredCampaignData.flatMap((c) => {
+      const campaignRow: CampaignRow = { ...c, _type: 'campaign', _id: c.id };
+      return expandedRows.includes(c.id) ? [campaignRow, ...bookingsForCampaign(c)] : [campaignRow];
     });
     return (
       <MenuContextProvider>
@@ -333,12 +369,27 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'ID' },
+                      { key: '_expand', header: '', width: 40, render: row => row._type === 'campaign' && row.bookings > 0 ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleRow(row._id); }}
+                          className="flex h-6 w-6 items-center justify-center rounded hover:bg-muted"
+                          aria-label={expandedRows.includes(row._id) ? `Collapse ${row.name}` : `Expand ${row.name}`}
+                        >
+                          {expandedRows.includes(row._id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </button>
+                      ) : null },
+                      { key: 'id', header: 'ID', width: 130 },
                       { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'advertiser', header: 'Advertiser' },
-                      { key: 'name', header: 'Name' },
+                      { key: 'name', header: 'Name', width: 260, render: row => row._type === 'booking' ? (
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <CornerDownRight className="h-3.5 w-3.5 shrink-0" />
+                          {row.name}
+                        </span>
+                      ) : row.name },
                       ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
+                        if (row._type === 'booking') return null;
                         const maxShow = 3;
                         const shown = row.products.images.slice(0, maxShow);
                         const remaining = row.products.total - shown.length;
@@ -351,17 +402,28 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                           </div>
                         );
                       }},
-                      { key: 'bookings', header: 'Bookings', render: row => <Badge variant="secondary">{row.bookings}</Badge> },
-                      { key: 'creatives', header: 'Creatives', render: row => <Badge variant="secondary">{row.creatives}</Badge> },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
+                      { key: 'bookings', header: 'Bookings', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.bookings}</Badge> : null },
+                      { key: 'creatives', header: 'Creatives', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.creatives}</Badge> : null },
+                      { key: 'placements', header: 'Placements', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.placements}</Badge> : null },
                       { key: 'spendToDate', header: 'Spend to date', render: row => `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-                      { key: 'spendingLimit', header: 'Spending limit', render: row => `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                      { key: 'spendingLimit', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
                       { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                     ]}
-                    data={filteredCampaignData}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigating to campaign: ${row.name} (${row.id})`)}
+                    data={tableRows}
+                    rowKey={row => row._id}
+                    hideActions
+                    onRowClick={(row) => {
+                      // Rows link into the campaign; bookings open their parent campaign
+                      // (in this engine's section). The chevron alone toggles expansion.
+                      const target = row._type === 'booking' ? row.parentId : row.id;
+                      window.location.href = `/campaigns/${engineType}/${target}`;
+                    }}
+                    rowClassName={(row) =>
+                      row._type === 'booking'
+                        ? '[&>td]:bg-muted/20 [&:hover>td]:bg-muted/40'
+                        : cn('cursor-pointer', expandedRows.includes(row._id) && '[&>td]:!bg-muted')
+                    }
                   />
                 </div>
               ),

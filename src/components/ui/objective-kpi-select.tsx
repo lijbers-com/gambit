@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Check, Target } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from './label';
-import { Filter } from './filter';
+import { SearchSelectList } from './search-select-list';
 import { Input } from './input';
 
 /**
@@ -128,19 +128,14 @@ export const ObjectiveKpiSelect: React.FC<ObjectiveKpiSelectProps> = ({ value, o
   return (
     <div className={cn('space-y-3', className)}>
       <div className="space-y-2">
-        {!hideLabels && (
-          <Label className="flex items-center gap-2">
-            <Target size={16} />
-            Objective
-          </Label>
-        )}
-        <Filter
-          name="Select objective"
-          keepName
+        {!hideLabels && <Label>Objective</Label>}
+        <SearchSelectList
+          label={null}
+          placeholder="Search objectives…"
           options={options}
-          selectedValues={value.objective ? [value.objective] : []}
+          value={value.objective ? [value.objective] : []}
           onChange={onObjective}
-          className="w-full justify-between"
+          multiple={false}
         />
       </div>
 

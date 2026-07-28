@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { CardWithTabs } from '@/components/ui/card';
 import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
-import { Filter } from '@/components/ui/filter';
 import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
+import { SearchSelectList } from '@/components/ui/search-select-list';
+import { Checkbox } from '@/components/ui/checkbox';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -187,6 +188,7 @@ export const MediaPlanDetail: Story = {
     const [goal, setGoal] = React.useState('awareness');
     const [objective, setObjective] = React.useState('merkbekendheid');
     const [kpis, setKpis] = React.useState<string[]>(['toma', 'cep']);
+    const [kpiStudies, setKpiStudies] = React.useState<string[]>([]);
     const [budgetAmount, setBudgetAmount] = React.useState('15000');
     const [status, setStatus] = React.useState('in-option');
     const [runTime, setRunTime] = React.useState<DateRange | undefined>({ from: new Date('2026-06-01'), to: new Date('2026-06-30') });
@@ -331,29 +333,22 @@ export const MediaPlanDetail: Story = {
 
                     <FormSection title="Advertiser">
                       <div className="space-y-6">
-                        <div className="space-y-2">
-                          <Label>Advertiser</Label>
-                          <Input dropdown options={advertiserOptions} value={advertiser} onChange={setAdvertiser} placeholder="Select an advertiser" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Brands</Label>
-                          <Filter name="Select brands" keepName options={brandFilterOptions} selectedValues={brands} onChange={setBrands} className="w-full justify-between" />
-                          {/* Selected brands — chips with remove, like the wizard. */}
-                          {brands.length > 0 && (
-                            <div className="space-y-1 pt-1">
-                              {brands.map((value) => {
-                                const opt = brandFilterOptions.find((b) => b.value === value);
-                                return opt ? (
-                                  <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                    <div className="text-sm font-medium">{opt.label}</div>
-                                    <Button variant="outline" size="sm" onClick={() => setBrands(brands.filter((v) => v !== value))} className="h-8 w-8 shrink-0 p-0" aria-label={`Remove ${opt.label}`}>
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ) : null;
-                              })}
-                            </div>
-                          )}
+                        <SearchSelectList
+                          label="Advertiser"
+                          placeholder="Search advertiser…"
+                          options={advertiserOptions}
+                          value={advertiser ? [advertiser] : []}
+                          onChange={(vals) => setAdvertiser(vals[0] ?? '')}
+                          multiple={false}
+                        />
+                        <div>
+                          <SearchSelectList
+                            label="Brands"
+                            placeholder="Search brands…"
+                            options={brandFilterOptions}
+                            value={brands}
+                            onChange={setBrands}
+                          />
                           <div className="text-xs text-muted-foreground mt-1">Choose the brand(s) this media plan advertises for</div>
                         </div>
 
@@ -381,29 +376,30 @@ export const MediaPlanDetail: Story = {
                             ))}
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Objective</Label>
-                          <Filter
-                            name="Select objective"
-                            keepName
-                            options={objectiveOptions}
-                            selectedValues={objective ? [objective] : []}
-                            onChange={(vals) => setObjective(vals.length ? vals[vals.length - 1] : '')}
-                            className="w-full justify-between"
-                          />
-                          {objective && (
-                            <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                              <div className="text-sm font-medium">{objectiveOptions.find((o) => o.value === objective)?.label ?? objective}</div>
-                              <Button variant="outline" size="sm" onClick={() => setObjective('')} className="h-8 w-8 shrink-0 p-0" aria-label="Remove objective">
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
+                        <SearchSelectList
+                          label="Objective"
+                          placeholder="Search objective…"
+                          options={objectiveOptions}
+                          value={objective ? [objective] : []}
+                          onChange={(vals) => setObjective(vals[0] ?? '')}
+                          multiple={false}
+                        />
+                        <SearchSelectList
+                          label="KPIs"
+                          placeholder="Search KPIs…"
+                          options={kpiFilterOptions}
+                          value={kpis}
+                          onChange={(vals) => { setKpis(vals); setKpiStudies((s) => s.filter((v) => vals.includes(v))); }}
+                          renderSelectedExtra={(opt) => (
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                              <Checkbox
+                                checked={kpiStudies.includes(opt.value)}
+                                onCheckedChange={(c) => setKpiStudies((s) => (c ? [...s, opt.value] : s.filter((v) => v !== opt.value)))}
+                              />
+                              Add a brand-lift study to measure this KPI
+                            </label>
                           )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label>KPIs</Label>
-                          <Filter name="Select KPIs" keepName options={kpiFilterOptions} selectedValues={kpis} onChange={setKpis} className="w-full justify-between" />
-                        </div>
+                        />
                       </div>
                     </FormSection>
 

@@ -25,6 +25,9 @@ export interface SearchSelectListProps {
   multiple?: boolean;
   /** When set, the field is disabled and this muted hint is shown instead of results (e.g. "pick a channel first"). */
   disabledHint?: string;
+  /** Optional extra content rendered inside each selected item's card (below the
+   *  label) — e.g. an optional brand-lift study toggle under a selected KPI. */
+  renderSelectedExtra?: (option: SearchSelectOption) => React.ReactNode;
   className?: string;
 }
 
@@ -43,6 +46,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   icon,
   multiple = true,
   disabledHint,
+  renderSelectedExtra,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -119,20 +123,23 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       {selected.length > 0 && (
         <div className="space-y-1">
           {selected.map((option) => (
-            <div key={option.value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-              <div className="min-w-0">
-                <div className="text-sm font-medium">{option.label}</div>
-                {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
+            <div key={option.value} className="rounded-md border bg-muted/40 p-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{option.label}</div>
+                  {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => remove(option.value)}
+                  className="h-8 w-8 shrink-0 p-0"
+                  aria-label={`Remove ${option.label}`}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => remove(option.value)}
-                className="h-8 w-8 shrink-0 p-0"
-                aria-label={`Remove ${option.label}`}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {renderSelectedExtra && <div className="mt-2">{renderSelectedExtra(option)}</div>}
             </div>
           ))}
         </div>

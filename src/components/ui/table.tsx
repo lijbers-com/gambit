@@ -611,11 +611,16 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     };
   };
 
-  // Get width style for a column (user-resized or default)
+  // Get width style for a column. A user-resized width wins; otherwise a width
+  // declared on the column definition is applied as a fixed width so the column
+  // stays stable regardless of which rows are currently rendered (e.g. expanding
+  // a row to reveal sub-rows with longer content must not shift the columns).
   const getColWidthStyle = (key: string): React.CSSProperties => {
     const w = columnWidths[key];
-    if (w == null) return {};
-    return { width: w, minWidth: w, maxWidth: w };
+    if (w != null) return { width: w, minWidth: w, maxWidth: w };
+    const declared = (allCols.find((c) => c.key === key) as TableColumn<T> | undefined)?.width;
+    if (declared != null) return { width: declared, minWidth: declared, maxWidth: declared };
+    return {};
   };
 
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;

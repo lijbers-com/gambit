@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Sparkles, ChevronRight, Check, X } from 'lucide-react';
+import { Sparkles, ChevronRight, Check, X, HeartPulse, AlertCircle, Lightbulb, Bell, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import {
@@ -43,13 +43,52 @@ export type Advice = {
   action?: { label: string; onClick: () => void };
   /** Rich explanation (stats + chart + insights) shown in the modal. */
   explain?: AdviceExplain;
+  /** Seed this recommendation as already actioned — it renders under "Done". */
+  done?: boolean;
 };
 
-export const adviceToneClasses: Record<AdviceTone, string> = {
-  insight: 'border-border bg-neutral-50 text-neutral-600',
-  alert: 'border-amber-200 bg-amber-50 text-amber-700',
-  tip: 'border-primary/20 bg-primary/5 text-primary',
-  success: 'border-green-200 bg-green-50 text-green-700',
+/**
+ * The notification vocabulary is deliberately small. Every notification is one of
+ * four kinds so the card (and the notification centre) stay legible:
+ *   • Health         — the plan's overall status (handled by HealthNotification)
+ *   • Recommendation — an optimisation you can accept (e.g. automatic budget)
+ *   • Insight        — an informational finding (e.g. CTR could improve)
+ *   • Action needed  — something you must do (incomplete setup, approvals, alerts)
+ */
+export type NotificationKind = 'recommendation' | 'insight' | 'action';
+
+export const notificationKindConfig: Record<NotificationKind, { label: string; Icon: LucideIcon; badge: string; icon: string }> = {
+  recommendation: { label: 'Recommendation', Icon: Lightbulb,   badge: 'border-primary/20 bg-primary/5 text-primary',    icon: 'border border-primary/20 bg-primary/5 text-primary' },
+  insight:        { label: 'Insight',         Icon: Sparkles,    badge: 'border-border bg-neutral-50 text-neutral-600',   icon: 'border border-border bg-neutral-50 text-neutral-600' },
+  action:         { label: 'Action needed',   Icon: AlertCircle, badge: 'border-amber-200 bg-amber-50 text-amber-700',    icon: 'bg-amber-100 text-amber-700' },
+};
+
+/** Collapse the loose per-item badges (Suggestion, Tip, AI Insight, Incomplete…) into one of the four kinds. */
+export const adviceKind = (a: Advice): NotificationKind => {
+  const badge = a.badge.toLowerCase();
+  if (badge.includes('insight')) return 'insight';
+  if (a.tone === 'alert' || badge.includes('incomplete') || badge.includes('alert') || badge.includes('approval') || badge.includes('action')) return 'action';
+  return 'recommendation';
+};
+
+/**
+ * Media-plan health check — surfaced as a notification. Red ("At risk") means the
+ * plan is not performing; amber needs attention; green is healthy. Clicking it
+ * opens the same side panel with the detail behind the status.
+ */
+export type HealthLevel = 'good' | 'attention' | 'risk';
+
+export type HealthNotification = {
+  level: HealthLevel;
+  /** One-line status message shown on the notification row. */
+  message: React.ReactNode;
+  explain?: AdviceExplain;
+};
+
+export const healthConfig: Record<HealthLevel, { label: string; Icon: LucideIcon; row: string; icon: string; badge: string }> = {
+  good:      { label: 'Healthy',         Icon: HeartPulse, row: 'border-green-200 bg-green-50/60 hover:bg-green-50', icon: 'bg-green-100 text-green-700', badge: 'border-green-200 bg-green-100 text-green-700' },
+  attention: { label: 'Needs attention', Icon: HeartPulse, row: 'border-amber-200 bg-amber-50/60 hover:bg-amber-50', icon: 'bg-amber-100 text-amber-700', badge: 'border-amber-200 bg-amber-100 text-amber-700' },
+  risk:      { label: 'At risk',         Icon: HeartPulse, row: 'border-red-200 bg-red-50/60 hover:bg-red-50',       icon: 'bg-red-100 text-red-700',     badge: 'border-red-200 bg-red-100 text-red-700' },
 };
 
 /**
@@ -260,6 +299,8 @@ export function funnelKpiExplain(opts: { stage: string; kpis: string[] }): Advic
 export interface OptimisationCardProps {
   /** Recommendation notifications shown in the card (aim for 2–4). */
   items?: Advice[];
+  /** Media-plan health check, rendered as the first (prominent) notification. */
+  health?: HealthNotification;
   className?: string;
   /** @deprecated kept for caller compatibility — recommendations are always shown. */
   assisted?: boolean;
@@ -274,19 +315,52 @@ export interface OptimisationCardProps {
  * it, or ask the Campaign Agent for detail. KPIs/metrics belong in the metric
  * row, not here.
  */
-export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], className }) => {
+export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], health, className }) => {
   const [active, setActive] = React.useState<Advice | null>(null);
+  const [activeIdx, setActiveIdx] = React.useState<number | null>(null);
+  // When the health notification is the one opened in the side panel.
+  const [activeHealth, setActiveHealth] = React.useState(false);
   const [question, setQuestion] = React.useState('');
+  // Recommendations the user has actioned — seeded from any items flagged `done`,
+  // then grown as the user accepts suggestions in the modal.
+  const [completed, setCompleted] = React.useState<Set<number>>(
+    () => new Set(items.map((a, i) => (a.done ? i : -1)).filter((i) => i >= 0)),
+  );
+
+  const openAdvice = (a: Advice, i: number) => {
+    setActiveHealth(false);
+    setActive(a);
+    setActiveIdx(i);
+  };
+
+  // The health notification reuses the same side panel; modelled as an advice so
+  // the drawer body (question + stats + chart) renders identically.
+  const healthAdvice: Advice | null = health
+    ? { badge: healthConfig[health.level].label, tone: health.level === 'good' ? 'success' : health.level === 'attention' ? 'alert' : 'alert', message: health.message, explain: health.explain }
+    : null;
+
+  const openHealth = () => {
+    if (!healthAdvice) return;
+    setActive(healthAdvice);
+    setActiveIdx(null);
+    setActiveHealth(true);
+  };
 
   const close = () => {
     setActive(null);
+    setActiveIdx(null);
+    setActiveHealth(false);
     setQuestion('');
   };
 
   const accept = () => {
     active?.action?.onClick();
+    if (activeIdx != null) setCompleted((prev) => new Set(prev).add(activeIdx));
     close();
   };
+
+  const todo = items.map((a, i) => ({ a, i })).filter(({ i }) => !completed.has(i));
+  const done = items.map((a, i) => ({ a, i })).filter(({ i }) => completed.has(i));
 
   const askAgent = () => {
     const base = typeof active?.message === 'string' ? active.message : active?.badge ?? '';
@@ -294,34 +368,101 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
     if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
   };
 
+  /** A single notification row — icon tile, status badge, message, chevron. */
+  const NotificationRow = ({ icon: Icon, iconClass, badge, badgeClass, message, onClick, muted }: {
+    icon: LucideIcon; iconClass: string; badge: string; badgeClass: string;
+    message: React.ReactNode; onClick: () => void; muted?: boolean;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'group/notif flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent/50',
+        muted && 'opacity-60 hover:opacity-100',
+      )}
+    >
+      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', iconClass)}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className={cn('inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-medium', badgeClass)}>{badge}</span>
+      <span className={cn('flex-1 min-w-0 truncate text-sm text-foreground', muted && 'text-muted-foreground line-through')}>{message}</span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-colors group-hover/notif:text-foreground" />
+    </button>
+  );
+
   return (
     <div className={cn('rounded-lg border bg-muted/40 p-4 transition-colors', className)}>
       <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <Sparkles className="h-4 w-4 text-primary" />
-        Recommendations
+        <Bell className="h-4 w-4 text-primary" />
+        Notifications
       </div>
 
-      {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Recommendations appear as you make selections.</p>
-      ) : (
-        <ul className="space-y-1">
-          {items.map((a, i) => (
-            <li key={i}>
-              <button
-                type="button"
-                onClick={() => setActive(a)}
-                className="group/advice -mx-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent/70"
-              >
-                <p className="flex-1 min-w-0 truncate text-sm text-muted-foreground">
-                  <span className={cn('mr-2 inline-flex items-center rounded-full border px-2 py-0.5 align-middle text-xs font-medium', adviceToneClasses[a.tone])}>{a.badge}</span>
-                  {a.message}
-                </p>
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-colors group-hover/advice:text-foreground" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="space-y-3">
+        {/* Health check — the plan's overall status, always first. */}
+        {health && (
+          <NotificationRow
+            icon={healthConfig[health.level].Icon}
+            iconClass={healthConfig[health.level].icon}
+            badge={healthConfig[health.level].label}
+            badgeClass={healthConfig[health.level].badge}
+            message={health.message}
+            onClick={openHealth}
+          />
+        )}
+
+        {items.length === 0 && !health ? (
+          <p className="text-sm text-muted-foreground">Notifications appear as you make selections.</p>
+        ) : (
+          <>
+            {/* To do — open recommendation notifications the user still has to action.
+                The heading only shows once there's also a Done section to contrast with. */}
+            {todo.length > 0 && (
+              <div className="space-y-2">
+                {done.length > 0 && (
+                  <div className="px-0.5 pt-1 text-xs font-medium text-muted-foreground">
+                    To do ({todo.length})
+                  </div>
+                )}
+                {todo.map(({ a, i }) => {
+                  const kc = notificationKindConfig[adviceKind(a)];
+                  return (
+                    <NotificationRow
+                      key={i}
+                      icon={kc.Icon}
+                      iconClass={kc.icon}
+                      badge={kc.label}
+                      badgeClass={kc.badge}
+                      message={a.message}
+                      onClick={() => openAdvice(a, i)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Done — notifications already actioned, kept as a record of what's handled. */}
+            {done.length > 0 && (
+              <div className="space-y-2">
+                <div className="px-0.5 pt-1 text-xs font-medium text-muted-foreground">
+                  Done ({done.length})
+                </div>
+                {done.map(({ a, i }) => (
+                  <NotificationRow
+                    key={i}
+                    icon={Check}
+                    iconClass="bg-green-100 text-green-700"
+                    badge={notificationKindConfig[adviceKind(a)].label}
+                    badgeClass={notificationKindConfig[adviceKind(a)].badge}
+                    message={a.message}
+                    onClick={() => openAdvice(a, i)}
+                    muted
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <RightDrawer open={active != null} onOpenChange={(open) => { if (!open) close(); }}>
         <RightDrawerContent className="sm:max-w-xl">
@@ -329,15 +470,24 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
             <>
               <RightDrawerHeader onClose={close}>
                 <RightDrawerTitle className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', adviceToneClasses[active.tone])}>{active.badge}</span>
+                  {activeHealth && health ? (
+                    <>
+                      {(() => { const HIcon = healthConfig[health.level].Icon; return <HIcon className="h-4 w-4" />; })()}
+                      <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', healthConfig[health.level].badge)}>{healthConfig[health.level].label}</span>
+                    </>
+                  ) : (
+                    <>
+                      {(() => { const KIcon = notificationKindConfig[adviceKind(active)].Icon; return <KIcon className="h-4 w-4 text-primary" />; })()}
+                      <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', notificationKindConfig[adviceKind(active)].badge)}>{notificationKindConfig[adviceKind(active)].label}</span>
+                    </>
+                  )}
                 </RightDrawerTitle>
-                <RightDrawerDescription>Campaign Agent recommendation</RightDrawerDescription>
+                <RightDrawerDescription>{activeHealth ? 'Media plan health' : 'Campaign Agent recommendation'}</RightDrawerDescription>
               </RightDrawerHeader>
 
               <RightDrawerBody>
                 <ConversationTemplate
-                  question={active.action ? `Should I ${String(active.action.label).toLowerCase()}?` : 'Can you tell me more about this recommendation?'}
+                  question={activeHealth ? 'How is this media plan doing?' : active.action ? `Should I ${String(active.action.label).toLowerCase()}?` : 'Can you tell me more about this recommendation?'}
                   answer={active.message}
                   stats={active.explain?.stats}
                   chart={active.explain?.chart}
@@ -349,14 +499,34 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
               </RightDrawerBody>
 
               <RightDrawerFooter className="justify-between">
-                <Button variant="outline" className="gap-1.5" onClick={close}>
-                  <X className="h-4 w-4" />
-                  Decline
-                </Button>
-                <Button className="gap-1.5" onClick={accept}>
-                  <Check className="h-4 w-4" />
-                  {active.action ? active.action.label : 'Accept'}
-                </Button>
+                {activeHealth ? (
+                  <Button variant="outline" className="ml-auto" onClick={close}>Close</Button>
+                ) : activeIdx != null && completed.has(activeIdx) ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => {
+                        if (activeIdx != null) setCompleted((prev) => { const n = new Set(prev); n.delete(activeIdx); return n; });
+                        close();
+                      }}
+                    >
+                      Move back to to-do
+                    </Button>
+                    <Button variant="outline" onClick={close}>Close</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="gap-1.5" onClick={close}>
+                      <X className="h-4 w-4" />
+                      Decline
+                    </Button>
+                    <Button className="gap-1.5" onClick={accept}>
+                      <Check className="h-4 w-4" />
+                      {active.action ? active.action.label : 'Accept'}
+                    </Button>
+                  </>
+                )}
               </RightDrawerFooter>
             </>
           )}

@@ -28,7 +28,7 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
-import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, type Advice, type AdviceTone } from './optimisation-card';
+import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
@@ -664,7 +664,26 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       if (incomplete > 0) {
         items.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
       }
+      // A previously-actioned recommendation, kept so the card shows both what's
+      // still to do and what's already been handled.
+      items.push({ badge: 'Applied', tone: 'success', message: 'Audience targeting expanded to in-market shoppers — CTR up 12% since.', explain: ctrTargetingExplain(), done: true });
       return items;
+    })();
+
+    // Media-plan health check — surfaced as the first notification. Red ("At risk")
+    // when the plan is not performing (over-pacing or campaigns still unfinished),
+    // amber when it needs attention, green when it's on track.
+    const healthNotification: HealthNotification | undefined = (() => {
+      if (layout === 'vertical' || guidedSetup) return undefined;
+      const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
+      const overPace = budgetUsagePercentage !== undefined && budgetUsagePercentage >= 90;
+      if (overPace || incomplete >= 2) {
+        return { level: 'risk', message: `"${internalTitle}" is not on track — ${overPace ? 'budget is pacing to overspend' : `${incomplete} campaigns still need creatives or bookings`}.`, explain: budgetPacingExplain() };
+      }
+      if ((budgetUsagePercentage !== undefined && budgetUsagePercentage >= 75) || incomplete === 1) {
+        return { level: 'attention', message: `"${internalTitle}" needs attention — ${incomplete === 1 ? '1 campaign to finish' : 'watch the budget pacing'}.`, explain: budgetPacingExplain() };
+      }
+      return { level: 'good', message: `"${internalTitle}" is healthy — pacing and delivery are on track.`, explain: budgetOptimisationExplain() };
     })();
 
     return (
@@ -799,6 +818,39 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             )}
           </div>
 
+          {/* Recommendations — directly under the title in both states. Collapsed
+              shows a compact one-line count; open shows the full recommendations
+              card (with its to-do / done split). Details sit below this. */}
+          {layout !== 'vertical' && adviceItems.length > 0 && (
+            isCollapsed ? (
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                {healthNotification && (() => {
+                  const HealthIcon = healthConfig[healthNotification.level].Icon;
+                  return (
+                    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
+                      <HealthIcon className="h-3 w-3" />
+                      {healthConfig[healthNotification.level].label}
+                    </span>
+                  );
+                })()}
+                <span className="inline-flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+                  {(() => {
+                    const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
+                    const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
+                    // Count only open (not-done) notifications.
+                    const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
+                    return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(' · ');
+                  })()}
+                </span>
+              </div>
+            ) : !guidedSetup ? (
+              <div onClick={(e) => e.stopPropagation()}>
+                <OptimisationCard items={adviceItems} health={healthNotification} />
+              </div>
+            ) : null
+          )}
+
           {/* Run time + budget highlight — always visible on the media-plan card
               so the key facts are clear at a glance (the metric cards stay below). */}
           {layout !== 'vertical' && (
@@ -849,20 +901,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             )
           )}
 
-          {/* Recommendations — its own line below the bar in the collapsed card,
-              broken down by type as plain text (e.g. "1 alert · 1 insight · 1 tip")
-              so the colours don't make the card busy. */}
-          {layout !== 'vertical' && isCollapsed && adviceItems.length > 0 && (
-            <div className="inline-flex items-center gap-1.5 pt-0.5 text-sm text-muted-foreground">
-              <Sparkles className="h-4 w-4 shrink-0 text-primary" />
-              {(() => {
-                const toneLabel: Record<AdviceTone, string> = { insight: 'insight', alert: 'alert', tip: 'tip', success: 'win' };
-                const order: AdviceTone[] = ['alert', 'insight', 'success', 'tip'];
-                const counts = adviceItems.reduce((acc, a) => { acc[a.tone] = (acc[a.tone] ?? 0) + 1; return acc; }, {} as Record<string, number>);
-                return order.filter((t) => counts[t]).map((t) => `${counts[t]} ${toneLabel[t]}${counts[t] === 1 ? '' : 's'}`).join(' · ');
-              })()}
-            </div>
-          )}
         </CardHeader>
 
         {(layout === 'vertical' || !isCollapsed) && (
@@ -1103,8 +1141,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           ) : (
             // Horizontal Layout
             <div className="space-y-6">
-              {/* Recommendations — surfaced above the metric cards for saved plans. */}
-              {!guidedSetup && <OptimisationCard items={adviceItems} />}
+              {/* Recommendations now render directly under the title in the header
+                  (see CardHeader), so the metric cards lead the open content here. */}
 
               {/* Metrics Row - Below the title (not rendered during guided setup first step) */}
               {!isGuidedSettingsPhase && (() => {

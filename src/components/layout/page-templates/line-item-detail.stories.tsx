@@ -456,6 +456,38 @@ export const Display: Story = {
     const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
     const [positionOpen, setPositionOpen] = React.useState(true);
+    // Create-placement selection (media product / channel + positions), same
+    // pattern as the offsite booking.
+    const [displayMediaProduct, setDisplayMediaProduct] = React.useState<string[]>([]);
+    const [displayPositions, setDisplayPositions] = React.useState<string[]>([]);
+    const displayMediaProducts = [
+      { value: 'homepage', label: 'Homepage Banners', description: 'Above-the-fold homepage placements' },
+      { value: 'category', label: 'Category Page Banners', description: 'Category and subcategory pages' },
+      { value: 'pdp', label: 'Product Detail Page Banners', description: 'On product pages' },
+      { value: 'ros', label: 'Run-of-Site Display', description: 'Across the whole site' },
+      { value: 'search', label: 'Search Results Banners', description: 'On search-results pages' },
+    ];
+    const displayPositionsByProduct: Record<string, { value: string; label: string; description: string }[]> = {
+      homepage: [
+        { value: 'hp-hero', label: 'Hero', description: 'Top hero slot' },
+        { value: 'hp-mid', label: 'Mid-page', description: 'Mid homepage' },
+        { value: 'hp-footer', label: 'Footer', description: 'Bottom of homepage' },
+      ],
+      category: [
+        { value: 'cat-top', label: 'Top of category', description: 'Above the product grid' },
+        { value: 'cat-inline', label: 'Inline', description: 'Within the product grid' },
+      ],
+      pdp: [
+        { value: 'pdp-above', label: 'Above the fold', description: 'Top of the product page' },
+        { value: 'pdp-related', label: 'Related products', description: 'Near related items' },
+      ],
+      ros: [{ value: 'ros-standard', label: 'Standard', description: 'Run-of-site slot' }],
+      search: [
+        { value: 'srch-top', label: 'Top of results', description: 'Above search results' },
+        { value: 'srch-side', label: 'Sidebar', description: 'Beside search results' },
+      ],
+    };
+    const displayCurrentPositions = displayMediaProduct[0] ? (displayPositionsByProduct[displayMediaProduct[0]] ?? []) : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
     const [positionSearch, setPositionSearch] = React.useState('');
 
@@ -495,26 +527,17 @@ export const Display: Story = {
       );
     };
 
-    // Reusable section header
-    const SectionHeader = ({ number, title, open, onToggle }: { number: number; title: string; open: boolean; onToggle: () => void }) => (
-      <button
-        className="w-full flex items-center justify-between p-6 text-left"
-        onClick={onToggle}
-      >
-        <span className="font-semibold text-base">{number}. {title}</span>
-        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
-      </button>
+    // Section header — plain, non-collapsible heading (no number, no chevron)
+    // so booking forms read the same as every other form template.
+    const SectionHeader = (_props: { number?: number; title: string; open?: boolean; onToggle?: () => void }) => (
+      <div className="px-6 pt-6 pb-4">
+        <h2 className="text-lg font-semibold">{_props.title}</h2>
+      </div>
     );
 
-    // Reusable sub-section header (within a section)
-    const SubSectionHeader = ({ title, open, onToggle }: { title: string; open: boolean; onToggle: () => void }) => (
-      <button
-        className="w-full flex items-center justify-between py-3 text-left border-t"
-        onClick={onToggle}
-      >
-        <span className="font-semibold text-sm">{title}</span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`} />
-      </button>
+    // Sub-section header — plain heading, no divider line, no collapse.
+    const SubSectionHeader = (_props: { title: string; open?: boolean; onToggle?: () => void }) => (
+      <h3 className="font-semibold text-sm">{_props.title}</h3>
     );
 
     // Toggle row (used in delivery behavior / objectives / pricing)
@@ -560,8 +583,8 @@ export const Display: Story = {
               bleedEdges
             />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
+          <div>
+            <div className="space-y-4">
 
               {/* Tabs + outer card pair (no gap between them — the tab visually attaches to the card top) */}
               <div>
@@ -599,6 +622,9 @@ export const Display: Story = {
                   bookingTab === 'details' && 'rounded-tl-none',
                 )}
               >
+              {/* Full-width tab card: form on the left, the summary is part of the tab on the right */}
+              <div className="grid grid-cols-1 lg:grid-cols-3">
+              <div className="lg:col-span-2 min-w-0">
 
               {/* 1. Booking setup — Booking details tab */}
               <div className={cn(bookingTab !== 'details' && 'hidden')}>
@@ -703,34 +729,28 @@ export const Display: Story = {
                       )}
                     </div>
 
-                    {/* Position sub-section */}
-                    <div>
-                      <SubSectionHeader title="Position" open={positionOpen} onToggle={() => setPositionOpen(v => !v)} />
-                      {positionOpen && (
-                        <div className="pt-4 space-y-3">
-                          <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
-                            {(['channels', 'positions'] as const).map(tab => (
-                              <button
-                                key={tab}
-                                onClick={() => setPositionTab(tab)}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-                                  positionTab === tab
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                              >
-                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                              </button>
-                            ))}
-                          </div>
-                          <SearchInput
-                            value={positionSearch}
-                            onChange={(e) => setPositionSearch(e.target.value)}
-                            placeholder="Search..."
-                            className="w-full"
-                          />
-                        </div>
-                      )}
+                    {/* Create placement — media product (channel) + positions/slots,
+                        same component as the offsite booking. */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm">Create placement</h3>
+                      <SearchSelectList
+                        label="Find media product"
+                        placeholder="Search channel or media product…"
+                        icon={<LayoutDashboard className="w-4 h-4" />}
+                        options={displayMediaProducts}
+                        value={displayMediaProduct}
+                        onChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
+                        multiple={false}
+                      />
+                      <SearchSelectList
+                        label="Positions / slots"
+                        placeholder="Search position or slot…"
+                        icon={<LayoutDashboard className="w-4 h-4" />}
+                        options={displayCurrentPositions}
+                        value={displayPositions}
+                        onChange={setDisplayPositions}
+                        disabledHint={displayMediaProduct.length ? undefined : 'Select a media product first to see its positions.'}
+                      />
                     </div>
                   </div>
                 )}
@@ -954,6 +974,27 @@ export const Display: Story = {
                 </div>
               </div>
               </div>
+              {/* end form column */}
+              <aside className="p-6 space-y-4">
+                <SummaryCard
+                  title="Booking"
+                  variant="details"
+                  className="bg-white"
+                  items={[
+                    ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
+                    ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
+                    ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
+                    ...(activeDays.length > 0 && activeDays.length < 7 ? [{ label: 'Active days', value: activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') }] : []),
+                    ...(targetValue ? [{ label: 'Target', value: `${targetMode === 'inclusive' ? '+ ' : '- '}${targetValue}` }] : []),
+                    ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
+                  ]}
+                />
+                <CampaignDetailsSidebar />
+                <MediaPlanSidebar />
+              </aside>
+              </div>
+              {/* end form + summary grid */}
+              </div>
               {/* end single outer card */}
               </div>
               {/* end tabs+card wrapper */}
@@ -962,25 +1003,6 @@ export const Display: Story = {
                 <Button variant="outline">Cancel</Button>
                 <Button>Submit for approval</Button>
               </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="flex flex-col gap-4 lg:mt-[45px]">
-              <SummaryCard
-                title="Booking"
-                variant="details"
-                className="bg-white"
-                items={[
-                  ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
-                  ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
-                  ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
-                  ...(activeDays.length > 0 && activeDays.length < 7 ? [{ label: 'Active days', value: activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') }] : []),
-                  ...(targetValue ? [{ label: 'Target', value: `${targetMode === 'inclusive' ? '+ ' : '- '}${targetValue}` }] : []),
-                  ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
-                ]}
-              />
-              <CampaignDetailsSidebar />
-              <MediaPlanSidebar />
             </div>
           </div>
         </AppLayout>
@@ -1621,8 +1643,8 @@ export const DigitalInStore: Story = {
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 min-w-0">
+              <div>
+                <div className="min-w-0">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -1649,6 +1671,8 @@ export const DigitalInStore: Story = {
                     ))}
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="lg:col-span-2 min-w-0">
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
@@ -2497,11 +2521,9 @@ export const DigitalInStore: Story = {
                         </div>
                       </CardContent>
                     )}
-                  </Card>
-                </div>
-
-                {/* Sidebar */}
-                <div className="flex flex-col gap-4 lg:mt-[45px]">
+                  </div>
+                  {/* end form column */}
+                  <aside className="p-6 space-y-4">
                   <SummaryCard
                     title="Booking"
                     variant="details"
@@ -2571,6 +2593,11 @@ export const DigitalInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
+                  </aside>
+                  {/* end summary column */}
+                  </div>
+                  {/* end form + summary grid */}
+                  </Card>
                 </div>
               </div>
             </div>
@@ -3105,8 +3132,8 @@ export const OfflineInStore: Story = {
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 min-w-0">
+              <div>
+                <div className="min-w-0">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -3133,6 +3160,8 @@ export const OfflineInStore: Story = {
                     ))}
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="lg:col-span-2 min-w-0">
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
@@ -3800,11 +3829,9 @@ export const OfflineInStore: Story = {
                         {/* <Button>Submit for approval</Button> */}
                       </div>
                     </CardContent>
-                  </Card>
-                </div>
-
-                {/* Sidebar */}
-                <div className="flex flex-col gap-4 lg:mt-[45px]">
+                  </div>
+                  {/* end form column */}
+                  <aside className="p-6 space-y-4">
                   <SummaryCard
                     title="Booking"
                     variant="details"
@@ -3857,6 +3884,11 @@ export const OfflineInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
+                  </aside>
+                  {/* end summary column */}
+                  </div>
+                  {/* end form + summary grid */}
+                  </Card>
                 </div>
               </div>
             </div>
@@ -4054,8 +4086,8 @@ export const SponsoredProducts: Story = {
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 md:gap-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 min-w-0">
+              <div>
+                <div className="min-w-0">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -4082,6 +4114,8 @@ export const SponsoredProducts: Story = {
                     ))}
                   </div>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="lg:col-span-2 min-w-0">
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
@@ -4407,11 +4441,9 @@ export const SponsoredProducts: Story = {
                         <Button>Submit for approval</Button>
                       </div>
                     </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Sidebar */}
-                <div className="flex flex-col gap-4 lg:mt-[45px]">
+                  </div>
+                  {/* end form column */}
+                  <aside className="p-6 space-y-4">
                   <SummaryCard
                     title="Booking"
                     variant="details"
@@ -4459,6 +4491,11 @@ export const SponsoredProducts: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
+                  </aside>
+                  {/* end summary column */}
+                  </div>
+                  {/* end form + summary grid */}
+                  </Card>
                 </div>
               </div>
             </div>
@@ -4644,8 +4681,8 @@ export const OffsiteDisplay: Story = {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 min-w-0">
+          <div>
+            <div className="min-w-0">
               <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -4672,6 +4709,8 @@ export const OffsiteDisplay: Story = {
                     ))}
                   </div>
               <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+              <div className="grid grid-cols-1 lg:grid-cols-3">
+              <div className="lg:col-span-2 min-w-0">
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
@@ -4963,11 +5002,9 @@ export const OffsiteDisplay: Story = {
                     <Button>Submit for approval</Button>
                   </div>
                 </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar */}
-            <div className="flex flex-col gap-4 lg:mt-[45px]">
+              </div>
+              {/* end form column */}
+              <aside className="p-6 space-y-4">
               <SummaryCard
                 title="Booking"
                 variant="details"
@@ -4999,6 +5036,11 @@ export const OffsiteDisplay: Story = {
                 ]}
               />
               <MediaPlanSidebar />
+              </aside>
+              {/* end summary column */}
+              </div>
+              {/* end form + summary grid */}
+              </Card>
             </div>
           </div>
         </AppLayout>

@@ -853,17 +853,22 @@ export const GoalSelection: Story = {
                                 const isSelected = selectedStudies.includes(kpi);
                                 const isFree = budgetNum >= pricing.freeThreshold;
                                 return (
-                                  <label className="flex cursor-pointer items-center justify-between gap-3">
-                                    <span className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <Checkbox
-                                        checked={isSelected}
-                                        onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
-                                      />
-                                      <FlaskConical className="h-3.5 w-3.5" />
-                                      Add a brand-lift study
-                                    </span>
-                                    <span className="shrink-0 text-right text-[10px] text-muted-foreground">
-                                      {isFree ? 'Included' : `+€${pricing.fee.toLocaleString()} · free above €${(pricing.freeThreshold / 1000).toFixed(0)}k`}
+                                  <label className="flex cursor-pointer items-start gap-2.5">
+                                    <Checkbox
+                                      className="mt-0.5"
+                                      checked={isSelected}
+                                      onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                    />
+                                    <span className="min-w-0 space-y-0.5">
+                                      <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                                        <FlaskConical className="h-3.5 w-3.5 shrink-0" />
+                                        Add a brand-lift study
+                                        <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
+                                      </span>
+                                      <span className="block text-xs text-muted-foreground">
+                                        Measures the uplift this KPI drives against a control group.{' '}
+                                        {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
+                                      </span>
                                     </span>
                                   </label>
                                 );

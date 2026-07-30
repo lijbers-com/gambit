@@ -47,3 +47,6 @@ public/storybook
 # vercel config variants
 vercel-app.json
 vercel-nextjs.json
+
+# EpicContext local config (contains live API key — never commit)
+.epicontext

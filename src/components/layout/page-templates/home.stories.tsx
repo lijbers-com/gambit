@@ -10,6 +10,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { ImagePlus, LayoutList, BarChart3, ArrowRight, Sparkles, WalletCards, Plus } from 'lucide-react';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
+import { useSession } from '@/lib/db';
 import React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -173,6 +174,10 @@ export const Home: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
+    // Greet the logged-in prototype user (falls back for Storybook).
+    const sessionUser = useSession();
+    const firstName = (sessionUser?.name ?? 'Jane Doe').split(' ')[0];
+    const roleBadge = sessionUser?.role ?? 'Ad operations';
 
     // A single-metric task widget (creatives / bookings / insights).
     const renderTaskWidget = (w: (typeof taskWidgets)[number]) => {
@@ -218,11 +223,11 @@ export const Home: Story = {
         <AppLayout
           routes={routes}
           logo={{ src: '/gambit-logo.svg', alt: 'Gambit Logo', width: 40, height: 40 }}
-          user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
+          user={{ name: sessionUser?.name ?? 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Welcome back, Jane',
+            title: `Welcome back, ${firstName}`,
             subtitle: 'Your tasks and the latest updates',
             showOptionsMenu: false,
           }}
@@ -232,7 +237,7 @@ export const Home: Story = {
             <section>
               <div className="mb-3 flex items-center gap-2">
                 <h2 className="text-lg font-semibold">Your tasks</h2>
-                <Badge variant="secondary">Ad operations</Badge>
+                <Badge variant="secondary">{roleBadge}</Badge>
               </div>
               {/* Media plans — top row: two plans that need attention, each with
                   their recommendations rendered with the same OptimisationCard

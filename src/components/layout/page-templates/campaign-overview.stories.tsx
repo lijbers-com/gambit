@@ -21,6 +21,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, CornerDownRight } from 'lucide-react';
 import { addDays } from 'date-fns';
+import { useDb, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
@@ -100,21 +101,38 @@ const productImages = [
   '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg',
 ];
 
-const campaignData = [
-  { id: 'C-001', status: 'Running', advertiser: 'Acme Media', name: 'Holiday Sale', bookings: 5, creatives: 3, placements: 12, start: '2024-06-01', end: '2024-06-30', engines: ['Display', 'Sponsored products', 'Offsite'], products: { images: productImages, total: 3 }, spendToDate: 0, spendingLimit: 10000 },
-  { id: 'C-002', status: 'Ready', advertiser: 'BrandX', name: 'Summer Launch', bookings: 2, creatives: 1, placements: 8, start: '2024-07-01', end: '2024-07-31', engines: ['Digital in-store', 'Offsite'], products: { images: productImages.slice(0, 1), total: 1 }, spendToDate: 0, spendingLimit: 100000 },
-  { id: 'C-003', status: 'In option', advertiser: 'MediaWorks', name: 'Back to School', bookings: 4, creatives: 2, placements: 15, start: '2024-08-10', end: '2024-09-10', engines: ['Sponsored products', 'Offsite'], products: { images: productImages.slice(0, 2), total: 7 }, spendToDate: 0, spendingLimit: 100000 },
-  { id: 'C-004', status: 'Paused', advertiser: 'AdPartners', name: 'Black Friday', bookings: 6, creatives: 4, placements: 20, start: '2024-11-01', end: '2024-11-30', engines: ['Display', 'Digital in-store', 'Offsite'], products: { images: productImages, total: 13 }, spendToDate: 0, spendingLimit: 80000 },
-];
+// Campaign rows come from the prototype database; these helpers translate
+// store statuses/engines into the table's display vocabulary.
+const statusLabel: Record<string, string> = {
+  'running': 'Running',
+  'in-option': 'In option',
+  'draft': 'Draft',
+  'paused': 'Paused',
+  'completed': 'Completed',
+};
 
 const statusVariant = (status: string) => {
   switch (status) {
     case 'Running': return 'default';
-    case 'Ready': return 'secondary';
+    case 'Completed': return 'secondary';
     case 'In option': return 'outline';
+    case 'Draft': return 'outline';
     case 'Paused': return 'destructive';
     default: return 'outline';
   }
+};
+
+/** Page engineType param ('digital in-store', 'sponsored products', …) → EngineId. */
+const engineTypeToId = (engineType: string): EngineId | 'all' => {
+  const norm = engineType.toLowerCase().replace(/in[-\s]?store/g, 'instore').replace(/[\s_]+/g, '-');
+  const map: Record<string, EngineId> = {
+    'display': 'display',
+    'sponsored-products': 'sponsored-products',
+    'digital-instore': 'digital-instore',
+    'offline-instore': 'offline-instore',
+    'offsite': 'offsite',
+  };
+  return map[norm] ?? 'all';
 };
 
 // Per-proposition metric cards now live in src/lib/proposition-metrics.ts
@@ -155,36 +173,60 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
     const toggleRow = (id: string) =>
       setExpandedRows((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    const filteredCampaignData = campaignData.filter(row => {
+    // ── Live campaigns + bookings from the prototype database ──────────
+    const db = useDb();
+    const engineId = engineTypeToId(engineType);
+    const engineCampaigns = db.campaigns.filter((c) => engineId === 'all' || c.engine === engineId);
+
+    const campaignRowsFromDb = engineCampaigns.map((c, i) => {
+      const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
+      const advertiserName = db.advertisers.find((a) => a.id === plan?.advertiserId)?.name ?? '';
+      const bookings = db.bookings.filter((b) => b.campaignId === c.id);
+      const positions = new Set(bookings.flatMap((b) => b.positionIds)).size;
+      return {
+        id: c.id,
+        status: statusLabel[c.status] ?? c.status,
+        advertiser: advertiserName,
+        name: c.name,
+        bookings: bookings.length,
+        creatives: bookings.length, // creatives ≈ one per booking until modelled
+        placements: positions,
+        start: c.startDate,
+        end: c.endDate,
+        products: { images: productImages.slice(0, (i % 3) + 1), total: (i % 3) + 1 },
+        spendToDate: c.spend,
+        spendingLimit: c.budget,
+        _bookings: bookings,
+      };
+    });
+
+    const filteredCampaignData = campaignRowsFromDb.filter(row => {
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
       return statusMatch && advertiserMatch;
     });
-    // Synthesize the bookings that live inside a campaign (the overview only
-    // stores a count). Engines cycle so each booking maps to a real proposition.
-    const bookingsForCampaign = (c: typeof campaignData[number]) =>
-      Array.from({ length: c.bookings }, (_, i) => {
-        const engine = c.engines[i % c.engines.length];
-        return {
-          _type: 'booking' as const,
-          _id: `${c.id}-b${i + 1}`,
-          id: `${c.id}-B${String(i + 1).padStart(2, '0')}`,
-          status: c.status,
-          advertiser: '',
-          name: `${engine} booking ${i + 1}`,
-          engine,
-          parentId: c.id,
-          products: { images: [] as string[], total: 0 },
-          creatives: 0,
-          placements: 0,
-          spendToDate: 0,
-          spendingLimit: 0,
-          start: c.start,
-          end: c.end,
-        };
-      });
+
+    // Real bookings for a campaign, mapped into the table's row shape.
+    const bookingsForCampaign = (c: typeof campaignRowsFromDb[number]) =>
+      c._bookings.map((b) => ({
+        _type: 'booking' as const,
+        _id: b.id,
+        id: b.id,
+        status: statusLabel[b.status] ?? b.status,
+        advertiser: '',
+        name: b.name,
+        engine: engineType,
+        parentId: c.id,
+        products: { images: [] as string[], total: 0 },
+        creatives: 0,
+        placements: b.positionIds.length,
+        spendToDate: b.spend,
+        spendingLimit: b.budget,
+        start: b.startDate,
+        end: b.endDate,
+      }));
     // Flatten campaigns + (when expanded) their bookings into one row list.
-    type CampaignRow = typeof campaignData[number] & { _type: 'campaign'; _id: string; engine?: string; parentId?: string };
+    type CampaignRow = typeof campaignRowsFromDb[number] & { _type: 'campaign'; _id: string; engine?: string; parentId?: string };
     type BookingRow = ReturnType<typeof bookingsForCampaign>[number];
     const tableRows: (CampaignRow | BookingRow)[] = filteredCampaignData.flatMap((c) => {
       const campaignRow: CampaignRow = { ...c, _type: 'campaign', _id: c.id };

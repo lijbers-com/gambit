@@ -17,131 +17,46 @@ import { DateRange } from 'react-day-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
 import { addDays } from 'date-fns';
+import { useDb, useSession, createMediaPlan, updateMediaPlan, deleteMediaPlan, type EngineId, type PlanStatus } from '@/lib/db';
 
-// Campaign data for the card view
-const campaignSummaryData = [
-  {
-    id: 'C-001',
-    campaignType: 'sponsored-products',
-    title: 'Holiday Sale Plan',
-    badge: { text: 'Best ROAS', variant: 'default' as const },
-    goal: 'performance-transaction',
-    estimatedRoas: '4.8x',
-    budget: '$15,000',
-    usedBudget: '$9,200',
-    totalPrice: '$9,150',
-    budgetUsagePercentage: 61,
-    placements: 12,
-    bookings: 9,
-    engines: [
-      { id: 'display', name: 'Display', campaignName: 'Holiday Banners', status: 'running' as const, enabled: true, budget: 5000, spend: 3800 },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Holiday Top Picks', status: 'running' as const, enabled: true, budget: 4000, spend: 3600 },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'Holiday Screens', status: 'ready' as const, enabled: true, budget: 3000, spend: 1200 },
-      { id: 'offline', name: 'Offline in-store', campaignName: 'Holiday POS', status: 'in-option' as const, enabled: true, budget: 2000, spend: 400 },
-      { id: 'offsite', name: 'Offsite', campaignName: 'Holiday Open Web', status: 'draft' as const, enabled: true, budget: 1000, spend: 150 },
-    ],
-    dateRange: {
-      from: new Date('2024-06-01'),
-      to: addDays(new Date('2024-06-01'), 29),
-    },
-    features: [],
-  },
-  {
-    id: 'C-002',
-    campaignType: 'display',
-    title: 'Summer Launch Plan',
-    badge: { text: 'High CTR', variant: 'secondary' as const },
-    goal: 'brand-awareness',
-    estimatedRoas: '3.2x',
-    budget: '$8,500',
-    usedBudget: '$2,100',
-    totalPrice: '$2,125',
-    budgetUsagePercentage: 25,
-    placements: 8,
-    bookings: 3,
-    engines: [
-      { id: 'display', name: 'Display', campaignName: 'Summer Banners', status: 'running' as const, enabled: true, budget: 5000, spend: 1500 },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'Summer Kiosks', status: 'ready' as const, enabled: true, budget: 3500, spend: 625 },
-    ],
-    dateRange: {
-      from: new Date('2024-07-01'),
-      to: addDays(new Date('2024-07-01'), 30),
-    },
-    features: [],
-  },
-  {
-    id: 'C-003',
-    campaignType: 'digital-instore',
-    title: 'Back to School Plan',
-    badge: { text: 'In Option', variant: 'outline' as const },
-    goal: 'customer-acquisition',
-    estimatedRoas: '5.1x',
-    budget: '$12,000',
-    usedBudget: '$4,800',
-    totalPrice: '$4,800',
-    budgetUsagePercentage: 40,
-    placements: 15,
-    bookings: 4,
-    engines: [
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'Back to School Promos', status: 'running' as const, enabled: true, budget: 7000, spend: 3200 },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'School Aisle Screens', status: 'running' as const, enabled: true, budget: 5000, spend: 1600 },
-    ],
-    dateRange: {
-      from: new Date('2024-08-10'),
-      to: addDays(new Date('2024-08-10'), 31),
-    },
-    features: [],
-  },
-  {
-    id: 'C-004',
-    campaignType: 'offline-instore',
-    title: 'Black Friday Plan',
-    badge: { text: 'Paused', variant: 'destructive' as const },
-    goal: 'performance-transaction',
-    estimatedRoas: '6.2x',
-    budget: '$25,000',
-    usedBudget: '$22,800',
-    totalPrice: '$22,750',
-    budgetUsagePercentage: 91,
-    placements: 20,
-    bookings: 11,
-    engines: [
-      { id: 'display', name: 'Display', campaignName: 'BF Homepage Takeover', status: 'paused' as const, enabled: true, budget: 8000, spend: 7600 },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'BF Deal Listings', status: 'paused' as const, enabled: true, budget: 7000, spend: 6500 },
-      { id: 'digital', name: 'Digital in-store', campaignName: 'BF Store Screens', status: 'paused' as const, enabled: true, budget: 5000, spend: 4800 },
-      { id: 'offline', name: 'Offline in-store', campaignName: 'BF Shelf Talkers', status: 'paused' as const, enabled: true, budget: 5000, spend: 3850 },
-      { id: 'offsite', name: 'Offsite', campaignName: 'BF Open Web', status: 'new' as const, enabled: false },
-    ],
-    dateRange: {
-      from: new Date('2024-11-01'),
-      to: addDays(new Date('2024-11-01'), 29),
-    },
-    features: [],
-  },
-  {
-    id: 'C-005',
-    campaignType: 'display',
-    title: 'New Year Plan',
-    badge: { text: 'Ready', variant: 'secondary' as const },
-    goal: 'retargeting',
-    estimatedRoas: '4.5x',
-    budget: '$18,000',
-    usedBudget: '$1,200',
-    totalPrice: '$19,500',
-    budgetUsagePercentage: 7,
-    placements: 14,
-    bookings: 4,
-    engines: [
-      { id: 'display', name: 'Display', campaignName: 'NY Retargeting Banners', status: 'ready' as const, enabled: true, budget: 10000, spend: 700 },
-      { id: 'sponsored', name: 'Sponsored products', campaignName: 'NY Featured Products', status: 'ready' as const, enabled: true, budget: 8000, spend: 500 },
-    ],
-    dateRange: {
-      from: new Date('2025-01-01'),
-      to: addDays(new Date('2025-01-01'), 31),
-    },
-    features: [],
-  },
-];
+// ── DB → card-view mapping ─────────────────────────────────────────────
+// The media-plan cards render straight from the prototype database; these
+// helpers translate store entities into the CampaignSummary props.
+
+/** DB engine id → CampaignSummary engine id (its internal vocabulary). */
+const engineCardId: Record<EngineId, string> = {
+  'display': 'display',
+  'sponsored-products': 'sponsored',
+  'digital-instore': 'digital',
+  'offline-instore': 'offline',
+  'offsite': 'offsite',
+};
+
+const engineCardName: Record<EngineId, string> = {
+  'display': 'Display',
+  'sponsored-products': 'Sponsored products',
+  'digital-instore': 'Digital in-store',
+  'offline-instore': 'Offline in-store',
+  'offsite': 'Offsite',
+};
+
+const engineCardStatus: Record<PlanStatus, 'new' | 'draft' | 'ready' | 'in-option' | 'running' | 'paused'> = {
+  'draft': 'draft',
+  'in-option': 'in-option',
+  'running': 'running',
+  'paused': 'paused',
+  'completed': 'ready',
+};
+
+const planBadge = (status: PlanStatus): { text: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' } => {
+  switch (status) {
+    case 'running': return { text: 'Running', variant: 'success' };
+    case 'paused': return { text: 'Paused', variant: 'destructive' };
+    case 'completed': return { text: 'Completed', variant: 'secondary' };
+    case 'draft': return { text: 'Draft', variant: 'outline' };
+    default: return { text: 'In-option', variant: 'outline' };
+  }
+};
 
 const logData = [
   { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Holiday Sale Campaign', description: 'Initial campaign creation' },
@@ -191,66 +106,82 @@ function AllCampaignsPage() {
   const newStartDate = searchParams.get('startDate');
   const newEndDate = searchParams.get('endDate');
 
-  type CampaignData = typeof campaignSummaryData[number];
-  // Dynamic list of campaigns
-  const [campaigns, setCampaigns] = React.useState<CampaignData[]>(campaignSummaryData);
-  const nextId = React.useRef(campaigns.length + 1);
+  // ── Live data from the prototype database ────────────────────────────
+  const db = useDb();
+  const sessionUser = useSession();
 
-  // Add newly created media plan from URL params (includes budget, advertiser, dates from creation flow)
+  // A media plan arriving from the create flow via URL params is written to
+  // the store once (guarded against strict-mode double effects).
+  const createdFromParams = React.useRef(false);
   React.useEffect(() => {
-    if (newCampaignName) {
-      const newCampaign: CampaignData = {
-        id: `C-${String(nextId.current).padStart(3, '0')}`,
-        campaignType: 'new',
-        title: newCampaignName,
-        badge: { text: 'Draft', variant: 'outline' as const },
-        goal: '',
-        estimatedRoas: '0x',
-        budget: newBudget ? `€${newBudget}` : '',
-        usedBudget: '',
-        totalPrice: '',
-        budgetUsagePercentage: 0,
-        placements: 0,
-        bookings: 0,
-        engines: [],
-        dateRange: {
-          from: newStartDate ? new Date(newStartDate) : new Date(),
-          to: newEndDate ? new Date(newEndDate) : addDays(new Date(), 30),
-        },
-        features: [],
-      };
-      nextId.current += 1;
-      setCampaigns(prev => [newCampaign, ...prev]);
+    if (newCampaignName && !createdFromParams.current) {
+      createdFromParams.current = true;
+      const plan = createMediaPlan({
+        name: newCampaignName,
+        advertiserId: db.advertisers[0]?.id ?? 'adv-acme',
+        brandIds: [],
+        status: 'draft',
+        kpis: [],
+        budget: newBudget ? parseFloat(newBudget) || 0 : 0,
+        startDate: (newStartDate ? new Date(newStartDate) : new Date()).toISOString().slice(0, 10),
+        endDate: (newEndDate ? new Date(newEndDate) : addDays(new Date(), 30)).toISOString().slice(0, 10),
+        createdBy: sessionUser?.id,
+      });
+      setNewCampaignIds(prev => new Set(prev).add(plan.id));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newCampaignName]);
 
-  // Add a new empty media plan
+  // Add a new empty media plan straight into the store.
   const handleAddMediaExperience = () => {
-    const newId = `C-${String(nextId.current).padStart(3, '0')}`;
-    nextId.current += 1;
-    const newCampaign: CampaignData = {
-      id: newId,
-      campaignType: 'new',
-      title: 'Untitled',
-      badge: { text: 'Draft', variant: 'outline' as const },
-      goal: '',
-      estimatedRoas: '0x',
-      budget: '',
-      usedBudget: '',
-      totalPrice: '',
-      budgetUsagePercentage: 0,
-      placements: 0,
-      bookings: 0,
-      engines: [],
-      dateRange: {
-        from: new Date(),
-        to: addDays(new Date(), 30),
-      },
-      features: [],
-    };
-    setCampaigns(prev => [newCampaign, ...prev]);
-    setNewCampaignIds(prev => new Set(prev).add(newId));
+    const plan = createMediaPlan({
+      name: 'Untitled',
+      advertiserId: db.advertisers[0]?.id ?? 'adv-acme',
+      brandIds: [],
+      status: 'draft',
+      kpis: [],
+      budget: 0,
+      startDate: new Date().toISOString().slice(0, 10),
+      endDate: addDays(new Date(), 30).toISOString().slice(0, 10),
+      createdBy: sessionUser?.id,
+    });
+    setNewCampaignIds(prev => new Set(prev).add(plan.id));
   };
+
+  // Map store entities into the CampaignSummary card shape. Newest first.
+  const campaigns = [...db.mediaPlans].reverse().map((plan) => {
+    const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+    const planBookings = db.bookings.filter((b) => planCampaigns.some((c) => c.id === b.campaignId));
+    const spend = planCampaigns.reduce((s, c) => s + c.spend, 0);
+    const advertiserName = db.advertisers.find((a) => a.id === plan.advertiserId)?.name ?? '';
+    return {
+      id: plan.id,
+      status: plan.status,
+      advertiserName,
+      title: plan.name,
+      badge: planBadge(plan.status),
+      goal: plan.goal ?? '',
+      budget: plan.budget > 0 ? `€${plan.budget.toLocaleString()}` : '',
+      usedBudget: spend > 0 ? `€${spend.toLocaleString()}` : '',
+      budgetUsagePercentage: plan.budget > 0 ? Math.round((spend / plan.budget) * 100) : 0,
+      bookings: planBookings.length,
+      engines: planCampaigns.map((c) => ({
+        id: engineCardId[c.engine],
+        name: engineCardName[c.engine],
+        campaignName: c.name,
+        status: engineCardStatus[c.status],
+        enabled: true,
+        budget: c.budget,
+        spend: c.spend,
+      })),
+      dateRange: { from: new Date(plan.startDate), to: new Date(plan.endDate) },
+      features: [] as { id: string; label: string; enabled: boolean }[],
+    };
+  }).filter((plan) => {
+    const statusMatch = status.length === 0 || status.includes(plan.status);
+    const advertiserMatch = advertiser.length === 0 || advertiser.includes(plan.advertiserName.toLowerCase().replace(/ /g, '-'));
+    return statusMatch && advertiserMatch;
+  });
 
   return (
     <MenuContextProvider>
@@ -308,12 +239,10 @@ function AllCampaignsPage() {
                       },
                       {
                         name: 'Advertiser',
-                        options: [
-                          { label: 'Acme Media', value: 'acme-media' },
-                          { label: 'BrandX', value: 'brandx' },
-                          { label: 'MediaWorks', value: 'mediaworks' },
-                          { label: 'AdPartners', value: 'adpartners' },
-                        ],
+                        options: db.advertisers.map((a) => ({
+                          label: a.name,
+                          value: a.name.toLowerCase().replace(/ /g, '-'),
+                        })),
                         selectedValues: advertiser,
                         onChange: setAdvertiser,
                       },
@@ -339,33 +268,36 @@ function AllCampaignsPage() {
                           hideEngineActions
                           guidedSetup={newCampaignIds.has(campaign.id)}
                           onCancel={() => {
-                            setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+                            // Cancelling a fresh plan removes it from the store.
+                            deleteMediaPlan(campaign.id);
                             setNewCampaignIds(prev => {
                               const next = new Set(prev);
                               next.delete(campaign.id);
                               return next;
                             });
                           }}
+                          onRename={(newName) => updateMediaPlan(campaign.id, { name: newName })}
                           campaignId={campaign.id}
-                          defaultExpanded={campaign.engines.length === 0 || newCampaignIds.has(campaign.id)}
-                          estimatedRoas={campaign.estimatedRoas}
+                          badge={campaign.badge}
+                          estimatedRoas="—"
+                          defaultExpanded={newCampaignIds.has(campaign.id)}
                           budget={currentBudget}
                           usedBudget={campaign.usedBudget}
-                          totalPrice={campaign.totalPrice}
                           budgetUsagePercentage={campaign.budgetUsagePercentage}
                           engines={campaign.engines}
-                          placements={campaign.placements}
-                          bookings={(campaign as { bookings?: number }).bookings}
+                          bookings={campaign.bookings}
                           dateRange={campaign.dateRange}
                           features={campaign.features}
                           onBudgetChange={(newBudget) => {
+                            const numeric = parseFloat(newBudget.replace(/[^0-9.]/g, '')) || 0;
+                            updateMediaPlan(campaign.id, { budget: numeric });
                             setCampaignBudgets(prev => ({
                               ...prev,
                               [campaign.title]: newBudget
                             }));
                           }}
                           onEdit={() => {
-                            router.push(`/campaigns/${campaign.campaignType}/${campaign.id}`);
+                            router.push(`/campaigns/plan/${campaign.id}`);
                           }}
                           onEngineEdit={(engineId, engineName) => {
                             // Pending sponsored engine row — launch the create wizard with pre-fill

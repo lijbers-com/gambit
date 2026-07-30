@@ -4,6 +4,7 @@ import * as React from 'react';
 import type { Booking, Campaign, DbData, DbUser, EngineId, MediaPlan, MetricDefinition } from './types';
 import { getDb, subscribe } from './store';
 import { getCurrentUser, subscribeSession } from './session';
+import { deriveTasksForUser } from './tasks';
 
 /**
  * React bindings for the prototype database. Components subscribe with
@@ -51,6 +52,16 @@ export function useBookings(filter?: { campaignId?: string }): Booking[] {
 /** The registered metrics for an engine — the agreed per-engine overview. */
 export function useMetricDefinitions(engine: EngineId | 'all'): MetricDefinition[] {
   return useDbSnapshot().metricDefinitions.filter((m) => m.engine === engine);
+}
+
+/** Derived to-dos for the logged-in user's role (empty when signed out). */
+export function useMyTasks() {
+  const db = useDbSnapshot();
+  const user = useSession();
+  return React.useMemo(
+    () => (user ? deriveTasksForUser(db, user.personaKey, user.side) : []),
+    [db, user],
+  );
 }
 
 /** The logged-in user (null when signed out). Re-renders on login/logout. */

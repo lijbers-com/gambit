@@ -18,6 +18,16 @@ export {
 } from './store';
 export { login, logout, getCurrentUser, subscribeSession } from './session';
 export {
+  deriveTasks,
+  deriveTasksForPlan,
+  deriveTasksForUser,
+  derivePlanHealth,
+  type DerivedTask,
+  type TaskKind,
+  type TaskSeverity,
+  type PlanHealthLevel,
+} from './tasks';
+export {
   useDb,
   useUsers,
   useMediaPlans,
@@ -25,5 +35,6 @@ export {
   useCampaigns,
   useBookings,
   useMetricDefinitions,
+  useMyTasks,
   useSession,
 } from './hooks';

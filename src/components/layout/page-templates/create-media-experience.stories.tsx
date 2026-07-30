@@ -19,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
+import { getDb, createMediaPlan, createCampaign, getCurrentUser, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { DateRange } from 'react-day-picker';
@@ -578,6 +579,60 @@ export const GoalSelection: Story = {
 
       return { additionalReach, roasBoost, additionalSales, selectedCount };
     }, [propositionSelections]);
+
+    // Launching writes the media plan + one campaign per enabled proposition
+    // into the prototype database, then opens the new plan's detail page.
+    const launchMediaPlan = () => {
+      const name = campaignName || 'New Media plan';
+      const db = getDb();
+      const iso = (d: Date) => d.toISOString().slice(0, 10);
+      const start = dateRange?.from ?? new Date();
+      const end = dateRange?.to ?? new Date(start.getTime() + 30 * 86400000);
+      const budget = parseFloat(budgetAmount) || 0;
+
+      // Resolve the wizard's advertiser/brand option values to store entities.
+      const advLabel = advertiserOptions.find((a) => a.value === selectedAdvertiser)?.label;
+      const advertiser = db.advertisers.find((a) => a.name === advLabel) ?? db.advertisers[0];
+      const brandIds = selectedBrands
+        .map((v) => advertiser.brands.find((b) => b.id === `br-${v}` || b.name.toLowerCase() === v.replace(/-/g, ' '))?.id)
+        .filter((id): id is string => Boolean(id));
+
+      const plan = createMediaPlan({
+        name,
+        poNumber: poNumber || undefined,
+        advertiserId: advertiser.id,
+        brandIds,
+        status: 'in-option',
+        goal: selectedGoal ?? undefined,
+        objective: selectedObjective ?? undefined,
+        kpis: selectedKpis,
+        budget,
+        startDate: iso(start),
+        endDate: iso(end),
+        createdBy: getCurrentUser()?.id,
+      });
+
+      // One campaign per enabled proposition, splitting the plan budget evenly.
+      const enabled = Object.entries(propositionSelections)
+        .filter(([, sel]) => sel)
+        .map(([id]) => id as EngineId);
+      const perEngine = enabled.length > 0 ? Math.floor(budget / enabled.length) : 0;
+      enabled.forEach((engine) => {
+        const propName = propositions.find((p) => p.id === engine)?.name ?? engine;
+        createCampaign({
+          mediaPlanId: plan.id,
+          name: `${name} — ${propName}`,
+          engine,
+          status: 'in-option',
+          budget: perEngine,
+          spend: 0,
+          startDate: iso(start),
+          endDate: iso(end),
+        });
+      });
+
+      if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}`;
+    };
 
     return (
       <MenuContextProvider>
@@ -1172,18 +1227,7 @@ export const GoalSelection: Story = {
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>
-                      <Button
-                        onClick={() => {
-                          const name = campaignName || 'New Media plan';
-                          const params = new URLSearchParams({ new: name });
-                          if (budgetAmount) params.set('budget', budgetAmount);
-                          const advLabel = advertiserOptions.find(a => a.value === selectedAdvertiser)?.label;
-                          if (advLabel) params.set('advertiser', advLabel);
-                          if (dateRange?.from) params.set('startDate', dateRange.from.toISOString());
-                          if (dateRange?.to) params.set('endDate', dateRange.to.toISOString());
-                          window.location.href = `/campaigns?${params.toString()}`;
-                        }}
-                      >
+                      <Button onClick={launchMediaPlan}>
                         Launch media plan
                       </Button>
                     </div>
@@ -1259,19 +1303,7 @@ export const GoalSelection: Story = {
                 </CardSummaryContent>
                 {currentStep === wizardSteps.length - 1 && (
                   <div className="px-4 pb-4">
-                    <Button
-                      className="w-full"
-                      onClick={() => {
-                        const name = campaignName || 'New Media plan';
-                        const params = new URLSearchParams({ new: name });
-                        if (budgetAmount) params.set('budget', budgetAmount);
-                        const advLabel = advertiserOptions.find(a => a.value === selectedAdvertiser)?.label;
-                        if (advLabel) params.set('advertiser', advLabel);
-                        if (dateRange?.from) params.set('startDate', dateRange.from.toISOString());
-                        if (dateRange?.to) params.set('endDate', dateRange.to.toISOString());
-                        window.location.href = `/campaigns?${params.toString()}`;
-                      }}
-                    >
+                    <Button className="w-full" onClick={launchMediaPlan}>
                       Launch media plan
                     </Button>
                   </div>

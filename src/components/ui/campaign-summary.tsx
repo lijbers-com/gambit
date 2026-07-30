@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
+import { getDb, derivePlanHealth, deriveTasksForPlan } from '@/lib/db';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
@@ -660,9 +661,21 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         );
       }
       items.push({ badge: 'AI Insight', tone: 'insight', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
-      const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
-      if (incomplete > 0) {
-        items.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
+      // Action-needed items come from the derived to-do engine when the card is
+      // store-backed, so the notification feed and users' task lists align.
+      const dbPlanForTasks = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+      if (dbPlanForTasks) {
+        deriveTasksForPlan(getDb(), dbPlanForTasks.id)
+          .filter((t) => t.kind === 'action')
+          .slice(0, 3)
+          .forEach((t) => {
+            items.push({ badge: 'Action needed', tone: 'alert', message: `${t.title} — ${t.detail}` });
+          });
+      } else {
+        const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
+        if (incomplete > 0) {
+          items.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
+        }
       }
       // A previously-actioned recommendation, kept so the card shows both what's
       // still to do and what's already been handled.
@@ -670,11 +683,23 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       return items;
     })();
 
-    // Media-plan health check — surfaced as the first notification. Red ("At risk")
-    // when the plan is not performing (over-pacing or campaigns still unfinished),
-    // amber when it needs attention, green when it's on track.
+    // Media-plan health check — surfaced as the first notification. Health is
+    // DERIVED from the same to-do rules that fill users' task lists (see
+    // src/lib/db/tasks.ts), so health and tasks can never disagree. Falls back
+    // to a display heuristic when the card isn't backed by a store plan
+    // (e.g. Storybook demos with arbitrary ids).
     const healthNotification: HealthNotification | undefined = (() => {
       if (layout === 'vertical' || guidedSetup) return undefined;
+      const dbPlan = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+      if (dbPlan) {
+        const health = derivePlanHealth(getDb(), dbPlan);
+        return {
+          level: health.level,
+          message: health.message,
+          explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain(),
+        };
+      }
+      // Display-only fallback for cards without store backing.
       const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
       const overPace = budgetUsagePercentage !== undefined && budgetUsagePercentage >= 90;
       if (overPace || incomplete >= 2) {

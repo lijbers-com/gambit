@@ -14,6 +14,7 @@ import {
   updateCampaign,
   deleteMediaPlan,
 } from '../src/lib/db/store';
+import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -132,8 +133,37 @@ for (const a of d.availability) {
 }
 ok('availability bookings within weekly capacity');
 
-// ── 4. CRUD smoke test (in-memory store) ───────────────────────────────
-console.log('\n4. CRUD smoke test');
+// ── 4. Derived to-do engine ────────────────────────────────────────────
+console.log('\n4. Derived to-do engine');
+
+const derived = deriveTasks(d);
+if (derived.length === 0) fail('no derived tasks — seed should contain deliberate to-do triggers');
+// Every task must reference a real entity.
+for (const t of derived) {
+  const pool = t.level === 'media-plan' ? d.mediaPlans : t.level === 'campaign' ? d.campaigns : d.bookings;
+  if (!pool.some((e) => e.id === t.entityId)) fail(`task ${t.id}: unknown ${t.level} ${t.entityId}`);
+  if (!planIds.has(t.mediaPlanId)) fail(`task ${t.id}: unknown plan ${t.mediaPlanId}`);
+}
+ok(`${derived.length} to-dos derived, all referencing real entities`);
+
+// Expected triggers from the seed must fire.
+const has = (id: string) => derived.some((t) => t.id === id);
+if (!has('B-010-creative')) fail('missing expected task: B-010 creative missing');
+if (!has('B-009-approve')) fail('missing expected task: B-009 creative approval');
+if (!has('B-012-placement')) fail('missing expected task: B-012 placement missing');
+if (!has('MP-008-budget')) fail('missing expected task: MP-008 budget unset');
+if (!has('C-017-bookings')) fail('missing expected task: C-017 no bookings');
+ok('expected seed triggers all fire (creative, approval, placement, budget, bookings)');
+
+// Health must derive consistently from tasks.
+const holidayHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-002')!);
+if (holidayHealth.level !== 'risk') fail(`MP-002 (running, missing creative) should be at risk, got ${holidayHealth.level}`);
+const springHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-001')!);
+if (springHealth.level !== 'good') fail(`MP-001 (completed, all approved) should be good, got ${springHealth.level}`);
+ok(`health derives from tasks (MP-002 → ${holidayHealth.level}, MP-001 → ${springHealth.level})`);
+
+// ── 5. CRUD smoke test (in-memory store) ───────────────────────────────
+console.log('\n5. CRUD smoke test');
 
 const before = getDb().mediaPlans.length;
 const plan = createMediaPlan({
@@ -147,6 +177,7 @@ const campaign = createCampaign({
 const booking = createBooking({
   campaignId: campaign.id, name: 'Verify Booking', status: 'draft',
   budget: 250, spend: 0, startDate: '2026-09-01', endDate: '2026-09-15', positionIds: ['pos-dsp-home-top'],
+  creativeStatus: 'missing',
 });
 if (!getDb().mediaPlans.find((p) => p.id === plan.id)) fail('createMediaPlan did not persist');
 if (!getDb().campaigns.find((c) => c.id === campaign.id)) fail('createCampaign did not persist');

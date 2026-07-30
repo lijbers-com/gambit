@@ -62,7 +62,26 @@ export interface Advertiser {
 
 // ── Media plan → campaign → booking ────────────────────────────────────
 
+/**
+ * The ONE status lifecycle, shared by all three levels of the hierarchy so
+ * statuses always read the same everywhere:
+ *
+ *   draft → in-option → running → paused ↔ running → completed
+ *
+ * - draft      — being set up; not yet reserved.
+ * - in-option  — inventory held in option; awaiting confirmation/approvals.
+ * - running    — live and delivering.
+ * - paused     — temporarily stopped (can resume to running).
+ * - completed  — flight finished.
+ *
+ * A parent's status summarises its children: a plan is only `running` when at
+ * least one campaign runs; blockers that keep an entity from advancing are NOT
+ * extra statuses — they surface as derived to-dos (see tasks.ts).
+ */
 export type PlanStatus = 'draft' | 'in-option' | 'running' | 'paused' | 'completed';
+
+/** Creative readiness on a booking — drives "creative missing/approval" to-dos. */
+export type CreativeStatus = 'missing' | 'submitted' | 'approved';
 
 export interface MediaPlan {
   id: string;
@@ -110,6 +129,8 @@ export interface Booking {
   endDate: string;
   /** Position(s) this booking occupies, when placed. */
   positionIds: string[];
+  /** Creative readiness — a booking cannot go live without an approved creative. */
+  creativeStatus: CreativeStatus;
   createdAt: string;
   updatedAt: string;
 }

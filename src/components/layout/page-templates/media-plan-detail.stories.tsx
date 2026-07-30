@@ -22,8 +22,9 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Plan Detail',
@@ -34,76 +35,13 @@ const meta: Meta<typeof AppLayout> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-type Booking = {
-  name: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'PAUSED';
-  budget: string;
-  dailyCap: string;
-  flight: string;
-  objectiveKpi: string;
-  inherits?: boolean;
-};
-type PlanCampaign = {
-  id: string;
-  name: string;
-  engine: 'SP' | 'Display';
-  state: string;
-  budget: string;
-  dates: string;
-  objectiveKpi: string;
-  lock: 'FLEXIBLE' | 'LOCKED';
-  bookings: Booking[];
-};
+// The campaigns & bookings table renders live rows from the prototype
+// database (media plan → campaigns → bookings), formatted via these helpers.
 
-const planCampaigns: PlanCampaign[] = [
-  {
-    id: 'c1', name: 'SP - Early Capout Candidate', engine: 'SP', state: 'CREATED', budget: '€6,000.00',
-    dates: 'Jul 2, 2026 → Aug 5, 2026', objectiveKpi: 'SALES / ROAS', lock: 'FLEXIBLE',
-    bookings: [
-      { name: 'Brand Keywords - Top of Search', status: 'ACTIVE', budget: '€2500', dailyCap: '€200/d', flight: 'Jun 30, 2026 → Jul 27, 2026', objectiveKpi: 'SALES / ROAS: 5' },
-      { name: 'Category Keywords - Rest of Search', status: 'ACTIVE', budget: '€2000', dailyCap: '€175/d', flight: 'Jun 30, 2026 → Jul 27, 2026', objectiveKpi: 'SALES / ROAS: 2.5' },
-      { name: 'Product Page Placements', status: 'ACTIVE', budget: '€1500', dailyCap: '€125/d', flight: 'Jun 30, 2026 → Jul 27, 2026', objectiveKpi: 'SALES / ROAS: 2' },
-    ],
-  },
-  {
-    id: 'c2', name: 'SP - Daily Cap Too Low Candidate', engine: 'SP', state: 'CREATED', budget: '€3,000.00',
-    dates: 'Jul 6, 2026 → Jul 26, 2026', objectiveKpi: 'SALES / ROAS', lock: 'FLEXIBLE',
-    bookings: [
-      { name: 'Category Keywords - Rest of Search', status: 'ACTIVE', budget: '€1800', dailyCap: '€45/d', flight: 'Jul 3, 2026 → Jul 23, 2026', objectiveKpi: 'Inherits from campaign', inherits: true },
-      { name: 'Competitor Keywords', status: 'ACTIVE', budget: '€1200', dailyCap: '€30/d', flight: 'Jul 3, 2026 → Jul 23, 2026', objectiveKpi: 'SALES / ROAS: 1.5' },
-    ],
-  },
-  {
-    id: 'c3', name: 'Display - Steady Running', engine: 'Display', state: 'CREATED', budget: '€1,000.00',
-    dates: 'Jul 2, 2026 → —', objectiveKpi: 'AWARENESS / CPM', lock: 'FLEXIBLE',
-    bookings: [
-      { name: 'Homepage Banner - Premium Slot', status: 'ACTIVE', budget: '€600', dailyCap: '€35/d', flight: '—', objectiveKpi: 'AWARENESS / CPM: 9' },
-      { name: 'Category Page - Broad Reach', status: 'ACTIVE', budget: '€400', dailyCap: '€25/d', flight: '—', objectiveKpi: 'AWARENESS / CPM: 6.5' },
-    ],
-  },
-  {
-    id: 'c4', name: 'SP - Recently Finished', engine: 'SP', state: 'CREATED', budget: '€2,000.00',
-    dates: 'Jun 28, 2026 → Jul 13, 2026', objectiveKpi: 'SALES / ROAS', lock: 'LOCKED',
-    bookings: [
-      { name: 'Brand Keywords - Completed', status: 'COMPLETED', budget: '€1200', dailyCap: '—', flight: 'May 15, 2026 → Jun 30, 2026', objectiveKpi: 'Inherits from campaign', inherits: true },
-      { name: 'Seasonal Keywords - Paused', status: 'PAUSED', budget: '€800', dailyCap: '—', flight: 'May 15, 2026 → Jun 30, 2026', objectiveKpi: 'Inherits from campaign', inherits: true },
-    ],
-  },
-];
-
-// Option lists for the editable "Media plan details" form.
-const advertiserOptions = [
-  { label: 'Acme Media', value: 'acme' },
-  { label: 'Brand Alliance', value: 'brand-alliance' },
-  { label: 'Global Brands Co.', value: 'global-brands' },
-];
-// `hasRetailProducts` gates the retail-product picker (some brands aren't carried).
-const brandFilterOptions = [
-  { label: 'Coca-Cola', value: 'coca-cola', hasRetailProducts: true },
-  { label: 'Heineken', value: 'heineken', hasRetailProducts: true },
-  { label: 'Unilever', value: 'unilever', hasRetailProducts: false },
-  { label: 'Nestlé', value: 'nestle', hasRetailProducts: false },
-];
+const fmtEuro = (n: number) => `€${n.toLocaleString()}`;
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const fmtRange = (start: string, end: string) => `${fmtDate(start)} → ${fmtDate(end)}`;
 // Goal catalog — same shape as the create-media-plan wizard's goal cards.
 const goals = [
   { id: 'awareness', icon: <Eye size={24} />, title: 'Awareness', description: 'Reach a broad audience and make them aware of your brand, product or service' },
@@ -125,8 +63,9 @@ const kpiFilterOptions = [
 const statusOptions = [
   { label: 'Draft', value: 'draft' },
   { label: 'In-option', value: 'in-option' },
-  { label: 'Ready', value: 'ready' },
   { label: 'Running', value: 'running' },
+  { label: 'Paused', value: 'paused' },
+  { label: 'Completed', value: 'completed' },
 ];
 
 // Change history for the Logs tab.
@@ -140,16 +79,21 @@ const logData: LogRow[] = [
   { id: 'LOG-006', timestamp: '2026-05-30 16:20:58', user: 'Jane Doe', action: 'Status changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Media plan moved to in-option' },
 ];
 
-// Proposition shown as icon + text (not a coloured badge).
-const propositionMeta: Record<string, { icon: LucideIcon; label: string }> = {
-  SP: { icon: ListStart, label: 'Sponsored products' },
-  Display: { icon: MonitorSpeaker, label: 'Display' },
+// Proposition shown as icon + text (not a coloured badge) — one per engine.
+const propositionMeta: Record<EngineId, { icon: LucideIcon; label: string }> = {
+  'sponsored-products': { icon: ListStart, label: 'Sponsored products' },
+  'display': { icon: MonitorSpeaker, label: 'Display' },
+  'digital-instore': { icon: MonitorPlay, label: 'Digital in-store' },
+  'offline-instore': { icon: Store, label: 'Offline in-store' },
+  'offsite': { icon: Globe, label: 'Offsite' },
 };
-// Booking status → badge (same treatment as the campaign State badge).
-const statusBadge: Record<string, { variant: 'success' | 'secondary' | 'warning'; label: string }> = {
-  ACTIVE: { variant: 'success', label: 'Active' },
-  COMPLETED: { variant: 'secondary', label: 'Completed' },
-  PAUSED: { variant: 'warning', label: 'Paused' },
+// Entity status → badge (campaign State + booking status share the treatment).
+const statusBadge: Record<PlanStatus, { variant: 'success' | 'secondary' | 'warning' | 'outline'; label: string }> = {
+  'running': { variant: 'success', label: 'Running' },
+  'completed': { variant: 'secondary', label: 'Completed' },
+  'paused': { variant: 'warning', label: 'Paused' },
+  'in-option': { variant: 'outline', label: 'In-option' },
+  'draft': { variant: 'outline', label: 'Draft' },
 };
 
 // One row type covering both levels so the whole hierarchy renders in a single
@@ -158,9 +102,9 @@ type Row = {
   _type: 'campaign' | 'booking';
   _id: string;
   name: string;
-  engine?: 'SP' | 'Display';
-  state?: string;
-  status?: Booking['status'];
+  engine?: EngineId;
+  state?: PlanStatus;
+  status?: PlanStatus;
   budget: string;
   dailyCap?: string;
   dates?: string;
@@ -174,24 +118,81 @@ export const MediaPlanDetail: Story = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
-    const [expanded, setExpanded] = React.useState<string[]>(['c1']);
+    const [expanded, setExpanded] = React.useState<string[]>([]);
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
     const [logActions, setLogActions] = React.useState<string[]>([]);
 
-    // Editable "Media plan details" form state.
-    const [planName, setPlanName] = React.useState('Holiday Sale Plan');
-    const [poNumber, setPoNumber] = React.useState('PO-2026-0042');
-    const [advertiser, setAdvertiser] = React.useState('acme');
-    const [brands, setBrands] = React.useState<string[]>(['coca-cola', 'heineken']);
+    // ── Live plan from the prototype database ──────────────────────────
+    // The route is /campaigns/plan/[id]; in Storybook there is no id in the
+    // path, so fall back to the first seeded plan.
+    const db = useDb();
+    const planId = React.useMemo(() => {
+      if (typeof window === 'undefined') return undefined;
+      const m = window.location.pathname.match(/\/campaigns\/plan\/([^/]+)/);
+      return m?.[1];
+    }, []);
+    const plan = db.mediaPlans.find((p) => p.id === planId) ?? db.mediaPlans[0];
+    const planAdvertiser = db.advertisers.find((a) => a.id === plan?.advertiserId);
+
+    // Form option lists come from the store.
+    const advertiserOptions = db.advertisers.map((a) => ({ label: a.name, value: a.id }));
+    const brandFilterOptions = (planAdvertiser?.brands ?? []).map((b) => ({
+      label: b.name,
+      value: b.id,
+      hasRetailProducts: Boolean(b.hasRetailProducts),
+    }));
+
+    // Editable "Media plan details" form state — seeded from the plan.
+    const [planName, setPlanName] = React.useState(plan?.name ?? '');
+    const [poNumber, setPoNumber] = React.useState(plan?.poNumber ?? '');
+    const [advertiser, setAdvertiser] = React.useState(plan?.advertiserId ?? '');
+    const [brands, setBrands] = React.useState<string[]>(plan?.brandIds ?? []);
     const [retailProducts, setRetailProducts] = React.useState<string[]>([]);
     const brandsHaveRetailProducts = brands.some((v) => brandFilterOptions.find((b) => b.value === v)?.hasRetailProducts);
-    const [goal, setGoal] = React.useState('awareness');
-    const [objective, setObjective] = React.useState('merkbekendheid');
-    const [kpis, setKpis] = React.useState<string[]>(['toma', 'cep']);
+    const [goal, setGoal] = React.useState(plan?.goal ?? 'awareness');
+    const [objective, setObjective] = React.useState(plan?.objective ?? '');
+    const [kpis, setKpis] = React.useState<string[]>(plan?.kpis ?? []);
     const [kpiStudies, setKpiStudies] = React.useState<string[]>([]);
-    const [budgetAmount, setBudgetAmount] = React.useState('15000');
-    const [status, setStatus] = React.useState('in-option');
-    const [runTime, setRunTime] = React.useState<DateRange | undefined>({ from: new Date('2026-06-01'), to: new Date('2026-06-30') });
+    const [budgetAmount, setBudgetAmount] = React.useState(String(plan?.budget ?? ''));
+    const [status, setStatus] = React.useState(plan?.status ?? 'draft');
+    const [runTime, setRunTime] = React.useState<DateRange | undefined>(
+      plan ? { from: new Date(plan.startDate), to: new Date(plan.endDate) } : undefined,
+    );
+
+    // Re-seed the form when the plan id changes (client navigation).
+    const seededPlanId = React.useRef(plan?.id);
+    React.useEffect(() => {
+      if (!plan || seededPlanId.current === plan.id) return;
+      seededPlanId.current = plan.id;
+      setPlanName(plan.name);
+      setPoNumber(plan.poNumber ?? '');
+      setAdvertiser(plan.advertiserId);
+      setBrands(plan.brandIds);
+      setGoal(plan.goal ?? 'awareness');
+      setObjective(plan.objective ?? '');
+      setKpis(plan.kpis);
+      setBudgetAmount(String(plan.budget));
+      setStatus(plan.status);
+      setRunTime({ from: new Date(plan.startDate), to: new Date(plan.endDate) });
+    }, [plan]);
+
+    // Persist the form back into the store.
+    const savePlan = () => {
+      if (!plan) return;
+      updateMediaPlan(plan.id, {
+        name: planName,
+        poNumber: poNumber || undefined,
+        advertiserId: advertiser,
+        brandIds: brands,
+        goal,
+        objective: objective || undefined,
+        kpis,
+        budget: parseFloat(budgetAmount) || 0,
+        status: status as PlanStatus,
+        ...(runTime?.from ? { startDate: runTime.from.toISOString().slice(0, 10) } : {}),
+        ...(runTime?.to ? { endDate: runTime.to.toISOString().slice(0, 10) } : {}),
+      });
+    };
 
     // Campaigns & bookings filters (surface once the plan grows).
     const [rowSearch, setRowSearch] = React.useState('');
@@ -200,27 +201,47 @@ export const MediaPlanDetail: Story = {
     const toggle = (id: string) =>
       setExpanded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
+    // Live campaigns + bookings for this plan.
+    const planCampaignRows = db.campaigns
+      .filter((c) => plan && c.mediaPlanId === plan.id)
+      .map((c) => ({ campaign: c, bookings: db.bookings.filter((b) => b.campaignId === c.id) }));
+
+    const planBookingCount = planCampaignRows.reduce((s, r) => s + r.bookings.length, 0);
+    const planSpend = planCampaignRows.reduce((s, r) => s + r.campaign.spend, 0);
+    const spentPct = plan && plan.budget > 0 ? Math.round((planSpend / plan.budget) * 100) : 0;
+    const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${n}`);
+
     const metrics = [
-      { key: 'budget', label: 'Budget', value: '$9.2K', subMetric: 'of $15.0K budget', badgeValue: '61%', badgeVariant: 'secondary' as const },
+      { key: 'budget', label: 'Budget', value: fmtK(planSpend), subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`, badgeValue: `${spentPct}%`, badgeVariant: 'secondary' as const },
       { key: 'impressions', label: 'Impressions', value: '2.5M', subMetric: 'Media plan', badgeValue: '+8%', badgeVariant: 'success' as const },
       { key: 'roas', label: 'ROAS', value: '4.2x', subMetric: 'Media plan (weighted)', badgeValue: '+11%', badgeVariant: 'success' as const },
-      { key: 'campaigns', label: 'Campaigns', value: '4', subMetric: '9 bookings', badgeValue: '', badgeVariant: 'secondary' as const },
+      { key: 'campaigns', label: 'Campaigns', value: String(planCampaignRows.length), subMetric: `${planBookingCount} booking${planBookingCount === 1 ? '' : 's'}`, badgeValue: '', badgeVariant: 'secondary' as const },
     ];
 
     // Apply the Campaigns & bookings filters (search / proposition / state).
-    const filteredCampaigns = planCampaigns.filter((c) => {
+    const filteredCampaigns = planCampaignRows.filter(({ campaign: c, bookings }) => {
       const q = rowSearch.trim().toLowerCase();
-      const searchMatch = !q || c.name.toLowerCase().includes(q) || c.bookings.some((b) => b.name.toLowerCase().includes(q));
+      const searchMatch = !q || c.name.toLowerCase().includes(q) || bookings.some((b) => b.name.toLowerCase().includes(q));
       const propMatch = propFilter.length === 0 || propFilter.includes(c.engine);
-      const stateMatch = stateFilter.length === 0 || stateFilter.includes(c.state) || c.bookings.some((b) => stateFilter.includes(b.status));
+      const stateMatch = stateFilter.length === 0 || stateFilter.includes(c.status) || bookings.some((b) => stateFilter.includes(b.status));
       return searchMatch && propMatch && stateMatch;
     });
 
+    const objectiveKpiLabel = [plan?.goal, plan?.objective].filter(Boolean).join(' / ').toUpperCase() || '—';
+
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
-    const rows: Row[] = filteredCampaigns.flatMap((c) => [
-      { _type: 'campaign', _id: c.id, name: c.name, engine: c.engine, state: c.state, budget: c.budget, dates: c.dates, objectiveKpi: c.objectiveKpi, lock: c.lock, bookingsCount: c.bookings.length },
+    const rows: Row[] = filteredCampaigns.flatMap(({ campaign: c, bookings }) => [
+      {
+        _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, state: c.status,
+        budget: fmtEuro(c.budget), dates: fmtRange(c.startDate, c.endDate),
+        objectiveKpi: objectiveKpiLabel, lock: 'FLEXIBLE' as const, bookingsCount: bookings.length,
+      },
       ...(expanded.includes(c.id)
-        ? c.bookings.map((b, i): Row => ({ _type: 'booking', _id: `${c.id}-b${i}`, name: b.name, engine: c.engine, status: b.status, budget: b.budget, dailyCap: b.dailyCap, dates: b.flight, objectiveKpi: b.objectiveKpi, inherits: b.inherits }))
+        ? bookings.map((b): Row => ({
+            _type: 'booking', _id: b.id, name: b.name, engine: c.engine, status: b.status,
+            budget: fmtEuro(b.budget), dailyCap: '—', dates: fmtRange(b.startDate, b.endDate),
+            objectiveKpi: 'Inherits from campaign', inherits: true,
+          }))
         : []),
     ]);
 
@@ -263,12 +284,11 @@ export const MediaPlanDetail: Story = {
         },
       },
       {
-        key: 'state', header: 'State', render: (r) =>
-          r._type === 'campaign' ? (
-            <Badge variant="secondary">Created</Badge>
-          ) : (
-            <Badge variant={statusBadge[r.status!].variant}>{statusBadge[r.status!].label}</Badge>
-          ),
+        key: 'state', header: 'State', render: (r) => {
+          const s = r._type === 'campaign' ? r.state : r.status;
+          const badge = s ? statusBadge[s] : undefined;
+          return badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null;
+        },
       },
       { key: 'budget', header: 'Budget', render: (r) => <span className="tabular-nums">{r.budget}</span> },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span> },
@@ -278,7 +298,18 @@ export const MediaPlanDetail: Story = {
       {
         key: 'actions', header: 'Actions', render: (r) =>
           r._type === 'campaign' ? (
-            <button type="button" onClick={(e) => e.stopPropagation()} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${r.name}`}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Removing a campaign cascades to its bookings in the store.
+                if (typeof window === 'undefined' || window.confirm(`Remove ${r.name} and its bookings?`)) {
+                  deleteCampaign(r._id);
+                }
+              }}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={`Remove ${r.name}`}
+            >
               <XCircle className="h-4 w-4" />
             </button>
           ) : null,
@@ -294,7 +325,7 @@ export const MediaPlanDetail: Story = {
           onLogout={() => {}}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Holiday Sale Plan',
+            title: plan?.name ?? 'Media plan',
             titleIcon: <HierarchyBadge level="media-plan" />,
             onEdit: () => {},
             onExport: () => {},
@@ -326,7 +357,7 @@ export const MediaPlanDetail: Story = {
                         </div>
                         <div className="space-y-2">
                           <Label>Status</Label>
-                          <Input dropdown options={statusOptions} value={status} onChange={setStatus} placeholder="Select status" />
+                          <Input dropdown options={statusOptions} value={status} onChange={(v: string) => setStatus(v as PlanStatus)} placeholder="Select status" />
                         </div>
                       </div>
                     </FormSection>
@@ -421,7 +452,7 @@ export const MediaPlanDetail: Story = {
 
                     <div className="flex justify-end gap-3">
                       <Button variant="outline">Cancel</Button>
-                      <Button>Save changes</Button>
+                      <Button onClick={savePlan}>Save changes</Button>
                     </div>
                   </div>
                 ),
@@ -435,21 +466,19 @@ export const MediaPlanDetail: Story = {
                       filters={[
                         {
                           name: 'Proposition',
-                          options: [
-                            { label: 'Sponsored products', value: 'SP' },
-                            { label: 'Display', value: 'Display' },
-                          ],
+                          options: (Object.keys(propositionMeta) as EngineId[]).map((e) => ({
+                            label: propositionMeta[e].label,
+                            value: e,
+                          })),
                           selectedValues: propFilter,
                           onChange: setPropFilter,
                         },
                         {
                           name: 'State',
-                          options: [
-                            { label: 'Created', value: 'CREATED' },
-                            { label: 'Active', value: 'ACTIVE' },
-                            { label: 'Completed', value: 'COMPLETED' },
-                            { label: 'Paused', value: 'PAUSED' },
-                          ],
+                          options: (Object.keys(statusBadge) as PlanStatus[]).map((s) => ({
+                            label: statusBadge[s].label,
+                            value: s,
+                          })),
                           selectedValues: stateFilter,
                           onChange: setStateFilter,
                         },
@@ -465,16 +494,25 @@ export const MediaPlanDetail: Story = {
                       hideActions
                       onRowClick={(r) => {
                         // Rows link to the campaign / booking; only the chevron toggles.
-                        const type = r.engine === 'Display' ? 'display' : 'sponsored-products';
+                        // Engine → route segment (route names differ slightly from ids).
+                        const routeSeg: Record<EngineId, string> = {
+                          'display': 'display',
+                          'sponsored-products': 'sponsored-products',
+                          'digital-instore': 'digital-instore',
+                          'offline-instore': 'offline-instore',
+                          'offsite': 'offsite',
+                        };
+                        const seg = routeSeg[r.engine ?? 'display'];
                         let href: string;
                         if (r._type === 'campaign') {
-                          href = `/campaigns/${type}/${r._id}`;
-                        } else if (r.engine === 'Display') {
-                          href = `/campaigns/display/booking/${r._id}`;
-                        } else {
+                          href = `/campaigns/${seg}/${r._id}`;
+                        } else if (r.engine === 'sponsored-products') {
                           // Sponsored-products keyword bookings live inside the campaign,
                           // so open the parent campaign detail.
-                          href = `/campaigns/${type}/${r._id.split('-b')[0]}`;
+                          const parent = db.bookings.find((b) => b.id === r._id)?.campaignId;
+                          href = `/campaigns/${seg}/${parent ?? r._id}`;
+                        } else {
+                          href = `/campaigns/${seg}/booking/${r._id}`;
                         }
                         if (typeof window !== 'undefined') window.location.href = href;
                       }}

@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -193,18 +193,18 @@ export const seedData: DbData = {
     { id: 'B-001', campaignId: 'C-001', name: 'Homepage Takeover',          status: 'completed', budget: 4000, spend: 3950, startDate: '2026-03-01', endDate: '2026-03-21', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-002', campaignId: 'C-001', name: 'Category Banner — Ice',     status: 'completed', budget: 4000, spend: 3950, startDate: '2026-03-08', endDate: '2026-04-15', positionIds: ['pos-dsp-cat-top'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-003', campaignId: 'C-002', name: 'Entrance Screens',           status: 'completed', budget: 7000, spend: 6800, startDate: '2026-03-01', endDate: '2026-04-15', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-004', campaignId: 'C-003', name: 'Open Web Display',           status: 'completed', budget: 5000, spend: 4950, startDate: '2026-03-08', endDate: '2026-04-15', positionIds: ['pos-off-openweb'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-004', campaignId: 'C-003', name: 'Open Web Display',           status: 'completed', budget: 5000, spend: 4950, startDate: '2026-03-08', endDate: '2026-04-15', positionIds: ['pos-off-web-standard'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Holiday Sale (live; one creative awaiting approval)
     { id: 'B-005', campaignId: 'C-004', name: 'Homepage Takeover',          status: 'running',   budget: 2500, spend: 2100, startDate: '2026-06-01', endDate: '2026-07-15', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-006', campaignId: 'C-004', name: 'Category Banner — Drinks',   status: 'running',   budget: 2500, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-dsp-cat-top'],  creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-007', campaignId: 'C-005', name: 'Keywords — cola zero',       status: 'running',   budget: 2000, spend: 1900, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-008', campaignId: 'C-005', name: 'Keywords — beer & bbq',      status: 'running',   budget: 2000, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-009', campaignId: 'C-006', name: 'Entrance Screens',           status: 'in-option', budget: 3000, spend: 1200, startDate: '2026-06-08', endDate: '2026-08-15', positionIds: ['pos-dis-entrance'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
-    { id: 'B-010', campaignId: 'C-007', name: 'Open Web Display',           status: 'in-option', budget: 3000, spend: 600,  startDate: '2026-06-08', endDate: '2026-08-15', positionIds: ['pos-off-openweb'],  creativeStatus: 'missing',   createdAt: now, updatedAt: now },
+    { id: 'B-010', campaignId: 'C-007', name: 'Open Web Display',           status: 'in-option', budget: 3000, spend: 600,  startDate: '2026-06-08', endDate: '2026-08-15', positionIds: ['pos-off-web-standard'],  creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     // Summer Launch (live; one placement missing)
     { id: 'B-011', campaignId: 'C-008', name: 'Homepage Takeover',          status: 'running',   budget: 3000, spend: 1400, startDate: '2026-07-01', endDate: '2026-07-31', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-012', campaignId: 'C-008', name: 'PDP Banner',                 status: 'in-option', budget: 2000, spend: 700,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: [],                   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-013', campaignId: 'C-009', name: 'Social Retargeting',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-social'],   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-013', campaignId: 'C-009', name: 'Social Retargeting',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-soc-meta'],   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     // Back to School (in option; creative work outstanding)
     { id: 'B-014', campaignId: 'C-010', name: 'Keywords — school lunch',    status: 'in-option', budget: 7000, spend: 0, startDate: '2026-08-10', endDate: '2026-09-10', positionIds: ['pos-sp-search'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-015', campaignId: 'C-011', name: 'Shelf Displays — Snacks',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', positionIds: ['pos-ois-shelf'], creativeStatus: 'missing',  createdAt: now, updatedAt: now },
@@ -259,16 +259,28 @@ export const seedData: DbData = {
     { key: 'frequency',   label: 'Frequency',   engine: 'offsite', scopes: ['overview', 'campaign', 'booking'], format: 'ratio',    description: 'Average impressions per user.' },
   ],
 
-  // ── Media products & positions ───────────────────────────────────────
+  // ── Channels & positions ─────────────────────────────────────────────
+  // Channel (media product/platform) → positions, per engine. Offsite follows
+  // the activation-arm diagram: channels with executing partners; for Social
+  // Media the positions ARE the platforms (Meta, TikTok, Pinterest, YouTube).
   mediaProducts: [
+    // Display (onsite)
     { id: 'mprod-dsp-home', engine: 'display', name: 'Homepage',        description: 'Banners on the storefront homepage.' },
     { id: 'mprod-dsp-cat',  engine: 'display', name: 'Category pages',  description: 'Banners on category listing pages.' },
     { id: 'mprod-dsp-pdp',  engine: 'display', name: 'Product pages',   description: 'Banners on product detail pages.' },
+    // Sponsored products
     { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Search results', description: 'Sponsored product slots in search.' },
+    // Digital in-store
     { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Digital screens in physical stores.' },
+    // Offline in-store
     { id: 'mprod-ois-print',   engine: 'offline-instore', name: 'Printed materials', description: 'Shelf displays, floor stickers, posters.' },
-    { id: 'mprod-off-web',    engine: 'offsite', name: 'Open web',      description: 'Programmatic display on the open web.' },
-    { id: 'mprod-off-social', engine: 'offsite', name: 'Social',        description: 'Paid social placements.' },
+    // Offsite — channel terminology per the activation-arm diagram
+    { id: 'mprod-off-display',    engine: 'offsite', name: 'Display',                    description: 'Programmatic display on the open web.', partner: 'Epsilon' },
+    { id: 'mprod-off-olv',        engine: 'offsite', name: 'Online Video (OLV)',         description: 'In-stream and out-stream online video.', partner: 'Epsilon' },
+    { id: 'mprod-off-ctv',        engine: 'offsite', name: 'Connected TV (CTV)',         description: 'Streaming TV inventory on connected devices.', partner: 'Epsilon' },
+    { id: 'mprod-off-contextual', engine: 'offsite', name: 'Contextual Commerce Media',  description: 'Recipe and contextual commerce placements.', partner: 'Chicory' },
+    { id: 'mprod-off-social',     engine: 'offsite', name: 'Social Media',               description: 'Paid social — the positions are the platforms.' },
+    { id: 'mprod-off-dooh',       engine: 'offsite', name: 'Digital Out Of Home',        description: 'Digital screens out of home.', partner: 'Vistar' },
   ],
   positions: [
     { id: 'pos-dsp-home-top', mediaProductId: 'mprod-dsp-home',  name: 'Homepage top banner',      dailyCapacity: 4 },
@@ -280,8 +292,17 @@ export const seedData: DbData = {
     { id: 'pos-dis-aisle',    mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',          dailyCapacity: 10 },
     { id: 'pos-ois-shelf',    mediaProductId: 'mprod-ois-print', name: 'Shelf displays',           dailyCapacity: 20 },
     { id: 'pos-ois-floor',    mediaProductId: 'mprod-ois-print', name: 'Floor stickers',           dailyCapacity: 15 },
-    { id: 'pos-off-openweb',  mediaProductId: 'mprod-off-web',   name: 'Open web display',         dailyCapacity: 100 },
-    { id: 'pos-off-social',   mediaProductId: 'mprod-off-social', name: 'Social retargeting',      dailyCapacity: 100 },
+    // Offsite positions per channel
+    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display',    name: 'Open web display',      dailyCapacity: 100 },
+    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       dailyCapacity: 60 },
+    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              dailyCapacity: 30 },
+    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     dailyCapacity: 50 },
+    // Social Media: positions are the platforms
+    { id: 'pos-off-soc-meta',      mediaProductId: 'mprod-off-social', name: 'Meta',            dailyCapacity: 100 },
+    { id: 'pos-off-soc-tiktok',    mediaProductId: 'mprod-off-social', name: 'TikTok',          dailyCapacity: 100 },
+    { id: 'pos-off-soc-pinterest', mediaProductId: 'mprod-off-social', name: 'Pinterest',       dailyCapacity: 100 },
+    { id: 'pos-off-soc-youtube',   mediaProductId: 'mprod-off-social', name: 'YouTube (DV360)', dailyCapacity: 100 },
+    { id: 'pos-off-dooh-screens',  mediaProductId: 'mprod-off-dooh',   name: 'DOOH screens',    dailyCapacity: 40 },
   ],
 
   // Seeded per-week booked load across the summer flights; the calendar and
@@ -302,7 +323,7 @@ export const seedData: DbData = {
     { positionId: 'pos-dis-aisle',    week: '2026-W28', booked: 45 },
     { positionId: 'pos-ois-shelf',    week: '2026-W33', booked: 70 },
     { positionId: 'pos-ois-floor',    week: '2026-W32', booked: 40 },
-    { positionId: 'pos-off-openweb',  week: '2026-W28', booked: 380 },
-    { positionId: 'pos-off-social',   week: '2026-W28', booked: 300 },
+    { positionId: 'pos-off-web-standard',  week: '2026-W28', booked: 380 },
+    { positionId: 'pos-off-soc-meta',  week: '2026-W28', booked: 300 },
   ],
 };

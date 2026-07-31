@@ -277,6 +277,7 @@ export const Home: Story = {
                         hideEngineActions
                         campaignId={p.id}
                         badge={p.badge}
+                        collapsedOnly
                         estimatedRoas="—"
                         budget={p.budget}
                         usedBudget={p.usedBudget}

@@ -267,6 +267,7 @@ function AllCampaignsPage() {
                           hideEngineToggle
                           hideEngineActions
                           guidedSetup={newCampaignIds.has(campaign.id)}
+                          collapsedOnly
                           onCancel={() => {
                             // Cancelling a fresh plan removes it from the store.
                             deleteMediaPlan(campaign.id);

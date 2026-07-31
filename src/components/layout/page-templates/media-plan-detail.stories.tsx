@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
+import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Plan Detail',
@@ -49,16 +50,18 @@ const goals = [
   { id: 'purchase', icon: <ShoppingCart size={24} />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores' },
   { id: 'loyalty', icon: <Heart size={24} />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases' },
 ];
+// Each option carries a one-liner so the selected card explains what the
+// objective/KPI stands for (shared copy: src/lib/objective-kpi-copy.ts).
 const objectiveOptions = [
-  { label: 'Merkbekendheid', value: 'merkbekendheid' },
-  { label: 'Productbekendheid', value: 'productbekendheid' },
-  { label: 'Merk associaties', value: 'merk-associaties' },
+  { label: 'Merkbekendheid', value: 'merkbekendheid', description: describeObjective('merkbekendheid') },
+  { label: 'Productbekendheid', value: 'productbekendheid', description: describeObjective('productbekendheid') },
+  { label: 'Merk associaties', value: 'merk-associaties', description: describeObjective('merk-associaties') },
 ];
 const kpiFilterOptions = [
-  { label: 'Top of Mind Awareness', value: 'toma' },
-  { label: 'Spontane merk/productbekendheid', value: 'spontaan' },
-  { label: 'Reclamebekendheid (Ad-recall)', value: 'adrecall' },
-  { label: 'CEP', value: 'cep' },
+  { label: 'Top of Mind Awareness', value: 'toma', description: describeKpi('toma') },
+  { label: 'Spontane merk/productbekendheid', value: 'spontaan', description: describeKpi('spontaan') },
+  { label: 'Reclamebekendheid (Ad-recall)', value: 'adrecall', description: describeKpi('adrecall') },
+  { label: 'CEP', value: 'cep', description: describeKpi('cep') },
 ];
 const statusOptions = [
   { label: 'Draft', value: 'draft' },

@@ -20,6 +20,7 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { getDb, createMediaPlan, createCampaign, getCurrentUser, type EngineId } from '@/lib/db';
+import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { DateRange } from 'react-day-picker';
@@ -866,7 +867,7 @@ export const GoalSelection: Story = {
                           <SearchSelectList
                             label="Objective"
                             placeholder="Search objective…"
-                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ value: o, label: o }))}
+                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ value: o, label: o, description: describeObjective(o) }))}
                             value={selectedObjective ? [selectedObjective] : []}
                             onChange={(vals) => { setSelectedObjective(vals[0] ?? null); setSelectedStudies([]); }}
                             multiple={false}
@@ -896,7 +897,7 @@ export const GoalSelection: Story = {
                             <SearchSelectList
                               label="KPIs"
                               placeholder="Search KPIs…"
-                              options={kpiOptions.map((k) => ({ value: k, label: k }))}
+                              options={kpiOptions.map((k) => ({ value: k, label: k, description: describeKpi(k) }))}
                               value={activeKpis}
                               onChange={(vals) => {
                                 setSelectedKpis(vals);

@@ -89,6 +89,9 @@ export interface CampaignSummaryProps {
   onRename?: (newTitle: string) => void;
   onDelete?: () => void;
   defaultExpanded?: boolean;
+  /** Card stays collapsed and clicking it opens the media-plan detail page —
+   *  the card is a summary, the detail page is where the work happens. */
+  collapsedOnly?: boolean;
   hideGoal?: boolean;
   hideTargeting?: boolean;
   hideAgent?: boolean;
@@ -141,6 +144,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onRename,
     onDelete,
     defaultExpanded = false,
+    collapsedOnly = false,
     hideGoal = false,
     hideTargeting = false,
     hideAgent = false,
@@ -169,7 +173,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // Internal state for switches when callbacks are not provided
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
-    const [isCollapsed, setIsCollapsed] = React.useState(!defaultExpanded);
+    const [isCollapsed, setIsCollapsed] = React.useState(collapsedOnly && !guidedSetup ? true : !defaultExpanded);
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>(() => {
       const seed: { [key: string]: string } = {};
       engines.forEach(e => {
@@ -764,7 +768,19 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         
         <CardHeader
           className={`${layout === 'vertical' ? 'space-y-4' : 'space-y-2.5'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
-          onClick={layout !== 'vertical' ? () => { if (!isRenaming) setIsCollapsed(!isCollapsed); } : undefined}
+          onClick={layout !== 'vertical' ? () => {
+            if (isRenaming) return;
+            // Collapsed-only cards ARE the summary — clicking opens the detail page.
+            if (collapsedOnly && !guidedSetup) {
+              const href = internalCampaignId ? `/campaigns/plan/${internalCampaignId}` : undefined;
+              if (href) {
+                if (router) router.push(href);
+                else if (typeof window !== 'undefined') window.location.href = href;
+              }
+              return;
+            }
+            setIsCollapsed(!isCollapsed);
+          } : undefined}
         >
           {/* Title and Badges Row */}
           <div className="flex justify-between items-start gap-4">
@@ -874,17 +890,21 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     )}
                   </>
                 )}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsCollapsed(!isCollapsed);
-                  }}
-                >
-                  {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                </Button>
+                {/* Collapsed-only cards have no expand affordance — the card
+                    links to the detail page instead. */}
+                {!(collapsedOnly && !guidedSetup) && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsCollapsed(!isCollapsed);
+                    }}
+                  >
+                    {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                  </Button>
+                )}
               </div>
             )}
           </div>

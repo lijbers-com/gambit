@@ -24,6 +24,7 @@ import { DialogFooter } from '../../ui/dialog';
 import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw, MoreHorizontal, Copy, ClipboardPaste } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
+import { useDb } from '@/lib/db';
 import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -460,34 +461,17 @@ export const Display: Story = {
     // pattern as the offsite booking.
     const [displayMediaProduct, setDisplayMediaProduct] = React.useState<string[]>([]);
     const [displayPositions, setDisplayPositions] = React.useState<string[]>([]);
-    const displayMediaProducts = [
-      { value: 'homepage', label: 'Homepage Banners', description: 'Above-the-fold homepage placements' },
-      { value: 'category', label: 'Category Page Banners', description: 'Category and subcategory pages' },
-      { value: 'pdp', label: 'Product Detail Page Banners', description: 'On product pages' },
-      { value: 'ros', label: 'Run-of-Site Display', description: 'Across the whole site' },
-      { value: 'search', label: 'Search Results Banners', description: 'On search-results pages' },
-    ];
-    const displayPositionsByProduct: Record<string, { value: string; label: string; description: string }[]> = {
-      homepage: [
-        { value: 'hp-hero', label: 'Hero', description: 'Top hero slot' },
-        { value: 'hp-mid', label: 'Mid-page', description: 'Mid homepage' },
-        { value: 'hp-footer', label: 'Footer', description: 'Bottom of homepage' },
-      ],
-      category: [
-        { value: 'cat-top', label: 'Top of category', description: 'Above the product grid' },
-        { value: 'cat-inline', label: 'Inline', description: 'Within the product grid' },
-      ],
-      pdp: [
-        { value: 'pdp-above', label: 'Above the fold', description: 'Top of the product page' },
-        { value: 'pdp-related', label: 'Related products', description: 'Near related items' },
-      ],
-      ros: [{ value: 'ros-standard', label: 'Standard', description: 'Run-of-site slot' }],
-      search: [
-        { value: 'srch-top', label: 'Top of results', description: 'Above search results' },
-        { value: 'srch-side', label: 'Sidebar', description: 'Beside search results' },
-      ],
-    };
-    const displayCurrentPositions = displayMediaProduct[0] ? (displayPositionsByProduct[displayMediaProduct[0]] ?? []) : [];
+    // Channels + positions come from the prototype database (channel = media
+    // product; a position is the smallest bookable unit).
+    const dbDisplay = useDb();
+    const displayMediaProducts = dbDisplay.mediaProducts
+      .filter((m) => m.engine === 'display')
+      .map((m) => ({ value: m.id, label: m.name, description: m.description ?? '' }));
+    const displayCurrentPositions = displayMediaProduct[0]
+      ? dbDisplay.positions
+          .filter((p) => p.mediaProductId === displayMediaProduct[0])
+          .map((p) => ({ value: p.id, label: p.name, description: `${p.dailyCapacity} bookable slots per day` }))
+      : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
     const [positionSearch, setPositionSearch] = React.useState('');
 
@@ -4543,49 +4527,23 @@ export const OffsiteDisplay: Story = {
     const [selectedDevices, setSelectedDevices] = React.useState<string[]>([]);
     const [selectedGeos, setSelectedGeos] = React.useState<string[]>([]);
 
-    // Offsite media products (the channel — Display, or a Socials platform).
-    // The positions/slots the user can pick depend on the chosen media product.
-    const offsiteMediaProducts = [
-      { value: 'display', label: 'Display', description: 'Open-web display · premium retail-media partners' },
-      { value: 'meta', label: 'Socials · Meta', description: 'Facebook & Instagram' },
-      { value: 'pinterest', label: 'Socials · Pinterest', description: 'Pins & shopping ads' },
-      { value: 'tiktok', label: 'Socials · TikTok', description: 'In-feed video' },
-    ];
-    const displayPlacements = [
-      { value: 'homepage-hero', label: 'Homepage Hero', description: '970×250 · Above the fold · Premium visibility' },
-      { value: 'category-leaderboard', label: 'Category Leaderboard', description: '728×90 · Category pages · High intent audience' },
-      { value: 'product-page-rectangle', label: 'Product Page Rectangle', description: '300×250 · Product detail pages · High purchase intent' },
-      { value: 'search-results-top', label: 'Search Results Top', description: '728×90 · Search results · Keyword-triggered' },
-      { value: 'checkout-sidebar', label: 'Checkout Sidebar', description: '300×600 · Checkout flow · Last-touch attribution' },
-      { value: 'newsletter-half-page', label: 'Newsletter Half Page', description: '300×600 · Weekly newsletter · Engaged subscribers' },
-      { value: 'mobile-interstitial', label: 'Mobile Interstitial', description: '320×480 · App & mobile web · Full-screen takeover' },
-    ];
-    const socialPlacements: Record<string, { value: string; label: string; description: string }[]> = {
-      meta: [
-        { value: 'meta-feed', label: 'Feed', description: 'Facebook & Instagram feed · 1:1 / 4:5' },
-        { value: 'meta-stories', label: 'Stories', description: 'Full-screen vertical · 9:16' },
-        { value: 'meta-reels', label: 'Reels', description: 'Short-form video · 9:16' },
-        { value: 'meta-carousel', label: 'Carousel', description: 'Multi-product swipe · 1:1' },
-      ],
-      pinterest: [
-        { value: 'pin-standard', label: 'Standard Pin', description: 'Static pin · 2:3' },
-        { value: 'pin-video', label: 'Video Pin', description: 'Auto-play video · 2:3 / 1:1' },
-        { value: 'pin-shopping', label: 'Shopping Pin', description: 'Product feed · with pricing' },
-        { value: 'pin-carousel', label: 'Carousel Pin', description: 'Up to 5 images · 2:3' },
-      ],
-      tiktok: [
-        { value: 'tt-infeed', label: 'In-Feed', description: 'For You feed · 9:16' },
-        { value: 'tt-topview', label: 'TopView', description: 'First impression on app open · 9:16' },
-        { value: 'tt-spark', label: 'Spark Ads', description: 'Boosted organic · 9:16' },
-      ],
-    };
-    const positionsByMediaProduct: Record<string, { value: string; label: string; description: string }[]> = {
-      display: displayPlacements,
-      meta: socialPlacements.meta,
-      pinterest: socialPlacements.pinterest,
-      tiktok: socialPlacements.tiktok,
-    };
-    const currentPositions = mediaProduct[0] ? (positionsByMediaProduct[mediaProduct[0]] ?? []) : [];
+    // Offsite channels + positions come from the prototype database: the
+    // channel (Display, OLV, CTV, Contextual Commerce Media, Social Media,
+    // DOOH) groups positions — and for Social Media the positions ARE the
+    // platforms (Meta, TikTok, Pinterest, YouTube). Partners show alongside.
+    const dbOffsite = useDb();
+    const offsiteMediaProducts = dbOffsite.mediaProducts
+      .filter((m) => m.engine === 'offsite')
+      .map((m) => ({
+        value: m.id,
+        label: m.name,
+        description: [m.description, m.partner ? `Partner: ${m.partner}` : null].filter(Boolean).join(' · '),
+      }));
+    const currentPositions = mediaProduct[0]
+      ? dbOffsite.positions
+          .filter((p) => p.mediaProductId === mediaProduct[0])
+          .map((p) => ({ value: p.id, label: p.name, description: `${p.dailyCapacity} bookable slots per day` }))
+      : [];
 
     const retailProducts = [
       { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter' },

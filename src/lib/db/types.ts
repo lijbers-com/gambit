@@ -152,13 +152,23 @@ export interface MetricDefinition {
   description?: string;
 }
 
-// ── Media products, positions & availability ───────────────────────────
+// ── Channels, positions & availability ─────────────────────────────────
+//
+// Every engine offers inventory the same way: a CHANNEL (also called media
+// product or platform — one name to be settled later) groups POSITIONS, and a
+// position is the smallest bookable unit. Offsite illustrates the model best:
+// channels like Display, Online Video, CTV, Contextual Commerce Media, Social
+// Media and Digital Out Of Home — where for Social Media the positions are the
+// platforms themselves (Meta, TikTok, Pinterest, YouTube).
 
+/** A channel within an engine (aka media product / platform — naming TBD). */
 export interface MediaProduct {
   id: string;
   engine: EngineId;
   name: string;
   description?: string;
+  /** Executing partner behind this channel (e.g. Epsilon, Chicory, Vistar). */
+  partner?: string;
 }
 
 export interface Position {

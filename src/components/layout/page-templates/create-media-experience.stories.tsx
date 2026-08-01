@@ -41,6 +41,9 @@ import {
   X,
   Users,
   Tag,
+  LayoutGrid,
+  Euro,
+  Calendar as CalendarIcon,
   TrendingUp,
   DollarSign,
   BarChart3,
@@ -358,17 +361,44 @@ export const GoalSelection: Story = {
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
 
-    // Step 5: Media plan - proposition selections
-    // Editable per-campaign names for the campaign rows on the final step
-    // (assisted rows get a prefill; expert rows start blank).
-    const [campaignRowNames, setCampaignRowNames] = React.useState<Record<string, string>>({});
-    // Each key is a proposition id, value is 'preset' | 'empty' | null, plus selected preset id
-    // Default: all propositions selected with AI preset
-    const [propositionSelections, setPropositionSelections] = React.useState<Record<string, { mode: 'preset' | 'empty'; presetId?: string } | null>>(() => {
-      const defaults: Record<string, { mode: 'preset' | 'empty'; presetId?: string }> = {};
-      propositions.forEach(p => { defaults[p.id] = { mode: 'preset', presetId: p.aiPreset.id }; });
-      return defaults;
+    // Step 5: the campaigns in this plan — a LIST of rows, so a proposition can
+    // hold more than one campaign. Assisted rows are prefilled from the AI
+    // preset; expert rows carry their own form for the user to fill in.
+    type CampaignRow = {
+      id: string;
+      engine: string;
+      mode: 'preset' | 'expert';
+      name: string;
+      externalId: string;
+      budget: string;
+      dateRange: DateRange | undefined;
+    };
+    const rowSeq = React.useRef(0);
+    const nextRowId = () => `row-${(rowSeq.current += 1)}`;
+    const makeRow = (engine: string, mode: 'preset' | 'expert'): CampaignRow => ({
+      id: nextRowId(),
+      engine,
+      mode,
+      name: '',
+      externalId: '',
+      budget: '',
+      dateRange: undefined,
     });
+    // Default: one assisted campaign per proposition.
+    const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
+      propositions.map((p) => ({
+        id: `row-${(rowSeq.current += 1)}`,
+        engine: p.id,
+        mode: 'preset' as const,
+        name: '',
+        externalId: '',
+        budget: '',
+        dateRange: undefined,
+      })),
+    );
+    const updateRow = (id: string, patch: Partial<CampaignRow>) =>
+      setCampaignRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    const removeRow = (id: string) => setCampaignRows((prev) => prev.filter((r) => r.id !== id));
 
     // Assisted experience — one switch that turns the AI service on or off across
     // the whole plan: per-step guidance, budget optimization, and AI campaign
@@ -379,16 +409,8 @@ export const GoalSelection: Story = {
       setAssistedExperience(on);
       if (!on) setAutoBudgetOptimization(false);
       else if (budgetAmount.trim() !== '') setAutoBudgetOptimization(true);
-      // Re-point every enabled proposition to an AI preset (on) or empty (off).
-      setPropositionSelections((prev) => {
-        const next: typeof prev = { ...prev };
-        Object.keys(next).forEach((id) => {
-          if (!next[id]) return;
-          const prop = propositions.find((p) => p.id === id);
-          next[id] = on ? { mode: 'preset', presetId: prop?.aiPreset.id } : { mode: 'empty' };
-        });
-        return next;
-      });
+      // Flip every campaign row to assisted (on) or expert (off).
+      setCampaignRows((prev) => prev.map((r) => ({ ...r, mode: on ? 'preset' : 'expert' })));
     };
 
     // Derived data
@@ -528,9 +550,12 @@ export const GoalSelection: Story = {
           return vals;
         }
         case 'review': {
-          const selectedCount = Object.values(propositionSelections).filter(Boolean).length;
-          if (selectedCount === 0) return null;
-          return [`${selectedCount} proposition${selectedCount !== 1 ? 's' : ''} selected`];
+          if (campaignRows.length === 0) return null;
+          const engines = new Set(campaignRows.map((r) => r.engine)).size;
+          return [
+            `${campaignRows.length} campaign${campaignRows.length !== 1 ? 's' : ''}`,
+            `${engines} proposition${engines !== 1 ? 's' : ''}`,
+          ];
         }
         default:
           return null;
@@ -560,18 +585,18 @@ export const GoalSelection: Story = {
       return `${adjusted.toFixed(1)}M`;
     }, [selectedAudiences]);
 
-    // Proposition impact on metrics
+    // Proposition impact on metrics. Estimates are per PROPOSITION, so a second
+    // campaign on the same proposition doesn't double-count its reach; only
+    // assisted (preset) campaigns carry estimates — expert ones are unknown.
     const propositionImpact = React.useMemo(() => {
       let additionalReach = 0;
       let roasBoost = 0;
       let additionalSales = 0;
-      let selectedCount = 0;
 
-      Object.entries(propositionSelections).forEach(([propId, sel]) => {
-        if (!sel) return;
-        selectedCount++;
-        // Empty campaigns have unknown metrics, so skip them
-        if (sel.mode === 'empty') return;
+      const enginesInPlan = new Set(campaignRows.map((r) => r.engine));
+      const assistedEngines = new Set(campaignRows.filter((r) => r.mode === 'preset').map((r) => r.engine));
+
+      assistedEngines.forEach((propId) => {
         const prop = propositions.find(p => p.id === propId);
         if (!prop) return;
         // Parse reach (e.g. '3.2M' or '680K')
@@ -589,8 +614,8 @@ export const GoalSelection: Story = {
         additionalSales += salesNum;
       });
 
-      return { additionalReach, roasBoost, additionalSales, selectedCount };
-    }, [propositionSelections]);
+      return { additionalReach, roasBoost, additionalSales, selectedCount: enginesInPlan.size };
+    }, [campaignRows]);
 
     // Launching writes the media plan + one campaign per enabled proposition
     // into the prototype database, then opens the new plan's detail page.
@@ -624,24 +649,24 @@ export const GoalSelection: Story = {
         createdBy: getCurrentUser()?.id,
       });
 
-      // One campaign per enabled proposition, splitting the plan budget evenly.
-      const enabled = Object.entries(propositionSelections)
-        .filter(([, sel]) => sel)
-        .map(([id]) => id as EngineId);
-      const perEngine = enabled.length > 0 ? Math.floor(budget / enabled.length) : 0;
-      enabled.forEach((engine) => {
-        const propName = propositions.find((p) => p.id === engine)?.name ?? engine;
-        // The campaign-row name wins when the user edited it on the final step.
-        const rowName = campaignRowNames[engine]?.trim();
+      // One campaign per row. Rows without their own budget share what's left of
+      // the plan budget evenly; expert rows can carry their own budget/dates.
+      const claimed = campaignRows.reduce((s, r) => s + (parseFloat(r.budget) || 0), 0);
+      const unbudgeted = campaignRows.filter((r) => !(parseFloat(r.budget) > 0)).length;
+      const perRow = unbudgeted > 0 ? Math.max(Math.floor((budget - claimed) / unbudgeted), 0) : 0;
+
+      campaignRows.forEach((row) => {
+        const propName = propositions.find((p) => p.id === row.engine)?.name ?? row.engine;
+        const rowBudget = parseFloat(row.budget) || perRow;
         createCampaign({
           mediaPlanId: plan.id,
-          name: rowName || `${name} — ${propName}`,
-          engine,
+          name: row.name.trim() || `${name} — ${propName}`,
+          engine: row.engine as EngineId,
           status: 'in-option',
-          budget: perEngine,
+          budget: rowBudget,
           spend: 0,
-          startDate: iso(start),
-          endDate: iso(end),
+          startDate: iso(row.dateRange?.from ?? start),
+          endDate: iso(row.dateRange?.to ?? end),
         });
       });
 
@@ -1105,16 +1130,29 @@ export const GoalSelection: Story = {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {/* Campaign rows — the same easy row pattern as the media-plan card. */}
-                      {propositions.map((prop) => {
-                        const selection = propositionSelections[prop.id];
-                        if (!selection) return null;
-                        const isAssisted = selection.mode === 'preset';
+                      {/* Campaign rows — one row per campaign, so a proposition
+                          can hold several. Assisted rows show the prefilled
+                          set-up (placements, run time, budget share); expert
+                          rows carry the campaign form to fill in. */}
+                      {campaignRows.map((row) => {
+                        const prop = propositions.find((p) => p.id === row.engine);
+                        if (!prop) return null;
+                        const isAssisted = row.mode === 'preset';
                         const IconComponent = prop.icon;
                         const prefill = `${campaignName || 'New Media plan'} — ${prop.name}`;
-                        const rowName = campaignRowNames[prop.id] ?? (isAssisted ? prefill : '');
+                        // Budget share: this row's own budget, or an even split of
+                        // whatever the plan budget has left for unbudgeted rows.
+                        const planBudget = parseFloat(budgetAmount) || 0;
+                        const claimed = campaignRows.reduce((s, r) => s + (parseFloat(r.budget) || 0), 0);
+                        const unbudgeted = campaignRows.filter((r) => !(parseFloat(r.budget) > 0)).length;
+                        const share = parseFloat(row.budget) || (unbudgeted > 0 ? Math.max(Math.floor((planBudget - claimed) / unbudgeted), 0) : 0);
+                        const runTime = row.dateRange?.from && row.dateRange?.to
+                          ? `${row.dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${row.dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                          : dateRange?.from && dateRange?.to
+                            ? `${dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                            : 'Inherits the plan run time';
                         return (
-                          <div key={prop.id} className="rounded-lg border border-border p-4 space-y-3">
+                          <div key={row.id} className="rounded-lg border border-border p-4 space-y-3">
                             <div className="flex items-center gap-3">
                               <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary text-primary-foreground flex-shrink-0">
                                 <IconComponent size={14} />
@@ -1123,7 +1161,7 @@ export const GoalSelection: Story = {
                               {isAssisted ? (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
                                   <Sparkles size={10} />
-                                  Assisted · prefilled
+                                  Assisted
                                 </span>
                               ) : (
                                 <Badge variant="outline">Expert</Badge>
@@ -1131,39 +1169,116 @@ export const GoalSelection: Story = {
                               <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">
                                 {isAssisted ? `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS` : '– reach · – ROAS'}
                               </span>
+                              {/* Switch this campaign between assisted and expert. */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 shrink-0 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                                onClick={() => updateRow(row.id, { mode: isAssisted ? 'expert' : 'preset' })}
+                              >
+                                {isAssisted ? <FileText size={13} /> : <Sparkles size={13} />}
+                                {isAssisted ? 'Switch to expert' : 'Switch to assisted'}
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
                                 aria-label={`Remove ${prop.name} campaign`}
-                                onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: null }))}
+                                onClick={() => removeRow(row.id)}
                               >
                                 <X size={14} />
                               </Button>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">Campaign name</Label>
-                                <Input
-                                  value={rowName}
-                                  placeholder={isAssisted ? prefill : 'Name the campaign'}
-                                  onChange={(e) => setCampaignRowNames(prev => ({ ...prev, [prop.id]: e.target.value }))}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">Set-up</Label>
-                                <div className="text-xs text-muted-foreground leading-relaxed pt-1.5">
-                                  {isAssisted
-                                    ? `${prop.aiPreset.description} · ${prop.aiPreset.placements} placements · ~${prop.aiPreset.estImpressions} imp.`
-                                    : 'Blank campaign — you set placements, budget and targeting after launch.'}
+
+                            {isAssisted ? (
+                              <div className="space-y-3">
+                                <div className="space-y-2">
+                                  <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                                  <Input
+                                    value={row.name}
+                                    placeholder={prefill}
+                                    onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                  />
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                  {prop.aiPreset.description}
+                                </p>
+                                {/* What the assisted campaign takes: placements,
+                                    impressions, run time and budget share. */}
+                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <LayoutGrid size={13} />
+                                    {prop.aiPreset.placements} placements
+                                  </span>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <Sparkles size={13} />
+                                    ~{prop.aiPreset.estImpressions} impressions
+                                  </span>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <CalendarIcon size={13} />
+                                    {runTime}
+                                  </span>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <Euro size={13} />
+                                    <span className="font-medium text-foreground">
+                                      {share > 0 ? `€${share.toLocaleString()}` : 'No budget set'}
+                                    </span>
+                                    {share > 0 && !row.budget && ' of the plan budget'}
+                                  </span>
                                 </div>
                               </div>
-                            </div>
+                            ) : (
+                              /* Expert mode — the campaign form to fill in. */
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                                    <Input
+                                      value={row.name}
+                                      placeholder="Name the campaign"
+                                      onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-sm text-muted-foreground">External ID</Label>
+                                    <Input
+                                      value={row.externalId}
+                                      placeholder="Optional reference"
+                                      onChange={(e) => updateRow(row.id, { externalId: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-sm text-muted-foreground">Campaign budget</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={row.budget}
+                                      placeholder={share > 0 ? String(share) : 'Enter budget amount'}
+                                      onChange={(e) => updateRow(row.id, { budget: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-sm text-muted-foreground">Campaign run time</Label>
+                                    <DateRangePicker
+                                      dateRange={row.dateRange}
+                                      onDateRangeChange={(r) => updateRow(row.id, { dateRange: r })}
+                                      placeholder="Inherits the plan run time"
+                                      showPresets
+                                      presets={futureDateRangePresets}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Placements and targeting are set on the campaign after launch.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
 
-                      {/* Add campaign — dashed row with a proposition picker. */}
+                      {/* Add campaign — a proposition can be added more than once. */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
@@ -1177,30 +1292,36 @@ export const GoalSelection: Story = {
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-72">
-                          {propositions.filter((p) => !propositionSelections[p.id]).length === 0 ? (
-                            <DropdownMenuLabel className="font-normal text-muted-foreground">All propositions added</DropdownMenuLabel>
-                          ) : (
-                            propositions.filter((p) => !propositionSelections[p.id]).map((prop, i, arr) => (
+                          {propositions.map((prop, i, arr) => {
+                            const count = campaignRows.filter((r) => r.engine === prop.id).length;
+                            return (
                               <React.Fragment key={prop.id}>
-                                <DropdownMenuLabel>{prop.name}</DropdownMenuLabel>
+                                <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                                  {prop.name}
+                                  {count > 0 && (
+                                    <span className="text-[10px] font-normal text-muted-foreground">
+                                      {count} added
+                                    </span>
+                                  )}
+                                </DropdownMenuLabel>
                                 <DropdownMenuItem
-                                  onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id } }))}
+                                  onClick={() => setCampaignRows((prev) => [...prev, makeRow(prop.id, 'preset')])}
                                   className="gap-2"
                                 >
                                   <Sparkles size={14} className="text-primary" />
                                   Assisted — prefilled
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: { mode: 'empty' } }))}
+                                  onClick={() => setCampaignRows((prev) => [...prev, makeRow(prop.id, 'expert')])}
                                   className="gap-2"
                                 >
                                   <FileText size={14} className="text-muted-foreground" />
-                                  Expert — blank
+                                  Expert — fill in yourself
                                 </DropdownMenuItem>
                                 {i < arr.length - 1 && <DropdownMenuSeparator />}
                               </React.Fragment>
-                            ))
-                          )}
+                            );
+                          })}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -1208,15 +1329,25 @@ export const GoalSelection: Story = {
                       <OptimisationCard
                         assisted={assistedExperience}
                         onToggle={setAssisted}
-                        items={[
-                          propositionImpact.selectedCount < propositions.length
-                            ? { badge: 'Incomplete', tone: 'alert' as const, message: `${propositions.length - propositionImpact.selectedCount} proposition${propositions.length - propositionImpact.selectedCount === 1 ? '' : 's'} disabled — enabling them adds incremental reach for the same audience.` }
-                            : { badge: 'AI Insight', tone: 'success' as const, message: 'All propositions enabled — the widest reach for this audience.' },
-                          { badge: 'AI Insight', tone: 'insight' as const, message: `AI presets picked placements across ${propositionImpact.selectedCount} proposition${propositionImpact.selectedCount === 1 ? '' : 's'} — review or switch any to empty to configure manually.` },
-                          ...(propositionImpact.additionalSales > 0
-                            ? [{ badge: 'AI Insight', tone: 'success' as const, message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from the enabled mix.` }]
-                            : []),
-                        ]}
+                        items={(() => {
+                          const missing = propositions.length - propositionImpact.selectedCount;
+                          const assistedCount = campaignRows.filter((r) => r.mode === 'preset').length;
+                          const expertCount = campaignRows.length - assistedCount;
+                          return [
+                            missing > 0
+                              ? { badge: 'Incomplete', tone: 'alert' as const, message: `${missing} proposition${missing === 1 ? '' : 's'} not in this plan — adding a campaign for them brings incremental reach for the same audience.` }
+                              : { badge: 'AI Insight', tone: 'success' as const, message: 'Every proposition has a campaign — the widest reach for this audience.' },
+                            {
+                              badge: 'AI Insight', tone: 'insight' as const,
+                              message: assistedCount > 0
+                                ? `${assistedCount} assisted campaign${assistedCount === 1 ? '' : 's'} prefilled by AI presets${expertCount > 0 ? `, ${expertCount} set up in expert mode` : ''} — switch any campaign between the two.`
+                                : 'All campaigns are in expert mode — switch a campaign to assisted to have the AI prefill its placements.',
+                            },
+                            ...(propositionImpact.additionalSales > 0
+                              ? [{ badge: 'AI Insight', tone: 'success' as const, message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from this mix.` }]
+                              : []),
+                          ];
+                        })()}
                       />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">

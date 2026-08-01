@@ -21,6 +21,14 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { getDb, createMediaPlan, createCampaign, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { DateRange } from 'react-day-picker';
@@ -351,6 +359,9 @@ export const GoalSelection: Story = {
     const [tagInput, setTagInput] = React.useState('');
 
     // Step 5: Media plan - proposition selections
+    // Editable per-campaign names for the campaign rows on the final step
+    // (assisted rows get a prefill; expert rows start blank).
+    const [campaignRowNames, setCampaignRowNames] = React.useState<Record<string, string>>({});
     // Each key is a proposition id, value is 'preset' | 'empty' | null, plus selected preset id
     // Default: all propositions selected with AI preset
     const [propositionSelections, setPropositionSelections] = React.useState<Record<string, { mode: 'preset' | 'empty'; presetId?: string } | null>>(() => {
@@ -620,9 +631,11 @@ export const GoalSelection: Story = {
       const perEngine = enabled.length > 0 ? Math.floor(budget / enabled.length) : 0;
       enabled.forEach((engine) => {
         const propName = propositions.find((p) => p.id === engine)?.name ?? engine;
+        // The campaign-row name wins when the user edited it on the final step.
+        const rowName = campaignRowNames[engine]?.trim();
         createCampaign({
           mediaPlanId: plan.id,
-          name: `${name} — ${propName}`,
+          name: rowName || `${name} — ${propName}`,
           engine,
           status: 'in-option',
           budget: perEngine,
@@ -1087,129 +1100,109 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Media plan</CardTitle>
                     <CardDescription>
-                      Toggle propositions on or off, then choose an Assisted campaign (pre-set placements) or Expert mode (set it up yourself).
+                      The campaigns in this plan — add one per proposition. Assisted campaigns come prefilled by the AI presets; expert campaigns start blank.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
+                      {/* Campaign rows — the same easy row pattern as the media-plan card. */}
                       {propositions.map((prop) => {
                         const selection = propositionSelections[prop.id];
-                        const isEnabled = selection !== null && selection !== undefined;
-                        const isAiSelected = selection?.mode === 'preset';
-                        const isEmptySelected = selection?.mode === 'empty';
+                        if (!selection) return null;
+                        const isAssisted = selection.mode === 'preset';
                         const IconComponent = prop.icon;
-
+                        const prefill = `${campaignName || 'New Media plan'} — ${prop.name}`;
+                        const rowName = campaignRowNames[prop.id] ?? (isAssisted ? prefill : '');
                         return (
-                          <div
-                            key={prop.id}
-                            className={cn(
-                              "rounded-lg border transition-all",
-                              isEnabled ? 'border-border' : 'border-border/50'
-                            )}
-                          >
-                            {/* Proposition header with toggle */}
-                            <div className="flex items-center gap-3 p-4">
-                              {/* Toggle on the left, next to the proposition it controls. */}
-                              <Switch
-                                checked={isEnabled}
-                                className="shrink-0"
-                                onCheckedChange={(checked: boolean) => {
-                                  if (checked) {
-                                    setPropositionSelections(prev => ({
-                                      ...prev,
-                                      [prop.id]: assistedExperience
-                                        ? { mode: 'preset', presetId: prop.aiPreset.id }
-                                        : { mode: 'empty' },
-                                    }));
-                                  } else {
-                                    setPropositionSelections(prev => ({ ...prev, [prop.id]: null }));
-                                  }
-                                }}
-                              />
-                              <div className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                                isEnabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                              )}>
-                                <IconComponent size={16} />
+                          <div key={prop.id} className="rounded-lg border border-border p-4 space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary text-primary-foreground flex-shrink-0">
+                                <IconComponent size={14} />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <span className={cn(
-                                  "text-sm font-semibold",
-                                  !isEnabled && 'text-muted-foreground'
-                                )}>{prop.name}</span>
-                                <p className="text-xs text-muted-foreground">{prop.description}</p>
-                              </div>
-                              {isEnabled && (
-                                <span className="text-xs text-muted-foreground flex-shrink-0">
-                                  {isEmptySelected ? '– reach · – ROAS' : `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS`}
+                              <span className="text-sm font-medium">{prop.name} campaign</span>
+                              {isAssisted ? (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
+                                  <Sparkles size={10} />
+                                  Assisted · prefilled
                                 </span>
+                              ) : (
+                                <Badge variant="outline">Expert</Badge>
                               )}
+                              <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">
+                                {isAssisted ? `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS` : '– reach · – ROAS'}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                                aria-label={`Remove ${prop.name} campaign`}
+                                onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: null }))}
+                              >
+                                <X size={14} />
+                              </Button>
                             </div>
-
-                            {/* Expanded content when enabled */}
-                            {isEnabled && (
-                              <div className="px-4 pb-4">
-                                <div className={cn('grid gap-3', assistedExperience && 'grid-cols-2')}>
-                                  {/* AI preset option — only in the assisted experience */}
-                                  {assistedExperience && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPropositionSelections(prev => ({
-                                        ...prev,
-                                        [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id },
-                                      }));
-                                    }}
-                                    className={cn(
-                                      "flex flex-col items-start text-left p-4 rounded-lg border-2 transition-all cursor-pointer h-full",
-                                      isAiSelected
-                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                        : 'border-border hover:border-primary/30'
-                                    )}
-                                  >
-                                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                                      <Sparkles size={14} className="text-primary flex-shrink-0" />
-                                      <span className="text-sm font-medium">Assisted campaign</span>
-                                      <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">Recommended</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{prop.aiPreset.description}</p>
-                                    <div className="flex gap-3 mt-auto">
-                                      <span className="text-xs text-muted-foreground">{prop.aiPreset.placements} placements</span>
-                                      <span className="text-xs text-muted-foreground">~{prop.aiPreset.estImpressions} imp.</span>
-                                    </div>
-                                  </button>
-                                  )}
-
-                                  {/* Empty campaign option */}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPropositionSelections(prev => ({
-                                        ...prev,
-                                        [prop.id]: { mode: 'empty' },
-                                      }));
-                                    }}
-                                    className={cn(
-                                      "flex flex-col items-start text-left p-4 rounded-lg border-2 border-dashed transition-all cursor-pointer h-full",
-                                      isEmptySelected
-                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                        : 'border-muted-foreground/20 hover:border-primary/30'
-                                    )}
-                                  >
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <FileText size={14} className="text-muted-foreground flex-shrink-0" />
-                                      <span className="text-sm font-medium">Expert mode</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground leading-relaxed">
-                                      Set up the {prop.name.toLowerCase()} campaign yourself — full control over placements, budget and targeting.
-                                    </p>
-                                  </button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                                <Input
+                                  value={rowName}
+                                  placeholder={isAssisted ? prefill : 'Name the campaign'}
+                                  onChange={(e) => setCampaignRowNames(prev => ({ ...prev, [prop.id]: e.target.value }))}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm text-muted-foreground">Set-up</Label>
+                                <div className="text-xs text-muted-foreground leading-relaxed pt-1.5">
+                                  {isAssisted
+                                    ? `${prop.aiPreset.description} · ${prop.aiPreset.placements} placements · ~${prop.aiPreset.estImpressions} imp.`
+                                    : 'Blank campaign — you set placements, budget and targeting after launch.'}
                                 </div>
                               </div>
-                            )}
+                            </div>
                           </div>
                         );
                       })}
+
+                      {/* Add campaign — dashed row with a proposition picker. */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
+                          >
+                            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
+                              <Plus size={14} />
+                            </div>
+                            <span className="text-sm text-muted-foreground">Add campaign</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-72">
+                          {propositions.filter((p) => !propositionSelections[p.id]).length === 0 ? (
+                            <DropdownMenuLabel className="font-normal text-muted-foreground">All propositions added</DropdownMenuLabel>
+                          ) : (
+                            propositions.filter((p) => !propositionSelections[p.id]).map((prop, i, arr) => (
+                              <React.Fragment key={prop.id}>
+                                <DropdownMenuLabel>{prop.name}</DropdownMenuLabel>
+                                <DropdownMenuItem
+                                  onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: { mode: 'preset', presetId: prop.aiPreset.id } }))}
+                                  className="gap-2"
+                                >
+                                  <Sparkles size={14} className="text-primary" />
+                                  Assisted — prefilled
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setPropositionSelections(prev => ({ ...prev, [prop.id]: { mode: 'empty' } }))}
+                                  className="gap-2"
+                                >
+                                  <FileText size={14} className="text-muted-foreground" />
+                                  Expert — blank
+                                </DropdownMenuItem>
+                                {i < arr.length - 1 && <DropdownMenuSeparator />}
+                              </React.Fragment>
+                            ))
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <div className="mt-6">
                       <OptimisationCard

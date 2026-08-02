@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -38,7 +38,12 @@ export const seedData: DbData = {
     { id: 'u-proposition-dev',     name: 'Nora Smit',        role: 'Media Proposition Developer',              personaKey: 'media-proposition-developer',   side: 'retailer',   theme: 'gambit' },
     { id: 'u-tech-ops',            name: 'Ruben Mulder',     role: 'Technology & Operations Support',          personaKey: 'tech-ops-support',              side: 'retailer',   theme: 'gambit' },
     { id: 'u-ecommerce-manager',   name: 'Fleur Hendriks',   role: 'eCommerce Manager – Qcom & New Channels',  personaKey: 'ecommerce-manager',             side: 'retailer',   theme: 'gambit' },
+    // Advertiser side — the self-service users a retailer's branded platform
+    // serves (agency buyers and in-house brand marketeers).
     { id: 'u-agency-advertiser',   name: 'Alex Romero',      role: 'Media Agency Advertiser',                  personaKey: 'media-agency-advertiser',       side: 'advertiser', theme: 'albert-heijn', advertiserId: 'adv-acme' },
+    { id: 'u-agency-planner',      name: 'Iris Willems',     role: 'Media Agency Planner',                     personaKey: 'media-agency-advertiser',       side: 'advertiser', theme: 'albert-heijn', advertiserId: 'adv-brand-alliance' },
+    { id: 'u-brand-marketeer',     name: 'Youssef El Amrani', role: 'Brand Marketeer (Advertiser)',            personaKey: 'media-agency-advertiser',       side: 'advertiser', theme: 'albert-heijn', advertiserId: 'adv-global-brands' },
+    { id: 'u-shopper-marketeer',   name: 'Lotte Peters',     role: 'Shopper Marketeer (Advertiser)',           personaKey: 'media-agency-advertiser',       side: 'advertiser', theme: 'albert-heijn', advertiserId: 'adv-unilever-shopper' },
   ],
 
   // ── Advertisers & brands (aligned with the create wizard's options) ──

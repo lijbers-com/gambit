@@ -20,6 +20,8 @@ export { login, logout, getCurrentUser, subscribeSession } from './session';
 export {
   deriveTasks,
   deriveTasksForPlan,
+  deriveTasksForCampaign,
+  deriveTasksForBooking,
   deriveTasksForUser,
   derivePlanHealth,
   type DerivedTask,

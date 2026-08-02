@@ -411,24 +411,33 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   />
                   <Table
                     columns={[
-                      { key: '_expand', header: '', width: 40, render: row => row._type === 'campaign' && row.bookings > 0 ? (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleRow(row._id); }}
-                          className="flex h-6 w-6 items-center justify-center rounded hover:bg-muted"
-                          aria-label={expandedRows.includes(row._id) ? `Collapse ${row.name}` : `Expand ${row.name}`}
-                        >
-                          {expandedRows.includes(row._id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                      ) : null },
                       { key: 'id', header: 'ID', width: 130 },
                       { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'advertiser', header: 'Advertiser' },
-                      { key: 'name', header: 'Name', width: 260, render: row => row._type === 'booking' ? (
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <CornerDownRight className="h-3.5 w-3.5 shrink-0" />
+                      // Name carries the expand chevron and the booking count —
+                      // the same pattern as the media-plan detail table.
+                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'campaign' ? (
+                        <span className="flex min-w-0 items-center gap-2">
+                          {row.bookings > 0 ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleRow(row._id); }}
+                              className="shrink-0 text-muted-foreground hover:text-foreground"
+                              aria-label={expandedRows.includes(row._id) ? `Collapse ${row.name}` : `Expand ${row.name}`}
+                            >
+                              {expandedRows.includes(row._id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </button>
+                          ) : (
+                            <span className="h-4 w-4 shrink-0" />
+                          )}
+                          <span className="truncate font-medium">{row.name}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 pl-6 text-muted-foreground">
+                          <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
                           {row.name}
                         </span>
-                      ) : row.name },
+                      ) },
                       ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
                         if (row._type === 'booking') return null;

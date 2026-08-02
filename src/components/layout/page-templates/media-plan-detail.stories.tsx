@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
+import { ActionsTab } from '@/components/ui/actions-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 
 const meta: Meta<typeof AppLayout> = {
@@ -458,6 +459,23 @@ export const MediaPlanDetail: Story = {
                       <Button onClick={savePlan}>Save changes</Button>
                     </div>
                   </div>
+                ),
+              },
+              {
+                // Everything the user should do or know for this plan: the
+                // derived to-dos plus its recommendations and insights.
+                label: 'Actions',
+                value: 'actions',
+                content: (
+                  <ActionsTab
+                    scope="media-plan"
+                    entityId={plan?.id}
+                    className="mt-6"
+                    advice={[
+                      { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).' },
+                      { badge: 'AI Insight', tone: 'insight', message: `"${plan?.name ?? 'This plan'}" could improve CTR by ~23% with optimised targeting parameters.` },
+                    ]}
+                  />
                 ),
               },
               {

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { Booking, Campaign, DbData, DbUser, EngineId, MediaPlan, MetricDefinition } from './types';
 import { getDb, subscribe } from './store';
+import { seedData } from './seed';
 import { getCurrentUser, subscribeSession } from './session';
 import { deriveTasksForUser } from './tasks';
 
@@ -15,8 +16,19 @@ import { deriveTasksForUser } from './tasks';
  * to the seed when localStorage is unavailable), keeping hydration consistent.
  */
 
+/**
+ * The snapshot used for SSR *and* for the first client render during
+ * hydration. It must never read localStorage: the server only knows the seed,
+ * so reading a user's persisted store here would make the hydrated HTML
+ * disagree with the server's (e.g. "9 media plans" vs "8"). React swaps in the
+ * live snapshot immediately after hydration.
+ */
+function getHydrationSnapshot(): DbData {
+  return seedData;
+}
+
 function useDbSnapshot(): DbData {
-  return React.useSyncExternalStore(subscribe, getDb, getDb);
+  return React.useSyncExternalStore(subscribe, getDb, getHydrationSnapshot);
 }
 
 export function useDb(): DbData {

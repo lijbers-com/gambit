@@ -25,6 +25,7 @@ import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calenda
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { useDb } from '@/lib/db';
+import { ActionsTab } from '@/components/ui/actions-tab';
 import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -434,7 +435,7 @@ export const Display: Story = {
     // 1. Booking details (run-time, schedule, active days, position)
     // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
     // 3. Creatives (link / upload creatives — placeholder for now)
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -578,7 +579,8 @@ export const Display: Story = {
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
-                  { value: 'evaluation', label: 'Evaluation' },
+                  { value: 'actions', label: 'Actions' },
+                      { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs', label: 'Logs' },
                 ].map((t) => (
                   <button
@@ -937,6 +939,11 @@ export const Display: Story = {
                 </div>
               </div>
 
+              {/* Actions tab — the booking's derived to-dos plus its advice */}
+              <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
+                <ActionsTab scope="booking" />
+              </div>
+
               {/* Booking evaluation tab */}
               <div className={cn(bookingTab !== 'evaluation' && 'hidden')}>
                 <div className="px-6 py-6 space-y-4">
@@ -1006,7 +1013,7 @@ export const DigitalInStore: Story = {
     // clone action so AdOps can cluster this booking with related campaigns
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1634,6 +1641,7 @@ export const DigitalInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions', label: 'Actions' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -2214,6 +2222,12 @@ export const DigitalInStore: Story = {
                         </div>
                       </section>
 
+                      <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
+
+                        <ActionsTab scope="booking" />
+
+                      </div>
+
                       <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
@@ -2600,7 +2614,7 @@ export const OfflineInStore: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -3123,6 +3137,7 @@ export const OfflineInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions', label: 'Actions' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -3786,6 +3801,12 @@ export const OfflineInStore: Story = {
                         </div>
                       </section>
 
+                      <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
+
+                        <ActionsTab scope="booking" />
+
+                      </div>
+
                       <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
@@ -3899,7 +3920,7 @@ export const SponsoredProducts: Story = {
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4077,6 +4098,7 @@ export const SponsoredProducts: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions', label: 'Actions' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4399,6 +4421,12 @@ export const SponsoredProducts: Story = {
                         </div>
                       </section>
 
+                      <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
+
+                        <ActionsTab scope="booking" />
+
+                      </div>
+
                       <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">
                           <div className="flex items-start justify-between gap-4">
@@ -4499,7 +4527,7 @@ export const OffsiteDisplay: Story = {
     const routes = getRoutesForTheme(currentTheme);
 
     const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4646,6 +4674,7 @@ export const OffsiteDisplay: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions', label: 'Actions' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4931,6 +4960,12 @@ export const OffsiteDisplay: Story = {
                           </div>
                         </div>
                       </section>
+
+                      <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
+
+                        <ActionsTab scope="booking" />
+
+                      </div>
 
                       <FormSection title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
                         <div className="space-y-4">

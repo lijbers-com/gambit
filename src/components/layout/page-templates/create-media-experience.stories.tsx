@@ -14,7 +14,6 @@ import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brand
 import { Filter } from '@/components/ui/filter';
 import { GoalCard } from '@/components/ui/goal-card';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -25,8 +24,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import * as React from 'react';
@@ -44,7 +41,6 @@ import {
   LayoutGrid,
   Euro,
   Calendar as CalendarIcon,
-  TrendingUp,
   DollarSign,
   BarChart3,
   ScanBarcode,
@@ -947,24 +943,25 @@ export const GoalSelection: Story = {
                                 const isSelected = selectedStudies.includes(kpi);
                                 const isFree = budgetNum >= pricing.freeThreshold;
                                 return (
-                                  <label className="flex cursor-pointer items-start gap-2.5">
-                                    <Checkbox
-                                      className="mt-0.5"
-                                      checked={isSelected}
-                                      onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
-                                    />
-                                    <span className="min-w-0 space-y-0.5">
+                                  /* Checkbox + title on one line; the explanation
+                                     sits below on the card's own left edge. */
+                                  <div className="space-y-1">
+                                    <label className="flex cursor-pointer items-center gap-2.5">
+                                      <Checkbox
+                                        checked={isSelected}
+                                        onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                      />
                                       <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                                         <FlaskConical className="h-3.5 w-3.5 shrink-0" />
                                         Add a brand-lift study
                                         <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
                                       </span>
-                                      <span className="block text-xs text-muted-foreground">
-                                        Measures the uplift this KPI drives against a control group.{' '}
-                                        {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
-                                      </span>
-                                    </span>
-                                  </label>
+                                    </label>
+                                    <p className="text-xs text-muted-foreground">
+                                      Measures the uplift this KPI drives against a control group.{' '}
+                                      {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
+                                    </p>
+                                  </div>
                                 );
                               }}
                             />
@@ -1158,27 +1155,19 @@ export const GoalSelection: Story = {
                                 <IconComponent size={14} />
                               </div>
                               <span className="text-sm font-medium">{prop.name} campaign</span>
-                              {isAssisted ? (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
-                                  <Sparkles size={10} />
-                                  Assisted
+                              {/* Mode toggle — it both shows and sets the mode, so
+                                  the header needs no extra badge. */}
+                              <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2">
+                                <Switch
+                                  checked={isAssisted}
+                                  onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
+                                  aria-label={`${prop.name} campaign mode`}
+                                />
+                                <span className={cn('inline-flex items-center gap-1 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
+                                  {isAssisted ? <Sparkles size={12} /> : <FileText size={12} />}
+                                  {isAssisted ? 'Assisted' : 'Expert'}
                                 </span>
-                              ) : (
-                                <Badge variant="outline">Expert</Badge>
-                              )}
-                              <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">
-                                {isAssisted ? `${prop.metrics.reach} reach · ${prop.metrics.roas} ROAS` : '– reach · – ROAS'}
-                              </span>
-                              {/* Switch this campaign between assisted and expert. */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 shrink-0 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                                onClick={() => updateRow(row.id, { mode: isAssisted ? 'expert' : 'preset' })}
-                              >
-                                {isAssisted ? <FileText size={13} /> : <Sparkles size={13} />}
-                                {isAssisted ? 'Switch to expert' : 'Switch to assisted'}
-                              </Button>
+                              </label>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1192,6 +1181,11 @@ export const GoalSelection: Story = {
 
                             {isAssisted ? (
                               <div className="space-y-3">
+                                {/* What the AI preset configured — stated before
+                                    the field the user actually edits. */}
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                  {prop.aiPreset.description}
+                                </p>
                                 <div className="space-y-2">
                                   <Label className="text-sm text-muted-foreground">Campaign name</Label>
                                   <Input
@@ -1200,30 +1194,30 @@ export const GoalSelection: Story = {
                                     onChange={(e) => updateRow(row.id, { name: e.target.value })}
                                   />
                                 </div>
-                                <p className="text-xs text-muted-foreground leading-relaxed">
-                                  {prop.aiPreset.description}
-                                </p>
-                                {/* What the assisted campaign takes: placements,
-                                    impressions, run time and budget share. */}
-                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <LayoutGrid size={13} />
-                                    {prop.aiPreset.placements} placements
+                                {/* Prefilled settings, in the media-plan card's
+                                    label-and-value style. */}
+                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
+                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Placements:</span>
+                                    <span className="font-medium text-foreground">{prop.aiPreset.placements}</span>
                                   </span>
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <Sparkles size={13} />
-                                    ~{prop.aiPreset.estImpressions} impressions
+                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Impressions:</span>
+                                    <span className="font-medium text-foreground">~{prop.aiPreset.estImpressions}</span>
                                   </span>
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <CalendarIcon size={13} />
-                                    {runTime}
+                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Run time:</span>
+                                    <span className="font-medium text-foreground">{runTime}</span>
                                   </span>
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <Euro size={13} />
+                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                                    <Euro className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Budget:</span>
                                     <span className="font-medium text-foreground">
                                       {share > 0 ? `€${share.toLocaleString()}` : 'No budget set'}
                                     </span>
-                                    {share > 0 && !row.budget && ' of the plan budget'}
                                   </span>
                                 </div>
                               </div>
@@ -1291,35 +1285,27 @@ export const GoalSelection: Story = {
                             <span className="text-sm text-muted-foreground">Add campaign</span>
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-72">
-                          {propositions.map((prop, i, arr) => {
+                        {/* Pick the proposition — the campaign starts in expert
+                            mode; its row toggle switches it to assisted. Matches
+                            the searchable-select dropdown: full trigger width,
+                            each option with a subline. */}
+                        <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] p-0">
+                          {propositions.map((prop) => {
                             const count = campaignRows.filter((r) => r.engine === prop.id).length;
                             return (
-                              <React.Fragment key={prop.id}>
-                                <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                                  {prop.name}
+                              <DropdownMenuItem
+                                key={prop.id}
+                                onClick={() => setCampaignRows((prev) => [...prev, makeRow(prop.id, 'expert')])}
+                                className="cursor-pointer flex-col items-start gap-0.5 rounded-none border-b p-3 last:border-b-0"
+                              >
+                                <span className="flex w-full items-center gap-2">
+                                  <span className="text-sm font-medium">{prop.name}</span>
                                   {count > 0 && (
-                                    <span className="text-[10px] font-normal text-muted-foreground">
-                                      {count} added
-                                    </span>
+                                    <span className="ml-auto text-xs text-muted-foreground">{count} added</span>
                                   )}
-                                </DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() => setCampaignRows((prev) => [...prev, makeRow(prop.id, 'preset')])}
-                                  className="gap-2"
-                                >
-                                  <Sparkles size={14} className="text-primary" />
-                                  Assisted — prefilled
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setCampaignRows((prev) => [...prev, makeRow(prop.id, 'expert')])}
-                                  className="gap-2"
-                                >
-                                  <FileText size={14} className="text-muted-foreground" />
-                                  Expert — fill in yourself
-                                </DropdownMenuItem>
-                                {i < arr.length - 1 && <DropdownMenuSeparator />}
-                              </React.Fragment>
+                                </span>
+                                <span className="text-xs text-muted-foreground">{prop.description}</span>
+                              </DropdownMenuItem>
                             );
                           })}
                         </DropdownMenuContent>

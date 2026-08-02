@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card'
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { InsightsTab } from './insights-tab';
+import { ActionsTab } from '@/components/ui/actions-tab';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -883,6 +884,13 @@ const updatedForecastMetrics = [
               content: null,
             },
             {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
+            },
+            {
               label: 'Bookings',
               value: 'bookings',
               content: (
@@ -1425,6 +1433,13 @@ export const DigitalInstoreRunning: Story = {
               content: null,
             },
             {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
+            },
+            {
               label: 'Bookings',
               value: 'bookings',
               content: (
@@ -1892,6 +1907,13 @@ export const OfflineInstoreRunning: Story = {
               label: 'Campaign details',
               value: 'details',
               content: null,
+            },
+            {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2422,6 +2444,13 @@ export const DisplayRunning: Story = {
               content: null,
             },
             {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
+            },
+            {
               label: 'Bookings',
               value: 'bookings',
               content: (
@@ -2942,6 +2971,13 @@ export const OfflineInstoreInOption: Story = {
               content: null,
             },
             {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
+            },
+            {
               label: 'Bookings',
               value: 'bookings',
               content: (
@@ -3438,6 +3474,13 @@ export const DisplayInOption: Story = {
               label: 'Campaign details',
               value: 'details',
               content: null,
+            },
+            {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -5597,6 +5640,13 @@ export const OffsiteRunning: Story = {
               content: null,
             },
             {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
+            },
+            {
               label: 'Bookings',
               value: 'bookings',
               content: (
@@ -6124,6 +6174,13 @@ export const OffsiteInOption: Story = {
               label: 'Campaign details',
               value: 'details',
               content: null,
+            },
+            {
+              // Everything to do or know for this campaign: derived to-dos
+              // plus its recommendations and insights.
+              label: 'Actions',
+              value: 'actions',
+              content: <ActionsTab scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',

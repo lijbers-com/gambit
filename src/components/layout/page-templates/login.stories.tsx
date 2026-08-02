@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useUsers, login, resetDb, type DbUser } from '@/lib/db';
 import {
   DropdownMenu,
@@ -95,37 +96,41 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
     setStorybookTheme(newTheme);
   };
 
-  // Selecting a user logs in and applies their role's branding: retailer-side
-  // users get the Edge chrome; advertiser users get the retailer's branding.
-  const handleSelectUser = (user: DbUser) => {
-    login(user.id);
-    if (typeof window !== 'undefined') window.location.href = '/home';
+  // The theme decides WHO signs in here: the Edge theme is the retailer's own
+  // workspace (retailer roles), while every retailer theme is that retailer's
+  // self-service platform, used by advertisers and their media agencies.
+  const isEdgeWorkspace = currentTheme === 'retailMedia';
+  const signInUsers = users.filter((u) => (isEdgeWorkspace ? u.side === 'retailer' : u.side === 'advertiser'));
+
+  // Storybook theme key → the app's theme value (applied on sign-in).
+  const themeValueByKey: Record<string, string> = {
+    retailMedia: 'gambit',
+    albertHeijn: 'albert-heijn',
+    delhaize: 'delhaize',
+    adusa: 'adusa',
+    alfaBeta: 'alfa-beta',
   };
 
-  const retailerUsers = users.filter((u) => u.side === 'retailer');
-  const advertiserUsers = users.filter((u) => u.side === 'advertiser');
+  const [selectedUserId, setSelectedUserId] = React.useState('');
+  const [password, setPassword] = React.useState('demo');
+  const selectedUser = signInUsers.find((u) => u.id === selectedUserId);
 
-  const initials = (name: string) =>
-    name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  const userOptions = signInUsers.map((u) => ({
+    label: `${u.name} — ${u.role}`,
+    value: u.id,
+  }));
 
-  const UserRow = ({ user }: { user: DbUser }) => (
-    <button
-      type="button"
-      onClick={() => handleSelectUser(user)}
-      className="flex w-full items-center gap-3 rounded-lg border bg-white p-3 text-left transition-colors hover:border-primary/40 hover:bg-accent/50"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
-        {initials(user.name)}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
-        <span className="block truncate text-xs text-muted-foreground">{user.role}</span>
-      </span>
-      <Badge variant={user.side === 'retailer' ? 'secondary' : 'outline'} className="shrink-0">
-        {user.side === 'retailer' ? 'Edge' : 'Advertiser'}
-      </Badge>
-    </button>
-  );
+  // Clear the picked user when switching theme — the role list changes with it.
+  React.useEffect(() => {
+    setSelectedUserId('');
+  }, [currentTheme]);
+
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    login(selectedUser.id, themeValueByKey[currentTheme] ?? 'gambit');
+    if (typeof window !== 'undefined') window.location.href = '/home';
+  };
 
   return (
     <div className="flex h-screen">
@@ -210,29 +215,46 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
               <div>
                 <h2 className="text-2xl font-semibold text-neutral-900">Sign in</h2>
                 <p className="mt-1 text-sm text-neutral-600">
-                  Choose a user — the platform adapts to their role and branding.
+                  {isEdgeWorkspace
+                    ? 'Pick a member of the Edge team — the platform adapts to their role.'
+                    : `Pick an advertiser user — this is the ${theme.name} self-service platform.`}
                 </p>
               </div>
 
-              <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-1">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Retailer team
-                  </div>
-                  {retailerUsers.map((user) => (
-                    <UserRow key={user.id} user={user} />
-                  ))}
+                  <Label htmlFor="username" className="text-sm font-normal text-neutral-700">
+                    Username
+                  </Label>
+                  <Input
+                    dropdown
+                    options={userOptions}
+                    value={selectedUserId}
+                    onChange={setSelectedUserId}
+                    placeholder="Select a user"
+                  />
+                  {selectedUser && (
+                    <p className="text-xs text-muted-foreground">{selectedUser.role}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Advertisers
-                  </div>
-                  {advertiserUsers.map((user) => (
-                    <UserRow key={user.id} user={user} />
-                  ))}
+                  <Label htmlFor="password" className="text-sm font-normal text-neutral-700">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    className="w-full h-11 bg-white border-neutral-300"
+                  />
                 </div>
-              </div>
+
+                <Button type="submit" className="w-full h-11 text-base font-medium" disabled={!selectedUser}>
+                  Sign in
+                </Button>
+              </form>
 
               <div className="text-left">
                 <Button

@@ -121,9 +121,24 @@ export function deriveTasks(db: DbData): DerivedTask[] {
   return tasks.sort((a, b) => order[a.severity] - order[b.severity]);
 }
 
-/** Derived to-dos for one media plan. */
+/** Derived to-dos for one media plan (the plan and everything under it). */
 export function deriveTasksForPlan(db: DbData, planId: string): DerivedTask[] {
   return deriveTasks(db).filter((t) => t.mediaPlanId === planId);
+}
+
+/** Derived to-dos for one campaign — its own plus its bookings'. */
+export function deriveTasksForCampaign(db: DbData, campaignId: string): DerivedTask[] {
+  const bookingIds = db.bookings.filter((b) => b.campaignId === campaignId).map((b) => b.id);
+  return deriveTasks(db).filter(
+    (t) =>
+      (t.level === 'campaign' && t.entityId === campaignId) ||
+      (t.level === 'booking' && bookingIds.includes(t.entityId)),
+  );
+}
+
+/** Derived to-dos for one booking. */
+export function deriveTasksForBooking(db: DbData, bookingId: string): DerivedTask[] {
+  return deriveTasks(db).filter((t) => t.level === 'booking' && t.entityId === bookingId);
 }
 
 /** Derived to-dos for a user, scoped by their side/persona. */

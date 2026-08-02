@@ -36,13 +36,19 @@ export function getCurrentUser(): DbUser | null {
   }
 }
 
-/** Log in as a user: store the session and apply their branding theme. */
-export function login(userId: string): DbUser | null {
+/**
+ * Log in as a user and apply the branding.
+ *
+ * The theme comes from the login screen when given: the Edge theme is the
+ * retailer's own workspace, while each retailer theme (Albert Heijn, Delhaize,
+ * AD USA, Alfa Beta) is that retailer's self-service platform, where only
+ * advertiser-side users sign in. Falls back to the user's default theme.
+ */
+export function login(userId: string, theme?: string): DbUser | null {
   const user = getDb().users.find((u) => u.id === userId) ?? null;
   if (!user || typeof window === 'undefined') return null;
   window.localStorage.setItem(SESSION_KEY, user.id);
-  // Apply the user's branding via the existing theme storage key.
-  window.localStorage.setItem(THEME_KEY, user.theme);
+  window.localStorage.setItem(THEME_KEY, theme ?? user.theme);
   notify();
   return user;
 }

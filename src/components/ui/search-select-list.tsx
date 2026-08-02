@@ -1,8 +1,12 @@
 import * as React from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { SearchInput } from './search-input';
+
+/** Below this many options the control drops the search field and acts as a
+ *  plain select — searching a handful of items is friction, not help. */
+const SEARCHABLE_THRESHOLD = 8;
 
 export interface SearchSelectOption {
   value: string;
@@ -53,8 +57,13 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   const [showResults, setShowResults] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  /** Only long catalogues get a search field; short ones act as a select. */
+  const searchable = options.length >= SEARCHABLE_THRESHOLD;
+  /** "Search KPIs…" → "Select KPIs…" when the field behaves as a select. */
+  const selectPlaceholder = placeholder.replace(/^Search\b/i, 'Select');
+
   const results = options.filter(
-    (o) => !value.includes(o.value) && o.label.toLowerCase().includes(search.toLowerCase()),
+    (o) => !value.includes(o.value) && (!searchable || o.label.toLowerCase().includes(search.toLowerCase())),
   );
 
   const add = (val: string) => {
@@ -88,17 +97,33 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
           </div>
         ) : (
           <>
-            <SearchInput
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setShowResults(true);
-              }}
-              onClick={() => setShowResults(true)}
-              placeholder={placeholder}
-              className="w-full"
-              icon={icon ?? <Search className="w-4 h-4" />}
-            />
+            {/* Short catalogues don't need a search field — they behave like a
+                plain select: click to open, pick from the list. */}
+            {searchable ? (
+              <SearchInput
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setShowResults(true);
+                }}
+                onClick={() => setShowResults(true)}
+                placeholder={placeholder}
+                className="w-full"
+                icon={icon ?? <Search className="w-4 h-4" />}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowResults((v) => !v)}
+                className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  {icon}
+                  <span className="truncate text-muted-foreground">{selectPlaceholder}</span>
+                </span>
+                <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', showResults && 'rotate-180')} />
+              </button>
+            )}
             {showResults && (
               <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-lg">
                 {results.length > 0 ? (
@@ -123,12 +148,10 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       {selected.length > 0 && (
         <div className="space-y-1">
           {selected.map((option) => (
-            <div key={option.value} className="rounded-md border bg-muted/40 p-2">
+            <div key={option.value} className="rounded-md border bg-muted/40 p-3">
+              {/* Title line — vertically centred with the remove button. */}
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-medium">{option.label}</div>
-                  {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
-                </div>
+                <div className="min-w-0 truncate text-sm font-medium">{option.label}</div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -139,7 +162,11 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              {renderSelectedExtra && <div className="mt-2">{renderSelectedExtra(option)}</div>}
+              {/* Everything else sits underneath, full width. */}
+              {option.description && (
+                <div className="mt-1 text-xs text-muted-foreground">{option.description}</div>
+              )}
+              {renderSelectedExtra && <div className="mt-4">{renderSelectedExtra(option)}</div>}
             </div>
           ))}
         </div>

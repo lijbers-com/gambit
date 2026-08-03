@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
-import { ActionsTab } from '@/components/ui/actions-tab';
+import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 
@@ -456,19 +456,9 @@ export const MediaPlanDetail: Story = {
               {
                 // Everything the user should do or know for this plan: the
                 // derived to-dos plus its recommendations and insights.
-                label: 'Actions',
+                label: 'Inbox',
                 value: 'actions',
-                content: (
-                  <ActionsTab
-                    scope="media-plan"
-                    entityId={plan?.id}
-                    className="mt-6"
-                    advice={[
-                      { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).' },
-                      { badge: 'AI Insight', tone: 'insight', message: `"${plan?.name ?? 'This plan'}" could improve CTR by ~23% with optimised targeting parameters.` },
-                    ]}
-                  />
-                ),
+                content: <InboxPanel scope="media-plan" entityId={plan?.id} className="mt-6" />,
               },
               {
                 label: 'Campaigns & bookings',

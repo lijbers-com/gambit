@@ -3,7 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
 import { InsightsTab } from './insights-tab';
-import { ActionsTab } from '@/components/ui/actions-tab';
+import { InboxPanel } from '@/components/ui/inbox-panel';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
@@ -479,9 +479,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               // Everything outstanding across this proposition's campaigns and
               // bookings — the same derived to-dos the detail pages show, just
               // scoped to the engine instead of a single entity.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="engine" entityId={engineId} className="mt-6" />,
+              content: <InboxPanel scope="engine" entityId={engineId} className="mt-6" />,
             },
             {
               label: 'Insights',

@@ -54,6 +54,11 @@ const SmartBreadcrumbsInner = ({
 
   // Function to get proper name from routes configuration
   const getRouteLabel = (path: string, fullPath: string): string => {
+    // Routes whose display name differs from their URL. /notifications is the
+    // Inbox — the URL stays put so existing links keep working.
+    const renamed: Record<string, string> = { '/notifications': 'Inbox' };
+    if (renamed[fullPath]) return renamed[fullPath];
+
     // Handle dynamic routes with breadcrumb context
     if (breadcrumbContext) {
       // Campaign detail pages

@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card'
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { InsightsTab } from './insights-tab';
-import { ActionsTab } from '@/components/ui/actions-tab';
+import { InboxPanel } from '@/components/ui/inbox-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -886,9 +886,9 @@ const updatedForecastMetrics = [
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1435,9 +1435,9 @@ export const DigitalInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1911,9 +1911,9 @@ export const OfflineInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2446,9 +2446,9 @@ export const DisplayRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2973,9 +2973,9 @@ export const OfflineInstoreInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -3478,9 +3478,9 @@ export const DisplayInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -5642,9 +5642,9 @@ export const OffsiteRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -6178,9 +6178,9 @@ export const OffsiteInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Actions',
+              label: 'Inbox',
               value: 'actions',
-              content: <ActionsTab scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
               label: 'Bookings',

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUsers, login, resetDb, type DbUser } from '@/lib/db';
+import { useUsers, login, resetDb, resetInboxState, type DbUser } from '@/lib/db';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -265,6 +265,9 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                   className="h-auto p-0 text-sm text-neutral-600 underline hover:text-neutral-900"
                   onClick={() => {
                     resetDb();
+                    // The inbox remembers what was read/done per message; a
+                    // fresh database should start with a fresh inbox too.
+                    resetInboxState();
                     alert('Demo data has been reset to the seed.');
                   }}
                 >

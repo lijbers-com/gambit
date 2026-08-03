@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { Sparkles, ChevronRight, Check, X, HeartPulse, AlertCircle, Lightbulb, Bell, type LucideIcon } from 'lucide-react';
+import { Sparkles, Check, X, HeartPulse, AlertCircle, Lightbulb, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { Inbox, type InboxItem } from './inbox';
+import type { MessageStatus } from '@/lib/db';
 import {
   RightDrawer,
   RightDrawerContent,
@@ -329,6 +331,8 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
   const [completed, setCompleted] = React.useState<Set<number>>(
     () => new Set(items.map((a, i) => (a.done ? i : -1)).filter((i) => i >= 0)),
   );
+  // Which rows the user has opened — drives the unread dot in the inbox list.
+  const [opened, setOpened] = React.useState<Set<string>>(() => new Set());
 
   const openAdvice = (a: Advice, i: number) => {
     setActiveHealth(false);
@@ -372,117 +376,60 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
   };
 
   /**
-   * A single notification, styled like a mail-list item: a small status dot,
-   * a bold subject line with its type on the right, and a preview line under
-   * it. Rows are divided rather than boxed so a long list stays compact.
+   * The bold subject line. With the type now shown as a badge, falling back to
+   * the type label would print the same word twice — so an advice without an
+   * explicit title uses its message as the subject and shows no preview line.
    */
-  const NotificationRow = ({ icon: Icon, iconClass, badge, badgeClass, title, message, onClick, muted }: {
-    icon: LucideIcon; iconClass: string; badge: string; badgeClass: string;
-    title: string; message: React.ReactNode; onClick: () => void; muted?: boolean;
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'group/notif flex w-full items-start gap-3 border-b border-border/60 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-accent/50',
-        muted && 'opacity-60 hover:opacity-100',
-      )}
-    >
-      <span className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full', iconClass)}>
-        <Icon className="h-3 w-3" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-2">
-          <span className={cn('min-w-0 truncate text-sm font-medium text-foreground', muted && 'line-through')}>
-            {title}
-          </span>
-          <span className={cn('ml-auto shrink-0 text-[11px] font-medium', badgeClass)}>{badge}</span>
-        </span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{message}</span>
-      </span>
-      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/notif:text-foreground" />
-    </button>
-  );
+  const subjectOf = (a: Advice) => a.title ?? (typeof a.message === 'string' ? a.message : notificationKindConfig[adviceKind(a)].label);
 
-  /** The bold subject line — an explicit title, else the type label. */
-  const subjectOf = (a: Advice) => a.title ?? notificationKindConfig[adviceKind(a)].label;
+  // Rendered through the shared Inbox so contextual advice looks and behaves
+  // exactly like the database-backed inbox: unread dot, type badge, subject,
+  // preview. Read state is local here — this advice is about the choices being
+  // made right now, so there is nothing worth persisting across sessions.
+  const HEALTH_ID = '__health';
+  const inboxItems: InboxItem[] = [
+    ...(health
+      ? [{
+          id: HEALTH_ID,
+          kind: 'health' as const,
+          subject: `Media plan health — ${healthConfig[health.level].label}`,
+          preview: health.message,
+        }]
+      : []),
+    ...items.map((a, i) => ({
+      id: String(i),
+      kind: adviceKind(a) as InboxItem['kind'],
+      subject: subjectOf(a),
+      // Only a preview when the subject isn't already the message itself.
+      preview: a.title ? a.message : null,
+    })),
+  ];
+
+  const itemStatus: Record<string, MessageStatus> = {};
+  for (const item of inboxItems) {
+    itemStatus[item.id] = completed.has(Number(item.id))
+      ? 'done'
+      : opened.has(item.id)
+        ? 'read'
+        : 'unread';
+  }
 
   return (
-    <div className={cn('overflow-hidden rounded-lg border bg-card transition-colors', className)}>
-      <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2 text-sm font-medium">
-        <Bell className="h-4 w-4 text-primary" />
-        Notifications
-      </div>
-
-      <div>
-        {/* Health check — the plan's overall status, always first. */}
-        {health && (
-          <NotificationRow
-            icon={healthConfig[health.level].Icon}
-            iconClass={healthConfig[health.level].icon}
-            badge={healthConfig[health.level].label}
-            badgeClass={healthConfig[health.level].text}
-            title={`Media plan health — ${healthConfig[health.level].label}`}
-            message={health.message}
-            onClick={openHealth}
-          />
-        )}
-
-        {items.length === 0 && !health ? (
-          <p className="px-3 py-3 text-sm text-muted-foreground">Notifications appear as you make selections.</p>
-        ) : (
-          <>
-            {/* To do — open notifications the user still has to action. The
-                heading only shows once there's also a Done section. */}
-            {todo.length > 0 && (
-              <div>
-                {done.length > 0 && (
-                  <div className="border-b bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                    To do ({todo.length})
-                  </div>
-                )}
-                {todo.map(({ a, i }) => {
-                  const kc = notificationKindConfig[adviceKind(a)];
-                  return (
-                    <NotificationRow
-                      key={i}
-                      icon={kc.Icon}
-                      iconClass={kc.icon}
-                      badge={kc.label}
-                      badgeClass={kc.text}
-                      title={subjectOf(a)}
-                      message={a.message}
-                      onClick={() => openAdvice(a, i)}
-                    />
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Done — notifications already actioned, kept as a record. */}
-            {done.length > 0 && (
-              <div>
-                <div className="border-y bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                  Done ({done.length})
-                </div>
-                {done.map(({ a, i }) => (
-                  <NotificationRow
-                    key={i}
-                    icon={Check}
-                    iconClass="bg-green-100 text-green-700"
-                    badge={notificationKindConfig[adviceKind(a)].label}
-                    badgeClass="text-muted-foreground"
-                    title={subjectOf(a)}
-                    message={a.message}
-                    onClick={() => openAdvice(a, i)}
-                    muted
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+    <div className={cn('w-full', className)}>
+      <Inbox
+        items={inboxItems}
+        status={itemStatus}
+        emptyMessage="Notifications appear as you make selections."
+        onOpen={(item) => {
+          setOpened((prev) => new Set(prev).add(item.id));
+          if (item.id === HEALTH_ID) {
+            openHealth();
+          } else {
+            const i = Number(item.id);
+            openAdvice(items[i], i);
+          }
+        }}
+      />
 
       <RightDrawer open={active != null} onOpenChange={(open) => { if (!open) close(); }}>
         <RightDrawerContent className="sm:max-w-xl">

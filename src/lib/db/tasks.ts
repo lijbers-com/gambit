@@ -117,8 +117,93 @@ export function deriveTasks(db: DbData): DerivedTask[] {
     }
   }
 
+  tasks.push(...deriveGuidance(db));
+
   const order: Record<TaskSeverity, number> = { blocking: 0, attention: 1, info: 2 };
   return tasks.sort((a, b) => order[a.severity] - order[b.severity]);
+}
+
+/** Whole percent of a flight that has elapsed. Rounded so a server render and a
+ *  client hydration milliseconds apart can never produce different text. */
+function elapsedPercent(startDate: string, endDate: string): number {
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  if (!(end > start)) return 100;
+  const now = Date.now();
+  return Math.max(0, Math.min(100, Math.round(((now - start) / (end - start)) * 100)));
+}
+
+/**
+ * Recommendations and insights — the "help me get the most out of this" half of
+ * the inbox, as opposed to the blocking to-dos above.
+ *
+ * Every rule is computed from real numbers in the database, so nothing here is
+ * decoration: if a plan is not actually unbalanced, it gets no rebalance advice.
+ */
+function deriveGuidance(db: DbData): DerivedTask[] {
+  const tasks: DerivedTask[] = [];
+
+  for (const plan of db.mediaPlans) {
+    const campaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+    if (campaigns.length === 0) continue;
+    const live = plan.status === 'running';
+
+    // ── Rebalance: propositions in the same plan pacing far apart ────────
+    if (live && campaigns.length >= 2) {
+      const paced = campaigns
+        .filter((c) => c.budget > 0 && c.status === 'running')
+        .map((c) => ({ c, pct: Math.round((c.spend / c.budget) * 100) }));
+      if (paced.length >= 2) {
+        const best = paced.reduce((a, b) => (a.pct > b.pct ? a : b));
+        const worst = paced.reduce((a, b) => (a.pct < b.pct ? a : b));
+        if (best.pct - worst.pct >= 25) {
+          tasks.push({
+            id: `${plan.id}-rebalance`, kind: 'recommendation', severity: 'info', level: 'media-plan',
+            entityId: plan.id, mediaPlanId: plan.id,
+            title: 'Rebalance budget across propositions',
+            detail: `"${best.c.name}" has used ${best.pct}% of its budget while "${worst.c.name}" is at ${worst.pct}% — moving budget to the faster proposition captures the demand that is actually there.`,
+            side: 'both', personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser'],
+          });
+        }
+      }
+    }
+
+    // ── Underdelivery: past halfway but well behind on spend ─────────────
+    for (const campaign of campaigns) {
+      if (campaign.status !== 'running' || campaign.budget <= 0) continue;
+      const elapsed = elapsedPercent(campaign.startDate, campaign.endDate);
+      const spent = Math.round((campaign.spend / campaign.budget) * 100);
+      if (elapsed >= 50 && elapsed - spent >= 25) {
+        tasks.push({
+          id: `${campaign.id}-underdelivery`, kind: 'recommendation', severity: 'attention',
+          level: 'campaign', entityId: campaign.id, mediaPlanId: plan.id, engine: campaign.engine,
+          title: 'Campaign is underdelivering',
+          detail: `"${campaign.name}" is ${elapsed}% through its flight but has spent only ${spent}% of its budget — raise daily caps or widen targeting to avoid leaving budget unspent.`,
+          side: 'both', personaKeys: ['campaign-manager-managed', 'media-agency-advertiser'],
+        });
+      }
+    }
+
+    // ── Insight: which proposition is carrying the plan ──────────────────
+    const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0);
+    if (totalSpend > 0 && campaigns.length >= 2) {
+      const byEngine = new Map<EngineId, number>();
+      for (const c of campaigns) byEngine.set(c.engine, (byEngine.get(c.engine) ?? 0) + c.spend);
+      const [topEngine, topSpend] = [...byEngine.entries()].reduce((a, b) => (a[1] > b[1] ? a : b));
+      const share = Math.round((topSpend / totalSpend) * 100);
+      if (share >= 50) {
+        tasks.push({
+          id: `${plan.id}-mix`, kind: 'insight', severity: 'info', level: 'media-plan',
+          entityId: plan.id, mediaPlanId: plan.id,
+          title: 'One proposition carries most of the delivery',
+          detail: `${share}% of "${plan.name}" spend runs through ${topEngine.replace('-instore', ' in-store').replace(/-/g, ' ')} — worth checking the mix still matches the plan's objective.`,
+          side: 'both', personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser'],
+        });
+      }
+    }
+  }
+
+  return tasks;
 }
 
 /** Derived to-dos for one media plan (the plan and everything under it). */
@@ -168,7 +253,9 @@ export type PlanHealthLevel = 'good' | 'attention' | 'risk';
  * risk), amber when open work exists, green when nothing stands in the way.
  */
 export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHealthLevel; message: string } {
-  const tasks = deriveTasksForPlan(db, plan.id);
+  // Only real to-dos count towards health — a recommendation or an insight is
+  // an opportunity, not a problem, and shouldn't turn a fine plan amber.
+  const tasks = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action');
   const blocking = tasks.filter((t) => t.severity === 'blocking');
   const live = plan.status === 'running';
 

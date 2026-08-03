@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 import { useRouter as useRouterContext } from '@/lib/router-context';
-import { useSession, logout } from '@/lib/db';
+import { useSession, logout, useDb, useInboxState, deriveMessages } from '@/lib/db';
 
 // Try to import Next.js router, fallback to our custom router if not available
 let useRouterNext: (() => any) | null = null;
@@ -33,6 +33,7 @@ export interface HeaderActionsProps {
   onNotificationsClick?: () => void;
   onProfileClick?: () => void;
   onOrganisationClick?: () => void;
+  /** Overrides the real unread count — used by Storybook to force the badge on. */
   hasUnreadNotifications?: boolean;
 }
 
@@ -45,12 +46,25 @@ export const HeaderActions = React.forwardRef<
   onNotificationsClick,
   onProfileClick,
   onOrganisationClick,
-  hasUnreadNotifications = true,
+  hasUnreadNotifications,
 }, ref) => {
   // Use Next.js router if available (in Next.js app), otherwise use our custom router (in Storybook)
   const router = useRouterNext ? useRouterNext() : useRouterContext();
   // The logged-in prototype user (null when signed out / in Storybook).
   const sessionUser = useSession();
+
+  // The bell counts what is actually waiting in this user's inbox, so it can
+  // never claim there is news when the inbox is empty.
+  const db = useDb();
+  const inboxState = useInboxState();
+  const unreadCount = React.useMemo(() => {
+    const messages = deriveMessages(
+      db,
+      sessionUser ? { user: { personaKey: sessionUser.personaKey, side: sessionUser.side } } : {},
+    );
+    return messages.filter((m) => (inboxState[m.id] ?? 'unread') === 'unread').length;
+  }, [db, sessionUser, inboxState]);
+  const showBadge = hasUnreadNotifications ?? unreadCount > 0;
 
   const handleLogout = () => {
     logout();
@@ -92,11 +106,17 @@ export const HeaderActions = React.forwardRef<
         size="icon"
         onClick={handleNotificationsClick}
         className="h-9 w-9 relative border border-input"
-        aria-label="Notifications"
+        aria-label={unreadCount > 0 ? `Inbox — ${unreadCount} unread` : 'Inbox'}
       >
         <Bell className="h-5 w-5" />
-        {hasUnreadNotifications && (
-          <span className="absolute top-2 right-[9px] h-2 w-2 rounded-full bg-red-500" />
+        {showBadge && (
+          unreadCount > 0 ? (
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold tabular-nums text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          ) : (
+            <span className="absolute top-2 right-[9px] h-2 w-2 rounded-full bg-red-500" />
+          )
         )}
       </Button>
 

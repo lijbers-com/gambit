@@ -15,6 +15,7 @@ import {
   deleteMediaPlan,
 } from '../src/lib/db/store';
 import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
+import { deriveMessages } from '../src/lib/db/messages';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -162,8 +163,48 @@ const springHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-0
 if (springHealth.level !== 'good') fail(`MP-001 (completed, all approved) should be good, got ${springHealth.level}`);
 ok(`health derives from tasks (MP-002 → ${holidayHealth.level}, MP-001 → ${springHealth.level})`);
 
-// ── 5. CRUD smoke test (in-memory store) ───────────────────────────────
-console.log('\n5. CRUD smoke test');
+// ── 5. Inbox messages ──────────────────────────────────────────────────
+console.log('\n5. Inbox messages');
+
+const messages = deriveMessages(d);
+
+// Ids key the read/done state, so a duplicate would make two messages share it.
+const messageIds = new Set(messages.map((m) => m.id));
+if (messageIds.size !== messages.length) fail('message ids are not unique');
+
+// Every message must link somewhere real — a dead link is worse than no message.
+const msgPlanIds = new Set(d.mediaPlans.map((p) => p.id));
+const msgCampaignIds = new Set(d.campaigns.map((c) => c.id));
+const msgBookingIds = new Set(d.bookings.map((b) => b.id));
+for (const m of messages) {
+  const known =
+    (m.level === 'media-plan' && msgPlanIds.has(m.entityId)) ||
+    (m.level === 'campaign' && msgCampaignIds.has(m.entityId)) ||
+    (m.level === 'booking' && msgBookingIds.has(m.entityId));
+  if (!known) fail(`message ${m.id} points at unknown ${m.level} ${m.entityId}`);
+  if (!m.href.startsWith('/campaigns/')) fail(`message ${m.id} has no usable href (${m.href})`);
+  if (!m.subject || !m.preview) fail(`message ${m.id} is missing subject or preview`);
+}
+ok(`${messages.length} messages derived, ids unique, all linking to real entities`);
+
+// A healthy plan must produce no health message — an inbox full of "all fine"
+// is an inbox nobody reads.
+const springMessages = deriveMessages(d, { mediaPlanId: 'MP-001' });
+if (springMessages.some((m) => m.kind === 'health')) fail('MP-001 is healthy but produced a health message');
+const holidayMessages = deriveMessages(d, { mediaPlanId: 'MP-002' });
+if (!holidayMessages.some((m) => m.kind === 'health')) fail('MP-002 is at risk but produced no health message');
+ok('health messages only appear for plans that are not healthy');
+
+// Scoping must narrow, never invent.
+const displayMessages = deriveMessages(d, { engine: 'display' });
+if (displayMessages.some((m) => m.engine !== 'display')) fail('engine scope leaked other engines');
+if (!displayMessages.every((m) => messageIds.has(m.id))) fail('engine scope produced messages not in the full set');
+const perPlan = d.mediaPlans.flatMap((p) => deriveMessages(d, { mediaPlanId: p.id }));
+if (perPlan.length !== messages.length) fail(`plan scopes cover ${perPlan.length} of ${messages.length} messages`);
+ok('scoping narrows without inventing (engine, plan scopes partition the set)');
+
+// ── 6. CRUD smoke test (in-memory store) ───────────────────────────────
+console.log('\n6. CRUD smoke test');
 
 const before = getDb().mediaPlans.length;
 const plan = createMediaPlan({

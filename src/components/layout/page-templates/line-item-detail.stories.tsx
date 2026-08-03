@@ -25,7 +25,7 @@ import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calenda
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { useDb } from '@/lib/db';
-import { ActionsTab } from '@/components/ui/actions-tab';
+import { InboxPanel } from '@/components/ui/inbox-panel';
 import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -579,7 +579,7 @@ export const Display: Story = {
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
-                  { value: 'actions', label: 'Actions' },
+                  { value: 'actions', label: 'Inbox' },
                       { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs', label: 'Logs' },
                 ].map((t) => (
@@ -941,7 +941,7 @@ export const Display: Story = {
 
               {/* Actions tab — the booking's derived to-dos plus its advice */}
               <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
-                <ActionsTab scope="booking" />
+                <InboxPanel scope="booking" />
               </div>
 
               {/* Booking evaluation tab */}
@@ -1641,7 +1641,7 @@ export const DigitalInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Actions' },
+                      { value: 'actions', label: 'Inbox' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -2224,7 +2224,7 @@ export const DigitalInStore: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <ActionsTab scope="booking" />
+                        <InboxPanel scope="booking" />
 
                       </div>
 
@@ -3137,7 +3137,7 @@ export const OfflineInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Actions' },
+                      { value: 'actions', label: 'Inbox' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -3803,7 +3803,7 @@ export const OfflineInStore: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <ActionsTab scope="booking" />
+                        <InboxPanel scope="booking" />
 
                       </div>
 
@@ -4098,7 +4098,7 @@ export const SponsoredProducts: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Actions' },
+                      { value: 'actions', label: 'Inbox' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4423,7 +4423,7 @@ export const SponsoredProducts: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <ActionsTab scope="booking" />
+                        <InboxPanel scope="booking" />
 
                       </div>
 
@@ -4674,7 +4674,7 @@ export const OffsiteDisplay: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Actions' },
+                      { value: 'actions', label: 'Inbox' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4963,7 +4963,7 @@ export const OffsiteDisplay: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <ActionsTab scope="booking" />
+                        <InboxPanel scope="booking" />
 
                       </div>
 

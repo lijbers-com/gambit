@@ -164,7 +164,7 @@ export const Inbox: React.FC<InboxProps> = ({
                   <span className="flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className={cn('shrink-0 px-1.5 py-0 text-[10px] font-medium', badge.className)}
+                      className={cn('shrink-0 px-2 py-0.5 text-xs font-medium', badge.className)}
                     >
                       {badge.label}
                     </Badge>
@@ -183,7 +183,7 @@ export const Inbox: React.FC<InboxProps> = ({
                     )}
                   </span>
                   {item.preview && (
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">{item.preview}</span>
+                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">{item.preview}</span>
                   )}
                 </span>
 

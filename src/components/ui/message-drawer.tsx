@@ -99,7 +99,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       <RightDrawerContent className="sm:max-w-xl">
         <RightDrawerHeader onClose={() => onOpenChange(false)}>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className={cn('px-1.5 py-0 text-[10px] font-medium', badge.className)}>
+            <Badge variant="outline" className={cn('px-2 py-0.5 text-xs font-medium', badge.className)}>
               {badge.label}
             </Badge>
             {context && <span className="text-xs text-muted-foreground">{context}</span>}
@@ -110,22 +110,20 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
 
         <RightDrawerBody className="space-y-6">
           {/* The message itself, set larger than the supporting detail. */}
-          <p className="text-[15px] leading-relaxed text-foreground">{message}</p>
+          <p className="text-base leading-relaxed text-foreground">{message}</p>
 
           {hasCase && (
             <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                The case for this
-              </div>
+              <div className="text-sm font-semibold text-foreground">The case for this</div>
 
               {businessCase?.stats && businessCase.stats.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
                   {businessCase.stats.map((s, i) => (
                     <div key={i} className="rounded-lg border bg-background p-2.5">
-                      <div className="text-[11px] text-muted-foreground">{s.label}</div>
+                      <div className="text-xs text-muted-foreground">{s.label}</div>
                       <div className="text-base font-semibold leading-tight">{s.value}</div>
                       {s.sub && (
-                        <div className={cn('mt-0.5 text-[10px]', s.tone === 'success' ? 'text-green-600' : 'text-muted-foreground')}>
+                        <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-green-600' : 'text-muted-foreground')}>
                           {s.sub}
                         </div>
                       )}
@@ -137,7 +135,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
               {businessCase?.chart && (
                 <div className="rounded-lg border bg-background p-3">
                   {businessCase.chart.title && (
-                    <div className="mb-1 text-xs font-medium text-muted-foreground">{businessCase.chart.title}</div>
+                    <div className="mb-1 text-sm font-medium text-muted-foreground">{businessCase.chart.title}</div>
                   )}
                   {businessCase.chart.kind === 'bar' ? (
                     <BarChartComponent
@@ -164,7 +162,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
               {businessCase?.insights && businessCase.insights.length > 0 && (
                 <ul className="space-y-2">
                   {businessCase.insights.map((it, i) => (
-                    <li key={i} className="text-xs leading-relaxed text-muted-foreground">
+                    <li key={i} className="text-sm leading-relaxed text-muted-foreground">
                       <span className="font-medium text-foreground">{it.title}: </span>
                       {it.text}
                     </li>
@@ -177,7 +175,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           {/* Going deeper is a deliberate step, not the default reading mode. */}
           {onAskAgent && (
             <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
-              <p className="text-xs text-muted-foreground">Want more detail on this message?</p>
+              <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
               <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={onAskAgent}>
                 <MessageSquare className="h-4 w-4" />
                 Ask the agent

@@ -141,7 +141,7 @@ export const Inbox: React.FC<InboxProps> = ({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-border overflow-hidden rounded-lg border bg-table-surface">
+        <div className="divide-y divide-border overflow-hidden rounded-lg border bg-card">
           {visible.map((item) => {
             const s = statusOfItem(item, status);
             const isUnread = s === 'unread';
@@ -153,14 +153,13 @@ export const Inbox: React.FC<InboxProps> = ({
                 type="button"
                 onClick={() => onOpen?.(item)}
                 className={cn(
-                  // Surfaces come from the neutral ramp, same as the tables:
-                  // the list sits on --table-surface, an unread row is one step
-                  // deeper, and hover lifts any row to the card colour. That way
-                  // hover is visible on read rows too, and the unread tint
-                  // follows each theme's neutrals instead of tinting with the
-                  // brand primary (which changed hue per theme).
-                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-card',
-                  isUnread && 'bg-table-row-hover',
+                  // Read and opened messages sit on white; unread carries the
+                  // lightest tint of the theme's neutral ramp. Hover then has to
+                  // go the other way — a row that is already white cannot
+                  // highlight to white — so it lands one step further on, the
+                  // same hover the tables use.
+                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-table-row-hover',
+                  isUnread && 'bg-table-surface',
                   isDone && 'opacity-60 hover:opacity-100',
                 )}
               >

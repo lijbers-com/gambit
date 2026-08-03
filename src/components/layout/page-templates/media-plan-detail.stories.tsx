@@ -9,6 +9,7 @@ import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
+import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Lock } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -343,8 +344,9 @@ export const MediaPlanDetail: Story = {
                 value: 'details',
                 content: (
                   <div className="mt-6 space-y-6">
-                    {/* Sections mirror the create-media-plan wizard steps. */}
-                    <FormSection title="Setup">
+                    {/* Sections mirror the create-media-plan wizard steps, each
+                        in its own card so a long form stays scannable. */}
+                    <FormSection title="Setup" bordered>
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <Label htmlFor="mp-name">Media plan name</Label>
@@ -361,26 +363,31 @@ export const MediaPlanDetail: Story = {
                       </div>
                     </FormSection>
 
-                    <FormSection title="Advertiser">
+                    <FormSection title="Advertiser" bordered>
                       <div className="space-y-6">
-                        <SearchSelectList
+                        {/* Who the plan advertises for is fixed once it exists:
+                            the campaigns, bookings and reporting underneath are
+                            all attributed to this advertiser and brand. */}
+                        <ReadOnlyField
                           label="Advertiser"
-                          placeholder="Search advertiser…"
-                          options={advertiserOptions}
-                          value={advertiser ? [advertiser] : []}
-                          onChange={(vals) => setAdvertiser(vals[0] ?? '')}
-                          multiple={false}
+                          value={advertiserOptions.find((o) => o.value === advertiser)?.label}
+                          hint="Set when the media plan was created and cannot be changed"
                         />
-                        <div>
-                          <SearchSelectList
-                            label="Brands"
-                            placeholder="Search brands…"
-                            options={brandFilterOptions}
-                            value={brands}
-                            onChange={setBrands}
-                          />
-                          <div className="text-xs text-muted-foreground mt-1">Choose the brand(s) this media plan advertises for</div>
-                        </div>
+                        <ReadOnlyField
+                          label="Brands"
+                          value={
+                            brands.length > 0 ? (
+                              <span className="flex flex-wrap gap-1.5">
+                                {brands.map((b) => (
+                                  <Badge key={b} variant="secondary">
+                                    {brandFilterOptions.find((o) => o.value === b)?.label ?? b}
+                                  </Badge>
+                                ))}
+                              </span>
+                            ) : null
+                          }
+                          hint="The brand(s) this media plan advertises for"
+                        />
 
                         {/* Retail products — only for a selected advertiser + brand carried in-store. */}
                         {advertiser && brands.length > 0 && brandsHaveRetailProducts && (
@@ -389,30 +396,34 @@ export const MediaPlanDetail: Story = {
                       </div>
                     </FormSection>
 
-                    <FormSection title="Goals & objectives">
+                    <FormSection title="Goals & objectives" bordered>
                       <div className="space-y-5">
-                        <div>
-                          <Label className="mb-3 block">Campaign goal</Label>
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            {goals.map((g) => (
-                              <GoalCard
-                                key={g.id}
-                                icon={g.icon}
-                                title={g.title}
-                                description={g.description}
-                                selected={goal === g.id}
-                                onClick={() => setGoal(g.id)}
-                              />
-                            ))}
-                          </div>
+                        {/* Only the chosen goal — showing all four invited a
+                            change the plan's KPIs and reporting can't absorb,
+                            and took four cards to say one thing. */}
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-1.5 text-muted-foreground">
+                            Campaign goal
+                            <Lock className="h-3 w-3" aria-label="Cannot be changed" />
+                          </Label>
+                          {(() => {
+                            const g = goals.find((x) => x.id === goal);
+                            return g ? (
+                              <GoalCard icon={g.icon} title={g.title} description={g.description} selected readOnly className="w-full" />
+                            ) : (
+                              <div className="flex min-h-9 items-center rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                                No goal set
+                              </div>
+                            );
+                          })()}
+                          <p className="text-xs text-muted-foreground">
+                            The goal sets the objective and the KPIs this plan is judged on
+                          </p>
                         </div>
-                        <SearchSelectList
+                        <ReadOnlyField
                           label="Objective"
-                          placeholder="Search objective…"
-                          options={objectiveOptions}
-                          value={objective ? [objective] : []}
-                          onChange={(vals) => setObjective(vals[0] ?? '')}
-                          multiple={false}
+                          value={objectiveOptions.find((o) => o.value === objective)?.label}
+                          hint={objective ? describeObjective(objective) : undefined}
                         />
                         <SearchSelectList
                           label="KPIs"
@@ -433,7 +444,7 @@ export const MediaPlanDetail: Story = {
                       </div>
                     </FormSection>
 
-                    <FormSection title="Run time & budget">
+                    <FormSection title="Run time & budget" bordered>
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <Label>Run time</Label>

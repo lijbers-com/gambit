@@ -226,12 +226,15 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                   <Label htmlFor="username" className="text-sm font-normal text-neutral-700">
                     Username
                   </Label>
+                  {/* Styled like the password field so the form reads as a
+                      normal login — it just opens a picker on click. */}
                   <Input
                     dropdown
                     options={userOptions}
                     value={selectedUserId}
                     onChange={setSelectedUserId}
                     placeholder="Select a user"
+                    className="w-full h-11 bg-white border-neutral-300"
                   />
                   {selectedUser && (
                     <p className="text-xs text-muted-foreground">{selectedUser.role}</p>

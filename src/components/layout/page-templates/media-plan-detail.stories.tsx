@@ -26,6 +26,7 @@ import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, Monitor
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
 import { ActionsTab } from '@/components/ui/actions-tab';
+import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 
 const meta: Meta<typeof AppLayout> = {
@@ -547,6 +548,13 @@ export const MediaPlanDetail: Story = {
                     />
                   </div>
                 ),
+              },
+              {
+                // Performance across the whole plan — the same chart row the
+                // campaign pages use, scoped to this plan's mix of engines.
+                label: 'Insights',
+                value: 'insights',
+                content: <InsightsTab engineType="all" scope="campaign" />,
               },
               {
                 label: 'Logs',

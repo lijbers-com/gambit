@@ -29,7 +29,7 @@ export const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, value, hint
     </Label>
     {/* Same card as a selected option in SearchSelectList and GoalCard, so
         everything a form has already settled on looks alike. */}
-    <div className="flex min-h-9 items-center rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+    <div className="flex min-h-9 items-center rounded-md border bg-surface-selected px-3 py-2 text-sm text-foreground">
       {value || <span className="text-muted-foreground">—</span>}
     </div>
     {hint && <p className="text-xs text-muted-foreground">{hint}</p>}

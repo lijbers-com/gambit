@@ -770,7 +770,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         )}
         
         <CardHeader
-          className={`${layout === 'vertical' ? 'space-y-4' : 'space-y-2.5'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-muted/50' : ''}` : ''}`}
+          className={`${layout === 'vertical' ? 'space-y-4' : 'space-y-2.5'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-surface-hover' : ''}` : ''}`}
           onClick={layout !== 'vertical' ? () => {
             if (isRenaming) return;
             // Collapsed-only cards ARE the summary — clicking opens the detail page.

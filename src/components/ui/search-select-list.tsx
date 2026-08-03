@@ -92,7 +92,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       <div className="relative" ref={containerRef}>
         {label !== null && <label className="block text-sm font-medium mb-2">{label}</label>}
         {disabledHint ? (
-          <div className="flex h-9 w-full items-center rounded-md border border-dashed border-input bg-muted/40 px-3 text-sm text-muted-foreground">
+          <div className="flex h-9 w-full items-center rounded-md border border-dashed border-input bg-surface-selected px-3 text-sm text-muted-foreground">
             {disabledHint}
           </div>
         ) : (
@@ -125,7 +125,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               </button>
             )}
             {showResults && (
-              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-lg">
+              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-card shadow-lg">
                 {results.length > 0 ? (
                   results.map((option) => (
                     <div
@@ -148,7 +148,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       {selected.length > 0 && (
         <div className="space-y-1">
           {selected.map((option) => (
-            <div key={option.value} className="rounded-md border bg-muted/40 p-3">
+            <div key={option.value} className="rounded-md border bg-surface-selected p-3">
               {/* Title line — vertically centred with the remove button. */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 truncate text-sm font-medium">{option.label}</div>

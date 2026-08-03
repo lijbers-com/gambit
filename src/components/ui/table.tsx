@@ -675,7 +675,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
-    <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-border rounded-xl', className)}>
+    <div className={cn('overflow-x-auto overflow-y-hidden bg-card border border-border rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-neutral-700 table-auto">
         <thead className="bg-table-surface">
           <tr ref={headerRowRef}>
@@ -770,7 +770,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                 key={getRowKey(row, i)}
                 data-row-id={String(getRowKey(row, i))}
                 className={cn(
-                  'group bg-white transition-colors',
+                  'group bg-card transition-colors',
                   i !== sortedData.length - 1 && 'border-b border-border',
                   rowClassName ? rowClassName(row) : undefined
                 )}
@@ -783,7 +783,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                     <td
                       key={col.key}
                       className={cn(
-                        'px-4 py-[11px] align-middle whitespace-nowrap bg-background transition-colors group-hover:bg-table-row-hover group-active:bg-table-row-active',
+                        'px-4 py-[11px] align-middle whitespace-nowrap bg-background transition-colors group-hover:bg-surface-hover group-active:bg-surface-active',
                         !isLastFixed && resizingColKey === col.key && 'border-r border-neutral-400',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
                         col.className

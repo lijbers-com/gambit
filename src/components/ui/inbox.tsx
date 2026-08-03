@@ -158,8 +158,8 @@ export const Inbox: React.FC<InboxProps> = ({
                   // go the other way — a row that is already white cannot
                   // highlight to white — so it lands one step further on, the
                   // same hover the tables use.
-                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-table-row-hover',
-                  isUnread && 'bg-table-surface',
+                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-hover',
+                  isUnread && 'bg-surface-selected',
                   isDone && 'opacity-60 hover:opacity-100',
                 )}
               >

@@ -9,6 +9,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Interactive surfaces — one hover / selected shade for the whole UI
+        'surface-selected': 'var(--surface-selected)',
+        'surface-hover': 'var(--surface-hover)',
+        'surface-active': 'var(--surface-active)',
         // Table surfaces — resolve to each theme's own neutral ramp
         // (see --table-* in globals.css). Gives bg-table-surface,
         // bg-table-row-hover, bg-table-row-active, bg-tooltip-surface…

@@ -430,8 +430,18 @@ body[data-theme="alfaBeta"] {
        here — that would break the theme that doesn't use it.
     ── */
     --table-surface:          rgb(var(--neutral-50));   /* header + cell surface */
-    --table-row-hover:        rgb(var(--neutral-100));  /* clickable row hover   */
-    --table-row-active:       rgb(var(--neutral-200));  /* clickable row active  */
+    --table-row-hover:        var(--surface-hover);     /* alias, see below      */
+    --table-row-active:       var(--surface-active);    /* alias, see below      */
+
+    /* ── Interactive surfaces ─────────────────────────────────────────────────
+       ONE hover shade and ONE selected shade for the whole UI: table rows,
+       media-plan cards, inbox messages, goal cards, selected options. Anything
+       that highlights on hover or shows "this is the one chosen" uses these,
+       so the app never has five slightly different greys doing the same job.
+    ── */
+    --surface-selected:       rgb(var(--neutral-50));   /* chosen / settled      */
+    --surface-hover:          rgb(var(--neutral-100));  /* hover on any row/card */
+    --surface-active:         rgb(var(--neutral-200));  /* pressed / expanded    */
     --tooltip-surface:        rgb(var(--neutral-500));  /* header tooltip body   */
     --tooltip-surface-strong: rgb(var(--neutral-700));  /* tooltip snippet       */
 

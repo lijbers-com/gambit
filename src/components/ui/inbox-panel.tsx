@@ -78,8 +78,10 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
     subject: m.subject,
     preview: m.preview,
     severity: m.severity,
-    // The entity trail is only worth showing when the inbox spans entities.
-    context: scope === 'user' || scope === 'engine' ? m.context : undefined,
+    // Every message says what it is about, at every scope — inside a plan's own
+    // Inbox tab that still tells you which campaign or booking is meant.
+    context: m.context,
+    level: m.level,
   }));
 
   const open = (item: InboxItem) => {
@@ -109,6 +111,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
           severity={active.severity}
           subject={active.subject}
           context={active.context}
+          level={active.level}
           message={active.preview}
           businessCase={businessCaseFor(active)}
           onAskAgent={() => {

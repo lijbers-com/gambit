@@ -302,23 +302,25 @@ export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHeal
   const blocking = tasks.filter((t) => t.severity === 'blocking');
   const live = plan.status === 'running';
 
+  // The messages don't name the plan: every surface that shows them — the inbox
+  // row, the message panel, the plan card — already says which plan it is.
   if (blocking.length > 0 && live) {
     return {
       level: 'risk',
-      message: `"${plan.name}" is live with ${blocking.length} blocking issue${blocking.length === 1 ? '' : 's'} — ${blocking[0].title.toLowerCase()} first.`,
+      message: `Live with ${blocking.length} blocking issue${blocking.length === 1 ? '' : 's'} — ${blocking[0].title.toLowerCase()} first.`,
     };
   }
   if (blocking.length > 0) {
     return {
       level: 'attention',
-      message: `"${plan.name}" has ${blocking.length} blocker${blocking.length === 1 ? '' : 's'} before it can go live.`,
+      message: `${blocking.length} blocker${blocking.length === 1 ? '' : 's'} to clear before it can go live.`,
     };
   }
   if (tasks.length > 0) {
     return {
       level: 'attention',
-      message: `"${plan.name}" has ${tasks.length} open task${tasks.length === 1 ? '' : 's'}.`,
+      message: `${tasks.length} open task${tasks.length === 1 ? '' : 's'} still to finish.`,
     };
   }
-  return { level: 'good', message: `"${plan.name}" is healthy — no open tasks, pacing on track.` };
+  return { level: 'good', message: 'Healthy — no open tasks, pacing on track.' };
 }

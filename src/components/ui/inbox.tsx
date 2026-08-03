@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRight, Check, Inbox as InboxIcon } from 'lucide-react';
+import { ChevronRight, Check, Inbox as InboxIcon, WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -27,12 +27,23 @@ export interface InboxItem {
   kind: MessageKind;
   subject: string;
   preview: React.ReactNode;
-  /** Trail shown on the right — e.g. "Holiday Sale Plan · Display". */
+  /** What the message is about — e.g. "Holiday Sale Plan · Display". */
   context?: string;
+  /** Which level that entity sits at, so the context line gets the matching
+   *  hierarchy icon. Defaults to media plan. */
+  level?: 'media-plan' | 'campaign' | 'booking';
   /** Only read for health messages, where "at risk" and "needs attention" are
    *  the same kind but must not look the same. */
   severity?: 'blocking' | 'attention' | 'info';
 }
+
+/** The hierarchy icons, matching HierarchyBadge so a booking looks like a
+ *  booking wherever it appears. */
+const levelIcon = {
+  'media-plan': WalletCards,
+  'campaign': Rows3,
+  'booking': LayoutList,
+} as const;
 
 /** Badge styling per kind. */
 const kindBadge: Record<MessageKind, { label: string; className: string }> = {
@@ -180,11 +191,18 @@ export const Inbox: React.FC<InboxProps> = ({
                   {item.preview && (
                     <span className="mt-0.5 block truncate text-sm text-muted-foreground">{item.preview}</span>
                   )}
-                  {/* What the message is about, on its own line rather than
-                      pinned to the corner where it competed with the subject. */}
-                  {item.context && (
-                    <span className="mt-1 block truncate text-xs text-muted-foreground/80">{item.context}</span>
-                  )}
+                  {/* What the message is about, on its own line with the icon
+                      for its level — every message carries one, so the list
+                      always says which plan, campaign or booking it concerns. */}
+                  {item.context && (() => {
+                    const LevelIcon = levelIcon[item.level ?? 'media-plan'];
+                    return (
+                      <span className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <LevelIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{item.context}</span>
+                      </span>
+                    );
+                  })()}
                 </span>
 
                 <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />

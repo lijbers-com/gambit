@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -44,6 +44,13 @@ export interface MessageBusinessCase {
   insights?: { title: string; text: string }[];
 }
 
+/** Hierarchy icons, matching HierarchyBadge and the inbox row. */
+const levelIcon = {
+  'media-plan': WalletCards,
+  'campaign': Rows3,
+  'booking': LayoutList,
+} as const;
+
 /** Badge per kind — the same vocabulary the inbox list uses. */
 const kindBadge: Record<MessageKind, { label: string; className: string }> = {
   health: { label: 'At risk', className: 'border-red-200 bg-red-50 text-red-700' },
@@ -62,6 +69,8 @@ export interface MessageDrawerProps {
   subject: string;
   /** Which plan / campaign / booking this is about — shown under the title. */
   context?: string;
+  /** That entity's level, for the matching hierarchy icon. */
+  level?: 'media-plan' | 'campaign' | 'booking';
   /** The message body. */
   message: React.ReactNode;
   /** Figures, chart and key points behind a recommendation or insight. */
@@ -79,6 +88,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   severity,
   subject,
   context,
+  level,
   message,
   businessCase,
   onAskAgent,
@@ -99,9 +109,14 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
             {badge.label}
           </Badge>
           <RightDrawerTitle className="mt-1.5">{subject}</RightDrawerTitle>
-          {/* What this is about, on its own line. It replaces the old subtitle,
-              which only restated the badge above it. */}
-          {context && <RightDrawerDescription>{context}</RightDrawerDescription>}
+          {/* What this is about, on its own line with its hierarchy icon — the
+              same treatment the inbox row gives it. */}
+          {context && (
+            <RightDrawerDescription className="flex items-center gap-1.5">
+              {(() => { const LevelIcon = levelIcon[level ?? 'media-plan']; return <LevelIcon className="h-3.5 w-3.5 shrink-0" />; })()}
+              {context}
+            </RightDrawerDescription>
+          )}
         </RightDrawerHeader>
 
         <RightDrawerBody className="space-y-6">

@@ -44,11 +44,12 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({ scope, entityId, advice 
 
   // Templates that render one entity per route can omit entityId; the last
   // path segment identifies it (/campaigns/display/C-001,
-  // /campaigns/display/booking/B-001, /campaigns/plan/MP-001).
-  const routeId = React.useMemo(() => {
-    if (typeof window === 'undefined') return undefined;
+  // /campaigns/display/booking/B-001). Resolved AFTER mount, never during
+  // render, so the server HTML and the hydrated client agree.
+  const [routeId, setRouteId] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
     const segments = window.location.pathname.split('/').filter(Boolean);
-    return segments[segments.length - 1];
+    setRouteId(segments[segments.length - 1]);
   }, []);
   const id = entityId ?? routeId;
 

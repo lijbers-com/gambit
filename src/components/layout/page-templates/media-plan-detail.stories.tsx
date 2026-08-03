@@ -119,7 +119,10 @@ type Row = {
 };
 
 export const MediaPlanDetail: Story = {
-  render: () => {
+  // `planId` comes from the route via the app page; Storybook renders without
+  // it and falls back to the first seeded plan.
+  render: (args) => {
+    const planId = (args as { planId?: string } | undefined)?.planId;
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -127,14 +130,10 @@ export const MediaPlanDetail: Story = {
     const [logActions, setLogActions] = React.useState<string[]>([]);
 
     // ── Live plan from the prototype database ──────────────────────────
-    // The route is /campaigns/plan/[id]; in Storybook there is no id in the
-    // path, so fall back to the first seeded plan.
+    // The id comes from the route via the page (`planId`), so the server and
+    // the hydrated client resolve the same plan. Storybook passes nothing, so
+    // it falls back to the first seeded plan.
     const db = useDb();
-    const planId = React.useMemo(() => {
-      if (typeof window === 'undefined') return undefined;
-      const m = window.location.pathname.match(/\/campaigns\/plan\/([^/]+)/);
-      return m?.[1];
-    }, []);
     const plan = db.mediaPlans.find((p) => p.id === planId) ?? db.mediaPlans[0];
     const planAdvertiser = db.advertisers.find((a) => a.id === plan?.advertiserId);
 

@@ -373,19 +373,13 @@ export const MediaPlanDetail: Story = {
                           value={advertiserOptions.find((o) => o.value === advertiser)?.label}
                           hint="Set when the media plan was created and cannot be changed"
                         />
+                        {/* One card per brand — the same stack the wizard shows
+                            when these were chosen, just without the remove. */}
                         <ReadOnlyField
                           label="Brands"
-                          value={
-                            brands.length > 0 ? (
-                              <span className="flex flex-wrap gap-1.5">
-                                {brands.map((b) => (
-                                  <Badge key={b} variant="secondary">
-                                    {brandFilterOptions.find((o) => o.value === b)?.label ?? b}
-                                  </Badge>
-                                ))}
-                              </span>
-                            ) : null
-                          }
+                          values={brands.map((b) => ({
+                            label: brandFilterOptions.find((o) => o.value === b)?.label ?? b,
+                          }))}
                           hint="The brand(s) this media plan advertises for"
                         />
 

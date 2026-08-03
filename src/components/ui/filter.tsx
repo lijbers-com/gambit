@@ -90,7 +90,9 @@ export const Filter: React.FC<FilterProps> = ({
           variant="outline"
           className={cn(
             'inline-flex items-center gap-2',
-            selectedLabels.length > 0 && 'border-primary/40 bg-primary/5 text-foreground',
+            // An active filter is a made choice, so it uses the same surface
+            // as every other selected thing in a form rather than a brand tint.
+            selectedLabels.length > 0 && 'border-foreground/20 bg-surface-selected text-foreground',
             className
           )}
           aria-label={name}
@@ -102,7 +104,7 @@ export const Filter: React.FC<FilterProps> = ({
                 e.stopPropagation();
                 handleClear();
               }}
-              className="ml-2 flex items-center justify-center rounded-full p-1 hover:bg-neutral-200 focus:outline-none"
+              className="ml-2 flex items-center justify-center rounded-full p-1 hover:bg-surface-active focus:outline-none"
               tabIndex={0}
               aria-label="Clear filter"
               role="button"

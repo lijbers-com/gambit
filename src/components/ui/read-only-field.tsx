@@ -27,7 +27,9 @@ export const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, value, hint
       {label}
       <Lock className="h-3 w-3" aria-label="Cannot be changed" />
     </Label>
-    <div className="flex min-h-9 items-center rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
+    {/* Same card as a selected option in SearchSelectList and GoalCard, so
+        everything a form has already settled on looks alike. */}
+    <div className="flex min-h-9 items-center rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
       {value || <span className="text-muted-foreground">—</span>}
     </div>
     {hint && <p className="text-xs text-muted-foreground">{hint}</p>}

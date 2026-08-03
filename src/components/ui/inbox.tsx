@@ -47,8 +47,8 @@ const levelIcon = {
 
 /** Badge styling per kind. */
 const kindBadge: Record<MessageKind, { label: string; className: string }> = {
-  health: { label: 'At risk', className: 'border-red-200 bg-red-50 text-red-700' },
-  action: { label: 'Action needed', className: 'border-amber-200 bg-amber-50 text-amber-700' },
+  health: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
+  action: { label: 'Action needed', className: 'border-warning-200 bg-warning-50 text-warning-700' },
   recommendation: { label: 'Recommendation', className: 'border-primary/20 bg-primary/5 text-primary' },
   insight: { label: 'Insight', className: 'border-border bg-neutral-50 text-neutral-600' },
 };
@@ -56,7 +56,7 @@ const kindBadge: Record<MessageKind, { label: string; className: string }> = {
 /** A health message that isn't blocking is amber "Needs attention", not red. */
 const badgeFor = (item: InboxItem) => {
   if (item.kind === 'health' && item.severity !== 'blocking') {
-    return { label: 'Needs attention', className: 'border-amber-200 bg-amber-50 text-amber-700' };
+    return { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' };
   }
   return kindBadge[item.kind];
 };
@@ -156,7 +156,7 @@ export const Inbox: React.FC<InboxProps> = ({
                   // Hover lifts the row to white — the same "this is the one
                   // I'm on" cue a mail client gives, and it reads on both the
                   // tinted unread rows and the plain read ones.
-                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white',
+                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-card',
                   isUnread && 'bg-primary/[0.03]',
                   isDone && 'opacity-60 hover:opacity-100',
                 )}
@@ -165,7 +165,7 @@ export const Inbox: React.FC<InboxProps> = ({
                     messages swap it for a check so the column always reads. */}
                 <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
                   {isDone ? (
-                    <Check className="h-3.5 w-3.5 text-green-600" />
+                    <Check className="h-3.5 w-3.5 text-success-600" />
                   ) : isUnread ? (
                     <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
                   ) : null}

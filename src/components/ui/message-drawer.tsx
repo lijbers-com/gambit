@@ -53,8 +53,8 @@ const levelIcon = {
 
 /** Badge per kind — the same vocabulary the inbox list uses. */
 const kindBadge: Record<MessageKind, { label: string; className: string }> = {
-  health: { label: 'At risk', className: 'border-red-200 bg-red-50 text-red-700' },
-  action: { label: 'Action needed', className: 'border-amber-200 bg-amber-50 text-amber-700' },
+  health: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
+  action: { label: 'Action needed', className: 'border-warning-200 bg-warning-50 text-warning-700' },
   recommendation: { label: 'Recommendation', className: 'border-primary/20 bg-primary/5 text-primary' },
   insight: { label: 'Insight', className: 'border-border bg-neutral-50 text-neutral-600' },
 };
@@ -96,7 +96,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
 }) => {
   const badge =
     kind === 'health' && severity !== 'blocking'
-      ? { label: 'Needs attention', className: 'border-amber-200 bg-amber-50 text-amber-700' }
+      ? { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' }
       : kindBadge[kind];
 
   const hasCase = !!(businessCase?.stats?.length || businessCase?.chart || businessCase?.insights?.length);
@@ -135,7 +135,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
                       <div className="text-xs text-muted-foreground">{s.label}</div>
                       <div className="text-base font-semibold leading-tight">{s.value}</div>
                       {s.sub && (
-                        <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-green-600' : 'text-muted-foreground')}>
+                        <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-success-600' : 'text-muted-foreground')}>
                           {s.sub}
                         </div>
                       )}

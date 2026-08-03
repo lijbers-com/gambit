@@ -31,9 +31,12 @@ const RightDrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
+  // No scrim: the drawer sits beside the page rather than dimming it, so the
+  // content it refers to stays readable. The overlay is kept (transparent) so
+  // clicking outside still closes the drawer.
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn("fixed inset-0 z-50 bg-transparent", className)}
     {...props}
   />
 ))

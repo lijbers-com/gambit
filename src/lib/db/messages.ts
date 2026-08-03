@@ -39,6 +39,9 @@ export interface InboxMessage {
   /** Who this is for. */
   side: UserSide | 'both';
   personaKeys?: string[];
+  /** Figures and key points behind a recommendation or insight, shown in the
+   *  message panel as its business case. Absent for plain to-dos. */
+  evidence?: DerivedTask['evidence'];
 }
 
 /** Engine → route segment. They match today, but the map keeps it explicit. */
@@ -89,6 +92,7 @@ function taskMessages(db: DbData): InboxMessage[] {
     href: hrefFor(db, task),
     side: task.side,
     personaKeys: task.personaKeys,
+    evidence: task.evidence,
   }));
 }
 

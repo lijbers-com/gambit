@@ -3,17 +3,8 @@
 import * as React from 'react';
 import { ArrowRight, Check, Undo2 } from 'lucide-react';
 import { Inbox, type InboxItem } from './inbox';
-import { Badge } from './badge';
 import { Button } from './button';
-import {
-  RightDrawer,
-  RightDrawerContent,
-  RightDrawerHeader,
-  RightDrawerFooter,
-  RightDrawerTitle,
-  RightDrawerDescription,
-  RightDrawerBody,
-} from './right-drawer';
+import { MessageDrawer, type MessageBusinessCase } from './message-drawer';
 import {
   useDb,
   useSession,
@@ -45,6 +36,12 @@ export interface InboxPanelProps {
   entityId?: string;
   className?: string;
 }
+
+/** The evidence a derived message carries, as the panel's business case. No
+ *  chart: a to-do like "upload creative" has no trend, and inventing one would
+ *  make the panel look more certain than the data is. */
+const businessCaseFor = (m: InboxMessage): MessageBusinessCase | undefined =>
+  m.evidence ? { stats: m.evidence.stats, insights: m.evidence.insights } : undefined;
 
 const kindDescription: Record<InboxMessage['kind'], string> = {
   health: 'Media plan health',
@@ -111,60 +108,55 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
         }
       />
 
-      <RightDrawer open={active != null} onOpenChange={(isOpen) => { if (!isOpen) setOpenId(null); }}>
-        <RightDrawerContent className="sm:max-w-lg">
-          {active && (
+      {active && (
+        <MessageDrawer
+          open
+          onOpenChange={(isOpen) => { if (!isOpen) setOpenId(null); }}
+          kind={active.kind}
+          severity={active.severity}
+          subject={active.subject}
+          description={kindDescription[active.kind]}
+          context={active.context}
+          message={active.preview}
+          businessCase={businessCaseFor(active)}
+          onAskAgent={() => {
+            const q = `Tell me more: ${active.subject} — ${active.preview}`;
+            if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
+          }}
+          footer={
             <>
-              <RightDrawerHeader onClose={() => setOpenId(null)}>
-                <RightDrawerTitle>{active.subject}</RightDrawerTitle>
-                <RightDrawerDescription>{kindDescription[active.kind]}</RightDrawerDescription>
-              </RightDrawerHeader>
-
-              <RightDrawerBody className="space-y-4">
-                <Badge variant="outline" className="text-[10px] font-medium">
-                  {active.context}
-                </Badge>
-                <p className="text-sm leading-relaxed text-foreground">{active.preview}</p>
-                <p className="text-xs text-muted-foreground">
-                  This message is generated from your data. It disappears on its own once the
-                  underlying issue is resolved.
-                </p>
-              </RightDrawerBody>
-
-              <RightDrawerFooter className="justify-between">
-                {status[active.id] === 'done' ? (
-                  <Button
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => { markUndone(active.id); setOpenId(null); }}
-                  >
-                    <Undo2 className="h-4 w-4" />
-                    Move back to to-do
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => { markDone(active.id); setOpenId(null); }}
-                  >
-                    <Check className="h-4 w-4" />
-                    Mark as done
-                  </Button>
-                )}
+              {status[active.id] === 'done' ? (
                 <Button
+                  variant="outline"
                   className="gap-1.5"
-                  onClick={() => {
-                    if (typeof window !== 'undefined') window.location.href = active.href;
-                  }}
+                  onClick={() => { markUndone(active.id); setOpenId(null); }}
                 >
-                  Go there
-                  <ArrowRight className="h-4 w-4" />
+                  <Undo2 className="h-4 w-4" />
+                  Move back to to-do
                 </Button>
-              </RightDrawerFooter>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { markDone(active.id); setOpenId(null); }}
+                >
+                  <Check className="h-4 w-4" />
+                  Mark as done
+                </Button>
+              )}
+              <Button
+                className="gap-1.5"
+                onClick={() => {
+                  if (typeof window !== 'undefined') window.location.href = active.href;
+                }}
+              >
+                Go there
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </>
-          )}
-        </RightDrawerContent>
-      </RightDrawer>
+          }
+        />
+      )}
     </div>
   );
 };

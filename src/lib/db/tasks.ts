@@ -35,6 +35,13 @@ export interface DerivedTask {
   /** Which side acts on it; personaKeys narrows to specific roles when set. */
   side: UserSide | 'both';
   personaKeys?: string[];
+  /** The numbers behind a recommendation or insight, shown in the message panel
+   *  as its business case. Only set where real figures exist — no charts are
+   *  invented for to-dos that are simply "this is missing". */
+  evidence?: {
+    stats?: { label: string; value: string; sub?: string; tone?: string }[];
+    insights?: { title: string; text: string }[];
+  };
 }
 
 /** All derived to-dos for the whole database, most severe first. */
@@ -163,6 +170,18 @@ function deriveGuidance(db: DbData): DerivedTask[] {
             title: 'Rebalance budget across propositions',
             detail: `"${best.c.name}" has used ${best.pct}% of its budget while "${worst.c.name}" is at ${worst.pct}% — moving budget to the faster proposition captures the demand that is actually there.`,
             side: 'both', personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser'],
+            evidence: {
+              stats: [
+                { label: 'Fastest', value: `${best.pct}%`, sub: best.c.name },
+                { label: 'Slowest', value: `${worst.pct}%`, sub: worst.c.name },
+                { label: 'Gap', value: `${best.pct - worst.pct} pts`, sub: 'Of budget used', tone: 'success' },
+              ],
+              insights: [
+                { title: 'Where the demand is', text: `${best.c.name} is absorbing budget ${best.pct - worst.pct} points faster, which is the market telling you where the audience is responding.` },
+                { title: 'The risk of leaving it', text: `${worst.c.name} is on course to end the flight with budget unspent while the faster proposition caps out early.` },
+                { title: 'Reversible', text: 'Shifting budget between campaigns in the same plan does not change the total — you can move it back.' },
+              ],
+            },
           });
         }
       }
@@ -180,6 +199,18 @@ function deriveGuidance(db: DbData): DerivedTask[] {
           title: 'Campaign is underdelivering',
           detail: `"${campaign.name}" is ${elapsed}% through its flight but has spent only ${spent}% of its budget — raise daily caps or widen targeting to avoid leaving budget unspent.`,
           side: 'both', personaKeys: ['campaign-manager-managed', 'media-agency-advertiser'],
+          evidence: {
+            stats: [
+              { label: 'Flight elapsed', value: `${elapsed}%`, sub: 'Of the run time' },
+              { label: 'Budget spent', value: `${spent}%`, sub: 'To date' },
+              { label: 'At risk', value: `€${Math.round(campaign.budget * ((elapsed - spent) / 100)).toLocaleString()}`, sub: 'Unspent at this pace' },
+            ],
+            insights: [
+              { title: 'The shortfall', text: `Delivery is ${elapsed - spent} points behind the flight — at this rate the campaign ends with budget left over and less reach than planned.` },
+              { title: 'Most common cause', text: 'Daily caps or narrow targeting throttling delivery below what the budget could buy.' },
+              { title: 'Time matters', text: `Only ${100 - elapsed}% of the flight remains, so the later this is fixed the harder it is to catch up.` },
+            ],
+          },
         });
       }
     }
@@ -198,6 +229,18 @@ function deriveGuidance(db: DbData): DerivedTask[] {
           title: 'One proposition carries most of the delivery',
           detail: `${share}% of "${plan.name}" spend runs through ${topEngine.replace('-instore', ' in-store').replace(/-/g, ' ')} — worth checking the mix still matches the plan's objective.`,
           side: 'both', personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser'],
+          evidence: {
+            stats: [
+              { label: 'Largest share', value: `${share}%`, sub: topEngine.replace('-instore', ' in-store').replace(/-/g, ' ') },
+              { label: 'Propositions', value: String(byEngine.size), sub: 'In this plan' },
+              { label: 'Total spend', value: `€${Math.round(totalSpend).toLocaleString()}`, sub: 'To date' },
+            ],
+            insights: [
+              { title: 'Concentration', text: `With ${byEngine.size} propositions running, ${share}% through one means the others are contributing far less than an even split.` },
+              { title: 'Why it can be right', text: 'If that proposition is the best fit for the objective, concentration is efficient rather than a problem.' },
+              { title: 'Why it can be wrong', text: 'A single proposition also means a single audience pool — reach saturates and frequency climbs without adding new shoppers.' },
+            ],
+          },
         });
       }
     }

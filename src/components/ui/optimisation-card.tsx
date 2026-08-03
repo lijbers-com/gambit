@@ -4,16 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Inbox, type InboxItem } from './inbox';
 import type { MessageStatus } from '@/lib/db';
-import {
-  RightDrawer,
-  RightDrawerContent,
-  RightDrawerHeader,
-  RightDrawerFooter,
-  RightDrawerTitle,
-  RightDrawerDescription,
-  RightDrawerBody,
-} from './right-drawer';
-import { ConversationTemplate } from './conversation-template';
+import { MessageDrawer } from './message-drawer';
 import type { ChartDataPoint, ChartConfig } from './chart-types';
 
 export type AdviceTone = 'insight' | 'alert' | 'tip' | 'success';
@@ -325,7 +316,6 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
   const [activeIdx, setActiveIdx] = React.useState<number | null>(null);
   // When the health notification is the one opened in the side panel.
   const [activeHealth, setActiveHealth] = React.useState(false);
-  const [question, setQuestion] = React.useState('');
   // Recommendations the user has actioned — seeded from any items flagged `done`,
   // then grown as the user accepts suggestions in the modal.
   const [completed, setCompleted] = React.useState<Set<number>>(
@@ -357,7 +347,6 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
     setActive(null);
     setActiveIdx(null);
     setActiveHealth(false);
-    setQuestion('');
   };
 
   const accept = () => {
@@ -371,7 +360,7 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
 
   const askAgent = () => {
     const base = typeof active?.message === 'string' ? active.message : active?.badge ?? '';
-    const q = question.trim() ? `${question.trim()} (re: ${base})` : `Tell me more: ${base}`;
+    const q = `Tell me more: ${base}`;
     if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
   };
 
@@ -431,74 +420,51 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
         }}
       />
 
-      <RightDrawer open={active != null} onOpenChange={(open) => { if (!open) close(); }}>
-        <RightDrawerContent className="sm:max-w-xl">
-          {active && (
-            <>
-              <RightDrawerHeader onClose={close}>
-                <RightDrawerTitle className="flex items-center gap-2">
-                  {activeHealth && health ? (
-                    <>
-                      {(() => { const HIcon = healthConfig[health.level].Icon; return <HIcon className="h-4 w-4" />; })()}
-                      <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', healthConfig[health.level].badge)}>{healthConfig[health.level].label}</span>
-                    </>
-                  ) : (
-                    <>
-                      {(() => { const KIcon = notificationKindConfig[adviceKind(active)].Icon; return <KIcon className="h-4 w-4 text-primary" />; })()}
-                      <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium', notificationKindConfig[adviceKind(active)].badge)}>{notificationKindConfig[adviceKind(active)].label}</span>
-                    </>
-                  )}
-                </RightDrawerTitle>
-                <RightDrawerDescription>{activeHealth ? 'Media plan health' : 'Campaign Agent recommendation'}</RightDrawerDescription>
-              </RightDrawerHeader>
-
-              <RightDrawerBody>
-                <ConversationTemplate
-                  question={activeHealth ? 'How is this media plan doing?' : active.action ? `Should I ${String(active.action.label).toLowerCase()}?` : 'Can you tell me more about this recommendation?'}
-                  answer={active.message}
-                  stats={active.explain?.stats}
-                  chart={active.explain?.chart}
-                  insights={active.explain?.insights}
-                  followUp={question}
-                  onFollowUpChange={setQuestion}
-                  onAskAgent={askAgent}
-                />
-              </RightDrawerBody>
-
-              <RightDrawerFooter className="justify-between">
-                {activeHealth ? (
-                  <Button variant="outline" className="ml-auto" onClick={close}>Close</Button>
-                ) : activeIdx != null && completed.has(activeIdx) ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      className="gap-1.5"
-                      onClick={() => {
-                        if (activeIdx != null) setCompleted((prev) => { const n = new Set(prev); n.delete(activeIdx); return n; });
-                        close();
-                      }}
-                    >
-                      Move back to to-do
-                    </Button>
-                    <Button variant="outline" onClick={close}>Close</Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" className="gap-1.5" onClick={close}>
-                      <X className="h-4 w-4" />
-                      Decline
-                    </Button>
-                    <Button className="gap-1.5" onClick={accept}>
-                      <Check className="h-4 w-4" />
-                      {active.action ? active.action.label : 'Accept'}
-                    </Button>
-                  </>
-                )}
-              </RightDrawerFooter>
-            </>
-          )}
-        </RightDrawerContent>
-      </RightDrawer>
+      {/* Same panel the Inbox opens, so a message reads identically wherever it
+          was clicked — header, message, business case, then the agent button. */}
+      {active && (
+        <MessageDrawer
+          open
+          onOpenChange={(isOpen) => { if (!isOpen) close(); }}
+          kind={activeHealth ? 'health' : (adviceKind(active) as InboxItem['kind'])}
+          severity={activeHealth && health?.level === 'risk' ? 'blocking' : 'attention'}
+          subject={subjectOf(active)}
+          description={activeHealth ? 'Media plan health' : notificationKindConfig[adviceKind(active)].label}
+          message={active.message}
+          businessCase={active.explain}
+          onAskAgent={askAgent}
+          footer={
+            activeHealth ? (
+              <Button variant="outline" className="ml-auto" onClick={close}>Close</Button>
+            ) : activeIdx != null && completed.has(activeIdx) ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => {
+                    if (activeIdx != null) setCompleted((prev) => { const n = new Set(prev); n.delete(activeIdx); return n; });
+                    close();
+                  }}
+                >
+                  Move back to to-do
+                </Button>
+                <Button variant="outline" onClick={close}>Close</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" className="gap-1.5" onClick={close}>
+                  <X className="h-4 w-4" />
+                  Decline
+                </Button>
+                <Button className="gap-1.5" onClick={accept}>
+                  <Check className="h-4 w-4" />
+                  {active.action ? active.action.label : 'Accept'}
+                </Button>
+              </>
+            )
+          }
+        />
+      )}
     </div>
   );
 };

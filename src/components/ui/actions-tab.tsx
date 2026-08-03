@@ -30,11 +30,13 @@ export interface ActionsTabProps {
   className?: string;
 }
 
-/** A derived to-do rendered as an advice item for the notification feed. */
+/** A derived to-do rendered as an advice item — title as the mail subject,
+ *  the explanation as the preview line under it. */
 const taskToAdvice = (task: DerivedTask): Advice => ({
   badge: 'Action needed',
   tone: 'alert',
-  message: `${task.title} — ${task.detail}`,
+  title: task.title,
+  message: task.detail,
 });
 
 export const ActionsTab: React.FC<ActionsTabProps> = ({ scope, entityId, advice = [], className }) => {

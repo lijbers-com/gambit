@@ -673,7 +673,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           .filter((t) => t.kind === 'action')
           .slice(0, 3)
           .forEach((t) => {
-            items.push({ badge: 'Action needed', tone: 'alert', message: `${t.title} — ${t.detail}` });
+            items.push({ badge: 'Action needed', tone: 'alert', title: t.title, message: t.detail });
           });
       } else {
         const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;

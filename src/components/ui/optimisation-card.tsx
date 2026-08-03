@@ -38,6 +38,9 @@ export type AdviceExplain = {
 export type Advice = {
   badge: string;
   tone: AdviceTone;
+  /** Bold first line, like a mail subject. Falls back to the badge label. */
+  title?: string;
+  /** The preview line under the title. */
   message: React.ReactNode;
   /** The "accept / improve" action offered in the modal (e.g. "Set budget to automatic"). */
   action?: { label: string; onClick: () => void };
@@ -57,10 +60,10 @@ export type Advice = {
  */
 export type NotificationKind = 'recommendation' | 'insight' | 'action';
 
-export const notificationKindConfig: Record<NotificationKind, { label: string; Icon: LucideIcon; badge: string; icon: string }> = {
-  recommendation: { label: 'Recommendation', Icon: Lightbulb,   badge: 'border-primary/20 bg-primary/5 text-primary',    icon: 'border border-primary/20 bg-primary/5 text-primary' },
-  insight:        { label: 'Insight',         Icon: Sparkles,    badge: 'border-border bg-neutral-50 text-neutral-600',   icon: 'border border-border bg-neutral-50 text-neutral-600' },
-  action:         { label: 'Action needed',   Icon: AlertCircle, badge: 'border-amber-200 bg-amber-50 text-amber-700',    icon: 'bg-amber-100 text-amber-700' },
+export const notificationKindConfig: Record<NotificationKind, { label: string; Icon: LucideIcon; badge: string; icon: string; text: string }> = {
+  recommendation: { label: 'Recommendation', Icon: Lightbulb,   badge: 'border-primary/20 bg-primary/5 text-primary',    icon: 'border border-primary/20 bg-primary/5 text-primary', text: 'text-primary' },
+  insight:        { label: 'Insight',         Icon: Sparkles,    badge: 'border-border bg-neutral-50 text-neutral-600',   icon: 'border border-border bg-neutral-50 text-neutral-600', text: 'text-muted-foreground' },
+  action:         { label: 'Action needed',   Icon: AlertCircle, badge: 'border-amber-200 bg-amber-50 text-amber-700',    icon: 'bg-amber-100 text-amber-700', text: 'text-amber-700' },
 };
 
 /** Collapse the loose per-item badges (Suggestion, Tip, AI Insight, Incomplete…) into one of the four kinds. */
@@ -85,10 +88,10 @@ export type HealthNotification = {
   explain?: AdviceExplain;
 };
 
-export const healthConfig: Record<HealthLevel, { label: string; Icon: LucideIcon; row: string; icon: string; badge: string }> = {
-  good:      { label: 'Healthy',         Icon: HeartPulse, row: 'border-green-200 bg-green-50/60 hover:bg-green-50', icon: 'bg-green-100 text-green-700', badge: 'border-green-200 bg-green-100 text-green-700' },
-  attention: { label: 'Needs attention', Icon: HeartPulse, row: 'border-amber-200 bg-amber-50/60 hover:bg-amber-50', icon: 'bg-amber-100 text-amber-700', badge: 'border-amber-200 bg-amber-100 text-amber-700' },
-  risk:      { label: 'At risk',         Icon: HeartPulse, row: 'border-red-200 bg-red-50/60 hover:bg-red-50',       icon: 'bg-red-100 text-red-700',     badge: 'border-red-200 bg-red-100 text-red-700' },
+export const healthConfig: Record<HealthLevel, { label: string; Icon: LucideIcon; row: string; icon: string; badge: string; text: string }> = {
+  good:      { label: 'Healthy',         Icon: HeartPulse, row: 'border-green-200 bg-green-50/60 hover:bg-green-50', icon: 'bg-green-100 text-green-700', badge: 'border-green-200 bg-green-100 text-green-700', text: 'text-green-700' },
+  attention: { label: 'Needs attention', Icon: HeartPulse, row: 'border-amber-200 bg-amber-50/60 hover:bg-amber-50', icon: 'bg-amber-100 text-amber-700', badge: 'border-amber-200 bg-amber-100 text-amber-700', text: 'text-amber-700' },
+  risk:      { label: 'At risk',         Icon: HeartPulse, row: 'border-red-200 bg-red-50/60 hover:bg-red-50',       icon: 'bg-red-100 text-red-700',     badge: 'border-red-200 bg-red-100 text-red-700', text: 'text-red-700' },
 };
 
 /**
@@ -368,58 +371,73 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
     if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
   };
 
-  /** A single notification row — icon tile, status badge, message, chevron. */
-  const NotificationRow = ({ icon: Icon, iconClass, badge, badgeClass, message, onClick, muted }: {
+  /**
+   * A single notification, styled like a mail-list item: a small status dot,
+   * a bold subject line with its type on the right, and a preview line under
+   * it. Rows are divided rather than boxed so a long list stays compact.
+   */
+  const NotificationRow = ({ icon: Icon, iconClass, badge, badgeClass, title, message, onClick, muted }: {
     icon: LucideIcon; iconClass: string; badge: string; badgeClass: string;
-    message: React.ReactNode; onClick: () => void; muted?: boolean;
+    title: string; message: React.ReactNode; onClick: () => void; muted?: boolean;
   }) => (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'group/notif flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent/50',
+        'group/notif flex w-full items-start gap-3 border-b border-border/60 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-accent/50',
         muted && 'opacity-60 hover:opacity-100',
       )}
     >
-      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', iconClass)}>
-        <Icon className="h-4 w-4" />
+      <span className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full', iconClass)}>
+        <Icon className="h-3 w-3" />
       </span>
-      <span className={cn('inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-medium', badgeClass)}>{badge}</span>
-      <span className={cn('flex-1 min-w-0 truncate text-sm text-foreground', muted && 'text-muted-foreground line-through')}>{message}</span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-colors group-hover/notif:text-foreground" />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline gap-2">
+          <span className={cn('min-w-0 truncate text-sm font-medium text-foreground', muted && 'line-through')}>
+            {title}
+          </span>
+          <span className={cn('ml-auto shrink-0 text-[11px] font-medium', badgeClass)}>{badge}</span>
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{message}</span>
+      </span>
+      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/notif:text-foreground" />
     </button>
   );
 
+  /** The bold subject line — an explicit title, else the type label. */
+  const subjectOf = (a: Advice) => a.title ?? notificationKindConfig[adviceKind(a)].label;
+
   return (
-    <div className={cn('rounded-lg border bg-muted/40 p-4 transition-colors', className)}>
-      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+    <div className={cn('overflow-hidden rounded-lg border bg-card transition-colors', className)}>
+      <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2 text-sm font-medium">
         <Bell className="h-4 w-4 text-primary" />
         Notifications
       </div>
 
-      <div className="space-y-3">
+      <div>
         {/* Health check — the plan's overall status, always first. */}
         {health && (
           <NotificationRow
             icon={healthConfig[health.level].Icon}
             iconClass={healthConfig[health.level].icon}
             badge={healthConfig[health.level].label}
-            badgeClass={healthConfig[health.level].badge}
+            badgeClass={healthConfig[health.level].text}
+            title={`Media plan health — ${healthConfig[health.level].label}`}
             message={health.message}
             onClick={openHealth}
           />
         )}
 
         {items.length === 0 && !health ? (
-          <p className="text-sm text-muted-foreground">Notifications appear as you make selections.</p>
+          <p className="px-3 py-3 text-sm text-muted-foreground">Notifications appear as you make selections.</p>
         ) : (
           <>
-            {/* To do — open recommendation notifications the user still has to action.
-                The heading only shows once there's also a Done section to contrast with. */}
+            {/* To do — open notifications the user still has to action. The
+                heading only shows once there's also a Done section. */}
             {todo.length > 0 && (
-              <div className="space-y-2">
+              <div>
                 {done.length > 0 && (
-                  <div className="px-0.5 pt-1 text-xs font-medium text-muted-foreground">
+                  <div className="border-b bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                     To do ({todo.length})
                   </div>
                 )}
@@ -431,7 +449,8 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
                       icon={kc.Icon}
                       iconClass={kc.icon}
                       badge={kc.label}
-                      badgeClass={kc.badge}
+                      badgeClass={kc.text}
+                      title={subjectOf(a)}
                       message={a.message}
                       onClick={() => openAdvice(a, i)}
                     />
@@ -440,10 +459,10 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
               </div>
             )}
 
-            {/* Done — notifications already actioned, kept as a record of what's handled. */}
+            {/* Done — notifications already actioned, kept as a record. */}
             {done.length > 0 && (
-              <div className="space-y-2">
-                <div className="px-0.5 pt-1 text-xs font-medium text-muted-foreground">
+              <div>
+                <div className="border-y bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                   Done ({done.length})
                 </div>
                 {done.map(({ a, i }) => (
@@ -452,7 +471,8 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
                     icon={Check}
                     iconClass="bg-green-100 text-green-700"
                     badge={notificationKindConfig[adviceKind(a)].label}
-                    badgeClass={notificationKindConfig[adviceKind(a)].badge}
+                    badgeClass="text-muted-foreground"
+                    title={subjectOf(a)}
                     message={a.message}
                     onClick={() => openAdvice(a, i)}
                     muted

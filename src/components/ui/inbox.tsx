@@ -172,21 +172,23 @@ export const Inbox: React.FC<InboxProps> = ({
                 </span>
 
                 <span className="min-w-0 flex-1">
+                  {/* Subject leads, badge sits at the end of the line — so the
+                      subject, preview and entity all start at the same edge. */}
                   <span className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        'min-w-0 flex-1 truncate text-sm text-foreground',
+                        isUnread ? 'font-semibold' : 'font-medium',
+                      )}
+                    >
+                      {item.subject}
+                    </span>
                     <Badge
                       variant="outline"
                       className={cn('shrink-0 px-2 py-0.5 text-xs font-medium', badge.className)}
                     >
                       {badge.label}
                     </Badge>
-                    <span
-                      className={cn(
-                        'min-w-0 truncate text-sm text-foreground',
-                        isUnread ? 'font-semibold' : 'font-medium',
-                      )}
-                    >
-                      {item.subject}
-                    </span>
                   </span>
                   {item.preview && (
                     <span className="mt-0.5 block truncate text-sm text-muted-foreground">{item.preview}</span>

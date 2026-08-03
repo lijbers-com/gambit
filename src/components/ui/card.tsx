@@ -56,18 +56,23 @@ export function CardWithTabs({
   return (
     <div className={className} {...props}>
       <div className="flex items-end justify-between w-full mb-0" style={{ minHeight: 56 }}>
-        <div className="flex gap-0 flex-1">
+        <div className="flex gap-0 flex-1 min-w-0">
           {tabs.map((tab) => (
             <button
               key={tab.value}
-              className={
-                `px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors ` +
-                (activeTab === tab.value
+              // A tab label always stays on one line: `min-w-0` lets the button
+              // shrink below its text width and `truncate` ends it with an
+              // ellipsis, so a long label never pushes the row to two lines.
+              className={cn(
+                'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0 truncate',
+                activeTab === tab.value
                   ? 'font-medium bg-white text-card-foreground border-border z-10'
-                  : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground')
-              }
+                  : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground'
+              )}
               style={{ position: 'relative', top: 1 }}
               onClick={() => setActiveTab(tab.value)}
+              // The full label stays reachable on hover once it is cut off.
+              title={typeof tab.label === 'string' ? tab.label : undefined}
               type="button"
             >
               {tab.label}

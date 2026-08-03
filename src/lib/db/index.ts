@@ -22,6 +22,7 @@ export {
   deriveTasksForPlan,
   deriveTasksForCampaign,
   deriveTasksForBooking,
+  deriveTasksForEngine,
   deriveTasksForUser,
   derivePlanHealth,
   type DerivedTask,

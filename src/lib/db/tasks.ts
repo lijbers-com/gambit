@@ -136,6 +136,16 @@ export function deriveTasksForCampaign(db: DbData, campaignId: string): DerivedT
   );
 }
 
+/**
+ * Derived to-dos for one engine — everything outstanding on that proposition's
+ * campaigns and bookings, which is what the engine campaign-overview page shows.
+ * Pass 'all' for the cross-engine overview.
+ */
+export function deriveTasksForEngine(db: DbData, engine: EngineId | 'all'): DerivedTask[] {
+  const tasks = deriveTasks(db).filter((t) => t.engine !== undefined);
+  return engine === 'all' ? tasks : tasks.filter((t) => t.engine === engine);
+}
+
 /** Derived to-dos for one booking. */
 export function deriveTasksForBooking(db: DbData, bookingId: string): DerivedTask[] {
   return deriveTasks(db).filter((t) => t.level === 'booking' && t.entityId === bookingId);

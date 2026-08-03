@@ -7,7 +7,9 @@ import {
   deriveTasksForPlan,
   deriveTasksForCampaign,
   deriveTasksForBooking,
+  deriveTasksForEngine,
   type DerivedTask,
+  type EngineId,
 } from '@/lib/db';
 
 /**
@@ -21,9 +23,13 @@ import {
  */
 
 export interface ActionsTabProps {
-  /** Which entity's actions to show. */
-  scope: 'media-plan' | 'campaign' | 'booking';
-  /** Id of that entity. Omit to resolve it from the route. */
+  /**
+   * Which entity's actions to show. 'engine' is the campaign-overview case:
+   * everything outstanding across that proposition's campaigns and bookings.
+   */
+  scope: 'media-plan' | 'campaign' | 'booking' | 'engine';
+  /** Id of that entity (an EngineId, or 'all', when scope is 'engine').
+   *  Omit to resolve it from the route. */
   entityId?: string;
   /** Recommendations and insights for this entity, shown under the actions. */
   advice?: Advice[];
@@ -55,6 +61,7 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({ scope, entityId, advice 
 
   const tasks = React.useMemo(() => {
     if (!id) return [];
+    if (scope === 'engine') return deriveTasksForEngine(db, id as EngineId | 'all');
     if (scope === 'media-plan') return deriveTasksForPlan(db, id);
     if (scope === 'campaign') return deriveTasksForCampaign(db, id);
     return deriveTasksForBooking(db, id);

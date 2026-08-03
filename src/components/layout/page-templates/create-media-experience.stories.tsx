@@ -720,7 +720,10 @@ export const GoalSelection: Story = {
         }
       });
 
-      if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}`;
+      // Land on the new plan's Inbox: a plan straight out of the wizard always
+      // has work left (creatives to upload, placements to pick), so the first
+      // screen should be that list rather than the form the user just filled in.
+      if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
     };
 
     return (

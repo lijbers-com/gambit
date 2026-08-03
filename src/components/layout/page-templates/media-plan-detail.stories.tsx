@@ -120,10 +120,10 @@ type Row = {
 };
 
 export const MediaPlanDetail: Story = {
-  // `planId` comes from the route via the app page; Storybook renders without
-  // it and falls back to the first seeded plan.
+  // `planId` and `tab` come from the route via the app page; Storybook renders
+  // without them and falls back to the first seeded plan on its first tab.
   render: (args) => {
-    const planId = (args as { planId?: string } | undefined)?.planId;
+    const { planId, tab } = (args ?? {}) as { planId?: string; tab?: string };
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -334,6 +334,9 @@ export const MediaPlanDetail: Story = {
           </div>
 
           <CardWithTabs
+            // A plan arrived at straight from the wizard opens on its Inbox, so
+            // the first thing the user sees is what still has to be done.
+            defaultTab={tab}
             tabs={[
               {
                 label: 'Media plan details',
@@ -457,7 +460,7 @@ export const MediaPlanDetail: Story = {
                 // Everything the user should do or know for this plan: the
                 // derived to-dos plus its recommendations and insights.
                 label: 'Inbox',
-                value: 'actions',
+                value: 'inbox',
                 content: <InboxPanel scope="media-plan" entityId={plan?.id} className="mt-6" />,
               },
               {

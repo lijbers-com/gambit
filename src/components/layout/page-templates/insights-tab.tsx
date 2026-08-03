@@ -6,10 +6,29 @@ import { Badge } from '@/components/ui/badge';
 import { LineChartComponent } from '@/components/ui/line-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { PieChartComponent } from '@/components/ui/pie-chart';
+import { FilterBar } from '@/components/ui/filter-bar';
 import {
   getPropositionMetrics,
   PropositionScope,
 } from '@/lib/proposition-metrics';
+import { metricKeysForGoal } from '@/lib/insight-filters';
+import { useDb } from '@/lib/db';
+
+// Goal and objective options mirror the create-media-plan wizard, so the
+// filters read in the same vocabulary the plan was set up with.
+const goalFilterOptions = [
+  { label: 'Awareness', value: 'awareness' },
+  { label: 'Consideration', value: 'consideration' },
+  { label: 'Purchase', value: 'purchase' },
+  { label: 'Loyalty', value: 'loyalty' },
+];
+const objectiveFilterOptions = [
+  { label: 'Merkbekendheid', value: 'merkbekendheid' },
+  { label: 'Productbekendheid', value: 'productbekendheid' },
+  { label: 'Merk associaties', value: 'merk-associaties' },
+  { label: 'Sales', value: 'sales' },
+  { label: 'Promotie ondersteuning', value: 'promotie-ondersteuning' },
+];
 
 /**
  * Insights tab body — used on the campaign overview and the campaign
@@ -188,28 +207,88 @@ const InsightChartCard = ({
 export interface InsightsTabProps {
   engineType: string;
   scope?: PropositionScope;
+  /** The plan whose goal, objective and KPIs preset the filters. Without it the
+   *  filters still render, opened on every metric the engine reports. */
+  mediaPlanId?: string;
   className?: string;
 }
 
 /**
  * Insights tab body. Drop into any CardWithTabs tabs[].content slot.
  *
- *   <InsightsTab engineType="display" scope="campaign" />
+ *   <InsightsTab engineType="display" scope="campaign" mediaPlanId="MP-002" />
+ *
+ * The filter bar opens preset to what the plan is judged on: its goal places it
+ * at a funnel stage, and that stage's KPI framework decides which charts show
+ * (see src/lib/insight-filters.ts). Everything else stays one click away.
  */
 export const InsightsTab: React.FC<InsightsTabProps> = ({
   engineType,
   scope = 'overview',
+  mediaPlanId,
   className,
 }) => {
+  const db = useDb();
+  const plan = mediaPlanId ? db.mediaPlans.find((p) => p.id === mediaPlanId) : undefined;
+
   const metrics = getPropositionMetrics(engineType, scope);
+  const availableKeys = React.useMemo(() => metrics.map((m) => m.key), [metrics]);
+
+  // Preset once per plan/engine: the goal's stage decides the opening
+  // selection. Re-derived when the plan or the engine changes, not on
+  // every render, so a user's own choices are not overwritten.
+  const preset = React.useMemo(
+    () => metricKeysForGoal(plan?.goal, availableKeys),
+    [plan?.goal, availableKeys],
+  );
+  const [goal, setGoal] = React.useState<string[]>(plan?.goal ? [plan.goal] : []);
+  const [objective, setObjective] = React.useState<string[]>(plan?.objective ? [plan.objective] : []);
+  const [selectedKpis, setSelectedKpis] = React.useState<string[]>(preset);
+  const presetKey = preset.join(',');
+  React.useEffect(() => {
+    setGoal(plan?.goal ? [plan.goal] : []);
+    setObjective(plan?.objective ? [plan.objective] : []);
+    setSelectedKpis(preset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan?.id, plan?.goal, plan?.objective, presetKey]);
+
+  // Changing the goal re-presets the KPIs to that stage's framework — the goal
+  // is what decides them, so leaving the old selection would be a lie.
+  const changeGoal = (vals: string[]) => {
+    setGoal(vals);
+    setSelectedKpis(metricKeysForGoal(vals[0], availableKeys));
+  };
+
+  const shown = metrics.filter((m) => selectedKpis.length === 0 || selectedKpis.includes(m.key));
+
   return (
-    <div
-      className={
-        'mt-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 ' +
-        (className ?? '')
-      }
-    >
-      {metrics.map((m, i) => {
+    <div className={'mt-6 space-y-6 ' + (className ?? '')}>
+      <FilterBar
+        hideSearch
+        filters={[
+          {
+            name: 'Goal',
+            options: goalFilterOptions,
+            selectedValues: goal,
+            onChange: (vals) => changeGoal(vals.slice(-1)),
+          },
+          {
+            name: 'Objective',
+            options: objectiveFilterOptions,
+            selectedValues: objective,
+            onChange: (vals) => setObjective(vals.slice(-1)),
+          },
+          {
+            name: 'KPI',
+            options: metrics.map((m) => ({ label: m.label, value: m.key })),
+            selectedValues: selectedKpis,
+            onChange: setSelectedKpis,
+          },
+        ]}
+      />
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      {shown.map((m, i) => {
         const spec = buildInsightChart(m.key, i, scope);
         return (
           <Card key={m.key} padding="compact" className="flex flex-col">
@@ -253,6 +332,7 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
           </Card>
         );
       })}
+    </div>
     </div>
   );
 };

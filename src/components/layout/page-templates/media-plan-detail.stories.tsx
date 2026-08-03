@@ -556,7 +556,7 @@ export const MediaPlanDetail: Story = {
                 // campaign pages use, scoped to this plan's mix of engines.
                 label: 'Insights',
                 value: 'insights',
-                content: <InsightsTab engineType="all" scope="campaign" />,
+                content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
               },
               {
                 label: 'Logs',

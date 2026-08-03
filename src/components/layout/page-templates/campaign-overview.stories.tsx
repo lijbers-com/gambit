@@ -415,21 +415,10 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'id', header: 'ID', width: 130 },
                       { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'advertiser', header: 'Advertiser' },
-                      // Name carries the expand chevron and the booking count —
-                      // the same pattern as the media-plan detail table.
+                      // The expand chevron lives in the table's own leading
+                      // column, so Name only carries the name and the count.
                       { key: 'name', header: 'Name', width: 320, render: row => row._type === 'campaign' ? (
                         <span className="flex min-w-0 items-center gap-2">
-                          {row.bookings > 0 ? (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); toggleRow(row._id); }}
-                              className="shrink-0 text-muted-foreground hover:text-foreground"
-                              aria-label={expandedRows.includes(row._id) ? `Collapse ${row.name}` : `Expand ${row.name}`}
-                            >
-                              {expandedRows.includes(row._id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                            </button>
-                          ) : (
-                            <span className="h-4 w-4 shrink-0" />
-                          )}
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
                         </span>
@@ -465,6 +454,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                     data={tableRows}
                     rowKey={row => row._id}
                     hideActions
+                    expandable={{
+                      isExpandable: row => row._type === 'campaign' && row.bookings > 0,
+                      isExpanded: row => expandedRows.includes(row._id),
+                      onToggle: row => toggleRow(row._id),
+                      getLabel: (row, expanded) => `${expanded ? 'Collapse' : 'Expand'} ${row.name}`,
+                    }}
                     onRowClick={(row) => {
                       // Rows link into the campaign; bookings open their parent campaign
                       // (in this engine's section). The chevron alone toggles expansion.

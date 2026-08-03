@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { MoreHorizontal, ChevronDown, ChevronUp, ChevronRight, GripVertical } from 'lucide-react';
 // Force cache bust v2
 import {
   DropdownMenu,
@@ -28,9 +28,29 @@ export interface TableRowSelection<T> {
   getKey?: (row: T) => React.Key;
 }
 
+/**
+ * Row expansion. When provided, the table renders a narrow chevron column at
+ * the very start of every row. The chevron belongs to the row rather than to
+ * any one column, so sub-rows always toggle from the same place no matter
+ * which columns a table shows, hides or reorders.
+ */
+export interface TableExpandable<T> {
+  /** Whether this row has anything to expand. Rows that return false keep the
+   *  column's width but show no chevron, so nothing shifts sideways. */
+  isExpandable?: (row: T) => boolean;
+  /** Whether the row is currently expanded. */
+  isExpanded: (row: T) => boolean;
+  /** Called when the chevron is clicked. The click never reaches onRowClick. */
+  onToggle: (row: T) => void;
+  /** Accessible label for the toggle, e.g. `Expand ${row.name}`. */
+  getLabel?: (row: T, expanded: boolean) => string;
+}
+
 export interface TableProps<T> {
   columns: TableColumn<T>[];
   data: T[];
+  /** Enables the leading chevron column for rows with sub-rows. */
+  expandable?: TableExpandable<T>;
   rowKey?: (row: T) => React.Key;
   className?: string;
   rowActions?: (row: T) => React.ReactNode;
@@ -86,7 +106,7 @@ function ColumnItem({
   );
 }
 
-export function Table<T>({ columns, data, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns }: TableProps<T>) {
+export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns }: TableProps<T>) {
   // Default rowKey function if not provided
   const getRowKey = rowKey || ((row: T, index: number) => {
     if (row && typeof row === 'object' && 'id' in row) {
@@ -495,8 +515,37 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
     className: 'w-[50px]',
   }] : [];
 
-  // Actions column goes first, then fixed columns, then non-fixed
-  const allCols = [...actionsCol, ...visibleCols];
+  // The expand chevron sits ahead of everything else, including the actions
+  // column — it belongs to the row, not to a column, so it is never hideable,
+  // reorderable or resizable and never appears in the column settings.
+  const expandCol: TableColumn<T>[] = expandable ? [{
+    key: '__expand',
+    header: '',
+    render: (row: T) => {
+      const canExpand = expandable.isExpandable ? expandable.isExpandable(row) : true;
+      // Rows without sub-rows still occupy the column so the ones that do have
+      // a chevron stay aligned with them.
+      if (!canExpand) return <span className="block h-4 w-4" />;
+      const expanded = expandable.isExpanded(row);
+      return (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); expandable.onToggle(row); }}
+          aria-expanded={expanded}
+          aria-label={expandable.getLabel?.(row, expanded) ?? (expanded ? 'Collapse row' : 'Expand row')}
+          className="flex h-4 w-4 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+      );
+    },
+    className: 'pl-3 pr-0',
+    width: 36,
+    hideable: false,
+  }] : [];
+
+  // Expand chevron, then actions, then fixed columns, then non-fixed
+  const allCols = [...expandCol, ...actionsCol, ...visibleCols];
   const allColKeys = allCols.map((col) => col.key);
 
   // Measure header cell widths after render for accurate sticky offsets
@@ -632,7 +681,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
-              const isResizable = col.key !== '__select';
+              const isResizable = col.key !== '__select' && col.key !== '__expand';
               const isBeingResized = resizingColKey === col.key;
               return (
                 <th

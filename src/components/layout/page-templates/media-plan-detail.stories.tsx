@@ -254,16 +254,8 @@ export const MediaPlanDetail: Story = {
         key: 'name', header: 'Name', render: (r) =>
           r._type === 'campaign' ? (
             <span className="flex items-center gap-2 min-w-0">
-              {/* Only the chevron toggles the row open/closed; the rest of the
-                  row navigates to the campaign. */}
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); toggle(r._id); }}
-                className="shrink-0 text-muted-foreground hover:text-foreground"
-                aria-label={expanded.includes(r._id) ? `Collapse ${r.name}` : `Expand ${r.name}`}
-              >
-                {expanded.includes(r._id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
+              {/* The chevron lives in the table's own leading column; the rest
+                  of the row navigates to the campaign. */}
               <span className="font-medium truncate">{r.name}</span>
               <span className="text-xs text-muted-foreground shrink-0">({r.bookingsCount} bookings)</span>
             </span>
@@ -513,6 +505,12 @@ export const MediaPlanDetail: Story = {
                       data={rows}
                       rowKey={(r) => r._id}
                       hideActions
+                      expandable={{
+                        isExpandable: (r) => r._type === 'campaign' && (r.bookingsCount ?? 0) > 0,
+                        isExpanded: (r) => expanded.includes(r._id),
+                        onToggle: (r) => toggle(r._id),
+                        getLabel: (r, isOpen) => `${isOpen ? 'Collapse' : 'Expand'} ${r.name}`,
+                      }}
                       onRowClick={(r) => {
                         // Rows link to the campaign / booking; only the chevron toggles.
                         // Engine → route segment (route names differ slightly from ids).

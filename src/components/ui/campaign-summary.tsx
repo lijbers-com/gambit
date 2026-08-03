@@ -29,8 +29,8 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
-import { getDb, derivePlanHealth, deriveTasksForPlan } from '@/lib/db';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
+import { getDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState } from '@/lib/db';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, Inbox as InboxIcon, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
@@ -174,6 +174,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
     const [isCollapsed, setIsCollapsed] = React.useState(collapsedOnly && !guidedSetup ? true : !defaultExpanded);
+    // Read/done state for this plan's inbox messages, so the card's summary line
+    // reports the same unread count the Inbox tab shows.
+    const inboxStatus = useInboxState();
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>(() => {
       const seed: { [key: string]: string } = {};
       engines.forEach(e => {
@@ -655,16 +658,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const adviceItems: Advice[] = (() => {
       const items: Advice[] = [];
       if (budgetUsagePercentage !== undefined && budgetUsagePercentage >= 80) {
-        items.push({ badge: 'Budget Alert', tone: 'alert', message: `"${internalTitle}" is ${budgetUsagePercentage}% through its budget — review pacing to avoid overspend.`, explain: budgetPacingExplain() });
+        items.push({ badge: 'Budget Alert', tone: 'alert', title: 'Review budget pacing', message: `"${internalTitle}" is ${budgetUsagePercentage}% through its budget — review pacing to avoid overspend.`, explain: budgetPacingExplain() });
       }
       if (!hideAutoBudget) {
         items.push(
           autoBudgetOptimization
-            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
-            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() },
+            ? { badge: 'AI Insight', tone: 'success', title: 'Automatic budget is on', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
+            : { badge: 'Suggestion', tone: 'tip', title: 'Optimise budget automatically', message: 'Let us distribute this budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() },
         );
       }
-      items.push({ badge: 'AI Insight', tone: 'insight', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
+      items.push({ badge: 'AI Insight', tone: 'insight', title: 'Improve CTR with targeting', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
       // Action-needed items come from the derived to-do engine when the card is
       // store-backed, so the notification feed and users' task lists align.
       const dbPlanForTasks = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
@@ -678,12 +681,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       } else {
         const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
         if (incomplete > 0) {
-          items.push({ badge: 'Incomplete', tone: 'alert', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
+          items.push({ badge: 'Incomplete', tone: 'alert', title: 'Campaigns not ready', message: `${incomplete} campaign${incomplete === 1 ? '' : 's'} in "${internalTitle}" still need approved creatives or bookings.` });
         }
       }
       // A previously-actioned recommendation, kept so the card shows both what's
       // still to do and what's already been handled.
-      items.push({ badge: 'Applied', tone: 'success', message: 'Audience targeting expanded to in-market shoppers — CTR up 12% since.', explain: ctrTargetingExplain(), done: true });
+      items.push({ badge: 'Applied', tone: 'success', title: 'Targeting expanded', message: 'Audience targeting expanded to in-market shoppers — CTR up 12% since.', explain: ctrTargetingExplain(), done: true });
       return items;
     })();
 
@@ -870,12 +873,13 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         In-option
                       </Badge>
                     )}
-                    {/* Primary action — clear CTA to the media-plan detail page,
-                        visible in both the collapsed and open card states. */}
-                    {internalCampaignId && (
+                    {/* No "View details" button: the whole collapsed card is the
+                        link, so the button only repeated what a click already
+                        does. Open cards still get it, where the card body is a
+                        form rather than a link. */}
+                    {internalCampaignId && !isCollapsed && (
                       <Button
                         size="sm"
-                        variant={isCollapsed ? 'outline' : 'default'}
                         className="gap-1.5"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -914,16 +918,49 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               card (with its to-do / done split). Details sit below this. */}
           {layout !== 'vertical' && adviceItems.length > 0 && (
             isCollapsed ? (
-              <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 shrink-0 text-primary" />
-                {(() => {
-                  const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
-                  const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
-                  // Count only open (not-done) notifications.
-                  const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
-                  return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(' · ');
-                })()}
-              </div>
+              // Points at this plan's Inbox tab and reports the same unread
+              // count it shows, so the card and the inbox always agree.
+              (() => {
+                // Health is excluded — it is already the chip on the title line,
+                // and counting it again would inflate "action needed".
+                const dbPlan = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+                const messages = dbPlan
+                  ? deriveMessages(getDb(), { mediaPlanId: dbPlan.id }).filter((m) => m.kind !== 'health')
+                  : [];
+                const open = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
+                const unread = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') === 'unread').length;
+
+                if (dbPlan && open.length === 0) {
+                  return (
+                    <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <InboxIcon className="h-4 w-4 shrink-0" />
+                      Inbox is empty — nothing to do
+                    </div>
+                  );
+                }
+
+                const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
+                const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
+                const breakdown = dbPlan
+                  ? (() => {
+                      const counts = open.reduce((acc, m) => { const k = m.kind === 'health' ? 'action' : m.kind; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
+                      return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(', ');
+                    })()
+                  : (() => {
+                      const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
+                      return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(', ');
+                    })();
+
+                return (
+                  <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <InboxIcon className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                    {unread > 0 && (
+                      <span className="font-medium text-foreground">{unread} unread</span>
+                    )}
+                    <span>{unread > 0 ? `in the inbox — ${breakdown}` : `Inbox: ${breakdown}`}</span>
+                  </div>
+                );
+              })()
             ) : !guidedSetup ? (
               <div onClick={(e) => e.stopPropagation()}>
                 <OptimisationCard items={adviceItems} health={healthNotification} />
@@ -937,14 +974,22 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           {/* Budget spend bar — part of the card itself, in the same spot whether
               collapsed or open. Collapsed shows one multi-colour bar; open expands
               it in place to a separated bar per campaign. */}
-          {layout !== 'vertical' && hasBudget && collapsedBudgetData.length > 0 && (
-            isCollapsed ? (
-              <div className="pt-1">
-                <BudgetStackedMini budgetData={collapsedBudgetData} />
-              </div>
+          {layout !== 'vertical' && (
+            hasBudget && collapsedBudgetData.length > 0 ? (
+              isCollapsed ? (
+                <div className="pt-1">
+                  <BudgetStackedMini budgetData={collapsedBudgetData} />
+                </div>
+              ) : (
+                <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                  <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} />
+                </div>
+              )
             ) : (
-              <div className="pt-1" onClick={(e) => e.stopPropagation()}>
-                <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} />
+              // A plan with no budget still gets the empty track, so every card
+              // in a list is the same height whatever state it is in.
+              <div className="pt-1">
+                <BudgetStackedMini budgetData={[]} />
               </div>
             )
           )}

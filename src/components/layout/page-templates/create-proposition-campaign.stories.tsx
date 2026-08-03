@@ -14,6 +14,7 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -232,11 +233,6 @@ const suggestedTags = [
   'Family', 'Young adults', 'Sports & Fitness',
 ];
 
-const productImages = [
-  '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg',
-  '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg',
-  '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg',
-];
 
 const retailProducts = [
   { id: '606983', name: 'Coca-Cola - coca-cola zero fl - 1 liter', image: productImages[0] },

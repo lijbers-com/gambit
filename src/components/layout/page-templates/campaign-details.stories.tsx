@@ -32,6 +32,7 @@ import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { productImageFor } from '@/lib/product-images';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -3723,7 +3724,7 @@ export const SponsoredProductsInOption: Story = {
       { 
         productId: 'P-001', 
         gtin: '1234567890123', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(0), 
         productTitle: 'Premium Coffee Beans 500g', 
         impressions: '-', 
         clicks: '-', 
@@ -3747,7 +3748,7 @@ export const SponsoredProductsInOption: Story = {
       { 
         productId: 'P-002', 
         gtin: '2345678901234', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(1), 
         productTitle: 'Organic Tea Selection Pack', 
         impressions: '-', 
         clicks: '-', 
@@ -3771,7 +3772,7 @@ export const SponsoredProductsInOption: Story = {
       { 
         productId: 'P-003', 
         gtin: '3456789012345', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(2), 
         productTitle: 'Artisan Chocolate Bar 200g', 
         impressions: '-', 
         clicks: '-', 
@@ -4661,7 +4662,7 @@ export const SponsoredProductsRunning: Story = {
       { 
         productId: 'P-001', 
         gtin: '1234567890123', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(0), 
         productTitle: 'Premium Coffee Beans 500g', 
         impressions: '847,592', 
         clicks: '27,123', 
@@ -4685,7 +4686,7 @@ export const SponsoredProductsRunning: Story = {
       { 
         productId: 'P-002', 
         gtin: '2345678901234', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(1), 
         productTitle: 'Organic Tea Selection Pack', 
         impressions: '634,218', 
         clicks: '18,945', 
@@ -4709,7 +4710,7 @@ export const SponsoredProductsRunning: Story = {
       { 
         productId: 'P-003', 
         gtin: '3456789012345', 
-        image: 'https://via.placeholder.com/40x40', 
+        image: productImageFor(2), 
         productTitle: 'Artisan Chocolate Bar 200g', 
         impressions: '234,156', 
         clicks: '8,234', 

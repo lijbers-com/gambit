@@ -19,6 +19,7 @@ import { DateRange } from 'react-day-picker';
 import { defaultRoutes } from '../default-routes';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, CornerDownRight } from 'lucide-react';
 import { addDays } from 'date-fns';
@@ -96,11 +97,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 
-const productImages = [
-  '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg',
-  '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg',
-  '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg',
-];
 
 // Campaign rows come from the prototype database; these helpers translate
 // store statuses/engines into the table's display vocabulary.

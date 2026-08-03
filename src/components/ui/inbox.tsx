@@ -142,7 +142,10 @@ export const Inbox: React.FC<InboxProps> = ({
                 type="button"
                 onClick={() => onOpen?.(item)}
                 className={cn(
-                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50',
+                  // Hover lifts the row to white — the same "this is the one
+                  // I'm on" cue a mail client gives, and it reads on both the
+                  // tinted unread rows and the plain read ones.
+                  'group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white',
                   isUnread && 'bg-primary/[0.03]',
                   isDone && 'opacity-60 hover:opacity-100',
                 )}

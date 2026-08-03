@@ -236,9 +236,8 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
                     placeholder="Select a user"
                     className="w-full h-11 bg-white border-neutral-300"
                   />
-                  {selectedUser && (
-                    <p className="text-xs text-muted-foreground">{selectedUser.role}</p>
-                  )}
+                  {/* No role sub-line: the selected option already reads
+                      "Name — Role", so repeating it only shifted the form. */}
                 </div>
 
                 <div className="space-y-2">

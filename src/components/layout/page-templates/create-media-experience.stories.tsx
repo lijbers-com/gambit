@@ -899,16 +899,16 @@ export const GoalSelection: Story = {
                             {
                               badge: 'AI Insight',
                               tone: 'insight' as const,
-                              message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
+                              title: 'Strong category benchmark', message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
                               explain: brandReachExplain({ reach: advertiserStats.reach, roas: advertiserStats.roas, category: advertiserStats.categories[0] }),
                             },
                             ...(selectedBrandsHaveRetailProducts
                               ? [advertiserStats.products === 0
-                                  ? { badge: 'Tip', tone: 'tip' as const, message: 'Add retail products to enable sales attribution and product-level KPIs.' }
-                                  : { badge: 'AI Insight', tone: 'success' as const, message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` }]
-                              : [{ badge: 'Tip', tone: 'tip' as const, message: "This brand has no retail products in-store — focus on reach and brand KPIs; sales attribution won't be available." }]),
+                                  ? { badge: 'Tip', tone: 'tip' as const, title: 'Add retail products', message: 'Add retail products to enable sales attribution and product-level KPIs.' }
+                                  : { badge: 'AI Insight', tone: 'success' as const, title: 'Sales attribution enabled', message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` }]
+                              : [{ badge: 'Tip', tone: 'tip' as const, title: 'No retail products in-store', message: "This brand has no retail products in-store — focus on reach and brand KPIs; sales attribution won't be available." }]),
                             ...(advertiserStats.categories.length > 1
-                              ? [{ badge: 'Tip', tone: 'tip' as const, message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
+                              ? [{ badge: 'Tip', tone: 'tip' as const, title: 'Split by category', message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
                               : []),
                           ]}
                         />
@@ -1043,7 +1043,7 @@ export const GoalSelection: Story = {
                                 {
                                   badge: 'AI Insight',
                                   tone: 'insight' as const,
-                                  message: `${goals.find((g) => g.id === selectedGoal)?.title} + ${selectedObjective} maps to the ${goalObjectives[selectedGoal].stage} stage — the matching KPIs are now in the metric row above.`,
+                                  title: 'KPIs set by your goal', message: `${goals.find((g) => g.id === selectedGoal)?.title} + ${selectedObjective} maps to the ${goalObjectives[selectedGoal].stage} stage — the matching KPIs are now in the metric row above.`,
                                   explain: funnelKpiExplain({
                                     stage: goalObjectives[selectedGoal].stage,
                                     kpis: [
@@ -1054,20 +1054,20 @@ export const GoalSelection: Story = {
                                   }),
                                 },
                                 goalObjectives[selectedGoal].stage === 'Conversion'
-                                  ? { badge: 'AI Insight', tone: 'insight' as const, message: 'Conversion plans perform best with Sponsored Products + Display working together.' }
-                                  : { badge: 'AI Insight', tone: 'insight' as const, message: 'Awareness goals lean on Display and Digital in-store for broad, high-frequency reach.' },
+                                  ? { badge: 'AI Insight', tone: 'insight' as const, title: 'Best proposition mix', message: 'Conversion plans perform best with Sponsored Products + Display working together.' }
+                                  : { badge: 'AI Insight', tone: 'insight' as const, title: 'Best proposition mix', message: 'Awareness goals lean on Display and Digital in-store for broad, high-frequency reach.' },
                                 selectedAudiences.length === 0
-                                  ? { badge: 'Tip', tone: 'tip' as const, message: 'Add one or more audience segments to estimate reach.' }
-                                  : { badge: 'Tip', tone: 'tip' as const, message: `${selectedAudiences.length} audience${selectedAudiences.length === 1 ? '' : 's'} selected — add more to widen reach.` },
+                                  ? { badge: 'Tip', tone: 'tip' as const, title: 'Add an audience', message: 'Add one or more audience segments to estimate reach.' }
+                                  : { badge: 'Tip', tone: 'tip' as const, title: 'Widen your reach', message: `${selectedAudiences.length} audience${selectedAudiences.length === 1 ? '' : 's'} selected — add more to widen reach.` },
                                 ...(getStudiesForStage(goalObjectives[selectedGoal].stage).length === 0
                                   ? []
                                   : selectedStudies.length === 0
-                                    ? [{ badge: 'Tip', tone: 'tip' as const, message: `Add a brand-lift study to prove ${selectedObjective} — most are free once your media budget passes €25k.` }]
-                                    : [{ badge: 'AI Insight', tone: 'success' as const, message: `${selectedStudies.length} brand stud${selectedStudies.length === 1 ? 'y' : 'ies'} selected — measured pre/post against a matched control group, free above the budget threshold.` }]),
+                                    ? [{ badge: 'Tip', tone: 'tip' as const, title: 'Add a brand-lift study', message: `Add a brand-lift study to prove ${selectedObjective} — most are free once your media budget passes €25k.` }]
+                                    : [{ badge: 'AI Insight', tone: 'success' as const, title: 'Brand lift measured', message: `${selectedStudies.length} brand stud${selectedStudies.length === 1 ? 'y' : 'ies'} selected — measured pre/post against a matched control group, free above the budget threshold.` }]),
                               ]
                             : [
-                                { badge: 'Tip', tone: 'tip' as const, message: 'Pick a goal and objective — the KPIs this plan is judged on appear in the metric row.' },
-                                { badge: 'AI Insight', tone: 'insight' as const, message: 'Your goal sets the objective, which sets the Brand, Media and Sales KPIs we report on.' },
+                                { badge: 'Tip', tone: 'tip' as const, title: 'Pick a goal', message: 'Pick a goal and objective — the KPIs this plan is judged on appear in the metric row.' },
+                                { badge: 'AI Insight', tone: 'insight' as const, title: 'How KPIs are chosen', message: 'Your goal sets the objective, which sets the Brand, Media and Sales KPIs we report on.' },
                               ]
                         }
                       />
@@ -1128,12 +1128,12 @@ export const GoalSelection: Story = {
                         onToggle={setAssisted}
                         items={(() => {
                           const autoBudgetAdvice: Advice = autoBudgetOptimization
-                            ? { badge: 'AI Insight', tone: 'success', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
-                            : { badge: 'Suggestion', tone: 'tip', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() };
+                            ? { badge: 'AI Insight', tone: 'success', title: 'Automatic budget is on', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
+                            : { badge: 'Suggestion', tone: 'tip', title: 'Optimise budget automatically', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() };
                           if (budgetAmount.trim() === '' || !dateRange?.from || !dateRange?.to) {
                             return [
                               ...(budgetAmount.trim() === ''
-                                ? [{ badge: 'Suggestion', tone: 'tip' as const, message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') }, explain: budgetStarterExplain() }]
+                                ? [{ badge: 'Suggestion', tone: 'tip' as const, title: 'Suggested starting budget', message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') }, explain: budgetStarterExplain() }]
                                 : []),
                               autoBudgetAdvice,
                             ];
@@ -1142,13 +1142,13 @@ export const GoalSelection: Story = {
                           const daily = parseFloat(budgetAmount) / days;
                           const items: Advice[] = [];
                           if (daily < 150) {
-                            items.push({ badge: 'Budget Alert', tone: 'alert', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.`, explain: budgetStarterExplain() });
+                            items.push({ badge: 'Budget Alert', tone: 'alert', title: 'Budget may be too thin', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.`, explain: budgetStarterExplain() });
                           } else {
-                            items.push({ badge: 'AI Insight', tone: 'insight', message: `€${daily.toFixed(0)}/day over ${days} days is a healthy pace for sustained frequency.` });
+                            items.push({ badge: 'AI Insight', tone: 'insight', title: 'Healthy daily pace', message: `€${daily.toFixed(0)}/day over ${days} days is a healthy pace for sustained frequency.` });
                           }
                           items.push(autoBudgetAdvice);
                           if (days < 21) {
-                            items.push({ badge: 'Tip', tone: 'tip', message: 'Flights of 3+ weeks build the frequency needed for awareness and consideration goals.' });
+                            items.push({ badge: 'Tip', tone: 'tip', title: 'Consider a longer flight', message: 'Flights of 3+ weeks build the frequency needed for awareness and consideration goals.' });
                           }
                           return items;
                         })()}
@@ -1379,8 +1379,8 @@ export const GoalSelection: Story = {
                           const expertCount = campaignRows.length - assistedCount;
                           return [
                             missing > 0
-                              ? { badge: 'Incomplete', tone: 'alert' as const, message: `${missing} proposition${missing === 1 ? '' : 's'} not in this plan — adding a campaign for them brings incremental reach for the same audience.` }
-                              : { badge: 'AI Insight', tone: 'success' as const, message: 'Every proposition has a campaign — the widest reach for this audience.' },
+                              ? { badge: 'Incomplete', tone: 'alert' as const, title: 'Propositions missing', message: `${missing} proposition${missing === 1 ? '' : 's'} not in this plan — adding a campaign for them brings incremental reach for the same audience.` }
+                              : { badge: 'AI Insight', tone: 'success' as const, title: 'Full proposition coverage', message: 'Every proposition has a campaign — the widest reach for this audience.' },
                             {
                               badge: 'AI Insight', tone: 'insight' as const,
                               message: assistedCount > 0
@@ -1388,7 +1388,7 @@ export const GoalSelection: Story = {
                                 : 'All campaigns are in expert mode — switch a campaign to assisted to have the AI prefill its placements.',
                             },
                             ...(propositionImpact.additionalSales > 0
-                              ? [{ badge: 'AI Insight', tone: 'success' as const, message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from this mix.` }]
+                              ? [{ badge: 'AI Insight', tone: 'success' as const, title: 'Projected incremental sales', message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from this mix.` }]
                               : []),
                           ];
                         })()}

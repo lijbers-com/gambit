@@ -429,7 +429,6 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
           kind={activeHealth ? 'health' : (adviceKind(active) as InboxItem['kind'])}
           severity={activeHealth && health?.level === 'risk' ? 'blocking' : 'attention'}
           subject={subjectOf(active)}
-          description={activeHealth ? 'Media plan health' : notificationKindConfig[adviceKind(active)].label}
           message={active.message}
           businessCase={active.explain}
           onAskAgent={askAgent}

@@ -43,13 +43,6 @@ export interface InboxPanelProps {
 const businessCaseFor = (m: InboxMessage): MessageBusinessCase | undefined =>
   m.evidence ? { stats: m.evidence.stats, insights: m.evidence.insights } : undefined;
 
-const kindDescription: Record<InboxMessage['kind'], string> = {
-  health: 'Media plan health',
-  action: 'Something to do before this can deliver',
-  recommendation: 'A suggested optimisation',
-  insight: 'An observation about performance',
-};
-
 export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, className }) => {
   const db = useDb();
   const user = useSession();
@@ -115,7 +108,6 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
           kind={active.kind}
           severity={active.severity}
           subject={active.subject}
-          description={kindDescription[active.kind]}
           context={active.context}
           message={active.preview}
           businessCase={businessCaseFor(active)}

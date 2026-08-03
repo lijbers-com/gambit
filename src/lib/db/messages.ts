@@ -113,7 +113,9 @@ function healthMessages(db: DbData): InboxMessage[] {
       preview: health.message,
       level: 'media-plan',
       entityId: plan.id,
-      context: plan.name,
+      // No context line: the subject already names the plan, so repeating it
+      // underneath would state the same thing three times in one row.
+      context: '',
       mediaPlanId: plan.id,
       href: `/campaigns/plan/${plan.id}`,
       side: 'both',

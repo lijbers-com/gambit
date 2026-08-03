@@ -60,9 +60,7 @@ export interface MessageDrawerProps {
   severity?: 'blocking' | 'attention' | 'info';
   /** The message's subject — the panel's title. */
   subject: string;
-  /** One line under the title: what kind of message this is. */
-  description?: string;
-  /** Which plan / campaign / booking this is about. */
+  /** Which plan / campaign / booking this is about — shown under the title. */
   context?: string;
   /** The message body. */
   message: React.ReactNode;
@@ -80,7 +78,6 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   kind,
   severity,
   subject,
-  description,
   context,
   message,
   businessCase,
@@ -98,14 +95,13 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
     <RightDrawer open={open} onOpenChange={onOpenChange}>
       <RightDrawerContent className="sm:max-w-xl">
         <RightDrawerHeader onClose={() => onOpenChange(false)}>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className={cn('px-2 py-0.5 text-xs font-medium', badge.className)}>
-              {badge.label}
-            </Badge>
-            {context && <span className="text-xs text-muted-foreground">{context}</span>}
-          </div>
+          <Badge variant="outline" className={cn('w-fit px-2 py-0.5 text-xs font-medium', badge.className)}>
+            {badge.label}
+          </Badge>
           <RightDrawerTitle className="mt-1.5">{subject}</RightDrawerTitle>
-          {description && <RightDrawerDescription>{description}</RightDrawerDescription>}
+          {/* What this is about, on its own line. It replaces the old subtitle,
+              which only restated the badge above it. */}
+          {context && <RightDrawerDescription>{context}</RightDrawerDescription>}
         </RightDrawerHeader>
 
         <RightDrawerBody className="space-y-6">

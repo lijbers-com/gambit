@@ -176,14 +176,14 @@ export const Inbox: React.FC<InboxProps> = ({
                     >
                       {item.subject}
                     </span>
-                    {item.context && (
-                      <span className="ml-auto hidden shrink-0 truncate pl-2 text-xs text-muted-foreground sm:block">
-                        {item.context}
-                      </span>
-                    )}
                   </span>
                   {item.preview && (
                     <span className="mt-0.5 block truncate text-sm text-muted-foreground">{item.preview}</span>
+                  )}
+                  {/* What the message is about, on its own line rather than
+                      pinned to the corner where it competed with the subject. */}
+                  {item.context && (
+                    <span className="mt-1 block truncate text-xs text-muted-foreground/80">{item.context}</span>
                   )}
                 </span>
 

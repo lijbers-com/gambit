@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
-import { getDb, createMediaPlan, createCampaign, getCurrentUser, type EngineId } from '@/lib/db';
+import { getDb, createMediaPlan, createCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
   DropdownMenu,
@@ -237,6 +237,36 @@ const retailProducts = [
   { id: '616250', name: 'Dove - body wash sensitive - 500ml' },
   { id: '617861', name: 'Nespresso - vertuo capsules - 30 pack' },
 ];
+
+/**
+ * What an assisted campaign actually books per proposition — real positions
+ * from the prototype database (see src/lib/db/seed.ts), so the preview the
+ * user reads is exactly what gets created on launch.
+ */
+const assistedBookings: Record<string, { name: string; positionId: string; detail: string }[]> = {
+  display: [
+    { name: 'Homepage top banner', positionId: 'pos-dsp-home-top', detail: 'Homepage · above the fold' },
+    { name: 'Category top banner', positionId: 'pos-dsp-cat-top', detail: 'Category pages · above the grid' },
+    { name: 'PDP banner', positionId: 'pos-dsp-pdp', detail: 'Product pages · high intent' },
+  ],
+  'sponsored-products': [
+    { name: 'Brand keywords', positionId: 'pos-sp-search', detail: 'Search · your own brand terms' },
+    { name: 'Category keywords', positionId: 'pos-sp-search', detail: 'Search · generic category terms' },
+    { name: 'Competitor keywords', positionId: 'pos-sp-search', detail: 'Search · competitor brand terms' },
+  ],
+  'digital-instore': [
+    { name: 'Entrance screens', positionId: 'pos-dis-entrance', detail: 'In-store screens · store entrance' },
+    { name: 'Aisle screens', positionId: 'pos-dis-aisle', detail: 'In-store screens · category aisle' },
+  ],
+  'offline-instore': [
+    { name: 'Shelf displays', positionId: 'pos-ois-shelf', detail: 'Printed materials · at the shelf' },
+    { name: 'Floor stickers', positionId: 'pos-ois-floor', detail: 'Printed materials · aisle floor' },
+  ],
+  offsite: [
+    { name: 'Open web display', positionId: 'pos-off-web-standard', detail: 'Display · Epsilon' },
+    { name: 'Social — Meta', positionId: 'pos-off-soc-meta', detail: 'Social Media · Meta' },
+  ],
+};
 
 const propositions = [
   {
@@ -654,16 +684,40 @@ export const GoalSelection: Story = {
       campaignRows.forEach((row) => {
         const propName = propositions.find((p) => p.id === row.engine)?.name ?? row.engine;
         const rowBudget = parseFloat(row.budget) || perRow;
-        createCampaign({
+        const campaignStart = iso(row.dateRange?.from ?? start);
+        const campaignEnd = iso(row.dateRange?.to ?? end);
+        const campaign = createCampaign({
           mediaPlanId: plan.id,
           name: row.name.trim() || `${name} — ${propName}`,
           engine: row.engine as EngineId,
           status: 'in-option',
           budget: rowBudget,
           spend: 0,
-          startDate: iso(row.dateRange?.from ?? start),
-          endDate: iso(row.dateRange?.to ?? end),
+          startDate: campaignStart,
+          endDate: campaignEnd,
         });
+
+        // An assisted campaign also creates the bookings it previewed, on the
+        // real positions. Expert campaigns start empty — the user adds their
+        // own bookings, and the to-do engine flags that until they do.
+        if (row.mode === 'preset') {
+          const bookings = assistedBookings[row.engine] ?? [];
+          const perBooking = bookings.length > 0 ? Math.floor(rowBudget / bookings.length) : 0;
+          bookings.forEach((b) => {
+            createBooking({
+              campaignId: campaign.id,
+              name: b.name,
+              status: 'in-option',
+              budget: perBooking,
+              spend: 0,
+              startDate: campaignStart,
+              endDate: campaignEnd,
+              positionIds: [b.positionId],
+              // The advertiser still has to supply the creative.
+              creativeStatus: 'missing',
+            });
+          });
+        }
       });
 
       if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}`;
@@ -929,8 +983,9 @@ export const GoalSelection: Story = {
                         return (
                           <div className="space-y-2">
                             <SearchSelectList
-                              label="KPIs"
-                              placeholder="Search KPIs…"
+                              label="KPI"
+                              placeholder="Search KPI…"
+                              multiple={false}
                               options={kpiOptions.map((k) => ({ value: k, label: k, description: describeKpi(k) }))}
                               value={activeKpis}
                               onChange={(vals) => {
@@ -966,14 +1021,8 @@ export const GoalSelection: Story = {
                               }}
                             />
                             <div className="text-xs text-muted-foreground mt-1">
-                              Pick the KPIs {selectedObjective} is judged on. Each selected KPI can be measured with a matching brand-lift study.
+                              Pick the KPI {selectedObjective} is judged on. It can be measured with a matching brand-lift study.
                             </div>
-                            {selectedStudies.length > 0 && (
-                              <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
-                                <span className="text-muted-foreground">{selectedStudies.length} stud{selectedStudies.length === 1 ? 'y' : 'ies'} selected</span>
-                                <span className="font-medium">{studyCost === 0 ? 'Included with your budget' : `+€${studyCost.toLocaleString()} added`}</span>
-                              </div>
-                            )}
                           </div>
                         );
                       })()}
@@ -1137,6 +1186,8 @@ export const GoalSelection: Story = {
                         const isAssisted = row.mode === 'preset';
                         const IconComponent = prop.icon;
                         const prefill = `${campaignName || 'New Media plan'} — ${prop.name}`;
+                        // The bookings an assisted campaign creates on launch.
+                        const rowBookings = assistedBookings[row.engine] ?? [];
                         // Budget share: this row's own budget, or an even split of
                         // whatever the plan budget has left for unbudgeted rows.
                         const planBudget = parseFloat(budgetAmount) || 0;
@@ -1163,8 +1214,7 @@ export const GoalSelection: Story = {
                                   onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
                                   aria-label={`${prop.name} campaign mode`}
                                 />
-                                <span className={cn('inline-flex items-center gap-1 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
-                                  {isAssisted ? <Sparkles size={12} /> : <FileText size={12} />}
+                                <span className={cn('text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
                                   {isAssisted ? 'Assisted' : 'Expert'}
                                 </span>
                               </label>
@@ -1181,13 +1231,21 @@ export const GoalSelection: Story = {
 
                             {isAssisted ? (
                               <div className="space-y-3">
-                                {/* What the AI preset configured — stated before
-                                    the field the user actually edits. */}
+                                {/* What the AI preset booked — named concretely
+                                    (which keywords, which media product) so the
+                                    preview matches what gets created. */}
                                 <p className="text-xs text-muted-foreground leading-relaxed">
-                                  {prop.aiPreset.description}
+                                  {prop.aiPreset.description} Books{' '}
+                                  {rowBookings.map((b, i) => (
+                                    <React.Fragment key={b.name}>
+                                      {i > 0 && (i === rowBookings.length - 1 ? ' and ' : ', ')}
+                                      <span className="font-medium text-foreground">{b.name}</span>
+                                      <span> ({b.detail})</span>
+                                    </React.Fragment>
+                                  ))}.
                                 </p>
                                 <div className="space-y-2">
-                                  <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                                  <Label>Campaign name</Label>
                                   <Input
                                     value={row.name}
                                     placeholder={prefill}
@@ -1199,8 +1257,8 @@ export const GoalSelection: Story = {
                                 <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
                                   <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                                     <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Placements:</span>
-                                    <span className="font-medium text-foreground">{prop.aiPreset.placements}</span>
+                                    <span className="text-muted-foreground">Bookings:</span>
+                                    <span className="font-medium text-foreground">{rowBookings.length}</span>
                                   </span>
                                   <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                                     <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -1226,7 +1284,7 @@ export const GoalSelection: Story = {
                               <div className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div className="space-y-2">
-                                    <Label className="text-sm text-muted-foreground">Campaign name</Label>
+                                    <Label>Campaign name</Label>
                                     <Input
                                       value={row.name}
                                       placeholder="Name the campaign"
@@ -1234,7 +1292,7 @@ export const GoalSelection: Story = {
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <Label className="text-sm text-muted-foreground">External ID</Label>
+                                    <Label>External ID</Label>
                                     <Input
                                       value={row.externalId}
                                       placeholder="Optional reference"
@@ -1242,7 +1300,7 @@ export const GoalSelection: Story = {
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <Label className="text-sm text-muted-foreground">Campaign budget</Label>
+                                    <Label>Campaign budget</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -1252,7 +1310,7 @@ export const GoalSelection: Story = {
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <Label className="text-sm text-muted-foreground">Campaign run time</Label>
+                                    <Label>Campaign run time</Label>
                                     <DateRangePicker
                                       dateRange={row.dateRange}
                                       onDateRangeChange={(r) => updateRow(row.id, { dateRange: r })}

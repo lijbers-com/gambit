@@ -628,7 +628,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
   return (
     <div className={cn('overflow-x-auto overflow-y-hidden bg-white border border-border rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-neutral-700 table-auto">
-        <thead className="bg-[var(--brand-page-bg-hex)]">
+        <thead className="bg-table-surface">
           <tr ref={headerRowRef}>
             {allCols.map((col) => {
               const isLastFixed = col.key === lastFixedColKey;
@@ -638,7 +638,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                 <th
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]',
+                    'px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-table-surface',
                     !isLastFixed && isBeingResized && 'border-r border-neutral-400',
                     isFixedColumn(col.key) && !isLastFixed && isBeingResized && 'border-r border-neutral-400',
                     isLastFixed && (hoverFixedSeparator || isBeingResized ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
@@ -734,7 +734,7 @@ export function Table<T>({ columns, data, rowKey, className, rowActions, hideAct
                     <td
                       key={col.key}
                       className={cn(
-                        'px-4 py-[11px] align-middle whitespace-nowrap bg-white transition-colors group-hover:bg-muted/50',
+                        'px-4 py-[11px] align-middle whitespace-nowrap bg-background transition-colors group-hover:bg-table-row-hover group-active:bg-table-row-active',
                         !isLastFixed && resizingColKey === col.key && 'border-r border-neutral-400',
                         isLastFixed && (hoverFixedSeparator || resizingColKey === lastFixedColKey ? 'border-r border-r-neutral-500' : 'border-r border-r-neutral-300'),
                         col.className

@@ -9,6 +9,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Table surfaces — resolve to each theme's own neutral ramp
+        // (see --table-* in globals.css). Gives bg-table-surface,
+        // bg-table-row-hover, bg-table-row-active, bg-tooltip-surface…
+        'table-surface': 'var(--table-surface)',
+        'table-row-hover': 'var(--table-row-hover)',
+        'table-row-active': 'var(--table-row-active)',
+        'tooltip-surface': 'var(--tooltip-surface)',
+        'tooltip-surface-strong': 'var(--tooltip-surface-strong)',
         // Cream palette — Gambit / Edge brand neutral scale.
         // Referenced by --neutral-* in :root. Kept here for direct use when needed.
         cream: {

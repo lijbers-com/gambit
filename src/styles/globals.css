@@ -423,6 +423,18 @@ body[data-theme="alfaBeta"] {
     --neutral-800:  97  94  91;   /* #615e5b  cream-800 */
     --neutral-900:  77  75  72;   /* #4d4b48  cream-900 */
 
+    /* ── Table surfaces ───────────────────────────────────────────────────────
+       Defined once, in terms of the neutral scale above, so every theme gets
+       table surfaces from ITS OWN shade range: Edge stays warm cream, the
+       retailer themes resolve to their slate ramp. Never hardcode a colour
+       here — that would break the theme that doesn't use it.
+    ── */
+    --table-surface:          rgb(var(--neutral-50));   /* header + cell surface */
+    --table-row-hover:        rgb(var(--neutral-100));  /* clickable row hover   */
+    --table-row-active:       rgb(var(--neutral-200));  /* clickable row active  */
+    --tooltip-surface:        rgb(var(--neutral-500));  /* header tooltip body   */
+    --tooltip-surface-strong: rgb(var(--neutral-700));  /* tooltip snippet       */
+
     /* Base color tokens — Cream / Edge theme */
     --background: 0 0% 100%;
     --foreground:           33  5%  14%;   /* cream-950 #252422 */

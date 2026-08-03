@@ -105,8 +105,9 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
         </RightDrawerHeader>
 
         <RightDrawerBody className="space-y-6">
-          {/* The message itself, set larger than the supporting detail. */}
-          <p className="text-base leading-relaxed text-foreground">{message}</p>
+          {/* Same size as the rest of the copy — the title and the badge above
+              already establish the hierarchy, so the body reads as body text. */}
+          <p className="text-sm leading-relaxed text-foreground">{message}</p>
 
           {hasCase && (
             <div className="space-y-4 rounded-lg border bg-muted/20 p-4">

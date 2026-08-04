@@ -228,7 +228,9 @@ CardSummaryTitle.displayName = "CardSummaryTitle"
 
 export interface MetricCardProps {
   label: string;
-  value: string;
+  /** The headline number. Leave unset on a chart card — a card is either a
+   *  number or a chart, and `chart` only renders when there is no value. */
+  value?: string;
   subMetric?: string;
   badgeValue?: string;
   badgeVariant?: "default" | "destructive" | "secondary" | "outline" | "success" | "warning" | "info";

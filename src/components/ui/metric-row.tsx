@@ -19,7 +19,10 @@ import {
 export interface MetricDefinition {
   key: string
   label: string
-  value: string
+  /** The headline number. Omit on a chart card: MetricCard renders a bespoke
+   *  `chart` only when there is no value — a card is either a number or a
+   *  chart, never both. */
+  value?: string
   badgeValue?: string
   badgeVariant?: MetricCardProps["badgeVariant"]
   graphData?: Array<{ value: number }>

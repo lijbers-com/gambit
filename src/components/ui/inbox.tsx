@@ -61,7 +61,7 @@ const badgeFor = (item: InboxItem) => {
   return kindBadge[item.kind];
 };
 
-export type InboxFilter = 'all' | 'unread' | 'done';
+export type InboxFilter = 'all' | 'unread' | 'action' | 'recommendation' | 'done';
 
 export interface InboxProps {
   items: InboxItem[];
@@ -72,7 +72,8 @@ export interface InboxProps {
   onMarkAllRead?: () => void;
   /** Copy for the empty state — say what the user did right, not "no data". */
   emptyMessage?: string;
-  /** Force the filter row on or off; by default it appears once it earns its place. */
+  /** Force the filter row off. It is shown by default so the inbox always
+   *  offers the same controls, however few messages are in it. */
   showFilters?: boolean;
   className?: string;
 }
@@ -94,22 +95,31 @@ export const Inbox: React.FC<InboxProps> = ({
   const unread = items.filter((i) => statusOfItem(i, status) === 'unread');
   const done = items.filter((i) => statusOfItem(i, status) === 'done');
   const open = items.filter((i) => statusOfItem(i, status) !== 'done');
+  // Health counts as action: it is the plan telling you something needs doing.
+  const actions = open.filter((i) => i.kind === 'action' || i.kind === 'health');
+  const recommendations = open.filter((i) => i.kind === 'recommendation');
 
-  // The filter row only earns its place once there is something to filter.
-  const filtersVisible = showFilters ?? (items.length > 4 || done.length > 0);
+  const filtersVisible = showFilters ?? true;
 
-  const visible = filter === 'unread' ? unread : filter === 'done' ? done : open;
+  const visible =
+    filter === 'unread' ? unread
+    : filter === 'done' ? done
+    : filter === 'action' ? actions
+    : filter === 'recommendation' ? recommendations
+    : open;
 
   const filters: { value: InboxFilter; label: string; count: number }[] = [
     { value: 'all', label: 'To do', count: open.length },
     { value: 'unread', label: 'Unread', count: unread.length },
+    { value: 'action', label: 'Actions', count: actions.length },
+    { value: 'recommendation', label: 'Recommendations', count: recommendations.length },
     { value: 'done', label: 'Done', count: done.length },
   ];
 
   return (
     <div className={cn('w-full', className)}>
       {filtersVisible && (
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           {filters.map((f) => (
             <button
               key={f.value}
@@ -137,7 +147,11 @@ export const Inbox: React.FC<InboxProps> = ({
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
           <InboxIcon className="h-5 w-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">
-            {filter === 'done' ? 'Nothing finished yet.' : filter === 'unread' ? "You're all caught up." : emptyMessage}
+            {filter === 'done' ? 'Nothing finished yet.'
+              : filter === 'unread' ? "You're all caught up."
+              : filter === 'action' ? 'No actions outstanding.'
+              : filter === 'recommendation' ? 'No recommendations right now.'
+              : emptyMessage}
           </p>
         </div>
       ) : (

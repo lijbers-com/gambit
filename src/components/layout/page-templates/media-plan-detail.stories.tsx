@@ -6,8 +6,10 @@ import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { Badge } from '@/components/ui/badge';
 import {
   CardWithTabs,
+  BudgetStackedMini,
   BudgetStackedDetail,
   DonutLegendDetail,
+  BarHorizontalMini,
   BarHorizontalDetail,
 } from '@/components/ui/card';
 import { Table, type TableColumn } from '@/components/ui/table';
@@ -273,18 +275,6 @@ export const MediaPlanDetail: Story = {
       ? Math.round((byEngine.reduce((s, e, i) => s + roasByEngine[i].value * e.spend, 0) / planSpend) * 10) / 10
       : 0;
 
-    // Twelve weeks trending up to the current total. Seeded from the metric key
-    // so a card always draws the same line, and scaled to the real value so the
-    // shape moves with the data.
-    const trendTo = (key: string, total: number) => {
-      const seed = key.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0);
-      return Array.from({ length: 12 }, (_, i) => {
-        const ramp = 0.55 + (i / 11) * 0.45;
-        const jitter = (((seed * (i + 7)) % 100) / 100 - 0.5) * 0.08;
-        return { value: Math.max(0, Math.round(total * (ramp + jitter))) };
-      });
-    };
-
     const fmtNumberCompact = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
     const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
@@ -295,15 +285,13 @@ export const MediaPlanDetail: Story = {
       {
         key: 'budget',
         label: 'Budget',
-        value: fmtK(planSpend),
-        subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`,
+        subMetric: `${fmtK(planSpend)} of ${fmtK(plan?.budget ?? 0)} budget`,
         badgeValue: `${spentPct}%`,
         badgeVariant: 'secondary',
-        variant: 'graph',
-        graphData: trendTo('budget', planSpend),
-        graphColor: 'hsl(var(--chart-1))',
+        variant: 'budgetStacked',
         budgetData: budgetVsSpend,
         valueFormatter: fmtK,
+        chart: <BudgetStackedMini budgetData={budgetVsSpend} />,
         expandedContent: <BudgetStackedDetail budgetData={budgetVsSpend} valueFormatter={fmtK} />,
       },
       {
@@ -311,9 +299,7 @@ export const MediaPlanDetail: Story = {
         label: 'Impressions',
         value: fmtNumberCompact(impressionsTotal),
         subMetric: 'Media plan',
-        variant: 'graph',
-        graphData: trendTo('impressions', impressionsTotal),
-        graphColor: 'hsl(var(--chart-2))',
+        variant: 'donut',
         donutData: impressionsByEngine,
         donutColors: propositionColors,
         totalRow: { label: 'Media plan', value: impressionsTotal },
@@ -332,9 +318,7 @@ export const MediaPlanDetail: Story = {
         label: 'Conversions',
         value: fmtNumberCompact(conversionsTotal),
         subMetric: 'Media plan',
-        variant: 'graph',
-        graphData: trendTo('conversions', conversionsTotal),
-        graphColor: 'hsl(var(--chart-3))',
+        variant: 'donut',
         donutData: conversionsByEngine,
         donutColors: propositionColors,
         totalRow: { label: 'Media plan', value: conversionsTotal },
@@ -351,12 +335,10 @@ export const MediaPlanDetail: Story = {
       {
         key: 'roas',
         label: 'ROAS',
-        value: fmtRoasValue(roasWeighted),
-        subMetric: 'Media plan (weighted)',
-        variant: 'graph',
-        graphData: trendTo('roas', roasWeighted * 100),
-        graphColor: 'hsl(var(--chart-4))',
+        subMetric: `${fmtRoasValue(roasWeighted)} media plan (weighted)`,
+        variant: 'barHorizontal',
         productData: roasByEngine,
+        chart: <BarHorizontalMini productData={roasByEngine} />,
         totalRow: { label: 'Media plan', value: roasWeighted },
         valueFormatter: fmtRoasValue,
         expandedContent: (

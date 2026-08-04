@@ -397,6 +397,19 @@ export const MediaPlanDetail: Story = {
         : `/campaigns/${seg}/booking/${booking.id}`;
     };
 
+    // Blocking work for this plan, from the same derived messages the
+    // Notifications tab shows — so the button and the list always agree.
+    const planBlockers = plan
+      ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
+      : [];
+    const canLaunch = !!plan && planBlockers.length === 0;
+    const isLive = plan?.status === 'running' || plan?.status === 'completed';
+
+    const launchPlan = () => {
+      if (!plan || !canLaunch) return;
+      updateMediaPlan(plan.id, { status: 'running' });
+    };
+
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
       const msgs = deriveMessages(db, scope);
       return {
@@ -435,7 +448,7 @@ export const MediaPlanDetail: Story = {
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
-              className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+              className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
             >
               <Plus className="h-3.5 w-3.5" />
               Add booking
@@ -515,6 +528,23 @@ export const MediaPlanDetail: Story = {
             // A plan arrived at straight from the wizard opens on its Inbox, so
             // the first thing the user sees is what still has to be done.
             defaultTab={tab}
+            // The one action a plan page offers. Disabled while anything blocks
+            // delivery, and gone once the plan is already live.
+            action={
+              isLive ? null : (
+                <Button
+                  onClick={launchPlan}
+                  disabled={!canLaunch}
+                  title={
+                    canLaunch
+                      ? 'Set this media plan live'
+                      : `${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`
+                  }
+                >
+                  Launch media plan
+                </Button>
+              )
+            }
             tabs={[
               {
                 label: 'Media plan details',

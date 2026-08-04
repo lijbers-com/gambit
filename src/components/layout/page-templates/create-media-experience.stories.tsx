@@ -645,7 +645,7 @@ export const GoalSelection: Story = {
 
     // Launching writes the media plan + one campaign per enabled proposition
     // into the prototype database, then opens the new plan's detail page.
-    const launchMediaPlan = () => {
+    const createMediaPlanFlow = () => {
       const name = campaignName || 'New Media plan';
       const db = getDb();
       const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -1399,8 +1399,8 @@ export const GoalSelection: Story = {
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>
-                      <Button onClick={launchMediaPlan}>
-                        Launch media plan
+                      <Button onClick={createMediaPlanFlow}>
+                        Create media plan
                       </Button>
                     </div>
                   </CardContent>
@@ -1475,8 +1475,8 @@ export const GoalSelection: Story = {
                 </CardSummaryContent>
                 {currentStep === wizardSteps.length - 1 && (
                   <div className="px-4 pb-4">
-                    <Button className="w-full" onClick={launchMediaPlan}>
-                      Launch media plan
+                    <Button className="w-full" onClick={createMediaPlanFlow}>
+                      Create media plan
                     </Button>
                   </div>
                 )}
@@ -1950,7 +1950,7 @@ export const NoGoalTargeting: Story = {
                           window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
                         }}
                       >
-                        Launch media plan
+                        Create media plan
                       </Button>
                     </div>
                   </CardContent>
@@ -2032,7 +2032,7 @@ export const NoGoalTargeting: Story = {
                         window.location.href = `/campaigns?${params.toString()}`;
                       }}
                     >
-                      Launch media plan
+                      Create media plan
                     </Button>
                   </div>
                 )}

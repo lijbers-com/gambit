@@ -455,7 +455,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); addBookingTo(row.parentId); }}
-                          className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                          className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           Add booking

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check } from "lucide-react"
+import { Check, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { Badge } from "./badge"
@@ -9,6 +9,17 @@ import { Badge } from "./badge"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type SummaryCardVariant = "details" | "process" | "order"
+
+/** Entities a summary card can describe. The icons match HierarchyBadge and the
+ *  inbox, so the same thing looks the same everywhere in the app. */
+export type SummaryEntity = "media-plan" | "campaign" | "booking" | "creative"
+
+const entityIcon: Record<SummaryEntity, React.ComponentType<{ className?: string }>> = {
+  "media-plan": WalletCards,
+  campaign: Rows3,
+  booking: LayoutList,
+  creative: ImageIcon,
+}
 
 /** A single label/value row used in `details` and `order` variants */
 export interface SummaryItem {
@@ -67,6 +78,10 @@ export interface SummaryGroup {
 export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Card heading */
   title: string
+  /** Which entity this card summarises. Draws the matching hierarchy icon
+   *  beside the title, so a booking summary is recognisable as a booking
+   *  wherever it appears. */
+  entity?: SummaryEntity
   /** Optional subtitle below the title */
   subtitle?: string
   /**
@@ -285,6 +300,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
   (
     {
       title,
+      entity,
       subtitle,
       variant = "details",
       items,
@@ -310,7 +326,11 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       >
         {/* Header */}
         <div className="p-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-tight tracking-tight">
+          <h2 className="flex items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
+            {entity && (() => {
+              const EntityIcon = entityIcon[entity]
+              return <EntityIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            })()}
             {title}
           </h2>
           {subtitle && (

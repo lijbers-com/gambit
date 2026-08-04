@@ -739,7 +739,7 @@ const updatedForecastMetrics = [
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -761,10 +761,10 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -788,7 +788,7 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign" className="mb-6">
+                <FormSection bordered title="Campaign" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -844,7 +844,7 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign evaluation" className="mb-6">
+                <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
@@ -1288,7 +1288,7 @@ export const DigitalInstoreRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -1310,10 +1310,10 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -1337,7 +1337,7 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign" className="mb-6">
+                <FormSection bordered title="Campaign" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -1393,7 +1393,7 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign evaluation" className="mb-6">
+                <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
@@ -1790,7 +1790,7 @@ export const OfflineInstoreRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -1816,10 +1816,10 @@ export const OfflineInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -1843,7 +1843,7 @@ export const OfflineInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -2325,7 +2325,7 @@ export const DisplayRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -2351,10 +2351,10 @@ export const DisplayRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -2378,7 +2378,7 @@ export const DisplayRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -2852,7 +2852,7 @@ export const OfflineInstoreInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -2878,10 +2878,10 @@ export const OfflineInstoreInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -2905,7 +2905,7 @@ export const OfflineInstoreInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -3357,7 +3357,7 @@ export const DisplayInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -3383,10 +3383,10 @@ export const DisplayInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -3410,7 +3410,7 @@ export const DisplayInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -4194,7 +4194,7 @@ export const SponsoredProductsInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -4220,10 +4220,10 @@ export const SponsoredProductsInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -4247,7 +4247,7 @@ export const SponsoredProductsInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -4922,7 +4922,7 @@ export const SponsoredProductsRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -4948,10 +4948,10 @@ export const SponsoredProductsRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -4975,7 +4975,7 @@ export const SponsoredProductsRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -5521,7 +5521,7 @@ export const OffsiteRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -5547,10 +5547,10 @@ export const OffsiteRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -5574,7 +5574,7 @@ export const OffsiteRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>
@@ -6057,7 +6057,7 @@ export const OffsiteInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection title="Details" className="mb-6">
+                <FormSection bordered title="Details" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
@@ -6083,10 +6083,10 @@ export const OffsiteInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Objective & KPIs" className="mb-6">
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
                   <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
-                <FormSection title="Advertiser" className="mb-6">
+                <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
@@ -6110,7 +6110,7 @@ export const OffsiteInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection title="Campaign">
+                <FormSection bordered title="Campaign">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign Goal</label>

@@ -328,6 +328,39 @@ const MediaPlanSidebar = () => (
   />
 );
 
+// Shared component for the creatives attached to this booking. Every
+// proposition has creatives except sponsored products, where the ad IS the
+// product listing — so that template omits this card.
+const CreativesSidebar = ({ count = 2 }: { count?: number }) => (
+  <SummaryCard
+    title="Creatives"
+    entity="creative"
+    variant="details"
+    items={[
+      { label: 'Attached', value: `${count} creative${count === 1 ? '' : 's'}` },
+      { label: 'Approved', value: String(Math.max(0, count - 1)) },
+      { label: 'Awaiting approval', value: count > 0 ? '1' : '0' },
+      { label: 'Formats', value: 'Banner, Video' },
+    ]}
+  />
+);
+
+// The form's actions, as the Booking summary card's footer buttons — so a long
+// form can be submitted from either column without scrolling back.
+const bookingSummaryActions = [
+  { label: 'Submit for approval' },
+  { label: 'Cancel', variant: 'outline' as const },
+];
+
+// The same actions at the foot of the form card. One list above, one row here,
+// so the two can never drift apart.
+const FormActions = ({ submitLabel = 'Submit for approval', className }: { submitLabel?: string; className?: string }) => (
+  <div className={cn('flex gap-2', className)}>
+    <Button variant="outline">Cancel</Button>
+    <Button>{submitLabel}</Button>
+  </div>
+);
+
 // Shared component for creative linking dialog
 const CreativeLinkingDialog = ({ selectedCreatives, onSelectionChange }: { 
   selectedCreatives: any[], 
@@ -966,6 +999,8 @@ export const Display: Story = {
                   )}
                 </div>
               </div>
+
+              <FormActions />
               </div>
               {/* end form card */}
               <aside className="space-y-4">
@@ -973,6 +1008,7 @@ export const Display: Story = {
                   title="Booking"
                   entity="booking"
                   variant="details"
+                  actions={bookingSummaryActions}
                   className="bg-white"
                   items={[
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -985,16 +1021,12 @@ export const Display: Story = {
                 />
                 <CampaignDetailsSidebar />
                 <MediaPlanSidebar />
+                <CreativesSidebar />
               </aside>
               </div>
               {/* end form + summary grid */}
               </div>
               {/* end tabs+card wrapper */}
-
-              <div className="flex gap-2 pb-6">
-                <Button variant="outline">Cancel</Button>
-                <Button>Submit for approval</Button>
-              </div>
             </div>
           </div>
         </AppLayout>
@@ -2527,6 +2559,7 @@ export const DigitalInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
+                    actions={bookingSummaryActions}
                     className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -2593,6 +2626,7 @@ export const DigitalInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
+                    <CreativesSidebar />
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -3842,6 +3876,7 @@ export const OfflineInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
+                    actions={bookingSummaryActions}
                     className="bg-white"
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
@@ -3891,6 +3926,7 @@ export const OfflineInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
+                    <CreativesSidebar />
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -4461,6 +4497,7 @@ export const SponsoredProducts: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
+                    actions={bookingSummaryActions}
                     className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -5003,6 +5040,7 @@ export const OffsiteDisplay: Story = {
                 title="Booking"
                 entity="booking"
                 variant="details"
+                actions={bookingSummaryActions}
                 className="bg-white"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -5032,6 +5070,7 @@ export const OffsiteDisplay: Story = {
                 ]}
               />
               <MediaPlanSidebar />
+                <CreativesSidebar />
               </aside>
               {/* end summary column */}
               </div>

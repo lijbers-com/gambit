@@ -17,7 +17,7 @@ import { Badge } from '../../ui/badge';
 import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import { SummaryCard } from '@/components/ui/summary-card';
+import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
@@ -331,11 +331,12 @@ const MediaPlanSidebar = () => (
 // Shared component for the creatives attached to this booking. Every
 // proposition has creatives except sponsored products, where the ad IS the
 // product listing — so that template omits this card.
-const CreativesSidebar = ({ count = 2 }: { count?: number }) => (
+const CreativesSidebar = ({ count = 2, actions }: { count?: number; actions?: SummaryAction[] }) => (
   <SummaryCard
     title="Creatives"
     entity="creative"
     variant="details"
+    actions={actions}
     items={[
       { label: 'Attached', value: `${count} creative${count === 1 ? '' : 's'}` },
       { label: 'Approved', value: String(Math.max(0, count - 1)) },
@@ -347,9 +348,15 @@ const CreativesSidebar = ({ count = 2 }: { count?: number }) => (
 
 // The form's actions, as the Booking summary card's footer buttons — so a long
 // form can be submitted from either column without scrolling back.
-const bookingSummaryActions = [
-  { label: 'Submit for approval' },
-  { label: 'Cancel', variant: 'outline' as const },
+const summaryActionsFor = (tab: string): SummaryAction[] => [
+  {
+    label:
+      tab === 'creatives' ? 'Submit creatives for approval'
+      : tab === 'targeting' ? 'Save targeting'
+      : tab === 'evaluation' ? 'Save evaluation'
+      : 'Submit for approval',
+  },
+  { label: 'Cancel', variant: 'outline' },
 ];
 
 // The same actions at the foot of the form card. One list above, one row here,
@@ -1000,15 +1007,16 @@ export const Display: Story = {
                 </div>
               </div>
 
-              <FormActions />
+              <FormActions submitLabel={summaryActionsFor(bookingTab)[0].label} />
               </div>
               {/* end form card */}
               <aside className="space-y-4">
+                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                 <SummaryCard
                   title="Booking"
                   entity="booking"
                   variant="details"
-                  actions={bookingSummaryActions}
+                  actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
                   className="bg-white"
                   items={[
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -1021,7 +1029,7 @@ export const Display: Story = {
                 />
                 <CampaignDetailsSidebar />
                 <MediaPlanSidebar />
-                <CreativesSidebar />
+                {bookingTab !== 'creatives' && <CreativesSidebar />}
               </aside>
               </div>
               {/* end form + summary grid */}
@@ -2555,11 +2563,12 @@ export const DigitalInStore: Story = {
                   </Card>
                   {/* end form card */}
                   <aside className="space-y-4">
+                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingSummaryActions}
+                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
                     className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -2626,7 +2635,7 @@ export const DigitalInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
-                    <CreativesSidebar />
+                    {bookingTab !== 'creatives' && <CreativesSidebar />}
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -3872,11 +3881,12 @@ export const OfflineInStore: Story = {
                   </Card>
                   {/* end form card */}
                   <aside className="space-y-4">
+                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingSummaryActions}
+                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
                     className="bg-white"
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
@@ -3926,7 +3936,7 @@ export const OfflineInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
-                    <CreativesSidebar />
+                    {bookingTab !== 'creatives' && <CreativesSidebar />}
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -4487,7 +4497,7 @@ export const SponsoredProducts: Story = {
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
-                        <Button>Submit for approval</Button>
+                        <Button>{summaryActionsFor(bookingTab)[0].label}</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -4497,7 +4507,7 @@ export const SponsoredProducts: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingSummaryActions}
+                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
                     className="bg-white"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -5030,17 +5040,18 @@ export const OffsiteDisplay: Story = {
                 <CardContent>
                   <div className="flex gap-2">
                     <Button variant="outline">Cancel</Button>
-                    <Button>Submit for approval</Button>
+                    <Button>{summaryActionsFor(bookingTab)[0].label}</Button>
                   </div>
                 </CardContent>
               </Card>
               {/* end form card */}
               <aside className="space-y-4">
+                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
               <SummaryCard
                 title="Booking"
                 entity="booking"
                 variant="details"
-                actions={bookingSummaryActions}
+                actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
                 className="bg-white"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
@@ -5070,7 +5081,7 @@ export const OffsiteDisplay: Story = {
                 ]}
               />
               <MediaPlanSidebar />
-                <CreativesSidebar />
+                {bookingTab !== 'creatives' && <CreativesSidebar />}
               </aside>
               {/* end summary column */}
               </div>

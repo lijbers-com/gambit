@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -329,5 +329,181 @@ export const seedData: DbData = {
     { positionId: 'pos-ois-floor',    week: '2026-W32', booked: 40 },
     { positionId: 'pos-off-web-standard',  week: '2026-W28', booked: 380 },
     { positionId: 'pos-off-soc-meta',  week: '2026-W28', booked: 300 },
+  ],
+
+  // ── FAQ ──────────────────────────────────────────────────────────────
+  // Authored help per template (see faq.ts). Written the way a retailer would
+  // write them: answering the question actually asked, in the retailer's own
+  // terms, rather than restating the label on the field.
+  faqs: [
+    // Create media plan — the wizard advertisers meet first.
+    {
+      id: 'FAQ-001', surface: 'create-media-plan', section: 'setup', audience: 'all', published: true, order: 1,
+      question: 'What is a media plan, and how is it different from a campaign?',
+      answer:
+        'A media plan is the container for everything you buy for one brief: the budget, the run time and the goal it is judged on.\n\n' +
+        'Inside it sit campaigns — one per proposition, such as display or sponsored products — and inside those sit the bookings that actually run. ' +
+        'You set the goal once on the plan, and every campaign underneath is reported against it.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-002', surface: 'create-media-plan', section: 'setup', audience: 'advertiser', published: true, order: 2,
+      question: 'Do I need a PO number before I can start?',
+      answer:
+        'No. The PO number is optional while you build the plan and can be added later from the plan\'s Details tab.\n\n' +
+        'It has to be filled in before the plan is invoiced, so adding it now saves a chase at the end of the month.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-003', surface: 'create-media-plan', section: 'advertiser', audience: 'all', published: true, order: 3,
+      question: 'Why would I add retail products to a plan?',
+      answer:
+        'Selecting the SKUs the plan is advertising switches on sales attribution: we can then report on units sold, revenue and basket size for those products, not just clicks and impressions.\n\n' +
+        'Leave it empty for pure brand campaigns — the plan still runs, you simply get media metrics rather than sales metrics.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-004', surface: 'create-media-plan', section: 'targeting', audience: 'all', published: true, order: 4,
+      question: 'How do I choose between awareness, consideration, purchase and loyalty?',
+      answer:
+        'Pick the change you want in the shopper, not the format you have in mind.\n\n' +
+        'Awareness reaches people who do not know the product yet. Consideration is for shoppers comparing options. Purchase is for converting shoppers already close to the basket. Loyalty is for bringing existing buyers back.\n\n' +
+        'The goal sets which objective and KPIs the plan is judged on, so it also decides which numbers you will be shown at the end.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-005', surface: 'create-media-plan', section: 'targeting', audience: 'all', published: true, order: 5,
+      question: 'Can I change the goal after the plan is live?',
+      answer:
+        'No. The goal fixes the objective and the KPIs the plan reports on, and changing it mid-flight would make the reporting meaningless — half the results would be measured against a different yardstick.\n\n' +
+        'If the brief genuinely changed, create a new plan for the new goal and let the current one finish.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-006', surface: 'create-media-plan', section: 'budget', audience: 'all', published: true, order: 6,
+      question: 'What does the daily cap do?',
+      answer:
+        'It limits how much of the budget can be spent in a single day, so a plan cannot burn through its budget in the first week.\n\n' +
+        'Leave it empty and the budget is spent as fast as the inventory allows. Set it to roughly the total budget divided by the number of days for even delivery.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-007', surface: 'create-media-plan', section: 'review', audience: 'advertiser', published: true, order: 7,
+      question: 'What happens when I create the plan — is it booked?',
+      answer:
+        'Not yet. Creating the plan saves it as a draft: nothing is reserved and nothing is charged.\n\n' +
+        'Inventory is held when you launch the plan, and only for bookings that have a placement and an approved creative. Anything incomplete stays in draft until you finish it.',
+      updatedAt: now,
+    },
+
+    // Media plan detail.
+    {
+      id: 'FAQ-008', surface: 'media-plan-detail', audience: 'all', published: true, order: 1,
+      question: 'What makes a plan "at risk"?',
+      answer:
+        'A plan is at risk when something is blocking it from delivering: a booking without a placement, a creative that was never uploaded, or a flight that has started with nothing live behind it.\n\n' +
+        'Every blocking issue appears in the Notifications tab with the action that clears it. "Needs attention" means the plan will still deliver, but something is worth a look.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-009', surface: 'media-plan-detail', section: 'campaigns', audience: 'all', published: true, order: 2,
+      question: 'Why can I not launch my media plan?',
+      answer:
+        'Launching requires every campaign in the plan to be complete: a budget, a run time, at least one booking, a placement on each booking and — for everything except sponsored products — an approved creative.\n\n' +
+        'The Notifications tab lists exactly what is still missing. Once that list is empty the Launch media plan button becomes available.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-010', surface: 'media-plan-detail', section: 'insights', audience: 'all', published: true, order: 3,
+      question: 'Why do the numbers differ from my own reporting?',
+      answer:
+        'Two reasons, usually. Attribution window: we count a sale against the campaign when it happens within the conversion window set on the plan, which may be shorter or longer than your own.\n\n' +
+        'And timing: in-store data lands a day later than online, so the last 24 hours are always incomplete.',
+      updatedAt: now,
+    },
+
+    // Campaign detail.
+    {
+      id: 'FAQ-011', surface: 'campaign-detail', audience: 'all', published: true, order: 1,
+      question: 'What is the difference between a campaign and a booking?',
+      answer:
+        'A campaign is everything you run on one proposition — all your display, for example — with its own budget and targeting.\n\n' +
+        'A booking is one concrete piece of that: a position, for a run time, at a price. A campaign usually holds several.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-012', surface: 'campaign-detail', section: 'creatives', audience: 'advertiser', published: true, order: 2,
+      question: 'How long does creative approval take?',
+      answer:
+        'Most creatives are reviewed within one working day. Approval checks brand safety, the format specification and — where products are named — that the claims match the pack.\n\n' +
+        'Upload at least three working days before the flight starts so there is room for one round of changes.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-013', surface: 'campaign-detail', section: 'creatives', engine: 'sponsored-products', audience: 'all', published: true, order: 3,
+      question: 'Why does sponsored products not ask for a creative?',
+      answer:
+        'Sponsored products uses the product content already in the shop — the pack shot, title and price from the catalogue — so there is nothing to upload.\n\n' +
+        'If the ad looks wrong, the fix is in the product data rather than in the campaign.',
+      updatedAt: now,
+    },
+
+    // Booking detail.
+    {
+      id: 'FAQ-014', surface: 'booking-detail', section: 'placements', audience: 'all', published: true, order: 1,
+      question: 'A position shows as unavailable — what are my options?',
+      answer:
+        'Positions sell out per week, so availability depends on your run time rather than on the position itself.\n\n' +
+        'Shift the flight by a week, pick an adjacent position in the same proposition, or lower the volume you are asking for. The availability calendar shows which weeks still have room.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-015', surface: 'booking-detail', audience: 'retailer', published: true, order: 2,
+      question: 'Can I overbook a position for a key account?',
+      answer:
+        'Yield managers can release extra capacity on a position from the proposition configuration; nobody else can book past the cap.\n\n' +
+        'Overbooking affects delivery for everyone already on that position, so agree it with yield before you promise it to the advertiser.',
+      updatedAt: now,
+    },
+
+    // Overviews and reporting.
+    {
+      id: 'FAQ-016', surface: 'campaign-overview', audience: 'all', published: true, order: 1,
+      question: 'What do the campaign states mean?',
+      answer:
+        'Draft is still being built and holds no inventory. In option holds inventory for a limited time but is not live. Running is delivering now. Paused keeps its bookings but stops delivery. Completed has finished its flight.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-017', surface: 'insights', audience: 'all', published: true, order: 1,
+      question: 'Which KPIs are shown, and who decides?',
+      answer:
+        'The KPIs follow the goal set on the media plan: awareness reports reach and impressions, purchase reports sales, ROAS and conversions.\n\n' +
+        'The proposition adds its own — in-store shows visits and dwell time, offsite adds platform-level reach. You cannot swap a KPI on a live plan, but you can add a brand-lift study when the plan is created.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-018', surface: 'creatives', audience: 'advertiser', published: true, order: 1,
+      question: 'My creative was rejected. What now?',
+      answer:
+        'The rejection names the rule that was not met — a format specification, a brand-safety rule, or a claim that cannot be substantiated.\n\n' +
+        'Upload a corrected version against the same booking; it goes back into review straight away and keeps its place in the flight as long as the run time has not started.',
+      updatedAt: now,
+    },
+    {
+      id: 'FAQ-019', surface: 'home', audience: 'advertiser', published: true, order: 1,
+      question: 'Where do I start?',
+      answer:
+        'Create a media plan for the brief you are working on, then add a campaign per proposition you want to use.\n\n' +
+        'Notifications on this page tell you what each plan still needs, so you can work from the list rather than checking every plan.',
+      updatedAt: now,
+    },
+    // A draft, to show the configuration area's published/draft split.
+    {
+      id: 'FAQ-020', surface: 'home', audience: 'all', published: false, order: 2,
+      question: 'Who do I contact about an invoice?',
+      answer: 'Billing questions go to your account manager. Awaiting the new finance mailbox before this goes live.',
+      updatedAt: now,
+    },
   ],
 };

@@ -47,6 +47,24 @@ export {
   type InboxStateMap,
 } from './inbox-state';
 export {
+  FAQ_SURFACES,
+  FAQ_EDITOR_PERSONAS,
+  faqSurface,
+  faqSurfaceLabel,
+  faqSectionLabel,
+  canManageFaq,
+  faqsFor,
+  faqsForSurface,
+  type FaqSurface,
+  type FaqQuery,
+} from './faq';
+export {
+  createFaq,
+  updateFaq,
+  deleteFaq,
+  moveFaq,
+} from './store';
+export {
   useDb,
   useUsers,
   useMediaPlans,
@@ -54,6 +72,7 @@ export {
   useCampaigns,
   useBookings,
   useMetricDefinitions,
+  useFaqs,
   useMyTasks,
   useSession,
 } from './hooks';

@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { GoalCard } from '@/components/ui/goal-card';
+import { FaqPanel } from '@/components/ui/faq-panel';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
@@ -1407,6 +1408,11 @@ export const GoalSelection: Story = {
                 </Card>
               )}
 
+              {/* Help for the step the user is on. The retailer writes these in
+                  Configuration → FAQ & help; nothing renders when there is
+                  nothing written for this step. */}
+              <FaqPanel surface="create-media-plan" section={wizardSteps[currentStep]?.id} className="mt-6" />
+
             </div>
 
             {/* Summary sidebar */}
@@ -1956,6 +1962,11 @@ export const NoGoalTargeting: Story = {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Help for the step the user is on. The retailer writes these in
+                  Configuration → FAQ & help; nothing renders when there is
+                  nothing written for this step. */}
+              <FaqPanel surface="create-media-plan" section={wizardStepsNoGoalTargeting[currentStep]?.id} className="mt-6" />
 
             </div>
 

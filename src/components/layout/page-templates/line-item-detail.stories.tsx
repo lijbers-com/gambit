@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { FaqPanel } from '@/components/ui/faq-panel';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -1037,6 +1038,8 @@ export const Display: Story = {
               {/* end tabs+card wrapper */}
             </div>
           </div>
+          {/* Retailer-authored help for this booking. */}
+          <FaqPanel surface="booking-detail" engine="display" className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );
@@ -2645,6 +2648,8 @@ export const DigitalInStore: Story = {
             </div>
           </div>
         </div>
+        {/* Retailer-authored help for this booking. */}
+        <FaqPanel surface="booking-detail" engine="digital-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -3946,6 +3951,8 @@ export const OfflineInStore: Story = {
             </div>
           </div>
         </div>
+        {/* Retailer-authored help for this booking. */}
+        <FaqPanel surface="booking-detail" engine="offline-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -4561,6 +4568,8 @@ export const SponsoredProducts: Story = {
             </div>
           </div>
         </div>
+        {/* Retailer-authored help for this booking. */}
+        <FaqPanel surface="booking-detail" engine="sponsored-products" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -5088,6 +5097,8 @@ export const OffsiteDisplay: Story = {
               {/* end form + summary grid */}
             </div>
           </div>
+          {/* Retailer-authored help for this booking. */}
+          <FaqPanel surface="booking-detail" engine="offsite" className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );

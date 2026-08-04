@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
+import { FaqPanel } from '@/components/ui/faq-panel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -363,6 +364,9 @@ export const Home: Story = {
               </Card>
             </section>
           </div>
+
+          {/* Retailer-authored help. Nothing renders when nothing is written. */}
+          <FaqPanel surface="home" />
         </AppLayout>
       </MenuContextProvider>
     );

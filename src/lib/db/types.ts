@@ -188,6 +188,49 @@ export interface AvailabilityEntry {
   booked: number;
 }
 
+// ── FAQ ────────────────────────────────────────────────────────────────
+
+/**
+ * Which template an FAQ entry belongs to. The ids are stable keys, not URLs —
+ * a template can be reachable from several routes, and the FAQ follows the
+ * template. See FAQ_SURFACES in faq.ts for the labels and the sections each
+ * surface offers.
+ */
+export type FaqSurfaceId =
+  | 'home'
+  | 'create-media-plan'
+  | 'create-campaign'
+  | 'media-plan-detail'
+  | 'campaign-detail'
+  | 'booking-detail'
+  | 'campaign-overview'
+  | 'bookings-overview'
+  | 'creatives'
+  | 'insights';
+
+/** Who an entry is written for. Retailer staff and advertisers ask different
+ *  questions about the same screen, so an entry can be aimed at one side. */
+export type FaqAudience = 'all' | 'retailer' | 'advertiser';
+
+export interface FaqEntry {
+  id: string;
+  question: string;
+  /** Plain text. Blank lines start a new paragraph; no markup is parsed. */
+  answer: string;
+  surface: FaqSurfaceId;
+  /** Optional step/tab within the surface (see FAQ_SURFACES[surface].sections).
+   *  Entries without one apply to the whole template. */
+  section?: string;
+  /** Restricts the entry to one proposition, for engine-specific rules. */
+  engine?: EngineId;
+  audience: FaqAudience;
+  /** Drafts are editable in the configuration area but never shown in-product. */
+  published: boolean;
+  /** Sort order within a surface. Lower comes first. */
+  order: number;
+  updatedAt: string;
+}
+
 // ── The database document ──────────────────────────────────────────────
 
 export interface DbData {
@@ -203,4 +246,5 @@ export interface DbData {
   mediaProducts: MediaProduct[];
   positions: Position[];
   availability: AvailabilityEntry[];
+  faqs: FaqEntry[];
 }

@@ -58,4 +58,7 @@ export * from './slider';
 export { NotificationItem } from './notification-item';
 export { MetricRow } from './metric-row';
 export { AdvertiserSelect } from './advertiser-select';
-export { AttributionWindowSelect } from './attribution-window-select';
+export { AttributionWindowSelect } from './attribution-window-select';export { Faq } from './faq';
+export type { FaqItem, FaqProps } from './faq';
+export { FaqPanel } from './faq-panel';
+export type { FaqPanelProps } from './faq-panel';

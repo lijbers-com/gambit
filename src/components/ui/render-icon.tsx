@@ -34,6 +34,7 @@ import {
   Rows3,
   LayoutList,
   CirclePlus,
+  HelpCircle,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
@@ -79,6 +80,7 @@ export const renderIcon = (icon: string) => {
     Handshake,
     Rows3,
     LayoutList,
+    HelpCircle,
     OrganisationsIcon,
     BrandsIcon,
   };

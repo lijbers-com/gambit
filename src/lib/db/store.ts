@@ -1,4 +1,4 @@
-import type { Booking, Campaign, DbData, MediaPlan } from './types';
+import type { Booking, Campaign, DbData, FaqEntry, MediaPlan } from './types';
 import { SEED_VERSION, seedData } from './seed';
 
 /**
@@ -178,5 +178,59 @@ export function addMetricDefinition(def: DbData['metricDefinitions'][number]) {
 export function removeMetricDefinition(engine: string, key: string) {
   const db = load();
   db.metricDefinitions = db.metricDefinitions.filter((m) => !(m.engine === engine && m.key === key));
+  notify();
+}
+
+// ── FAQ ────────────────────────────────────────────────────────────────
+
+/** New entries land at the end of their surface's list. */
+export function createFaq(input: Omit<FaqEntry, 'id' | 'order' | 'updatedAt'> & { order?: number }): FaqEntry {
+  const db = load();
+  const lastOrder = db.faqs
+    .filter((f) => f.surface === input.surface)
+    .reduce((max, f) => Math.max(max, f.order), 0);
+  const entry: FaqEntry = {
+    ...input,
+    id: nextId('FAQ', db.faqs),
+    order: input.order ?? lastOrder + 1,
+    updatedAt: timestamp(),
+  };
+  db.faqs.push(entry);
+  notify();
+  return entry;
+}
+
+export function updateFaq(id: string, patch: Partial<Omit<FaqEntry, 'id'>>): FaqEntry | undefined {
+  const db = load();
+  const entry = db.faqs.find((f) => f.id === id);
+  if (!entry) return undefined;
+  Object.assign(entry, patch, { updatedAt: timestamp() });
+  notify();
+  return entry;
+}
+
+export function deleteFaq(id: string) {
+  const db = load();
+  db.faqs = db.faqs.filter((f) => f.id !== id);
+  notify();
+}
+
+/**
+ * Move an entry one place up or down within its surface, by swapping order
+ * with its neighbour. Editors think in "this should come first", not in
+ * order numbers.
+ */
+export function moveFaq(id: string, direction: 'up' | 'down') {
+  const db = load();
+  const entry = db.faqs.find((f) => f.id === id);
+  if (!entry) return;
+  const siblings = db.faqs.filter((f) => f.surface === entry.surface).sort((a, b) => a.order - b.order);
+  const index = siblings.findIndex((f) => f.id === id);
+  const swapWith = siblings[direction === 'up' ? index - 1 : index + 1];
+  if (!swapWith) return;
+  const order = entry.order;
+  entry.order = swapWith.order;
+  swapWith.order = order;
+  entry.updatedAt = timestamp();
   notify();
 }

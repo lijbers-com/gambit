@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import type { Booking, Campaign, DbData, DbUser, EngineId, MediaPlan, MetricDefinition } from './types';
+import type { Booking, Campaign, DbData, DbUser, EngineId, FaqEntry, MediaPlan, MetricDefinition } from './types';
 import { getDb, subscribe } from './store';
 import { seedData } from './seed';
 import { getCurrentUser, subscribeSession } from './session';
 import { deriveTasksForUser } from './tasks';
+import { faqsFor, type FaqQuery } from './faq';
 
 /**
  * React bindings for the prototype database. Components subscribe with
@@ -74,6 +75,13 @@ export function useMyTasks() {
     () => (user ? deriveTasksForUser(db, user.personaKey, user.side) : []),
     [db, user],
   );
+}
+
+/** FAQ entries for a template, already filtered for the reader. Pass
+ *  `includeDrafts` only in the configuration area. */
+export function useFaqs(query: FaqQuery): FaqEntry[] {
+  const db = useDbSnapshot();
+  return React.useMemo(() => faqsFor(db, query), [db, query.surface, query.section, query.engine, query.side, query.includeDrafts]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 /** The logged-in user (null when signed out). Re-renders on login/logout. */

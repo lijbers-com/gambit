@@ -16,6 +16,7 @@ import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
+import { FaqPanel } from '@/components/ui/faq-panel';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -167,6 +168,9 @@ export const MediaPlanDetail: Story = {
   // without them and falls back to the first seeded plan on its first tab.
   render: (args) => {
     const { planId, tab } = (args ?? {}) as { planId?: string; tab?: string };
+    // Which tab is open, so the FAQ under the card answers questions about
+    // what the user is actually looking at.
+    const [activeTab, setActiveTab] = React.useState(tab ?? 'details');
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -571,6 +575,9 @@ export const MediaPlanDetail: Story = {
             // A plan arrived at straight from the wizard opens on its Inbox, so
             // the first thing the user sees is what still has to be done.
             defaultTab={tab}
+            // Controlled only so the FAQ below can follow the open tab.
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
             // The one action a plan page offers. Disabled while anything blocks
             // delivery, and gone once the plan is already live.
             action={
@@ -860,6 +867,8 @@ export const MediaPlanDetail: Story = {
               },
             ]}
           />
+
+          <FaqPanel surface="media-plan-detail" section={activeTab} className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );

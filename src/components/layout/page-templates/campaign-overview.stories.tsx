@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
+import { FaqPanel } from '@/components/ui/faq-panel';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { Table } from '@/components/ui/table';
@@ -537,6 +538,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
+
+        {/* Retailer-authored help for this overview. */}
+        <FaqPanel surface="campaign-overview" className="mt-6" />
         </div>
       </AppLayout>
       </MenuContextProvider>

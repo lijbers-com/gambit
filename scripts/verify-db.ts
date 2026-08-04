@@ -16,6 +16,7 @@ import {
 } from '../src/lib/db/store';
 import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
 import { deriveMessages } from '../src/lib/db/messages';
+import { FAQ_SURFACES, faqsFor, canManageFaq, FAQ_EDITOR_PERSONAS } from '../src/lib/db/faq';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -236,10 +237,47 @@ if (getDb().campaigns.find((c) => c.id === campaign.id)) fail('cascade delete mi
 if (getDb().bookings.find((b) => b.id === booking.id)) fail('cascade delete missed the booking');
 ok('cascade delete removed plan → campaign → booking');
 
+// ── 7. FAQ ─────────────────────────────────────────────────────────────
+console.log('\n7. FAQ');
+
+const faqIds = new Set(d.faqs.map((f) => f.id));
+if (faqIds.size !== d.faqs.length) fail('faq ids are not unique');
+
+const surfaceIds = new Set(FAQ_SURFACES.map((s) => s.id));
+for (const f of d.faqs) {
+  if (!surfaceIds.has(f.surface)) fail(`faq ${f.id} targets unknown surface ${f.surface}`);
+  const sections = FAQ_SURFACES.find((s) => s.id === f.surface)!.sections.map((s) => s.id);
+  if (f.section && !sections.includes(f.section)) fail(`faq ${f.id} targets unknown section ${f.surface}/${f.section}`);
+  if (!f.question.trim() || !f.answer.trim()) fail(`faq ${f.id} is missing a question or answer`);
+  if (f.question.length > 120) fail(`faq ${f.id} question is too long to read as a question`);
+}
+ok(`${d.faqs.length} entries, ids unique, every surface and section known`);
+
+// Drafts must never reach a template.
+const publishedOnly = FAQ_SURFACES.flatMap((s) => faqsFor(d, { surface: s.id }));
+if (publishedOnly.some((f) => !f.published)) fail('faqsFor returned a draft without includeDrafts');
+ok(`${publishedOnly.length} published entries visible in-product, ${d.faqs.length - publishedOnly.length} draft(s) held back`);
+
+// A step query must also return the entries written for the whole surface.
+const goalStep = faqsFor(d, { surface: 'create-media-plan', section: 'targeting' });
+if (!goalStep.length) fail('no FAQ entries on the wizard goal step');
+ok(`section query widens to surface-wide entries (goal step → ${goalStep.length})`);
+
+// Audience filtering: a retailer must not be shown advertiser-only copy.
+const retailerSide = faqsFor(d, { surface: 'create-media-plan', side: 'retailer' });
+if (retailerSide.some((f) => f.audience === 'advertiser')) fail('advertiser-only entry leaked to a retailer');
+ok(`audience filter holds (retailer sees ${retailerSide.length} of ${faqsFor(d, { surface: 'create-media-plan' }).length})`);
+
+// Only the editor personas may manage entries.
+const editors = d.users.filter((u) => canManageFaq(u));
+if (editors.length !== FAQ_EDITOR_PERSONAS.length) fail(`expected ${FAQ_EDITOR_PERSONAS.length} FAQ editors, got ${editors.length}`);
+if (d.users.some((u) => u.side === 'advertiser' && canManageFaq(u))) fail('an advertiser-side user can manage FAQs');
+ok(`${editors.length} editors: ${editors.map((u) => u.name).join(', ')}`);
+
 // ── Result ─────────────────────────────────────────────────────────────
 console.log(
   failures === 0
-    ? `\nAll checks passed — ${d.mediaPlans.length} plans, ${d.campaigns.length} campaigns, ${d.bookings.length} bookings, ${d.metricDefinitions.length} metric definitions, ${d.positions.length} positions.`
+    ? `\nAll checks passed — ${d.mediaPlans.length} plans, ${d.campaigns.length} campaigns, ${d.bookings.length} bookings, ${d.metricDefinitions.length} metric definitions, ${d.positions.length} positions, ${d.faqs.length} FAQ entries.`
     : `\n${failures} check(s) FAILED.`,
 );
 process.exit(failures === 0 ? 0 : 1);

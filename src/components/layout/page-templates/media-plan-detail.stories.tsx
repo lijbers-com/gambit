@@ -2,9 +2,17 @@ import type { Meta, StoryObj } from '@storybook/react';
 import * as React from 'react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { MetricRow } from '@/components/ui/metric-row';
+import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { Badge } from '@/components/ui/badge';
-import { CardWithTabs } from '@/components/ui/card';
+import {
+  CardWithTabs,
+  BudgetStackedMini,
+  BudgetStackedDetail,
+  DonutMini,
+  DonutLegendDetail,
+  BarHorizontalMini,
+  BarHorizontalDetail,
+} from '@/components/ui/card';
 import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
@@ -29,6 +37,7 @@ import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus 
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
+import { propositionColor, propositionLabel } from '@/lib/proposition-colors';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Plan Detail',
@@ -216,11 +225,132 @@ export const MediaPlanDetail: Story = {
     const spentPct = plan && plan.budget > 0 ? Math.round((planSpend / plan.budget) * 100) : 0;
     const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${n}`);
 
-    const metrics = [
-      { key: 'budget', label: 'Budget', value: fmtK(planSpend), subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`, badgeValue: `${spentPct}%`, badgeVariant: 'secondary' as const },
-      { key: 'impressions', label: 'Impressions', value: '2.5M', subMetric: 'Media plan', badgeValue: '+8%', badgeVariant: 'success' as const },
-      { key: 'roas', label: 'ROAS', value: '4.2x', subMetric: 'Media plan (weighted)', badgeValue: '+11%', badgeVariant: 'success' as const },
-      { key: 'campaigns', label: 'Campaigns', value: String(planCampaignRows.length), subMetric: `${planBookingCount} booking${planBookingCount === 1 ? '' : 's'}`, badgeValue: '', badgeVariant: 'secondary' as const },
+    // Per-proposition rollup — the plan's campaigns grouped by engine. Every
+    // metric card below splits on this, so the breakdowns always add up to the
+    // headline figure.
+    const byEngine = (() => {
+      const acc = new Map<EngineId, { budget: number; spend: number }>();
+      planCampaignRows.forEach(({ campaign: c }) => {
+        const cur = acc.get(c.engine) ?? { budget: 0, spend: 0 };
+        acc.set(c.engine, { budget: cur.budget + c.budget, spend: cur.spend + c.spend });
+      });
+      return [...acc.entries()].map(([engine, v]) => ({
+        engine,
+        name: propositionLabel(engine),
+        color: propositionColor(engine),
+        ...v,
+      }));
+    })();
+
+    // Impressions, conversions and ROAS are not in the prototype database yet,
+    // so they are derived from real spend with fixed factors. That keeps the
+    // breakdowns internally consistent and moving with the data, rather than
+    // being fixed strings that never change.
+    const IMPRESSIONS_PER_EURO = 120;
+    const CONVERSIONS_PER_EURO = 0.04;
+    const impressionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.spend * IMPRESSIONS_PER_EURO) }));
+    const conversionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.spend * CONVERSIONS_PER_EURO) }));
+    const roasByEngine = byEngine.map((e) => ({
+      name: e.name,
+      value: e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
+      color: e.color,
+    }));
+    const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color }));
+    const propositionColors = byEngine.map((e) => e.color);
+
+    const impressionsTotal = impressionsByEngine.reduce((s, e) => s + e.value, 0);
+    const conversionsTotal = conversionsByEngine.reduce((s, e) => s + e.value, 0);
+    const roasWeighted = planSpend > 0
+      ? Math.round((byEngine.reduce((s, e, i) => s + roasByEngine[i].value * e.spend, 0) / planSpend) * 10) / 10
+      : 0;
+
+    const fmtNumberCompact = (n: number) =>
+      n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
+    const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
+
+    // The same cards the media plan card shows, each expanding in place to its
+    // per-proposition breakdown.
+    const metrics: MetricDefinition[] = [
+      {
+        key: 'budget',
+        label: 'Budget',
+        value: fmtK(planSpend),
+        subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`,
+        badgeValue: `${spentPct}%`,
+        badgeVariant: 'secondary',
+        variant: 'budgetStacked',
+        budgetData: budgetVsSpend,
+        valueFormatter: fmtK,
+        chart: <BudgetStackedMini budgetData={budgetVsSpend} />,
+        expandedContent: <BudgetStackedDetail budgetData={budgetVsSpend} valueFormatter={fmtK} />,
+      },
+      {
+        key: 'impressions',
+        label: 'Impressions',
+        value: fmtNumberCompact(impressionsTotal),
+        subMetric: 'Media plan',
+        // donutLegend rather than donut: at five-across the cards are too narrow
+        // for an inline chart, and one card drawing one while the rest show
+        // plain values made the row look unfinished. The split is one click away.
+        variant: 'donutLegend',
+        donutData: impressionsByEngine,
+        donutColors: propositionColors,
+        totalRow: { label: 'Media plan', value: impressionsTotal },
+        valueFormatter: fmtNumberCompact,
+        expandedContent: (
+          <DonutLegendDetail
+            donutData={impressionsByEngine}
+            donutColors={propositionColors}
+            totalRow={{ label: 'Media plan', value: impressionsTotal }}
+            valueFormatter={fmtNumberCompact}
+          />
+        ),
+      },
+      {
+        key: 'conversions',
+        label: 'Conversions',
+        value: fmtNumberCompact(conversionsTotal),
+        subMetric: 'Media plan',
+        variant: 'donutLegend',
+        donutData: conversionsByEngine,
+        donutColors: propositionColors,
+        totalRow: { label: 'Media plan', value: conversionsTotal },
+        valueFormatter: fmtNumberCompact,
+        chart: <DonutMini donutData={conversionsByEngine} donutColors={propositionColors} />,
+        expandedContent: (
+          <DonutLegendDetail
+            donutData={conversionsByEngine}
+            donutColors={propositionColors}
+            totalRow={{ label: 'Media plan', value: conversionsTotal }}
+            valueFormatter={fmtNumberCompact}
+          />
+        ),
+      },
+      {
+        key: 'roas',
+        label: 'ROAS',
+        value: fmtRoasValue(roasWeighted),
+        subMetric: 'Media plan (weighted)',
+        variant: 'barHorizontal',
+        productData: roasByEngine,
+        totalRow: { label: 'Media plan', value: roasWeighted },
+        valueFormatter: fmtRoasValue,
+        chart: <BarHorizontalMini productData={roasByEngine} />,
+        expandedContent: (
+          <BarHorizontalDetail
+            productData={roasByEngine}
+            totalRow={{ label: 'Media plan', value: roasWeighted }}
+            valueFormatter={fmtRoasValue}
+          />
+        ),
+      },
+      {
+        key: 'campaigns',
+        label: 'Campaigns',
+        value: String(planCampaignRows.length),
+        subMetric: `${planBookingCount} booking${planBookingCount === 1 ? '' : 's'}`,
+        badgeVariant: 'secondary',
+      },
     ];
 
     // Apply the Campaigns & bookings filters (search / proposition / state).
@@ -331,7 +461,9 @@ export const MediaPlanDetail: Story = {
           }}
         >
           <div className="mb-3">
-            <MetricRow metrics={metrics} maxVisible={4} defaultVariant="default" removable={false} bleedEdges />
+            {/* showCharts turns each card into its chart and lets it expand in place to
+                the per-proposition breakdown below the row. */}
+            <MetricRow metrics={metrics} maxVisible={5} defaultVariant="graph" showCharts removable={false} bleedEdges />
           </div>
 
           <CardWithTabs

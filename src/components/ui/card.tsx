@@ -676,6 +676,24 @@ export const DonutMini = ({
 };
 
 /** Stacked vertical bars — one slim bar per proposition value. */
+/** Compact trend line — for a metric read over time rather than split by
+ *  proposition (ROAS, CTR). Same family as the other *Mini charts. */
+export const LineMini = ({
+  data,
+  color = 'hsl(var(--chart-1))',
+}: {
+  data: Array<{ value: number }>;
+  color?: string;
+}) => (
+  <div className="h-14 w-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
+        <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+);
+
 export const BarHorizontalMini = ({
   productData,
 }: {
@@ -723,7 +741,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     valueFormatter,
     chart,
     ...props
-  }, ref) => (
+  }, ref) => {
+    // A card draws a chart when a variant renders one, or a bespoke `chart` node
+    // is passed. `graph` is the exception the scale allows: a sparkline is a
+    // trend indicator beside the number, not a chart in its own right.
+    const isChartCard =
+      variant === "donut" || variant === "barVertical" || variant === "barHorizontal" ||
+      variant === "budgetStacked" || variant === "donutLegend" || !!chart;
+
+    return (
     <Card
       ref={ref}
       padding="compact"
@@ -749,23 +775,33 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {variant !== "barVertical" && (
+        {/* Design-system rule: a metric card is EITHER a main metric (big number)
+            OR a chart — never both. Decided once, here, so no variant can drift:
+            a card that draws a chart shows no headline number, and a card that
+            shows a number draws no chart (its detail belongs in the
+            click-to-expand panel, MetricDefinition.expandedContent).
+            The sub-line belongs to both — it labels whatever is above it — so a
+            chart card can still say what it is measuring. */}
+        {(isChartCard ? subMetric : value || subMetric) && (
           <div>
-            <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
-              {value}
-            </div>
+            {!isChartCard && (
+              <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
+                {value}
+              </div>
+            )}
             {subMetric && (
-              <div className="text-sm text-muted-foreground mt-2 transition-all duration-500 ease-in-out">
+              <div
+                className={cn(
+                  "text-sm text-muted-foreground transition-all duration-500 ease-in-out",
+                  !isChartCard && "mt-2",
+                )}
+              >
                 {subMetric}
               </div>
             )}
           </div>
         )}
-        {/* Design-system rule: a metric card is EITHER a main metric (big number)
-            OR a chart — never both. A bespoke chart therefore only renders when the
-            card has no headline value; otherwise the number wins and the detailed
-            chart belongs in the click-to-expand panel (MetricDefinition.expandedContent). */}
-        {chart && !value && <div className="mt-4">{chart}</div>}
+        {chart && <div className="mt-4">{chart}</div>}
         {variant === "graph" && graphData && (
           <div className="h-14 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -911,7 +947,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </div>
       )}
     </Card>
-  )
+    );
+  }
 )
 MetricCard.displayName = "MetricCard"
 

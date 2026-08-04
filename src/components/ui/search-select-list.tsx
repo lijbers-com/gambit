@@ -148,7 +148,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       {selected.length > 0 && (
         <div className="space-y-1">
           {selected.map((option) => (
-            <div key={option.value} className="rounded-md border bg-surface-selected p-3">
+            <div key={option.value} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
               {/* Title line — vertically centred with the remove button. */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 truncate text-sm font-medium">{option.label}</div>
@@ -166,7 +166,14 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               {option.description && (
                 <div className="mt-1 text-xs text-muted-foreground">{option.description}</div>
               )}
-              {renderSelectedExtra && <div className="mt-4">{renderSelectedExtra(option)}</div>}
+              {/* The extra is a separate decision about this option (add a
+                  brand-lift study), so it gets its own box rather than running
+                  on from the description above it. */}
+              {renderSelectedExtra && (
+                <div className="mt-3 rounded-md border border-surface-selected-border bg-card p-3">
+                  {renderSelectedExtra(option)}
+                </div>
+              )}
             </div>
           ))}
         </div>

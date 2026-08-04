@@ -13,6 +13,7 @@ module.exports = {
         'page': 'var(--brand-page-bg-hex, #fafafa)',
         // Interactive surfaces — one hover / selected shade for the whole UI
         'surface-selected': 'var(--surface-selected)',
+        'surface-selected-border': 'var(--surface-selected-border)',
         'surface-hover': 'var(--surface-hover)',
         'surface-active': 'var(--surface-active)',
         // Table surfaces — resolve to each theme's own neutral ramp

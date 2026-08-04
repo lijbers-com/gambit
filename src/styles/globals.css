@@ -440,6 +440,10 @@ body[data-theme="alfaBeta"] {
        so the app never has five slightly different greys doing the same job.
     ── */
     --surface-selected:       rgb(var(--neutral-50));   /* chosen / settled      */
+    --surface-selected-border: rgb(var(--neutral-400)); /* its border — one step
+                                                           darker than --border,
+                                                           so a made choice reads
+                                                           as settled            */
     --surface-hover:          rgb(var(--neutral-100));  /* hover on any row/card */
     --surface-active:         rgb(var(--neutral-200));  /* pressed / expanded    */
     --tooltip-surface:        rgb(var(--neutral-500));  /* header tooltip body   */

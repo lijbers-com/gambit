@@ -115,15 +115,13 @@ export const BrandOverview: Story = {
             </Card>
             <MetricCard
               label="Brands"
-              value="10"
-              subMetric="8 Active · 2 Inactive"
+              subMetric="10 total · 8 Active · 2 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 8 }, { name: 'Inactive', value: 2 }]}
             />
             <MetricCard
               label="Retail products"
-              value="12"
-              subMetric="11 Active · 1 Inactive"
+              subMetric="12 total · 11 Active · 1 Inactive"
               variant="donut"
               donutData={[{ name: 'Active', value: 11 }, { name: 'Inactive', value: 1 }]}
             />

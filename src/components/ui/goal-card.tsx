@@ -34,7 +34,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
         // consistent however the icon was passed in.
         'flex h-full w-full flex-col rounded-md border p-3 text-left transition-colors [&_svg]:h-5 [&_svg]:w-5',
         !readOnly && 'cursor-pointer hover:bg-surface-hover',
-        selected ? 'border-foreground/20 bg-surface-selected' : 'border-border bg-background',
+        selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
         className,
       )}
     >

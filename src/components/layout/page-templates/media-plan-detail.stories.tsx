@@ -9,7 +9,7 @@ import {
   BudgetStackedMini,
   BudgetStackedDetail,
   DonutLegendDetail,
-  BarHorizontalMini,
+  LineMini,
   BarHorizontalDetail,
 } from '@/components/ui/card';
 import { Table, type TableColumn } from '@/components/ui/table';
@@ -277,6 +277,17 @@ export const MediaPlanDetail: Story = {
       ? Math.round((byEngine.reduce((s, e, i) => s + roasByEngine[i].value * e.spend, 0) / planSpend) * 10) / 10
       : 0;
 
+    // Twelve weeks trending to the current weighted ROAS. Seeded so the line is
+    // stable across renders, and scaled to the real figure.
+    const roasTrend = (() => {
+      const seed = (plan?.id ?? 'roas').split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0);
+      return Array.from({ length: 12 }, (_, i) => {
+        const ramp = 0.82 + (i / 11) * 0.18;
+        const jitter = (((seed * (i + 5)) % 100) / 100 - 0.5) * 0.06;
+        return { value: Math.max(0, Math.round(roasWeighted * (ramp + jitter) * 100) / 100) };
+      });
+    })();
+
     const fmtNumberCompact = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
     const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
@@ -299,8 +310,7 @@ export const MediaPlanDetail: Story = {
       {
         key: 'impressions',
         label: 'Impressions',
-        value: fmtNumberCompact(impressionsTotal),
-        subMetric: 'Media plan',
+        subMetric: `${fmtNumberCompact(impressionsTotal)} media plan`,
         variant: 'donut',
         donutData: impressionsByEngine,
         donutColors: propositionColors,
@@ -318,8 +328,7 @@ export const MediaPlanDetail: Story = {
       {
         key: 'conversions',
         label: 'Conversions',
-        value: fmtNumberCompact(conversionsTotal),
-        subMetric: 'Media plan',
+        subMetric: `${fmtNumberCompact(conversionsTotal)} media plan`,
         variant: 'donut',
         donutData: conversionsByEngine,
         donutColors: propositionColors,
@@ -340,7 +349,7 @@ export const MediaPlanDetail: Story = {
         subMetric: `${fmtRoasValue(roasWeighted)} media plan (weighted)`,
         variant: 'barHorizontal',
         productData: roasByEngine,
-        chart: <BarHorizontalMini productData={roasByEngine} />,
+        chart: <LineMini data={roasTrend} color="hsl(var(--chart-4))" />,
         totalRow: { label: 'Media plan', value: roasWeighted },
         valueFormatter: fmtRoasValue,
         expandedContent: (

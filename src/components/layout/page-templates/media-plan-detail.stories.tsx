@@ -6,11 +6,8 @@ import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { Badge } from '@/components/ui/badge';
 import {
   CardWithTabs,
-  BudgetStackedMini,
   BudgetStackedDetail,
-  DonutMini,
   DonutLegendDetail,
-  BarHorizontalMini,
   BarHorizontalDetail,
 } from '@/components/ui/card';
 import { Table, type TableColumn } from '@/components/ui/table';
@@ -33,7 +30,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, deleteCampaign, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, deleteCampaign, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
@@ -124,9 +121,22 @@ type Row = {
   dailyCap?: string;
   dates?: string;
   objectiveKpi: string;
-  lock?: 'FLEXIBLE' | 'LOCKED';
   inherits?: boolean;
   bookingsCount?: number;
+  /** Open inbox messages for this row, so the table shows the same numbers the
+   *  Inbox tab does rather than a second opinion. */
+  actionCount?: number;
+  recommendationCount?: number;
+};
+
+/** A count of open inbox messages for a row. */
+const CountCell = ({ count, tone }: { count: number; tone?: 'action' }) => {
+  if (count === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <Badge variant={tone === 'action' ? 'warning' : 'secondary'} className="tabular-nums">
+      {count}
+    </Badge>
+  );
 };
 
 export const MediaPlanDetail: Story = {
@@ -220,7 +230,6 @@ export const MediaPlanDetail: Story = {
       .filter((c) => plan && c.mediaPlanId === plan.id)
       .map((c) => ({ campaign: c, bookings: db.bookings.filter((b) => b.campaignId === c.id) }));
 
-    const planBookingCount = planCampaignRows.reduce((s, r) => s + r.bookings.length, 0);
     const planSpend = planCampaignRows.reduce((s, r) => s + r.campaign.spend, 0);
     const spentPct = plan && plan.budget > 0 ? Math.round((planSpend / plan.budget) * 100) : 0;
     const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${n}`);
@@ -264,6 +273,18 @@ export const MediaPlanDetail: Story = {
       ? Math.round((byEngine.reduce((s, e, i) => s + roasByEngine[i].value * e.spend, 0) / planSpend) * 10) / 10
       : 0;
 
+    // Twelve weeks trending up to the current total. Seeded from the metric key
+    // so a card always draws the same line, and scaled to the real value so the
+    // shape moves with the data.
+    const trendTo = (key: string, total: number) => {
+      const seed = key.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0);
+      return Array.from({ length: 12 }, (_, i) => {
+        const ramp = 0.55 + (i / 11) * 0.45;
+        const jitter = (((seed * (i + 7)) % 100) / 100 - 0.5) * 0.08;
+        return { value: Math.max(0, Math.round(total * (ramp + jitter))) };
+      });
+    };
+
     const fmtNumberCompact = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
     const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
@@ -278,10 +299,11 @@ export const MediaPlanDetail: Story = {
         subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`,
         badgeValue: `${spentPct}%`,
         badgeVariant: 'secondary',
-        variant: 'budgetStacked',
+        variant: 'graph',
+        graphData: trendTo('budget', planSpend),
+        graphColor: 'hsl(var(--chart-1))',
         budgetData: budgetVsSpend,
         valueFormatter: fmtK,
-        chart: <BudgetStackedMini budgetData={budgetVsSpend} />,
         expandedContent: <BudgetStackedDetail budgetData={budgetVsSpend} valueFormatter={fmtK} />,
       },
       {
@@ -289,10 +311,9 @@ export const MediaPlanDetail: Story = {
         label: 'Impressions',
         value: fmtNumberCompact(impressionsTotal),
         subMetric: 'Media plan',
-        // donutLegend rather than donut: at five-across the cards are too narrow
-        // for an inline chart, and one card drawing one while the rest show
-        // plain values made the row look unfinished. The split is one click away.
-        variant: 'donutLegend',
+        variant: 'graph',
+        graphData: trendTo('impressions', impressionsTotal),
+        graphColor: 'hsl(var(--chart-2))',
         donutData: impressionsByEngine,
         donutColors: propositionColors,
         totalRow: { label: 'Media plan', value: impressionsTotal },
@@ -311,12 +332,13 @@ export const MediaPlanDetail: Story = {
         label: 'Conversions',
         value: fmtNumberCompact(conversionsTotal),
         subMetric: 'Media plan',
-        variant: 'donutLegend',
+        variant: 'graph',
+        graphData: trendTo('conversions', conversionsTotal),
+        graphColor: 'hsl(var(--chart-3))',
         donutData: conversionsByEngine,
         donutColors: propositionColors,
         totalRow: { label: 'Media plan', value: conversionsTotal },
         valueFormatter: fmtNumberCompact,
-        chart: <DonutMini donutData={conversionsByEngine} donutColors={propositionColors} />,
         expandedContent: (
           <DonutLegendDetail
             donutData={conversionsByEngine}
@@ -331,11 +353,12 @@ export const MediaPlanDetail: Story = {
         label: 'ROAS',
         value: fmtRoasValue(roasWeighted),
         subMetric: 'Media plan (weighted)',
-        variant: 'barHorizontal',
+        variant: 'graph',
+        graphData: trendTo('roas', roasWeighted * 100),
+        graphColor: 'hsl(var(--chart-4))',
         productData: roasByEngine,
         totalRow: { label: 'Media plan', value: roasWeighted },
         valueFormatter: fmtRoasValue,
-        chart: <BarHorizontalMini productData={roasByEngine} />,
         expandedContent: (
           <BarHorizontalDetail
             productData={roasByEngine}
@@ -343,13 +366,6 @@ export const MediaPlanDetail: Story = {
             valueFormatter={fmtRoasValue}
           />
         ),
-      },
-      {
-        key: 'campaigns',
-        label: 'Campaigns',
-        value: String(planCampaignRows.length),
-        subMetric: `${planBookingCount} booking${planBookingCount === 1 ? '' : 's'}`,
-        badgeVariant: 'secondary',
       },
     ];
 
@@ -362,20 +378,30 @@ export const MediaPlanDetail: Story = {
       return searchMatch && propMatch && stateMatch;
     });
 
-    const objectiveKpiLabel = [plan?.goal, plan?.objective].filter(Boolean).join(' / ').toUpperCase() || '—';
+    const objectiveKpiLabel = [plan?.goal, plan?.objective].filter(Boolean).join(' / ') || '—';
 
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
+    const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
+      const msgs = deriveMessages(db, scope);
+      return {
+        actionCount: msgs.filter((m) => m.kind === 'action').length,
+        recommendationCount: msgs.filter((m) => m.kind === 'recommendation').length,
+      };
+    };
+
     const rows: Row[] = filteredCampaigns.flatMap(({ campaign: c, bookings }) => [
       {
         _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, state: c.status,
         budget: fmtEuro(c.budget), dates: fmtRange(c.startDate, c.endDate),
-        objectiveKpi: objectiveKpiLabel, lock: 'FLEXIBLE' as const, bookingsCount: bookings.length,
+        objectiveKpi: objectiveKpiLabel, bookingsCount: bookings.length,
+        ...countsFor({ campaignId: c.id }),
       },
       ...(expanded.includes(c.id)
         ? bookings.map((b): Row => ({
             _type: 'booking', _id: b.id, name: b.name, engine: c.engine, status: b.status,
             budget: fmtEuro(b.budget), dailyCap: '—', dates: fmtRange(b.startDate, b.endDate),
             objectiveKpi: 'Inherits from campaign', inherits: true,
+            ...countsFor({ bookingId: b.id }),
           }))
         : []),
     ]);
@@ -421,9 +447,16 @@ export const MediaPlanDetail: Story = {
       { key: 'dailyCap', header: 'Daily cap', render: (r) => <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span> },
       { key: 'dates', header: 'Dates', render: (r) => <span className="text-muted-foreground">{r.dates}</span> },
       { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span> },
-      { key: 'lock', header: 'Lock', render: (r) => (r._type === 'campaign' ? (r.lock === 'LOCKED' ? <Badge className="bg-neutral-200 text-neutral-800 border-neutral-300">Locked</Badge> : <Badge variant="outline">Flexible</Badge>) : null) },
       {
-        key: 'actions', header: 'Actions', render: (r) =>
+        key: 'recommendations', header: 'Recommendations',
+        render: (r) => <CountCell count={r.recommendationCount ?? 0} />,
+      },
+      {
+        key: 'inboxActions', header: 'Actions',
+        render: (r) => <CountCell count={r.actionCount ?? 0} tone="action" />,
+      },
+      {
+        key: 'remove', header: '', render: (r) =>
           r._type === 'campaign' ? (
             <button
               type="button"
@@ -463,7 +496,7 @@ export const MediaPlanDetail: Story = {
           <div className="mb-3">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
-            <MetricRow metrics={metrics} maxVisible={5} defaultVariant="graph" showCharts removable={false} bleedEdges />
+            <MetricRow metrics={metrics} maxVisible={4} defaultVariant="graph" showCharts removable={false} bleedEdges />
           </div>
 
           <CardWithTabs

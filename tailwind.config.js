@@ -9,6 +9,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // The page canvas each theme sits on (Edge cream, retailers off-white).
+        'page': 'var(--brand-page-bg-hex, #fafafa)',
         // Interactive surfaces — one hover / selected shade for the whole UI
         'surface-selected': 'var(--surface-selected)',
         'surface-hover': 'var(--surface-hover)',

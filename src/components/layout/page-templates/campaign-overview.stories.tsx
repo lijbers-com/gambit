@@ -21,9 +21,9 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, CornerDownRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, CornerDownRight, Plus } from 'lucide-react';
 import { addDays } from 'date-fns';
-import { useDb, type EngineId } from '@/lib/db';
+import { useDb, createBooking, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
@@ -225,9 +225,47 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     // Flatten campaigns + (when expanded) their bookings into one row list.
     type CampaignRow = typeof campaignRowsFromDb[number] & { _type: 'campaign'; _id: string; engine?: string; parentId?: string };
     type BookingRow = ReturnType<typeof bookingsForCampaign>[number];
-    const tableRows: (CampaignRow | BookingRow)[] = filteredCampaignData.flatMap((c) => {
+    // The trailing row under an expanded campaign, so a booking can be added
+    // without leaving the table.
+    type AddRow = Omit<BookingRow, '_type'> & { _type: 'add' };
+    type AnyRow = CampaignRow | BookingRow | AddRow;
+
+    /** Create a draft booking on this campaign and open it. */
+    const addBookingTo = (campaignId: string) => {
+      const c = db.campaigns.find((x) => x.id === campaignId);
+      if (!c) return;
+      const booking = createBooking({
+        campaignId: c.id,
+        name: `${c.name} — New booking`,
+        status: 'draft',
+        budget: 0,
+        spend: 0,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        positionIds: [],
+        creativeStatus: 'missing',
+      });
+      if (typeof window === 'undefined') return;
+      // Sponsored-products bookings live inside the campaign page.
+      window.location.href = c.engine === 'sponsored-products'
+        ? `/campaigns/${engineType}/${c.id}`
+        : `/campaigns/${engineType}/booking/${booking.id}`;
+    };
+
+    const tableRows: AnyRow[] = filteredCampaignData.flatMap((c) => {
       const campaignRow: CampaignRow = { ...c, _type: 'campaign', _id: c.id };
-      return expandedRows.includes(c.id) ? [campaignRow, ...bookingsForCampaign(c)] : [campaignRow];
+      return expandedRows.includes(c.id)
+        ? [
+            campaignRow,
+            ...bookingsForCampaign(c),
+            {
+              _type: 'add' as const, _id: `add-${c.id}`, id: '', status: '', advertiser: '',
+              name: '', engine: engineType, parentId: c.id,
+              products: { images: [] as string[], total: 0 }, creatives: 0, placements: 0,
+              spendToDate: 0, spendingLimit: 0, start: '', end: '',
+            },
+          ]
+        : [campaignRow];
     });
     return (
       <MenuContextProvider>
@@ -408,12 +446,21 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'ID', width: 130 },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'id', header: 'ID', width: 130, render: row => (row._type === 'add' ? null : row.id) },
+                      { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
                       { key: 'advertiser', header: 'Advertiser' },
                       // The expand chevron lives in the table's own leading
                       // column, so Name only carries the name and the count.
-                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'campaign' ? (
+                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'add' ? (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); addBookingTo(row.parentId); }}
+                          className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add booking
+                        </button>
+                      ) : row._type === 'campaign' ? (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
@@ -442,10 +489,10 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'bookings', header: 'Bookings', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.bookings}</Badge> : null },
                       { key: 'creatives', header: 'Creatives', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.creatives}</Badge> : null },
                       { key: 'placements', header: 'Placements', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.placements}</Badge> : null },
-                      { key: 'spendToDate', header: 'Spend to date', render: row => `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                      { key: 'spendToDate', header: 'Spend to date', render: row => (row._type === 'add' ? null : `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) },
                       { key: 'spendingLimit', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'start', header: 'Start date', render: row => (row._type === 'add' ? null : new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })) },
+                      { key: 'end', header: 'End date', render: row => (row._type === 'add' ? null : new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })) },
                     ]}
                     data={tableRows}
                     rowKey={row => row._id}
@@ -457,6 +504,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       getLabel: (row, expanded) => `${expanded ? 'Collapse' : 'Expand'} ${row.name}`,
                     }}
                     onRowClick={(row) => {
+                      if (row._type === 'add') return;
                       // Rows link into the campaign; bookings open their parent campaign
                       // (in this engine's section). The chevron alone toggles expansion.
                       const target = row._type === 'booking' ? row.parentId : row.id;
@@ -475,7 +523,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               // Everything outstanding across this proposition's campaigns and
               // bookings — the same derived to-dos the detail pages show, just
               // scoped to the engine instead of a single entity.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="engine" entityId={engineId} className="mt-6" />,
             },

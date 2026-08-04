@@ -30,7 +30,7 @@ import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
 import { getDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState } from '@/lib/db';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, Inbox as InboxIcon, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
 export interface CampaignEngine {
@@ -933,8 +933,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 if (dbPlan && open.length === 0) {
                   return (
                     <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <InboxIcon className="h-4 w-4 shrink-0" />
-                      Inbox is empty — nothing to do
+                      <Bell className="h-4 w-4 shrink-0" />
+                      No notifications — nothing to do
                     </div>
                   );
                 }
@@ -953,11 +953,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
                 return (
                   <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <InboxIcon className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
-                    {unread > 0 && (
-                      <span className="font-medium text-foreground">{unread} unread</span>
-                    )}
-                    <span>{unread > 0 ? `in the inbox — ${breakdown}` : `Inbox: ${breakdown}`}</span>
+                    <Bell className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                    <span className="font-medium text-foreground">
+                      {open.length} notification{open.length === 1 ? '' : 's'}
+                    </span>
+                    <span>— {breakdown}</span>
                   </div>
                 );
               })()

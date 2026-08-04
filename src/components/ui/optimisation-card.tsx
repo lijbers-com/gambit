@@ -405,9 +405,14 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
 
   return (
     <div className={cn('w-full', className)}>
+      {/* The wizard never produces action-needed messages — there is nothing to
+          act on yet — so filtering would only ever have one useful state. It
+          names what the list holds instead. */}
       <Inbox
         items={inboxItems}
         status={itemStatus}
+        showFilters={false}
+        heading="Recommendations and insights"
         emptyMessage="Notifications appear as you make selections."
         onOpen={(item) => {
           setOpened((prev) => new Set(prev).add(item.id));

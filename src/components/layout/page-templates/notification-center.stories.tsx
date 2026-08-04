@@ -12,14 +12,14 @@ import React, { useState } from 'react';
 import { Bell, Mail, Sparkles, Table, Image, DollarSign, BarChart3 } from 'lucide-react';
 
 const meta: Meta<typeof AppLayout> = {
-  title: 'Page templates/Inbox',
+  title: 'Page templates/Notifications',
   component: AppLayout,
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component: `
-# Inbox Page Template
+# Notifications Page Template
 
 The user's single list of everything needing their attention, across every media
 plan, campaign and booking they are responsible for.
@@ -28,7 +28,7 @@ plan, campaign and booking they are responsible for.
 
 Messages are **derived from the data, never stored**. A message exists exactly as
 long as the condition behind it is true: upload the missing creative and the
-message is gone, without anyone marking it off. That is why the inbox can never
+message is gone, without anyone marking it off. That is why the list can never
 drift out of sync with the pages it links to.
 
 Four kinds, deliberately no more:
@@ -38,14 +38,14 @@ Four kinds, deliberately no more:
 - **Recommendation** — an optimisation worth taking (rebalance budget, raise caps)
 - **Insight** — an observation about how the plan is performing
 
-## Inbox behaviour
+## Behaviour
 
 - An **unread dot** marks messages the user hasn't opened yet
 - Opening a message marks it read; **Mark as done** files it under Done
-- Filters: **To do**, **Unread**, **Done**
+- Filters: **All**, **Unread**, **Actions**, **Recommendations**, **Insights**, **Done**
 - Messages are **scoped by role** — a user only sees what they can act on
 
-The same component (\`InboxPanel\`) renders the Inbox tab on the media-plan,
+The same component (\`InboxPanel\`) renders the Notifications tab on the media-plan,
 campaign, booking and proposition pages, scoped to that entity.
         `,
       },
@@ -179,7 +179,7 @@ export const NotificationCenter: Story = {
           {...args}
           routes={routes}
           pageHeaderProps={{
-            title: 'Inbox',
+            title: 'Notifications',
             subtitle: 'Everything that needs your attention, across your media plans',
             // No date range: messages have no timestamp — one exists exactly as
             // long as the condition behind it is true.

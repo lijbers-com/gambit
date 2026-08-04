@@ -622,7 +622,7 @@ export const Display: Story = {
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
-                  { value: 'actions', label: 'Inbox' },
+                  { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs', label: 'Logs' },
                 ].map((t) => (
@@ -1682,7 +1682,7 @@ export const DigitalInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Inbox' },
+                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -3181,7 +3181,7 @@ export const OfflineInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Inbox' },
+                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4145,7 +4145,7 @@ export const SponsoredProducts: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Inbox' },
+                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (
@@ -4722,7 +4722,7 @@ export const OffsiteDisplay: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Inbox' },
+                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs', label: 'Logs' },
                     ].map((t) => (

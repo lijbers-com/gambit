@@ -887,7 +887,7 @@ const updatedForecastMetrics = [
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -1436,7 +1436,7 @@ export const DigitalInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -1912,7 +1912,7 @@ export const OfflineInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -2447,7 +2447,7 @@ export const DisplayRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -2974,7 +2974,7 @@ export const OfflineInstoreInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -3479,7 +3479,7 @@ export const DisplayInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -5643,7 +5643,7 @@ export const OffsiteRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
@@ -6179,7 +6179,7 @@ export const OffsiteInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Inbox',
+              label: 'Notifications',
               value: 'actions',
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },

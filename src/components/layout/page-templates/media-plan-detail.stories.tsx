@@ -30,9 +30,9 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, XCircle, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, deleteCampaign, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, createBooking, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
@@ -113,7 +113,9 @@ const statusBadge: Record<PlanStatus, { variant: 'success' | 'secondary' | 'warn
 // One row type covering both levels so the whole hierarchy renders in a single
 // shared Table. Campaign-only fields are blank on booking rows and vice-versa.
 type Row = {
-  _type: 'campaign' | 'booking';
+  /** 'add' is the trailing row under an expanded campaign that creates a
+   *  booking in place, so a plan can be filled in without leaving the table. */
+  _type: 'campaign' | 'booking' | 'add';
   _id: string;
   name: string;
   engine?: EngineId;
@@ -363,6 +365,38 @@ export const MediaPlanDetail: Story = {
     const objectiveKpiLabel = [plan?.goal, plan?.objective].filter(Boolean).join(' / ') || '—';
 
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
+    // Engine → route segment, shared by the add-booking jump and the row links.
+    const routeSeg: Record<EngineId, string> = {
+      'display': 'display',
+      'sponsored-products': 'sponsored-products',
+      'digital-instore': 'digital-instore',
+      'offline-instore': 'offline-instore',
+      'offsite': 'offsite',
+    };
+
+    /** Create a draft booking on this campaign and open it. */
+    const addBookingTo = (campaignId: string) => {
+      const c = db.campaigns.find((x) => x.id === campaignId);
+      if (!c) return;
+      const booking = createBooking({
+        campaignId: c.id,
+        name: `${c.name} — New booking`,
+        status: 'draft',
+        budget: 0,
+        spend: 0,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        positionIds: [],
+        creativeStatus: 'missing',
+      });
+      if (typeof window === 'undefined') return;
+      const seg = routeSeg[c.engine];
+      // Sponsored-products bookings live inside the campaign page.
+      window.location.href = c.engine === 'sponsored-products'
+        ? `/campaigns/${seg}/${c.id}`
+        : `/campaigns/${seg}/booking/${booking.id}`;
+    };
+
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
       const msgs = deriveMessages(db, scope);
       return {
@@ -379,19 +413,34 @@ export const MediaPlanDetail: Story = {
         ...countsFor({ campaignId: c.id }),
       },
       ...(expanded.includes(c.id)
-        ? bookings.map((b): Row => ({
-            _type: 'booking', _id: b.id, name: b.name, engine: c.engine, status: b.status,
-            budget: fmtEuro(b.budget), dailyCap: '—', dates: fmtRange(b.startDate, b.endDate),
-            objectiveKpi: 'Inherits from campaign', inherits: true,
-            ...countsFor({ bookingId: b.id }),
-          }))
+        ? [
+            ...bookings.map((b): Row => ({
+              _type: 'booking' as const, _id: b.id, name: b.name, engine: c.engine, status: b.status,
+              budget: fmtEuro(b.budget), dailyCap: '—', dates: fmtRange(b.startDate, b.endDate),
+              objectiveKpi: 'Inherits from campaign', inherits: true,
+              ...countsFor({ bookingId: b.id }),
+            })),
+            {
+              _type: 'add' as const, _id: `add-${c.id}`, name: '', engine: c.engine,
+              budget: '', objectiveKpi: '',
+            },
+          ]
         : []),
     ]);
 
     const columns: TableColumn<Row>[] = [
       {
         key: 'name', header: 'Name', render: (r) =>
-          r._type === 'campaign' ? (
+          r._type === 'add' ? (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
+              className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add booking
+            </button>
+          ) : r._type === 'campaign' ? (
             <span className="flex items-center gap-2 min-w-0">
               {/* The chevron lives in the table's own leading column; the rest
                   of the row navigates to the campaign. */}
@@ -425,36 +474,17 @@ export const MediaPlanDetail: Story = {
           return badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null;
         },
       },
-      { key: 'budget', header: 'Budget', render: (r) => <span className="tabular-nums">{r.budget}</span> },
-      { key: 'dailyCap', header: 'Daily cap', render: (r) => <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span> },
-      { key: 'dates', header: 'Dates', render: (r) => <span className="text-muted-foreground">{r.dates}</span> },
-      { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span> },
+      { key: 'budget', header: 'Budget', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums">{r.budget}</span>) },
+      { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
+      { key: 'dates', header: 'Dates', render: (r) => (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>) },
+      { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
       {
         key: 'recommendations', header: 'Recommendations',
-        render: (r) => <CountCell count={r.recommendationCount ?? 0} />,
+        render: (r) => (r._type === 'add' ? null : <CountCell count={r.recommendationCount ?? 0} />),
       },
       {
         key: 'inboxActions', header: 'Actions',
-        render: (r) => <CountCell count={r.actionCount ?? 0} tone="action" />,
-      },
-      {
-        key: 'remove', header: '', render: (r) =>
-          r._type === 'campaign' ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                // Removing a campaign cascades to its bookings in the store.
-                if (typeof window === 'undefined' || window.confirm(`Remove ${r.name} and its bookings?`)) {
-                  deleteCampaign(r._id);
-                }
-              }}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label={`Remove ${r.name}`}
-            >
-              <XCircle className="h-4 w-4" />
-            </button>
-          ) : null,
+        render: (r) => (r._type === 'add' ? null : <CountCell count={r.actionCount ?? 0} tone="action" />),
       },
     ];
 
@@ -611,7 +641,7 @@ export const MediaPlanDetail: Story = {
               {
                 // Everything the user should do or know for this plan: the
                 // derived to-dos plus its recommendations and insights.
-                label: 'Inbox',
+                label: 'Notifications',
                 value: 'inbox',
                 content: <InboxPanel scope="media-plan" entityId={plan?.id} className="mt-6" />,
               },

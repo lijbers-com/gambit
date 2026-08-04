@@ -88,19 +88,6 @@ export function markUndone(id: string) {
   setStatus(id, 'read');
 }
 
-export function markAllRead(ids: string[]) {
-  const current = getInboxState();
-  const next = { ...current };
-  let changed = false;
-  for (const id of ids) {
-    if ((current[id] ?? 'unread') === 'unread') {
-      next[id] = 'read';
-      changed = true;
-    }
-  }
-  if (changed) write(next);
-}
-
 /** Forget all read/done state — used by the prototype's reset. */
 export function resetInboxState() {
   write({});

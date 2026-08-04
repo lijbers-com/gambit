@@ -749,7 +749,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {variant !== "donut" && variant !== "barVertical" && (
+        {variant !== "barVertical" && (
           <div>
             <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
               {value}
@@ -783,7 +783,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           </div>
         )}
         {variant === "donut" && donutData && (
-          <div className="relative mx-auto aspect-square w-40 md:w-44">
+          <div className="relative mt-4 aspect-square w-20">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -828,9 +828,6 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 />
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-3xl font-bold text-foreground">{value}</span>
-            </div>
           </div>
         )}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (

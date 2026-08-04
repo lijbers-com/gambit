@@ -13,7 +13,6 @@ import {
   markRead,
   markDone,
   markUndone,
-  markAllRead,
   type InboxMessage,
   type EngineId,
 } from '@/lib/db';
@@ -95,7 +94,6 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
         items={items}
         status={status}
         onOpen={open}
-        onMarkAllRead={() => markAllRead(items.map((i) => i.id))}
         emptyMessage={
           scope === 'user'
             ? 'Nothing needs your attention right now.'

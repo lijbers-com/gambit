@@ -42,7 +42,6 @@ export {
   markRead,
   markDone,
   markUndone,
-  markAllRead,
   resetInboxState,
   type MessageStatus,
   type InboxStateMap,

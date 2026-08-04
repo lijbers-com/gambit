@@ -4,7 +4,6 @@ import * as React from 'react';
 import { ChevronRight, Check, Inbox as InboxIcon, WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
-import { Button } from './button';
 import type { MessageKind, MessageStatus } from '@/lib/db';
 
 /**
@@ -61,15 +60,13 @@ const badgeFor = (item: InboxItem) => {
   return kindBadge[item.kind];
 };
 
-export type InboxFilter = 'all' | 'unread' | 'action' | 'recommendation' | 'insight' | 'done';
+export type InboxFilter = 'all' | 'action' | 'recommendation' | 'insight' | 'done';
 
 export interface InboxProps {
   items: InboxItem[];
   /** Status per message id. Anything missing counts as unread. */
   status?: Record<string, MessageStatus>;
   onOpen?: (item: InboxItem) => void;
-  /** Shown as a "Mark all read" button when there is anything unread. */
-  onMarkAllRead?: () => void;
   /** Copy for the empty state — say what the user did right, not "no data". */
   emptyMessage?: string;
   /** Force the filter row off. It is shown by default so the inbox always
@@ -89,7 +86,6 @@ export const Inbox: React.FC<InboxProps> = ({
   items,
   status,
   onOpen,
-  onMarkAllRead,
   emptyMessage = 'Nothing needs your attention.',
   showFilters,
   heading,
@@ -97,7 +93,6 @@ export const Inbox: React.FC<InboxProps> = ({
 }) => {
   const [filter, setFilter] = React.useState<InboxFilter>('all');
 
-  const unread = items.filter((i) => statusOfItem(i, status) === 'unread');
   const done = items.filter((i) => statusOfItem(i, status) === 'done');
   const open = items.filter((i) => statusOfItem(i, status) !== 'done');
   // Health counts as action: it is the plan telling you something needs doing.
@@ -108,8 +103,7 @@ export const Inbox: React.FC<InboxProps> = ({
   const filtersVisible = showFilters ?? true;
 
   const visible =
-    filter === 'unread' ? unread
-    : filter === 'done' ? done
+    filter === 'done' ? done
     : filter === 'action' ? actions
     : filter === 'recommendation' ? recommendations
     : filter === 'insight' ? insights
@@ -119,7 +113,6 @@ export const Inbox: React.FC<InboxProps> = ({
   // separates the inbox from the archive.
   const filters: { value: InboxFilter; label: string; count: number }[] = [
     { value: 'all', label: 'All', count: open.length },
-    { value: 'unread', label: 'Unread', count: unread.length },
     { value: 'action', label: 'Actions', count: actions.length },
     { value: 'recommendation', label: 'Recommendations', count: recommendations.length },
     { value: 'insight', label: 'Insights', count: insights.length },
@@ -148,11 +141,6 @@ export const Inbox: React.FC<InboxProps> = ({
               {f.label} {f.count > 0 && <span className="tabular-nums">({f.count})</span>}
             </button>
           ))}
-          {onMarkAllRead && unread.length > 0 && (
-            <Button variant="ghost" size="sm" className="ml-auto text-xs" onClick={onMarkAllRead}>
-              Mark all read
-            </Button>
-          )}
         </div>
       )}
 
@@ -161,7 +149,6 @@ export const Inbox: React.FC<InboxProps> = ({
           <InboxIcon className="h-5 w-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">
             {filter === 'done' ? 'Nothing finished yet.'
-              : filter === 'unread' ? "You're all caught up."
               : filter === 'action' ? 'No actions outstanding.'
               : filter === 'recommendation' ? 'No recommendations right now.'
               : filter === 'insight' ? 'No insights yet.'

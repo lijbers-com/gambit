@@ -21,7 +21,9 @@ export interface SearchSelectListProps {
   onChange: (values: string[]) => void;
   /** The catalogue to search. */
   options: SearchSelectOption[];
-  label?: string | null;
+  /** Field label. Pass `null` for none. Accepts nodes so callers can add
+   *  hints like a muted "(optional)". */
+  label?: React.ReactNode | null;
   placeholder?: string;
   /** Leading icon for the search field. Defaults to a magnifier. */
   icon?: React.ReactNode;
@@ -62,8 +64,15 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   /** "Search KPIs…" → "Select KPIs…" when the field behaves as a select. */
   const selectPlaceholder = placeholder.replace(/^Search\b/i, 'Select');
 
+  const q = search.toLowerCase();
   const results = options.filter(
-    (o) => !value.includes(o.value) && (!searchable || o.label.toLowerCase().includes(search.toLowerCase())),
+    (o) =>
+      !value.includes(o.value) &&
+      (!searchable ||
+        o.label.toLowerCase().includes(q) ||
+        // The description carries identifiers (a product ID, a code), so it has
+        // to be searchable too — people paste the number, not the name.
+        (o.description ?? '').toLowerCase().includes(q)),
   );
 
   const add = (val: string) => {

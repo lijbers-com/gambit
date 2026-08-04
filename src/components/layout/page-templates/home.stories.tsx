@@ -8,9 +8,11 @@ import { cn } from '@/lib/utils';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
-import { ImagePlus, LayoutList, BarChart3, ArrowRight, Sparkles, WalletCards, Plus } from 'lucide-react';
+import { BarChart3, ArrowRight, Bell, Sparkles, WalletCards, Plus } from 'lucide-react';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { useSession, useDb, useMyTasks, derivePlanHealth, type EngineId, type PlanStatus } from '@/lib/db';
+import { Inbox } from '@/components/ui/inbox';
+import { BarChartComponent } from '@/components/ui/bar-chart';
+import { useSession, useDb, useMyTasks, useInboxState, deriveMessages, derivePlanHealth, type EngineId, type PlanStatus } from '@/lib/db';
 import React from 'react';
 
 const meta: Meta<typeof AppLayout> = {
@@ -50,39 +52,6 @@ type Story = StoryObj<typeof meta>;
 // Task widgets for the Ad operations / campaign manager role. A different
 // role would surface a different set (e.g. finance → invoices, advertiser →
 // campaign drafts). The `accent` widget is the primary call to action.
-const taskWidgets = [
-  {
-    key: 'creatives',
-    icon: ImagePlus,
-    count: '4',
-    title: 'Creatives need approval',
-    description: 'Review and approve the creatives submitted to the creative portal.',
-    cta: 'Review creatives',
-    href: '/creatives',
-    accent: true,
-  },
-  {
-    key: 'bookings',
-    icon: LayoutList,
-    count: '7',
-    title: 'Bookings in option',
-    description: 'Confirm or release the bookings currently held in option.',
-    cta: 'View bookings',
-    href: '/campaigns',
-    accent: false,
-  },
-  {
-    key: 'insights',
-    icon: BarChart3,
-    count: '+6%',
-    title: 'Performance is up',
-    description: 'Campaign ROAS rose 6% this week. Dive into the latest insights.',
-    cta: 'Open insights',
-    href: '/insights',
-    accent: false,
-  },
-];
-
 
 // Release notes feed — newest first.
 const releaseNotes = [
@@ -136,11 +105,43 @@ export const Home: Story = {
     const myTasks = useMyTasks();
     const creativeTaskCount = myTasks.filter((t) => t.id.endsWith('-creative') || t.id.endsWith('-approve')).length;
     const inOptionBookings = db.bookings.filter((b) => b.status === 'in-option').length;
-    const liveTaskWidgets = [
-      { ...taskWidgets[0], count: String(creativeTaskCount || taskWidgets[0].count) },
-      { ...taskWidgets[1], count: String(inOptionBookings || taskWidgets[1].count) },
-      taskWidgets[2],
-    ];
+    // The user's own notifications, and the newest insight among them — both
+    // from the same derived messages the Notifications page renders.
+    const homeInboxStatus = useInboxState();
+    const homeMessages = deriveMessages(
+      db,
+      sessionUser ? { user: { personaKey: sessionUser.personaKey, side: sessionUser.side } } : {},
+    );
+    const homeOpenMessages = homeMessages.filter((m) => (homeInboxStatus[m.id] ?? 'unread') !== 'done');
+    const homeUnread = homeOpenMessages.filter((m) => (homeInboxStatus[m.id] ?? 'unread') === 'unread').length;
+    // Four is what fits beside the chart without the card scrolling.
+    const homeInboxItems = homeOpenMessages.slice(0, 4).map((m) => ({
+      id: m.id, kind: m.kind, subject: m.subject, preview: m.preview,
+      context: m.context, level: m.level, severity: m.severity,
+    }));
+    const homeInsight = homeOpenMessages.find((m) => m.kind === 'insight');
+
+    const shortProposition: Record<EngineId, string> = {
+      'display': 'Display',
+      'sponsored-products': 'Sponsored',
+      'digital-instore': 'Digital',
+      'offline-instore': 'In-store',
+      'offsite': 'Offsite',
+    };
+    // Spend per proposition — the insight is about the mix, so the chart has to
+    // show the mix. One bar per proposition that carries any spend, biggest
+    // first, so the dominant one the message names reads immediately.
+    const homeSpendByProposition = (() => {
+      const totals = new Map<EngineId, number>();
+      db.campaigns.forEach((c) => totals.set(c.engine, (totals.get(c.engine) ?? 0) + c.spend));
+      return Array.from(totals.entries())
+        .filter(([, spend]) => spend > 0)
+        .sort((a, b) => b[1] - a[1])
+        // Short axis labels — the full names overlap in a half-width widget and
+        // recharts silently drops the ones that don't fit, leaving a bar with no
+        // name under it.
+        .map(([engine, spend]) => ({ proposition: shortProposition[engine], spend }));
+    })();
 
     // Plans surfaced on home: derived health ≠ good (risk first), max two.
     const engineCard: Record<EngineId, { id: string; name: string }> = {
@@ -187,43 +188,6 @@ export const Home: Story = {
       });
 
     // A single-metric task widget (creatives / bookings / insights).
-    const renderTaskWidget = (w: (typeof taskWidgets)[number]) => {
-      const Icon = w.icon;
-      return (
-        <Card
-          key={w.key}
-          role="button"
-          tabIndex={0}
-          data-href={w.href}
-          className={cn(
-            'cursor-pointer transition-colors hover:border-primary/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-            w.accent && 'border-primary/30 bg-primary/[0.03]',
-          )}
-        >
-          <CardContent className="flex h-full flex-col p-5">
-            <div className="flex items-start justify-between">
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-lg',
-                  w.accent ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground',
-                )}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <span className="text-2xl font-semibold tabular-nums">{w.count}</span>
-            </div>
-            <h3 className="mt-3 text-sm font-semibold">{w.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{w.description}</p>
-            <div className="mt-4 pt-1">
-              <Button variant={w.accent ? 'default' : 'outline'} size="sm" data-href={w.href} className="gap-1.5">
-                {w.cta}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    };
 
     return (
       <MenuContextProvider>
@@ -242,25 +206,21 @@ export const Home: Story = {
           <div className="space-y-8">
             {/* Your tasks — role-scoped task widgets */}
             <section>
-              <div className="mb-3 flex items-center gap-2">
-                <h2 className="text-lg font-semibold">Your tasks</h2>
-                <Badge variant="secondary">{roleBadge}</Badge>
-              </div>
               {/* Media plans — top row: two plans that need attention, each with
                   their recommendations rendered with the same OptimisationCard
                   used inside a media plan. */}
               <Card className="mb-4">
                 <CardContent className="flex h-full flex-col p-5">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-foreground">
-                      <WalletCards className="h-5 w-5" />
-                    </div>
+                    <h3 className="flex items-center gap-2 text-lg font-semibold">
+                      <WalletCards className="h-5 w-5 text-primary" />
+                      Media plans
+                    </h3>
                     <Button size="sm" data-href="/create/media-experience" className="gap-1.5">
                       <Plus className="h-4 w-4" />
                       New media plan
                     </Button>
                   </div>
-                  <h3 className="mt-3 text-sm font-semibold">Media plans</h3>
                   <p className="mt-1 text-sm text-muted-foreground">Plans that need an action or are worth a closer look.</p>
                   <div className="mt-4 flex-1 space-y-4">
                     {attentionPlans.map((p) => (
@@ -303,11 +263,72 @@ export const Home: Story = {
                 </CardContent>
               </Card>
 
-              {/* Task widgets — counts derive from the to-do engine + store */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                {renderTaskWidget(liveTaskWidgets[0])}
-                {renderTaskWidget(liveTaskWidgets[1])}
-                {renderTaskWidget(liveTaskWidgets[2])}
+              {/* Notifications for this user on the left, the latest insight
+                  with its chart on the right. Both read the same derived
+                  messages the Notifications page does. */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <Card className="flex flex-col">
+                  <CardContent className="flex h-full flex-col p-5">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Bell className={cn('h-5 w-5', homeUnread > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                      <h3 className="text-lg font-semibold">Notifications</h3>
+                      <span className="text-sm text-muted-foreground">
+                        {homeOpenMessages.length} open
+                      </span>
+                    </div>
+                    <Inbox
+                      items={homeInboxItems}
+                      status={homeInboxStatus}
+                      showFilters={false}
+                      emptyMessage="Nothing needs your attention right now."
+                      onOpen={() => { if (typeof window !== 'undefined') window.location.href = '/notifications'; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { if (typeof window !== 'undefined') window.location.href = '/notifications'; }}
+                      className="mt-4 inline-flex items-center justify-center gap-1 self-center text-sm font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      View all notifications
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </CardContent>
+                </Card>
+
+                <Card className="flex flex-col">
+                  <CardContent className="flex h-full flex-col p-5">
+                    <div className="mb-3 flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Insight</h3>
+                    </div>
+                    {homeInsight ? (
+                      <>
+                        <p className="text-sm font-medium text-foreground">{homeInsight.subject}</p>
+                        <p className="mt-1.5 text-sm text-muted-foreground">{homeInsight.preview}</p>
+                        <div className="mt-4 min-h-[200px] flex-1">
+                          <BarChartComponent
+                            data={homeSpendByProposition}
+                            config={{ spend: { label: 'Spend', color: 'hsl(var(--chart-1))' } }}
+                            xAxisDataKey="proposition"
+                            className="h-full w-full"
+                            showLegend={false}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { if (typeof window !== 'undefined') window.location.href = '/insights'; }}
+                          className="mt-4 inline-flex items-center justify-center gap-1 self-center text-sm font-medium text-muted-foreground hover:text-foreground"
+                        >
+                          Open insights
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No insights yet — they appear once your plans start delivering.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </section>
 

@@ -1186,7 +1186,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                       <div className="space-y-6">
                         <div>
                           <Label className="mb-3 block">Campaign goal</Label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {goals.map((goal) => (
                               <GoalCard
                                 key={goal.id}

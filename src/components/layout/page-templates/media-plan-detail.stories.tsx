@@ -30,7 +30,7 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, Plus, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, HeartPulse, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, createBooking, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
@@ -131,6 +131,25 @@ type Row = {
    *  Inbox tab does rather than a second opinion. */
   actionCount?: number;
   recommendationCount?: number;
+  insightCount?: number;
+  /** Health for this row, derived from its own blocking work — the same rule
+   *  derivePlanHealth applies one level up. */
+  health?: 'good' | 'attention' | 'risk';
+};
+
+/** Health for a row, matching the chip the media plan card shows. */
+const HealthCell = ({ health }: { health: 'good' | 'attention' | 'risk' }) => {
+  const cfg = {
+    good: { label: 'Healthy', className: 'border-success-200 bg-success-50 text-success-700' },
+    attention: { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
+    risk: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
+  }[health];
+  return (
+    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', cfg.className)}>
+      <HeartPulse className="h-3 w-3" />
+      {cfg.label}
+    </span>
+  );
 };
 
 /** A count of open inbox messages for a row. */
@@ -421,9 +440,16 @@ export const MediaPlanDetail: Story = {
 
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
       const msgs = deriveMessages(db, scope);
+      const actions = msgs.filter((m) => m.kind === 'action');
       return {
-        actionCount: msgs.filter((m) => m.kind === 'action').length,
+        actionCount: actions.length,
         recommendationCount: msgs.filter((m) => m.kind === 'recommendation').length,
+        insightCount: msgs.filter((m) => m.kind === 'insight').length,
+        health: actions.some((m) => m.severity === 'blocking')
+          ? ('risk' as const)
+          : actions.length > 0
+            ? ('attention' as const)
+            : ('good' as const),
       };
     };
 
@@ -501,8 +527,16 @@ export const MediaPlanDetail: Story = {
       { key: 'dates', header: 'Dates', render: (r) => (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>) },
       { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
       {
+        key: 'health', header: 'Health',
+        render: (r) => (r._type === 'add' ? null : <HealthCell health={r.health ?? 'good'} />),
+      },
+      {
         key: 'recommendations', header: 'Recommendations',
         render: (r) => (r._type === 'add' ? null : <CountCell count={r.recommendationCount ?? 0} />),
+      },
+      {
+        key: 'insights', header: 'Insights',
+        render: (r) => (r._type === 'add' ? null : <CountCell count={r.insightCount ?? 0} />),
       },
       {
         key: 'inboxActions', header: 'Actions',

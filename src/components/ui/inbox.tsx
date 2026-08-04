@@ -60,7 +60,7 @@ const badgeFor = (item: InboxItem) => {
   return kindBadge[item.kind];
 };
 
-export type InboxFilter = 'all' | 'action' | 'recommendation' | 'insight' | 'done';
+export type InboxFilter = 'all' | 'health' | 'action' | 'recommendation' | 'insight' | 'done';
 
 export interface InboxProps {
   items: InboxItem[];
@@ -95,8 +95,9 @@ export const Inbox: React.FC<InboxProps> = ({
 
   const done = items.filter((i) => statusOfItem(i, status) === 'done');
   const open = items.filter((i) => statusOfItem(i, status) !== 'done');
-  // Health counts as action: it is the plan telling you something needs doing.
-  const actions = open.filter((i) => i.kind === 'action' || i.kind === 'health');
+  // Health is its own kind — a plan's overall standing, not a single to-do.
+  const health = open.filter((i) => i.kind === 'health');
+  const actions = open.filter((i) => i.kind === 'action');
   const recommendations = open.filter((i) => i.kind === 'recommendation');
   const insights = open.filter((i) => i.kind === 'insight');
 
@@ -104,6 +105,7 @@ export const Inbox: React.FC<InboxProps> = ({
 
   const visible =
     filter === 'done' ? done
+    : filter === 'health' ? health
     : filter === 'action' ? actions
     : filter === 'recommendation' ? recommendations
     : filter === 'insight' ? insights
@@ -113,6 +115,7 @@ export const Inbox: React.FC<InboxProps> = ({
   // separates the inbox from the archive.
   const filters: { value: InboxFilter; label: string; count: number }[] = [
     { value: 'all', label: 'All', count: open.length },
+    { value: 'health', label: 'Health', count: health.length },
     { value: 'action', label: 'Actions', count: actions.length },
     { value: 'recommendation', label: 'Recommendations', count: recommendations.length },
     { value: 'insight', label: 'Insights', count: insights.length },
@@ -149,6 +152,7 @@ export const Inbox: React.FC<InboxProps> = ({
           <InboxIcon className="h-5 w-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">
             {filter === 'done' ? 'Nothing finished yet.'
+              : filter === 'health' ? 'Every plan is healthy.'
               : filter === 'action' ? 'No actions outstanding.'
               : filter === 'recommendation' ? 'No recommendations right now.'
               : filter === 'insight' ? 'No insights yet.'
@@ -208,7 +212,7 @@ export const Inbox: React.FC<InboxProps> = ({
                     </Badge>
                   </span>
                   {item.preview && (
-                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">{item.preview}</span>
+                    <span className="mt-1.5 block truncate text-sm text-muted-foreground">{item.preview}</span>
                   )}
                   {/* What the message is about, on its own line with the icon
                       for its level — every message carries one, so the list

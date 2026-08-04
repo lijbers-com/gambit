@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { ScanBarcode, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from './button';
-import { SearchInput } from './search-input';
+import { ScanBarcode } from 'lucide-react';
+import { SearchSelectList } from './search-select-list';
 
 export interface RetailProduct {
   id: string;
@@ -44,9 +42,14 @@ export interface RetailProductSelectProps {
 }
 
 /**
- * The single, canonical retail-product multi-select: a barcode-style search
- * field with a results dropdown, and selected products listed as removable
- * cards. Use this everywhere instead of re-implementing the pattern.
+ * The single, canonical retail-product multi-select.
+ *
+ * It is a thin wrapper over {@link SearchSelectList} — the generic
+ * "search → dropdown → selected list below" control — rather than its own
+ * implementation. It used to draw its own selected-product cards, which then
+ * drifted away from every other picker in the forms. Everything visual now
+ * comes from one place; this component only supplies the catalogue, the
+ * barcode icon and the "N selected" count.
  */
 export const RetailProductSelect: React.FC<RetailProductSelectProps> = ({
   value,
@@ -58,101 +61,32 @@ export const RetailProductSelect: React.FC<RetailProductSelectProps> = ({
   placeholder = 'Search product by name or ID...',
   className,
 }) => {
-  const [search, setSearch] = React.useState('');
-  const [showResults, setShowResults] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const results = products.filter(
-    (p) =>
-      !value.includes(p.id) &&
-      (p.name.toLowerCase().includes(search.toLowerCase()) || p.id.includes(search)),
+  const options = React.useMemo(
+    () => products.map((p) => ({ value: p.id, label: p.name, description: `ID: ${p.id}` })),
+    [products],
   );
-
-  const add = (id: string) => {
-    if (!value.includes(id)) onChange([...value, id]);
-    setSearch('');
-    setShowResults(false);
-  };
-  const remove = (id: string) => onChange(value.filter((v) => v !== id));
-
-  // Close the results dropdown when clicking outside the field.
-  React.useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowResults(false);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
-
-  const selected = value
-    .map((id) => products.find((p) => p.id === id))
-    .filter(Boolean) as RetailProduct[];
+  const count = value.filter((id) => products.some((p) => p.id === id)).length;
 
   return (
-    <div className={cn('min-w-0 space-y-2', className)}>
-      <div className="relative" ref={containerRef}>
-        {label !== null && (
-          <label className="block text-sm font-medium mb-2">
-            {label}
-            {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
-          </label>
-        )}
-        <SearchInput
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setShowResults(true);
-          }}
-          onClick={() => setShowResults(true)}
-          placeholder={placeholder}
-          className="w-full"
-          icon={<ScanBarcode className="w-4 h-4" />}
-        />
-        {showResults && (
-          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-lg">
-            {results.length > 0 ? (
-              results.map((product) => (
-                <div
-                  key={product.id}
-                  className="cursor-pointer border-b p-3 last:border-b-0 hover:bg-neutral-50"
-                  onClick={() => add(product.id)}
-                >
-                  <div className="text-sm font-medium">{product.name}</div>
-                  <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                </div>
-              ))
-            ) : (
-              <div className="p-3 text-center text-sm text-muted-foreground">No products found</div>
-            )}
-          </div>
-        )}
-      </div>
-      {selected.length > 0 && (
-        <div className="space-y-1">
-          {selected.map((product) => (
-            <div key={product.id} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-              <div className="min-w-0">
-                <div className="text-sm font-medium">{product.name}</div>
-                <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => remove(product.id)}
-                className="h-8 w-8 shrink-0 p-0"
-                aria-label={`Remove ${product.name}`}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-      {showCount && selected.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {selected.length} retail product{selected.length !== 1 ? 's' : ''} selected
+    <div className={className}>
+      <SearchSelectList
+        value={value}
+        onChange={onChange}
+        options={options}
+        label={
+          label === null ? null : (
+            <>
+              {label}
+              {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
+            </>
+          )
+        }
+        placeholder={placeholder}
+        icon={<ScanBarcode className="w-4 h-4" />}
+      />
+      {showCount && count > 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {count} retail product{count !== 1 ? 's' : ''} selected
         </p>
       )}
     </div>

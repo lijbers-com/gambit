@@ -943,7 +943,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
       {/* Arrow pointing down from the selected card */}
       {isSelected && (
         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-          <div className="w-4 h-4 bg-white border-r border-b border-border rotate-45 shadow-sm"></div>
+          <div className="w-4 h-4 bg-card border-r border-b border-border rotate-45 shadow-sm"></div>
         </div>
       )}
     </Card>

@@ -204,7 +204,10 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       )}
       <div
         className={cn(
-          "flex items-stretch gap-4 overflow-x-auto pb-1",
+          // pb-3 clears the selected card's arrow, which hangs 8px below the
+          // card: overflow-x-auto also clips vertically, so anything the
+          // padding doesn't cover gets cut off.
+          "flex items-stretch gap-4 overflow-x-auto pb-3",
           // bleedEdges makes the carousel scroll edge-to-edge of the
           // page column: the box widens by -mx-6 and re-insets via px-6
           // so the first card stays aligned with the page header.

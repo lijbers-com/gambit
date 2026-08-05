@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -38,14 +38,15 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
   if (items.length === 0) return null;
 
   return (
-    <section className={cn('w-full', className)}>
+    // One card holding the title and the questions, on the page background
+    // rather than white: help is there for whoever wants it and should sit
+    // quieter than the content it follows.
+    <section className={cn('w-full overflow-hidden rounded-xl border bg-page', className)}>
       {heading !== null && (
-        <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <HelpCircle className="h-5 w-5 text-primary" />
-          {heading}
-        </h3>
+        // Even padding top and bottom so the title sits centred in its band.
+        <h3 className="px-5 py-4 text-lg font-semibold">{heading}</h3>
       )}
-      <div className="divide-y divide-border overflow-hidden rounded-lg border bg-card">
+      <div className={cn('divide-y divide-border', heading !== null && 'border-t border-border')}>
         {items.map((item) => {
           const isOpen = openId === item.id;
           return (
@@ -54,7 +55,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 type="button"
                 aria-expanded={isOpen}
                 onClick={() => setOpenId(isOpen ? null : item.id)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-hover"
+                className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-hover"
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{item.question}</span>
                 <ChevronDown
@@ -65,7 +66,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 />
               </button>
               {isOpen && (
-                <div className="space-y-3 px-4 pb-4 pr-11 text-sm leading-relaxed text-muted-foreground">
+                <div className="space-y-3 px-5 pb-4 pr-12 text-sm leading-relaxed text-muted-foreground">
                   {item.answer.split(/\n\s*\n/).map((paragraph, i) => (
                     <p key={i}>{paragraph}</p>
                   ))}

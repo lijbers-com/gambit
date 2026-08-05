@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
-import { DollarSign, Lock } from 'lucide-react';
+import { Euro, Lock } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -710,7 +710,7 @@ export const MediaPlanDetail: Story = {
                         <div className="space-y-2">
                           <Label htmlFor="mp-budget">Total budget</Label>
                           <div className="relative">
-                            <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Euro className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input id="mp-budget" type="number" value={budgetAmount} onChange={(e) => setBudgetAmount(e.target.value)} className="pl-9 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]" />
                           </div>
                         </div>

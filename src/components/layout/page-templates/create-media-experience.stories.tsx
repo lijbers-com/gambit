@@ -42,7 +42,6 @@ import {
   LayoutGrid,
   Euro,
   Calendar as CalendarIcon,
-  DollarSign,
   BarChart3,
   ScanBarcode,
   MonitorSpeaker,

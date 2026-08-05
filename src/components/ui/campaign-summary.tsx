@@ -710,7 +710,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
       const overPace = budgetUsagePercentage !== undefined && budgetUsagePercentage >= 90;
       if (overPace || incomplete >= 2) {
-        return { level: 'risk', message: `"${internalTitle}" is not on track — ${overPace ? 'budget is pacing to overspend' : `${incomplete} campaigns still need creatives or bookings`}.`, explain: budgetPacingExplain() };
+        return { level: 'risk', message: `"${internalTitle}" is not on track — ${overPace ? 'budget is pacing to overspend' : `${incomplete} campaign${incomplete === 1 ? '' : 's'} still need${incomplete === 1 ? 's' : ''} creatives or bookings`}.`, explain: budgetPacingExplain() };
       }
       if ((budgetUsagePercentage !== undefined && budgetUsagePercentage >= 75) || incomplete === 1) {
         return { level: 'attention', message: `"${internalTitle}" needs attention — ${incomplete === 1 ? '1 campaign to finish' : 'watch the budget pacing'}.`, explain: budgetPacingExplain() };
@@ -939,17 +939,22 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   );
                 }
 
-                const kindLabel: Record<NotificationKind, string> = { action: 'action needed', insight: 'insight', recommendation: 'recommendation' };
+                // The plural is on the noun, not on the end of the phrase —
+                // "2 actions needed", never "2 action needed" or "action neededs".
+                const kindLabel: Record<NotificationKind, { one: string; many: string }> = {
+                  action: { one: 'action needed', many: 'actions needed' },
+                  insight: { one: 'insight', many: 'insights' },
+                  recommendation: { one: 'recommendation', many: 'recommendations' },
+                };
                 const order: NotificationKind[] = ['action', 'insight', 'recommendation'];
+                const summarise = (counts: Record<NotificationKind, number>) =>
+                  order
+                    .filter((k) => counts[k])
+                    .map((k) => `${counts[k]} ${counts[k] === 1 ? kindLabel[k].one : kindLabel[k].many}`)
+                    .join(', ');
                 const breakdown = dbPlan
-                  ? (() => {
-                      const counts = open.reduce((acc, m) => { const k = m.kind === 'health' ? 'action' : m.kind; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
-                      return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(', ');
-                    })()
-                  : (() => {
-                      const counts = adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>);
-                      return order.filter((k) => counts[k]).map((k) => `${counts[k]} ${kindLabel[k]}${counts[k] === 1 || k === 'action' ? '' : 's'}`).join(', ');
-                    })();
+                  ? summarise(open.reduce((acc, m) => { const k = m.kind === 'health' ? 'action' : m.kind; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>))
+                  : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>));
 
                 return (
                   <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">

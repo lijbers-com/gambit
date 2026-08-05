@@ -120,22 +120,22 @@ const goals = [
 // objective drives the KPIs the plan is judged on. Purchase and Loyalty are
 // Conversion-stage goals.
 const goalObjectives: Record<string, { stage: string; objectives: string[] }> = {
-  awareness: { stage: 'Awareness', objectives: ['Merkbekendheid', 'Productbekendheid', 'Merk associaties'] },
-  consideration: { stage: 'Consideration', objectives: ['Verhogen merk/product overweging', 'Merk associaties', 'Nieuwe klanten', 'Merkvoorkeur', 'Aankoopintentie'] },
-  purchase: { stage: 'Conversion', objectives: ['Sales', 'Promotie ondersteuning'] },
-  loyalty: { stage: 'Conversion', objectives: ['Sales', 'Promotie ondersteuning'] },
+  awareness: { stage: 'Awareness', objectives: ['Brand awareness', 'Product awareness', 'Brand associations'] },
+  consideration: { stage: 'Consideration', objectives: ['Brand/product consideration', 'Brand associations', 'New customers', 'Brand preference', 'Purchase intent'] },
+  purchase: { stage: 'Conversion', objectives: ['Sales', 'Promotion support'] },
+  loyalty: { stage: 'Conversion', objectives: ['Sales', 'Promotion support'] },
 };
 
 // Demo estimates for the headline KPIs we surface in the metric row as the
 // plan is built. Only KPIs with an estimate here are promoted to a metric card.
 const kpiEstimates: Record<string, { value: string; sub: string }> = {
-  'Bereik': { value: '21.6M', sub: 'Estimated reach' },
-  'Frequentie': { value: '3.4', sub: 'Avg. per shopper' },
+  'Reach': { value: '21.6M', sub: 'Estimated reach' },
+  'Frequency': { value: '3.4', sub: 'Avg. per shopper' },
   'CTR': { value: '0.84%', sub: 'vs. 0.7% target' },
   'CPM': { value: '€4.50', sub: 'Blended' },
   'VCR': { value: '68%', sub: 'Video completion' },
   'Conversion rate': { value: '2.1%', sub: 'Estimated' },
-  '(i)ROAS': { value: '3.8×', sub: 'Incremental' },
+  'Incremental ROAS': { value: '3.8×', sub: 'Incremental' },
   'Sales lift': { value: '+12%', sub: 'vs. baseline' },
 };
 
@@ -143,40 +143,40 @@ const kpiEstimates: Record<string, { value: string; sub: string }> = {
 // Awareness has no Sales KPIs; Conversion has no standalone Brand KPIs.
 const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: string[] }> = {
   Awareness: {
-    brand: ['Top of Mind Awareness', 'Spontane merk/productbekendheid', 'Geholpen merk/productbekendheid', 'Reclamebekendheid (Ad-recall)', 'CEP', 'Merk associaties/waardes'],
-    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)'],
+    brand: ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall', 'Category entry points', 'Brand associations & values'],
+    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate'],
     sales: [],
   },
   Consideration: {
-    brand: ['Merk/product overweging', 'Merk associaties/waardes', 'Merkvoorkeur', 'Aankoopintentie'],
-    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)', 'Conversion rate'],
-    sales: ['Sales lift', 'Trial (New to product)', 'New to brand', 'New to Category', 'Koop frequentie', 'Recept in favorieten (allerhande only)'],
+    brand: ['Brand/product consideration', 'Brand associations & values', 'Brand preference', 'Purchase intent'],
+    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
+    sales: ['Sales lift', 'Trial (new to product)', 'New to brand', 'New to category', 'Purchase frequency', 'Recipe saved to favourites (Allerhande only)'],
   },
   Conversion: {
     brand: [],
-    media: ['Bereik', 'Uniek bereik', 'Frequentie', 'Average time on page', 'Scroll depth', 'VCR', 'CTR', 'CPM', 'SOV (categorie)', 'Post Engagement rate (social)', 'Conversion rate'],
-    sales: ['Sales lift', '(i)ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to Category', 'Sales driver: existing customers (i)', 'Sales driver: sales per customer (i)', 'CLV', 'Redemptie (loyalty product only)', 'Basket size (SIS only)', 'Share of basket (SIS only)', 'Trial (New to product)', 'Repeat', 'Koop frequentie', 'Terugwinnen klanten'],
+    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
+    sales: ['Sales lift', 'Incremental ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to category', 'Sales driver: existing customers', 'Sales per customer', 'CLV', 'Redemption (loyalty product only)', 'Basket size (SIS only)', 'Share of basket (SIS only)', 'Trial (new to product)', 'Repeat', 'Purchase frequency', 'Win-back customers'],
   },
 };
 
 
 
 // Brand-lift "studies" a user can commission per objective. The available
-// studies follow the funnel → Merk KPI framework — they are the brand KPIs of
+// studies follow the funnel → brand KPI framework — they are the brand KPIs of
 // the selected objective's stage (funnelKpis[stage].brand). A study is included
 // for free once the total media budget clears its threshold; below that it can
 // still be added for the listed one-off fee. Conversion-stage objectives have
 // no brand study (sales attribution is tracked automatically).
 const studyPricing: Record<string, { fee: number; freeThreshold: number }> = {
-  'Top of Mind Awareness': { fee: 1500, freeThreshold: 25000 },
-  'Spontane merk/productbekendheid': { fee: 1500, freeThreshold: 25000 },
-  'Geholpen merk/productbekendheid': { fee: 1500, freeThreshold: 25000 },
-  'Reclamebekendheid (Ad-recall)': { fee: 2500, freeThreshold: 50000 },
-  'CEP': { fee: 3500, freeThreshold: 75000 },
-  'Merk associaties/waardes': { fee: 1500, freeThreshold: 25000 },
-  'Merk/product overweging': { fee: 2000, freeThreshold: 30000 },
-  'Merkvoorkeur': { fee: 2500, freeThreshold: 50000 },
-  'Aankoopintentie': { fee: 2500, freeThreshold: 50000 },
+  'Top-of-mind awareness': { fee: 1500, freeThreshold: 25000 },
+  'Unaided brand/product awareness': { fee: 1500, freeThreshold: 25000 },
+  'Aided brand/product awareness': { fee: 1500, freeThreshold: 25000 },
+  'Ad recall': { fee: 2500, freeThreshold: 50000 },
+  'Category entry points': { fee: 3500, freeThreshold: 75000 },
+  'Brand associations & values': { fee: 1500, freeThreshold: 25000 },
+  'Brand/product consideration': { fee: 2000, freeThreshold: 30000 },
+  'Brand preference': { fee: 2500, freeThreshold: 50000 },
+  'Purchase intent': { fee: 2500, freeThreshold: 50000 },
 };
 
 type BrandStudy = { name: string; fee: number; freeThreshold: number };

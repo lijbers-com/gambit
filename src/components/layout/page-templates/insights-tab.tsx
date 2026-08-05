@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { objectiveLabel } from '@/lib/objective-kpi-copy';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LineChartComponent } from '@/components/ui/line-chart';
@@ -23,12 +24,12 @@ const goalFilterOptions = [
   { label: 'Loyalty', value: 'loyalty' },
 ];
 const objectiveFilterOptions = [
-  { label: 'Merkbekendheid', value: 'merkbekendheid' },
-  { label: 'Productbekendheid', value: 'productbekendheid' },
-  { label: 'Merk associaties', value: 'merk-associaties' },
-  { label: 'Sales', value: 'sales' },
-  { label: 'Promotie ondersteuning', value: 'promotie-ondersteuning' },
-];
+  'merkbekendheid',
+  'productbekendheid',
+  'merk-associaties',
+  'sales',
+  'promotie-ondersteuning',
+].map((id) => ({ label: objectiveLabel(id), value: id }));
 
 /**
  * Insights tab body — used on the campaign overview and the campaign

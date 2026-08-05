@@ -6,7 +6,7 @@ import { SearchSelectList } from './search-select-list';
 import { Input } from './input';
 
 /**
- * Funnel → Objective (Doelstelling) → KPI catalog. Picking an objective surfaces
+ * Funnel → Objective → KPI catalog. Picking an objective surfaces
  * the KPIs that objective can be measured on; the user selects which to track.
  * Mirrors the retail-media measurement framework (Awareness / Consideration /
  * Conversion). Objective names can repeat across funnels, so each objective is
@@ -26,26 +26,26 @@ export const objectiveKpiCatalog: FunnelDef[] = [
   {
     funnel: 'Awareness',
     objectives: [
-      { name: 'Vergroten merkbekendheid', kpis: ['Top-of-mind merkbekendheid', 'Spontane merkbekendheid', 'Geholpen merkbekendheid', 'Reclamebekendheid', 'Uniek bereik', 'Frequentie', 'VCR', 'CPM'] },
-      { name: 'Vergroten productbekendheid', kpis: ['Top-of-mind productbekendheid', 'Spontane productbekendheid', 'Geholpen productbekendheid', 'Reclamebekendheid', 'Uniek bereik', 'Frequentie', 'VCR', 'CPM'] },
-      { name: 'Versterken merkassociaties/-waardes', kpis: ['Merkassociaties/-waardes', 'CEP', 'Frequentie', 'VCR', 'CTR', 'Average time on page', 'Post engagement rate'] },
+      { name: 'Grow brand awareness', kpis: ['Top-of-mind brand awareness', 'Unaided brand awareness', 'Aided brand awareness', 'Ad recall', 'Unique reach', 'Frequency', 'Video completion rate', 'CPM'] },
+      { name: 'Grow product awareness', kpis: ['Top-of-mind product awareness', 'Unaided product awareness', 'Aided product awareness', 'Ad recall', 'Unique reach', 'Frequency', 'Video completion rate', 'CPM'] },
+      { name: 'Strengthen brand associations', kpis: ['Brand associations & values', 'Category entry points', 'Frequency', 'Video completion rate', 'Click-through rate', 'Average time on page', 'Post engagement rate'] },
     ],
   },
   {
     funnel: 'Consideration',
     objectives: [
-      { name: 'Versterken merkassociaties/-waardes', kpis: ['Merk associaties/-waardes', 'Frequentie', 'VCR', 'Post engagement rate'] },
-      { name: 'Vergroten merkoverweging', kpis: ['Merkoverweging', 'CTR', 'Average time on page', 'VCR', 'Post engagement rate'] },
-      { name: 'Vergroten merkvoorkeur', kpis: ['Merkvoorkeur', 'Koopfrequentie'] },
-      { name: 'Vergroten aankoopintentie', kpis: ['Aankoopintentie', 'Trial (new to product)', 'New to brand', 'New to category', 'CTR (click-through rate)', 'CVR (conversion rate)'] },
-      { name: 'Aantrekken nieuwe klanten', kpis: ['Trial (new to product)', 'New to brand', 'New to category', 'Bereik (binnen audience)'] },
+      { name: 'Strengthen brand associations', kpis: ['Brand associations & values', 'Frequency', 'Video completion rate', 'Post engagement rate'] },
+      { name: 'Grow brand consideration', kpis: ['Brand consideration', 'Click-through rate', 'Average time on page', 'Video completion rate', 'Post engagement rate'] },
+      { name: 'Grow brand preference', kpis: ['Brand preference', 'Purchase frequency'] },
+      { name: 'Grow purchase intent', kpis: ['Purchase intent', 'Trial (new to product)', 'New to brand', 'New to category', 'Click-through rate', 'Conversion rate'] },
+      { name: 'Attract new customers', kpis: ['Trial (new to product)', 'New to brand', 'New to category', 'Reach (within audience)'] },
     ],
   },
   {
-    funnel: 'Conversie',
+    funnel: 'Conversion',
     objectives: [
-      { name: 'Sales genereren zonder Bonus promo', kpis: ['Sales lift (i)', 'Sales online (i)', 'Sales offline (i)', '(I)ROAS', 'Sales per customer (i)', 'Terug winnen klanten', 'CLV', 'Sales driver: existing customers (i)', 'Trial (new to product)', 'Share of Basket', 'New to brand', 'New to category'] },
-      { name: 'Bonus promo ondersteunen', kpis: ['Sales lift (i)', 'Sales online (i)', 'Sales offline (i)', '(I)ROAS', 'Sales per customer (i)', 'Terug winnen klanten', 'Trial (new to product)'] },
+      { name: 'Generate sales without promotion', kpis: ['Sales lift', 'Sales online', 'Sales offline', 'Incremental ROAS', 'Sales per customer', 'Win-back customers', 'CLV', 'Sales driver: existing customers', 'Trial (new to product)', 'Share of basket', 'New to brand', 'New to category'] },
+      { name: 'Support a promotion', kpis: ['Sales lift', 'Sales online', 'Sales offline', 'Incremental ROAS', 'Sales per customer', 'Win-back customers', 'Trial (new to product)'] },
     ],
   },
 ];
@@ -78,8 +78,8 @@ const targetPlaceholder = (kpi: string): string => {
   if (k.includes('cpm')) return 'e.g. €4.50';
   if (k.includes('cpc')) return 'e.g. €0.45';
   if (/ctr|vcr|rate|lift|cvr|share/.test(k)) return 'e.g. 1.2%';
-  if (/bereik|reach/.test(k)) return 'e.g. 5M';
-  if (k.includes('frequentie') || k.includes('frequency')) return 'e.g. 3.0';
+  if (k.includes('reach')) return 'e.g. 5M';
+  if (k.includes('frequency')) return 'e.g. 3.0';
   if (k.includes('time on page')) return 'e.g. 0:45';
   return 'Set target';
 };

@@ -36,7 +36,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, createBooking, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
-import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
+import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
 import { propositionColor, propositionLabel } from '@/lib/proposition-colors';
 
 const meta: Meta<typeof AppLayout> = {
@@ -64,17 +64,16 @@ const goals = [
 ];
 // Each option carries a one-liner so the selected card explains what the
 // objective/KPI stands for (shared copy: src/lib/objective-kpi-copy.ts).
-const objectiveOptions = [
-  { label: 'Merkbekendheid', value: 'merkbekendheid', description: describeObjective('merkbekendheid') },
-  { label: 'Productbekendheid', value: 'productbekendheid', description: describeObjective('productbekendheid') },
-  { label: 'Merk associaties', value: 'merk-associaties', description: describeObjective('merk-associaties') },
-];
-const kpiFilterOptions = [
-  { label: 'Top of Mind Awareness', value: 'toma', description: describeKpi('toma') },
-  { label: 'Spontane merk/productbekendheid', value: 'spontaan', description: describeKpi('spontaan') },
-  { label: 'Reclamebekendheid (Ad-recall)', value: 'adrecall', description: describeKpi('adrecall') },
-  { label: 'CEP', value: 'cep', description: describeKpi('cep') },
-];
+const objectiveOptions = ['merkbekendheid', 'productbekendheid', 'merk-associaties'].map((id) => ({
+  label: objectiveLabel(id),
+  value: id,
+  description: describeObjective(id),
+}));
+const kpiFilterOptions = ['toma', 'spontaan', 'adrecall', 'cep'].map((id) => ({
+  label: kpiLabel(id),
+  value: id,
+  description: describeKpi(id),
+}));
 const statusOptions = [
   { label: 'Draft', value: 'draft' },
   { label: 'In-option', value: 'in-option' },
@@ -87,9 +86,9 @@ const statusOptions = [
 type LogRow = { id: string; timestamp: string; user: string; action: string; field: string; oldValue: string; newValue: string; description: string };
 const logData: LogRow[] = [
   { id: 'LOG-001', timestamp: '2026-05-28 14:30:00', user: 'Jane Doe', action: 'Media plan created', field: 'Media plan', oldValue: '-', newValue: 'Holiday Sale Plan', description: 'Initial media plan creation' },
-  { id: 'LOG-002', timestamp: '2026-05-28 14:35:12', user: 'Jane Doe', action: 'Budget updated', field: 'Budget', oldValue: '$10,000', newValue: '$15,000', description: 'Budget increased for holiday push' },
+  { id: 'LOG-002', timestamp: '2026-05-28 14:35:12', user: 'Jane Doe', action: 'Budget updated', field: 'Budget', oldValue: '€10,000', newValue: '€15,000', description: 'Budget increased for holiday push' },
   { id: 'LOG-003', timestamp: '2026-05-29 09:15:33', user: 'Sarah Wilson', action: 'Campaign added', field: 'Campaigns', oldValue: '-', newValue: 'SP - Early Capout Candidate', description: 'Added sponsored products campaign' },
-  { id: 'LOG-004', timestamp: '2026-05-29 10:45:21', user: 'John Smith', action: 'Objective set', field: 'Objective', oldValue: '-', newValue: 'Merkbekendheid', description: 'Awareness objective selected' },
+  { id: 'LOG-004', timestamp: '2026-05-29 10:45:21', user: 'John Smith', action: 'Objective set', field: 'Objective', oldValue: '-', newValue: 'Brand awareness', description: 'Awareness objective selected' },
   { id: 'LOG-005', timestamp: '2026-05-30 11:30:14', user: 'Mike Johnson', action: 'Dates modified', field: 'Run time', oldValue: 'Jun 5, 2026', newValue: 'Jun 1, 2026', description: 'Brought the start date forward' },
   { id: 'LOG-006', timestamp: '2026-05-30 16:20:58', user: 'Jane Doe', action: 'Status changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Media plan moved to in-option' },
 ];
@@ -394,7 +393,12 @@ export const MediaPlanDetail: Story = {
       return searchMatch && propMatch && stateMatch;
     });
 
-    const objectiveKpiLabel = [plan?.goal, plan?.objective].filter(Boolean).join(' / ') || '—';
+    // The stored ids are keys, not copy — always render them through the
+    // vocabulary so the table reads "Awareness / Brand awareness".
+    const objectiveKpiLabel =
+      [plan?.goal && goalLabel(plan.goal), plan?.objective && objectiveLabel(plan.objective)]
+        .filter(Boolean)
+        .join(' / ') || '—';
 
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
     // Engine → route segment, shared by the add-booking jump and the row links.
@@ -497,7 +501,9 @@ export const MediaPlanDetail: Story = {
               {/* The chevron lives in the table's own leading column; the rest
                   of the row navigates to the campaign. */}
               <span className="font-medium truncate">{r.name}</span>
-              <span className="text-xs text-muted-foreground shrink-0">({r.bookingsCount} bookings)</span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                ({r.bookingsCount} booking{r.bookingsCount === 1 ? '' : 's'})
+              </span>
             </span>
           ) : (
             <span className="flex items-center gap-1.5 pl-6 text-muted-foreground">

@@ -651,7 +651,12 @@ export const Display: Story = {
               <div className="lg:col-span-2 min-w-0 space-y-6">
               <div
                 className={cn(
-                  'min-w-0 rounded-xl border bg-card p-6 space-y-6',
+                  // gap, not space-y: sections for the other tabs are still in
+                  // the DOM with `hidden`, and space-y-* puts its margin on the
+                  // *next* sibling — so the first visible section inherited an
+                  // extra 24px on every tab but the first. A display:none child
+                  // is not a flex item at all, so gap skips it.
+                  'flex min-w-0 flex-col gap-6 rounded-xl border bg-card p-6',
                   bookingTab === 'details' && 'rounded-tl-none',
                 )}
               >

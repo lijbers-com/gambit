@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis, ReferenceLine } from "recharts"
 import {
   ChartContainer,
   ChartTooltip,
@@ -26,6 +26,13 @@ export interface BarChartProps {
   horizontal?: boolean
   xAxisDataKey?: string
   benchmark?: { value: number; label?: string }
+  /**
+   * Colour each bar from a field on its own data point rather than from the
+   * series. Use when the x-axis is a set of things that already own a colour —
+   * propositions above all, which keep the same colour in every chart that
+   * splits by engine (see lib/proposition-colors). Single-series charts only.
+   */
+  colorByPoint?: string
 }
 
 export function BarChartComponent({
@@ -43,6 +50,7 @@ export function BarChartComponent({
   horizontal = false,
   xAxisDataKey = "month",
   benchmark,
+  colorByPoint,
 }: BarChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
 
@@ -156,7 +164,12 @@ export function BarChartComponent({
             stackId={stacked ? "a" : undefined}
             radius={0}
             yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
-          />
+          >
+            {colorByPoint &&
+              data.map((point, i) => (
+                <Cell key={i} fill={(point[colorByPoint] as string) ?? `var(--color-${key})`} />
+              ))}
+          </Bar>
         ))}
         {showTooltip && (
           <ChartTooltip

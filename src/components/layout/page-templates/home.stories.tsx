@@ -13,6 +13,7 @@ import { BarChart3, ArrowRight, Bell, Sparkles, WalletCards, Plus } from 'lucide
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { Inbox } from '@/components/ui/inbox';
 import { BarChartComponent } from '@/components/ui/bar-chart';
+import { propositionColor } from '@/lib/proposition-colors';
 import { useSession, useDb, useMyTasks, useInboxState, deriveMessages, derivePlanHealth, type EngineId, type PlanStatus } from '@/lib/db';
 import React from 'react';
 
@@ -141,7 +142,7 @@ export const Home: Story = {
         // Short axis labels — the full names overlap in a half-width widget and
         // recharts silently drops the ones that don't fit, leaving a bar with no
         // name under it.
-        .map(([engine, spend]) => ({ proposition: shortProposition[engine], spend }));
+        .map(([engine, spend]) => ({ proposition: shortProposition[engine], spend, fill: propositionColor(engine) }));
     })();
 
     // Plans surfaced on home: derived health ≠ good (risk first), max two.
@@ -310,6 +311,7 @@ export const Home: Story = {
                             data={homeSpendByProposition}
                             config={{ spend: { label: 'Spend', color: 'hsl(var(--chart-1))' } }}
                             xAxisDataKey="proposition"
+                            colorByPoint="fill"
                             className="h-full w-full"
                             showLegend={false}
                           />

@@ -19,7 +19,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // data-theme is rendered here *and* set by the script below. Rendering it
+    // means the common case — the default theme — matches the DOM the script
+    // produced, so there is nothing to reconcile. suppressHydrationWarning
+    // covers the rest: a stored theme differs, the script has already changed
+    // the attribute, and React would otherwise report a mismatch it cannot
+    // patch. Intentional, one level deep — the case the flag exists for.
+    <html lang="en" data-theme="retailMedia" suppressHydrationWarning>
       <head>
         {/*
           Set the theme before the browser paints.

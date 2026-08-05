@@ -192,9 +192,10 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
           onLogout={() => alert('Logout clicked')}
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
-            title: 'Bookings',
+            // Same as the campaign overview: name the proposition in the title.
+            title: engineType === 'all' ? 'Bookings' : `${engineTitle} bookings`,
             titleIcon: <HierarchyBadge level="booking" />,
-            subtitle: `All ${engineType} bookings`,
+            subtitle: engineType === 'all' ? 'All bookings' : `All ${engineType} bookings`,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -313,14 +314,14 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
   },
 });
 
-export const BookingsOverview: Story = createBookingsOverviewStory('all', 'All Engines');
+export const BookingsOverview: Story = createBookingsOverviewStory('all', 'All engines');
 
-export const SponsoredProducts: Story = createBookingsOverviewStory('sponsored products', 'Sponsored Products');
+export const SponsoredProducts: Story = createBookingsOverviewStory('sponsored products', 'Sponsored products');
 
 export const Display: Story = createBookingsOverviewStory('display', 'Display');
 
-export const DigitalInStore: Story = createBookingsOverviewStory('digital in-store', 'Digital In-Store');
+export const DigitalInStore: Story = createBookingsOverviewStory('digital in-store', 'Digital in-store');
 
-export const OfflineInstore: Story = createBookingsOverviewStory('offline instore', 'Offline Instore');
+export const OfflineInstore: Story = createBookingsOverviewStory('offline instore', 'Offline in-store');
 
 export const Offsite: Story = createBookingsOverviewStory('offsite', 'Offsite');

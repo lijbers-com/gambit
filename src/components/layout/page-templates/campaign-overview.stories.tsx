@@ -296,9 +296,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: 'Campaigns',
+          // The proposition belongs in the title: this page is one
+          // proposition's campaigns, and "Campaigns" alone reads the same on
+          // all five. The engine-wide page keeps the plain title.
+          title: engineType === 'all' ? 'Campaigns' : `${engineTitle} campaigns`,
           titleIcon: <HierarchyBadge level="campaign" />,
-          subtitle: `All ${engineType} campaigns`,
+          subtitle: engineType === 'all' ? 'All campaigns' : `All ${engineType} campaigns`,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -582,26 +585,26 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
 });
 
 // Campaign OVERVIEW (Campaigns menu) — all campaigns of an engine, no Media plan tab.
-export const CampaignOverview: Story = createCampaignOverviewStory('all', 'All Engines');
+export const CampaignOverview: Story = createCampaignOverviewStory('all', 'All engines');
 
-export const SponsoredProducts: Story = createCampaignOverviewStory('sponsored products', 'Sponsored Products');
+export const SponsoredProducts: Story = createCampaignOverviewStory('sponsored products', 'Sponsored products');
 
 export const Display: Story = createCampaignOverviewStory('display', 'Display');
 
-export const DigitalInStore: Story = createCampaignOverviewStory('digital in-store', 'Digital In-Store');
+export const DigitalInStore: Story = createCampaignOverviewStory('digital in-store', 'Digital in-store');
 
-export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline Instore');
+export const OfflineInstore: Story = createCampaignOverviewStory('offline instore', 'Offline in-store');
 
 export const Offsite: Story = createCampaignOverviewStory('offsite', 'Offsite');
 
 // Campaign view FROM a media plan (linked to it) — keeps the Media plan details tab.
-export const SponsoredProductsFromMediaPlan: Story = createCampaignOverviewStory('sponsored products', 'Sponsored Products', true);
+export const SponsoredProductsFromMediaPlan: Story = createCampaignOverviewStory('sponsored products', 'Sponsored products', true);
 
 export const DisplayFromMediaPlan: Story = createCampaignOverviewStory('display', 'Display', true);
 
-export const DigitalInStoreFromMediaPlan: Story = createCampaignOverviewStory('digital in-store', 'Digital In-Store', true);
+export const DigitalInStoreFromMediaPlan: Story = createCampaignOverviewStory('digital in-store', 'Digital in-store', true);
 
-export const OfflineInstoreFromMediaPlan: Story = createCampaignOverviewStory('offline instore', 'Offline Instore', true);
+export const OfflineInstoreFromMediaPlan: Story = createCampaignOverviewStory('offline instore', 'Offline in-store', true);
 
 export const OffsiteFromMediaPlan: Story = createCampaignOverviewStory('offsite', 'Offsite', true);
 

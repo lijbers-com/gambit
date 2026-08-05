@@ -4,14 +4,14 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
 import { FaqPanel } from '@/components/ui/faq-panel';
 import { SessionDateRange } from '@/components/ui/session-date-range';
-import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
+import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { InsightsTab } from './insights-tab';
-import { InboxPanel } from '@/components/ui/inbox-panel';
+import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics } from '@/lib/proposition-metrics';
+import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
@@ -185,6 +185,16 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
         withinSessionRange(sessionFilters, c.startDate, c.endDate),
     );
 
+    // What the filters left in view, against the proposition as a whole — the
+    // ratio is how far the illustrative volume cards are scaled down.
+    const visibleSpend = engineCampaigns.reduce((sum, c) => sum + c.spend, 0);
+    const visibleBudget = engineCampaigns.reduce((sum, c) => sum + c.budget, 0);
+    const propositionSpend = db.campaigns
+      .filter((c) => engineId === 'all' || c.engine === engineId)
+      .reduce((sum, c) => sum + c.spend, 0);
+    const metricRowId = `campaigns:${engineType}`;
+    const engineUnread = useUnreadCount('engine', engineId);
+
     const campaignRowsFromDb = engineCampaigns.map((c, i) => {
       const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
       const advertiserName = db.advertisers.find((a) => a.id === plan?.advertiserId)?.name ?? '';
@@ -306,7 +316,16 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
       >
         <div className="space-y-6">
         <MetricRow
-          metrics={getPropositionMetrics(engineType, 'overview')}
+          // The cards describe the rows below them, so they follow the same
+          // filters: a date range that hides half the campaigns has to move
+          // the numbers too, or the row contradicts the table under it.
+          metrics={scaleMetricsToSelection(getPropositionMetrics(engineType, 'overview'), {
+            spend: visibleSpend,
+            budget: visibleBudget,
+            share: propositionSpend > 0 ? visibleSpend / propositionSpend : 1,
+          })}
+          selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
+          onSelectionChange={(keys) => setSessionMetricKeys(metricRowId, keys)}
           maxVisible={5}
           defaultVariant="default"
           removable={false}
@@ -461,12 +480,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                     columns={[
                       // Wide enough for a booking name: child rows put their
                       // name in this column (Table.expandable.childLabel).
-                      { key: 'id', header: 'ID', width: 240, render: row => (row._type === 'add' ? null : row.id) },
+                      { key: 'id', header: 'ID', width: 200, render: row => (row._type === 'add' ? null : row.id) },
                       { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
                       { key: 'advertiser', header: 'Advertiser' },
                       // The expand chevron lives in the table's own leading
                       // column, so Name only carries the name and the count.
-                      { key: 'name', header: 'Name', width: 320, render: row => row._type !== 'campaign' ? null : (
+                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'booking' ? row.name : row._type !== 'campaign' ? null : (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
@@ -515,7 +534,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       isExpanded: row => expandedRows.includes(row._id),
                       onToggle: row => toggleRow(row._id),
                       getLabel: (row, expanded) => `${expanded ? 'Collapse' : 'Expand'} ${row.name}`,
-                      childLabel: (row) => (row._type === 'booking' ? row.name : null),
+                      isChild: (row) => row._type === 'booking',
                     }}
                     onRowClick={(row) => {
                       if (row._type === 'add') return;
@@ -539,6 +558,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               // scoped to the engine instead of a single entity.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: engineUnread,
               content: <InboxPanel scope="engine" entityId={engineId} className="mt-6" />,
             },
             {

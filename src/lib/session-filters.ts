@@ -21,6 +21,12 @@ export interface SessionFilters {
   /** ISO yyyy-mm-dd. Both ends set, or neither. */
   dateFrom?: string;
   dateTo?: string;
+  /**
+   * Which metric cards the user chose to see, keyed by the row's id (the
+   * proposition and scope). Same reasoning as the date range: a user who
+   * removed a card does not want it back on the next screen.
+   */
+  metricKeys?: Record<string, string[]>;
 }
 
 /**
@@ -69,6 +75,11 @@ export function setSessionFilters(patch: SessionFilters) {
 /** Clear the date range back to "everything". */
 export function clearSessionDateRange() {
   setSessionFilters({ dateFrom: undefined, dateTo: undefined });
+}
+
+/** Remember which metric cards a row shows. */
+export function setSessionMetricKeys(rowId: string, keys: string[]) {
+  setSessionFilters({ metricKeys: { ...(getSessionFilters().metricKeys ?? {}), [rowId]: keys } });
 }
 
 /** React binding. Hydration-safe: the server snapshot is the empty set. */

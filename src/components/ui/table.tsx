@@ -45,15 +45,16 @@ export interface TableExpandable<T> {
   /** Accessible label for the toggle, e.g. `Expand ${row.name}`. */
   getLabel?: (row: T, expanded: boolean) => string;
   /**
-   * What a child row is called. Return null for rows that are not children.
+   * Whether this row is nested under the one above it.
    *
-   * The label always renders in the first content column, indented under its
-   * parent with a turn-down arrow — never in whichever column happens to hold
-   * the parent's name. A child indented in the middle of the table reads as a
-   * value of that column rather than as a row belonging to the one above it.
-   * Row-level CTAs (see fullWidthRow) share the same indent so they line up.
+   * Child rows keep every value in its own column — a name belongs under Name
+   * whatever the table's first column happens to be. Only the nesting marker
+   * moves: the first content column gets the indent and the turn-down arrow,
+   * so the hierarchy reads down the left edge instead of from wherever the
+   * parent's name column landed. Row-level CTAs (see fullWidthRow) share the
+   * same indent, so they line up with the rows they belong to.
    */
-  childLabel?: (row: T) => React.ReactNode | null;
+  isChild?: (row: T) => boolean;
 }
 
 /** Indent shared by child-row labels and row-level CTAs, so they line up. */
@@ -842,19 +843,20 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                     >
                       <div className="flex items-center w-full overflow-hidden">
                       {(() => {
-                        // A child row states what it is in the first content
-                        // column and leaves the rest to the columns that apply
-                        // to it; see TableExpandable.childLabel.
-                        const childName = expandable?.childLabel?.(row);
-                        if (childName != null) {
-                          return col.key === firstContentColKey ? (
-                            <span className={cn('flex items-center gap-1.5 text-muted-foreground', TABLE_CHILD_INDENT)}>
+                        const content = col.render
+                          ? col.render(row)
+                          : ((row as Record<string, unknown>)[col.key] as React.ReactNode);
+                        // Nesting is marked in the first content column only;
+                        // every column still shows its own value.
+                        if (expandable?.isChild?.(row) && col.key === firstContentColKey) {
+                          return (
+                            <span className={cn('flex min-w-0 items-center gap-1.5 text-muted-foreground', TABLE_CHILD_INDENT)}>
                               <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-                              <span className="truncate">{childName}</span>
+                              <span className="min-w-0 truncate">{content}</span>
                             </span>
-                          ) : col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode);
+                          );
                         }
-                        return col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode);
+                        return content;
                       })()}
                       </div>
                     </td>

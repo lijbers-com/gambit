@@ -7,11 +7,11 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics } from '@/lib/proposition-metrics';
+import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { SessionDateRange } from '@/components/ui/session-date-range';
-import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
+import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import * as React from 'react';
@@ -175,6 +175,14 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
       return engineMatch && dateMatch && statusMatch && advertiserMatch && aiMatch && searchMatch;
     });
 
+    // What the filters left in view, against the whole proposition.
+    const visibleSpend = filteredBookingData.reduce((sum, row) => sum + row.spend, 0);
+    const visibleBudget = Math.max(visibleSpend, Math.round(visibleSpend * 1.35));
+    const engineSpend = bookingData
+      .filter((row) => normalizedEngine === 'all' || row.engine === normalizedEngine)
+      .reduce((sum, row) => sum + row.spend, 0);
+    const metricRowId = `bookings:${engineType}`;
+
     return (
       <MenuContextProvider>
         <AppLayout
@@ -204,7 +212,14 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
         >
           <div className="space-y-6">
             <MetricRow
-              metrics={getPropositionMetrics(engineType, 'overview')}
+              // Same rule as the campaign overview: the cards follow the rows.
+              metrics={scaleMetricsToSelection(getPropositionMetrics(engineType, 'overview'), {
+                spend: visibleSpend,
+                budget: visibleBudget,
+                share: engineSpend > 0 ? visibleSpend / engineSpend : 1,
+              })}
+              selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
+              onSelectionChange={(keys) => setSessionMetricKeys(metricRowId, keys)}
               maxVisible={5}
               defaultVariant="default"
               removable={false}

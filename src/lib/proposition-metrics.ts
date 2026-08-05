@@ -233,3 +233,73 @@ export const getPropositionMetrics = (
   // to the engine's overview so the row never disappears.
   return metrics.length > 0 ? metrics : set.overview;
 };
+
+// ── Scoping the cards to what is actually on screen ─────────────────────
+
+/**
+ * Metrics that are RATES, not volumes: they describe efficiency, so they do
+ * not shrink when fewer campaigns are in view. Everything else is a count and
+ * scales with the selection.
+ */
+const RATE_KEYS = new Set([
+  'roas', 'iroas', 'ctr', 'cpc', 'cpm', 'cvr', 'conversion-rate',
+  'frequency', 'viewability', 'sov', 'available-time', 'fill-rate', 'vcr',
+]);
+
+/** Split "$58.3K" into prefix, number, suffix so it can be rescaled in place. */
+const parseDisplayValue = (value: string): { prefix: string; amount: number; suffix: string } | null => {
+  const match = /^([^\d-]*)(-?[\d.,]+)(.*)$/.exec(value.trim());
+  if (!match) return null;
+  const amount = Number(match[2].replace(/,/g, ''));
+  return Number.isFinite(amount) ? { prefix: match[1], amount, suffix: match[3] } : null;
+};
+
+const formatDisplayValue = (prefix: string, amount: number, suffix: string): string => {
+  const rounded = amount >= 100 ? Math.round(amount) : Math.round(amount * 10) / 10;
+  return `${prefix}${rounded.toLocaleString()}${suffix}`;
+};
+
+export interface MetricScopeInput {
+  /** Real spend of the rows in view, in euros. */
+  spend: number;
+  /** Real budget of the rows in view, in euros. */
+  budget: number;
+  /**
+   * How much of the proposition is in view, 0–1. Volume cards other than
+   * spend are illustrative, so they are scaled by this rather than invented.
+   */
+  share: number;
+}
+
+/**
+ * Bind the proposition's cards to the rows currently listed.
+ *
+ * Spend and its budget come from the data, so the headline card is exact. The
+ * other volumes are illustrative figures scaled by how much of the proposition
+ * the filters left in view — the alternative is a row of numbers that ignores
+ * the filter directly beneath it, which is worse than an estimate.
+ */
+export function scaleMetricsToSelection(
+  metrics: MetricDefinition[],
+  { spend, budget, share }: MetricScopeInput,
+): MetricDefinition[] {
+  const fmtEuro = (n: number) =>
+    n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
+
+  return metrics.map((metric) => {
+    if (metric.key === 'spend') {
+      const pct = budget > 0 ? Math.round((spend / budget) * 100) : 0;
+      return {
+        ...metric,
+        value: fmtEuro(spend),
+        subMetric: `of ${fmtEuro(budget)} budget`,
+        badgeValue: `${pct}%`,
+      };
+    }
+    if (RATE_KEYS.has(metric.key) || !metric.value) return metric;
+
+    const parsed = parseDisplayValue(metric.value);
+    if (!parsed) return metric;
+    return { ...metric, value: formatDisplayValue(parsed.prefix, parsed.amount * share, parsed.suffix) };
+  });
+}

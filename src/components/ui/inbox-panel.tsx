@@ -42,6 +42,41 @@ export interface InboxPanelProps {
 const businessCaseFor = (m: InboxMessage): MessageBusinessCase | undefined =>
   m.evidence ? { stats: m.evidence.stats, insights: m.evidence.insights } : undefined;
 
+/**
+ * Messages for a scope, resolving the entity from the route when it is not
+ * given — the same resolution InboxPanel uses, so a badge and the list it
+ * labels always count the same thing.
+ */
+export function useScopedMessages(scope: InboxPanelProps['scope'], entityId?: string): InboxMessage[] {
+  const db = useDb();
+  const user = useSession();
+
+  const [routeId, setRouteId] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    setRouteId(segments[segments.length - 1]);
+  }, []);
+  const id = entityId ?? routeId;
+
+  return React.useMemo(() => {
+    if (scope === 'user') {
+      return deriveMessages(db, user ? { user: { personaKey: user.personaKey, side: user.side } } : {});
+    }
+    if (!id) return [];
+    if (scope === 'engine') return deriveMessages(db, { engine: id as EngineId | 'all' });
+    if (scope === 'media-plan') return deriveMessages(db, { mediaPlanId: id });
+    if (scope === 'campaign') return deriveMessages(db, { campaignId: id });
+    return deriveMessages(db, { bookingId: id });
+  }, [db, user, scope, id]);
+}
+
+/** How many messages in this scope the reader has not opened — the tab badge. */
+export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: string): number {
+  const messages = useScopedMessages(scope, entityId);
+  const status = useInboxState();
+  return messages.filter((m) => (status[m.id] ?? 'unread') === 'unread').length;
+}
+
 export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, className }) => {
   const db = useDb();
   const user = useSession();

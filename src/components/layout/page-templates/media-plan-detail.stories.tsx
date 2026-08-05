@@ -149,7 +149,7 @@ type Row = {
  * the table still scans as a table — the point is to tweak an allocation
  * without leaving the plan, not to turn every row into a form.
  */
-const BudgetCell = ({ value, onSave }: { value: number; onSave: (next: number) => void }) => {
+const BudgetCell = ({ value, onSave, className }: { value: number; onSave: (next: number) => void; className?: string }) => {
   const [draft, setDraft] = React.useState(String(value));
   const [editing, setEditing] = React.useState(false);
   React.useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
@@ -173,7 +173,10 @@ const BudgetCell = ({ value, onSave }: { value: number; onSave: (next: number) =
       }}
       onClick={(e) => e.stopPropagation()}
       aria-label="Budget"
-      className="w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+      className={cn(
+        'w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
+        className,
+      )}
     />
   );
 };
@@ -183,10 +186,12 @@ const DatesCell = ({
   start,
   end,
   onSave,
+  className = 'h-8 px-2 text-sm font-normal',
 }: {
   start?: string;
   end?: string;
   onSave: (startDate: string, endDate: string) => void;
+  className?: string;
 }) => (
   <div onClick={(e) => e.stopPropagation()}>
     <DateRangePicker
@@ -197,7 +202,7 @@ const DatesCell = ({
         }
       }}
       showPresets={false}
-      className="h-8 px-2 text-sm font-normal"
+      className={className}
       placeholder="Set run time"
     />
   </div>
@@ -567,7 +572,7 @@ export const MediaPlanDetail: Story = {
     const columns: TableColumn<Row>[] = [
       {
         key: 'name', header: 'Name', render: (r) =>
-          r._type === 'campaign' ? (
+          r._type === 'booking' ? r.name : r._type === 'campaign' ? (
             <span className="flex items-center gap-2 min-w-0">
               {/* The chevron lives in the table's own leading column; the rest
                   of the row navigates to the campaign. */}
@@ -810,9 +815,10 @@ export const MediaPlanDetail: Story = {
                         they cap: campaign budgets are only meaningful against
                         the total, so both are editable in the same place. */}
                     <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
-                      <div>
-                        <Label className="mb-2 block">Media plan budget</Label>
+                      <div className="space-y-2">
+                        <Label>Media plan budget</Label>
                         <BudgetCell
+                          className="h-9 w-44 px-3"
                           value={plan?.budget ?? 0}
                           onSave={(next) => {
                             if (!plan) return;
@@ -821,17 +827,18 @@ export const MediaPlanDetail: Story = {
                           }}
                         />
                       </div>
-                      <div>
-                        <Label className="mb-2 block">Media plan run time</Label>
+                      <div className="space-y-2">
+                        <Label>Media plan run time</Label>
                         <DatesCell
+                          className="h-9 w-72 text-sm font-normal"
                           start={plan?.startDate}
                           end={plan?.endDate}
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
-                      <div>
-                        <Label className="mb-2 block">Auto budget allocation</Label>
-                        <div className="flex h-8 items-center">
+                      <div className="space-y-2">
+                        <Label>Auto budget allocation</Label>
+                        <div className="flex h-9 items-center">
                           <Switch
                             checked={autoBudget}
                             onCheckedChange={(on) => {
@@ -890,7 +897,7 @@ export const MediaPlanDetail: Story = {
                         isExpanded: (r) => expanded.includes(r._id),
                         onToggle: (r) => toggle(r._id),
                         getLabel: (r, isOpen) => `${isOpen ? 'Collapse' : 'Expand'} ${r.name}`,
-                        childLabel: (r) => (r._type === 'booking' ? r.name : null),
+                        isChild: (r) => r._type === 'booking',
                       }}
                       onRowClick={(r) => {
                         // Rows link to the campaign / booking; only the chevron toggles.

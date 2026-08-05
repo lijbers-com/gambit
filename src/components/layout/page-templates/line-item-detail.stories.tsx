@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { FaqPanel } from '@/components/ui/faq-panel';
+import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -480,6 +481,7 @@ export const Display: Story = {
     // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
     // 3. Creatives (link / upload creatives — placeholder for now)
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingUnread = useUnreadCount('booking');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -622,11 +624,11 @@ export const Display: Story = {
               <div className="flex gap-0" role="tablist">
                 {[
                   { value: 'details',    label: 'Booking details' },
+                  { value: 'actions',    label: 'Notifications' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
-                  { value: 'actions', label: 'Notifications' },
-                      { value: 'evaluation', label: 'Evaluation' },
-                  { value: 'logs', label: 'Logs' },
+                  { value: 'evaluation', label: 'Evaluation' },
+                  { value: 'logs',       label: 'Logs' },
                 ].map((t) => (
                   <button
                     key={t.value}
@@ -641,7 +643,14 @@ export const Display: Story = {
                     )}
                     style={{ position: 'relative', top: '1px' }}
                   >
-                    {t.label}
+                    <span className="inline-flex items-center gap-2">
+                      {t.label}
+                      {t.value === 'actions' && bookingUnread > 0 && (
+                        <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                          {bookingUnread > 9 ? '9+' : bookingUnread}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1067,6 +1076,7 @@ export const DigitalInStore: Story = {
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingUnread = useUnreadCount('booking');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1692,11 +1702,11 @@ export const DigitalInStore: Story = {
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
-                      { value: 'logs', label: 'Logs' },
+                      { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -1711,7 +1721,14 @@ export const DigitalInStore: Story = {
                         )}
                         style={{ position: 'relative', top: '1px' }}
                       >
-                        {t.label}
+                        <span className="inline-flex items-center gap-2">
+                          {t.label}
+                          {t.value === 'actions' && bookingUnread > 0 && (
+                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                              {bookingUnread > 9 ? '9+' : bookingUnread}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -2676,6 +2693,7 @@ export const OfflineInStore: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingUnread = useUnreadCount('booking');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -3196,11 +3214,11 @@ export const OfflineInStore: Story = {
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
-                      { value: 'logs', label: 'Logs' },
+                      { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -3215,7 +3233,14 @@ export const OfflineInStore: Story = {
                         )}
                         style={{ position: 'relative', top: '1px' }}
                       >
-                        {t.label}
+                        <span className="inline-flex items-center gap-2">
+                          {t.label}
+                          {t.value === 'actions' && bookingUnread > 0 && (
+                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                              {bookingUnread > 9 ? '9+' : bookingUnread}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -3990,6 +4015,7 @@ export const SponsoredProducts: Story = {
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingUnread = useUnreadCount('booking');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4165,11 +4191,11 @@ export const SponsoredProducts: Story = {
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
-                      { value: 'logs', label: 'Logs' },
+                      { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -4184,7 +4210,14 @@ export const SponsoredProducts: Story = {
                         )}
                         style={{ position: 'relative', top: '1px' }}
                       >
-                        {t.label}
+                        <span className="inline-flex items-center gap-2">
+                          {t.label}
+                          {t.value === 'actions' && bookingUnread > 0 && (
+                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                              {bookingUnread > 9 ? '9+' : bookingUnread}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -4603,6 +4636,7 @@ export const OffsiteDisplay: Story = {
 
     const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const bookingUnread = useUnreadCount('booking');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4748,11 +4782,11 @@ export const OffsiteDisplay: Story = {
               <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions', label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
-                      { value: 'logs', label: 'Logs' },
+                      { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
                       <button
                         key={t.value}
@@ -4767,7 +4801,14 @@ export const OffsiteDisplay: Story = {
                         )}
                         style={{ position: 'relative', top: '1px' }}
                       >
-                        {t.label}
+                        <span className="inline-flex items-center gap-2">
+                          {t.label}
+                          {t.value === 'actions' && bookingUnread > 0 && (
+                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                              {bookingUnread > 9 ? '9+' : bookingUnread}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>

@@ -8,7 +8,7 @@ import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card'
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { InsightsTab } from './insights-tab';
-import { InboxPanel } from '@/components/ui/inbox-panel';
+import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -348,6 +348,7 @@ export const DigitalInstoreInOption: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -890,6 +891,7 @@ const updatedForecastMetrics = [
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -1177,6 +1179,7 @@ export const DigitalInstoreRunning: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1441,6 +1444,7 @@ export const DigitalInstoreRunning: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -1716,6 +1720,7 @@ export const OfflineInstoreRunning: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1919,6 +1924,7 @@ export const OfflineInstoreRunning: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -2227,6 +2233,7 @@ export const DisplayRunning: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2456,6 +2463,7 @@ export const DisplayRunning: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -2753,6 +2761,7 @@ export const OfflineInstoreInOption: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2985,6 +2994,7 @@ export const OfflineInstoreInOption: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -3260,6 +3270,7 @@ export const DisplayInOption: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -3492,6 +3503,7 @@ export const DisplayInOption: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -3857,6 +3869,7 @@ export const SponsoredProductsInOption: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -4798,6 +4811,7 @@ export const SponsoredProductsRunning: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('15000');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
@@ -5459,6 +5473,7 @@ export const OffsiteRunning: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -5662,6 +5677,7 @@ export const OffsiteRunning: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {
@@ -5998,6 +6014,7 @@ export const OffsiteInOption: Story = {
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+    const campaignUnread = useUnreadCount('campaign');
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -6200,6 +6217,7 @@ export const OffsiteInOption: Story = {
               // plus its recommendations and insights.
               label: 'Notifications',
               value: 'actions',
+              badgeCount: campaignUnread,
               content: <InboxPanel scope="campaign" className="mt-6" />,
             },
             {

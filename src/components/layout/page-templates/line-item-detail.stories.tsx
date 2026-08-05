@@ -332,12 +332,13 @@ const MediaPlanSidebar = () => (
 // Shared component for the creatives attached to this booking. Every
 // proposition has creatives except sponsored products, where the ad IS the
 // product listing — so that template omits this card.
-const CreativesSidebar = ({ count = 2, actions }: { count?: number; actions?: SummaryAction[] }) => (
+const CreativesSidebar = ({ count = 2, actions, className }: { count?: number; actions?: SummaryAction[]; className?: string }) => (
   <SummaryCard
     title="Creatives"
     entity="creative"
     variant="details"
     actions={actions}
+    className={className}
     items={[
       { label: 'Attached', value: `${count} creative${count === 1 ? '' : 's'}` },
       { label: 'Approved', value: String(Math.max(0, count - 1)) },
@@ -1022,13 +1023,13 @@ export const Display: Story = {
               </div>
               {/* end form column */}
               <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
+                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                 <SummaryCard
                   title="Booking"
                   entity="booking"
                   variant="details"
                   actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                  className="bg-white"
+                  className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
                   items={[
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
@@ -2579,13 +2580,13 @@ export const DigitalInStore: Story = {
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
+                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
                     variant="details"
                     actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className="bg-white"
+                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
@@ -3902,13 +3903,13 @@ export const OfflineInStore: Story = {
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
+                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
                     variant="details"
                     actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className="bg-white"
+                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
@@ -4534,7 +4535,7 @@ export const SponsoredProducts: Story = {
                     entity="booking"
                     variant="details"
                     actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className="bg-white"
+                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
@@ -5077,13 +5078,13 @@ export const OffsiteDisplay: Story = {
               </div>
               {/* end form column */}
               <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
+                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
               <SummaryCard
                 title="Booking"
                 entity="booking"
                 variant="details"
                 actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                className="bg-white"
+                className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),

@@ -648,9 +648,10 @@ export const Display: Story = {
               {/* The tab card holds the form only; the summary cards sit beside
                   it, outside the card, so the tab reads as one form. */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              <div className="lg:col-span-2 min-w-0 space-y-6">
               <div
                 className={cn(
-                  'lg:col-span-2 min-w-0 rounded-xl border bg-card p-6 space-y-6',
+                  'min-w-0 rounded-xl border bg-card p-6 space-y-6',
                   bookingTab === 'details' && 'rounded-tl-none',
                 )}
               >
@@ -1011,6 +1012,10 @@ export const Display: Story = {
               <FormActions submitLabel={summaryActionsFor(bookingTab)[0].label} />
               </div>
               {/* end form card */}
+              {/* Retailer-authored help, stacked under the form so it lines up with it. */}
+              <FaqPanel surface="booking-detail" engine="display" />
+              </div>
+              {/* end form column */}
               <aside className="space-y-4">
                 {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                 <SummaryCard
@@ -1038,8 +1043,6 @@ export const Display: Story = {
               {/* end tabs+card wrapper */}
             </div>
           </div>
-          {/* Retailer-authored help for this booking. */}
-          <FaqPanel surface="booking-detail" engine="display" className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );
@@ -1708,7 +1711,8 @@ export const DigitalInStore: Story = {
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <Card className={cn("lg:col-span-2 min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
@@ -2565,6 +2569,10 @@ export const DigitalInStore: Story = {
                     )}
                   </Card>
                   {/* end form card */}
+                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
+                  <FaqPanel surface="booking-detail" engine="digital-instore" />
+                  </div>
+                  {/* end form column */}
                   <aside className="space-y-4">
                     {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                   <SummaryCard
@@ -2648,8 +2656,6 @@ export const DigitalInStore: Story = {
             </div>
           </div>
         </div>
-        {/* Retailer-authored help for this booking. */}
-        <FaqPanel surface="booking-detail" engine="digital-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -3209,7 +3215,8 @@ export const OfflineInStore: Story = {
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <Card className={cn("lg:col-span-2 min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
@@ -3885,6 +3892,10 @@ export const OfflineInStore: Story = {
                     </CardContent>
                   </Card>
                   {/* end form card */}
+                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
+                  <FaqPanel surface="booking-detail" engine="offline-instore" />
+                  </div>
+                  {/* end form column */}
                   <aside className="space-y-4">
                     {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
                   <SummaryCard
@@ -3951,8 +3962,6 @@ export const OfflineInStore: Story = {
             </div>
           </div>
         </div>
-        {/* Retailer-authored help for this booking. */}
-        <FaqPanel surface="booking-detail" engine="offline-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -4175,7 +4184,8 @@ export const SponsoredProducts: Story = {
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <Card className={cn("lg:col-span-2 min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
@@ -4509,6 +4519,10 @@ export const SponsoredProducts: Story = {
                     </CardContent>
                   </Card>
                   {/* end form card */}
+                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
+                  <FaqPanel surface="booking-detail" engine="sponsored-products" />
+                  </div>
+                  {/* end form column */}
                   <aside className="space-y-4">
                   <SummaryCard
                     title="Booking"
@@ -4568,8 +4582,6 @@ export const SponsoredProducts: Story = {
             </div>
           </div>
         </div>
-        {/* Retailer-authored help for this booking. */}
-        <FaqPanel surface="booking-detail" engine="sponsored-products" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -4754,7 +4766,8 @@ export const OffsiteDisplay: Story = {
                   </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <Card className={cn("lg:col-span-2 min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
+              <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
@@ -5054,6 +5067,10 @@ export const OffsiteDisplay: Story = {
                 </CardContent>
               </Card>
               {/* end form card */}
+              {/* Retailer-authored help, stacked under the form so it lines up with it. */}
+              <FaqPanel surface="booking-detail" engine="offsite" />
+              </div>
+              {/* end form column */}
               <aside className="space-y-4">
                 {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} />}
               <SummaryCard
@@ -5097,8 +5114,6 @@ export const OffsiteDisplay: Story = {
               {/* end form + summary grid */}
             </div>
           </div>
-          {/* Retailer-authored help for this booking. */}
-          <FaqPanel surface="booking-detail" engine="offsite" className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );

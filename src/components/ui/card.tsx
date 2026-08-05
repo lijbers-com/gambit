@@ -813,7 +813,10 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             The sub-line belongs to both — it labels whatever is above it — so a
             chart card can still say what it is measuring. */}
         {(isChartCard ? subMetric : value || subMetric) && (
-          <div>
+          // The label block takes the slack, so the chart under it sits on the
+          // bottom edge of the card. Cards in a row stretch to the tallest one,
+          // and charts that floated at their natural height read as ragged.
+          <div className="flex-1">
             {!isChartCard && (
               <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
                 {value}

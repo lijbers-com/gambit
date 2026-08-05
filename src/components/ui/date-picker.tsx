@@ -46,6 +46,13 @@ export interface DateRangePickerProps {
   showConversionWindow?: boolean
   conversionWindow?: number
   onConversionWindowChange?: (days: number) => void
+  /**
+   * Label for a reset button under the calendar, e.g. "All dates". Only shown
+   * when a range is set. Without it a picker is one-way: once a window is
+   * chosen the only route back to everything is guessing a wide enough one.
+   * Clearing emits `undefined`.
+   */
+  clearLabel?: string
 }
 
 // Conversion window options
@@ -279,6 +286,7 @@ export function DateRangePicker({
   showConversionWindow = false,
   conversionWindow,
   onConversionWindowChange,
+  clearLabel,
 }: DateRangePickerProps) {
   const presetList = presets ?? defaultPresets
   const [selectedPreset, setSelectedPreset] = React.useState<string | undefined>(defaultPreset)
@@ -481,6 +489,20 @@ export function DateRangePicker({
               onWeekClick={showWeekNumbers ? handleWeekSelect : undefined}
             />
           </div>
+          {clearLabel && dateRange?.from && (
+            <div className="border-t p-3 flex-shrink-0">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setSelectedPreset(undefined)
+                  onDateRangeChange?.(undefined)
+                }}
+              >
+                {clearLabel}
+              </Button>
+            </div>
+          )}
           {showConversionWindow && (
             <div className="border-t p-3 flex-shrink-0">
               <div className="space-y-2">

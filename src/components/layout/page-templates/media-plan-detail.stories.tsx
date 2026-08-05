@@ -223,12 +223,39 @@ const HealthCell = ({ health }: { health: 'good' | 'attention' | 'risk' }) => {
 };
 
 /** A count of open inbox messages for a row. */
-const CountCell = ({ count, tone }: { count: number; tone?: 'action' }) => {
-  if (count === 0) return <span className="text-muted-foreground">—</span>;
+/**
+ * What a row's inbox holds, in one column.
+ *
+ * Three columns of counts made the reader add up their own total and left most
+ * cells empty; one column says how many of what, and stays silent when there
+ * is nothing. Actions lead because they block delivery — a recommendation can
+ * wait, a missing creative cannot.
+ */
+const NotificationsCell = ({
+  actions = 0,
+  recommendations = 0,
+  insights = 0,
+}: {
+  actions?: number;
+  recommendations?: number;
+  insights?: number;
+}) => {
+  const parts = [
+    { count: actions, label: 'action', plural: 'actions', variant: 'warning' as const },
+    { count: recommendations, label: 'recommendation', plural: 'recommendations', variant: 'secondary' as const },
+    { count: insights, label: 'insight', plural: 'insights', variant: 'secondary' as const },
+  ].filter((p) => p.count > 0);
+
+  if (parts.length === 0) return <span className="text-muted-foreground">—</span>;
+
   return (
-    <Badge variant={tone === 'action' ? 'warning' : 'secondary'} className="tabular-nums">
-      {count}
-    </Badge>
+    <span className="flex flex-wrap items-center gap-1">
+      {parts.map((p) => (
+        <Badge key={p.label} variant={p.variant} className="whitespace-nowrap tabular-nums">
+          {p.count} {p.count === 1 ? p.label : p.plural}
+        </Badge>
+      ))}
+    </span>
   );
 };
 
@@ -631,16 +658,14 @@ export const MediaPlanDetail: Story = {
         render: (r) => (r._type === 'add' ? null : <HealthCell health={r.health ?? 'good'} />),
       },
       {
-        key: 'recommendations', header: 'Recommendations',
-        render: (r) => (r._type === 'add' ? null : <CountCell count={r.recommendationCount ?? 0} />),
-      },
-      {
-        key: 'insights', header: 'Insights',
-        render: (r) => (r._type === 'add' ? null : <CountCell count={r.insightCount ?? 0} />),
-      },
-      {
-        key: 'inboxActions', header: 'Actions',
-        render: (r) => (r._type === 'add' ? null : <CountCell count={r.actionCount ?? 0} tone="action" />),
+        key: 'notifications', header: 'Notifications', width: 260,
+        render: (r) => r._type === 'add' ? null : (
+          <NotificationsCell
+            actions={r.actionCount}
+            recommendations={r.recommendationCount}
+            insights={r.insightCount}
+          />
+        ),
       },
     ];
 
@@ -816,7 +841,7 @@ export const MediaPlanDetail: Story = {
                         the total, so both are editable in the same place. */}
                     <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
                       <div className="space-y-2">
-                        <Label>Media plan budget</Label>
+                        <Label className="block">Media plan budget</Label>
                         <BudgetCell
                           className="h-9 w-44 px-3"
                           value={plan?.budget ?? 0}
@@ -828,7 +853,7 @@ export const MediaPlanDetail: Story = {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Media plan run time</Label>
+                        <Label className="block">Media plan run time</Label>
                         <DatesCell
                           className="h-9 w-72 text-sm font-normal"
                           start={plan?.startDate}
@@ -837,7 +862,7 @@ export const MediaPlanDetail: Story = {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Auto budget allocation</Label>
+                        <Label className="block">Auto budget allocation</Label>
                         <div className="flex h-9 items-center">
                           <Switch
                             checked={autoBudget}

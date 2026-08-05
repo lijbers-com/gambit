@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
-import { getDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState } from '@/lib/db';
+import { useDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState } from '@/lib/db';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
@@ -171,6 +171,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     }
 
     // Internal state for switches when callbacks are not provided
+    // Hydration-safe database snapshot. Never call getDb() during render: it
+    // reads localStorage, so the server (which only has the seed) and the
+    // first client render would disagree.
+    const db = useDb();
+
     const [internalEngines, setInternalEngines] = React.useState(engines);
     const [internalFeatures, setInternalFeatures] = React.useState(features);
     const [isCollapsed, setIsCollapsed] = React.useState(collapsedOnly && !guidedSetup ? true : !defaultExpanded);
@@ -670,9 +675,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       items.push({ badge: 'AI Insight', tone: 'insight', title: 'Improve CTR with targeting', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
       // Action-needed items come from the derived to-do engine when the card is
       // store-backed, so the notification feed and users' task lists align.
-      const dbPlanForTasks = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+      const dbPlanForTasks = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlanForTasks) {
-        deriveTasksForPlan(getDb(), dbPlanForTasks.id)
+        deriveTasksForPlan(db, dbPlanForTasks.id)
           .filter((t) => t.kind === 'action')
           .slice(0, 3)
           .forEach((t) => {
@@ -697,9 +702,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // (e.g. Storybook demos with arbitrary ids).
     const healthNotification: HealthNotification | undefined = (() => {
       if (layout === 'vertical' || guidedSetup) return undefined;
-      const dbPlan = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+      const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlan) {
-        const health = derivePlanHealth(getDb(), dbPlan);
+        const health = derivePlanHealth(db, dbPlan);
         return {
           level: health.level,
           message: health.message,
@@ -923,9 +928,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               (() => {
                 // Health is excluded — it is already the chip on the title line,
                 // and counting it again would inflate "action needed".
-                const dbPlan = internalCampaignId ? getDb().mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+                const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
                 const messages = dbPlan
-                  ? deriveMessages(getDb(), { mediaPlanId: dbPlan.id }).filter((m) => m.kind !== 'health')
+                  ? deriveMessages(db, { mediaPlanId: dbPlan.id }).filter((m) => m.kind !== 'health')
                   : [];
                 const open = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
                 const unread = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') === 'unread').length;

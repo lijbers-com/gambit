@@ -167,10 +167,10 @@ export const Overview = {
           <Card>
             <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
               <Lock className="h-6 w-6 text-muted-foreground" />
-              <p className="text-sm font-medium">FAQ editing is limited to support and proposition roles</p>
+              <p className="text-sm font-medium">FAQ editing is for the retailer&apos;s own team</p>
               <p className="max-w-md text-sm text-muted-foreground">
-                Sign in as Self-Service Support, Media Proposition Developer or Technology &amp; Operations Support to
-                add or change the help shown across the platform.
+                Sign in with your Edge account to add or change the help shown across the platform. Advertisers read
+                these answers but do not write them.
               </p>
             </CardContent>
           </Card>

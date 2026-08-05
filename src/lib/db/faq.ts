@@ -110,22 +110,16 @@ export const faqSectionLabel = (surface: FaqSurfaceId, section?: string): string
   section ? faqSurface(surface)?.sections.find((s) => s.id === section)?.label ?? section : undefined;
 
 /**
- * Personas allowed to write FAQs.
+ * Whether this user may add or change FAQ entries.
  *
- * Deliberately narrow: the people who own how the product is explained, not
- * everyone who works in it. Support answers these questions all day, the
- * proposition developer defines what a proposition promises, and tech-ops
- * fields the "why can't I…" cases.
+ * Everyone on the retailer side. Anyone running the platform runs into the
+ * questions advertisers ask, and the person best placed to answer one is
+ * usually whoever just answered it in an email — narrowing this to a few
+ * roles would mean the help only gets written when those people have time.
+ * Advertisers read the FAQs; they never write them.
  */
-export const FAQ_EDITOR_PERSONAS = [
-  'self-service-support-specialist',
-  'media-proposition-developer',
-  'tech-ops-support',
-] as const;
-
-/** Whether this user may add or change FAQ entries. */
-export const canManageFaq = (user: Pick<DbUser, 'personaKey' | 'side'> | null | undefined): boolean =>
-  !!user && user.side === 'retailer' && (FAQ_EDITOR_PERSONAS as readonly string[]).includes(user.personaKey);
+export const canManageFaq = (user: Pick<DbUser, 'side'> | null | undefined): boolean =>
+  !!user && user.side === 'retailer';
 
 export interface FaqQuery {
   surface: FaqSurfaceId;

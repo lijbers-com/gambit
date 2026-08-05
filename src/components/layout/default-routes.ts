@@ -1,5 +1,4 @@
 import { Route } from '@/components/ui/side-navigation';
-import { FAQ_EDITOR_PERSONAS } from '@/lib/db/faq';
 
 export const defaultRoutes: Route[] = [
   {
@@ -259,11 +258,8 @@ export const defaultRoutes: Route[] = [
     id: 16,
     name: "FAQ & help",
     type: "single" as const,
-    icon: { lucide: "HelpCircle" },
+    icon: { lucide: "FileText" },
     url: "/configuration/faq",
-    // Only the roles that own how the product is explained (see
-    // FAQ_EDITOR_PERSONAS) get the editor in their navigation.
-    personas: FAQ_EDITOR_PERSONAS,
   },
   {
     id: 15,

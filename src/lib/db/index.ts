@@ -48,7 +48,6 @@ export {
 } from './inbox-state';
 export {
   FAQ_SURFACES,
-  FAQ_EDITOR_PERSONAS,
   faqSurface,
   faqSurfaceLabel,
   faqSectionLabel,

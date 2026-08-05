@@ -16,7 +16,7 @@ import {
 } from '../src/lib/db/store';
 import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
 import { deriveMessages } from '../src/lib/db/messages';
-import { FAQ_SURFACES, faqsFor, canManageFaq, FAQ_EDITOR_PERSONAS } from '../src/lib/db/faq';
+import { FAQ_SURFACES, faqsFor, canManageFaq } from '../src/lib/db/faq';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -268,11 +268,12 @@ const retailerSide = faqsFor(d, { surface: 'create-media-plan', side: 'retailer'
 if (retailerSide.some((f) => f.audience === 'advertiser')) fail('advertiser-only entry leaked to a retailer');
 ok(`audience filter holds (retailer sees ${retailerSide.length} of ${faqsFor(d, { surface: 'create-media-plan' }).length})`);
 
-// Only the editor personas may manage entries.
+// Every retailer-side user may manage entries; no advertiser may.
 const editors = d.users.filter((u) => canManageFaq(u));
-if (editors.length !== FAQ_EDITOR_PERSONAS.length) fail(`expected ${FAQ_EDITOR_PERSONAS.length} FAQ editors, got ${editors.length}`);
+const retailers = d.users.filter((u) => u.side === 'retailer');
+if (editors.length !== retailers.length) fail(`expected all ${retailers.length} retailer users to be editors, got ${editors.length}`);
 if (d.users.some((u) => u.side === 'advertiser' && canManageFaq(u))) fail('an advertiser-side user can manage FAQs');
-ok(`${editors.length} editors: ${editors.map((u) => u.name).join(', ')}`);
+ok(`all ${editors.length} retailer users can edit, none of the ${d.users.length - editors.length} advertiser users can`);
 
 // ── Result ─────────────────────────────────────────────────────────────
 console.log(

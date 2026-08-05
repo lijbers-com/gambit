@@ -10,7 +10,6 @@ import { usePathname as usePathnameContext } from '@/lib/router-context';
 import { Link } from '@/lib/router-context';
 import { useEffect, useContext, useState, useRef } from 'react';
 import { ThemeContext } from '@/contexts/theme-context';
-import { useSession } from '@/lib/db';
 
 // Try to import Next.js pathname
 let usePathnameNext: (() => string) | null = null;
@@ -34,9 +33,6 @@ export interface Route {
   subitems?: Route[];
   pattern?: string; // For breadcrumb matching with dynamic routes
   disabled?: boolean;
-  /** Persona keys allowed to see this item. Omit for "everyone". Used for
-   *  configuration areas only some roles own — see canManageFaq in db/faq.ts. */
-  personas?: readonly string[];
 }
 
 // Module-scoped store for the previous pathname seen by SideNavigation.
@@ -75,10 +71,6 @@ export const SideNavigation = ({
   const [theme, setTheme] = useState<string>('gambit');
 
   const { collapsed, showText, setOpenSubmenu, openSubmenu, setCollapsed } = useMenu();
-
-  // Drives the role-restricted items below. Hydration-safe: null on the server
-  // and on the first client render.
-  const sessionUser = useSession();
 
   // Detect and update theme reactively
   useEffect(() => {
@@ -191,13 +183,6 @@ export const SideNavigation = ({
     (item) => {
       // Filter out parents without subitems
       if (item.type === 'parent' && (!item.subitems || item.subitems.length === 0)) {
-        return false;
-      }
-
-      // Role-restricted items. Signed out (and during hydration, when the
-      // session is not yet readable) these stay hidden — showing a
-      // configuration area to nobody is safer than flashing it to everyone.
-      if (item.personas && !(sessionUser && item.personas.includes(sessionUser.personaKey))) {
         return false;
       }
       

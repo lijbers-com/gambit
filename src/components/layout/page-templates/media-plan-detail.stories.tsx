@@ -477,16 +477,7 @@ export const MediaPlanDetail: Story = {
     const columns: TableColumn<Row>[] = [
       {
         key: 'name', header: 'Name', render: (r) =>
-          r._type === 'add' ? (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
-              className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add booking
-            </button>
-          ) : r._type === 'campaign' ? (
+          r._type === 'campaign' ? (
             <span className="flex items-center gap-2 min-w-0">
               {/* The chevron lives in the table's own leading column; the rest
                   of the row navigates to the campaign. */}
@@ -755,6 +746,18 @@ export const MediaPlanDetail: Story = {
                       columns={columns}
                       data={rows}
                       rowKey={(r) => r._id}
+                      // Row-level action, so it spans rather than sitting in a
+                      // column — see Table.fullWidthRow.
+                      fullWidthRow={(r) => r._type !== 'add' ? null : (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
+                          className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add booking
+                        </button>
+                      )}
                       hideActions
                       expandable={{
                         isExpandable: (r) => r._type === 'campaign' && (r.bookingsCount ?? 0) > 0,

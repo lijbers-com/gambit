@@ -59,6 +59,13 @@ export interface TableProps<T> {
   rowClassName?: (row: T) => string;
   rowSelection?: TableRowSelection<T>;
   defaultFixedColumns?: string[];
+  /**
+   * Renders a row as one cell spanning every column. Return null for normal
+   * rows. Use for row-level actions such as "+ Add booking": in a normal cell
+   * they are clipped by that column's width and, worse, read as belonging to
+   * the column they happen to land in rather than to the row.
+   */
+  fullWidthRow?: (row: T) => React.ReactNode | null;
 }
 
 // Unified draggable column item for both fixed and columns sections
@@ -106,7 +113,7 @@ function ColumnItem({
   );
 }
 
-export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns }: TableProps<T>) {
+export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow }: TableProps<T>) {
   // Default rowKey function if not provided
   const getRowKey = rowKey || ((row: T, index: number) => {
     if (row && typeof row === 'object' && 'id' in row) {
@@ -777,7 +784,19 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
-                {allCols.map((col) => {
+                {(() => {
+                  const spanning = fullWidthRow?.(row);
+                  if (spanning == null) return null;
+                  return (
+                    <td
+                      colSpan={allCols.length}
+                      className="px-4 py-[11px] align-middle bg-background transition-colors group-hover:bg-surface-hover group-active:bg-surface-active"
+                    >
+                      {spanning}
+                    </td>
+                  );
+                })()}
+                {fullWidthRow?.(row) == null && allCols.map((col) => {
                   const isLastFixed = col.key === lastFixedColKey;
                   return (
                     <td

@@ -452,16 +452,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'advertiser', header: 'Advertiser' },
                       // The expand chevron lives in the table's own leading
                       // column, so Name only carries the name and the count.
-                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'add' ? (
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); addBookingTo(row.parentId); }}
-                          className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Add booking
-                        </button>
-                      ) : row._type === 'campaign' ? (
+                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'campaign' ? (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
@@ -498,6 +489,18 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                     data={tableRows}
                     rowKey={row => row._id}
                     hideActions
+                    // The add-booking CTA spans the row: it is an action on the
+                    // campaign, not a value in any one column.
+                    fullWidthRow={(row) => row._type !== 'add' ? null : (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); addBookingTo(row.parentId); }}
+                        className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add booking
+                      </button>
+                    )}
                     expandable={{
                       isExpandable: row => row._type === 'campaign' && row.bookings > 0,
                       isExpanded: row => expandedRows.includes(row._id),

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, ChevronDown, ChevronUp, ChevronRight, GripVertical } from 'lucide-react';
+import { MoreHorizontal, ChevronDown, ChevronUp, ChevronRight, CornerDownRight, GripVertical } from 'lucide-react';
 // Force cache bust v2
 import {
   DropdownMenu,
@@ -44,7 +44,20 @@ export interface TableExpandable<T> {
   onToggle: (row: T) => void;
   /** Accessible label for the toggle, e.g. `Expand ${row.name}`. */
   getLabel?: (row: T, expanded: boolean) => string;
+  /**
+   * What a child row is called. Return null for rows that are not children.
+   *
+   * The label always renders in the first content column, indented under its
+   * parent with a turn-down arrow — never in whichever column happens to hold
+   * the parent's name. A child indented in the middle of the table reads as a
+   * value of that column rather than as a row belonging to the one above it.
+   * Row-level CTAs (see fullWidthRow) share the same indent so they line up.
+   */
+  childLabel?: (row: T) => React.ReactNode | null;
 }
+
+/** Indent shared by child-row labels and row-level CTAs, so they line up. */
+export const TABLE_CHILD_INDENT = 'pl-6';
 
 export interface TableProps<T> {
   columns: TableColumn<T>[];
@@ -554,6 +567,9 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   // Expand chevron, then actions, then fixed columns, then non-fixed
   const allCols = [...expandCol, ...actionsCol, ...visibleCols];
   const allColKeys = allCols.map((col) => col.key);
+  // The first column that carries data — the expand chevron and the row
+  // actions are chrome, not content. Child labels and row CTAs anchor here.
+  const firstContentColKey = allCols.find((col) => col.key !== '__expand' && col.key !== '__actions')?.key;
 
   // Measure header cell widths after render for accurate sticky offsets
   const allColKeysStr = allColKeys.join(',');
@@ -787,13 +803,19 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                 {(() => {
                   const spanning = fullWidthRow?.(row);
                   if (spanning == null) return null;
+                  // The leading chevron column is left empty and the content
+                  // spans the rest, so a row-level CTA starts exactly where the
+                  // first content column does — and its indent then lines up
+                  // with the child labels above it.
+                  const leading = allCols.filter((c) => c.key === '__expand' || c.key === '__actions');
+                  const cellClass = 'px-4 py-[11px] align-middle bg-background transition-colors group-hover:bg-surface-hover group-active:bg-surface-active';
                   return (
-                    <td
-                      colSpan={allCols.length}
-                      className="px-4 py-[11px] align-middle bg-background transition-colors group-hover:bg-surface-hover group-active:bg-surface-active"
-                    >
-                      {spanning}
-                    </td>
+                    <>
+                      {leading.map((c) => <td key={c.key} className={cellClass} style={getColWidthStyle(c.key)} />)}
+                      <td colSpan={allCols.length - leading.length} className={cellClass}>
+                        <div className={TABLE_CHILD_INDENT}>{spanning}</div>
+                      </td>
+                    </>
                   );
                 })()}
                 {fullWidthRow?.(row) == null && allCols.map((col) => {
@@ -819,7 +841,21 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
                       }}
                     >
                       <div className="flex items-center w-full overflow-hidden">
-                      {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
+                      {(() => {
+                        // A child row states what it is in the first content
+                        // column and leaves the rest to the columns that apply
+                        // to it; see TableExpandable.childLabel.
+                        const childName = expandable?.childLabel?.(row);
+                        if (childName != null) {
+                          return col.key === firstContentColKey ? (
+                            <span className={cn('flex items-center gap-1.5 text-muted-foreground', TABLE_CHILD_INDENT)}>
+                              <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                              <span className="truncate">{childName}</span>
+                            </span>
+                          ) : col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode);
+                        }
+                        return col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as React.ReactNode);
+                      })()}
                       </div>
                     </td>
                   );

@@ -4633,14 +4633,15 @@ export const OffsiteDisplay: Story = {
     // Offsite channels + positions come from the prototype database: the
     // channel (Display, OLV, CTV, Contextual Commerce Media, Social Media,
     // DOOH) groups positions — and for Social Media the positions ARE the
-    // platforms (Meta, TikTok, Pinterest, YouTube). Partners show alongside.
+    // platforms (Meta, TikTok, Pinterest, YouTube). The executing platform
+    // shows alongside, under the same name the campaign table uses.
     const dbOffsite = useDb();
     const offsiteMediaProducts = dbOffsite.mediaProducts
       .filter((m) => m.engine === 'offsite')
       .map((m) => ({
         value: m.id,
         label: m.name,
-        description: [m.description, m.partner ? `Partner: ${m.partner}` : null].filter(Boolean).join(' · '),
+        description: [m.description, m.partner ? `Platform: ${m.partner}` : null].filter(Boolean).join(' · '),
       }));
     const currentPositions = mediaProduct[0]
       ? dbOffsite.positions

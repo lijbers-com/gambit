@@ -31,7 +31,7 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, Plus, HeartPulse, CornerDownRight, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, createBooking, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
@@ -486,12 +486,7 @@ export const MediaPlanDetail: Story = {
                 ({r.bookingsCount} booking{r.bookingsCount === 1 ? '' : 's'})
               </span>
             </span>
-          ) : (
-            <span className="flex items-center gap-1.5 pl-6 text-muted-foreground">
-              <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-              {r.name}
-            </span>
-          ),
+          ) : null,
       },
       {
         key: 'proposition', header: 'Proposition', render: (r) => {
@@ -752,7 +747,7 @@ export const MediaPlanDetail: Story = {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
-                          className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+                          className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           Add booking
@@ -764,6 +759,7 @@ export const MediaPlanDetail: Story = {
                         isExpanded: (r) => expanded.includes(r._id),
                         onToggle: (r) => toggle(r._id),
                         getLabel: (r, isOpen) => `${isOpen ? 'Collapse' : 'Expand'} ${r.name}`,
+                        childLabel: (r) => (r._type === 'booking' ? r.name : null),
                       }}
                       onRowClick={(r) => {
                         // Rows link to the campaign / booking; only the chevron toggles.

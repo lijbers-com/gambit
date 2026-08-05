@@ -22,7 +22,7 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, CornerDownRight, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { useDb, createBooking, type EngineId } from '@/lib/db';
 import * as React from 'react';
@@ -447,23 +447,20 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'ID', width: 130, render: row => (row._type === 'add' ? null : row.id) },
+                      // Wide enough for a booking name: child rows put their
+                      // name in this column (Table.expandable.childLabel).
+                      { key: 'id', header: 'ID', width: 240, render: row => (row._type === 'add' ? null : row.id) },
                       { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
                       { key: 'advertiser', header: 'Advertiser' },
                       // The expand chevron lives in the table's own leading
                       // column, so Name only carries the name and the count.
-                      { key: 'name', header: 'Name', width: 320, render: row => row._type === 'campaign' ? (
+                      { key: 'name', header: 'Name', width: 320, render: row => row._type !== 'campaign' ? null : (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 pl-6 text-muted-foreground">
-                          <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-                          {row.name}
-                        </span>
                       ) },
-                      ...(engineType === 'offsite' ? [{ key: 'marketplace', header: 'Marketplace', render: () => 'Epsilon' }] : []),
+                      ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: () => 'Epsilon' }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
                         if (row._type === 'booking') return null;
                         const maxShow = 3;
@@ -495,7 +492,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); addBookingTo(row.parentId); }}
-                        className="flex items-center gap-1.5 pl-6 text-sm font-medium text-primary hover:underline"
+                        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Add booking
@@ -506,6 +503,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       isExpanded: row => expandedRows.includes(row._id),
                       onToggle: row => toggleRow(row._id),
                       getLabel: (row, expanded) => `${expanded ? 'Collapse' : 'Expand'} ${row.name}`,
+                      childLabel: (row) => (row._type === 'booking' ? row.name : null),
                     }}
                     onRowClick={(row) => {
                       if (row._type === 'add') return;

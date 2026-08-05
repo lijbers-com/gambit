@@ -33,7 +33,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, createBooking, deriveMessages, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, createBooking, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
@@ -122,6 +122,10 @@ type Row = {
   state?: PlanStatus;
   status?: PlanStatus;
   budget: string;
+  /** Raw values behind the formatted strings, for the inline editors. */
+  budgetValue?: number;
+  startDate?: string;
+  endDate?: string;
   dailyCap?: string;
   dates?: string;
   objectiveKpi: string;
@@ -138,6 +142,65 @@ type Row = {
 };
 
 /** Health for a row, matching the chip the media plan card shows. */
+/**
+ * Budget cell that edits in place. Reads as plain text until it is focused, so
+ * the table still scans as a table — the point is to tweak an allocation
+ * without leaving the plan, not to turn every row into a form.
+ */
+const BudgetCell = ({ value, onSave }: { value: number; onSave: (next: number) => void }) => {
+  const [draft, setDraft] = React.useState(String(value));
+  const [editing, setEditing] = React.useState(false);
+  React.useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
+
+  const commit = () => {
+    setEditing(false);
+    const next = Number(draft.replace(/[^0-9.]/g, ''));
+    if (Number.isFinite(next) && next >= 0 && next !== value) onSave(next);
+    else setDraft(String(value));
+  };
+
+  return (
+    <input
+      value={editing ? draft : fmtEuro(value)}
+      onChange={(e) => setDraft(e.target.value)}
+      onFocus={() => { setEditing(true); setDraft(String(value)); }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+        if (e.key === 'Escape') { setDraft(String(value)); setEditing(false); (e.target as HTMLInputElement).blur(); }
+      }}
+      onClick={(e) => e.stopPropagation()}
+      aria-label="Budget"
+      className="w-24 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm tabular-nums transition-colors hover:border-input focus:border-input focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+    />
+  );
+};
+
+/** Run-time cell that edits in place, using the same picker as the forms. */
+const DatesCell = ({
+  start,
+  end,
+  onSave,
+}: {
+  start?: string;
+  end?: string;
+  onSave: (startDate: string, endDate: string) => void;
+}) => (
+  <div onClick={(e) => e.stopPropagation()}>
+    <DateRangePicker
+      dateRange={start && end ? { from: new Date(start), to: new Date(end) } : undefined}
+      onDateRangeChange={(range) => {
+        if (range?.from && range?.to) {
+          onSave(range.from.toISOString().slice(0, 10), range.to.toISOString().slice(0, 10));
+        }
+      }}
+      showPresets={false}
+      className="h-8 border-transparent bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none hover:border-input hover:bg-transparent"
+      placeholder="Set run time"
+    />
+  </div>
+);
+
 const HealthCell = ({ health }: { health: 'good' | 'attention' | 'risk' }) => {
   const cfg = {
     good: { label: 'Healthy', className: 'border-success-200 bg-success-50 text-success-700' },
@@ -390,6 +453,19 @@ export const MediaPlanDetail: Story = {
         .filter(Boolean)
         .join(' / ') || '—';
 
+    // What the Notifications tab badges: messages for this plan the reader has
+    // not opened yet — the same state the inbox list marks with its dot.
+    const inboxStatus = useInboxState();
+    const unreadCount = plan
+      ? deriveMessages(db, { mediaPlanId: plan.id }).filter(
+          (m) => (inboxStatus[m.id] ?? 'unread') === 'unread',
+        ).length
+      : 0;
+
+    // What the campaigns add up to, so an edit above can be checked against
+    // the rows below it without doing the sum by hand.
+    const campaignBudgetTotal = filteredCampaigns.reduce((sum, { campaign }) => sum + campaign.budget, 0);
+
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
     // Engine → route segment, shared by the add-booking jump and the row links.
     const routeSeg: Record<EngineId, string> = {
@@ -454,7 +530,8 @@ export const MediaPlanDetail: Story = {
     const rows: Row[] = filteredCampaigns.flatMap(({ campaign: c, bookings }) => [
       {
         _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, state: c.status,
-        budget: fmtEuro(c.budget), dates: fmtRange(c.startDate, c.endDate),
+        budget: fmtEuro(c.budget), budgetValue: c.budget, startDate: c.startDate, endDate: c.endDate,
+        dates: fmtRange(c.startDate, c.endDate),
         objectiveKpi: objectiveKpiLabel, bookingsCount: bookings.length,
         ...countsFor({ campaignId: c.id }),
       },
@@ -508,9 +585,19 @@ export const MediaPlanDetail: Story = {
           return badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null;
         },
       },
-      { key: 'budget', header: 'Budget', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums">{r.budget}</span>) },
+      {
+        key: 'budget', header: 'Budget',
+        render: (r) => r._type !== 'campaign' || r.budgetValue === undefined
+          ? (r._type === 'add' ? null : <span className="tabular-nums">{r.budget}</span>)
+          : <BudgetCell value={r.budgetValue} onSave={(next) => updateCampaign(r._id, { budget: next })} />,
+      },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
-      { key: 'dates', header: 'Dates', render: (r) => (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>) },
+      {
+        key: 'dates', header: 'Dates', width: 260,
+        render: (r) => r._type !== 'campaign'
+          ? (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>)
+          : <DatesCell start={r.startDate} end={r.endDate} onSave={(startDate, endDate) => updateCampaign(r._id, { startDate, endDate })} />,
+      },
       { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
       {
         key: 'health', header: 'Health',
@@ -705,6 +792,7 @@ export const MediaPlanDetail: Story = {
                 // derived to-dos plus its recommendations and insights.
                 label: 'Notifications',
                 value: 'inbox',
+                badgeCount: unreadCount,
                 content: <InboxPanel scope="media-plan" entityId={plan?.id} className="mt-6" />,
               },
               {
@@ -712,6 +800,33 @@ export const MediaPlanDetail: Story = {
                 value: 'campaigns',
                 content: (
                   <div className="mt-6 space-y-6">
+                    {/* The plan's own budget and run time sit above the rows
+                        they cap: campaign budgets are only meaningful against
+                        the total, so both are editable in the same place. */}
+                    <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
+                      <div>
+                        <Label className="mb-2 block text-xs text-muted-foreground">Media plan budget</Label>
+                        <BudgetCell
+                          value={plan?.budget ?? 0}
+                          onSave={(next) => plan && updateMediaPlan(plan.id, { budget: next })}
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-2 block text-xs text-muted-foreground">Media plan run time</Label>
+                        <DatesCell
+                          start={plan?.startDate}
+                          end={plan?.endDate}
+                          onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
+                        />
+                      </div>
+                      <p className="ml-auto text-xs text-muted-foreground">
+                        {fmtEuro(campaignBudgetTotal)} allocated across {filteredCampaigns.length} campaign
+                        {filteredCampaigns.length === 1 ? '' : 's'}
+                        {plan && campaignBudgetTotal > plan.budget && (
+                          <span className="ml-1 font-medium text-destructive">— over the plan budget</span>
+                        )}
+                      </p>
+                    </section>
                     <FilterBar
                       filters={[
                         {

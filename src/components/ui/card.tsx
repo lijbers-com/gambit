@@ -26,6 +26,10 @@ export interface CardWithTabsTab {
   label: React.ReactNode;
   value: string;
   content: React.ReactNode;
+  /** Unread count for this tab. Anything above 0 puts a red dot on the tab so
+   *  the reader sees there is something new without opening it; the number
+   *  shows once there is room for it (9+ above nine, like the header bell). */
+  badgeCount?: number;
 }
 
 export interface CardWithTabsProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -64,7 +68,9 @@ export function CardWithTabs({
               // shrink below its text width and `truncate` ends it with an
               // ellipsis, so a long label never pushes the row to two lines.
               className={cn(
-                'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0 truncate',
+                // inline-flex so the unread badge sits beside the label and
+                // centres with it, rather than floating in the corner.
+                'inline-flex items-center gap-2 px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                 activeTab === tab.value
                   ? 'font-medium bg-white text-card-foreground border-border z-10'
                   : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground'
@@ -75,7 +81,12 @@ export function CardWithTabs({
               title={typeof tab.label === 'string' ? tab.label : undefined}
               type="button"
             >
-              {tab.label}
+              <span className="min-w-0 truncate">{tab.label}</span>
+              {!!tab.badgeCount && tab.badgeCount > 0 && (
+                <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
+                  {tab.badgeCount > 9 ? '9+' : tab.badgeCount}
+                </span>
+              )}
             </button>
           ))}
         </div>

@@ -50,6 +50,12 @@ function persist() {
 }
 
 function notify() {
+  // Mutations edit the document in place (Object.assign on the entity, push
+  // onto an array), which leaves the top-level reference untouched — and
+  // useSyncExternalStore compares snapshots by identity, so React would bail
+  // out and the change would persist without ever reaching the screen. A new
+  // top-level object per write is what makes a mutation visible.
+  if (data) data = { ...data };
   persist();
   listeners.forEach((l) => l());
 }

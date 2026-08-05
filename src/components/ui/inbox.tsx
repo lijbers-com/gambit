@@ -4,6 +4,7 @@ import * as React from 'react';
 import { ChevronRight, Check, Inbox as InboxIcon, WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
+import { FilterBar } from './filter-bar';
 import type { MessageKind, MessageStatus } from '@/lib/db';
 
 /**
@@ -60,7 +61,13 @@ const badgeFor = (item: InboxItem) => {
   return kindBadge[item.kind];
 };
 
-export type InboxFilter = 'all' | 'health' | 'action' | 'recommendation' | 'insight' | 'done';
+/** Kinds a reader can narrow the list to. */
+const KIND_FILTERS: { value: MessageKind; label: string }[] = [
+  { value: 'health', label: 'Health' },
+  { value: 'action', label: 'Actions' },
+  { value: 'recommendation', label: 'Recommendations' },
+  { value: 'insight', label: 'Insights' },
+];
 
 export interface InboxProps {
   items: InboxItem[];
@@ -91,35 +98,32 @@ export const Inbox: React.FC<InboxProps> = ({
   heading,
   className,
 }) => {
-  const [filter, setFilter] = React.useState<InboxFilter>('all');
+  // Type narrows what is shown; status decides whether finished messages are
+  // in scope at all. Both empty means "everything still open" — the way a mail
+  // client shows the inbox rather than the archive.
+  const [kinds, setKinds] = React.useState<string[]>([]);
+  const [statuses, setStatuses] = React.useState<string[]>([]);
 
   const done = items.filter((i) => statusOfItem(i, status) === 'done');
   const open = items.filter((i) => statusOfItem(i, status) !== 'done');
-  // Health is its own kind — a plan's overall standing, not a single to-do.
-  const health = open.filter((i) => i.kind === 'health');
-  const actions = open.filter((i) => i.kind === 'action');
-  const recommendations = open.filter((i) => i.kind === 'recommendation');
-  const insights = open.filter((i) => i.kind === 'insight');
 
   const filtersVisible = showFilters ?? true;
 
-  const visible =
-    filter === 'done' ? done
-    : filter === 'health' ? health
-    : filter === 'action' ? actions
-    : filter === 'recommendation' ? recommendations
-    : filter === 'insight' ? insights
-    : open;
+  const showOpen = statuses.length === 0 || statuses.includes('open');
+  const showDone = statuses.includes('done');
+  const inScope = [...(showOpen ? open : []), ...(showDone ? done : [])];
+  const visible = kinds.length === 0 ? inScope : inScope.filter((i) => kinds.includes(i.kind));
 
-  // All is everything still open — Done is its own view, the way a mail client
-  // separates the inbox from the archive.
-  const filters: { value: InboxFilter; label: string; count: number }[] = [
-    { value: 'all', label: 'All', count: open.length },
-    { value: 'health', label: 'Health', count: health.length },
-    { value: 'action', label: 'Actions', count: actions.length },
-    { value: 'recommendation', label: 'Recommendations', count: recommendations.length },
-    { value: 'insight', label: 'Insights', count: insights.length },
-    { value: 'done', label: 'Done', count: done.length },
+  // Counts sit in the option labels: the standard filter shows the selection in
+  // its trigger, so the numbers belong next to the thing they count.
+  const countOf = (kind: MessageKind) => open.filter((i) => i.kind === kind).length;
+  const kindOptions = KIND_FILTERS.map((f) => ({
+    value: f.value,
+    label: countOf(f.value) > 0 ? `${f.label} (${countOf(f.value)})` : f.label,
+  }));
+  const statusOptions = [
+    { value: 'open', label: open.length > 0 ? `Open (${open.length})` : 'Open' },
+    { value: 'done', label: done.length > 0 ? `Done (${done.length})` : 'Done' },
   ];
 
   return (
@@ -128,34 +132,22 @@ export const Inbox: React.FC<InboxProps> = ({
         <div className="mb-2 text-sm font-medium text-foreground">{heading}</div>
       )}
       {filtersVisible && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {filters.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => setFilter(f.value)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                filter === f.value
-                  ? 'border-foreground bg-foreground text-background'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {f.label} {f.count > 0 && <span className="tabular-nums">({f.count})</span>}
-            </button>
-          ))}
-        </div>
+        <FilterBar
+          className="mb-3"
+          hideSearch
+          filters={[
+            { name: 'Type', options: kindOptions, selectedValues: kinds, onChange: setKinds },
+            { name: 'Status', options: statusOptions, selectedValues: statuses, onChange: setStatuses },
+          ]}
+        />
       )}
 
       {visible.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
           <InboxIcon className="h-5 w-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">
-            {filter === 'done' ? 'Nothing finished yet.'
-              : filter === 'health' ? 'Every plan is healthy.'
-              : filter === 'action' ? 'No actions outstanding.'
-              : filter === 'recommendation' ? 'No recommendations right now.'
-              : filter === 'insight' ? 'No insights yet.'
+            {kinds.length > 0 || statuses.length > 0
+              ? 'Nothing matches these filters.'
               : emptyMessage}
           </p>
         </div>

@@ -694,6 +694,36 @@ export const LineMini = ({
   </div>
 );
 
+/**
+ * One bar per item, standing on a shared baseline — for comparing a rate
+ * (ROAS, CTR) across propositions, where the horizontal variant's stacked
+ * tracks read as a ranking rather than a comparison.
+ */
+export const BarVerticalMini = ({
+  productData,
+}: {
+  productData: NonNullable<MetricCardProps['productData']>;
+}) => {
+  const max = Math.max(...productData.map((d) => d.value), 1);
+  return (
+    <div className="flex h-14 items-end gap-1.5">
+      {productData.slice(0, 6).map((item, i) => (
+        <div key={`${item.name}-${i}`} className="flex h-full flex-1 items-end" title={`${item.name}: ${item.value}`}>
+          <div
+            className="w-full rounded-sm transition-all duration-500"
+            style={{
+              // A zero-value bar still gets a sliver so the proposition is
+              // visibly present rather than missing from the chart.
+              height: `${Math.max((item.value / max) * 100, 4)}%`,
+              backgroundColor: colorFromIndex(i, item.color),
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const BarHorizontalMini = ({
   productData,
 }: {

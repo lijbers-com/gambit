@@ -352,7 +352,7 @@ export const MediaPlanDetail: Story = {
     const conversionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.spend * CONVERSIONS_PER_EURO) }));
     const roasByEngine = byEngine.map((e) => ({
       name: e.name,
-      value: e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
+      value: e.spend > 0 && e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
       color: e.color,
     }));
     const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color }));
@@ -463,10 +463,6 @@ export const MediaPlanDetail: Story = {
           (m) => (inboxStatus[m.id] ?? 'unread') === 'unread',
         ).length
       : 0;
-
-    // What the campaigns add up to, so an edit above can be checked against
-    // the rows below it without doing the sum by hand.
-    const campaignBudgetTotal = filteredCampaigns.reduce((sum, { campaign }) => sum + campaign.budget, 0);
 
     const autoBudget = plan?.autoBudget ?? false;
     /** Split the plan budget across its campaigns and write the result. */
@@ -815,7 +811,7 @@ export const MediaPlanDetail: Story = {
                         the total, so both are editable in the same place. */}
                     <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
                       <div>
-                        <Label className="mb-2 block text-xs text-muted-foreground">Media plan budget</Label>
+                        <Label className="mb-2 block">Media plan budget</Label>
                         <BudgetCell
                           value={plan?.budget ?? 0}
                           onSave={(next) => {
@@ -826,15 +822,16 @@ export const MediaPlanDetail: Story = {
                         />
                       </div>
                       <div>
-                        <Label className="mb-2 block text-xs text-muted-foreground">Media plan run time</Label>
+                        <Label className="mb-2 block">Media plan run time</Label>
                         <DatesCell
                           start={plan?.startDate}
                           end={plan?.endDate}
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
-                      <div className="ml-auto flex items-center gap-6">
-                        <label className="flex items-center gap-2">
+                      <div>
+                        <Label className="mb-2 block">Auto budget allocation</Label>
+                        <div className="flex h-8 items-center">
                           <Switch
                             checked={autoBudget}
                             onCheckedChange={(on) => {
@@ -843,20 +840,7 @@ export const MediaPlanDetail: Story = {
                               if (on) reallocate(plan.budget);
                             }}
                           />
-                          <span className="text-sm">
-                            Auto budget allocation
-                            <span className="block text-xs text-muted-foreground">
-                              Splits the budget across propositions by return
-                            </span>
-                          </span>
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          {fmtEuro(campaignBudgetTotal)} allocated across {filteredCampaigns.length} campaign
-                          {filteredCampaigns.length === 1 ? '' : 's'}
-                          {plan && campaignBudgetTotal > plan.budget && (
-                            <span className="ml-1 font-medium text-destructive">— over the plan budget</span>
-                          )}
-                        </p>
+                        </div>
                       </div>
                     </section>
                     <FilterBar

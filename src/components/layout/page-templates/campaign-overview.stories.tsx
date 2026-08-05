@@ -3,6 +3,8 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
 import { FaqPanel } from '@/components/ui/faq-panel';
+import { SessionDateRange } from '@/components/ui/session-date-range';
+import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { Table } from '@/components/ui/table';
@@ -174,7 +176,14 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     // ── Live campaigns + bookings from the prototype database ──────────
     const db = useDb();
     const engineId = engineTypeToId(engineType);
-    const engineCampaigns = db.campaigns.filter((c) => engineId === 'all' || c.engine === engineId);
+    // The header's date range is session state, so it still applies when the
+    // user arrives here from another overview (see lib/session-filters).
+    const sessionFilters = useSessionFilters();
+    const engineCampaigns = db.campaigns.filter(
+      (c) =>
+        (engineId === 'all' || c.engine === engineId) &&
+        withinSessionRange(sessionFilters, c.startDate, c.endDate),
+    );
 
     const campaignRowsFromDb = engineCampaigns.map((c, i) => {
       const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
@@ -285,10 +294,13 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
           headerRight: (
-            <AdvertiserSelect
-              value={headerAdvertiser}
-              onChange={setHeaderAdvertiser}
-            />
+            <div className="flex items-center gap-2">
+              <SessionDateRange />
+              <AdvertiserSelect
+                value={headerAdvertiser}
+                onChange={setHeaderAdvertiser}
+              />
+            </div>
           ),
         }}
       >

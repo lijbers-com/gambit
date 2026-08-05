@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 7;
+export const SEED_VERSION = 8;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -157,6 +157,41 @@ export const seedData: DbData = {
       startDate: '2026-12-01', endDate: '2026-12-31',
       createdBy: 'u-agency-advertiser', createdAt: now, updatedAt: now,
     },
+    // Plans across the rest of the year. Without flights outside the summer
+    // every date range returns the same rows, and the header's date filter
+    // looks like it does nothing.
+    {
+      id: 'MP-009', name: 'New Year Reset', poNumber: 'PO-2026-0003',
+      advertiserId: 'adv-nestle-trade', brandIds: ['br-nescafe'],
+      status: 'completed', goal: 'awareness', objective: 'merkbekendheid',
+      kpis: ['toma'], budget: 6000,
+      startDate: '2026-01-05', endDate: '2026-02-15',
+      createdBy: 'u-campaign-manager', createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'MP-010', name: 'Coffee Moments — Spring', poNumber: 'PO-2026-0019',
+      advertiserId: 'adv-nestle-trade', brandIds: ['br-nescafe'],
+      status: 'completed', goal: 'loyalty', objective: 'herhaalaankoop',
+      kpis: ['roas', 'frequency'], budget: 8000,
+      startDate: '2026-02-01', endDate: '2026-05-31',
+      createdBy: 'u-account-manager', createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'MP-011', name: 'Early Summer Push', poNumber: 'PO-2026-0047',
+      advertiserId: 'adv-unilever-shopper', brandIds: ['br-magnum'],
+      status: 'running', goal: 'purchase', objective: 'sales-zonder-promo',
+      kpis: ['roas'], budget: 6500, autoBudget: true,
+      startDate: '2026-05-04', endDate: '2026-07-31',
+      createdBy: 'u-campaign-builder', createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'MP-012', name: 'Autumn Season', poNumber: 'PO-2026-0082',
+      advertiserId: 'adv-global-brands', brandIds: ['br-pepsi', 'br-redbull'],
+      status: 'in-option', goal: 'consideration', objective: 'merkoverweging',
+      kpis: ['ctr', 'vcr'], budget: 20000,
+      startDate: '2026-08-24', endDate: '2026-11-30',
+      createdBy: 'u-account-manager', createdAt: now, updatedAt: now,
+    },
   ],
 
   // ── Campaigns (all five engines, varied statuses) ────────────────────
@@ -189,6 +224,19 @@ export const seedData: DbData = {
     { id: 'C-019', mediaPlanId: 'MP-007', name: 'Black Friday — Offsite',              engine: 'offsite',            status: 'draft', budget: 15000, spend: 0, startDate: '2026-11-01', endDate: '2026-11-30', createdAt: now, updatedAt: now },
     // MP-008 Winter Warmers — advertiser draft without budget
     { id: 'C-020', mediaPlanId: 'MP-008', name: 'Winter Warmers — Display',            engine: 'display',            status: 'draft', budget: 0, spend: 0, startDate: '2026-12-01', endDate: '2026-12-31', createdAt: now, updatedAt: now },
+    // A year's worth of history and forward bookings, so the header date range
+    // has something to narrow: without flights outside the summer, every
+    // window would return the same rows and the filter would look broken.
+    { id: 'C-021', mediaPlanId: 'MP-009', name: 'Spring Refresh — Sponsored products', engine: 'sponsored-products', status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', createdAt: now, updatedAt: now },
+    { id: 'C-022', mediaPlanId: 'MP-009', name: 'New Year Reset — Digital in-store',   engine: 'digital-instore',    status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', createdAt: now, updatedAt: now },
+    { id: 'C-023', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offsite',            engine: 'offsite',            status: 'completed', budget: 4200, spend: 4100, startDate: '2026-02-01', endDate: '2026-03-15', createdAt: now, updatedAt: now },
+    { id: 'C-024', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offline in-store',   engine: 'offline-instore',    status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', createdAt: now, updatedAt: now },
+    { id: 'C-025', mediaPlanId: 'MP-011', name: 'Summer Launch — Digital in-store',    engine: 'digital-instore',    status: 'running',   budget: 2800, spend: 900,  startDate: '2026-05-04', endDate: '2026-06-30', createdAt: now, updatedAt: now },
+    { id: 'C-026', mediaPlanId: 'MP-011', name: 'Ice Cream Summer — Sponsored products', engine: 'sponsored-products', status: 'paused',  budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', createdAt: now, updatedAt: now },
+    { id: 'C-027', mediaPlanId: 'MP-012', name: 'Back to School — Offsite',            engine: 'offsite',            status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
+    { id: 'C-028', mediaPlanId: 'MP-012', name: 'Back to School — Offline in-store',   engine: 'offline-instore',    status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', createdAt: now, updatedAt: now },
+    { id: 'C-029', mediaPlanId: 'MP-012', name: 'Black Friday — Digital in-store',     engine: 'digital-instore',    status: 'draft',     budget: 6000, spend: 0,    startDate: '2026-11-20', endDate: '2026-11-30', createdAt: now, updatedAt: now },
+    { id: 'C-030', mediaPlanId: 'MP-012', name: 'Winter Warmers — Offsite',            engine: 'offsite',            status: 'draft',     budget: 3500, spend: 0,    startDate: '2026-10-05', endDate: '2026-11-15', createdAt: now, updatedAt: now },
   ],
 
   // ── Bookings ─────────────────────────────────────────────────────────
@@ -219,6 +267,18 @@ export const seedData: DbData = {
     // Ice Cream Summer (paused)
     { id: 'B-019', campaignId: 'C-015', name: 'Homepage Takeover',          status: 'paused',    budget: 5000, spend: 2600, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-dsp-home-mid'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-020', campaignId: 'C-016', name: 'Shelf Displays — Ice cream', status: 'paused',    budget: 4000, spend: 1800, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-shelf'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    // Bookings for the campaigns above, spread across the year for the same
+    // reason: a date range should visibly change what the table holds.
+    { id: 'B-021', campaignId: 'C-021', name: 'Search — New Year',           status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-022', campaignId: 'C-022', name: 'Entrance Screens — January',  status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-023', campaignId: 'C-023', name: 'Open Web — Coffee',           status: 'completed', budget: 2400, spend: 2350, startDate: '2026-02-01', endDate: '2026-03-15', positionIds: ['pos-off-web-standard'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-024', campaignId: 'C-023', name: 'Social — Coffee moments',     status: 'completed', budget: 1800, spend: 1750, startDate: '2026-02-10', endDate: '2026-03-15', positionIds: ['pos-off-soc-meta'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-025', campaignId: 'C-024', name: 'Floor Graphics — Spring',     status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-026', campaignId: 'C-025', name: 'Aisle Screens — Summer',      status: 'running',   budget: 2800, spend: 900,  startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-027', campaignId: 'C-026', name: 'Search — Ice cream',          status: 'paused',    budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-028', campaignId: 'C-027', name: 'Open Web — Back to school',   status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', positionIds: ['pos-off-web-standard'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
+    { id: 'B-029', campaignId: 'C-028', name: 'Shelf Displays — September',  status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', positionIds: ['pos-ois-shelf'],    creativeStatus: 'missing',   createdAt: now, updatedAt: now },
+    { id: 'B-030', campaignId: 'C-030', name: 'Open Web — Winter',           status: 'draft',     budget: 3500, spend: 0,    startDate: '2026-10-05', endDate: '2026-11-15', positionIds: [],                   creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     // Black Friday: campaigns exist, bookings deliberately absent (create-flow demo)
   ],
 

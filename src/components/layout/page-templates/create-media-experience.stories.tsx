@@ -1133,9 +1133,9 @@ export const GoalSelection: Story = {
                       {/* Offered at the point the budget is set, so the choice
                           is made once rather than discovered later on the plan. */}
                       <label className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
-                        <span className="text-sm">
+                        <span className="text-sm font-medium leading-none">
                           Auto budget allocation
-                          <span className="mt-1 block text-xs text-muted-foreground">
+                          <span className="mt-1 block text-xs font-normal text-muted-foreground">
                             Splits the budget across your propositions by the return each one delivers, and
                             keeps rebalancing it. Setting a campaign budget by hand switches it off.
                           </span>

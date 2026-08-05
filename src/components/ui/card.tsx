@@ -732,6 +732,8 @@ export const BarVerticalMini = ({
 }) => {
   const max = Math.max(...productData.map((d) => d.value), 1);
   const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
+  // Nothing delivered yet: keep the shape, drop the colour and the ranking.
+  const empty = productData.every((d) => d.value === 0);
   return (
     <div className="flex h-16 items-end gap-1.5">
       {productData.slice(0, 6).map((item, i) => (
@@ -746,8 +748,8 @@ export const BarVerticalMini = ({
             style={{
               // A zero-value bar still gets a sliver so the proposition is
               // visibly present rather than missing from the chart.
-              height: `${Math.max((item.value / max) * 100, 4)}%`,
-              backgroundColor: colorFromIndex(i, item.color),
+              height: empty ? '20%' : `${Math.max((item.value / max) * 100, 4)}%`,
+              backgroundColor: empty ? 'rgb(var(--neutral-200))' : colorFromIndex(i, item.color),
             }}
           />
         </div>
@@ -882,12 +884,17 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           const topShare = donutTotal > 0
             ? Math.round((Math.max(...donutData.map((d) => d.value)) / donutTotal) * 100)
             : 0;
+          // A donut of zeroes draws nothing at all, so an empty plan loses the
+          // card's shape entirely. Draw the ring in grey instead — the same
+          // move the budget bar makes with its unspent track.
+          const donutSlices = donutTotal > 0 ? donutData : [{ name: 'No data', value: 1 }];
+          const donutFills = donutTotal > 0 ? donutColors : ['rgb(var(--neutral-200))'];
           return (
           <div className="relative mt-4 aspect-square w-20">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={donutData}
+                  data={donutSlices}
                   cx="50%"
                   cy="50%"
                   innerRadius="68%"
@@ -897,11 +904,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                   startAngle={90}
                   endAngle={-270}
                 >
-                  {donutData.map((_, index) => (
+                  {donutSlices.map((_, index) => (
                     <Cell
                       key={index}
                       fill={
-                        donutColors?.[index] ??
+                        donutFills?.[index] ??
                         (index === 0
                           ? 'hsl(var(--chart-1))'
                           : 'hsl(var(--chart-2))')

@@ -10,6 +10,8 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { SessionDateRange } from '@/components/ui/session-date-range';
+import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import * as React from 'react';
@@ -67,30 +69,30 @@ type BookingRow = {
 // filter this by `engine`.
 const bookingData: BookingRow[] = [
   // Sponsored products
-  { id: 'LI-101', status: 'Running',   engine: 'sponsored-products', advertiser: 'Acme Media',  campaign: 'Holiday Top Picks',     campaignId: 'C-001', name: 'Homepage hero',     placement: 'Search results top',  start: '2024-06-01', end: '2024-06-30', spend: 4200,  impressions: 240000,  aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-102', status: 'Ready',     engine: 'sponsored-products', advertiser: 'BrandX',      campaign: 'Summer Featured',       campaignId: 'C-002', name: 'Category leaderboard', placement: 'Category page top', start: '2024-07-01', end: '2024-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'Increase Spend' },
-  { id: 'LI-103', status: 'In-option', engine: 'sponsored-products', advertiser: 'MediaWorks',  campaign: 'Back to School Promos', campaignId: 'C-003', name: 'Aisle endcaps',     placement: 'Product detail',      start: '2024-08-10', end: '2024-09-10', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
-  { id: 'LI-104', status: 'Paused',    engine: 'sponsored-products', advertiser: 'AdPartners',  campaign: 'BF Deal Listings',      campaignId: 'C-004', name: 'BF deals row',      placement: 'Homepage rail',       start: '2024-11-01', end: '2024-11-30', spend: 6800,  impressions: 380000,  aiRecommendation: 'Extend' },
+  { id: 'LI-101', status: 'Running',   engine: 'sponsored-products', advertiser: 'Acme Media',  campaign: 'Holiday Top Picks',     campaignId: 'C-001', name: 'Homepage hero',     placement: 'Search results top',  start: '2026-06-01', end: '2026-06-30', spend: 4200,  impressions: 240000,  aiRecommendation: 'Optimize Budget' },
+  { id: 'LI-102', status: 'Ready',     engine: 'sponsored-products', advertiser: 'BrandX',      campaign: 'Summer Featured',       campaignId: 'C-002', name: 'Category leaderboard', placement: 'Category page top', start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'Increase Spend' },
+  { id: 'LI-103', status: 'In-option', engine: 'sponsored-products', advertiser: 'MediaWorks',  campaign: 'Back to School Promos', campaignId: 'C-003', name: 'Aisle endcaps',     placement: 'Product detail',      start: '2026-08-10', end: '2026-09-10', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
+  { id: 'LI-104', status: 'Paused',    engine: 'sponsored-products', advertiser: 'AdPartners',  campaign: 'BF Deal Listings',      campaignId: 'C-004', name: 'BF deals row',      placement: 'Homepage rail',       start: '2026-11-01', end: '2026-11-30', spend: 6800,  impressions: 380000,  aiRecommendation: 'Extend' },
 
   // Display
-  { id: 'LI-201', status: 'Running',   engine: 'display',            advertiser: 'Acme Media',  campaign: 'Holiday Banners',       campaignId: 'C-001', name: 'Homepage takeover', placement: 'Homepage top',        start: '2024-06-01', end: '2024-06-30', spend: 5400,  impressions: 720000,  aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-202', status: 'Running',   engine: 'display',            advertiser: 'BrandX',      campaign: 'Summer Banners',        campaignId: 'C-002', name: 'Category banner',   placement: 'Category page',       start: '2024-07-01', end: '2024-07-31', spend: 2100,  impressions: 290000,  aiRecommendation: 'Increase Spend' },
-  { id: 'LI-203', status: 'Paused',    engine: 'display',            advertiser: 'AdPartners',  campaign: 'BF Homepage Takeover',  campaignId: 'C-004', name: 'BF homepage',       placement: 'Homepage hero',       start: '2024-11-01', end: '2024-11-30', spend: 7600,  impressions: 980000,  aiRecommendation: 'Extend' },
-  { id: 'LI-204', status: 'Ready',     engine: 'display',            advertiser: 'BrandX',      campaign: 'NY Retargeting Banners',campaignId: 'C-005', name: 'NY retargeting',    placement: 'Run of site',         start: '2025-01-01', end: '2025-01-31', spend: 700,   impressions: 110000,  aiRecommendation: 'No action' },
+  { id: 'LI-201', status: 'Running',   engine: 'display',            advertiser: 'Acme Media',  campaign: 'Holiday Banners',       campaignId: 'C-001', name: 'Homepage takeover', placement: 'Homepage top',        start: '2026-06-01', end: '2026-06-30', spend: 5400,  impressions: 720000,  aiRecommendation: 'Optimize Budget' },
+  { id: 'LI-202', status: 'Running',   engine: 'display',            advertiser: 'BrandX',      campaign: 'Summer Banners',        campaignId: 'C-002', name: 'Category banner',   placement: 'Category page',       start: '2026-07-01', end: '2026-07-31', spend: 2100,  impressions: 290000,  aiRecommendation: 'Increase Spend' },
+  { id: 'LI-203', status: 'Paused',    engine: 'display',            advertiser: 'AdPartners',  campaign: 'BF Homepage Takeover',  campaignId: 'C-004', name: 'BF homepage',       placement: 'Homepage hero',       start: '2026-11-01', end: '2026-11-30', spend: 7600,  impressions: 980000,  aiRecommendation: 'Extend' },
+  { id: 'LI-204', status: 'Ready',     engine: 'display',            advertiser: 'BrandX',      campaign: 'NY Retargeting Banners',campaignId: 'C-005', name: 'NY retargeting',    placement: 'Run of site',         start: '2026-01-01', end: '2026-01-31', spend: 700,   impressions: 110000,  aiRecommendation: 'No action' },
 
   // Digital in-store
-  { id: 'LI-301', status: 'Running',   engine: 'digital-instore',    advertiser: 'Acme Media',  campaign: 'Holiday Screens',       campaignId: 'C-001', name: 'XL store loop',     placement: 'Aisle screens',       start: '2024-06-01', end: '2024-06-30', spend: 1200,  impressions: 84000,   aiRecommendation: 'No action' },
-  { id: 'LI-302', status: 'Ready',     engine: 'digital-instore',    advertiser: 'BrandX',      campaign: 'Summer Kiosks',         campaignId: 'C-002', name: 'Entry kiosks',      placement: 'Front of store',      start: '2024-07-01', end: '2024-07-31', spend: 625,   impressions: 41000,   aiRecommendation: 'Increase Spend' },
-  { id: 'LI-303', status: 'Paused',    engine: 'digital-instore',    advertiser: 'AdPartners',  campaign: 'BF Store Screens',      campaignId: 'C-004', name: 'BF aisle loop',     placement: 'Aisle endcaps',       start: '2024-11-01', end: '2024-11-30', spend: 4800,  impressions: 280000,  aiRecommendation: 'Pause' },
+  { id: 'LI-301', status: 'Running',   engine: 'digital-instore',    advertiser: 'Acme Media',  campaign: 'Holiday Screens',       campaignId: 'C-001', name: 'XL store loop',     placement: 'Aisle screens',       start: '2026-06-01', end: '2026-06-30', spend: 1200,  impressions: 84000,   aiRecommendation: 'No action' },
+  { id: 'LI-302', status: 'Ready',     engine: 'digital-instore',    advertiser: 'BrandX',      campaign: 'Summer Kiosks',         campaignId: 'C-002', name: 'Entry kiosks',      placement: 'Front of store',      start: '2026-07-01', end: '2026-07-31', spend: 625,   impressions: 41000,   aiRecommendation: 'Increase Spend' },
+  { id: 'LI-303', status: 'Paused',    engine: 'digital-instore',    advertiser: 'AdPartners',  campaign: 'BF Store Screens',      campaignId: 'C-004', name: 'BF aisle loop',     placement: 'Aisle endcaps',       start: '2026-11-01', end: '2026-11-30', spend: 4800,  impressions: 280000,  aiRecommendation: 'Pause' },
 
   // Offline in-store
-  { id: 'LI-401', status: 'Running',   engine: 'offline-instore',    advertiser: 'Acme Media',  campaign: 'Holiday POS',           campaignId: 'C-001', name: 'Shelf talkers',     placement: 'Shelf strips',        start: '2024-06-01', end: '2024-06-30', spend: 380,   impressions: 12000,   aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-402', status: 'In-option', engine: 'offline-instore',    advertiser: 'BrandX',      campaign: 'Summer POS',            campaignId: 'C-002', name: 'Floor decals',      placement: 'Aisle floor',         start: '2024-07-01', end: '2024-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
-  { id: 'LI-403', status: 'Paused',    engine: 'offline-instore',    advertiser: 'AdPartners',  campaign: 'BF Shelf Talkers',      campaignId: 'C-004', name: 'BF shelf strips',   placement: 'Shelf strips',        start: '2024-11-01', end: '2024-11-30', spend: 3850, impressions: 96000,    aiRecommendation: 'Extend' },
+  { id: 'LI-401', status: 'Running',   engine: 'offline-instore',    advertiser: 'Acme Media',  campaign: 'Holiday POS',           campaignId: 'C-001', name: 'Shelf talkers',     placement: 'Shelf strips',        start: '2026-06-01', end: '2026-06-30', spend: 380,   impressions: 12000,   aiRecommendation: 'Optimize Budget' },
+  { id: 'LI-402', status: 'In-option', engine: 'offline-instore',    advertiser: 'BrandX',      campaign: 'Summer POS',            campaignId: 'C-002', name: 'Floor decals',      placement: 'Aisle floor',         start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
+  { id: 'LI-403', status: 'Paused',    engine: 'offline-instore',    advertiser: 'AdPartners',  campaign: 'BF Shelf Talkers',      campaignId: 'C-004', name: 'BF shelf strips',   placement: 'Shelf strips',        start: '2026-11-01', end: '2026-11-30', spend: 3850, impressions: 96000,    aiRecommendation: 'Extend' },
 
   // Offsite
-  { id: 'LI-501', status: 'Running',   engine: 'offsite',            advertiser: 'Acme Media',  campaign: 'Holiday Open Web',      campaignId: 'C-001', name: 'Open web banners',  placement: 'Programmatic',        start: '2024-06-01', end: '2024-06-30', spend: 150,   impressions: 380000,  aiRecommendation: 'Increase Spend' },
-  { id: 'LI-502', status: 'Stopped',   engine: 'offsite',            advertiser: 'AdPartners',  campaign: 'BF Open Web',           campaignId: 'C-004', name: 'BF retargeting',    placement: 'Programmatic',        start: '2024-11-01', end: '2024-11-30', spend: 1240,  impressions: 1100000, aiRecommendation: 'Pause' },
+  { id: 'LI-501', status: 'Running',   engine: 'offsite',            advertiser: 'Acme Media',  campaign: 'Holiday Open Web',      campaignId: 'C-001', name: 'Open web banners',  placement: 'Programmatic',        start: '2026-06-01', end: '2026-06-30', spend: 150,   impressions: 380000,  aiRecommendation: 'Increase Spend' },
+  { id: 'LI-502', status: 'Stopped',   engine: 'offsite',            advertiser: 'AdPartners',  campaign: 'BF Open Web',           campaignId: 'C-004', name: 'BF retargeting',    placement: 'Programmatic',        start: '2026-11-01', end: '2026-11-30', spend: 1240,  impressions: 1100000, aiRecommendation: 'Pause' },
 ];
 
 const statusVariant = (status: BookingRow['status']) => {
@@ -154,9 +156,14 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     const [activeTab, setActiveTab] = React.useState<string>('bookings');
     const [search, setSearch] = React.useState<string>('');
 
+    // Same session-wide range the campaign overview uses, so the window a user
+    // set there is still applied here (see lib/session-filters).
+    const sessionFilters = useSessionFilters();
+
     const normalizedEngine = normalizeEngine(engineType);
     const filteredBookingData = bookingData.filter((row) => {
       const engineMatch = normalizedEngine === 'all' || row.engine === normalizedEngine;
+      const dateMatch = withinSessionRange(sessionFilters, row.start, row.end);
       const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
       const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
       const aiMatch = aiRec.length === 0 || aiRec.includes(row.aiRecommendation.toLowerCase().replace(/ /g, '-'));
@@ -165,7 +172,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
         row.name.toLowerCase().includes(search.toLowerCase()) ||
         row.id.toLowerCase().includes(search.toLowerCase()) ||
         row.campaign.toLowerCase().includes(search.toLowerCase());
-      return engineMatch && statusMatch && advertiserMatch && aiMatch && searchMatch;
+      return engineMatch && dateMatch && statusMatch && advertiserMatch && aiMatch && searchMatch;
     });
 
     return (
@@ -185,10 +192,13 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
             headerRight: (
-              <AdvertiserSelect
-                value={headerAdvertiser}
-                onChange={setHeaderAdvertiser}
-              />
+              <div className="flex items-center gap-2">
+                <SessionDateRange />
+                <AdvertiserSelect
+                  value={headerAdvertiser}
+                  onChange={setHeaderAdvertiser}
+                />
+              </div>
             ),
           }}
         >

@@ -619,6 +619,9 @@ export const BudgetStackedDetail = ({
 // click-to-expand panel below the row.
 
 /** Multi-color stacked bar: per-proposition spend vs total budget. */
+/** Shared styling for the small figures on the mini charts. */
+const CHART_FIGURE = 'text-[11px] font-medium tabular-nums text-muted-foreground';
+
 export const BudgetStackedMini = ({
   budgetData,
   caption,
@@ -632,7 +635,7 @@ export const BudgetStackedMini = ({
   return (
     <div>
     {caption && (
-      <div className="mb-1 text-[10px] font-medium text-muted-foreground">{caption}</div>
+      <div className={cn('mb-1', CHART_FIGURE)}>{caption}</div>
     )}
     <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
       {budgetData.map((d, i) => (
@@ -724,7 +727,7 @@ export const BarVerticalMini = ({
         <div key={`${item.name}-${i}`} className="flex h-full flex-1 flex-col justify-end" title={`${item.name}: ${fmt(item.value)}`}>
           {/* The bars compare, the figure states — without it the reader can
               rank the propositions but can't name any of the values. */}
-          <div className="mb-0.5 truncate text-center text-[10px] font-medium tabular-nums text-muted-foreground">
+          <div className={cn('mb-0.5 truncate text-center', CHART_FIGURE)}>
             {fmt(item.value)}
           </div>
           <div
@@ -915,7 +918,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="text-[11px] font-semibold tabular-nums text-foreground">{topShare}%</span>
+              <span className={cn(CHART_FIGURE, 'font-semibold text-foreground')}>{topShare}%</span>
             </div>
           </div>
           );

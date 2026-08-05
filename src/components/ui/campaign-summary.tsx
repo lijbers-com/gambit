@@ -15,7 +15,7 @@ import {
   BarHorizontalDetail,
   BudgetStackedMini,
   DonutMini,
-  BarHorizontalMini,
+  BarVerticalMini,
 } from './card';
 import { MetricRow, MetricDefinition } from './metric-row';
 import { Badge } from './badge';
@@ -1319,7 +1319,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     key: 'impressions',
                     label: 'Impressions',
                     value: estReach,
-                    subMetric: 'Media plan',
                     // Pie per engine, under the headline figure — the number says
                     // how much, the donut says where it came from.
                     variant: 'donut',
@@ -1340,7 +1339,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     key: 'conversions',
                     label: 'Conversions',
                     value: hasBudget ? fmtNumber(conversionsNum) : '—',
-                    subMetric: 'Media plan',
                     variant: 'donutLegend',
                     donutData: conversionsByEngine,
                     donutColors: propositionColors,
@@ -1367,12 +1365,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     value: estRoas,
                     // Weighted-average ROAS at the Media-plan level isn't quite right;
                     // the per-proposition breakdown lives in the expand-on-click panel.
-                    subMetric: 'Media plan (weighted)',
                     variant: 'barHorizontal',
                     productData: roasByEngine,
                     totalRow: { label: 'Media plan', value: estRoasNum },
                     valueFormatter: fmtRoas,
-                    chart: <BarHorizontalMini productData={roasByEngine} />,
+                    chart: <BarVerticalMini productData={roasByEngine} valueFormatter={fmtRoas} />,
                     expandedContent: (
                       <BarHorizontalDetail
                         productData={roasByEngine}

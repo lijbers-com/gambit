@@ -621,11 +621,19 @@ export const BudgetStackedDetail = ({
 /** Multi-color stacked bar: per-proposition spend vs total budget. */
 export const BudgetStackedMini = ({
   budgetData,
+  caption,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
+  /** Small line above the bar — where the bar's own scale is stated, so the
+   *  card keeps the same shape as the others: figure, then chart. */
+  caption?: React.ReactNode;
 }) => {
   const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
   return (
+    <div>
+    {caption && (
+      <div className="mb-1 text-[10px] font-medium text-muted-foreground">{caption}</div>
+    )}
     <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
       {budgetData.map((d, i) => (
         <div
@@ -637,6 +645,7 @@ export const BudgetStackedMini = ({
         />
       ))}
       <div className="flex-1" style={{ backgroundColor: 'rgb(var(--neutral-200))' }} />
+    </div>
     </div>
   );
 };

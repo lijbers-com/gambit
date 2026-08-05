@@ -363,6 +363,9 @@ export const GoalSelection: Story = {
     // Step 1: Setup
     const [campaignName, setCampaignName] = React.useState('');
     const [poNumber, setPoNumber] = React.useState('');
+  // On by default: a first-time planner is better served by a sensible split
+  // than by an empty budget per proposition.
+  const [autoBudget, setAutoBudget] = React.useState(true);
 
     // Step 2: Advertiser
     const [selectedAdvertiser, setSelectedAdvertiser] = React.useState('');
@@ -666,6 +669,7 @@ export const GoalSelection: Story = {
         advertiserId: advertiser.id,
         brandIds,
         status: 'in-option',
+        autoBudget,
         goal: selectedGoal ?? undefined,
         objective: selectedObjective ?? undefined,
         kpis: selectedKpis,
@@ -1126,6 +1130,18 @@ export const GoalSelection: Story = {
                           The maximum total amount for the entire campaign duration
                         </div>
                       </div>
+                      {/* Offered at the point the budget is set, so the choice
+                          is made once rather than discovered later on the plan. */}
+                      <label className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+                        <span className="text-sm">
+                          Auto budget allocation
+                          <span className="mt-1 block text-xs text-muted-foreground">
+                            Splits the budget across your propositions by the return each one delivers, and
+                            keeps rebalancing it. Setting a campaign budget by hand switches it off.
+                          </span>
+                        </span>
+                        <Switch checked={autoBudget} onCheckedChange={setAutoBudget} />
+                      </label>
                       <OptimisationCard
                         assisted={assistedExperience}
                         onToggle={setAssisted}

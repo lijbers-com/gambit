@@ -25,6 +25,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
+import { Switch } from '@/components/ui/switch';
+import { allocateBudget } from '@/lib/budget-allocation';
 import { Euro, Lock } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -171,7 +173,7 @@ const BudgetCell = ({ value, onSave }: { value: number; onSave: (next: number) =
       }}
       onClick={(e) => e.stopPropagation()}
       aria-label="Budget"
-      className="w-24 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm tabular-nums transition-colors hover:border-input focus:border-input focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+      className="w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
     />
   );
 };
@@ -195,7 +197,7 @@ const DatesCell = ({
         }
       }}
       showPresets={false}
-      className="h-8 border-transparent bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none hover:border-input hover:bg-transparent"
+      className="h-8 px-2 text-sm font-normal"
       placeholder="Set run time"
     />
   </div>
@@ -466,6 +468,21 @@ export const MediaPlanDetail: Story = {
     // the rows below it without doing the sum by hand.
     const campaignBudgetTotal = filteredCampaigns.reduce((sum, { campaign }) => sum + campaign.budget, 0);
 
+    const autoBudget = plan?.autoBudget ?? false;
+    /** Split the plan budget across its campaigns and write the result. */
+    const reallocate = (planBudget: number) => {
+      if (!plan) return;
+      const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+      const shares = allocateBudget({
+        planBudget,
+        campaigns: planCampaigns,
+        // Weight by what each proposition returns, using the same per-engine
+        // ROAS the metric row shows.
+        roasFor: (c) => roasByEngine.find((r) => r.name === propositionMeta[c.engine].label)?.value ?? 1,
+      });
+      Object.entries(shares).forEach(([id, budget]) => updateCampaign(id, { budget }));
+    };
+
     // Flatten campaigns + (when expanded) their bookings into the table's rows.
     // Engine → route segment, shared by the add-booking jump and the row links.
     const routeSeg: Record<EngineId, string> = {
@@ -589,7 +606,16 @@ export const MediaPlanDetail: Story = {
         key: 'budget', header: 'Budget',
         render: (r) => r._type !== 'campaign' || r.budgetValue === undefined
           ? (r._type === 'add' ? null : <span className="tabular-nums">{r.budget}</span>)
-          : <BudgetCell value={r.budgetValue} onSave={(next) => updateCampaign(r._id, { budget: next })} />,
+          : (
+            <BudgetCell
+              value={r.budgetValue}
+              onSave={(next) => {
+                updateCampaign(r._id, { budget: next });
+                // A hand-set number means the split is no longer automatic.
+                if (plan?.autoBudget) updateMediaPlan(plan.id, { autoBudget: false });
+              }}
+            />
+          ),
       },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
       {
@@ -764,22 +790,6 @@ export const MediaPlanDetail: Story = {
                       </div>
                     </FormSection>
 
-                    <FormSection title="Run time & budget" bordered>
-                      <div className="space-y-6">
-                        <div className="space-y-2">
-                          <Label>Run time</Label>
-                          <DateRangePicker dateRange={runTime} onDateRangeChange={setRunTime} placeholder="Select run time" showPresets presets={futureDateRangePresets} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="mp-budget">Total budget</Label>
-                          <div className="relative">
-                            <Euro className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input id="mp-budget" type="number" value={budgetAmount} onChange={(e) => setBudgetAmount(e.target.value)} className="pl-9 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]" />
-                          </div>
-                        </div>
-                      </div>
-                    </FormSection>
-
                     <div className="flex justify-end gap-3">
                       <Button variant="outline">Cancel</Button>
                       <Button onClick={savePlan}>Save changes</Button>
@@ -808,7 +818,11 @@ export const MediaPlanDetail: Story = {
                         <Label className="mb-2 block text-xs text-muted-foreground">Media plan budget</Label>
                         <BudgetCell
                           value={plan?.budget ?? 0}
-                          onSave={(next) => plan && updateMediaPlan(plan.id, { budget: next })}
+                          onSave={(next) => {
+                            if (!plan) return;
+                            updateMediaPlan(plan.id, { budget: next });
+                            if (autoBudget) reallocate(next);
+                          }}
                         />
                       </div>
                       <div>
@@ -819,13 +833,31 @@ export const MediaPlanDetail: Story = {
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
-                      <p className="ml-auto text-xs text-muted-foreground">
-                        {fmtEuro(campaignBudgetTotal)} allocated across {filteredCampaigns.length} campaign
-                        {filteredCampaigns.length === 1 ? '' : 's'}
-                        {plan && campaignBudgetTotal > plan.budget && (
-                          <span className="ml-1 font-medium text-destructive">— over the plan budget</span>
-                        )}
-                      </p>
+                      <div className="ml-auto flex items-center gap-6">
+                        <label className="flex items-center gap-2">
+                          <Switch
+                            checked={autoBudget}
+                            onCheckedChange={(on) => {
+                              if (!plan) return;
+                              updateMediaPlan(plan.id, { autoBudget: on });
+                              if (on) reallocate(plan.budget);
+                            }}
+                          />
+                          <span className="text-sm">
+                            Auto budget allocation
+                            <span className="block text-xs text-muted-foreground">
+                              Splits the budget across propositions by return
+                            </span>
+                          </span>
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {fmtEuro(campaignBudgetTotal)} allocated across {filteredCampaigns.length} campaign
+                          {filteredCampaigns.length === 1 ? '' : 's'}
+                          {plan && campaignBudgetTotal > plan.budget && (
+                            <span className="ml-1 font-medium text-destructive">— over the plan budget</span>
+                          )}
+                        </p>
+                      </div>
                     </section>
                     <FilterBar
                       filters={[

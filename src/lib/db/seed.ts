@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 7;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -113,7 +113,7 @@ export const seedData: DbData = {
       id: 'MP-003', name: 'Summer Launch Plan', poNumber: 'PO-2026-0055',
       advertiserId: 'adv-brand-alliance', brandIds: ['br-knorr'],
       status: 'running', goal: 'consideration', objective: 'merkoverweging',
-      kpis: ['ctr', 'vcr'], budget: 8000,
+      kpis: ['ctr', 'vcr'], budget: 8000, autoBudget: true,
       startDate: '2026-07-01', endDate: '2026-08-31',
       createdBy: 'u-campaign-manager', createdAt: now, updatedAt: now,
     },
@@ -121,7 +121,7 @@ export const seedData: DbData = {
       id: 'MP-004', name: 'Back to School Plan', poNumber: 'PO-2026-0061',
       advertiserId: 'adv-global-brands', brandIds: ['br-pepsi'],
       status: 'in-option', goal: 'purchase', objective: 'sales-zonder-promo',
-      kpis: ['roas', 'sales-lift'], budget: 12000,
+      kpis: ['roas', 'sales-lift'], budget: 12000, autoBudget: true,
       startDate: '2026-08-10', endDate: '2026-09-10',
       createdBy: 'u-campaign-builder', createdAt: now, updatedAt: now,
     },

@@ -97,6 +97,13 @@ export interface MediaPlan {
   kpis: string[];
   /** Total budget in euros. */
   budget: number;
+  /**
+   * Let the platform split the budget across the plan's propositions instead
+   * of the user setting each campaign by hand. Editing a campaign budget turns
+   * it off — the moment a number is set by hand the split is no longer
+   * automatic, and silently overwriting that edit would be worse than stopping.
+   */
+  autoBudget?: boolean;
   startDate: string; // ISO yyyy-mm-dd
   endDate: string;
   createdBy?: string; // DbUser id

@@ -20,6 +20,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/*
+          Set the theme before the browser paints.
+          ThemeProvider applies data-theme in an effect, which is after the
+          first paint — so every load flashed the unthemed default (white)
+          and then repainted in the brand colour, side navigation included.
+          This runs synchronously in <head>, so the very first frame already
+          has the right variables. It mirrors ThemeProvider's name mapping;
+          if the two ever diverge the effect corrects it a moment later.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m={'gambit':'retailMedia','albert-heijn':'albertHeijn','adusa':'adusa','delhaize':'delhaize','alfa-beta':'alfaBeta'};var t=localStorage.getItem('gambit-theme');var a=m[t]||'retailMedia';document.documentElement.setAttribute('data-theme',a);}catch(e){document.documentElement.setAttribute('data-theme','retailMedia');}})();`,
+          }}
+        />
+      </head>
       <body>
         {/* EpicContext Widget — beforeInteractive places these in <head> */}
         <Script id="epiccontext-config" strategy="beforeInteractive">

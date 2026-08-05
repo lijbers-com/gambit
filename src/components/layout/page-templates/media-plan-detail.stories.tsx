@@ -310,7 +310,8 @@ export const MediaPlanDetail: Story = {
       {
         key: 'budget',
         label: 'Budget',
-        subMetric: `${fmtK(planSpend)} of ${fmtK(plan?.budget ?? 0)} budget`,
+        value: fmtK(planSpend),
+        subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`,
         badgeValue: `${spentPct}%`,
         badgeVariant: 'secondary',
         variant: 'budgetStacked',
@@ -322,7 +323,8 @@ export const MediaPlanDetail: Story = {
       {
         key: 'impressions',
         label: 'Impressions',
-        subMetric: `${fmtNumberCompact(impressionsTotal)} media plan`,
+        value: fmtNumberCompact(impressionsTotal),
+        subMetric: 'media plan',
         variant: 'donut',
         donutData: impressionsByEngine,
         donutColors: propositionColors,
@@ -340,7 +342,8 @@ export const MediaPlanDetail: Story = {
       {
         key: 'conversions',
         label: 'Conversions',
-        subMetric: `${fmtNumberCompact(conversionsTotal)} media plan`,
+        value: fmtNumberCompact(conversionsTotal),
+        subMetric: 'media plan',
         variant: 'donut',
         donutData: conversionsByEngine,
         donutColors: propositionColors,
@@ -358,10 +361,11 @@ export const MediaPlanDetail: Story = {
       {
         key: 'roas',
         label: 'ROAS',
-        subMetric: `${fmtRoasValue(roasWeighted)} media plan (weighted)`,
+        value: fmtRoasValue(roasWeighted),
+        subMetric: 'media plan (weighted)',
         variant: 'barHorizontal',
         productData: roasByEngine,
-        chart: <BarVerticalMini productData={roasByEngine} />,
+        chart: <BarVerticalMini productData={roasByEngine} valueFormatter={fmtRoasValue} />,
         totalRow: { label: 'Media plan', value: roasWeighted },
         valueFormatter: fmtRoasValue,
         expandedContent: (

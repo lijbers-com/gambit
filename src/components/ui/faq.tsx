@@ -26,16 +26,32 @@ export interface FaqProps {
   items: FaqItem[];
   /** Heading above the list. Pass `null` to render the questions alone. */
   heading?: React.ReactNode;
-  /** Opened by default — use for a single-question block that is the point of
-   *  the section rather than an aside. */
-  defaultOpenId?: string;
+  /** Which question starts open. Defaults to the first — a collapsed block of
+   *  bare questions gives the reader nothing, and the first answer shows what
+   *  kind of help this is. Pass `null` to start fully collapsed. */
+  defaultOpenId?: string | null;
   className?: string;
 }
 
 export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked questions', defaultOpenId, className }) => {
-  const [openId, setOpenId] = React.useState<string | null>(defaultOpenId ?? null);
+  // `undefined` means the reader hasn't touched the list yet, so the default
+  // applies; `null` means they deliberately closed it. Collapsing the first
+  // question has to stick, which it can't if "nothing open" and "not chosen
+  // yet" are the same value.
+  const [chosenId, setChosenId] = React.useState<string | null | undefined>(undefined);
 
   if (items.length === 0) return null;
+
+  // The default: the first question, unless the caller asked for another one
+  // or for none at all.
+  const fallbackId = defaultOpenId === null ? null : defaultOpenId ?? items[0].id;
+  // The list changes when the reader switches tab or step, and a chosen id may
+  // not be in the new set — fall back rather than render nothing open.
+  const activeId =
+    chosenId === undefined ? fallbackId
+    : chosenId === null ? null
+    : items.some((i) => i.id === chosenId) ? chosenId
+    : fallbackId;
 
   return (
     // One card holding the title and the questions, on the page background
@@ -48,13 +64,13 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
       )}
       <div className={cn('divide-y divide-border', heading !== null && 'border-t border-border')}>
         {items.map((item) => {
-          const isOpen = openId === item.id;
+          const isOpen = activeId === item.id;
           return (
             <div key={item.id}>
               <button
                 type="button"
                 aria-expanded={isOpen}
-                onClick={() => setOpenId(isOpen ? null : item.id)}
+                onClick={() => setChosenId(isOpen ? null : item.id)}
                 className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-hover"
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{item.question}</span>

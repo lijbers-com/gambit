@@ -701,14 +701,23 @@ export const LineMini = ({
  */
 export const BarVerticalMini = ({
   productData,
+  valueFormatter,
 }: {
   productData: NonNullable<MetricCardProps['productData']>;
+  /** Formats the small figure above each bar. Defaults to a plain number. */
+  valueFormatter?: (value: number) => string;
 }) => {
   const max = Math.max(...productData.map((d) => d.value), 1);
+  const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
   return (
-    <div className="flex h-14 items-end gap-1.5">
+    <div className="flex h-16 items-end gap-1.5">
       {productData.slice(0, 6).map((item, i) => (
-        <div key={`${item.name}-${i}`} className="flex h-full flex-1 items-end" title={`${item.name}: ${item.value}`}>
+        <div key={`${item.name}-${i}`} className="flex h-full flex-1 flex-col justify-end" title={`${item.name}: ${fmt(item.value)}`}>
+          {/* The bars compare, the figure states — without it the reader can
+              rank the propositions but can't name any of the values. */}
+          <div className="mb-0.5 truncate text-center text-[10px] font-medium tabular-nums text-muted-foreground">
+            {fmt(item.value)}
+          </div>
           <div
             className="w-full rounded-sm transition-all duration-500"
             style={{
@@ -772,12 +781,6 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     chart,
     ...props
   }, ref) => {
-    // A card draws a chart when a variant renders one, or a bespoke `chart` node
-    // is passed. `graph` is the exception the scale allows: a sparkline is a
-    // trend indicator beside the number, not a chart in its own right.
-    const isChartCard =
-      variant === "donut" || variant === "barVertical" || variant === "barHorizontal" ||
-      variant === "budgetStacked" || variant === "donutLegend" || !!chart;
 
     return (
     <Card
@@ -805,19 +808,15 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {/* Design-system rule: a metric card is EITHER a main metric (big number)
-            OR a chart — never both. Decided once, here, so no variant can drift:
-            a card that draws a chart shows no headline number, and a card that
-            shows a number draws no chart (its detail belongs in the
-            click-to-expand panel, MetricDefinition.expandedContent).
-            The sub-line belongs to both — it labels whatever is above it — so a
-            chart card can still say what it is measuring. */}
-        {(isChartCard ? subMetric : value || subMetric) && (
+        {/* Every card leads with its number: the headline figure is what the
+            row is read for, and the chart underneath says how that figure is
+            made up. A card without a `value` simply starts at its sub-line. */}
+        {(value || subMetric) && (
           // The label block takes the slack, so the chart under it sits on the
           // bottom edge of the card. Cards in a row stretch to the tallest one,
           // and charts that floated at their natural height read as ragged.
           <div className="flex-1">
-            {!isChartCard && (
+            {value && (
               <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
                 {value}
               </div>
@@ -826,7 +825,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
               <div
                 className={cn(
                   "text-sm text-muted-foreground transition-all duration-500 ease-in-out",
-                  !isChartCard && "mt-2",
+                  value && "mt-2",
                 )}
               >
                 {subMetric}
@@ -851,7 +850,16 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             </ResponsiveContainer>
           </div>
         )}
-        {variant === "donut" && donutData && (
+        {variant === "donut" && donutData && (() => {
+          // The share of the biggest slice, in the hole. The headline number
+          // already says how much in total, so repeating it here would add
+          // nothing — what the donut is actually saying is how concentrated
+          // the split is.
+          const donutTotal = donutData.reduce((sum, d) => sum + d.value, 0);
+          const topShare = donutTotal > 0
+            ? Math.round((Math.max(...donutData.map((d) => d.value)) / donutTotal) * 100)
+            : 0;
+          return (
           <div className="relative mt-4 aspect-square w-20">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -897,8 +905,12 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 />
               </PieChart>
             </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="text-[11px] font-semibold tabular-nums text-foreground">{topShare}%</span>
+            </div>
           </div>
-        )}
+          );
+        })()}
         {variant === "graph" && !graphData && progress !== undefined && progress > 0 && (
           <div className="mt-3">
             <div className="w-full bg-neutral-200 rounded-full h-2">

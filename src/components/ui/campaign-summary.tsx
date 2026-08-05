@@ -1320,8 +1320,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     label: 'Impressions',
                     value: estReach,
                     subMetric: 'Media plan',
-                    // Pie per engine — the impressions card is a chart card (value in
-                    // the donut centre), keeping to the "number OR chart" metric rule.
+                    // Pie per engine, under the headline figure — the number says
+                    // how much, the donut says where it came from.
                     variant: 'donut',
                     donutData: impressionsByEngine,
                     donutColors: propositionColors,

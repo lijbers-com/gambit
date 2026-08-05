@@ -5,9 +5,8 @@ import { SideNavigation, Route } from "@/components/ui/side-navigation";
 import { SmartBreadcrumbs } from "@/components/ui/smart-breadcrumbs";
 import { PageHeader } from "@/components/ui/page-header";
 import { HeaderActions } from "@/components/ui/header-actions";
-import { DateRangePicker } from "@/components/ui/date-picker";
+import { SessionDateRange } from "@/components/ui/session-date-range";
 import { useMenu } from "@/hooks/use-menu";
-import { DateRange } from "react-day-picker";
 
 export interface AppLayoutProps {
   children: ReactNode;
@@ -61,13 +60,6 @@ export function AppLayout({
     }
   }, []);
 
-  // Initialize with a default date range (last 30 days)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
-    to: new Date(), // today
-  });
-  const [conversionWindow, setConversionWindow] = useState<number>(14);
-
   return (
     <div className={`grid h-screen w-full transition-all duration-300 ${collapsed ? 'grid-cols-[72px_1fr]' : 'grid-cols-[285px_1fr]'}`} style={{ background: 'var(--brand-nav-bg, var(--brand-app-bg-hex))' }}>
       {/* Side Navigation */}
@@ -103,13 +95,7 @@ export function AppLayout({
             headerRight={
               pageHeaderProps?.headerRight || (
                 pageHeaderProps?.variant === 'campaign-detail' ? undefined : (
-                  <DateRangePicker
-                    dateRange={dateRange}
-                    onDateRangeChange={setDateRange}
-                    placeholder="Select date range"
-                    showPresets={true}
-                    className="w-[280px]"
-                  />
+                  <SessionDateRange className="w-[280px]" />
                 )
               )
             }

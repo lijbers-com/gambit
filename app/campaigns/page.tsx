@@ -10,10 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { DateRangePicker } from '@/components/ui/date-picker';
+import { SessionDateRange } from '@/components/ui/session-date-range';
+import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { PropositionIcon } from '@/components/ui/proposition-icon';
-import { DateRange } from 'react-day-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
 import { addDays } from 'date-fns';
@@ -89,12 +89,9 @@ function AllCampaignsPage() {
   const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
   const [campaignBudgets, setCampaignBudgets] = React.useState<{ [key: string]: string }>({});
   const [activeTab, setActiveTab] = React.useState('media-experiences');
+  const sessionFilters = useSessionFilters();
   const [logUsers, setLogUsers] = React.useState<string[]>([]);
   const [logActions, setLogActions] = React.useState<string[]>([]);
-  const [pageDateRange, setPageDateRange] = React.useState<DateRange | undefined>({
-    from: new Date('2024-06-01'),
-    to: addDays(new Date('2024-06-01'), 180),
-  });
   const [newCampaignIds, setNewCampaignIds] = React.useState<Set<string>>(new Set());
   // Campaigns that have a pending (not-yet-created) sponsored engine row added
   const [pendingSponsoredEngines, setPendingSponsoredEngines] = React.useState<Set<string>>(new Set());
@@ -148,8 +145,12 @@ function AllCampaignsPage() {
     setNewCampaignIds(prev => new Set(prev).add(plan.id));
   };
 
-  // Map store entities into the CampaignSummary card shape. Newest first.
-  const campaigns = [...db.mediaPlans].reverse().map((plan) => {
+  // Map store entities into the CampaignSummary card shape. Newest first, and
+  // only the plans whose flight overlaps the session's date range.
+  const campaigns = [...db.mediaPlans]
+    .filter((plan) => withinSessionRange(sessionFilters, plan.startDate, plan.endDate))
+    .reverse()
+    .map((plan) => {
     const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
     const planBookings = db.bookings.filter((b) => planCampaigns.some((c) => c.id === b.campaignId));
     const spend = planCampaigns.reduce((s, c) => s + c.spend, 0);
@@ -205,13 +206,7 @@ function AllCampaignsPage() {
                 value={headerAdvertiser}
                 onChange={setHeaderAdvertiser}
               />
-              <DateRangePicker
-                dateRange={pageDateRange}
-                onDateRangeChange={setPageDateRange}
-                placeholder="Filter by date range"
-                className="bg-background border-border w-[220px]"
-                showPresets={true}
-              />
+              <SessionDateRange className="w-[220px] bg-background border-border" />
             </>
           ),
         }}

@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 9;
 
 const now = '2026-07-30T00:00:00.000Z';
 

@@ -124,7 +124,7 @@ export const PageHeader = ({
               {titleIcon}
             </span>
           )}
-          <span className="min-w-0">{title}</span>
+          <span className="min-w-0 truncate" title={typeof title === 'string' ? title : undefined}>{title}</span>
         </h1>
         {subtitle && (
           <p

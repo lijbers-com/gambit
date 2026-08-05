@@ -297,17 +297,20 @@ export function DateRangePicker({
     dateRange?.to ? format(dateRange.to, "dd/MM/yyyy") : ""
   )
 
+  /**
+   * Compact enough to sit in a page header: "1 Jan – 28 Feb 2026", with the
+   * year stated once when both ends share it. The long form ("January 1st,
+   * 2026 - February 28th, 2026") ran past any sensible trigger width and was
+   * cut off mid-date, which reads worse than an abbreviation.
+   */
   const formatDateRange = (range: DateRange | undefined) => {
     if (!range || !range.from) return placeholder
+    if (!range.to) return `${format(range.from, "d MMM yyyy")} – …`
+    if (range.from.getTime() === range.to.getTime()) return format(range.from, "d MMM yyyy")
 
-    if (range.from && range.to) {
-      if (range.from.getTime() === range.to.getTime()) {
-        return format(range.from, "PPP")
-      }
-      return `${format(range.from, "PPP")} - ${format(range.to, "PPP")}`
-    }
-
-    return `${format(range.from, "PPP")} - ...`
+    const sameYear = range.from.getFullYear() === range.to.getFullYear()
+    const from = format(range.from, sameYear ? "d MMM" : "d MMM yyyy")
+    return `${from} – ${format(range.to, "d MMM yyyy")}`
   }
 
   const parseDate = (dateString: string): Date | null => {

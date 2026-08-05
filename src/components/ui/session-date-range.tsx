@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import type { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 import { DateRangePicker } from './date-picker';
 import { useSessionFilters, setSessionFilters } from '@/lib/session-filters';
 
@@ -22,7 +23,7 @@ export const SessionDateRange: React.FC<{ className?: string }> = ({ className }
 
   return (
     <DateRangePicker
-      className={className}
+      className={cn('w-auto max-w-[260px]', className)}
       dateRange={value}
       placeholder="All dates"
       // The way back to everything lives in the picker, under the calendar.

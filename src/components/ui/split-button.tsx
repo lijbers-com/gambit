@@ -42,8 +42,9 @@ export const SplitButton: React.FC<SplitButtonProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant={variant}
+          iconOnly
           aria-label="More actions"
-          className="rounded-l-none border-l border-l-primary-foreground/25 px-2"
+          className="rounded-l-none border-l border-l-primary-foreground/25"
         >
           <ChevronDown className="h-4 w-4" />
         </Button>

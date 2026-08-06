@@ -36,18 +36,34 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * A button showing nothing but an icon is square.
+ *
+ * Label padding around a lone 16px glyph reads as a stretched button with the
+ * words missing, rather than as a control. `size="icon"` bakes this in at the
+ * default height; this is the same rule as bare classes, for buttons that keep
+ * their own size or that drop their label in CSS (see ui/tab-actions).
+ */
+export const ICON_ONLY_BUTTON = "aspect-square px-0 gap-0"
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  /** No visible label: render square at whatever size this button is. */
+  iconOnly?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, iconOnly, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size }),
+          iconOnly && ICON_ONLY_BUTTON,
+          className
+        )}
         ref={ref}
         {...props}
       />

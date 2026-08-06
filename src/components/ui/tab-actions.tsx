@@ -69,7 +69,15 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
     <div
       ref={ref}
       data-compact={compact ? 'true' : undefined}
-      className={cn('group/tab-actions flex shrink-0 items-center gap-2', className)}
+      className={cn(
+        'group/tab-actions flex shrink-0 items-center gap-2',
+        // Once the labels are gone these are icon-only buttons, so they take
+        // the icon-only shape: square. Applied here rather than per button so
+        // every control in the row obeys it — same rule as Button's `iconOnly`,
+        // in CSS because the state is responsive. See ICON_ONLY_BUTTON.
+        compact && '[&_button]:aspect-square [&_button]:px-0 [&_button]:gap-0',
+        className,
+      )}
     >
       {children}
     </div>

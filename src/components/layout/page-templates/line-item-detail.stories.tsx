@@ -727,6 +727,7 @@ export const Display: Story = {
               {/* Create placement — its own block, like every booking form. */}
               <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
                 <CreatePlacement
+                  productLabel="Find channel"
                   mediaProducts={displayMediaProducts}
                   mediaProduct={displayMediaProduct}
                   onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
@@ -1774,7 +1775,7 @@ export const DigitalInStore: Story = {
 
                       <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <CreatePlacement
-                          productLabel="Find placement*"
+                          productLabel="Find channel"
                           positionsLabel="Ad spaces"
                           mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
                           mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
@@ -4711,6 +4712,7 @@ export const OffsiteDisplay: Story = {
 
                   <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
                     <CreatePlacement
+                      productLabel="Find platform"
                       mediaProducts={offsiteMediaProducts}
                       mediaProduct={mediaProduct}
                       onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}

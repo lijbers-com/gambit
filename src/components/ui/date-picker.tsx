@@ -27,6 +27,15 @@ export interface DatePickerProps {
   placeholder?: string
   disabled?: boolean
   className?: string
+  /**
+   * A moment, not just a day: pass both and the picker becomes one field for
+   * date AND time — the trigger reads "Aug 6, 2026 · 00:00" and the popover
+   * gets a time row under the calendar. One field, because they are one
+   * answer ("when does this start?"), and a separate time box beside the
+   * picker read as a second question.
+   */
+  time?: string
+  onTimeChange?: (time: string) => void
 }
 
 // Range date picker props
@@ -187,7 +196,10 @@ export function DatePicker({
   placeholder = "Pick a date",
   disabled = false,
   className,
+  time,
+  onTimeChange,
 }: DatePickerProps) {
+  const withTime = time !== undefined && !!onTimeChange
   const [inputValue, setInputValue] = React.useState(
     date ? format(date, "dd/MM/yyyy") : ""
   )
@@ -241,7 +253,14 @@ export function DatePicker({
           disabled={disabled}
         >
           <CalendarIcon className="h-4 w-4" />
-          {date ? format(date, "PPP") : <span>{placeholder}</span>}
+          {date ? (
+            <span className="min-w-0 truncate">
+              {format(date, "PPP")}
+              {withTime && <span className="text-muted-foreground"> · {time}</span>}
+            </span>
+          ) : (
+            <span>{placeholder}</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -267,10 +286,24 @@ export function DatePicker({
           onSelect={onDateChange}
           initialFocus
         />
+        {withTime && (
+          <div className="flex items-center justify-between gap-3 border-t p-3">
+            <label className="text-sm font-medium text-foreground">Time</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => onTimeChange?.(e.target.value)}
+              className={cn(
+                "rounded-md border border-input bg-background px-3 py-1.5 text-sm",
+                "focus:outline-none focus:ring-2 focus:ring-ring"
+              )}
+            />
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )
-} 
+}
 
 // Range date picker component
 export function DateRangePicker({

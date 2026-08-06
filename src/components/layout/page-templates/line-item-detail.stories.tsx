@@ -492,6 +492,7 @@ export const Display: Story = {
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
+    const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     // Two creatives come attached, matching the summary card on the right.
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const bookingLogData = [
@@ -715,37 +716,6 @@ export const Display: Story = {
                       <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                     </div>
 
-                    {/* Active days sub-section */}
-                    <div>
-                      <SubSectionHeader title="Active days" open={activeDaysOpen} onToggle={() => setActiveDaysOpen(v => !v)} />
-                      {activeDaysOpen && (
-                        <div className="pt-4 space-y-3">
-                          <div className="flex gap-2">
-                            {dayLabels.map(day => (
-                              <button
-                                key={day.id}
-                                onClick={() => toggleDay(day.id)}
-                                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
-                                  activeDays.includes(day.id)
-                                    ? 'bg-background border-primary text-foreground'
-                                    : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
-                                }`}
-                              >
-                                {day.label}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                            <span className="text-muted-foreground">·</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                            <span className="text-muted-foreground">·</span>
-                            <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                     {/* Create placement — media product (channel) + positions/slots,
                         same component as the offsite booking. */}
                     <div className="space-y-4">
@@ -788,6 +758,8 @@ export const Display: Story = {
                 onEndTimeChange={setEndTime}
                 campaignBudget="$18,000"
                 campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
+                activeDays={activeDays}
+                onActiveDaysChange={setActiveDays}
               />
 
               {/* 2. Targeting — Targeting tab */}
@@ -1103,6 +1075,7 @@ export const DigitalInStore: Story = {
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
+    const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1928,36 +1901,10 @@ export const DigitalInStore: Story = {
                         onEndTimeChange={setDInstoreEndTime}
                         campaignBudget="€10,000"
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
-                      >
-                        <div className="min-w-0">
-                          <label className="block text-sm font-medium mb-2">Active days</label>
-                          <div className="space-y-3">
-                            <div className="flex gap-2 flex-wrap">
-                              {dayLabels.map((day) => (
-                                <button
-                                  key={day.id}
-                                  type="button"
-                                  onClick={() => toggleDInstoreDay(day.id)}
-                                  className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
-                                    dInstoreActiveDays.includes(day.id)
-                                      ? 'bg-background border-primary text-foreground'
-                                      : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
-                                  }`}
-                                >
-                                  {day.label}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['sa', 'su'])}>Weekend</button>
-                              <span className="text-muted-foreground">·</span>
-                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                              <span className="text-muted-foreground">·</span>
-                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
-                            </div>
-                          </div>
-                        </div>
-                      </BookingBudgetRuntime>
+                        activeDays={dInstoreActiveDays}
+                        onActiveDaysChange={setDInstoreActiveDays}
+                      />
+
 
                       {renderTargetListSection('stores')}
                       {renderTargetListSection('displays')}
@@ -2717,6 +2664,7 @@ export const OfflineInStore: Story = {
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
+    const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4064,6 +4012,7 @@ export const SponsoredProducts: Story = {
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
+    const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4692,6 +4641,7 @@ export const OffsiteDisplay: Story = {
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
+    const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4940,6 +4890,8 @@ export const OffsiteDisplay: Story = {
                     onEndTimeChange={setBookingEndTime}
                     campaignBudget="$120,000"
                     campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
+                    activeDays={bookingActiveDays}
+                    onActiveDaysChange={setBookingActiveDays}
                   />
 
                   <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { FormSection } from './form-section';
-import { Input } from './input';
+import { Input, FieldHint } from './input';
 import { DatePicker } from './date-picker';
 
 /**
@@ -78,7 +78,8 @@ const ActiveDays: React.FC<{ value: string[]; onChange: (days: string[]) => void
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+      {/* Shortcut row sits under the days at hint size, like every sub-line. */}
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <button type="button" className="text-primary hover:underline" onClick={() => onChange(WEEKEND)}>Weekend</button>
         <span>·</span>
         <button type="button" className="text-primary hover:underline" onClick={() => onChange(WEEKDAYS)}>Weekdays</button>
@@ -119,10 +120,9 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
           className="w-full"
           min="0"
         />
-        {campaignBudget && (
-          <p className="mt-2 text-sm text-muted-foreground">Campaign budget: {campaignBudget}</p>
-        )}
+        {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
       </div>
+      <div className="min-w-0">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
         <div className="min-w-0">
           <label className="block text-sm font-medium mb-2">Start date & time*</label>
@@ -147,9 +147,8 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
           />
         </div>
       </div>
-      {campaignRuntime && (
-        <div className="text-sm text-muted-foreground">Campaign runtime: {campaignRuntime}</div>
-      )}
+      {campaignRuntime && <FieldHint>Campaign runtime: {campaignRuntime}</FieldHint>}
+      </div>
       {activeDays && onActiveDaysChange && (
         <ActiveDays value={activeDays} onChange={onActiveDaysChange} />
       )}

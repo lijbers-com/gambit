@@ -6,6 +6,18 @@ import { ChevronDown } from 'lucide-react';
 import { X } from 'lucide-react';
 import { Button } from './button';
 
+/**
+ * The one style for helper text under a form control.
+ *
+ * Every sub-line — "Campaign budget: €10,000", "Give your media plan a
+ * descriptive name…" — is the same element, so forms read as one system
+ * instead of each template picking its own size and spacing.
+ */
+export const FieldHint: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className,
+}) => <div className={cn("mt-1 text-xs text-muted-foreground", className)}>{children}</div>
+
 export interface InputDropdownOption {
   label: string;
   value: string;
@@ -68,9 +80,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             rest.className
         )}
       />
-        {hint && (
-          <div className="text-xs text-muted-foreground mt-1">{hint}</div>
-        )}
+        {hint && <FieldHint>{hint}</FieldHint>}
       </>
     )
   }
@@ -156,9 +166,7 @@ export const FileInput: React.FC<FileInputProps> = ({ label = 'File', hint, acce
           }}
         />
       </label>
-      {hint && (
-        <div className="mt-2 text-xs text-neutral-500">{hint}</div>
-      )}
+      {hint && <FieldHint>{hint}</FieldHint>}
     </div>
   );
 };

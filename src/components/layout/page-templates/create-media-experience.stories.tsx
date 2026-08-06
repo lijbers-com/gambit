@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary,
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FieldHint, Input } from '@/components/ui/input';
 import { SearchInput } from '@/components/ui/search-input';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
 import { SearchSelectList } from '@/components/ui/search-select-list';
@@ -1109,9 +1109,7 @@ export const GoalSelection: Story = {
                           showPresets
                           presets={futureDateRangePresets}
                         />
-                        <div className="text-xs text-muted-foreground">
-                          Your campaign will automatically start and stop on the selected dates
-                        </div>
+                        <FieldHint>Your campaign will automatically start and stop on the selected dates</FieldHint>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="budget-amount">Total budget</Label>
@@ -1126,9 +1124,7 @@ export const GoalSelection: Story = {
                             className="pl-7"
                           />
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          The maximum total amount for the entire campaign duration
-                        </div>
+                        <FieldHint>The maximum total amount for the entire campaign duration</FieldHint>
                       </div>
                       {/* Offered at the point the budget is set, so the choice
                           is made once rather than discovered later on the plan. */}
@@ -1788,9 +1784,7 @@ export const NoGoalTargeting: Story = {
                           showPresets
                           presets={futureDateRangePresets}
                         />
-                        <div className="text-xs text-muted-foreground">
-                          Your campaign will automatically start and stop on the selected dates
-                        </div>
+                        <FieldHint>Your campaign will automatically start and stop on the selected dates</FieldHint>
                       </div>
 
                       <div className="space-y-2">
@@ -1806,9 +1800,7 @@ export const NoGoalTargeting: Story = {
                             className="pl-7"
                           />
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          The maximum total amount for the entire campaign duration
-                        </div>
+                        <FieldHint>The maximum total amount for the entire campaign duration</FieldHint>
                       </div>
 
                       {budgetAmount && dateRange?.from && dateRange?.to && (

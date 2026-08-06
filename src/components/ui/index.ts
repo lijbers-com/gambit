@@ -1,4 +1,5 @@
 export { Button } from "./button"
+export { FieldHint } from "./input"
 export { RetailProductSelect, defaultRetailProducts } from "./retail-product-select"
 export type { RetailProductSelectProps, RetailProduct } from "./retail-product-select"
 export { OptimisationCard, healthConfig, notificationKindConfig, adviceKind, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain } from "./optimisation-card"

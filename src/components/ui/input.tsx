@@ -16,7 +16,7 @@ import { Button } from './button';
 export const FieldHint: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className,
-}) => <div className={cn("mt-1 text-xs text-muted-foreground", className)}>{children}</div>
+}) => <div className={cn("mt-2 text-xs text-muted-foreground", className)}>{children}</div>
 
 export interface InputDropdownOption {
   label: string;

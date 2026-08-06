@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { FaqPanel } from '@/components/ui/faq-panel';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
-import { TabActionGroup } from '@/components/ui/tab-actions';
+import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
 import { addBooking } from '@/lib/create-entities';
 import { useRouteBooking, useRouteEntityId } from '@/lib/db';
@@ -360,8 +360,9 @@ const CreativesSidebar = ({ count = 2, actions, className }: { count?: number; a
 // Save is the everyday action; sending for approval is the same work leaving
 // the user's hands, so it sits behind the arrow of the same button.
 const summaryActionsFor = (_tab: string): SummaryAction[] => [
-  { label: 'Save', menu: [{ label: 'Submit for approval' }] },
+  // Cancel then Save, the same order as the form's own footer.
   { label: 'Cancel', variant: 'outline' },
+  { label: 'Save', menu: [{ label: 'Submit for approval' }] },
 ];
 
 // The same actions at the foot of the form card. One list above, one row here,
@@ -628,7 +629,7 @@ export const Display: Story = {
               <div>
               {/* Tabs: split the form into Booking details / Targeting / Creatives */}
               <div className="flex items-end justify-between gap-4">
-              <div className="flex gap-0" role="tablist">
+              <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                 {[
                   { value: 'details',    label: 'Booking details' },
                   { value: 'actions',    label: 'Notifications' },
@@ -643,15 +644,16 @@ export const Display: Story = {
                     aria-selected={bookingTab === t.value}
                     onClick={() => setBookingTab(t.value as typeof bookingTab)}
                     className={cn(
-                      'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                      'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                       bookingTab === t.value
                         ? 'font-medium bg-white text-card-foreground border-border z-10'
                         : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
                     )}
                     style={{ position: 'relative', top: '1px' }}
+                    title={t.label}
                   >
-                    <span className="inline-flex items-center gap-2">
-                      {t.label}
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                       {t.value === 'actions' && bookingUnread > 0 && (
                         <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                           {bookingUnread > 9 ? '9+' : bookingUnread}
@@ -669,7 +671,7 @@ export const Display: Story = {
                   status={routeBooking?.status ?? 'running'}
                   name={routeBooking?.name ?? bookingName}
                 />
-                <AddButton onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
+                <AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
               </TabActionGroup>
               </div>
 
@@ -1456,7 +1458,7 @@ export const DigitalInStore: Story = {
           key={kind}
           headerClassName="mb-8"
           title={(
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex min-w-0 items-center gap-2">
               {`${u.Noun} list`}
               <span
                 className="inline-flex items-center text-muted-foreground cursor-help"
@@ -1751,7 +1753,7 @@ export const DigitalInStore: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className="flex gap-0" role="tablist">
+                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'actions',    label: 'Notifications' },
@@ -1766,15 +1768,16 @@ export const DigitalInStore: Story = {
                         aria-selected={bookingTab === t.value}
                         onClick={() => setBookingTab(t.value as typeof bookingTab)}
                         className={cn(
-                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                           bookingTab === t.value
                             ? 'font-medium bg-white text-card-foreground border-border z-10'
                             : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
                         )}
                         style={{ position: 'relative', top: '1px' }}
+                    title={t.label}
                       >
-                        <span className="inline-flex items-center gap-2">
-                          {t.label}
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
                             <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                               {bookingUnread > 9 ? '9+' : bookingUnread}
@@ -1792,7 +1795,7 @@ export const DigitalInStore: Story = {
                       status={routeBooking?.status ?? 'running'}
                       name={routeBooking?.name ?? bookingName}
                     />
-                    <AddButton onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
+                    <AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
@@ -3276,7 +3279,7 @@ export const OfflineInStore: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className="flex gap-0" role="tablist">
+                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'actions',    label: 'Notifications' },
@@ -3291,15 +3294,16 @@ export const OfflineInStore: Story = {
                         aria-selected={bookingTab === t.value}
                         onClick={() => setBookingTab(t.value as typeof bookingTab)}
                         className={cn(
-                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                           bookingTab === t.value
                             ? 'font-medium bg-white text-card-foreground border-border z-10'
                             : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
                         )}
                         style={{ position: 'relative', top: '1px' }}
+                    title={t.label}
                       >
-                        <span className="inline-flex items-center gap-2">
-                          {t.label}
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
                             <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                               {bookingUnread > 9 ? '9+' : bookingUnread}
@@ -3317,7 +3321,7 @@ export const OfflineInStore: Story = {
                       status={routeBooking?.status ?? 'running'}
                       name={routeBooking?.name ?? bookingName}
                     />
-                    <AddButton onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
+                    <AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
@@ -3423,7 +3427,7 @@ export const OfflineInStore: Story = {
                       <FormSection bordered
                         headerClassName="mb-8"
                         title={(
-                          <span className="inline-flex items-center gap-2">
+                          <span className="inline-flex min-w-0 items-center gap-2">
                             Stores
                             <span
                               className="inline-flex items-center text-muted-foreground cursor-help"
@@ -4285,7 +4289,7 @@ export const SponsoredProducts: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className="flex gap-0" role="tablist">
+                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'actions',    label: 'Notifications' },
@@ -4300,15 +4304,16 @@ export const SponsoredProducts: Story = {
                         aria-selected={bookingTab === t.value}
                         onClick={() => setBookingTab(t.value as typeof bookingTab)}
                         className={cn(
-                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                           bookingTab === t.value
                             ? 'font-medium bg-white text-card-foreground border-border z-10'
                             : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
                         )}
                         style={{ position: 'relative', top: '1px' }}
+                    title={t.label}
                       >
-                        <span className="inline-flex items-center gap-2">
-                          {t.label}
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
                             <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                               {bookingUnread > 9 ? '9+' : bookingUnread}
@@ -4326,7 +4331,7 @@ export const SponsoredProducts: Story = {
                       status={routeBooking?.status ?? 'running'}
                       name={routeBooking?.name ?? bookingName}
                     />
-                    <AddButton onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
+                    <AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
@@ -4890,7 +4895,7 @@ export const OffsiteDisplay: Story = {
           <div>
             <div className="min-w-0">
               <div className="flex items-end justify-between gap-4">
-              <div className="flex gap-0" role="tablist">
+              <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'actions',    label: 'Notifications' },
@@ -4905,15 +4910,16 @@ export const OffsiteDisplay: Story = {
                         aria-selected={bookingTab === t.value}
                         onClick={() => setBookingTab(t.value as typeof bookingTab)}
                         className={cn(
-                          'px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors',
+                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
                           bookingTab === t.value
                             ? 'font-medium bg-white text-card-foreground border-border z-10'
                             : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
                         )}
                         style={{ position: 'relative', top: '1px' }}
+                    title={t.label}
                       >
-                        <span className="inline-flex items-center gap-2">
-                          {t.label}
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
                             <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                               {bookingUnread > 9 ? '9+' : bookingUnread}
@@ -4931,7 +4937,7 @@ export const OffsiteDisplay: Story = {
                   status={routeBooking?.status ?? 'running'}
                   name={routeBooking?.name ?? bookingName}
                 />
-                <AddButton onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
+                <AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
               </TabActionGroup>
               </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}

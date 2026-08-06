@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
 import { formatYAxisTick } from "./chart-types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
-import { TabActionGroup } from "./tab-actions"
+import { TabActionGroup, TAB_LABEL } from "./tab-actions"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -82,7 +82,7 @@ export function CardWithTabs({
               title={typeof tab.label === 'string' ? tab.label : undefined}
               type="button"
             >
-              <span className="min-w-0 truncate">{tab.label}</span>
+              <span data-tab-label className={TAB_LABEL}>{tab.label}</span>
               {!!tab.badgeCount && tab.badgeCount > 0 && (
                 <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
                   {tab.badgeCount > 9 ? '9+' : tab.badgeCount}

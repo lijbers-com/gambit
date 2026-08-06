@@ -35,7 +35,7 @@ export const SplitButton: React.FC<SplitButtonProps> = ({
   className,
 }) => (
   <div className={cn('inline-flex', className)}>
-    <Button variant={variant} onClick={onClick} className="flex-1 rounded-r-none">
+    <Button variant={variant} onClick={onClick} className="rounded-r-none">
       {label}
     </Button>
     <DropdownMenu>

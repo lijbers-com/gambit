@@ -356,8 +356,11 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         </div>
 
         {/* Actions */}
+        {/* A left-aligned row at their natural width — the same footer the form
+            itself has, so the card and the form read as one set of actions
+            rather than two competing ones. */}
         {actions && actions.length > 0 && (
-          <div className="px-6 pb-4 space-y-2">
+          <div className="px-6 pb-4 flex gap-2">
             {actions.map((action, i) =>
               action.menu ? (
                 <SplitButton
@@ -366,13 +369,11 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
                   onClick={action.onClick}
                   menu={action.menu}
                   variant={action.variant ?? "default"}
-                  className="flex w-full"
                 />
               ) : (
                 <Button
                   key={i}
                   variant={action.variant ?? "default"}
-                  className="w-full"
                   onClick={action.onClick}
                   disabled={action.disabled}
                 >

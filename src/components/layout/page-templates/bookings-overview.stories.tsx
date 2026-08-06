@@ -17,6 +17,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
+import { addBooking } from '@/lib/create-entities';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Bookings Overview',
@@ -304,7 +305,20 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                   content: <InsightsTab engineType={engineType} scope="overview" />,
                 },
               ]}
-              action={activeTab === 'bookings' ? <AddButton>Add booking</AddButton> : null}
+              // A booking always lives under a campaign; from the overview the
+              // draft lands on the engine's first open campaign and opens its
+              // form, where the campaign can still be changed.
+              action={
+                activeTab === 'bookings' ? (
+                  <AddButton
+                    onClick={() =>
+                      addBooking(normalizedEngine === 'all' ? 'display' : normalizedEngine)
+                    }
+                  >
+                    Add booking
+                  </AddButton>
+                ) : null
+              }
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />

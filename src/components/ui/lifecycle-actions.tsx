@@ -21,11 +21,13 @@ import {
   actionLabel,
   playLabel,
   affectedCount,
+  nextStatus,
   planScope,
   campaignScope,
   type LifecycleAction,
   type PlanStatus,
 } from '@/lib/db';
+import { TAB_ACTION_LABEL } from './tab-actions';
 
 /**
  * Run, pause and stop, at whichever level the user is looking at.
@@ -36,8 +38,8 @@ import {
  * says how far it reaches before it does anything.
  *
  * Play/pause is one toggling button because they are the same decision seen
- * from two sides. Stop is separate and confirmed: it ends the flight, and
- * nothing here restarts a completed thing.
+ * from two sides. Stop is separate and confirmed: it ends the flight. Play on
+ * a completed thing restarts it, so the control never disappears mid-demo.
  */
 
 export interface LifecycleActionsProps {
@@ -63,7 +65,7 @@ const ICON: Record<LifecycleAction, React.ComponentType<{ className?: string }>>
 export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
   level,
   entityId,
-  status,
+  status: statusProp,
   name,
   playDisabled,
   playDisabledReason,
@@ -71,6 +73,18 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
 }) => {
   const db = useDb();
   const [confirming, setConfirming] = React.useState<LifecycleAction | null>(null);
+  // Some detail pages show demo data that is not in the store. The control
+  // still has to work there — a demo dead-ends otherwise — so when the id
+  // finds nothing, the status lives here instead.
+  const [localStatus, setLocalStatus] = React.useState<PlanStatus | null>(null);
+
+  const dbEntity =
+    level === 'media-plan'
+      ? db.mediaPlans.find((p) => p.id === entityId)
+      : level === 'campaign'
+        ? db.campaigns.find((c) => c.id === entityId)
+        : db.bookings.find((b) => b.id === entityId);
+  const status = dbEntity?.status ?? localStatus ?? statusProp;
 
   const scope = React.useMemo(() => {
     if (level === 'media-plan') {
@@ -85,7 +99,8 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
   }, [db, level, entityId]);
 
   const apply = (action: LifecycleAction) => {
-    if (level === 'media-plan') applyPlanLifecycle(entityId, action);
+    if (!dbEntity) setLocalStatus(nextStatus(action, status) ?? status);
+    else if (level === 'media-plan') applyPlanLifecycle(entityId, action);
     else if (level === 'campaign') applyCampaignLifecycle(entityId, action);
     else applyBookingLifecycle(entityId, action);
     setConfirming(null);
@@ -93,11 +108,9 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
 
   const toggle = primaryAction(status);
   const canStop = canApply('stop', status);
-  // Completed: the flight is over and none of these verbs apply.
-  if (!toggle && !canStop) return null;
 
   const counts = confirming ? affectedCount(confirming, status, scope) : null;
-  const ToggleIcon = toggle ? ICON[toggle] : null;
+  const ToggleIcon = ICON[toggle];
 
   /** "3 campaigns and 6 bookings" — what the action reaches beneath this. */
   const reach = (c: number, b: number) =>
@@ -109,24 +122,24 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
     <>
       <div className={className}>
         <div className="flex items-center gap-2">
-          {toggle && ToggleIcon && (
-            <Button
-              variant={toggle === 'play' && status !== 'paused' ? 'default' : 'outline'}
-              // Starting is safe and reversible, so it acts immediately.
-              // Pausing stops delivery for everything underneath, so it asks.
-              onClick={() => (toggle === 'play' ? apply('play') : setConfirming('pause'))}
-              disabled={toggle === 'play' && playDisabled}
-              title={toggle === 'play' && playDisabled ? playDisabledReason : undefined}
-              className="gap-1.5"
-            >
-              <ToggleIcon className="h-4 w-4" />
+          <Button
+            variant={toggle === 'play' && status !== 'paused' ? 'default' : 'outline'}
+            // Starting is safe and reversible, so it acts immediately.
+            // Pausing stops delivery for everything underneath, so it asks.
+            onClick={() => (toggle === 'play' ? apply('play') : setConfirming('pause'))}
+            disabled={toggle === 'play' && playDisabled}
+            title={toggle === 'play' && playDisabled ? playDisabledReason : (toggle === 'play' ? playLabel(status) : actionLabel[toggle])}
+            className="gap-1.5"
+          >
+            <ToggleIcon className="h-4 w-4" />
+            <span className={TAB_ACTION_LABEL}>
               {toggle === 'play' ? playLabel(status) : actionLabel[toggle]}
-            </Button>
-          )}
+            </span>
+          </Button>
           {canStop && (
-            <Button variant="outline" onClick={() => setConfirming('stop')} className="gap-1.5">
+            <Button variant="outline" onClick={() => setConfirming('stop')} title="Stop" className="gap-1.5">
               <Square className="h-4 w-4" />
-              Stop
+              <span className={TAB_ACTION_LABEL}>Stop</span>
             </Button>
           )}
         </div>
@@ -140,7 +153,7 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
             </DialogTitle>
             <DialogDescription>
               {confirming === 'stop'
-                ? 'Stopping ends the flight. It cannot be resumed afterwards.'
+                ? 'Stopping ends the flight and marks it completed. You can restart it later.'
                 : 'Delivery stops until you resume. Nothing is lost — bookings and creatives stay as they are.'}
               {counts && counts.total > 1 && (
                 <>

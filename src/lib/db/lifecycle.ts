@@ -23,27 +23,26 @@ const TARGET: Record<LifecycleAction, PlanStatus> = {
 /**
  * Whether an action makes sense for something in this state.
  *
- * Play covers both launching and resuming — from the user's side they are one
- * gesture, "make this run", and having a separate Launch button meant the
+ * Play covers launching, resuming and restarting — from the user's side they
+ * are one gesture, "make this run", and having separate buttons meant the
  * control moved around depending on a state they had to infer. Pause and stop
- * only apply to something actually delivering. A completed entity is finished:
- * nothing restarts it, which would rewrite history rather than change a plan.
+ * only apply to something actually delivering. Completed is restartable too:
+ * the control is always there, so every plan, campaign and booking can be
+ * driven from the same place.
  */
 export function canApply(action: LifecycleAction, status: PlanStatus): boolean {
-  if (status === 'completed') return false;
   if (action === 'play') return status !== 'running';
   return status === 'running';
 }
 
-/** The action a control should offer for this state, or null for none. */
-export function primaryAction(status: PlanStatus): LifecycleAction | null {
-  if (status === 'completed') return null;
+/** The action a control should offer for this state. */
+export function primaryAction(status: PlanStatus): LifecycleAction {
   return status === 'running' ? 'pause' : 'play';
 }
 
-/** Play reads as Launch on something that has never run, Resume on a pause. */
+/** Play reads as Launch, Resume or Restart depending on where it starts from. */
 export const playLabel = (status: PlanStatus): string =>
-  status === 'paused' ? 'Resume' : 'Launch';
+  status === 'paused' ? 'Resume' : status === 'completed' ? 'Restart' : 'Launch';
 
 export const actionLabel: Record<LifecycleAction, string> = {
   play: 'Launch',

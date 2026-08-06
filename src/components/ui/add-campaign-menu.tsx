@@ -2,7 +2,9 @@
 
 import * as React from 'react';
 import { Plus, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { TAB_ACTION_LABEL } from './tab-actions';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,9 +42,9 @@ export const AddCampaignMenu: React.FC<AddCampaignMenuProps> = ({
 }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button className={className}>
+      <Button className={cn('gap-1.5', className)} title={label}>
         <Plus className="h-4 w-4" />
-        {label}
+        <span className={TAB_ACTION_LABEL}>{label}</span>
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">

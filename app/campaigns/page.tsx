@@ -130,22 +130,6 @@ function AllCampaignsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newCampaignName]);
 
-  // Add a new empty media plan straight into the store.
-  const handleAddMediaExperience = () => {
-    const plan = createMediaPlan({
-      name: 'Untitled',
-      advertiserId: db.advertisers[0]?.id ?? 'adv-acme',
-      brandIds: [],
-      status: 'draft',
-      kpis: [],
-      budget: 0,
-      startDate: new Date().toISOString().slice(0, 10),
-      endDate: addDays(new Date(), 30).toISOString().slice(0, 10),
-      createdBy: sessionUser?.id,
-    });
-    setNewCampaignIds(prev => new Set(prev).add(plan.id));
-  };
-
   // Map store entities into the CampaignSummary card shape. Newest first, and
   // only the plans whose flight overlaps the session's date range.
   const campaigns = [...db.mediaPlans]
@@ -409,7 +393,8 @@ function AllCampaignsPage() {
           ]}
           action={
             activeTab === 'media-experiences' ? (
-              <AddButton onClick={handleAddMediaExperience}>
+              // The wizard is the way a plan is made.
+              <AddButton onClick={() => { window.location.href = '/create/media-experience'; }}>
                 Add media plan
               </AddButton>
             ) : activeTab === 'logs' ? (

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "./badge"
 import { formatYAxisTick } from "./chart-types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
+import { TabActionGroup } from "./tab-actions"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -90,7 +91,8 @@ export function CardWithTabs({
             </button>
           ))}
         </div>
-        {action && <div className="mb-2">{action}</div>}
+        {/* Actions collapse to icons when the tabs need the room. */}
+        {action && <TabActionGroup className="mb-2">{action}</TabActionGroup>}
       </div>
       <Card className={cardClass}>
         {header && (

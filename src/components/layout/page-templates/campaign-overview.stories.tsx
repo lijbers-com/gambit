@@ -30,6 +30,8 @@ import { useDb, createBooking, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
+import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
+import { openCampaignWizard, openMediaPlanWizard } from '@/lib/create-entities';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -571,7 +573,17 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               content: <InsightsTab engineType={engineType} scope="overview" />,
             },
           ]}
-          action={activeTab === 'campaigns' ? <AddButton>Add campaign</AddButton> : null}
+          // On a proposition page the campaign type is already known; only the
+          // cross-proposition page has to ask, the way the side nav does.
+          action={
+            activeTab === 'campaigns' ? (
+              engineId === 'all' ? (
+                <AddCampaignMenu />
+              ) : (
+                <AddButton onClick={() => openCampaignWizard(engineId)}>Add campaign</AddButton>
+              )
+            ) : null
+          }
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
@@ -1136,7 +1148,8 @@ export const Campaigns360NoGoalTargeting: Story = {
             ]}
             action={
               activeTab === 'media-experiences' ? (
-                <AddButton onClick={handleAddMediaExperience}>
+                // Creating a plan is the wizard's job — the button goes there.
+                <AddButton onClick={openMediaPlanWizard}>
                   Add media plan
                 </AddButton>
               ) : activeTab === 'logs' ? (

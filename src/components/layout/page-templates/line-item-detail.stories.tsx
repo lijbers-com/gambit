@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { FaqPanel } from '@/components/ui/faq-panel';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { TabActionGroup } from '@/components/ui/tab-actions';
+import { AddButton } from '@/components/ui/add-button';
+import { addBooking } from '@/lib/create-entities';
 import { useRouteBooking } from '@/lib/db';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
@@ -659,15 +662,15 @@ export const Display: Story = {
                 ))}
               </div>
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-              {routeBooking && (
+              <TabActionGroup className="pb-2">
                 <LifecycleActions
                   level="booking"
-                  entityId={routeBooking.id}
-                  status={routeBooking.status}
-                  name={routeBooking.name}
-                  className="pb-2"
+                  entityId={routeBooking?.id ?? 'demo-booking'}
+                  status={routeBooking?.status ?? 'running'}
+                  name={routeBooking?.name ?? bookingName}
                 />
-              )}
+                <AddButton onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
+              </TabActionGroup>
               </div>
 
               {/* The tab card holds the form only; the summary cards sit beside
@@ -1750,15 +1753,15 @@ export const DigitalInStore: Story = {
                     ))}
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-                  {routeBooking && (
+                  <TabActionGroup className="pb-2">
                     <LifecycleActions
                       level="booking"
-                      entityId={routeBooking.id}
-                      status={routeBooking.status}
-                      name={routeBooking.name}
-                      className="pb-2"
+                      entityId={routeBooking?.id ?? 'demo-booking'}
+                      status={routeBooking?.status ?? 'running'}
+                      name={routeBooking?.name ?? bookingName}
                     />
-                  )}
+                    <AddButton onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
+                  </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -3275,15 +3278,15 @@ export const OfflineInStore: Story = {
                     ))}
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-                  {routeBooking && (
+                  <TabActionGroup className="pb-2">
                     <LifecycleActions
                       level="booking"
-                      entityId={routeBooking.id}
-                      status={routeBooking.status}
-                      name={routeBooking.name}
-                      className="pb-2"
+                      entityId={routeBooking?.id ?? 'demo-booking'}
+                      status={routeBooking?.status ?? 'running'}
+                      name={routeBooking?.name ?? bookingName}
                     />
-                  )}
+                    <AddButton onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
+                  </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -4265,15 +4268,15 @@ export const SponsoredProducts: Story = {
                     ))}
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-                  {routeBooking && (
+                  <TabActionGroup className="pb-2">
                     <LifecycleActions
                       level="booking"
-                      entityId={routeBooking.id}
-                      status={routeBooking.status}
-                      name={routeBooking.name}
-                      className="pb-2"
+                      entityId={routeBooking?.id ?? 'demo-booking'}
+                      status={routeBooking?.status ?? 'running'}
+                      name={routeBooking?.name ?? bookingName}
                     />
-                  )}
+                    <AddButton onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
+                  </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -4869,15 +4872,15 @@ export const OffsiteDisplay: Story = {
                     ))}
                   </div>
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-              {routeBooking && (
+              <TabActionGroup className="pb-2">
                 <LifecycleActions
                   level="booking"
-                  entityId={routeBooking.id}
-                  status={routeBooking.status}
-                  name={routeBooking.name}
-                  className="pb-2"
+                  entityId={routeBooking?.id ?? 'demo-booking'}
+                  status={routeBooking?.status ?? 'running'}
+                  name={routeBooking?.name ?? bookingName}
                 />
-              )}
+                <AddButton onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
+              </TabActionGroup>
               </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

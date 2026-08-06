@@ -40,6 +40,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { AddButton } from '@/components/ui/add-button';
+import { addBooking } from '@/lib/create-entities';
 
 // Derived ROAS / conversion-rate table columns. Values are computed from the
 // row's revenue / ad spend / conversions / clicks so we don't duplicate them
@@ -1084,16 +1085,14 @@ const updatedForecastMetrics = [
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('digital-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -1639,16 +1638,14 @@ export const DigitalInstoreRunning: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('digital-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -2166,16 +2163,14 @@ export const OfflineInstoreRunning: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('offline-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -2708,16 +2703,14 @@ export const DisplayRunning: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('display', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -3230,16 +3223,14 @@ export const OfflineInstoreInOption: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('offline-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -3774,16 +3765,14 @@ export const DisplayInOption: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('display', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -4719,7 +4708,14 @@ export const SponsoredProductsInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'products' ? (
+            <div className="flex items-center gap-2">
+            <LifecycleActions
+              level="campaign"
+              entityId={routeCampaign?.id ?? 'demo-campaign'}
+              status={routeCampaign?.status ?? 'running'}
+              name={routeCampaign?.name}
+            />
+            {activeTab === 'products' ? (
               <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
               <AddButton>Add keyword</AddButton>
@@ -4731,7 +4727,8 @@ export const SponsoredProductsInOption: Story = {
               <AddButton>Add creative</AddButton>
             ) : activeTab === 'logs' ? (
               <Button>Export logs</Button>
-            ) : null
+            ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -5462,7 +5459,14 @@ export const SponsoredProductsRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'products' ? (
+            <div className="flex items-center gap-2">
+            <LifecycleActions
+              level="campaign"
+              entityId={routeCampaign?.id ?? 'demo-campaign'}
+              status={routeCampaign?.status ?? 'running'}
+              name={routeCampaign?.name}
+            />
+            {activeTab === 'products' ? (
               <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
               <AddButton>Add keyword</AddButton>
@@ -5470,7 +5474,8 @@ export const SponsoredProductsRunning: Story = {
               <AddButton>Add categories</AddButton>
             ) : activeTab === 'other' ? (
               <AddButton>Add other</AddButton>
-            ) : null
+            ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -6011,16 +6016,14 @@ export const OffsiteRunning: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('offsite', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
@@ -6563,16 +6566,14 @@ export const OffsiteInOption: Story = {
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
                   under it, whichever tab happens to be open. */}
-              {routeCampaign && (
-                <LifecycleActions
-                  level="campaign"
-                  entityId={routeCampaign.id}
-                  status={routeCampaign.status}
-                  name={routeCampaign.name}
-                />
-              )}
+              <LifecycleActions
+                level="campaign"
+                entityId={routeCampaign?.id ?? 'demo-campaign'}
+                status={routeCampaign?.status ?? 'running'}
+                name={routeCampaign?.name}
+              />
               {activeTab === 'bookings' ? (
-                <AddButton>Add booking</AddButton>
+                <AddButton onClick={() => addBooking('offsite', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
                 <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (

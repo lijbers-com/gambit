@@ -5,6 +5,8 @@ import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
+import { AdvertiserBrandProducts } from '@/components/ui/advertiser-brand-products';
+import { CreatePlacement } from '@/components/ui/create-placement';
 import { addBooking } from '@/lib/create-entities';
 import { useRouteBooking, useRouteEntityId } from '@/lib/db';
 import { MenuContextProvider } from '@/contexts/menu-context';
@@ -493,6 +495,8 @@ export const Display: Story = {
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     // Two creatives come attached, matching the summary card on the right.
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const bookingLogData = [
@@ -720,23 +724,14 @@ export const Display: Story = {
                         same component as the offsite booking. */}
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm">Create placement</h3>
-                      <SearchSelectList
-                        label="Find media product"
-                        placeholder="Search channel or media product…"
-                        icon={<LayoutDashboard className="w-4 h-4" />}
-                        options={displayMediaProducts}
-                        value={displayMediaProduct}
-                        onChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
-                        multiple={false}
-                      />
-                      <SearchSelectList
-                        label="Positions / slots"
-                        placeholder="Search position or slot…"
-                        icon={<LayoutDashboard className="w-4 h-4" />}
-                        options={displayCurrentPositions}
-                        value={displayPositions}
-                        onChange={setDisplayPositions}
-                        disabledHint={displayMediaProduct.length ? undefined : 'Select a media product first to see its positions.'}
+                      <CreatePlacement
+                        mediaProducts={displayMediaProducts}
+                        mediaProduct={displayMediaProduct}
+                        onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
+                        positions={displayCurrentPositions}
+                        positionsValue={displayPositions}
+                        onPositionsChange={setDisplayPositions}
+                        className="contents"
                       />
                     </div>
                   </div>
@@ -1076,6 +1071,8 @@ export const DigitalInStore: Story = {
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1764,127 +1761,33 @@ export const DigitalInStore: Story = {
                             <label className="block text-sm font-medium mb-2">Booking ID</label>
                             <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                           </div>
-                          <div className="space-y-4 min-w-0">
-                            <div className="min-w-0 space-y-2">
-                              <div className="relative" data-dropdown-container>
-                                <label className="block text-sm font-medium mb-2">Brands</label>
-                                <SearchInput
-                                  value={brandSearch}
-                                  onChange={(e) => {
-                                    setBrandSearch(e.target.value);
-                                    setShowBrandResults(true);
-                                  }}
-                                  onClick={() => setShowBrandResults(true)}
-                                  placeholder="Search brands..."
-                                  className="w-full"
-                                />
-                                {showBrandResults && (
-                                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                    {filteredBrands.length > 0 ? (
-                                      filteredBrands.map((brand) => (
-                                        <div
-                                          key={brand.value}
-                                          className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                          onClick={() => handleBrandSelect(brand)}
-                                        >
-                                          <div className="font-medium text-sm">{brand.label}</div>
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <div className="p-3 text-center text-sm text-muted-foreground">No brands found</div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              {selectedBrands.length > 0 && (
-                                <div className="space-y-1">
-                                  {selectedBrands.map((value) => {
-                                    const brand = dInstoreBrandOptions.find((b) => b.value === value);
-                                    return brand ? (
-                                      <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                        <div className="text-sm font-medium">{brand.label}</div>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => removeBrand(value)}
-                                          className="h-8 w-8 p-0"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ) : null;
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                            <RetailProductSelect
-                              value={selectedRetailProducts}
-                              onChange={setSelectedRetailProducts}
-                              products={retailProducts}
-                            />
-                          </div>
+                          <AdvertiserBrandProducts
+                            advertiser={bookingAdvertiser}
+                            onAdvertiserChange={setBookingAdvertiser}
+                            brands={selectedBrands}
+                            onBrandsChange={setSelectedBrands}
+                            brandOptions={dInstoreBrandOptions}
+                            products={selectedRetailProducts}
+                            onProductsChange={setSelectedRetailProducts}
+                            productCatalog={retailProducts}
+                          />
                         </div>
                       </FormSection>
 
                       <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Find placement*</label>
-                            <SearchInput 
-                              value={placementSearch}
-                              onChange={handlePlacementSearchChange}
-                              onClick={handlePlacementClick}
-                              placeholder="Search for placement..." 
-                              className="w-full"
-                              icon={<LayoutDashboard className="w-4 h-4" />}
-                            />
-                            {showPlacementResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.length > 0 ? (
-                                  filteredPlacements.map((placement) => (
-                                  <div
-                                    key={placement.id}
-                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handlePlacementSelect(placement)}
-                                  >
-                                    <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {placement.adSpaces}
-                                    </div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No placements found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedPlacement && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                <div>
-                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {selectedPlacement.adSpaces}
-                                  </div>
-                                </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={removePlacement}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                        </div>
+                        <CreatePlacement
+                          productLabel="Find placement*"
+                          positionsLabel="Ad spaces"
+                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
+                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
+                          onMediaProductChange={(v) => {
+                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
+                            setBookingPositions([]);
+                          }}
+                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
+                          positionsValue={bookingPositions}
+                          onPositionsChange={setBookingPositions}
+                        />
                       </FormSection>
 
                       <BookingBudgetRuntime
@@ -2665,6 +2568,8 @@ export const OfflineInStore: Story = {
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4013,6 +3918,8 @@ export const SponsoredProducts: Story = {
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4255,70 +4162,19 @@ export const SponsoredProducts: Story = {
                       </FormSection>
                       
                       <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <label className="block text-sm font-medium mb-2">Find placement*</label>
-                            <SearchInput 
-                              value={placementSearch}
-                              onChange={handlePlacementSearchChange}
-                              onClick={handlePlacementClick}
-                              placeholder="Search for placement..." 
-                              className="w-full"
-                              icon={<LayoutDashboard className="w-4 h-4" />}
-                            />
-                            {showPlacementResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredPlacements.length > 0 ? (
-                                  filteredPlacements.map((placement) => (
-                                  <div
-                                    key={placement.id}
-                                    className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                    onClick={() => handlePlacementSelect(placement)}
-                                  >
-                                    <div className="font-medium text-sm">{placement.name}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {placement.adSpaces}
-                                    </div>
-                                  </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">
-                                    No placements found
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedPlacement && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium">Selected placement:</div>
-                              <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
-                                <div>
-                                  <div className="text-sm font-medium">{selectedPlacement.name}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {selectedPlacement.adSpaces}
-                                  </div>
-                                </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={removePlacement}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="text-sm text-muted-foreground">
-                            {selectedPlacement 
-                              ? 'Placement selected for this booking'
-                              : 'Search and select a placement for this booking'
-                            }
-                          </div>
-                        </div>
+                        <CreatePlacement
+                          productLabel="Find placement*"
+                          positionsLabel="Ad spaces"
+                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
+                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
+                          onMediaProductChange={(v) => {
+                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
+                            setBookingPositions([]);
+                          }}
+                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
+                          positionsValue={bookingPositions}
+                          onPositionsChange={setBookingPositions}
+                        />
                       </FormSection>
 
                       <BookingBudgetRuntime
@@ -4642,6 +4498,8 @@ export const OffsiteDisplay: Story = {
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4855,23 +4713,14 @@ export const OffsiteDisplay: Story = {
 
                   <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
-                      <SearchSelectList
-                        label="Find media product"
-                        placeholder="Search channel or media product…"
-                        icon={<LayoutDashboard className="w-4 h-4" />}
-                        options={offsiteMediaProducts}
-                        value={mediaProduct}
-                        onChange={(v) => { setMediaProduct(v); setPositions([]); }}
-                        multiple={false}
-                      />
-                      <SearchSelectList
-                        label="Positions / slots"
-                        placeholder="Search position or slot…"
-                        icon={<LayoutDashboard className="w-4 h-4" />}
-                        options={currentPositions}
-                        value={positions}
-                        onChange={setPositions}
-                        disabledHint={mediaProduct.length ? undefined : 'Select a media product first to see its positions.'}
+                      <CreatePlacement
+                        mediaProducts={offsiteMediaProducts}
+                        mediaProduct={mediaProduct}
+                        onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
+                        positions={currentPositions}
+                        positionsValue={positions}
+                        onPositionsChange={setPositions}
+                        className="contents"
                       />
                     </div>
                   </FormSection>

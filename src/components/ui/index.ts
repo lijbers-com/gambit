@@ -66,3 +66,7 @@ export type { FaqPanelProps } from './faq-panel';
 export { AddButton, AddInlineLabel } from './add-button';
 export { AddCampaignMenu } from './add-campaign-menu';
 export type { AddCampaignMenuProps } from './add-campaign-menu';
+export { CreatePlacement } from './create-placement';
+export type { CreatePlacementProps } from './create-placement';
+export { AdvertiserBrandProducts } from './advertiser-brand-products';
+export type { AdvertiserBrandProductsProps } from './advertiser-brand-products';

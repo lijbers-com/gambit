@@ -261,13 +261,6 @@ export const defaultRoutes: Route[] = [
     icon: { lucide: "FileText" },
     url: "/configuration/faq",
   },
-  {
-    id: 15,
-    name: "Media Orchestra",
-    type: "single" as const,
-    icon: { lucide: "Settings2" },
-    url: "/configuration/media-orchestra",
-  },
 ];
 
 // Extended routes for breadcrumb navigation (detail pages)

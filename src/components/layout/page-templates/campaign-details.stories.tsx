@@ -9,6 +9,8 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
+import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { useRouteCampaign } from '@/lib/db';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -349,6 +351,7 @@ export const DigitalInstoreInOption: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1077,13 +1080,25 @@ const updatedForecastMetrics = [
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -1180,6 +1195,7 @@ export const DigitalInstoreRunning: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1619,13 +1635,25 @@ export const DigitalInstoreRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -1721,6 +1749,7 @@ export const OfflineInstoreRunning: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2133,13 +2162,25 @@ export const OfflineInstoreRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -2234,6 +2275,7 @@ export const DisplayRunning: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2662,13 +2704,25 @@ export const DisplayRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -2762,6 +2816,7 @@ export const OfflineInstoreInOption: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -3171,13 +3226,25 @@ export const OfflineInstoreInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -3271,6 +3338,7 @@ export const DisplayInOption: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -3702,13 +3770,25 @@ export const DisplayInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -3870,6 +3950,7 @@ export const SponsoredProductsInOption: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -4812,6 +4893,7 @@ export const SponsoredProductsRunning: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
@@ -5474,6 +5556,7 @@ export const OffsiteRunning: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -5924,13 +6007,25 @@ export const OffsiteRunning: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -6015,6 +6110,7 @@ export const OffsiteInOption: Story = {
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
+    const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -6463,13 +6559,25 @@ export const OffsiteInOption: Story = {
             },
           ]}
           action={
-            activeTab === 'bookings' ? (
-              <Button>Add booking</Button>
-            ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
-            ) : activeTab === 'logs' ? (
-              <Button>Export logs</Button>
-            ) : null
+            <div className="flex items-center gap-2">
+              {/* Run controls first: they act on the campaign and every booking
+                  under it, whichever tab happens to be open. */}
+              {routeCampaign && (
+                <LifecycleActions
+                  level="campaign"
+                  entityId={routeCampaign.id}
+                  status={routeCampaign.status}
+                  name={routeCampaign.name}
+                />
+              )}
+              {activeTab === 'bookings' ? (
+                <Button>Add booking</Button>
+              ) : activeTab === 'creatives' ? (
+                <Button>Add creative</Button>
+              ) : activeTab === 'logs' ? (
+                <Button>Export logs</Button>
+              ) : null}
+            </div>
           }
           activeTab={activeTab}
           onTabChange={setActiveTab}

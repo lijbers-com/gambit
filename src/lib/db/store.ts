@@ -1,5 +1,6 @@
 import type { Booking, Campaign, DbData, FaqEntry, MediaPlan } from './types';
 import { SEED_VERSION, seedData } from './seed';
+import { nextStatus, type LifecycleAction } from './lifecycle';
 
 /**
  * The prototype "database": seed JSON + localStorage persistence + a tiny
@@ -239,4 +240,67 @@ export function moveFaq(id: string, direction: 'up' | 'down') {
   swapWith.order = order;
   entry.updatedAt = timestamp();
   notify();
+}
+
+// ── Lifecycle (play / pause / stop) ────────────────────────────────────
+
+/**
+ * Apply a lifecycle action to a media plan and everything under it.
+ *
+ * One write, one notify: pausing a plan and its twelve bookings should be a
+ * single change the UI reacts to once, not thirteen renders. Entities the
+ * action doesn't apply to (a draft booking under a running campaign, say) are
+ * left exactly as they are — see canApply in lifecycle.ts.
+ */
+export function applyPlanLifecycle(planId: string, action: LifecycleAction) {
+  const db = load();
+  const plan = db.mediaPlans.find((p) => p.id === planId);
+  if (!plan) return;
+
+  const campaigns = db.campaigns.filter((c) => c.mediaPlanId === planId);
+  const campaignIds = new Set(campaigns.map((c) => c.id));
+  const bookings = db.bookings.filter((b) => campaignIds.has(b.campaignId));
+
+  const stamp = timestamp();
+  const planNext = nextStatus(action, plan.status);
+  if (planNext) Object.assign(plan, { status: planNext, updatedAt: stamp });
+  campaigns.forEach((c) => {
+    const next = nextStatus(action, c.status);
+    if (next) Object.assign(c, { status: next, updatedAt: stamp });
+  });
+  bookings.forEach((b) => {
+    const next = nextStatus(action, b.status);
+    if (next) Object.assign(b, { status: next, updatedAt: stamp });
+  });
+  notify();
+}
+
+/** The same, scoped to one campaign and its bookings. */
+export function applyCampaignLifecycle(campaignId: string, action: LifecycleAction) {
+  const db = load();
+  const campaign = db.campaigns.find((c) => c.id === campaignId);
+  if (!campaign) return;
+
+  const stamp = timestamp();
+  const next = nextStatus(action, campaign.status);
+  if (next) Object.assign(campaign, { status: next, updatedAt: stamp });
+  db.bookings
+    .filter((b) => b.campaignId === campaignId)
+    .forEach((b) => {
+      const bookingNext = nextStatus(action, b.status);
+      if (bookingNext) Object.assign(b, { status: bookingNext, updatedAt: stamp });
+    });
+  notify();
+}
+
+/** A single booking. Nothing sits under it, so nothing cascades. */
+export function applyBookingLifecycle(bookingId: string, action: LifecycleAction) {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking) return;
+  const next = nextStatus(action, booking.status);
+  if (next) {
+    Object.assign(booking, { status: next, updatedAt: timestamp() });
+    notify();
+  }
 }

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { FaqPanel } from '@/components/ui/faq-panel';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
+import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { useRouteBooking } from '@/lib/db';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -482,6 +484,7 @@ export const Display: Story = {
     // 3. Creatives (link / upload creatives — placeholder for now)
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
+    const routeBooking = useRouteBooking();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -621,6 +624,7 @@ export const Display: Story = {
               {/* Tabs + outer card pair (no gap between them — the tab visually attaches to the card top) */}
               <div>
               {/* Tabs: split the form into Booking details / Targeting / Creatives */}
+              <div className="flex items-end justify-between gap-4">
               <div className="flex gap-0" role="tablist">
                 {[
                   { value: 'details',    label: 'Booking details' },
@@ -653,6 +657,17 @@ export const Display: Story = {
                     </span>
                   </button>
                 ))}
+              </div>
+              {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+              {routeBooking && (
+                <LifecycleActions
+                  level="booking"
+                  entityId={routeBooking.id}
+                  status={routeBooking.status}
+                  name={routeBooking.name}
+                  className="pb-2"
+                />
+              )}
               </div>
 
               {/* The tab card holds the form only; the summary cards sit beside
@@ -1077,6 +1092,7 @@ export const DigitalInStore: Story = {
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
+    const routeBooking = useRouteBooking();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1699,6 +1715,7 @@ export const DigitalInStore: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div>
                 <div className="min-w-0">
+                  <div className="flex items-end justify-between gap-4">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -1731,6 +1748,17 @@ export const DigitalInStore: Story = {
                         </span>
                       </button>
                     ))}
+                  </div>
+                  {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+                  {routeBooking && (
+                    <LifecycleActions
+                      level="booking"
+                      entityId={routeBooking.id}
+                      status={routeBooking.status}
+                      name={routeBooking.name}
+                      className="pb-2"
+                    />
+                  )}
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -2694,6 +2722,7 @@ export const OfflineInStore: Story = {
     const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
+    const routeBooking = useRouteBooking();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -3211,6 +3240,7 @@ export const OfflineInStore: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div>
                 <div className="min-w-0">
+                  <div className="flex items-end justify-between gap-4">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -3243,6 +3273,17 @@ export const OfflineInStore: Story = {
                         </span>
                       </button>
                     ))}
+                  </div>
+                  {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+                  {routeBooking && (
+                    <LifecycleActions
+                      level="booking"
+                      entityId={routeBooking.id}
+                      status={routeBooking.status}
+                      name={routeBooking.name}
+                      className="pb-2"
+                    />
+                  )}
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -4016,6 +4057,7 @@ export const SponsoredProducts: Story = {
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
+    const routeBooking = useRouteBooking();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4188,6 +4230,7 @@ export const SponsoredProducts: Story = {
             <div className="flex flex-col gap-4 md:gap-6">
               <div>
                 <div className="min-w-0">
+                  <div className="flex items-end justify-between gap-4">
                   <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -4220,6 +4263,17 @@ export const SponsoredProducts: Story = {
                         </span>
                       </button>
                     ))}
+                  </div>
+                  {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+                  {routeBooking && (
+                    <LifecycleActions
+                      level="booking"
+                      entityId={routeBooking.id}
+                      status={routeBooking.status}
+                      name={routeBooking.name}
+                      className="pb-2"
+                    />
+                  )}
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -4637,6 +4691,7 @@ export const OffsiteDisplay: Story = {
     const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
+    const routeBooking = useRouteBooking();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4779,6 +4834,7 @@ export const OffsiteDisplay: Story = {
 
           <div>
             <div className="min-w-0">
+              <div className="flex items-end justify-between gap-4">
               <div className="flex gap-0" role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
@@ -5117,6 +5173,17 @@ export const OffsiteDisplay: Story = {
               {/* end form card */}
               {/* Retailer-authored help, stacked under the form so it lines up with it. */}
               <FaqPanel surface="booking-detail" engine="offsite" />
+              </div>
+              {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+              {routeBooking && (
+                <LifecycleActions
+                  level="booking"
+                  entityId={routeBooking.id}
+                  status={routeBooking.status}
+                  name={routeBooking.name}
+                  className="pb-2"
+                />
+              )}
               </div>
               {/* end form column */}
               <aside className="space-y-4">

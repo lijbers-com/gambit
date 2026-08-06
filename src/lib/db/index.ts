@@ -58,6 +58,22 @@ export {
   type FaqQuery,
 } from './faq';
 export {
+  canApply,
+  primaryAction,
+  actionLabel,
+  affectedCount,
+  planScope,
+  campaignScope,
+  nextStatus,
+  type LifecycleAction,
+  type LifecycleScope,
+} from './lifecycle';
+export {
+  applyPlanLifecycle,
+  applyCampaignLifecycle,
+  applyBookingLifecycle,
+} from './store';
+export {
   createFaq,
   updateFaq,
   deleteFaq,
@@ -72,6 +88,9 @@ export {
   useBookings,
   useMetricDefinitions,
   useFaqs,
+  useRouteEntityId,
+  useRouteCampaign,
+  useRouteBooking,
   useMyTasks,
   useSession,
 } from './hooks';

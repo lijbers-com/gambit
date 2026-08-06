@@ -84,6 +84,34 @@ export function useFaqs(query: FaqQuery): FaqEntry[] {
   return React.useMemo(() => faqsFor(db, query), [db, query.surface, query.section, query.engine, query.side, query.includeDrafts]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
+/**
+ * The id in the last path segment — how the one-entity-per-route templates
+ * know which campaign or booking they are showing. Resolved after mount, never
+ * during render, so the server HTML and the hydrated client agree.
+ */
+export function useRouteEntityId(): string | undefined {
+  const [id, setId] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    setId(segments[segments.length - 1]);
+  }, []);
+  return id;
+}
+
+/** The campaign this route is showing, when there is one in the store. */
+export function useRouteCampaign(): Campaign | undefined {
+  const db = useDbSnapshot();
+  const id = useRouteEntityId();
+  return id ? db.campaigns.find((c) => c.id === id) : undefined;
+}
+
+/** The booking this route is showing, when there is one in the store. */
+export function useRouteBooking(): Booking | undefined {
+  const db = useDbSnapshot();
+  const id = useRouteEntityId();
+  return id ? db.bookings.find((b) => b.id === id) : undefined;
+}
+
 /** The logged-in user (null when signed out). Re-renders on login/logout. */
 export function useSession(): DbUser | null {
   return React.useSyncExternalStore(

@@ -155,7 +155,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
         )}
       </div>
       {selected.length > 0 && (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {selected.map((option) => (
             <div key={option.value} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
               {/* Title line — vertically centred with the remove button. */}

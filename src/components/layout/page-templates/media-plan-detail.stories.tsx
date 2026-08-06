@@ -17,6 +17,7 @@ import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
 import { FaqPanel } from '@/components/ui/faq-panel';
+import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -699,10 +700,15 @@ export const MediaPlanDetail: Story = {
             // Controlled only so the FAQ below can follow the open tab.
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            // The one action a plan page offers. Disabled while anything blocks
-            // delivery, and gone once the plan is already live.
+            // A plan is launched once, then run, paused or stopped. Launch is
+            // gone the moment it is live; the lifecycle controls take over and
+            // reach every campaign and booking beneath it.
             action={
-              isLive ? null : (
+              isLive ? (
+                <LifecycleActions level="media-plan" entityId={plan?.id ?? ''} status={plan?.status ?? 'draft'} name={plan?.name} />
+              ) : plan?.status === 'paused' ? (
+                <LifecycleActions level="media-plan" entityId={plan.id} status={plan.status} name={plan.name} />
+              ) : (
                 <Button
                   onClick={launchPlan}
                   disabled={!canLaunch}

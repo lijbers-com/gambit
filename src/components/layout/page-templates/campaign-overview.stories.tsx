@@ -308,11 +308,11 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           onSettings: () => alert('Settings clicked'),
           headerRight: (
             <div className="flex items-center gap-2">
-              <SessionDateRange />
               <AdvertiserSelect
                 value={headerAdvertiser}
                 onChange={setHeaderAdvertiser}
               />
+              <SessionDateRange />
             </div>
           ),
         }}

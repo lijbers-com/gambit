@@ -240,7 +240,7 @@ export function DatePicker({
           )}
           disabled={disabled}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="h-4 w-4" />
           {date ? format(date, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
@@ -404,12 +404,11 @@ export function DateRangePicker({
           variant={"outline"}
           className={cn(
             "w-full justify-start text-left font-normal",
-            !dateRange?.from && "text-muted-foreground",
             className
           )}
           disabled={disabled}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="h-4 w-4" />
           <span className="truncate">{formatDateRange(dateRange)}</span>
         </Button>
       </PopoverTrigger>

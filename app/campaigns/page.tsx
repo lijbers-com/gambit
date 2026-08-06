@@ -201,13 +201,13 @@ function AllCampaignsPage() {
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
           headerRight: (
-            <>
+            <div className="flex items-center gap-2">
               <AdvertiserSelect
                 value={headerAdvertiser}
                 onChange={setHeaderAdvertiser}
               />
-              <SessionDateRange className="w-[220px] bg-background border-border" />
-            </>
+              <SessionDateRange />
+            </div>
           ),
         }}
       >

@@ -4,6 +4,7 @@ import * as React from "react"
 import { Check, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
+import { SplitButton } from "./split-button"
 import { Badge } from "./badge"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -67,6 +68,9 @@ export interface SummaryAction {
   icon?: React.ReactNode
   onClick?: () => void
   disabled?: boolean
+  /** Follow-up actions behind a dropdown arrow — renders as a split button
+   *  (e.g. Save, with Submit for approval one click further). */
+  menu?: { label: string; onClick?: () => void }[]
 }
 
 /** A named group of items used in the `details` variant */
@@ -354,20 +358,31 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         {/* Actions */}
         {actions && actions.length > 0 && (
           <div className="px-6 pb-4 space-y-2">
-            {actions.map((action, i) => (
-              <Button
-                key={i}
-                variant={action.variant ?? "default"}
-                className="w-full"
-                onClick={action.onClick}
-                disabled={action.disabled}
-              >
-                {action.icon && (
-                  <span className="mr-2 flex items-center">{action.icon}</span>
-                )}
-                {action.label}
-              </Button>
-            ))}
+            {actions.map((action, i) =>
+              action.menu ? (
+                <SplitButton
+                  key={i}
+                  label={action.label}
+                  onClick={action.onClick}
+                  menu={action.menu}
+                  variant={action.variant ?? "default"}
+                  className="flex w-full"
+                />
+              ) : (
+                <Button
+                  key={i}
+                  variant={action.variant ?? "default"}
+                  className="w-full"
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                >
+                  {action.icon && (
+                    <span className="mr-2 flex items-center">{action.icon}</span>
+                  )}
+                  {action.label}
+                </Button>
+              )
+            )}
           </div>
         )}
 

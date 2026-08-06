@@ -5,7 +5,7 @@ import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
 import { addBooking } from '@/lib/create-entities';
-import { useRouteBooking } from '@/lib/db';
+import { useRouteBooking, useRouteEntityId } from '@/lib/db';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -25,6 +25,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
+import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
@@ -356,23 +357,19 @@ const CreativesSidebar = ({ count = 2, actions, className }: { count?: number; a
 
 // The form's actions, as the Booking summary card's footer buttons — so a long
 // form can be submitted from either column without scrolling back.
-const summaryActionsFor = (tab: string): SummaryAction[] => [
-  {
-    label:
-      tab === 'creatives' ? 'Submit creatives for approval'
-      : tab === 'targeting' ? 'Save targeting'
-      : tab === 'evaluation' ? 'Save evaluation'
-      : 'Submit for approval',
-  },
+// Save is the everyday action; sending for approval is the same work leaving
+// the user's hands, so it sits behind the arrow of the same button.
+const summaryActionsFor = (_tab: string): SummaryAction[] => [
+  { label: 'Save', menu: [{ label: 'Submit for approval' }] },
   { label: 'Cancel', variant: 'outline' },
 ];
 
 // The same actions at the foot of the form card. One list above, one row here,
 // so the two can never drift apart.
-const FormActions = ({ submitLabel = 'Submit for approval', className }: { submitLabel?: string; className?: string }) => (
+const FormActions = ({ className }: { className?: string }) => (
   <div className={cn('flex gap-2', className)}>
     <Button variant="outline">Cancel</Button>
-    <Button>{submitLabel}</Button>
+    <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
   </div>
 );
 
@@ -488,6 +485,9 @@ export const Display: Story = {
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
+    const routeEntityId = useRouteEntityId();
+    // Two creatives come attached, matching the summary card on the right.
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -704,8 +704,8 @@ export const Display: Story = {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" className="w-full" />
+                      <label className="block text-sm font-medium">Booking ID</label>
+                      <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                     </div>
 
                     <div className="space-y-4">
@@ -945,15 +945,46 @@ export const Display: Story = {
 
               {/* Creatives tab — placeholder pending wiring to /creatives/[type]/[id] */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'creatives' && 'hidden')}>
-                <div className="py-10 text-center">
-                  <h3 className="text-base font-semibold text-foreground mb-1">Creatives</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Attach existing creatives or upload new ones for this booking.
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <Button variant="outline">Browse creatives</Button>
-                    <Button><Upload className="w-4 h-4 mr-1" /> Upload creative</Button>
+                <h3 className="text-base font-semibold text-foreground mb-1">Creatives</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Creatives attached to this booking. Link existing ones or upload new.
+                </p>
+                {selectedCreatives.length > 0 && (
+                  <div className="mb-4 overflow-x-auto">
+                    <Table
+                      columns={[
+                        {
+                          key: 'remove',
+                          header: '',
+                          render: (row) => (
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
+                              aria-label="Remove creative"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          ),
+                          className: 'w-10 text-center',
+                        },
+                        { key: 'name', header: 'Name' },
+                        { key: 'format', header: 'Format' },
+                        { key: 'status', header: 'Status' },
+                      ]}
+                      data={selectedCreatives}
+                      rowKey={row => row.id}
+                      hideActions
+                      onRowClick={row => console.log('Navigate to creative', row.name)}
+                    />
                   </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <CreativeLinkingDialog
+                    selectedCreatives={selectedCreatives}
+                    onSelectionChange={setSelectedCreatives}
+                  />
+                  <Button className="mt-4"><Upload className="w-4 h-4 mr-1" /> Upload creative</Button>
                 </div>
               </div>
 
@@ -1042,7 +1073,7 @@ export const Display: Story = {
                 </div>
               </div>
 
-              <FormActions submitLabel={summaryActionsFor(bookingTab)[0].label} />
+              <FormActions />
               </div>
               {/* end form card */}
               {/* Retailer-authored help, stacked under the form so it lines up with it. */}
@@ -1050,7 +1081,7 @@ export const Display: Story = {
               </div>
               {/* end form column */}
               <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                 <SummaryCard
                   title="Booking"
                   entity="booking"
@@ -1068,7 +1099,7 @@ export const Display: Story = {
                 />
                 <CampaignDetailsSidebar />
                 <MediaPlanSidebar />
-                {bookingTab !== 'creatives' && <CreativesSidebar />}
+                {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
               </aside>
               </div>
               {/* end form + summary grid */}
@@ -1096,6 +1127,7 @@ export const DigitalInStore: Story = {
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
+    const routeEntityId = useRouteEntityId();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1256,7 +1288,7 @@ export const DigitalInStore: Story = {
       { id: 'sa', label: 'Sa' },
       { id: 'su', label: 'Su' },
     ];
-    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
@@ -1778,6 +1810,10 @@ export const DigitalInStore: Story = {
                               placeholder="Enter booking name"
                               className="w-full"
                             />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Booking ID</label>
+                            <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                           </div>
                           <div className="space-y-4 min-w-0">
                             <div className="min-w-0 space-y-2">
@@ -2612,12 +2648,7 @@ export const DigitalInStore: Story = {
                       <CardContent>
                         <div className="flex gap-2">
                           <Button variant="outline">Cancel</Button>
-                          <Button>{
-                            bookingTab === 'creatives' ? 'Submit creatives for approval'
-                            : bookingTab === 'targeting' ? 'Save targeting'
-                            : bookingTab === 'evaluation' ? 'Save evaluation'
-                            : 'Save booking details'
-                          }</Button>
+                          <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                         </div>
                       </CardContent>
                     )}
@@ -2628,7 +2659,7 @@ export const DigitalInStore: Story = {
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                    {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
@@ -2700,7 +2731,7 @@ export const DigitalInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
-                    {bookingTab !== 'creatives' && <CreativesSidebar />}
+                    {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -2726,6 +2757,7 @@ export const OfflineInStore: Story = {
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
+    const routeEntityId = useRouteEntityId();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -2746,7 +2778,7 @@ export const OfflineInStore: Story = {
     // Removed location search state - using Filter component instead
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
-    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
@@ -3293,6 +3325,24 @@ export const OfflineInStore: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+<FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Name*</label>
+                            <Input
+                              value={bookingName}
+                              onChange={(e) => setBookingName(e.target.value)}
+                              placeholder="Enter booking name"
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Booking ID</label>
+                            <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
+                          </div>
+                        </div>
+                      </FormSection>
+
 <FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
                           <p className="text-sm text-muted-foreground">
@@ -3962,7 +4012,7 @@ export const OfflineInStore: Story = {
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
-                        {/* <Button>Submit for approval</Button> */}
+                        <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                       </div>
                     </CardContent>
                   </Card>
@@ -3972,7 +4022,7 @@ export const OfflineInStore: Story = {
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                    {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
                   <SummaryCard
                     title="Booking"
                     entity="booking"
@@ -4027,7 +4077,7 @@ export const OfflineInStore: Story = {
 
                   <CampaignDetailsSidebar />
                   <MediaPlanSidebar />
-                    {bookingTab !== 'creatives' && <CreativesSidebar />}
+                    {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
                   </aside>
                   {/* end summary column */}
                   </div>
@@ -4061,6 +4111,7 @@ export const SponsoredProducts: Story = {
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
+    const routeEntityId = useRouteEntityId();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4078,7 +4129,7 @@ export const SponsoredProducts: Story = {
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
-    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
@@ -4295,8 +4346,8 @@ export const SponsoredProducts: Story = {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-2">Evaluation ID</label>
-                            <Input placeholder="Enter evaluation ID" className="w-full" />
+                            <label className="block text-sm font-medium mb-2">Booking ID</label>
+                            <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                           </div>
                         </div>
                       </FormSection>
@@ -4610,7 +4661,7 @@ export const SponsoredProducts: Story = {
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
-                        <Button>{summaryActionsFor(bookingTab)[0].label}</Button>
+                        <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                       </div>
                     </CardContent>
                   </Card>
@@ -4695,6 +4746,7 @@ export const OffsiteDisplay: Story = {
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
+    const routeEntityId = useRouteEntityId();
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4709,7 +4761,7 @@ export const OffsiteDisplay: Story = {
     const [evaluationId, setEvaluationId] = React.useState('');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
-    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>([]);
+    const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
@@ -4899,8 +4951,8 @@ export const OffsiteDisplay: Story = {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Evaluation ID</label>
-                        <Input placeholder="Enter evaluation ID" className="w-full" />
+                        <label className="block text-sm font-medium mb-2">Booking ID</label>
+                        <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                       </div>
                     </div>
                   </FormSection>
@@ -5180,7 +5232,7 @@ export const OffsiteDisplay: Story = {
                 <CardContent>
                   <div className="flex gap-2">
                     <Button variant="outline">Cancel</Button>
-                    <Button>{summaryActionsFor(bookingTab)[0].label}</Button>
+                    <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                   </div>
                 </CardContent>
               </Card>
@@ -5190,7 +5242,7 @@ export const OffsiteDisplay: Story = {
               </div>
               {/* end form column */}
               <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
               <SummaryCard
                 title="Booking"
                 entity="booking"
@@ -5225,7 +5277,7 @@ export const OffsiteDisplay: Story = {
                 ]}
               />
               <MediaPlanSidebar />
-                {bookingTab !== 'creatives' && <CreativesSidebar />}
+                {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
               </aside>
               {/* end summary column */}
               </div>

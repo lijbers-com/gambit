@@ -10,6 +10,7 @@ import { Tag } from 'lucide-react';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
+import { AddButton } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Brand Overview',
@@ -229,7 +230,7 @@ export const BrandOverview: Story = {
                 ),
               },
             ]}
-            action={activeTab === 'brands' ? <Button>Add brand</Button> : <Button>Add product</Button>}
+            action={activeTab === 'brands' ? <AddButton>Add brand</AddButton> : <AddButton>Add product</AddButton>}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />

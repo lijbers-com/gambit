@@ -39,6 +39,7 @@ import { productImageFor } from '@/lib/product-images';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
+import { AddButton } from '@/components/ui/add-button';
 
 // Derived ROAS / conversion-rate table columns. Values are computed from the
 // row's revenue / ad spend / conversions / clicks so we don't duplicate them
@@ -1092,9 +1093,9 @@ const updatedForecastMetrics = [
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -1647,9 +1648,9 @@ export const DigitalInstoreRunning: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -2174,9 +2175,9 @@ export const OfflineInstoreRunning: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -2716,9 +2717,9 @@ export const DisplayRunning: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -3238,9 +3239,9 @@ export const OfflineInstoreInOption: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -3782,9 +3783,9 @@ export const DisplayInOption: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -4719,15 +4720,15 @@ export const SponsoredProductsInOption: Story = {
           ]}
           action={
             activeTab === 'products' ? (
-              <Button>Add product</Button>
+              <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
-              <Button>Add keyword</Button>
+              <AddButton>Add keyword</AddButton>
             ) : activeTab === 'categories' ? (
-              <Button>Add categories</Button>
+              <AddButton>Add categories</AddButton>
             ) : activeTab === 'other' ? (
-              <Button>Add other</Button>
+              <AddButton>Add other</AddButton>
             ) : activeTab === 'creatives' ? (
-              <Button>Add creative</Button>
+              <AddButton>Add creative</AddButton>
             ) : activeTab === 'logs' ? (
               <Button>Export logs</Button>
             ) : null
@@ -5462,13 +5463,13 @@ export const SponsoredProductsRunning: Story = {
           ]}
           action={
             activeTab === 'products' ? (
-              <Button>Add product</Button>
+              <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
-              <Button>Add keyword</Button>
+              <AddButton>Add keyword</AddButton>
             ) : activeTab === 'categories' ? (
-              <Button>Add categories</Button>
+              <AddButton>Add categories</AddButton>
             ) : activeTab === 'other' ? (
-              <Button>Add other</Button>
+              <AddButton>Add other</AddButton>
             ) : null
           }
           activeTab={activeTab}
@@ -6019,9 +6020,9 @@ export const OffsiteRunning: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}
@@ -6571,9 +6572,9 @@ export const OffsiteInOption: Story = {
                 />
               )}
               {activeTab === 'bookings' ? (
-                <Button>Add booking</Button>
+                <AddButton>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
-                <Button>Add creative</Button>
+                <AddButton>Add creative</AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null}

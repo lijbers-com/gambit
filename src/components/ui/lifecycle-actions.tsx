@@ -19,6 +19,7 @@ import {
   canApply,
   primaryAction,
   actionLabel,
+  playLabel,
   affectedCount,
   planScope,
   campaignScope,
@@ -45,6 +46,11 @@ export interface LifecycleActionsProps {
   status: PlanStatus;
   /** Name used in the confirmation, e.g. "Holiday Sale Plan". */
   name?: string;
+  /** Block launching and say why — a plan with unresolved blockers cannot go
+   *  live, and the reason belongs on the control rather than in a toast after
+   *  the click. */
+  playDisabled?: boolean;
+  playDisabledReason?: string;
   className?: string;
 }
 
@@ -59,6 +65,8 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
   entityId,
   status,
   name,
+  playDisabled,
+  playDisabledReason,
   className,
 }) => {
   const db = useDb();
@@ -85,8 +93,7 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
 
   const toggle = primaryAction(status);
   const canStop = canApply('stop', status);
-  // Nothing is live and nothing is paused: the entity is a draft, in option or
-  // finished, and none of these three verbs apply to it yet.
+  // Completed: the flight is over and none of these verbs apply.
   if (!toggle && !canStop) return null;
 
   const counts = confirming ? affectedCount(confirming, status, scope) : null;
@@ -104,14 +111,16 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
         <div className="flex items-center gap-2">
           {toggle && ToggleIcon && (
             <Button
-              variant="outline"
-              // Resuming is safe and reversible, so it acts immediately.
+              variant={toggle === 'play' && status !== 'paused' ? 'default' : 'outline'}
+              // Starting is safe and reversible, so it acts immediately.
               // Pausing stops delivery for everything underneath, so it asks.
               onClick={() => (toggle === 'play' ? apply('play') : setConfirming('pause'))}
+              disabled={toggle === 'play' && playDisabled}
+              title={toggle === 'play' && playDisabled ? playDisabledReason : undefined}
               className="gap-1.5"
             >
               <ToggleIcon className="h-4 w-4" />
-              {actionLabel[toggle]}
+              {toggle === 'play' ? playLabel(status) : actionLabel[toggle]}
             </Button>
           )}
           {canStop && (

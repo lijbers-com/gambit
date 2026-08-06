@@ -62,3 +62,6 @@ export { AttributionWindowSelect } from './attribution-window-select';export { F
 export type { FaqItem, FaqProps } from './faq';
 export { FaqPanel } from './faq-panel';
 export type { FaqPanelProps } from './faq-panel';
+export { AddButton, AddInlineLabel } from './add-button';
+export { AddCampaignMenu } from './add-campaign-menu';
+export type { AddCampaignMenuProps } from './add-campaign-menu';

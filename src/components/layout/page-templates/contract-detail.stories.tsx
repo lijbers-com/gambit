@@ -13,6 +13,7 @@ import { Building2, Users } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import * as React from 'react';
+import { AddButton } from '@/components/ui/add-button';
 
 type CampaignAccess = 'edit' | 'view' | 'none';
 
@@ -114,8 +115,8 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
           onTabChange={setActiveTab}
           action={
             activeTab === 'details' ? <Button>Save</Button> :
-            activeTab === 'partners' ? <Button>Add partner</Button> :
-            activeTab === 'brands' ? <Button>Add brand</Button> : null
+            activeTab === 'partners' ? <AddButton>Add partner</AddButton> :
+            activeTab === 'brands' ? <AddButton>Add brand</AddButton> : null
           }
           header={
             activeTab === 'details' ? (

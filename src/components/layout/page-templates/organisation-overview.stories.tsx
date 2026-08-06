@@ -11,6 +11,7 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import * as React from 'react';
+import { AddButton } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Organisation Overview',
@@ -224,7 +225,7 @@ export const OrganisationOverview: Story = {
                 ),
               },
             ]}
-            action={activeTab === 'organisations' ? <Button>Add organisation</Button> : <Button>Invite user</Button>}
+            action={activeTab === 'organisations' ? <AddButton>Add organisation</AddButton> : <Button>Invite user</Button>}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />

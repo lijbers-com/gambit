@@ -11,6 +11,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { UserCircle, Tag } from 'lucide-react';
 import * as React from 'react';
+import { AddButton } from '@/components/ui/add-button';
 
 const InfoRow = ({
   icon: Icon,
@@ -89,7 +90,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
           className="w-full"
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          action={activeTab === 'details' ? <Button>Save</Button> : activeTab === 'contracts' ? <Button>Add contract</Button> : activeTab === 'groups' ? <Button>Add group</Button> : activeTab === 'api-keys' ? <Button>New token</Button> : null}
+          action={activeTab === 'details' ? <Button>Save</Button> : activeTab === 'contracts' ? <AddButton>Add contract</AddButton> : activeTab === 'groups' ? <AddButton>Add group</AddButton> : activeTab === 'api-keys' ? <Button>New token</Button> : null}
           header={
             activeTab === 'details' ? (
               <div className="space-y-4 w-full">

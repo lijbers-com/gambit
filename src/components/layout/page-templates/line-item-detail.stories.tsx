@@ -4868,6 +4868,17 @@ export const OffsiteDisplay: Story = {
                       </button>
                     ))}
                   </div>
+              {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
+              {routeBooking && (
+                <LifecycleActions
+                  level="booking"
+                  entityId={routeBooking.id}
+                  status={routeBooking.status}
+                  name={routeBooking.name}
+                  className="pb-2"
+                />
+              )}
+              </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <div className="lg:col-span-2 min-w-0 space-y-6">
@@ -5173,17 +5184,6 @@ export const OffsiteDisplay: Story = {
               {/* end form card */}
               {/* Retailer-authored help, stacked under the form so it lines up with it. */}
               <FaqPanel surface="booking-detail" engine="offsite" />
-              </div>
-              {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
-              {routeBooking && (
-                <LifecycleActions
-                  level="booking"
-                  entityId={routeBooking.id}
-                  status={routeBooking.status}
-                  name={routeBooking.name}
-                  className="pb-2"
-                />
-              )}
               </div>
               {/* end form column */}
               <aside className="space-y-4">

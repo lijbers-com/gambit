@@ -18,6 +18,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
 import { addDays } from 'date-fns';
 import { useDb, useSession, createMediaPlan, updateMediaPlan, deleteMediaPlan, type EngineId, type PlanStatus } from '@/lib/db';
+import { AddButton } from '@/components/ui/add-button';
 
 // ── DB → card-view mapping ─────────────────────────────────────────────
 // The media-plan cards render straight from the prototype database; these
@@ -408,9 +409,9 @@ function AllCampaignsPage() {
           ]}
           action={
             activeTab === 'media-experiences' ? (
-              <Button onClick={handleAddMediaExperience}>
+              <AddButton onClick={handleAddMediaExperience}>
                 Add media plan
-              </Button>
+              </AddButton>
             ) : activeTab === 'logs' ? (
               <Button>Export logs</Button>
             ) : null

@@ -10,6 +10,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { Building2 } from 'lucide-react';
 import * as React from 'react';
+import { AddButton } from '@/components/ui/add-button';
 
 const InfoRow = ({
   icon: Icon,
@@ -112,7 +113,7 @@ const BrandDetailContent = ({
           onTabChange={setActiveTab}
           action={
             activeTab === 'details' ? <Button>Save</Button> :
-            activeTab === 'products' ? <Button>Add product</Button> :
+            activeTab === 'products' ? <AddButton>Add product</AddButton> :
             null
           }
           header={

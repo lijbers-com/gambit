@@ -61,6 +61,7 @@ export {
   canApply,
   primaryAction,
   actionLabel,
+  playLabel,
   affectedCount,
   planScope,
   campaignScope,

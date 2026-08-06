@@ -29,6 +29,7 @@ import { addDays } from 'date-fns';
 import { useDb, createBooking, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { AddButton } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -491,7 +492,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'name', header: 'Name', width: 320, render: row => row._type === 'booking' ? row.name : row._type !== 'campaign' ? null : (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
-                          <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} bookings)</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} booking{row.bookings === 1 ? '' : 's'})</span>
                         </span>
                       ) },
                       ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: () => 'Epsilon' }] : []),
@@ -570,7 +571,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               content: <InsightsTab engineType={engineType} scope="overview" />,
             },
           ]}
-          action={activeTab === 'campaigns' ? <Button>Add campaign</Button> : null}
+          action={activeTab === 'campaigns' ? <AddButton>Add campaign</AddButton> : null}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
@@ -1135,9 +1136,9 @@ export const Campaigns360NoGoalTargeting: Story = {
             ]}
             action={
               activeTab === 'media-experiences' ? (
-                <Button onClick={handleAddMediaExperience}>
+                <AddButton onClick={handleAddMediaExperience}>
                   Add media plan
-                </Button>
+                </AddButton>
               ) : activeTab === 'logs' ? (
                 <Button>Export logs</Button>
               ) : null

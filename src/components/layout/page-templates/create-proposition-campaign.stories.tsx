@@ -48,6 +48,7 @@ import {
   Clock,
   type LucideIcon,
 } from 'lucide-react';
+import { AddInlineLabel } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Create Proposition Campaign',
@@ -1566,7 +1567,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           className="w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-5 text-center"
                           onClick={() => setBookingSubStep(0)}
                         >
-                          <div className="text-sm font-medium text-muted-foreground">+ Add booking</div>
+                          <AddInlineLabel className="font-medium">Add booking</AddInlineLabel>
                           <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
                         </button>
                         <div className="flex justify-start mt-2">

@@ -16,6 +16,7 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+import { AddButton } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Bookings Overview',
@@ -303,7 +304,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                   content: <InsightsTab engineType={engineType} scope="overview" />,
                 },
               ]}
-              action={activeTab === 'bookings' ? <Button>Add booking</Button> : null}
+              action={activeTab === 'bookings' ? <AddButton>Add booking</AddButton> : null}
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />

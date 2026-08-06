@@ -18,6 +18,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
 import { FaqPanel } from '@/components/ui/faq-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -36,7 +37,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, createBooking, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
@@ -551,11 +552,30 @@ export const MediaPlanDetail: Story = {
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
       : [];
     const canLaunch = !!plan && planBlockers.length === 0;
-    const isLive = plan?.status === 'running' || plan?.status === 'completed';
 
-    const launchPlan = () => {
-      if (!plan || !canLaunch) return;
-      updateMediaPlan(plan.id, { status: 'running' });
+    /**
+     * Add a campaign of a chosen proposition to this plan and open it.
+     *
+     * It starts as a draft inside the plan's flight with no budget of its own:
+     * the plan already answered who and when, and the budget is either split
+     * automatically or typed into the row — asking again here would duplicate
+     * both.
+     */
+    const addCampaign = (engine: EngineId) => {
+      if (!plan) return;
+      const campaign = createCampaign({
+        mediaPlanId: plan.id,
+        name: `New ${engine.replace(/-/g, ' ')} campaign`,
+        engine,
+        status: 'draft',
+        budget: 0,
+        spend: 0,
+        startDate: plan.startDate,
+        endDate: plan.endDate,
+      });
+      if (typeof window !== 'undefined') {
+        window.location.href = `/campaigns/${routeSeg[engine]}/${campaign.id}`;
+      }
     };
 
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
@@ -700,27 +720,23 @@ export const MediaPlanDetail: Story = {
             // Controlled only so the FAQ below can follow the open tab.
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            // A plan is launched once, then run, paused or stopped. Launch is
-            // gone the moment it is live; the lifecycle controls take over and
-            // reach every campaign and booking beneath it.
+            // One control for the plan's run state at every stage — launching,
+            // pausing, resuming, stopping — reaching every campaign and booking
+            // beneath it, with Add campaign beside it.
             action={
-              isLive ? (
-                <LifecycleActions level="media-plan" entityId={plan?.id ?? ''} status={plan?.status ?? 'draft'} name={plan?.name} />
-              ) : plan?.status === 'paused' ? (
-                <LifecycleActions level="media-plan" entityId={plan.id} status={plan.status} name={plan.name} />
-              ) : (
-                <Button
-                  onClick={launchPlan}
-                  disabled={!canLaunch}
-                  title={
-                    canLaunch
-                      ? 'Set this media plan live'
-                      : `${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`
-                  }
-                >
-                  Launch media plan
-                </Button>
-              )
+              <div className="flex items-center gap-2">
+                {plan && (
+                  <LifecycleActions
+                    level="media-plan"
+                    entityId={plan.id}
+                    status={plan.status}
+                    name={plan.name}
+                    playDisabled={!canLaunch}
+                    playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+                  />
+                )}
+                <AddCampaignMenu onSelect={addCampaign} />
+              </div>
             }
             tabs={[
               {

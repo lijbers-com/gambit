@@ -23,27 +23,30 @@ const TARGET: Record<LifecycleAction, PlanStatus> = {
 /**
  * Whether an action makes sense for something in this state.
  *
- * - A draft or in-option entity has nothing live to pause or stop; it is
- *   launched, not resumed, which is the Launch action's job.
- * - A completed entity is finished. Nothing restarts it — that would rewrite
- *   history rather than change a plan.
+ * Play covers both launching and resuming — from the user's side they are one
+ * gesture, "make this run", and having a separate Launch button meant the
+ * control moved around depending on a state they had to infer. Pause and stop
+ * only apply to something actually delivering. A completed entity is finished:
+ * nothing restarts it, which would rewrite history rather than change a plan.
  */
 export function canApply(action: LifecycleAction, status: PlanStatus): boolean {
   if (status === 'completed') return false;
-  if (action === 'play') return status === 'paused';
-  // Pause and stop only apply to something that is actually delivering.
+  if (action === 'play') return status !== 'running';
   return status === 'running';
 }
 
 /** The action a control should offer for this state, or null for none. */
 export function primaryAction(status: PlanStatus): LifecycleAction | null {
-  if (status === 'running') return 'pause';
-  if (status === 'paused') return 'play';
-  return null;
+  if (status === 'completed') return null;
+  return status === 'running' ? 'pause' : 'play';
 }
 
+/** Play reads as Launch on something that has never run, Resume on a pause. */
+export const playLabel = (status: PlanStatus): string =>
+  status === 'paused' ? 'Resume' : 'Launch';
+
 export const actionLabel: Record<LifecycleAction, string> = {
-  play: 'Resume',
+  play: 'Launch',
   pause: 'Pause',
   stop: 'Stop',
 };

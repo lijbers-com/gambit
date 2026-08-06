@@ -720,23 +720,21 @@ export const Display: Story = {
                       <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                     </div>
 
-                    {/* Create placement — media product (channel) + positions/slots,
-                        same component as the offsite booking. */}
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-sm">Create placement</h3>
-                      <CreatePlacement
-                        mediaProducts={displayMediaProducts}
-                        mediaProduct={displayMediaProduct}
-                        onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
-                        positions={displayCurrentPositions}
-                        positionsValue={displayPositions}
-                        onPositionsChange={setDisplayPositions}
-                        className="contents"
-                      />
-                    </div>
                   </div>
                 )}
               </div>
+
+              {/* Create placement — its own block, like every booking form. */}
+              <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
+                <CreatePlacement
+                  mediaProducts={displayMediaProducts}
+                  mediaProduct={displayMediaProduct}
+                  onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
+                  positions={displayCurrentPositions}
+                  positionsValue={displayPositions}
+                  onPositionsChange={setDisplayPositions}
+                />
+              </FormSection>
 
               {/* Budget & run time — the shared block every booking form uses. */}
               <BookingBudgetRuntime
@@ -4712,17 +4710,14 @@ export const OffsiteDisplay: Story = {
                   </FormSection>
 
                   <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <div className="space-y-4">
-                      <CreatePlacement
-                        mediaProducts={offsiteMediaProducts}
-                        mediaProduct={mediaProduct}
-                        onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
-                        positions={currentPositions}
-                        positionsValue={positions}
-                        onPositionsChange={setPositions}
-                        className="contents"
-                      />
-                    </div>
+                    <CreatePlacement
+                      mediaProducts={offsiteMediaProducts}
+                      mediaProduct={mediaProduct}
+                      onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
+                      positions={currentPositions}
+                      positionsValue={positions}
+                      onPositionsChange={setPositions}
+                    />
                   </FormSection>
 
                   <BookingBudgetRuntime

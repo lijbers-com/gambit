@@ -4,6 +4,7 @@ import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
+import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { addBooking } from '@/lib/create-entities';
 import { useRouteBooking, useRouteEntityId } from '@/lib/db';
 import { MenuContextProvider } from '@/contexts/menu-context';
@@ -487,6 +488,10 @@ export const Display: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
+    const [bookingBudget, setBookingBudget] = React.useState('');
+    const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
+    const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     // Two creatives come attached, matching the summary card on the right.
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const bookingLogData = [
@@ -710,59 +715,6 @@ export const Display: Story = {
                       <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="font-semibold text-sm">Schedule</div>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm mb-1 flex items-center gap-1">
-                            Start date and time
-                            <span className="inline-block w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] flex items-center justify-center font-bold">!</span>
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <DatePicker
-                              date={startDate}
-                              onDateChange={setStartDate}
-                              placeholder="MM/DD/YYYY"
-                              className="w-full"
-                            />
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Calendar className="w-4 h-4" />
-                              </span>
-                              <Input
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                className="pl-9"
-                                placeholder="00:00"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm mb-1">End date and time</label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <DatePicker
-                              date={endDate}
-                              onDateChange={setEndDate}
-                              placeholder="MM/DD/YYYY"
-                              className="w-full"
-                            />
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Calendar className="w-4 h-4" />
-                              </span>
-                              <Input
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                className="pl-9"
-                                placeholder="23:59"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Active days sub-section */}
                     <div>
                       <SubSectionHeader title="Active days" open={activeDaysOpen} onToggle={() => setActiveDaysOpen(v => !v)} />
@@ -820,6 +772,23 @@ export const Display: Story = {
                   </div>
                 )}
               </div>
+
+              {/* Budget & run time — the shared block every booking form uses. */}
+              <BookingBudgetRuntime
+                className={cn(bookingTab !== 'details' && 'hidden')}
+                budget={bookingBudget}
+                onBudgetChange={setBookingBudget}
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                startTime={startTime}
+                endTime={endTime}
+                onStartTimeChange={setStartTime}
+                onEndTimeChange={setEndTime}
+                campaignBudget="$18,000"
+                campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
+              />
 
               {/* 2. Targeting — Targeting tab */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
@@ -1130,6 +1099,10 @@ export const DigitalInStore: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
+    const [bookingBudget, setBookingBudget] = React.useState('');
+    const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
+    const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -1941,71 +1914,50 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="min-w-0">
-                            <label className="block text-sm font-medium mb-2">Start &amp; end date*</label>
-                            <DateRangePicker
-                              dateRange={dInstoreDateRange}
-                              onDateRangeChange={setDInstoreDateRange}
-                              placeholder="Select date range"
-                              className="w-full"
-                              showPresets
-                              presets={futureDateRangePresets}
-                              defaultPreset="Next week"
-                              showWeekNumbers
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">Start time</label>
-                              <Input
-                                type="time"
-                                value={dInstoreStartTime}
-                                onChange={(e) => setDInstoreStartTime(e.target.value)}
-                                className="w-full"
-                              />
+                      <BookingBudgetRuntime
+                        className={cn(bookingTab !== 'details' && "hidden")}
+                        budget={bookingBudget}
+                        onBudgetChange={setBookingBudget}
+                        startDate={dInstoreDateRange?.from}
+                        endDate={dInstoreDateRange?.to}
+                        onStartDateChange={(d) => setDInstoreDateRange({ ...dInstoreDateRange, from: d })}
+                        onEndDateChange={(d) => setDInstoreDateRange({ from: dInstoreDateRange?.from, to: d })}
+                        startTime={dInstoreStartTime}
+                        endTime={dInstoreEndTime}
+                        onStartTimeChange={setDInstoreStartTime}
+                        onEndTimeChange={setDInstoreEndTime}
+                        campaignBudget="€10,000"
+                        campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
+                      >
+                        <div className="min-w-0">
+                          <label className="block text-sm font-medium mb-2">Active days</label>
+                          <div className="space-y-3">
+                            <div className="flex gap-2 flex-wrap">
+                              {dayLabels.map((day) => (
+                                <button
+                                  key={day.id}
+                                  type="button"
+                                  onClick={() => toggleDInstoreDay(day.id)}
+                                  className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
+                                    dInstoreActiveDays.includes(day.id)
+                                      ? 'bg-background border-primary text-foreground'
+                                      : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
+                                  }`}
+                                >
+                                  {day.label}
+                                </button>
+                              ))}
                             </div>
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">End time</label>
-                              <Input
-                                type="time"
-                                value={dInstoreEndTime}
-                                onChange={(e) => setDInstoreEndTime(e.target.value)}
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                          <div className="min-w-0">
-                            <label className="block text-sm font-medium mb-2">Active days</label>
-                            <div className="space-y-3">
-                              <div className="flex gap-2 flex-wrap">
-                                {dayLabels.map((day) => (
-                                  <button
-                                    key={day.id}
-                                    type="button"
-                                    onClick={() => toggleDInstoreDay(day.id)}
-                                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
-                                      dInstoreActiveDays.includes(day.id)
-                                        ? 'bg-background border-primary text-foreground'
-                                        : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
-                                    }`}
-                                  >
-                                    {day.label}
-                                  </button>
-                                ))}
-                              </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['sa', 'su'])}>Weekend</button>
-                                <span className="text-muted-foreground">·</span>
-                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                                <span className="text-muted-foreground">·</span>
-                                <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
-                              </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['sa', 'su'])}>Weekend</button>
+                              <span className="text-muted-foreground">·</span>
+                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                              <span className="text-muted-foreground">·</span>
+                              <button type="button" className="text-primary hover:underline" onClick={() => setDInstoreActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])}>All</button>
                             </div>
                           </div>
                         </div>
-                      </FormSection>
+                      </BookingBudgetRuntime>
 
                       {renderTargetListSection('stores')}
                       {renderTargetListSection('displays')}
@@ -2761,6 +2713,10 @@ export const OfflineInStore: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
+    const [bookingBudget, setBookingBudget] = React.useState('');
+    const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
+    const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -3396,33 +3352,21 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">Start date*</label>
-                              <DatePicker 
-                                date={startDate}
-                                onDateChange={setStartDate}
-                                placeholder="Select start date" 
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">End date*</label>
-                              <DatePicker 
-                                date={endDate}
-                                onDateChange={setEndDate}
-                                placeholder="Select end date" 
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
-                        </div>
-                      </FormSection>
+                      <BookingBudgetRuntime
+                        className={cn(bookingTab !== 'details' && "hidden")}
+                        budget={bookingBudget}
+                        onBudgetChange={setBookingBudget}
+                        startDate={startDate}
+                        endDate={endDate}
+                        onStartDateChange={setStartDate}
+                        onEndDateChange={setEndDate}
+                        startTime={bookingStartTime}
+                        endTime={bookingEndTime}
+                        onStartTimeChange={setBookingStartTime}
+                        onEndTimeChange={setBookingEndTime}
+                        campaignBudget="€10,000"
+                        campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
+                      />
 
                       <FormSection bordered
                         headerClassName="mb-8"
@@ -4116,6 +4060,10 @@ export const SponsoredProducts: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
+    const [bookingBudget, setBookingBudget] = React.useState('');
+    const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
+    const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4424,33 +4372,21 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">Start date*</label>
-                              <DatePicker 
-                                date={startDate}
-                                onDateChange={setStartDate}
-                                placeholder="Select start date" 
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <label className="block text-sm font-medium mb-2">End date*</label>
-                              <DatePicker 
-                                date={endDate}
-                                onDateChange={setEndDate}
-                                placeholder="Select end date" 
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Campaign runtime: 01 Aug, 2024 - 30 Aug, 2024
-                          </div>
-                        </div>
-                      </FormSection>
+                      <BookingBudgetRuntime
+                        className={cn(bookingTab !== 'details' && "hidden")}
+                        budget={bookingBudget}
+                        onBudgetChange={setBookingBudget}
+                        startDate={startDate}
+                        endDate={endDate}
+                        onStartDateChange={setStartDate}
+                        onEndDateChange={setEndDate}
+                        startTime={bookingStartTime}
+                        endTime={bookingEndTime}
+                        onStartTimeChange={setBookingStartTime}
+                        onEndTimeChange={setBookingEndTime}
+                        campaignBudget="€10,000"
+                        campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
+                      />
 
                       <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <RetailProductSelect
@@ -4752,6 +4688,10 @@ export const OffsiteDisplay: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
+    const [bookingBudget, setBookingBudget] = React.useState('');
+    const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
+    const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
@@ -4986,52 +4926,21 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection bordered title="Run time" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Start date*</label>
-                          <DatePicker
-                            date={startDate}
-                            onDateChange={setStartDate}
-                            placeholder="Select start date"
-                            className="w-full"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">End date*</label>
-                          <DatePicker
-                            date={endDate}
-                            onDateChange={setEndDate}
-                            placeholder="Select end date"
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Campaign runtime: 01 Jun, 2024 - 30 Jun, 2024
-                      </div>
-                    </div>
-                  </FormSection>
-
-                  <FormSection bordered title="Budget" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Booking budget*</label>
-                        <Input
-                          type="number"
-                          value={selectedBudget}
-                          onChange={(e) => setSelectedBudget(e.target.value)}
-                          placeholder="Enter budget"
-                          className="w-full"
-                          min="0"
-                        />
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Campaign budget: $120,000
-                      </div>
-                    </div>
-                  </FormSection>
+                  <BookingBudgetRuntime
+                    className={cn(bookingTab !== 'details' && "hidden")}
+                    budget={selectedBudget}
+                    onBudgetChange={setSelectedBudget}
+                    startDate={startDate}
+                    endDate={endDate}
+                    onStartDateChange={setStartDate}
+                    onEndDateChange={setEndDate}
+                    startTime={bookingStartTime}
+                    endTime={bookingEndTime}
+                    onStartTimeChange={setBookingStartTime}
+                    onEndTimeChange={setBookingEndTime}
+                    campaignBudget="$120,000"
+                    campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
+                  />
 
                   <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <RetailProductSelect

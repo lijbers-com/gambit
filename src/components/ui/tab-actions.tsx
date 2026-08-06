@@ -26,8 +26,12 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
 }) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const [compact, setCompact] = React.useState(false);
-  // Width with labels showing — the number that decides, held across collapse.
+  // Width with labels showing — the number that decides. Cached the moment we
+  // measure expanded and NEVER refreshed while collapsed: re-reading the
+  // collapsed width would make the group conclude it fits, expand, overflow,
+  // collapse — a visible flicker loop.
   const fullWidth = React.useRef(0);
+  const compactRef = React.useRef(false);
 
   React.useLayoutEffect(() => {
     const el = ref.current;
@@ -35,7 +39,7 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
     if (!el || !row) return;
 
     const measure = () => {
-      if (!el.dataset.compact) fullWidth.current = el.offsetWidth;
+      if (!compactRef.current) fullWidth.current = el.offsetWidth;
       const tabs = Array.from(row.children).find((c) => c !== el);
       if (!tabs) return;
       // Natural tab width: rendered width plus whatever truncation clipped.
@@ -44,7 +48,14 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
         const span = b.querySelector('span');
         natural += b.offsetWidth + (span ? span.scrollWidth - span.clientWidth : 0);
       }
-      setCompact(natural + fullWidth.current + 16 > row.clientWidth);
+      // A little slack on the way back out, so a borderline width settles
+      // instead of trembling on the threshold.
+      const needed = natural + fullWidth.current + 16;
+      const next = compactRef.current ? needed + 24 > row.clientWidth : needed > row.clientWidth;
+      if (next !== compactRef.current) {
+        compactRef.current = next;
+        setCompact(next);
+      }
     };
 
     measure();
@@ -57,7 +68,7 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
   return (
     <div
       ref={ref}
-      data-compact={compact ? '' : undefined}
+      data-compact={compact ? 'true' : undefined}
       className={cn('group/tab-actions flex shrink-0 items-center gap-2', className)}
     >
       {children}

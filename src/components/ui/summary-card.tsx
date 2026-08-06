@@ -319,17 +319,25 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
     },
     ref,
   ) => {
+    const hasContent =
+      (variant === "details" && !!(items || groups)) ||
+      (variant === "process" && !!steps) ||
+      (variant === "order" && !!sections)
     return (
       <div
         ref={ref}
         className={cn(
-          "rounded-xl border bg-neutral-100 text-card-foreground text-[14px]",
+          // The card owns its padding, evenly on all four sides, and the
+          // sections space themselves with the gap. Each section carrying its
+          // own bottom padding meant whichever happened to be last decided the
+          // card's bottom edge, leaving it shorter than the top.
+          "rounded-xl border bg-neutral-100 text-card-foreground text-[14px] p-6 flex flex-col gap-4",
           className,
         )}
         {...props}
       >
         {/* Header */}
-        <div className="p-6 pb-4">
+        <div>
           <h2 className="flex items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
             {entity && (() => {
               const EntityIcon = entityIcon[entity]
@@ -342,25 +350,28 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
           )}
         </div>
 
-        {/* Content */}
-        <div className="px-6 pb-4">
-          {variant === "details" && (items || groups) && (
-            <DetailsContent items={items} groups={groups} />
-          )}
-          {variant === "process" && steps && (
-            <ProcessContent steps={steps} />
-          )}
-          {variant === "order" && sections && (
-            <OrderContent sections={sections} totals={totals} />
-          )}
-        </div>
+        {/* Content. Rendered only when there is some, so an empty card does not
+            keep a gap where the body would have been. */}
+        {hasContent && (
+          <div>
+            {variant === "details" && (items || groups) && (
+              <DetailsContent items={items} groups={groups} />
+            )}
+            {variant === "process" && steps && (
+              <ProcessContent steps={steps} />
+            )}
+            {variant === "order" && sections && (
+              <OrderContent sections={sections} totals={totals} />
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         {/* A left-aligned row at their natural width — the same footer the form
             itself has, so the card and the form read as one set of actions
             rather than two competing ones. */}
         {actions && actions.length > 0 && (
-          <div className="px-6 pb-4 flex gap-2">
+          <div className="flex gap-2">
             {actions.map((action, i) =>
               action.menu ? (
                 <SplitButton
@@ -389,9 +400,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
 
         {/* Footer note */}
         {footer && (
-          <div className="px-6 pb-5 text-[12px] text-muted-foreground">
-            {footer}
-          </div>
+          <div className="text-[12px] text-muted-foreground">{footer}</div>
         )}
       </div>
     )

@@ -76,6 +76,12 @@ export {
 } from './store';
 export {
   createFaq,
+  createTerm,
+  updateTerm,
+  deleteTerm,
+  createReleaseNote,
+  updateReleaseNote,
+  deleteReleaseNote,
   updateFaq,
   deleteFaq,
   moveFaq,

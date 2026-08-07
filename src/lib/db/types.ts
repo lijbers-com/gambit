@@ -254,4 +254,36 @@ export interface DbData {
   positions: Position[];
   availability: AvailabilityEntry[];
   faqs: FaqEntry[];
+  terms: TermEntry[];
+  releaseNotes: ReleaseNote[];
+}
+
+/**
+ * A glossary entry for a metric or term used across the product, shown in the
+ * Help section. The retailer writes these once, in their own words, instead of
+ * every template explaining ROAS its own way.
+ */
+export interface TermEntry {
+  id: string;
+  term: string;
+  definition: string;
+  published: boolean;
+  order: number;
+  updatedAt: string;
+}
+
+/**
+ * A "What's new" note — release notes the retailer writes for advertisers.
+ * The homepage widget and the Help section read the same list.
+ */
+export interface ReleaseNote {
+  id: string;
+  version: string;
+  /** Display date, e.g. "June 2026". */
+  date: string;
+  title: string;
+  items: string[];
+  published: boolean;
+  order: number;
+  updatedAt: string;
 }

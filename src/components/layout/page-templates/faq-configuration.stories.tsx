@@ -27,6 +27,12 @@ import {
   createFaq,
   updateFaq,
   deleteFaq,
+  createTerm,
+  updateTerm,
+  deleteTerm,
+  createReleaseNote,
+  updateReleaseNote,
+  deleteReleaseNote,
   moveFaq,
   faqsForSurface,
   faqSurface,
@@ -36,6 +42,8 @@ import {
   type FaqAudience,
   type FaqEntry,
   type FaqSurfaceId,
+  type TermEntry,
+  type ReleaseNote,
 } from '@/lib/db';
 import { ChevronDown, ChevronUp, Eye, Lock, Pencil, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -90,6 +98,253 @@ const audienceBadge: Record<FaqAudience, { label: string; className: string }> =
   retailer: { label: 'Internal', className: 'border-warning-200 bg-warning-50 text-warning-700' },
 };
 
+
+/* ── The three content types share one page. FAQs keep the surface-grouped
+      editor; terms and what's new are flat lists with the same editing model:
+      retailer writes, drafts stay hidden, everyone else reads. ─────────── */
+
+const HelpTabStrip: React.FC<{ tab: string; onChange: (t: string) => void }> = ({ tab, onChange }) => (
+  <div className="mb-4 flex w-fit gap-1 rounded-lg border border-border bg-card p-1">
+    {[
+      { value: 'faqs', label: 'FAQs' },
+      { value: 'terms', label: 'Metric terms' },
+      { value: 'news', label: "What's new" },
+    ].map((t) => (
+      <button
+        key={t.value}
+        type="button"
+        onClick={() => onChange(t.value)}
+        className={cn(
+          'rounded-md px-4 py-1.5 text-sm transition-colors',
+          tab === t.value
+            ? 'border border-surface-selected-border bg-surface-selected font-medium'
+            : 'border border-transparent text-muted-foreground hover:text-foreground',
+        )}
+      >
+        {t.label}
+      </button>
+    ))}
+  </div>
+);
+
+/** Published FAQs, grouped by the screen they used to sit on — the read view
+ *  for everyone who does not edit. */
+const FaqReadTab: React.FC = () => {
+  const db = useDb();
+  const user = useSession();
+  const advertiser = user?.side !== 'retailer';
+  const groups = FAQ_SURFACES.map((s) => ({
+    surface: s,
+    items: db.faqs
+      .filter((f) => f.surface === s.id && f.published && (!advertiser || f.audience !== 'retailer'))
+      .sort((a, b) => a.order - b.order),
+  })).filter((g) => g.items.length > 0);
+  return (
+    <div className="space-y-4">
+      {groups.map(({ surface, items }) => (
+        <Card key={surface.id}>
+          <CardContent className="p-6">
+            <Faq
+              heading={surface.label}
+              items={items.map((e) => ({ id: e.id, question: e.question, answer: e.answer }))}
+            />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+const TermsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
+  const db = useDb();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ term: '', definition: '', published: true });
+  const terms = [...db.terms].sort((a, b) => a.order - b.order);
+  const visible = mayEdit ? terms : terms.filter((t) => t.published);
+  const openNew = () => { setDraft({ term: '', definition: '', published: true }); setEditing('new'); };
+  const openEdit = (t: TermEntry) => { setDraft({ term: t.term, definition: t.definition, published: t.published }); setEditing(t.id); };
+  const save = () => {
+    const payload = { term: draft.term.trim(), definition: draft.definition.trim(), published: draft.published };
+    if (editing === 'new') createTerm(payload);
+    else if (editing) updateTerm(editing, payload);
+    setEditing(null);
+  };
+  return (
+    <>
+      <Card>
+        <CardContent className="p-6">
+          <FormSection
+            title="Metric terms"
+            headerClassName="mb-4"
+            action={mayEdit ? (
+              <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />New term</Button>
+            ) : undefined}
+          >
+            <p className="-mt-2 mb-4 text-sm text-muted-foreground">
+              What every metric in the platform means, explained once in your own words.
+            </p>
+            <div className="divide-y divide-border overflow-hidden rounded-lg border">
+              {visible.map((t) => (
+                <div key={t.id} className="flex items-start gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      {t.term}
+                      {!t.published && mayEdit && (
+                        <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.definition}</p>
+                  </div>
+                  {mayEdit && (
+                    <div className="flex shrink-0 gap-1">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(t)} className="h-8 w-8 p-0" aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm" onClick={() => deleteTerm(t.id)} className="h-8 w-8 p-0" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </FormSection>
+        </CardContent>
+      </Card>
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing === 'new' ? 'New term' : 'Edit term'}</DialogTitle>
+            <DialogDescription>Shown in the Help section, for every user.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2 block">Term</Label>
+              <Input value={draft.term} onChange={(e) => setDraft({ ...draft, term: e.target.value })} placeholder="e.g. ROAS (return on ad spend)" />
+            </div>
+            <div>
+              <Label className="mb-2 block">Definition</Label>
+              <Textarea value={draft.definition} onChange={(e) => setDraft({ ...draft, definition: e.target.value })} rows={4} placeholder="One or two plain sentences…" />
+            </div>
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
+              <p className="text-sm font-medium">Published</p>
+              <Switch checked={draft.published} onCheckedChange={(v) => setDraft({ ...draft, published: v })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button onClick={save} disabled={!draft.term.trim() || !draft.definition.trim()}>
+              {editing === 'new' ? 'Add term' : 'Save changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
+  const db = useDb();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ version: '', date: '', title: '', items: '', published: true });
+  const notes = [...db.releaseNotes].sort((a, b) => a.order - b.order);
+  const visible = mayEdit ? notes : notes.filter((n) => n.published);
+  const openNew = () => { setDraft({ version: '', date: '', title: '', items: '', published: true }); setEditing('new'); };
+  const openEdit = (n: ReleaseNote) => {
+    setDraft({ version: n.version, date: n.date, title: n.title, items: n.items.join('\n'), published: n.published });
+    setEditing(n.id);
+  };
+  const save = () => {
+    const payload = {
+      version: draft.version.trim(),
+      date: draft.date.trim(),
+      title: draft.title.trim(),
+      items: draft.items.split('\n').map((l) => l.trim()).filter(Boolean),
+      published: draft.published,
+    };
+    if (editing === 'new') createReleaseNote(payload);
+    else if (editing) updateReleaseNote(editing, payload);
+    setEditing(null);
+  };
+  return (
+    <>
+      <Card>
+        <CardContent className="p-6">
+          <FormSection
+            title="What's new"
+            headerClassName="mb-4"
+            action={mayEdit ? (
+              <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />New note</Button>
+            ) : undefined}
+          >
+            <p className="-mt-2 mb-4 text-sm text-muted-foreground">
+              Release notes advertisers see on their homepage — what changed and why it helps them.
+            </p>
+            <div className="divide-y divide-border overflow-hidden rounded-lg border">
+              {visible.map((n) => (
+                <div key={n.id} className="flex items-start gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      {n.title}
+                      <span className="text-xs font-normal text-muted-foreground">{n.version} · {n.date}</span>
+                      {!n.published && mayEdit && (
+                        <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
+                      )}
+                    </p>
+                    <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-muted-foreground">
+                      {n.items.map((it, i) => <li key={i}>{it}</li>)}
+                    </ul>
+                  </div>
+                  {mayEdit && (
+                    <div className="flex shrink-0 gap-1">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(n)} className="h-8 w-8 p-0" aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm" onClick={() => deleteReleaseNote(n.id)} className="h-8 w-8 p-0" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </FormSection>
+        </CardContent>
+      </Card>
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing === 'new' ? 'New note' : 'Edit note'}</DialogTitle>
+            <DialogDescription>Shown on the homepage What&apos;s new feed and here in Help.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2 block">Version</Label>
+                <Input value={draft.version} onChange={(e) => setDraft({ ...draft, version: e.target.value })} placeholder="v1.7" />
+              </div>
+              <div>
+                <Label className="mb-2 block">Date</Label>
+                <Input value={draft.date} onChange={(e) => setDraft({ ...draft, date: e.target.value })} placeholder="July 2026" />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Title</Label>
+              <Input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Faster booking approvals" />
+            </div>
+            <div>
+              <Label className="mb-2 block">Highlights</Label>
+              <Textarea value={draft.items} onChange={(e) => setDraft({ ...draft, items: e.target.value })} rows={5} placeholder="One highlight per line…" hint="Each line becomes a bullet." />
+            </div>
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
+              <p className="text-sm font-medium">Published</p>
+              <Switch checked={draft.published} onCheckedChange={(v) => setDraft({ ...draft, published: v })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button onClick={save} disabled={!draft.title.trim()}>
+              {editing === 'new' ? 'Add note' : 'Save changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 export const Overview = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
@@ -108,6 +363,7 @@ export const Overview = {
     const [editing, setEditing] = useState<string | null>(null);
     const [draft, setDraft] = useState<Draft>(emptyDraft);
     const [preview, setPreview] = useState(false);
+    const [tab, setTab] = useState('faqs');
 
     const openNew = () => {
       setDraft(emptyDraft);
@@ -145,9 +401,9 @@ export const Overview = {
       <AppLayout
         routes={routes}
         pageHeaderProps={{
-          title: 'FAQ & help',
-          subtitle: 'Questions answered in your own words, shown on the screen they belong to',
-          headerRight: mayEdit ? (
+          title: 'Help & content',
+          subtitle: "FAQs, metric terms and what's new — written once, in your own words",
+          headerRight: mayEdit && tab === 'faqs' ? (
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setPreview((v) => !v)} className="gap-1.5">
                 <Eye className="h-4 w-4" />
@@ -161,19 +417,14 @@ export const Overview = {
           ) : undefined,
         }}
       >
-        {!mayEdit ? (
-          // Not a hard security boundary — the navigation already hides this
-          // page — but landing here from a bookmark should explain itself.
-          <Card>
-            <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-              <Lock className="h-6 w-6 text-muted-foreground" />
-              <p className="text-sm font-medium">FAQ editing is for the retailer&apos;s own team</p>
-              <p className="max-w-md text-sm text-muted-foreground">
-                Sign in with your Edge account to add or change the help shown across the platform. Advertisers read
-                these answers but do not write them.
-              </p>
-            </CardContent>
-          </Card>
+        <HelpTabStrip tab={tab} onChange={setTab} />
+        {tab === 'terms' ? (
+          <TermsTab mayEdit={mayEdit} />
+        ) : tab === 'news' ? (
+          <NewsTab mayEdit={mayEdit} />
+        ) : !mayEdit ? (
+          // Advertisers read the same answers the retailer writes.
+          <FaqReadTab />
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
             {/* Which template the entries belong to. */}

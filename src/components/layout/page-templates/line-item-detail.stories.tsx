@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { FaqPanel } from '@/components/ui/faq-panel';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
@@ -1013,8 +1012,6 @@ export const Display: Story = {
               <FormActions />
               </div>
               {/* end form card */}
-              {/* Retailer-authored help, stacked under the form so it lines up with it. */}
-              <FaqPanel surface="booking-detail" engine="display" />
               </div>
               {/* end form column */}
               <aside className="space-y-4">
@@ -2458,8 +2455,6 @@ export const DigitalInStore: Story = {
                     )}
                   </Card>
                   {/* end form card */}
-                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
-                  <FaqPanel surface="booking-detail" engine="digital-instore" />
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
@@ -3817,8 +3812,6 @@ export const OfflineInStore: Story = {
                     </CardContent>
                   </Card>
                   {/* end form card */}
-                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
-                  <FaqPanel surface="booking-detail" engine="offline-instore" />
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
@@ -4411,8 +4404,6 @@ export const SponsoredProducts: Story = {
                     </CardContent>
                   </Card>
                   {/* end form card */}
-                  {/* Retailer-authored help, stacked under the form so it lines up with it. */}
-                  <FaqPanel surface="booking-detail" engine="sponsored-products" />
                   </div>
                   {/* end form column */}
                   <aside className="space-y-4">
@@ -4950,8 +4941,6 @@ export const OffsiteDisplay: Story = {
                 </CardContent>
               </Card>
               {/* end form card */}
-              {/* Retailer-authored help, stacked under the form so it lines up with it. */}
-              <FaqPanel surface="booking-detail" engine="offsite" />
               </div>
               {/* end form column */}
               <aside className="space-y-4">

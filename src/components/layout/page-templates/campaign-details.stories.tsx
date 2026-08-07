@@ -3,7 +3,6 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
 import { CardWithTabs } from '../../ui/card';
-import { FaqPanel } from '@/components/ui/faq-panel';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
@@ -1103,8 +1102,6 @@ const updatedForecastMetrics = [
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="digital-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -1656,8 +1653,6 @@ export const DigitalInstoreRunning: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="digital-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
       </BreadcrumbProvider>
@@ -2181,8 +2176,6 @@ export const OfflineInstoreRunning: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="offline-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -2721,8 +2714,6 @@ export const DisplayRunning: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="display" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -3241,8 +3232,6 @@ export const OfflineInstoreInOption: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="offline-instore" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -3783,8 +3772,6 @@ export const DisplayInOption: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="display" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -4733,8 +4720,6 @@ export const SponsoredProductsInOption: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="sponsored-products" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -5480,8 +5465,6 @@ export const SponsoredProductsRunning: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="sponsored-products" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -6034,8 +6017,6 @@ export const OffsiteRunning: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="offsite" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );
@@ -6584,8 +6565,6 @@ export const OffsiteInOption: Story = {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        {/* Retailer-authored help for the tab in view. */}
-        <FaqPanel surface="campaign-detail" section={activeTab} engine="offsite" className="mt-6" />
       </AppLayout>
       </MenuContextProvider>
     );

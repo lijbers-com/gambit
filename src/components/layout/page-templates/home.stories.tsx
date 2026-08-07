@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { FaqPanel } from '@/components/ui/faq-panel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,41 +55,8 @@ type Story = StoryObj<typeof meta>;
 // campaign drafts). The `accent` widget is the primary call to action.
 
 // Release notes feed — newest first.
-const releaseNotes = [
-  {
-    version: 'v1.6',
-    date: 'June 2026',
-    title: 'Stores & displays targeting',
-    items: [
-      'Separate store-list and display-list sections — target one inventory type at a time.',
-      'Build lists at random, upload a custom one, or confirm targeting all available inventory.',
-    ],
-  },
-  {
-    version: 'v1.5',
-    date: 'June 2026',
-    title: 'Smarter date picker',
-    items: [
-      'Forward-looking range presets, defaulting to "Next week".',
-      'Click a week number to select the whole week at once.',
-    ],
-  },
-  {
-    version: 'v1.4',
-    date: 'May 2026',
-    title: 'Unified creative overview',
-    items: [
-      'One overview for every creative across all propositions.',
-      'Filter by status, type and format in a single place.',
-    ],
-  },
-  {
-    version: 'v1.3',
-    date: 'May 2026',
-    title: 'Richer booking summary',
-    items: ['A comprehensive booking summary card, including the shared media plan details.'],
-  },
-];
+// Release notes now live in the prototype db (What's new is retailer-
+// written content, edited in Help & content).
 
 export const Home: Story = {
   render: () => {
@@ -104,6 +70,7 @@ export const Home: Story = {
 
     // ── Live data: role-scoped to-dos + plans that need attention ──────
     const db = useDb();
+    const releaseNotes = db.releaseNotes.filter((n) => n.published).sort((a, b) => a.order - b.order);
     const myTasks = useMyTasks();
     const creativeTaskCount = myTasks.filter((t) => t.id.endsWith('-creative') || t.id.endsWith('-approve')).length;
     const inOptionBookings = db.bookings.filter((b) => b.status === 'in-option').length;
@@ -367,8 +334,6 @@ export const Home: Story = {
             </section>
           </div>
 
-          {/* Retailer-authored help. Nothing renders when nothing is written. */}
-          <FaqPanel surface="home" />
         </AppLayout>
       </MenuContextProvider>
     );

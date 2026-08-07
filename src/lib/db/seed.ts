@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 9;
+export const SEED_VERSION = 10;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -565,5 +565,28 @@ export const seedData: DbData = {
       answer: 'Billing questions go to your account manager. Awaiting the new finance mailbox before this goes live.',
       updatedAt: now,
     },
+  ],
+
+  // Metric glossary — the terms the metric cards use, explained once, in the
+  // retailer's words. Shown in Help; editable in the edge theme only.
+  terms: [
+    { id: 'TERM-001', term: 'Impressions', definition: 'How many times an ad was shown. One person can account for many impressions.', published: true, order: 1, updatedAt: now },
+    { id: 'TERM-002', term: 'Reach', definition: 'How many different people saw the ad at least once. Reach never exceeds impressions.', published: true, order: 2, updatedAt: now },
+    { id: 'TERM-003', term: 'CTR (click-through rate)', definition: 'Clicks divided by impressions. A 0.8% CTR means 8 clicks per 1,000 times the ad was shown.', published: true, order: 3, updatedAt: now },
+    { id: 'TERM-004', term: 'ROAS (return on ad spend)', definition: 'Attributed sales revenue divided by media spend. A ROAS of 3x means every euro spent returned three euros in sales.', published: true, order: 4, updatedAt: now },
+    { id: 'TERM-005', term: 'Spend', definition: 'What the booking has actually delivered in media cost so far, as opposed to budget, which is the ceiling you set.', published: true, order: 5, updatedAt: now },
+    { id: 'TERM-006', term: 'Conversions', definition: 'Purchases attributed to the campaign, counted within the attribution window you chose.', published: true, order: 6, updatedAt: now },
+    { id: 'TERM-007', term: 'Buyer reach', definition: 'The number of distinct shoppers who both saw the ad and bought in the category.', published: true, order: 7, updatedAt: now },
+    { id: 'TERM-008', term: 'Share of voice', definition: 'Your impressions as a share of all impressions available in the positions you booked.', published: true, order: 8, updatedAt: now },
+    { id: 'TERM-009', term: 'Frequency', definition: 'Average number of times each reached person saw the ad: impressions divided by reach.', published: false, order: 9, updatedAt: now },
+  ],
+
+  // What's new — written by the retailer for advertisers. The homepage widget
+  // and the Help section read this same list.
+  releaseNotes: [
+    { id: 'NOTE-001', version: 'v1.6', date: 'June 2026', title: 'Stores & displays targeting', items: ['Separate store-list and display-list sections — target one inventory type at a time.', 'Build lists at random, upload a custom one, or confirm targeting all available inventory.'], published: true, order: 1, updatedAt: now },
+    { id: 'NOTE-002', version: 'v1.5', date: 'June 2026', title: 'Smarter date picker', items: ['Forward-looking range presets, defaulting to "Next week".', 'Click a week number to select the whole week at once.'], published: true, order: 2, updatedAt: now },
+    { id: 'NOTE-003', version: 'v1.4', date: 'May 2026', title: 'Unified creative overview', items: ['One overview for every creative across all propositions.', 'Filter by status, type and format in a single place.'], published: true, order: 3, updatedAt: now },
+    { id: 'NOTE-004', version: 'v1.3', date: 'May 2026', title: 'Booking health checks', items: ['Bookings flag missing creatives and targeting gaps before launch.', 'The notifications tab shows the same list, so nothing is tracked twice.'], published: true, order: 4, updatedAt: now },
   ],
 };

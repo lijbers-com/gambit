@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
-import { FaqPanel } from '@/components/ui/faq-panel';
 import { SessionDateRange } from '@/components/ui/session-date-range';
 import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { InsightsTab } from './insights-tab';
@@ -588,8 +587,6 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           onTabChange={setActiveTab}
         />
 
-        {/* Retailer-authored help for this overview. */}
-        <FaqPanel surface="campaign-overview" className="mt-6" />
         </div>
       </AppLayout>
       </MenuContextProvider>

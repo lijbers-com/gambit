@@ -1,4 +1,4 @@
-import type { Booking, Campaign, DbData, FaqEntry, MediaPlan } from './types';
+import type { Booking, Campaign, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote } from './types';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
 
@@ -219,6 +219,57 @@ export function updateFaq(id: string, patch: Partial<Omit<FaqEntry, 'id'>>): Faq
 export function deleteFaq(id: string) {
   const db = load();
   db.faqs = db.faqs.filter((f) => f.id !== id);
+  notify();
+}
+
+// Metric terms and release notes share the FAQ's editing model: retailer-
+// written content, ordered lists, drafts hidden from readers.
+
+export function createTerm(input: Omit<TermEntry, 'id' | 'order' | 'updatedAt'> & { order?: number }): TermEntry {
+  const db = load();
+  const last = db.terms.reduce((max, t) => Math.max(max, t.order), 0);
+  const entry: TermEntry = { ...input, id: nextId('TERM', db.terms), order: input.order ?? last + 1, updatedAt: timestamp() };
+  db.terms.push(entry);
+  notify();
+  return entry;
+}
+
+export function updateTerm(id: string, patch: Partial<Omit<TermEntry, 'id'>>): TermEntry | undefined {
+  const db = load();
+  const entry = db.terms.find((t) => t.id === id);
+  if (!entry) return undefined;
+  Object.assign(entry, patch, { updatedAt: timestamp() });
+  notify();
+  return entry;
+}
+
+export function deleteTerm(id: string) {
+  const db = load();
+  db.terms = db.terms.filter((t) => t.id !== id);
+  notify();
+}
+
+export function createReleaseNote(input: Omit<ReleaseNote, 'id' | 'order' | 'updatedAt'> & { order?: number }): ReleaseNote {
+  const db = load();
+  const last = db.releaseNotes.reduce((max, n) => Math.max(max, n.order), 0);
+  const entry: ReleaseNote = { ...input, id: nextId('NOTE', db.releaseNotes), order: input.order ?? last + 1, updatedAt: timestamp() };
+  db.releaseNotes.push(entry);
+  notify();
+  return entry;
+}
+
+export function updateReleaseNote(id: string, patch: Partial<Omit<ReleaseNote, 'id'>>): ReleaseNote | undefined {
+  const db = load();
+  const entry = db.releaseNotes.find((n) => n.id === id);
+  if (!entry) return undefined;
+  Object.assign(entry, patch, { updatedAt: timestamp() });
+  notify();
+  return entry;
+}
+
+export function deleteReleaseNote(id: string) {
+  const db = load();
+  db.releaseNotes = db.releaseNotes.filter((n) => n.id !== id);
   notify();
 }
 

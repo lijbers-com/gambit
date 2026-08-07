@@ -183,7 +183,14 @@ export const advertiserRoutes: Route[] = [
         url: "/chat/keyword-suggestions"
       }
     ]
-  }
+  },
+  {
+    id: 16,
+    name: "Help",
+    type: "single" as const,
+    icon: { lucide: "CircleHelp" },
+    url: "/help",
+  },
 ];
 
 /**

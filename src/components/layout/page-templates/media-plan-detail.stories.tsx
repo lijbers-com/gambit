@@ -16,7 +16,6 @@ import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
-import { FaqPanel } from '@/components/ui/faq-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
@@ -1048,7 +1047,6 @@ export const MediaPlanDetail: Story = {
             ]}
           />
 
-          <FaqPanel surface="media-plan-detail" section={activeTab} className="mt-6" />
         </AppLayout>
       </MenuContextProvider>
     );

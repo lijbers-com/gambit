@@ -92,6 +92,9 @@ export interface CampaignSummaryProps {
   /** Card stays collapsed and clicking it opens the media-plan detail page —
    *  the card is a summary, the detail page is where the work happens. */
   collapsedOnly?: boolean;
+  /** Draft-in-the-wizard variant: same card, dashed border, and a line saying
+   *  which step the user left off at. Clicking the card resumes the wizard. */
+  wizardDraft?: { step: number; totalSteps: number; stepLabel: string; onResume?: () => void };
   hideGoal?: boolean;
   hideTargeting?: boolean;
   hideAgent?: boolean;
@@ -145,6 +148,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     onDelete,
     defaultExpanded = false,
     collapsedOnly = false,
+    wizardDraft,
     hideGoal = false,
     hideTargeting = false,
     hideAgent = false,
@@ -762,6 +766,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       <Card ref={ref} className={cn(
         'w-full',
         layout === 'vertical' ? 'max-w-md mx-auto relative mt-4 overflow-visible' : '',
+        // Not finished yet: the dashed frame is the only difference in chrome.
+        wizardDraft && 'border-dashed border-muted-foreground/30',
         className
       )} {...props}>
         {/* Floating badge for vertical layout */}
@@ -778,6 +784,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           className={`${layout === 'vertical' ? 'space-y-4' : 'space-y-2.5'} ${layout !== 'vertical' ? `cursor-pointer transition-colors ${isCollapsed ? 'hover:bg-surface-hover' : ''}` : ''}`}
           onClick={layout !== 'vertical' ? () => {
             if (isRenaming) return;
+            // A wizard draft's card takes the user back to where they left off.
+            if (wizardDraft) { wizardDraft.onResume?.(); return; }
             // Collapsed-only cards ARE the summary — clicking opens the detail page.
             if (collapsedOnly && !guidedSetup) {
               const href = internalCampaignId ? `/campaigns/plan/${internalCampaignId}` : undefined;
@@ -858,17 +866,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               <div className="flex items-center gap-2">
                 {!isGuidedSettingsPhase && (
                   <>
-                    {/* Health status — sits beside the process status so the two read
-                        as distinct signals (how the plan is doing vs. its stage). */}
-                    {healthNotification && (() => {
-                      const HealthIcon = healthConfig[healthNotification.level].Icon;
-                      return (
-                        <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
-                          <HealthIcon className="h-3 w-3" />
-                          {healthConfig[healthNotification.level].label}
-                        </span>
-                      );
-                    })()}
                     {badge ? (
                       <Badge variant={badge.variant || 'default'}>
                         {badge.text}
@@ -935,12 +932,33 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const open = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
                 const unread = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') === 'unread').length;
 
+                // Health belongs with the notifications, not the status badges:
+                // it summarises them. The whole line links to the plan's
+                // Notifications tab, where the items can be worked through.
+                const HealthIcon = healthNotification ? healthConfig[healthNotification.level].Icon : null;
+                const healthChip = healthNotification && HealthIcon ? (
+                  <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
+                    <HealthIcon className="h-3 w-3" />
+                    {healthConfig[healthNotification.level].label}
+                  </span>
+                ) : null;
+                const openInbox = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  if (!internalCampaignId) return;
+                  const href = `/campaigns/plan/${internalCampaignId}?tab=inbox`;
+                  if (router) router.push(href);
+                  else if (typeof window !== 'undefined') window.location.href = href;
+                };
+
                 if (dbPlan && open.length === 0) {
                   return (
-                    <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Bell className="h-4 w-4 shrink-0" />
-                      No notifications — nothing to do
-                    </div>
+                    <button type="button" onClick={openInbox} className="flex items-center gap-2 text-left">
+                      {healthChip}
+                      <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Bell className="h-4 w-4 shrink-0" />
+                        No notifications — nothing to do
+                      </span>
+                    </button>
                   );
                 }
 
@@ -962,13 +980,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>));
 
                 return (
-                  <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Bell className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
-                    <span className="font-medium text-foreground">
-                      {open.length} notification{open.length === 1 ? '' : 's'}
+                  <button type="button" onClick={openInbox} className="flex items-center gap-2 text-left hover:opacity-80">
+                    {healthChip}
+                    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Bell className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                      <span className="font-medium text-foreground">
+                        {open.length} notification{open.length === 1 ? '' : 's'}
+                      </span>
+                      <span>— {breakdown}</span>
                     </span>
-                    <span>— {breakdown}</span>
-                  </div>
+                  </button>
                 );
               })()
             ) : !guidedSetup ? (
@@ -976,6 +997,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <OptimisationCard items={adviceItems} health={healthNotification} />
               </div>
             ) : null
+          )}
+
+          {/* Wizard drafts say where the user left off; the card resumes there. */}
+          {wizardDraft && (
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              Continue in the wizard — step {wizardDraft.step + 1} of {wizardDraft.totalSteps}: {wizardDraft.stepLabel}
+              <ArrowRight className="h-4 w-4 shrink-0" />
+            </p>
           )}
 
           {/* Open cards show the detail row above the bar. */}

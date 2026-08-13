@@ -19,7 +19,6 @@ import { useTheme } from '@/contexts/theme-context';
 import { addDays } from 'date-fns';
 import { useDb, useSession, createMediaPlan, updateMediaPlan, deleteMediaPlan, type EngineId, type PlanStatus } from '@/lib/db';
 import { AddButton } from '@/components/ui/add-button';
-import { ChevronRight } from 'lucide-react';
 
 // ── DB → card-view mapping ─────────────────────────────────────────────
 // The media-plan cards render straight from the prototype database; these
@@ -236,36 +235,21 @@ function AllCampaignsPage() {
                   <div className="space-y-6">
                     {campaigns.map((campaign) => {
                       const currentBudget = campaignBudgets[campaign.title] || campaign.budget;
-                      // A plan still inside the wizard only says where the user
-                      // left off — clicking it continues on that step.
-                      if (campaign.wizardStep !== undefined) {
-                        const stepLabels = ['Setup', 'Advertiser', 'Goal and objectives', 'Run time & budget', 'Media plan'];
-                        // Same frame as a finished plan card — padding, title
-                        // size, status badge top-right — with the dashed border
-                        // saying "not done yet".
-                        return (
-                          <button
-                            key={campaign.id}
-                            type="button"
-                            onClick={() => router.push(`/create/media-experience?plan=${campaign.id}`)}
-                            className="w-full rounded-xl border border-dashed border-muted-foreground/30 bg-card text-left transition-colors hover:border-primary/50"
-                          >
-                            <div className="space-y-2.5 p-6">
-                              <div className="flex items-start justify-between gap-4">
-                                <h2 className="min-w-0 truncate text-xl font-semibold leading-tight text-foreground">{campaign.title}</h2>
-                                <Badge variant="outline" className="shrink-0 border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
-                              </div>
-                              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                Continue in the wizard — step {campaign.wizardStep + 1} of {stepLabels.length}: {stepLabels[campaign.wizardStep] ?? 'Setup'}
-                                <ChevronRight className="h-4 w-4 shrink-0" />
-                              </p>
-                            </div>
-                          </button>
-                        );
-                      }
+                      // A wizard draft is the same card, in its draft
+                      // variant — dashed frame plus the resume line.
+                      const stepLabels = ['Setup', 'Advertiser', 'Goal and objectives', 'Run time & budget', 'Media plan'];
+                      const wizardDraft = campaign.wizardStep !== undefined
+                        ? {
+                            step: campaign.wizardStep,
+                            totalSteps: stepLabels.length,
+                            stepLabel: stepLabels[campaign.wizardStep] ?? 'Setup',
+                            onResume: () => router.push(`/create/media-experience?plan=${campaign.id}`),
+                          }
+                        : undefined;
                       return (
                         <CampaignSummary
                           key={campaign.id}
+                          wizardDraft={wizardDraft}
                           layout="horizontal"
                           title={campaign.title}
                           goal={campaign.goal}

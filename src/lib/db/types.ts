@@ -87,6 +87,9 @@ export interface MediaPlan {
   id: string;
   name: string;
   poNumber?: string;
+  /** While a plan is still being built, the wizard step (0-based) the user
+   *  left off at. Cleared the moment the plan is saved out of the wizard. */
+  wizardStep?: number;
   advertiserId: string;
   brandIds: string[];
   status: PlanStatus;

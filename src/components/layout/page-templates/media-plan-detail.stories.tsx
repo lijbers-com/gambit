@@ -38,6 +38,14 @@ import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker,
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import {
+  RightDrawer,
+  RightDrawerContent,
+  RightDrawerHeader,
+  RightDrawerTitle,
+  RightDrawerDescription,
+  RightDrawerBody,
+} from '@/components/ui/right-drawer';
 import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
 import { propositionColor, propositionLabel } from '@/lib/proposition-colors';
@@ -236,10 +244,17 @@ const NotificationsCell = ({
   actions = 0,
   recommendations = 0,
   insights = 0,
+  health = 'good',
+  onOpen,
 }: {
   actions?: number;
   recommendations?: number;
   insights?: number;
+  /** Health is a notification too — a summary of the open actions — so it
+   *  lives in this column rather than one of its own. */
+  health?: 'good' | 'attention' | 'risk';
+  /** Clicking any badge opens this row's notifications in the side panel. */
+  onOpen?: () => void;
 }) => {
   const parts = [
     { count: actions, label: 'action', plural: 'actions', variant: 'warning' as const },
@@ -247,14 +262,30 @@ const NotificationsCell = ({
     { count: insights, label: 'insight', plural: 'insights', variant: 'secondary' as const },
   ].filter((p) => p.count > 0);
 
-  if (parts.length === 0) return <span className="text-muted-foreground">—</span>;
+  if (parts.length === 0 && health === 'good') return <span className="text-muted-foreground">—</span>;
 
   return (
     <span className="flex flex-wrap items-center gap-1">
+      {health !== 'good' && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpen?.(); }}
+          title="Open notifications"
+        >
+          <HealthCell health={health} />
+        </button>
+      )}
       {parts.map((p) => (
-        <Badge key={p.label} variant={p.variant} className="whitespace-nowrap tabular-nums">
-          {p.count} {p.count === 1 ? p.label : p.plural}
-        </Badge>
+        <button
+          key={p.label}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpen?.(); }}
+          title="Open notifications"
+        >
+          <Badge variant={p.variant} className="whitespace-nowrap tabular-nums transition-colors hover:opacity-80">
+            {p.count} {p.count === 1 ? p.label : p.plural}
+          </Badge>
+        </button>
       ))}
     </span>
   );
@@ -273,6 +304,8 @@ export const MediaPlanDetail: Story = {
     const [expanded, setExpanded] = React.useState<string[]>([]);
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
     const [logActions, setLogActions] = React.useState<string[]>([]);
+    // A row's notifications, opened in the side panel from the table.
+    const [inboxRow, setInboxRow] = React.useState<{ level: 'campaign' | 'booking'; id: string; name: string } | null>(null);
 
     // ── Live plan from the prototype database ──────────────────────────
     // The id comes from the route via the page (`planId`), so the server and
@@ -665,28 +698,28 @@ export const MediaPlanDetail: Story = {
             />
           ),
       },
-      { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
       {
         key: 'dates', header: 'Dates', width: 260,
         render: (r) => r._type !== 'campaign'
           ? (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>)
           : <DatesCell start={r.startDate} end={r.endDate} onSave={(startDate, endDate) => updateCampaign(r._id, { startDate, endDate })} />,
       },
-      { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
       {
-        key: 'health', header: 'Health',
-        render: (r) => (r._type === 'add' ? null : <HealthCell health={r.health ?? 'good'} />),
-      },
-      {
-        key: 'notifications', header: 'Notifications', width: 260,
+        // Right after budget & run time: what still needs doing. Health sits
+        // in here — it is a notification, not a metric.
+        key: 'notifications', header: 'Notifications', width: 280,
         render: (r) => r._type === 'add' ? null : (
           <NotificationsCell
             actions={r.actionCount}
             recommendations={r.recommendationCount}
             insights={r.insightCount}
+            health={r.health ?? 'good'}
+            onOpen={() => setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name })}
           />
         ),
       },
+      { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
+      { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
     ];
 
     return (
@@ -796,7 +829,7 @@ export const MediaPlanDetail: Story = {
                             and took four cards to say one thing. */}
                         <div className="space-y-2">
                           <Label className="flex items-center gap-1.5 text-muted-foreground">
-                            Campaign goal
+                            Media plan goal
                             <Lock className="h-3 w-3" aria-label="Cannot be changed" />
                           </Label>
                           {(() => {
@@ -1047,6 +1080,18 @@ export const MediaPlanDetail: Story = {
             ]}
           />
 
+        {/* Side panel: the clicked row's notifications, without leaving the tab. */}
+        <RightDrawer open={inboxRow !== null} onOpenChange={(open) => !open && setInboxRow(null)}>
+          <RightDrawerContent>
+            <RightDrawerHeader>
+              <RightDrawerTitle>Notifications</RightDrawerTitle>
+              <RightDrawerDescription>{inboxRow?.name}</RightDrawerDescription>
+            </RightDrawerHeader>
+            <RightDrawerBody>
+              {inboxRow && <InboxPanel scope={inboxRow.level} entityId={inboxRow.id} />}
+            </RightDrawerBody>
+          </RightDrawerContent>
+        </RightDrawer>
         </AppLayout>
       </MenuContextProvider>
     );

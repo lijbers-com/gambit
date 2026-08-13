@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
-import { getDb, createMediaPlan, createCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
+import { getDb, createMediaPlan, updateMediaPlan, createCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
   DropdownMenu,
@@ -662,7 +662,25 @@ export const GoalSelection: Story = {
         .map((v) => advertiser.brands.find((b) => b.id === `br-${v}` || b.name.toLowerCase() === v.replace(/-/g, ' '))?.id)
         .filter((id): id is string => Boolean(id));
 
-      const plan = createMediaPlan({
+      // The draft made after step 1 becomes the real plan; saving clears the
+      // wizard marker so the overview stops showing "continue where you left off".
+      const plan = draftPlanId
+        ? updateMediaPlan(draftPlanId, {
+            name,
+            poNumber: poNumber || undefined,
+            advertiserId: advertiser.id,
+            brandIds,
+            status: 'in-option',
+            autoBudget,
+            goal: selectedGoal ?? undefined,
+            objective: selectedObjective ?? undefined,
+            kpis: selectedKpis,
+            budget,
+            startDate: iso(start),
+            endDate: iso(end),
+            wizardStep: undefined,
+          })!
+        : createMediaPlan({
         name,
         poNumber: poNumber || undefined,
         advertiserId: advertiser.id,
@@ -728,6 +746,76 @@ export const GoalSelection: Story = {
       // screen should be that list rather than the form the user just filled in.
       if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
     };
+
+    // ── Draft persistence ────────────────────────────────────────────────
+    // After step 1 the plan exists in the store as a draft carrying the step
+    // the user is on, so the overview can show it and clicking it lands back
+    // here, mid-wizard. Saved on every step change with whatever is known.
+    const [draftPlanId, setDraftPlanId] = React.useState<string | null>(null);
+
+    const draftPatch = () => {
+      const db = getDb();
+      const iso = (d: Date) => d.toISOString().slice(0, 10);
+      const start = dateRange?.from ?? new Date();
+      const end = dateRange?.to ?? new Date(start.getTime() + 30 * 86400000);
+      const advLabel = advertiserOptions.find((a) => a.value === selectedAdvertiser)?.label;
+      const advertiser = db.advertisers.find((a) => a.name === advLabel) ?? db.advertisers[0];
+      const brandIds = selectedBrands
+        .map((v) => advertiser.brands.find((b) => b.id === `br-${v}` || b.name.toLowerCase() === v.replace(/-/g, ' '))?.id)
+        .filter((id): id is string => Boolean(id));
+      return {
+        name: campaignName || 'New Media plan',
+        poNumber: poNumber || undefined,
+        advertiserId: advertiser.id,
+        brandIds,
+        autoBudget,
+        goal: selectedGoal ?? undefined,
+        objective: selectedObjective ?? undefined,
+        kpis: selectedKpis,
+        budget: parseFloat(budgetAmount) || 0,
+        startDate: iso(start),
+        endDate: iso(end),
+      };
+    };
+
+    /** Move between steps, keeping the stored draft in step with the screen. */
+    const goToStep = (step: number) => {
+      if (draftPlanId) {
+        updateMediaPlan(draftPlanId, { ...draftPatch(), wizardStep: step });
+      } else if (step > 0) {
+        const plan = createMediaPlan({
+          ...draftPatch(),
+          status: 'draft',
+          wizardStep: step,
+          kpis: selectedKpis,
+          createdBy: getCurrentUser()?.id,
+        });
+        setDraftPlanId(plan.id);
+      }
+      setCurrentStep(step);
+    };
+
+    // Arriving with ?plan= resumes that draft where it was left.
+    React.useEffect(() => {
+      if (typeof window === 'undefined') return;
+      const id = new URLSearchParams(window.location.search).get('plan');
+      if (!id) return;
+      const plan = getDb().mediaPlans.find((p) => p.id === id);
+      if (!plan) return;
+      setDraftPlanId(plan.id);
+      setCampaignName(plan.name === 'New Media plan' ? '' : plan.name);
+      setPoNumber(plan.poNumber ?? '');
+      setBudgetAmount(plan.budget > 0 ? String(plan.budget) : '');
+      setAutoBudget(plan.autoBudget ?? true);
+      if (plan.startDate && plan.endDate && plan.budget > 0) {
+        setDateRange({ from: new Date(plan.startDate), to: new Date(plan.endDate) });
+      }
+      if (plan.goal) setSelectedGoal(plan.goal);
+      if (plan.objective) setSelectedObjective(plan.objective);
+      if (plan.kpis.length) setSelectedKpis(plan.kpis);
+      setCurrentStep(plan.wizardStep ?? 0);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
       <MenuContextProvider>
@@ -850,7 +938,7 @@ export const GoalSelection: Story = {
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
-                      <Button disabled={!isSetupComplete} onClick={() => setCurrentStep(1)}>
+                      <Button disabled={!isSetupComplete} onClick={() => goToStep(1)}>
                         Continue
                       </Button>
                     </div>
@@ -921,8 +1009,8 @@ export const GoalSelection: Story = {
                       )}
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
-                      <Button disabled={!isAdvertiserComplete} onClick={() => setCurrentStep(2)}>
+                      <Button variant="ghost" onClick={() => goToStep(0)}>Back</Button>
+                      <Button disabled={!isAdvertiserComplete} onClick={() => goToStep(2)}>
                         Continue
                       </Button>
                     </div>
@@ -936,13 +1024,13 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Goal and objectives</CardTitle>
                     <CardDescription>
-                      Select your campaign goal, the objective the plan is judged on, and the audience to target
+                      Select your media plan goal, the objective the plan is judged on, and the audience to target
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <Label className="mb-3 block">Campaign goal</Label>
+                        <Label className="mb-3 block">Media plan goal</Label>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {goals.map((goal) => (
                             <GoalCard
@@ -1079,8 +1167,8 @@ export const GoalSelection: Story = {
                       />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(1)}>Back</Button>
-                      <Button disabled={!isTargetingComplete} onClick={() => setCurrentStep(3)}>
+                      <Button variant="ghost" onClick={() => goToStep(1)}>Back</Button>
+                      <Button disabled={!isTargetingComplete} onClick={() => goToStep(3)}>
                         Continue
                       </Button>
                     </div>
@@ -1169,8 +1257,8 @@ export const GoalSelection: Story = {
                       />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(2)}>Back</Button>
-                      <Button disabled={!isBudgetComplete} onClick={() => setCurrentStep(4)}>
+                      <Button variant="ghost" onClick={() => goToStep(2)}>Back</Button>
+                      <Button disabled={!isBudgetComplete} onClick={() => goToStep(4)}>
                         Continue
                       </Button>
                     </div>
@@ -1409,9 +1497,9 @@ export const GoalSelection: Story = {
                       />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
-                      <Button variant="ghost" onClick={() => setCurrentStep(3)}>Back</Button>
+                      <Button variant="ghost" onClick={() => goToStep(3)}>Back</Button>
                       <Button onClick={createMediaPlanFlow}>
-                        Create media plan
+                        Save media plan
                       </Button>
                     </div>
                   </CardContent>
@@ -1464,7 +1552,7 @@ export const GoalSelection: Story = {
                                   status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'
                                 } ${status === 'completed' ? 'hover:underline cursor-pointer' : ''}`}
                                 onClick={() => {
-                                  if (status === 'completed') setCurrentStep(index);
+                                  if (status === 'completed') goToStep(index);
                                 }}
                                 disabled={status !== 'completed'}
                               >
@@ -1491,7 +1579,7 @@ export const GoalSelection: Story = {
                 {currentStep === wizardSteps.length - 1 && (
                   <div className="px-4 pb-4">
                     <Button className="w-full" onClick={createMediaPlanFlow}>
-                      Create media plan
+                      Save media plan
                     </Button>
                   </div>
                 )}
@@ -1961,7 +2049,7 @@ export const NoGoalTargeting: Story = {
                           window.location.href = `/campaigns?new=${encodeURIComponent(name)}`;
                         }}
                       >
-                        Create media plan
+                        Save media plan
                       </Button>
                     </div>
                   </CardContent>
@@ -2047,7 +2135,7 @@ export const NoGoalTargeting: Story = {
                         window.location.href = `/campaigns?${params.toString()}`;
                       }}
                     >
-                      Create media plan
+                      Save media plan
                     </Button>
                   </div>
                 )}

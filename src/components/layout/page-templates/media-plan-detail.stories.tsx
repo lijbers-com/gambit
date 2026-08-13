@@ -36,8 +36,16 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   RightDrawer,
   RightDrawerContent,
@@ -220,8 +228,8 @@ const DatesCell = ({
 const HealthCell = ({ health }: { health: 'good' | 'attention' | 'risk' }) => {
   const cfg = {
     good: { label: 'Healthy', className: 'border-success-200 bg-success-50 text-success-700' },
-    attention: { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
-    risk: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
+    attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
+    risk: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
   }[health];
   return (
     <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', cfg.className)}>
@@ -244,15 +252,11 @@ const NotificationsCell = ({
   actions = 0,
   recommendations = 0,
   insights = 0,
-  health = 'good',
   onOpen,
 }: {
   actions?: number;
   recommendations?: number;
   insights?: number;
-  /** Health is a notification too — a summary of the open actions — so it
-   *  lives in this column rather than one of its own. */
-  health?: 'good' | 'attention' | 'risk';
   /** Clicking any badge opens this row's notifications in the side panel. */
   onOpen?: () => void;
 }) => {
@@ -262,19 +266,10 @@ const NotificationsCell = ({
     { count: insights, label: 'insight', plural: 'insights', variant: 'secondary' as const },
   ].filter((p) => p.count > 0);
 
-  if (parts.length === 0 && health === 'good') return <span className="text-muted-foreground">—</span>;
+  if (parts.length === 0) return <span className="text-muted-foreground">—</span>;
 
   return (
     <span className="flex flex-wrap items-center gap-1">
-      {health !== 'good' && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOpen?.(); }}
-          title="Open notifications"
-        >
-          <HealthCell health={health} />
-        </button>
-      )}
       {parts.map((p) => (
         <button
           key={p.label}
@@ -306,6 +301,7 @@ export const MediaPlanDetail: Story = {
     const [logActions, setLogActions] = React.useState<string[]>([]);
     // A row's notifications, opened in the side panel from the table.
     const [inboxRow, setInboxRow] = React.useState<{ level: 'campaign' | 'booking'; id: string; name: string } | null>(null);
+    const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
     // ── Live plan from the prototype database ──────────────────────────
     // The id comes from the route via the page (`planId`), so the server and
@@ -713,10 +709,21 @@ export const MediaPlanDetail: Story = {
             actions={r.actionCount}
             recommendations={r.recommendationCount}
             insights={r.insightCount}
-            health={r.health ?? 'good'}
             onOpen={() => setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name })}
           />
         ),
+      },
+      {
+        key: 'health', header: 'Health',
+        render: (r) => (r._type === 'add' ? null : (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name }); }}
+            title="Open notifications"
+          >
+            <HealthCell health={r.health ?? 'good'} />
+          </button>
+        )),
       },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
       { key: 'objectiveKpi', header: 'Objective / KPI', render: (r) => (r._type === 'add' ? null : <span className={cn('text-muted-foreground', r.inherits && 'italic')}>{r.objectiveKpi}</span>) },
@@ -736,6 +743,7 @@ export const MediaPlanDetail: Story = {
             onEdit: () => {},
             onExport: () => {},
             onSettings: () => {},
+            onDelete: () => setConfirmingDelete(true),
             headerRight: null,
           }}
         >
@@ -1066,6 +1074,39 @@ export const MediaPlanDetail: Story = {
               },
             ]}
           />
+
+        {/* Deleting a plan takes its campaigns and bookings with it, so the
+            dialog says exactly how much is going before anything goes. */}
+        <Dialog open={confirmingDelete} onOpenChange={(open) => !open && setConfirmingDelete(false)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete {plan?.name ?? 'this media plan'}?</DialogTitle>
+              <DialogDescription>
+                {(() => {
+                  const c = db.campaigns.filter((x) => x.mediaPlanId === plan?.id).length;
+                  const ids = new Set(db.campaigns.filter((x) => x.mediaPlanId === plan?.id).map((x) => x.id));
+                  const b = db.bookings.filter((x) => ids.has(x.campaignId)).length;
+                  const parts = [c > 0 && `${c} campaign${c === 1 ? '' : 's'}`, b > 0 && `${b} booking${b === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
+                  return parts
+                    ? `This permanently removes the plan and the ${parts} inside it. It cannot be undone.`
+                    : 'This permanently removes the plan. It cannot be undone.';
+                })()}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (plan) deleteMediaPlan(plan.id);
+                  if (typeof window !== 'undefined') window.location.href = '/campaigns';
+                }}
+              >
+                Delete media plan
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Side panel: the clicked row's notifications, without leaving the tab. */}
         <RightDrawer open={inboxRow !== null} onOpenChange={(open) => !open && setInboxRow(null)}>

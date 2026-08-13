@@ -866,6 +866,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               <div className="flex items-center gap-2">
                 {!isGuidedSettingsPhase && (
                   <>
+                    {/* Health, spelled out as "Health …" so the chip reads as
+                        a statement, next to the process status. */}
+                    {healthNotification && (() => {
+                      const HealthIcon = healthConfig[healthNotification.level].Icon;
+                      const label = healthNotification.level === 'good'
+                        ? 'Healthy'
+                        : `Health ${healthConfig[healthNotification.level].label.toLowerCase()}`;
+                      return (
+                        <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
+                          <HealthIcon className="h-3 w-3" />
+                          {label}
+                        </span>
+                      );
+                    })()}
                     {badge ? (
                       <Badge variant={badge.variant || 'default'}>
                         {badge.text}
@@ -923,10 +937,12 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               // Points at this plan's Inbox tab and reports the same unread
               // count it shows, so the card and the inbox always agree.
               (() => {
-                // Health counts as a notification like any other — it leads
-                // the breakdown as "health at risk" instead of being a badge.
+                // Health is excluded — it is the chip on the title line, and
+                // counting it again would inflate "action needed".
                 const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
-                const messages = dbPlan ? deriveMessages(db, { mediaPlanId: dbPlan.id }) : [];
+                const messages = dbPlan
+                  ? deriveMessages(db, { mediaPlanId: dbPlan.id }).filter((m) => m.kind !== 'health')
+                  : [];
                 const open = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
                 const unread = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') === 'unread').length;
 
@@ -962,17 +978,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     .filter((k) => counts[k])
                     .map((k) => `${counts[k]} ${counts[k] === 1 ? kindLabel[k].one : kindLabel[k].many}`)
                     .join(', ');
-                // "health at risk", not "1 health" — the level is the message.
-                const hasHealthMessage = open.some((m) => m.kind === 'health');
-                const healthPhrase = hasHealthMessage && healthNotification && healthNotification.level !== 'good'
-                  ? `health ${healthConfig[healthNotification.level].label.toLowerCase()}`
-                  : null;
-                const breakdown = [
-                  healthPhrase,
-                  dbPlan
-                    ? summarise(open.filter((m) => m.kind !== 'health').reduce((acc, m) => { acc[m.kind as NotificationKind] = (acc[m.kind as NotificationKind] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>))
-                    : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>)),
-                ].filter(Boolean).join(', ');
+                const breakdown = dbPlan
+                  ? summarise(open.reduce((acc, m) => { const k = m.kind === 'health' ? 'action' : m.kind; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>))
+                  : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>));
 
                 return (
                   <button type="button" onClick={openInbox} className="inline-flex items-center gap-1.5 text-left text-sm text-muted-foreground hover:opacity-80">

@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Edit, Download, Upload, Settings } from 'lucide-react';
+import { MoreHorizontal, Edit, Download, Upload, Settings, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,8 @@ export type PageHeaderProps = {
   onExport?: () => void;
   onImport?: () => void;
   onSettings?: () => void;
+  /** Destructive: rendered last and in red. Confirmation is the caller's job. */
+  onDelete?: () => void;
   /** Use 'campaign-detail' variant to show Advertiser, Attribution Window and Date Range dropdowns */
   variant?: PageHeaderVariant;
   /** Props for the Advertiser dropdown (campaign-detail variant) */
@@ -50,6 +52,7 @@ export const PageHeader = ({
   onExport,
   onImport,
   onSettings,
+  onDelete,
   variant = 'default',
   advertiserProps,
   attributionWindowProps,
@@ -167,6 +170,12 @@ export const PageHeader = ({
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
+                {onDelete && (
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

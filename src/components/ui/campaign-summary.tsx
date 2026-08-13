@@ -923,25 +923,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               // Points at this plan's Inbox tab and reports the same unread
               // count it shows, so the card and the inbox always agree.
               (() => {
-                // Health is excluded — it is already the chip on the title line,
-                // and counting it again would inflate "action needed".
+                // Health counts as a notification like any other — it leads
+                // the breakdown as "health at risk" instead of being a badge.
                 const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
-                const messages = dbPlan
-                  ? deriveMessages(db, { mediaPlanId: dbPlan.id }).filter((m) => m.kind !== 'health')
-                  : [];
+                const messages = dbPlan ? deriveMessages(db, { mediaPlanId: dbPlan.id }) : [];
                 const open = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
                 const unread = messages.filter((m) => (inboxStatus[m.id] ?? 'unread') === 'unread').length;
 
-                // Health belongs with the notifications, not the status badges:
-                // it summarises them. The whole line links to the plan's
-                // Notifications tab, where the items can be worked through.
-                const HealthIcon = healthNotification ? healthConfig[healthNotification.level].Icon : null;
-                const healthChip = healthNotification && HealthIcon ? (
-                  <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
-                    <HealthIcon className="h-3 w-3" />
-                    {healthConfig[healthNotification.level].label}
-                  </span>
-                ) : null;
+                // The whole line links to the plan's Notifications tab,
+                // where the items can be worked through.
                 const openInbox = (e: React.MouseEvent) => {
                   e.stopPropagation();
                   if (!internalCampaignId) return;
@@ -952,12 +942,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
                 if (dbPlan && open.length === 0) {
                   return (
-                    <button type="button" onClick={openInbox} className="flex items-center gap-2 text-left">
-                      {healthChip}
-                      <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Bell className="h-4 w-4 shrink-0" />
-                        No notifications — nothing to do
-                      </span>
+                    <button type="button" onClick={openInbox} className="inline-flex items-center gap-1.5 text-left text-sm text-muted-foreground">
+                      <Bell className="h-4 w-4 shrink-0" />
+                      No notifications — nothing to do
                     </button>
                   );
                 }
@@ -975,20 +962,25 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     .filter((k) => counts[k])
                     .map((k) => `${counts[k]} ${counts[k] === 1 ? kindLabel[k].one : kindLabel[k].many}`)
                     .join(', ');
-                const breakdown = dbPlan
-                  ? summarise(open.reduce((acc, m) => { const k = m.kind === 'health' ? 'action' : m.kind; acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>))
-                  : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>));
+                // "health at risk", not "1 health" — the level is the message.
+                const hasHealthMessage = open.some((m) => m.kind === 'health');
+                const healthPhrase = hasHealthMessage && healthNotification && healthNotification.level !== 'good'
+                  ? `health ${healthConfig[healthNotification.level].label.toLowerCase()}`
+                  : null;
+                const breakdown = [
+                  healthPhrase,
+                  dbPlan
+                    ? summarise(open.filter((m) => m.kind !== 'health').reduce((acc, m) => { acc[m.kind as NotificationKind] = (acc[m.kind as NotificationKind] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>))
+                    : summarise(adviceItems.filter((a) => !a.done).reduce((acc, a) => { const k = adviceKind(a); acc[k] = (acc[k] ?? 0) + 1; return acc; }, {} as Record<NotificationKind, number>)),
+                ].filter(Boolean).join(', ');
 
                 return (
-                  <button type="button" onClick={openInbox} className="flex items-center gap-2 text-left hover:opacity-80">
-                    {healthChip}
-                    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Bell className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
-                      <span className="font-medium text-foreground">
-                        {open.length} notification{open.length === 1 ? '' : 's'}
-                      </span>
-                      <span>— {breakdown}</span>
+                  <button type="button" onClick={openInbox} className="inline-flex items-center gap-1.5 text-left text-sm text-muted-foreground hover:opacity-80">
+                    <Bell className={cn('h-4 w-4 shrink-0', unread > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                    <span className="font-medium text-foreground">
+                      {open.length} notification{open.length === 1 ? '' : 's'}
                     </span>
+                    <span>— {breakdown}</span>
                   </button>
                 );
               })()

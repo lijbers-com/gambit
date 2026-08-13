@@ -61,6 +61,10 @@ export interface TableExpandable<T> {
 export const TABLE_CHILD_INDENT = 'pl-6';
 
 export interface TableProps<T> {
+  /** What an empty table says — and offers — instead of the generic
+   *  "No data available". Pass content like "No campaigns yet" plus the
+   *  button that creates the first one. */
+  emptyState?: React.ReactNode;
   columns: TableColumn<T>[];
   data: T[];
   /** Enables the leading chevron column for rows with sub-rows. */
@@ -127,7 +131,7 @@ function ColumnItem({
   );
 }
 
-export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow }: TableProps<T>) {
+export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState }: TableProps<T>) {
   // Default rowKey function if not provided
   const getRowKey = rowKey || ((row: T, index: number) => {
     if (row && typeof row === 'object' && 'id' in row) {
@@ -784,8 +788,8 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
         <tbody>
           {sortedData.length === 0 ? (
             <tr>
-              <td colSpan={allCols.length} className="text-center py-8 text-neutral-400">
-                No data available
+              <td colSpan={allCols.length} className="py-8 text-center">
+                {emptyState ?? <span className="text-neutral-400">No data available</span>}
               </td>
             </tr>
           ) : (

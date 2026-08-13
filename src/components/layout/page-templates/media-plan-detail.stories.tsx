@@ -36,7 +36,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -300,7 +300,7 @@ export const MediaPlanDetail: Story = {
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
     const [logActions, setLogActions] = React.useState<string[]>([]);
     // A row's notifications, opened in the side panel from the table.
-    const [inboxRow, setInboxRow] = React.useState<{ level: 'campaign' | 'booking'; id: string; name: string } | null>(null);
+    const [inboxRow, setInboxRow] = React.useState<{ level: 'media-plan' | 'campaign' | 'booking'; id: string; name: string } | null>(null);
     const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
     // ── Live plan from the prototype database ──────────────────────────
@@ -578,6 +578,18 @@ export const MediaPlanDetail: Story = {
 
     // Blocking work for this plan, from the same derived messages the
     // Notifications tab shows — so the button and the list always agree.
+    // The plan's own messages — level 'media-plan' only. The table rows carry
+    // the campaign and booking ones; without this the plan's were invisible
+    // on this tab.
+    const planOwnMsgs = plan
+      ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.level === 'media-plan')
+      : [];
+    const planOwnCounts = {
+      actions: planOwnMsgs.filter((m) => m.kind === 'action' || m.kind === 'health').length,
+      recommendations: planOwnMsgs.filter((m) => m.kind === 'recommendation').length,
+      insights: planOwnMsgs.filter((m) => m.kind === 'insight').length,
+    };
+
     const planBlockers = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
       : [];
@@ -925,6 +937,29 @@ export const MediaPlanDetail: Story = {
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label className="block">Health</Label>
+                        <div className="flex h-9 items-center">
+                          <button
+                            type="button"
+                            onClick={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
+                            title="Open notifications"
+                          >
+                            <HealthCell health={plan ? ({ good: 'good', attention: 'attention', risk: 'risk' } as const)[derivePlanHealth(db, plan).level] : 'good'} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="block">Notifications</Label>
+                        <div className="flex h-9 items-center">
+                          <NotificationsCell
+                            actions={planOwnCounts.actions}
+                            recommendations={planOwnCounts.recommendations}
+                            insights={planOwnCounts.insights}
+                            onOpen={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
+                          />
+                        </div>
+                      </div>
                     </section>
                     <FilterBar
                       filters={[
@@ -968,6 +1003,16 @@ export const MediaPlanDetail: Story = {
                         </button>
                       )}
                       hideActions
+                      // A plan without campaigns explains itself and offers
+                      // the fix in place — same menu as the header button.
+                      emptyState={
+                        <div className="flex flex-col items-center gap-3 py-2">
+                          <p className="text-sm text-muted-foreground">
+                            No campaigns in this media plan yet — add the first proposition.
+                          </p>
+                          <AddCampaignMenu onSelect={addCampaign} />
+                        </div>
+                      }
                       expandable={{
                         isExpandable: (r) => r._type === 'campaign' && (r.bookingsCount ?? 0) > 0,
                         isExpanded: (r) => expanded.includes(r._id),

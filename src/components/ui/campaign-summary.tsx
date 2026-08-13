@@ -991,14 +991,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             ) : null
           )}
 
-          {/* Wizard drafts say where the user left off; the card resumes there. */}
-          {wizardDraft && (
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              Continue in the wizard — step {wizardDraft.step + 1} of {wizardDraft.totalSteps}: {wizardDraft.stepLabel}
-              <ArrowRight className="h-4 w-4 shrink-0" />
-            </p>
-          )}
-
           {/* Open cards show the detail row above the bar. */}
           {layout !== 'vertical' && !isCollapsed && detailsRow}
 
@@ -1025,8 +1017,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             )
           )}
 
-          {/* Collapsed cards show the detail row below the bar. */}
-          {layout !== 'vertical' && isCollapsed && detailsRow}
+          {/* Collapsed cards show the detail row below the bar. A wizard draft
+              shows where the user left off instead — its facts are mostly
+              unset, and inventing them would misinform. Same slot, same
+              height. */}
+          {layout !== 'vertical' && isCollapsed && (
+            wizardDraft ? (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                Continue in the wizard — step {wizardDraft.step + 1} of {wizardDraft.totalSteps}: {wizardDraft.stepLabel}
+                <ArrowRight className="h-4 w-4 shrink-0" />
+              </p>
+            ) : (
+              detailsRow
+            )
+          )}
 
         </CardHeader>
 

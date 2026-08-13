@@ -915,19 +915,6 @@ export const MediaPlanDetail: Story = {
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="block">Auto budget allocation</Label>
-                        <div className="flex h-9 items-center">
-                          <Switch
-                            checked={autoBudget}
-                            onCheckedChange={(on) => {
-                              if (!plan) return;
-                              updateMediaPlan(plan.id, { autoBudget: on });
-                              if (on) reallocate(plan.budget);
-                            }}
-                          />
-                        </div>
-                      </div>
                     </section>
                     <FilterBar
                       filters={[
@@ -1088,7 +1075,7 @@ export const MediaPlanDetail: Story = {
               <RightDrawerDescription>{inboxRow?.name}</RightDrawerDescription>
             </RightDrawerHeader>
             <RightDrawerBody>
-              {inboxRow && <InboxPanel scope={inboxRow.level} entityId={inboxRow.id} />}
+              {inboxRow && <InboxPanel scope={inboxRow.level} entityId={inboxRow.id} detailInline />}
             </RightDrawerBody>
           </RightDrawerContent>
         </RightDrawer>

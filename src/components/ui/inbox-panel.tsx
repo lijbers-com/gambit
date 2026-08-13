@@ -33,6 +33,9 @@ export interface InboxPanelProps {
   /** Id of that entity (an EngineId or 'all' for engine scope). Omit to take it
    *  from the route. Not used for 'user'. */
   entityId?: string;
+  /** Show an opened message in place of the list rather than in a second
+   *  drawer — for when the panel itself already lives in a drawer. */
+  detailInline?: boolean;
   className?: string;
 }
 
@@ -77,7 +80,7 @@ export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: strin
   return messages.filter((m) => (status[m.id] ?? 'unread') === 'unread').length;
 }
 
-export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, className }) => {
+export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, className }) => {
   const db = useDb();
   const user = useSession();
   const status = useInboxState();
@@ -125,6 +128,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
 
   return (
     <div className={className}>
+      {!(detailInline && active) && (
       <Inbox
         items={items}
         status={status}
@@ -135,9 +139,11 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, classNa
             : 'Everything here is set up — nothing to do.'
         }
       />
+      )}
 
       {active && (
         <MessageDrawer
+          inline={detailInline}
           open
           onOpenChange={(isOpen) => { if (!isOpen) setOpenId(null); }}
           kind={active.kind}

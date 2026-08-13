@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MessageSquare, WalletCards, Rows3, LayoutList } from 'lucide-react';
+import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -60,6 +60,9 @@ const kindBadge: Record<MessageKind, { label: string; className: string }> = {
 };
 
 export interface MessageDrawerProps {
+  /** Render the message in place — inside whatever panel is already open —
+   *  instead of sliding a second drawer over it. */
+  inline?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   kind: MessageKind;
@@ -93,6 +96,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   businessCase,
   onAskAgent,
   footer,
+  inline,
 }) => {
   const badge =
     kind === 'health' && severity !== 'blocking'
@@ -100,6 +104,120 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       : kindBadge[kind];
 
   const hasCase = !!(businessCase?.stats?.length || businessCase?.chart || businessCase?.insights?.length);
+
+  const bodyEl = (
+    <RightDrawerBody className="space-y-6">
+      {/* Same size as the rest of the copy — the title and the badge above
+          already establish the hierarchy, so the body reads as body text. */}
+      <p className="text-sm leading-relaxed text-foreground">{message}</p>
+
+      {hasCase && (
+        <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
+          <div className="text-sm font-semibold text-foreground">The case for this</div>
+
+          {businessCase?.stats && businessCase.stats.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {businessCase.stats.map((s, i) => (
+                <div key={i} className="rounded-lg border bg-background p-2.5">
+                  <div className="text-xs text-muted-foreground">{s.label}</div>
+                  <div className="text-base font-semibold leading-tight">{s.value}</div>
+                  {s.sub && (
+                    <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-success-600' : 'text-muted-foreground')}>
+                      {s.sub}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {businessCase?.chart && (
+            <div className="rounded-lg border bg-background p-3">
+              {businessCase.chart.title && (
+                <div className="mb-1 text-sm font-medium text-muted-foreground">{businessCase.chart.title}</div>
+              )}
+              {businessCase.chart.kind === 'bar' ? (
+                <BarChartComponent
+                  data={businessCase.chart.data}
+                  config={businessCase.chart.config}
+                  className="h-[190px] w-full"
+                  showLegend
+                  horizontal={businessCase.chart.horizontal}
+                  xAxisDataKey={businessCase.chart.xKey ?? 'month'}
+                />
+              ) : (
+                <AreaChartComponent
+                  data={businessCase.chart.data}
+                  config={businessCase.chart.config}
+                  className="h-[170px] w-full"
+                  showLegend
+                  showRightYAxis={!!businessCase.chart.rightAxisKey}
+                  rightAxisDataKey={businessCase.chart.rightAxisKey}
+                />
+              )}
+            </div>
+          )}
+
+          {businessCase?.insights && businessCase.insights.length > 0 && (
+            <ul className="space-y-2">
+              {businessCase.insights.map((it, i) => (
+                <li key={i} className="text-sm leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">{it.title}: </span>
+                  {it.text}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Going deeper is a deliberate step, not the default reading mode. */}
+      {onAskAgent && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
+          <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={onAskAgent}>
+            <MessageSquare className="h-4 w-4" />
+            Ask the agent
+          </Button>
+        </div>
+      )}
+    </RightDrawerBody>
+  );
+  const footerEl = footer ? <RightDrawerFooter className="justify-between">{footer}</RightDrawerFooter> : null;
+
+  // Inline: the same message, shown in place of the list inside whatever
+  // panel is already open. Stacking a second drawer hid one behind the other.
+  if (inline) {
+    if (!open) return null;
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="p-6 pb-4">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All notifications
+          </button>
+          <div>
+            <Badge variant="outline" className={cn('w-fit px-2 py-0.5 text-xs font-medium', badge.className)}>
+              {badge.label}
+            </Badge>
+          </div>
+          <h2 className="mt-1.5 text-lg font-semibold leading-none tracking-tight">{subject}</h2>
+          {context && (
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+              {(() => { const LevelIcon = levelIcon[level ?? 'media-plan']; return <LevelIcon className="h-3.5 w-3.5 shrink-0" />; })()}
+              {context}
+            </p>
+          )}
+        </div>
+        {bodyEl}
+        {footerEl}
+      </div>
+    );
+  }
 
   return (
     <RightDrawer open={open} onOpenChange={onOpenChange}>
@@ -118,85 +236,8 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
             </RightDrawerDescription>
           )}
         </RightDrawerHeader>
-
-        <RightDrawerBody className="space-y-6">
-          {/* Same size as the rest of the copy — the title and the badge above
-              already establish the hierarchy, so the body reads as body text. */}
-          <p className="text-sm leading-relaxed text-foreground">{message}</p>
-
-          {hasCase && (
-            <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-              <div className="text-sm font-semibold text-foreground">The case for this</div>
-
-              {businessCase?.stats && businessCase.stats.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {businessCase.stats.map((s, i) => (
-                    <div key={i} className="rounded-lg border bg-background p-2.5">
-                      <div className="text-xs text-muted-foreground">{s.label}</div>
-                      <div className="text-base font-semibold leading-tight">{s.value}</div>
-                      {s.sub && (
-                        <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-success-600' : 'text-muted-foreground')}>
-                          {s.sub}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {businessCase?.chart && (
-                <div className="rounded-lg border bg-background p-3">
-                  {businessCase.chart.title && (
-                    <div className="mb-1 text-sm font-medium text-muted-foreground">{businessCase.chart.title}</div>
-                  )}
-                  {businessCase.chart.kind === 'bar' ? (
-                    <BarChartComponent
-                      data={businessCase.chart.data}
-                      config={businessCase.chart.config}
-                      className="h-[190px] w-full"
-                      showLegend
-                      horizontal={businessCase.chart.horizontal}
-                      xAxisDataKey={businessCase.chart.xKey ?? 'month'}
-                    />
-                  ) : (
-                    <AreaChartComponent
-                      data={businessCase.chart.data}
-                      config={businessCase.chart.config}
-                      className="h-[170px] w-full"
-                      showLegend
-                      showRightYAxis={!!businessCase.chart.rightAxisKey}
-                      rightAxisDataKey={businessCase.chart.rightAxisKey}
-                    />
-                  )}
-                </div>
-              )}
-
-              {businessCase?.insights && businessCase.insights.length > 0 && (
-                <ul className="space-y-2">
-                  {businessCase.insights.map((it, i) => (
-                    <li key={i} className="text-sm leading-relaxed text-muted-foreground">
-                      <span className="font-medium text-foreground">{it.title}: </span>
-                      {it.text}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          {/* Going deeper is a deliberate step, not the default reading mode. */}
-          {onAskAgent && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
-              <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
-              <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={onAskAgent}>
-                <MessageSquare className="h-4 w-4" />
-                Ask the agent
-              </Button>
-            </div>
-          )}
-        </RightDrawerBody>
-
-        {footer && <RightDrawerFooter className="justify-between">{footer}</RightDrawerFooter>}
+        {bodyEl}
+        {footerEl}
       </RightDrawerContent>
     </RightDrawer>
   );

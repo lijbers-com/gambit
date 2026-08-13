@@ -5,6 +5,7 @@ import { ChevronRight, Check, Inbox as InboxIcon, WalletCards, Rows3, LayoutList
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { FilterBar } from './filter-bar';
+import { NotificationSettings } from './notification-settings';
 import type { MessageKind, MessageStatus } from '@/lib/db';
 
 /**
@@ -132,14 +133,17 @@ export const Inbox: React.FC<InboxProps> = ({
         <div className="mb-2 text-sm font-medium text-foreground">{heading}</div>
       )}
       {filtersVisible && (
-        <FilterBar
-          className="mb-3"
-          hideSearch
-          filters={[
-            { name: 'Type', options: kindOptions, selectedValues: kinds, onChange: setKinds },
-            { name: 'Status', options: statusOptions, selectedValues: statuses, onChange: setStatuses },
-          ]}
-        />
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <FilterBar
+            hideSearch
+            filters={[
+              { name: 'Type', options: kindOptions, selectedValues: kinds, onChange: setKinds },
+              { name: 'Status', options: statusOptions, selectedValues: statuses, onChange: setStatuses },
+            ]}
+          />
+          {/* Tuning what arrives belongs next to reading what arrived. */}
+          <NotificationSettings />
+        </div>
       )}
 
       {visible.length === 0 ? (

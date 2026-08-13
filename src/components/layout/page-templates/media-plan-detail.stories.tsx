@@ -76,10 +76,10 @@ const fmtDate = (iso: string) =>
 const fmtRange = (start: string, end: string) => `${fmtDate(start)} → ${fmtDate(end)}`;
 // Goal catalog — same shape as the create-media-plan wizard's goal cards.
 const goals = [
-  { id: 'awareness', icon: <Eye size={24} />, title: 'Awareness', description: 'Reach a broad audience and make them aware of your brand, product or service' },
-  { id: 'consideration', icon: <Brain size={24} />, title: 'Consideration', description: 'Encourage people to think about your brand and seek out more information' },
-  { id: 'purchase', icon: <ShoppingCart size={24} />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores' },
-  { id: 'loyalty', icon: <Heart size={24} />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases' },
+  { id: 'awareness', kpis: ['Reach', 'Frequency', 'Brand awareness', 'Ad recall'], icon: <Eye size={24} />, title: 'Awareness', description: 'Reach a broad audience and make them aware of your brand, product or service' },
+  { id: 'consideration', kpis: ['CTR', 'Purchase intent', 'Brand preference', 'Engagement'], icon: <Brain size={24} />, title: 'Consideration', description: 'Encourage people to think about your brand and seek out more information' },
+  { id: 'purchase', kpis: ['Incremental ROAS', 'Conversion rate', 'Sales lift'], icon: <ShoppingCart size={24} />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores' },
+  { id: 'loyalty', kpis: ['Repeat purchases', 'Incremental ROAS', 'Sales lift'], icon: <Heart size={24} />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases' },
 ];
 // Each option carries a one-liner so the selected card explains what the
 // objective/KPI stands for (shared copy: src/lib/objective-kpi-copy.ts).
@@ -857,7 +857,7 @@ export const MediaPlanDetail: Story = {
                           {(() => {
                             const g = goals.find((x) => x.id === goal);
                             return g ? (
-                              <GoalCard icon={g.icon} title={g.title} description={g.description} selected readOnly className="w-full" />
+                              <GoalCard icon={g.icon} title={g.title} description={g.description} kpis={g.kpis} selected readOnly className="w-full" />
                             ) : (
                               <div className="flex min-h-9 items-center rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
                                 No goal set
@@ -937,6 +937,25 @@ export const MediaPlanDetail: Story = {
                           onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
                         />
                       </div>
+                      {/* How the plan budget is split across propositions —
+                          the sum the editable rows below add up to. */}
+                      {(() => {
+                        const rows = db.campaigns.filter((c) => c.mediaPlanId === plan?.id && c.budget > 0);
+                        if (rows.length === 0) return null;
+                        return (
+                          <div className="basis-full space-y-2 order-last w-full">
+                            <Label className="block">Budget split by proposition</Label>
+                            <BudgetStackedMini
+                              budgetData={rows.map((c) => ({
+                                name: propositionMeta[c.engine].label,
+                                spent: c.budget,
+                                budget: c.budget,
+                                color: propositionColor(c.engine),
+                              }))}
+                            />
+                          </div>
+                        );
+                      })()}
                       <div className="space-y-2">
                         <Label className="block">Health</Label>
                         <div className="flex h-9 items-center">

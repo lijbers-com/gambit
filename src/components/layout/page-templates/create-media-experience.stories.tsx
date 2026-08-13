@@ -14,6 +14,7 @@ import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brand
 import { Filter } from '@/components/ui/filter';
 import { GoalCard } from '@/components/ui/goal-card';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -90,24 +91,28 @@ type Story = StoryObj<typeof meta>;
 const goals = [
   {
     id: 'awareness',
+    kpis: ['Reach', 'Frequency', 'Brand awareness', 'Ad recall'],
     icon: <Eye size={24} />,
     title: 'Awareness',
     description: 'Reach a broad audience and make them aware of your brand, product or service',
   },
   {
     id: 'consideration',
+    kpis: ['CTR', 'Purchase intent', 'Brand preference', 'Engagement'],
     icon: <Brain size={24} />,
     title: 'Consideration',
     description: 'Encourage people to think about your brand and seek out more information',
   },
   {
     id: 'purchase',
+    kpis: ['Incremental ROAS', 'Conversion rate', 'Sales lift'],
     icon: <ShoppingCart size={24} />,
     title: 'Purchase',
     description: 'Drive sales and conversions on your website, in your app or in physical stores',
   },
   {
     id: 'loyalty',
+    kpis: ['Repeat purchases', 'Incremental ROAS', 'Sales lift'],
     icon: <Heart size={24} />,
     title: 'Loyalty',
     description: 'Strengthen existing customer relationships and drive repeat purchases',
@@ -927,7 +932,19 @@ export const GoalSelection: Story = {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="po-number">PO number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                        <Label htmlFor="po-number" className="flex items-center gap-1.5">
+                          PO number <span className="text-muted-foreground font-normal">(optional)</span>
+                          <TooltipProvider delayDuration={150}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex cursor-help items-center text-muted-foreground"><Info className="h-3.5 w-3.5" /></span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                The purchase order reference from your finance team. Optional now, but it must be filled in before the plan is invoiced.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
                         <Input
                           id="po-number"
                           placeholder="e.g. PO-123456"
@@ -1038,6 +1055,7 @@ export const GoalSelection: Story = {
                               icon={goal.icon}
                               title={goal.title}
                               description={goal.description}
+                              kpis={goal.kpis}
                               selected={selectedGoal === goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />

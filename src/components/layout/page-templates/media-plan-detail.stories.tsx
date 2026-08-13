@@ -436,7 +436,9 @@ export const MediaPlanDetail: Story = {
     const metrics: MetricDefinition[] = [
       {
         key: 'budget',
-        label: 'Budget',
+        // The number is what has been SPENT; the budget is the "of €15.0K"
+        // context underneath. Labelling it Budget said the opposite.
+        label: 'Spend',
         value: fmtK(planSpend),
         badgeValue: `${spentPct}%`,
         badgeVariant: 'secondary',

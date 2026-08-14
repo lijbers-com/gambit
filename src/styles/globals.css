@@ -733,6 +733,12 @@ body[data-theme="alfaBeta"] {
   background: var(--brand-nav-hover, var(--brand-app-hover)) !important;
 }
 
+/* The logo is a link too, but it is identity, not navigation chrome — a
+ * hover fill turns the masked mark into a solid square of brand colour. */
+.side-navigation a.side-navigation-logo:hover {
+  background: none !important;
+}
+
 /* On a branded highlight the text/icons flip to a contrasting colour
  * (--brand-nav-active-text, e.g. white on AH/Delhaize/ADUSA/Alfa-Beta;
  * defaults to the normal chrome text for the light Edge lime). The

@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 10;
+export const SEED_VERSION = 11;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -584,9 +584,9 @@ export const seedData: DbData = {
   // What's new — written by the retailer for advertisers. The homepage widget
   // and the Help section read this same list.
   releaseNotes: [
-    { id: 'NOTE-001', version: 'v1.6', date: 'June 2026', title: 'Stores & displays targeting', items: ['Separate store-list and display-list sections — target one inventory type at a time.', 'Build lists at random, upload a custom one, or confirm targeting all available inventory.'], published: true, order: 1, updatedAt: now },
-    { id: 'NOTE-002', version: 'v1.5', date: 'June 2026', title: 'Smarter date picker', items: ['Forward-looking range presets, defaulting to "Next week".', 'Click a week number to select the whole week at once.'], published: true, order: 2, updatedAt: now },
-    { id: 'NOTE-003', version: 'v1.4', date: 'May 2026', title: 'Unified creative overview', items: ['One overview for every creative across all propositions.', 'Filter by status, type and format in a single place.'], published: true, order: 3, updatedAt: now },
-    { id: 'NOTE-004', version: 'v1.3', date: 'May 2026', title: 'Booking health checks', items: ['Bookings flag missing creatives and targeting gaps before launch.', 'The notifications tab shows the same list, so nothing is tracked twice.'], published: true, order: 4, updatedAt: now },
+    { id: 'NOTE-001', version: 'v1.6', date: 'June 2026', title: 'Stores & displays targeting', items: ['Digital in-store: Separate store-list and display-list sections — target one inventory type at a time.', 'Offline in-store: Build lists at random, upload a custom one, or confirm targeting all available inventory.'], published: true, order: 1, updatedAt: now },
+    { id: 'NOTE-002', version: 'v1.5', date: 'June 2026', title: 'Smarter date picker', items: ['Media plans: Forward-looking range presets, defaulting to "Next week".', 'Media plans: Click a week number to select the whole week at once.'], published: true, order: 2, updatedAt: now },
+    { id: 'NOTE-003', version: 'v1.4', date: 'May 2026', title: 'Unified creative overview', items: ['Creatives: One overview for every creative across all propositions.', 'Creatives: Filter by status, type and format in a single place.'], published: true, order: 3, updatedAt: now },
+    { id: 'NOTE-004', version: 'v1.3', date: 'May 2026', title: 'Booking health checks', items: ['Bookings: Missing creatives and targeting gaps are flagged before launch.', 'Insights: The notifications tab shows the same list, so nothing is tracked twice.'], published: true, order: 4, updatedAt: now },
   ],
 };

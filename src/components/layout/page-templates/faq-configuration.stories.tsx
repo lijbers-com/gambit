@@ -160,12 +160,12 @@ const TermsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
               {visible.map((t) => (
                 <div key={t.id} className="flex items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium">
                       {t.term}
                       {!t.published && mayEdit && (
                         <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
                       )}
-                    </p>
+                    </div>
                     <p className="mt-1 text-sm text-muted-foreground">{t.definition}</p>
                   </div>
                   {mayEdit && (
@@ -210,6 +210,22 @@ const TermsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
   );
 };
 
+
+/** "Display: text" lines group into an area section; bare lines fall under
+ *  General. One release, one card, sections per area. */
+const noteAreas = (items: string[]) => {
+  const groups: { area: string; items: string[] }[] = [];
+  for (const raw of items) {
+    const m = raw.match(/^([A-Za-z][\w &-]{1,28}):\s+(.*)$/);
+    const area = m ? m[1] : 'General';
+    const text = m ? m[2] : raw;
+    const g = groups.find((x) => x.area === area);
+    if (g) g.items.push(text);
+    else groups.push({ area, items: [text] });
+  }
+  return groups;
+};
+
 const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
   const db = useDb();
   const [editing, setEditing] = useState<string | null>(null);
@@ -249,16 +265,23 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
               {visible.map((n) => (
                 <div key={n.id} className="flex items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium">
                       {n.title}
                       <span className="text-xs font-normal text-muted-foreground">{n.version} · {n.date}</span>
                       {!n.published && mayEdit && (
                         <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
                       )}
-                    </p>
-                    <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-muted-foreground">
-                      {n.items.map((it, i) => <li key={i}>{it}</li>)}
-                    </ul>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {noteAreas(n.items).map((g) => (
+                        <div key={g.area}>
+                          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.area}</div>
+                          <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-sm text-muted-foreground">
+                            {g.items.map((it, i) => <li key={i}>{it}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   {mayEdit && (
                     <div className="flex shrink-0 gap-1">
@@ -293,7 +316,7 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
             </div>
             <div>
               <Label className="mb-2 block">Highlights</Label>
-              <Textarea value={draft.items} onChange={(e) => setDraft({ ...draft, items: e.target.value })} rows={5} placeholder="One highlight per line…" hint="Each line becomes a bullet." />
+              <Textarea value={draft.items} onChange={(e) => setDraft({ ...draft, items: e.target.value })} rows={5} placeholder="Display: one highlight per line…" hint="One highlight per line. Start a line with an area — e.g. \u0027Display:\u0027 or \u0027Media plans:\u0027 — to group it." />
             </div>
             <div className="flex items-center justify-between rounded-md border border-border p-3">
               <p className="text-sm font-medium">Published</p>
@@ -312,104 +335,71 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
   );
 };
 
-/** The Help section every theme gets: the same three content types, read
- *  only. Editing lives in the configuration area (Overview below). */
+/**
+ * Help — one page for every theme.
+ *
+ * Everyone reads here. A user with content rights gets an Edit toggle in the
+ * header instead of a separate configuration area: the page flips to the same
+ * layout with pencil buttons, so what they edit is literally what readers see.
+ */
 export const HelpCentre = {
   render: () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
+    const db = useDb();
+    const user = useSession();
+    const mayManage = canManageFaq(user);
+    const [editMode, setEditMode] = useState(false);
     const [tab, setTab] = useState('faqs');
+    const editing = mayManage && editMode;
+
+    // FAQ entry dialog — shared by every surface section.
+    const [dialogFor, setDialogFor] = useState<string | null>(null);
+    const [dialogSurface, setDialogSurface] = useState<FaqSurfaceId>('create-media-plan');
+    const [draft, setDraft] = useState<Draft>(emptyDraft);
+    const surface = faqSurface(dialogSurface)!;
+
+    const openNew = (sid: FaqSurfaceId) => {
+      setDialogSurface(sid);
+      setDraft(emptyDraft);
+      setDialogFor('new');
+    };
+    const openEdit = (entry: FaqEntry) => {
+      setDialogSurface(entry.surface);
+      setDraft(draftFrom(entry));
+      setDialogFor(entry.id);
+    };
+    const save = () => {
+      const payload = {
+        question: draft.question.trim(),
+        answer: draft.answer.trim(),
+        surface: dialogSurface,
+        section: draft.section || undefined,
+        engine: (draft.engine || undefined) as EngineId | undefined,
+        audience: draft.audience,
+        published: draft.published,
+      };
+      if (dialogFor === 'new') createFaq(payload);
+      else if (dialogFor) updateFaq(dialogFor, payload);
+      setDialogFor(null);
+    };
+    const canSave = draft.question.trim().length > 0 && draft.answer.trim().length > 0;
+
     return (
       <AppLayout
         routes={routes}
         pageHeaderProps={{
           title: 'Help',
           subtitle: "How the platform works — questions, metric terms and what's new",
-        }}
-      >
-        <CardWithTabs
-          activeTab={tab}
-          onTabChange={setTab}
-          tabs={[
-            { label: 'FAQs', value: 'faqs', content: <div className="mt-6"><FaqReadTab /></div> },
-            { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={false} /></div> },
-            { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={false} /></div> },
-          ]}
-        />
-      </AppLayout>
-    );
-  },
-};
-
-export const Overview = {
-  render: () => {
-    const { theme: storybookTheme } = useStorybookTheme();
-    const currentTheme = storybookTheme || 'retailMedia';
-    const routes = getRoutesForTheme(currentTheme);
-
-    const db = useDb();
-    const user = useSession();
-    const mayEdit = canManageFaq(user);
-
-    const [surfaceId, setSurfaceId] = useState<FaqSurfaceId>('create-media-plan');
-    const surface = faqSurface(surfaceId)!;
-    const entries = faqsForSurface(db, surfaceId);
-
-    // `editing` holds the id being changed, or 'new' while adding.
-    const [editing, setEditing] = useState<string | null>(null);
-    const [draft, setDraft] = useState<Draft>(emptyDraft);
-    const [preview, setPreview] = useState(false);
-    const [tab, setTab] = useState('faqs');
-
-    const openNew = () => {
-      setDraft(emptyDraft);
-      setEditing('new');
-    };
-    const openEdit = (entry: FaqEntry) => {
-      setDraft(draftFrom(entry));
-      setEditing(entry.id);
-    };
-
-    const save = () => {
-      const payload = {
-        question: draft.question.trim(),
-        answer: draft.answer.trim(),
-        surface: surfaceId,
-        // Empty select → the entry applies to the whole surface / every
-        // proposition, so the field is dropped rather than stored as ''.
-        section: draft.section || undefined,
-        engine: (draft.engine || undefined) as EngineId | undefined,
-        audience: draft.audience,
-        published: draft.published,
-      };
-      if (editing === 'new') createFaq(payload);
-      else if (editing) updateFaq(editing, payload);
-      setEditing(null);
-    };
-
-    const canSave = draft.question.trim().length > 0 && draft.answer.trim().length > 0;
-
-    // Counts per surface, so an editor can see at a glance which templates
-    // have no help at all.
-    const countFor = (id: FaqSurfaceId) => db.faqs.filter((f) => f.surface === id).length;
-
-    return (
-      <AppLayout
-        routes={routes}
-        pageHeaderProps={{
-          title: 'Help & content',
-          subtitle: "FAQs, metric terms and what's new — written once, in your own words",
-          headerRight: mayEdit && tab === 'faqs' ? (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setPreview((v) => !v)} className="gap-1.5">
-                <Eye className="h-4 w-4" />
-                {preview ? 'Hide preview' : 'Preview'}
-              </Button>
-              <Button onClick={openNew} className="gap-1.5">
-                <Plus className="h-4 w-4" />
-                New question
-              </Button>
-            </div>
+          headerRight: mayManage ? (
+            <Button
+              variant={editMode ? 'default' : 'outline'}
+              onClick={() => setEditMode((v) => !v)}
+              className="gap-1.5"
+            >
+              {editMode ? <Eye className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+              {editMode ? 'Done editing' : 'Edit content'}
+            </Button>
           ) : undefined,
         }}
       >
@@ -422,164 +412,24 @@ export const Overview = {
               value: 'faqs',
               content: (
                 <div className="mt-6">
-                  {!mayEdit ? (
-                    // Advertisers read the same answers the retailer writes.
-                    <FaqReadTab />
-                  ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
-            {/* Which template the entries belong to. */}
-            <div className="h-fit rounded-xl border border-border bg-background">
-              <div className="p-2">
-                {FAQ_SURFACES.map((s) => {
-                  const count = countFor(s.id);
-                  const active = s.id === surfaceId;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSurfaceId(s.id)}
-                      className={cn(
-                        'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
-                        active
-                          ? 'border border-surface-selected-border bg-surface-selected font-medium'
-                          : 'border border-transparent hover:bg-surface-hover',
-                      )}
-                    >
-                      <span className="min-w-0 flex-1 truncate">{s.label}</span>
-                      <span className={cn('text-xs tabular-nums', count ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="rounded-xl border border-border bg-background p-6">
-                  <FormSection
-                    title={surface.label}
-                    headerClassName="mb-4"
-                    action={<span className="text-sm text-muted-foreground">{entries.length} entries</span>}
-                  >
-                    <p className="-mt-2 mb-4 text-sm text-muted-foreground">{surface.description}</p>
-
-                    {entries.length === 0 ? (
-                      <div className="rounded-lg border border-dashed py-10 text-center">
-                        <p className="text-sm text-muted-foreground">
-                          No questions on this screen yet — readers see nothing at all.
-                        </p>
-                        <Button variant="outline" size="sm" onClick={openNew} className="mt-3 gap-1.5">
-                          <Plus className="h-4 w-4" />
-                          Add the first one
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-border overflow-hidden rounded-lg border">
-                        {entries.map((entry, i) => (
-                          <div key={entry.id} className="flex items-start gap-3 p-4">
-                            {/* Order controls — editors think "this should come
-                                first", not in order numbers. */}
-                            <div className="flex flex-col">
-                              <button
-                                type="button"
-                                disabled={i === 0}
-                                onClick={() => moveFaq(entry.id, 'up')}
-                                aria-label="Move up"
-                                className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground"
-                              >
-                                <ChevronUp className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={i === entries.length - 1}
-                                onClick={() => moveFaq(entry.id, 'down')}
-                                aria-label="Move down"
-                                className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground"
-                              >
-                                <ChevronDown className="h-4 w-4" />
-                              </button>
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium">{entry.question}</p>
-                              <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{entry.answer}</p>
-                              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                                {!entry.published && (
-                                  <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">
-                                    Draft
-                                  </Badge>
-                                )}
-                                <Badge variant="outline" className={cn('text-xs', audienceBadge[entry.audience].className)}>
-                                  {audienceBadge[entry.audience].label}
-                                </Badge>
-                                {entry.section && (
-                                  <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-neutral-600">
-                                    {surface.sections.find((s) => s.id === entry.section)?.label ?? entry.section}
-                                  </Badge>
-                                )}
-                                {entry.engine && (
-                                  <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-neutral-600">
-                                    {ENGINES.find((e) => e.value === entry.engine)?.label ?? entry.engine}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex shrink-0 gap-1">
-                              <Button variant="outline" size="sm" onClick={() => openEdit(entry)} className="h-8 w-8 p-0" aria-label="Edit">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => deleteFaq(entry.id)} className="h-8 w-8 p-0" aria-label="Delete">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </FormSection>
-              </div>
-
-              {/* What the reader gets — the same component the templates use,
-                  so what is written here is what ships. Drafts are left out,
-                  exactly as in-product. */}
-              {preview && (
-                <div className="rounded-xl border border-border bg-background">
-                  <div className="p-6">
-                    <p className="mb-4 text-sm text-muted-foreground">
-                      Preview — how this looks on {surface.label}. Drafts are not included.
-                    </p>
-                    <Faq
-                      items={entries
-                        .filter((e) => e.published)
-                        .map((e) => ({ id: e.id, question: e.question, answer: e.answer }))}
-                      heading={null}
-                    />
-                    {entries.filter((e) => e.published).length === 0 && (
-                      <p className="text-sm text-muted-foreground">Nothing published — the block is hidden entirely.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-                  )}
+                  {editing ? <FaqEditAll onNew={openNew} onEdit={openEdit} /> : <FaqReadTab />}
                 </div>
               ),
             },
-            { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={mayEdit} /></div> },
-            { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={mayEdit} /></div> },
+            { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={editing} /></div> },
+            { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={editing} /></div> },
+            ...(mayManage
+              ? [{ label: 'Message advertisers', value: 'message', content: <div className="mt-6"><MessageAdvertiserTab /></div> }]
+              : []),
           ]}
         />
 
-        <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <Dialog open={dialogFor !== null} onOpenChange={(open) => !open && setDialogFor(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editing === 'new' ? 'New question' : 'Edit question'}</DialogTitle>
-              <DialogDescription>Shown on {surface.label}.</DialogDescription>
+              <DialogTitle>{dialogFor === 'new' ? 'New question' : 'Edit question'}</DialogTitle>
+              <DialogDescription>Shown under {surface.label}.</DialogDescription>
             </DialogHeader>
-
             <div className="space-y-4">
               <div>
                 <Label className="mb-2 block">Question</Label>
@@ -590,7 +440,6 @@ export const Overview = {
                   hint="Write the question the way a user would ask it."
                 />
               </div>
-
               <div>
                 <Label className="mb-2 block">Answer</Label>
                 <Textarea
@@ -601,7 +450,6 @@ export const Overview = {
                   hint="Leave a blank line between paragraphs."
                 />
               </div>
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {surface.sections.length > 0 && (
                   <div>
@@ -613,7 +461,7 @@ export const Overview = {
                       placeholder="Whole screen"
                       options={[
                         { label: 'Whole screen', value: '' },
-                        ...surface.sections.map((s) => ({ label: s.label, value: s.id })),
+                        ...surface.sections.map((sec) => ({ label: sec.label, value: sec.id })),
                       ]}
                     />
                   </div>
@@ -638,22 +486,18 @@ export const Overview = {
                   />
                 </div>
               </div>
-
               <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <div>
                   <p className="text-sm font-medium">Published</p>
-                  <p className="text-xs text-muted-foreground">Drafts stay here and are never shown in the platform.</p>
+                  <p className="text-xs text-muted-foreground">Drafts stay here and are never shown to readers.</p>
                 </div>
                 <Switch checked={draft.published} onCheckedChange={(v) => setDraft({ ...draft, published: v })} />
               </div>
             </div>
-
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditing(null)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setDialogFor(null)}>Cancel</Button>
               <Button onClick={save} disabled={!canSave}>
-                {editing === 'new' ? 'Add question' : 'Save changes'}
+                {dialogFor === 'new' ? 'Add question' : 'Save changes'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -662,3 +506,145 @@ export const Overview = {
     );
   },
 };
+
+/**
+ * Edit mode for the FAQs tab: the same all-sections-at-once layout the reader
+ * sees, with the editing controls in each row — drafts visible, badges naming
+ * audience and scope, order arrows because editors think "this comes first".
+ */
+const FaqEditAll: React.FC<{ onNew: (sid: FaqSurfaceId) => void; onEdit: (e: FaqEntry) => void }> = ({ onNew, onEdit }) => {
+  const db = useDb();
+  return (
+    <div className="space-y-8">
+      {FAQ_SURFACES.map((sfc) => {
+        const entries = faqsForSurface(db, sfc.id);
+        return (
+          <section key={sfc.id} className="w-full">
+            <div className="flex items-center justify-between gap-4 pb-3">
+              <div>
+                <h3 className="text-lg font-semibold">{sfc.label}</h3>
+                <p className="text-sm text-muted-foreground">{sfc.description}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => onNew(sfc.id)} className="shrink-0 gap-1.5">
+                <Plus className="h-4 w-4" />
+                Add question
+              </Button>
+            </div>
+            {entries.length === 0 ? (
+              <div className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
+                No questions on this screen yet — readers see nothing at all.
+              </div>
+            ) : (
+              <div className="divide-y divide-border overflow-hidden rounded-lg border">
+                {entries.map((entry, i) => (
+                  <div key={entry.id} className="flex items-start gap-3 p-4">
+                    <div className="flex flex-col">
+                      <button
+                        type="button"
+                        disabled={i === 0}
+                        onClick={() => moveFaq(entry.id, 'up')}
+                        aria-label="Move up"
+                        className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={i === entries.length - 1}
+                        onClick={() => moveFaq(entry.id, 'down')}
+                        aria-label="Move down"
+                        className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{entry.question}</p>
+                      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{entry.answer}</p>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        {!entry.published && (
+                          <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-muted-foreground">Draft</Badge>
+                        )}
+                        <Badge variant="outline" className={cn('text-xs', audienceBadge[entry.audience].className)}>
+                          {audienceBadge[entry.audience].label}
+                        </Badge>
+                        {entry.section && (
+                          <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-neutral-600">
+                            {sfc.sections.find((x) => x.id === entry.section)?.label ?? entry.section}
+                          </Badge>
+                        )}
+                        {entry.engine && (
+                          <Badge variant="outline" className="border-border bg-neutral-50 text-xs text-neutral-600">
+                            {ENGINES.find((e) => e.value === entry.engine)?.label ?? entry.engine}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <Button variant="outline" size="sm" onClick={() => onEdit(entry)} className="h-8 w-8 p-0" aria-label="Edit">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => deleteFaq(entry.id)} className="h-8 w-8 p-0" aria-label="Delete">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
+
+/** Compose a message to an advertiser — the retailer's outbound channel,
+ *  next to the content they publish. Prototype: sending confirms locally. */
+const MessageAdvertiserTab: React.FC = () => {
+  const db = useDb();
+  const [advertiser, setAdvertiser] = useState('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const send = () => {
+    const name = db.advertisers.find((a) => a.id === advertiser)?.name ?? 'the advertiser';
+    setSentTo(name);
+    setSubject('');
+    setBody('');
+  };
+  return (
+    <FormSection title="Message an advertiser" headerClassName="mb-4">
+      <p className="-mt-2 mb-4 text-sm text-muted-foreground">
+        Lands in their notifications and by email, from your team.
+      </p>
+      <div className="max-w-xl space-y-4">
+        <div>
+          <Label className="mb-2 block">Advertiser</Label>
+          <SearchableSelect
+            value={advertiser}
+            onChange={setAdvertiser}
+            placeholder="Choose an advertiser…"
+            options={db.advertisers.map((a) => ({ label: a.name, value: a.id }))}
+          />
+        </div>
+        <div>
+          <Label className="mb-2 block">Subject</Label>
+          <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. New offsite positions available" />
+        </div>
+        <div>
+          <Label className="mb-2 block">Message</Label>
+          <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={6} placeholder="Write the message…" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Button onClick={send} disabled={!advertiser || !subject.trim() || !body.trim()}>Send message</Button>
+          {sentTo && <span className="text-sm text-muted-foreground">Sent to {sentTo}.</span>}
+        </div>
+      </div>
+    </FormSection>
+  );
+};
+
+/** The old configuration route renders the same page now. */
+export const Overview = HelpCentre;

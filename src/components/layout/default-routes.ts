@@ -261,13 +261,6 @@ export const defaultRoutes: Route[] = [
     icon: { lucide: "BrandsIcon" },
     url: "/configuration/brands-products",
   },
-  {
-    id: 17,
-    name: "Help & content",
-    type: "single" as const,
-    icon: { lucide: "FileText" },
-    url: "/configuration/faq",
-  },
 ];
 
 // Extended routes for breadcrumb navigation (detail pages)

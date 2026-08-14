@@ -32,7 +32,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
-import { shareOfVoiceCase, salesUpliftTestCase } from '@/lib/case-templates';
+import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
 
 // The Share of Voice card's own insights — template-built cases, shown in
@@ -51,6 +51,48 @@ const sovCardInsights: CardInsight[] = [
     kind: 'insight',
     subject: 'In-store screens beat entrance DOOH on uplift',
     preview: 'The neighbours A/B test measured +59% uplift for in-store screens vs. +40% at the entrance — and twice the new customers.',
+    context: 'Digital in-store · A/B test, week 12',
+    caseData: salesUpliftTestCase({
+      test: 'Neighbours A/B test',
+      a: { label: 'Entrance DOOH', uplift: 40, newCustomers: 123, base: '€35K', perStore: '€139' },
+      b: { label: 'In-store screens', uplift: 59, newCustomers: 243, base: '€29K', perStore: '€173' },
+    }),
+  },
+];
+
+const volumeCardInsights: CardInsight[] = [
+  {
+    id: 'INS-volume-pace',
+    kind: 'insight',
+    subject: 'Volume is pacing 8% ahead of plan',
+    preview: 'The flight has delivered 612K impressions against a 700K target, running 8% ahead of where it should be at this point.',
+    context: 'All propositions · this flight',
+    caseData: volumePacingCase({ delivered: '612K', target: '700K', pacePct: 108, topChannel: 'Display onsite' }),
+  },
+  {
+    id: 'INS-volume-budget',
+    kind: 'recommendation',
+    subject: 'Shift €2,000 from display to sponsored products',
+    preview: 'Sponsored products is returning 4.4x against display\u2019s 2.1x this month — the same volume can buy more return.',
+    context: 'Holiday Sale Plan',
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '2.1x', roasTo: '4.4x' }),
+  },
+];
+
+const buyerCardInsights: CardInsight[] = [
+  {
+    id: 'INS-buyer-new',
+    kind: 'insight',
+    subject: 'Almost half of buyers are new to the brand',
+    preview: '48% of buyers reached had never bought you before, against 22% won back from lapsed and 30% repeat buyers.',
+    context: 'All propositions · Category: soft drinks',
+    caseData: buyerMixCase({ newToBrand: 48, lapsed: 22, existing: 30, category: 'soft drinks' }),
+  },
+  {
+    id: 'INS-buyer-instore',
+    kind: 'insight',
+    subject: 'In-store screens recruit twice the new customers',
+    preview: 'The neighbours A/B test drew +243% new customers on in-store screens against +123% at the entrance.',
     context: 'Digital in-store · A/B test, week 12',
     caseData: salesUpliftTestCase({
       test: 'Neighbours A/B test',
@@ -4043,6 +4085,8 @@ export const FunnelView: Story = {
                       benchmark={{ value: 700000, label: "Target 700K" }}
                       className="h-[200px] w-full"
                     />
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={volumeCardInsights} className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4147,6 +4191,8 @@ export const FunnelView: Story = {
                         startAngle={90}
                         endAngle={-270}
                       />
+                      {/* What this chart is saying — cases open in the drawer. */}
+                      <CardInsightList insights={buyerCardInsights} className="mt-3" />
                     </CardContent>
                   </Card>
                 </div>

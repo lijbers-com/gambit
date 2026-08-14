@@ -122,3 +122,45 @@ export function salesUpliftTestCase(p: {
     ],
   };
 }
+
+/** Volume pacing — is delivery on track against the plan? */
+export function volumePacingCase(p: { delivered: string; target: string; pacePct: number; topChannel: string }): CaseData {
+  return {
+    stats: [
+      { label: 'Delivered', value: p.delivered, sub: 'impressions to date' },
+      { label: 'Target', value: p.target, sub: 'for the full flight' },
+      { label: 'Pace', value: `${p.pacePct}%`, sub: p.pacePct >= 100 ? 'ahead of plan' : 'of where it should be', tone: p.pacePct >= 100 ? 'success' : 'neutral' },
+    ],
+    insights: [
+      { title: 'What is carrying it', text: `${p.topChannel} is delivering the largest share of volume this period.` },
+      { title: 'What to watch', text: 'Volume alone does not buy attention — check reach and frequency before adding more impressions to the same audience.' },
+    ],
+  };
+}
+
+/** Buyer mix — who the campaign is actually reaching. */
+export function buyerMixCase(p: { newToBrand: number; lapsed: number; existing: number; category: string }): CaseData {
+  return {
+    stats: [
+      { label: 'New-to-brand', value: `${p.newToBrand}%`, sub: 'first purchase', tone: 'success' },
+      { label: 'Lapsed', value: `${p.lapsed}%`, sub: 'won back' },
+      { label: 'Existing', value: `${p.existing}%`, sub: 'repeat buyers' },
+    ],
+    chart: {
+      kind: 'bar',
+      title: `Buyer mix — ${p.category}`,
+      data: [
+        { name: 'New-to-brand', share: p.newToBrand },
+        { name: 'Lapsed', share: p.lapsed },
+        { name: 'Existing', share: p.existing },
+      ],
+      config: { share: { label: 'Share of buyers %', color: 'hsl(var(--chart-1))' } },
+      xKey: 'name',
+      horizontal: true,
+    },
+    insights: [
+      { title: 'What this means', text: `A ${p.newToBrand}% new-to-brand share means the campaign is recruiting, not just harvesting existing demand — the harder and more valuable half of growth.` },
+      { title: 'Where it moves', text: 'Awareness propositions and broader targeting raise new-to-brand share; retargeting and search lift the existing-buyer share instead.' },
+    ],
+  };
+}

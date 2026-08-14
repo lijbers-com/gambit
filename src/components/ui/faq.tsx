@@ -31,7 +31,8 @@ export interface FaqProps {
    *  kind of help this is. Pass `null` to start fully collapsed. */
   defaultOpenId?: string | null;
   /** Bare list — no border, background or side padding — for sitting inside
-   *  a card that already provides the frame, styled like every other section. */
+   *  a card that already provides the frame: heading as a section title, the
+   *  questions in the same bordered rounded list the metric terms use. */
   plain?: boolean;
   className?: string;
 }
@@ -65,7 +66,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
         // Even padding top and bottom so the title sits centred in its band.
         <h3 className={cn('text-lg font-semibold', plain ? 'pb-3' : 'px-5 py-4')}>{heading}</h3>
       )}
-      <div className={cn('divide-y divide-border', heading !== null && 'border-t border-border')}>
+      <div className={cn('divide-y divide-border', plain ? 'overflow-hidden rounded-lg border' : heading !== null && 'border-t border-border')}>
         {items.map((item) => {
           const isOpen = activeId === item.id;
           return (
@@ -74,7 +75,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 type="button"
                 aria-expanded={isOpen}
                 onClick={() => setChosenId(isOpen ? null : item.id)}
-                className={cn('flex w-full items-center gap-3 py-3 text-left transition-colors hover:bg-surface-hover', plain ? 'px-0' : 'px-5')}
+                className={cn('flex w-full items-center gap-3 py-3 text-left transition-colors hover:bg-surface-hover', plain ? 'px-4' : 'px-5')}
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{item.question}</span>
                 <ChevronDown
@@ -85,7 +86,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 />
               </button>
               {isOpen && (
-                <div className={cn('space-y-3 pb-4 pr-12 text-sm leading-relaxed text-muted-foreground', plain ? 'px-0' : 'px-5')}>
+                <div className={cn('space-y-3 pb-4 pr-12 text-sm leading-relaxed text-muted-foreground', plain ? 'px-4' : 'px-5')}>
                   {item.answer.split(/\n\s*\n/).map((paragraph, i) => (
                     <p key={i}>{paragraph}</p>
                   ))}

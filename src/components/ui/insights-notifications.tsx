@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Card, CardContent } from './card';
+import { Badge } from './badge';
 import { FormSection } from './form-section';
 import { Inbox, type InboxItem } from './inbox';
 import { MessageDrawer } from './message-drawer';
@@ -71,6 +72,64 @@ const MESSAGES: InsightMessage[] = [
     }),
   },
 ];
+
+/**
+ * A chart card's own insights: the top few messages about THIS chart, shown
+ * where the number lives instead of in a separate notifications feed. Each
+ * row opens the standard drawer with its template-built case.
+ */
+export interface CardInsight {
+  id: string;
+  kind: MessageKind;
+  subject: string;
+  preview: string;
+  context?: string;
+  caseData: CaseData;
+}
+
+export const CardInsightList: React.FC<{ insights: CardInsight[]; className?: string }> = ({ insights, className }) => {
+  const status = useInboxState();
+  const [openId, setOpenId] = React.useState<string | null>(null);
+  const active = insights.find((m) => m.id === openId) ?? null;
+  if (insights.length === 0) return null;
+  return (
+    <div className={className}>
+      <div className="divide-y divide-border overflow-hidden rounded-lg border">
+        {insights.slice(0, 3).map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => { markRead(m.id); setOpenId(m.id); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-surface-hover"
+          >
+            <span
+              className={
+                (status[m.id] ?? 'unread') === 'unread'
+                  ? 'h-1.5 w-1.5 shrink-0 rounded-full bg-primary'
+                  : 'h-1.5 w-1.5 shrink-0 rounded-full bg-transparent'
+              }
+            />
+            <span className="min-w-0 flex-1 truncate text-sm">{m.subject}</span>
+            <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 text-xs capitalize">
+              {m.kind}
+            </Badge>
+          </button>
+        ))}
+      </div>
+      {active && (
+        <MessageDrawer
+          open
+          onOpenChange={(isOpen) => { if (!isOpen) setOpenId(null); }}
+          kind={active.kind}
+          subject={active.subject}
+          context={active.context}
+          message={active.preview}
+          businessCase={active.caseData}
+        />
+      )}
+    </div>
+  );
+};
 
 export const InsightsNotifications: React.FC<{ className?: string }> = ({ className }) => {
   const status = useInboxState();

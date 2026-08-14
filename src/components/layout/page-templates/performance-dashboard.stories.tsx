@@ -31,8 +31,34 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
-import { InsightsNotifications } from '@/components/ui/insights-notifications';
+import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
+import { shareOfVoiceCase, salesUpliftTestCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
+
+// The Share of Voice card's own insights — template-built cases, shown in
+// the card the numbers live in (see ui/insights-notifications).
+const sovCardInsights: CardInsight[] = [
+  {
+    id: 'INS-sov-45',
+    kind: 'insight',
+    subject: 'Share of voice up 4 pts after the June flight',
+    preview: 'Your brand now takes 45% of category impressions against 55% for all competitors combined — up 4 points on last month.',
+    context: 'All propositions · Category: soft drinks',
+    caseData: shareOfVoiceCase({ brandShare: 45, category: 'soft drinks', trendPts: 4 }),
+  },
+  {
+    id: 'INS-sov-instore',
+    kind: 'insight',
+    subject: 'In-store screens beat entrance DOOH on uplift',
+    preview: 'The neighbours A/B test measured +59% uplift for in-store screens vs. +40% at the entrance — and twice the new customers.',
+    context: 'Digital in-store · A/B test, week 12',
+    caseData: salesUpliftTestCase({
+      test: 'Neighbours A/B test',
+      a: { label: 'Entrance DOOH', uplift: 40, newCustomers: 123, base: '€35K', perStore: '€139' },
+      b: { label: 'In-store screens', uplift: 59, newCustomers: 243, base: '€29K', perStore: '€173' },
+    }),
+  },
+];
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Insights Dashboard',
@@ -3759,8 +3785,6 @@ export const FunnelView: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* Insight & recommendation notifications, each with its case. */}
-          <InsightsNotifications />
           {/* FilterBar with Settings */}
           <div className="flex items-center gap-3">
             <DropdownMenu>
@@ -4063,6 +4087,8 @@ export const FunnelView: Story = {
                       <div className="flex justify-end mt-2">
                         <Badge variant="success" className="text-xs">+41%</Badge>
                       </div>
+                      {/* What this chart is saying — cases open in the drawer. */}
+                      <CardInsightList insights={sovCardInsights} className="mt-3" />
                     </CardContent>
                   </Card>
 

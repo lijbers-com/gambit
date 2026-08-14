@@ -1,7 +1,7 @@
 import type { Meta } from '@storybook/react';
 import React, { useState } from 'react';
 import { AppLayout } from '../app-layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardWithTabs } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -103,29 +103,6 @@ const audienceBadge: Record<FaqAudience, { label: string; className: string }> =
       editor; terms and what's new are flat lists with the same editing model:
       retailer writes, drafts stay hidden, everyone else reads. ─────────── */
 
-const HelpTabStrip: React.FC<{ tab: string; onChange: (t: string) => void }> = ({ tab, onChange }) => (
-  <div className="mb-4 flex w-fit gap-1 rounded-lg border border-border bg-card p-1">
-    {[
-      { value: 'faqs', label: 'FAQs' },
-      { value: 'terms', label: 'Metric terms' },
-      { value: 'news', label: "What's new" },
-    ].map((t) => (
-      <button
-        key={t.value}
-        type="button"
-        onClick={() => onChange(t.value)}
-        className={cn(
-          'rounded-md px-4 py-1.5 text-sm transition-colors',
-          tab === t.value
-            ? 'border border-surface-selected-border bg-surface-selected font-medium'
-            : 'border border-transparent text-muted-foreground hover:text-foreground',
-        )}
-      >
-        {t.label}
-      </button>
-    ))}
-  </div>
-);
 
 /** Published FAQs, grouped by the screen they used to sit on — the read view
  *  for everyone who does not edit. */
@@ -140,16 +117,14 @@ const FaqReadTab: React.FC = () => {
       .sort((a, b) => a.order - b.order),
   })).filter((g) => g.items.length > 0);
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {groups.map(({ surface, items }) => (
-        <Card key={surface.id}>
-          <CardContent className="p-6">
-            <Faq
-              heading={surface.label}
-              items={items.map((e) => ({ id: e.id, question: e.question, answer: e.answer }))}
-            />
-          </CardContent>
-        </Card>
+        <Faq
+          key={surface.id}
+          plain
+          heading={surface.label}
+          items={items.map((e) => ({ id: e.id, question: e.question, answer: e.answer }))}
+        />
       ))}
     </div>
   );
@@ -171,9 +146,7 @@ const TermsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
   };
   return (
     <>
-      <Card>
-        <CardContent className="p-6">
-          <FormSection
+      <FormSection
             title="Metric terms"
             headerClassName="mb-4"
             action={mayEdit ? (
@@ -204,9 +177,7 @@ const TermsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
                 </div>
               ))}
             </div>
-          </FormSection>
-        </CardContent>
-      </Card>
+      </FormSection>
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
@@ -264,9 +235,7 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
   };
   return (
     <>
-      <Card>
-        <CardContent className="p-6">
-          <FormSection
+      <FormSection
             title="What's new"
             headerClassName="mb-4"
             action={mayEdit ? (
@@ -300,9 +269,7 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
                 </div>
               ))}
             </div>
-          </FormSection>
-        </CardContent>
-      </Card>
+      </FormSection>
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -343,6 +310,35 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
       </Dialog>
     </>
   );
+};
+
+/** The Help section every theme gets: the same three content types, read
+ *  only. Editing lives in the configuration area (Overview below). */
+export const HelpCentre = {
+  render: () => {
+    const { theme: storybookTheme } = useStorybookTheme();
+    const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
+    const [tab, setTab] = useState('faqs');
+    return (
+      <AppLayout
+        routes={routes}
+        pageHeaderProps={{
+          title: 'Help',
+          subtitle: "How the platform works — questions, metric terms and what's new",
+        }}
+      >
+        <CardWithTabs
+          activeTab={tab}
+          onTabChange={setTab}
+          tabs={[
+            { label: 'FAQs', value: 'faqs', content: <div className="mt-6"><FaqReadTab /></div> },
+            { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={false} /></div> },
+            { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={false} /></div> },
+          ]}
+        />
+      </AppLayout>
+    );
+  },
 };
 
 export const Overview = {
@@ -417,19 +413,23 @@ export const Overview = {
           ) : undefined,
         }}
       >
-        <HelpTabStrip tab={tab} onChange={setTab} />
-        {tab === 'terms' ? (
-          <TermsTab mayEdit={mayEdit} />
-        ) : tab === 'news' ? (
-          <NewsTab mayEdit={mayEdit} />
-        ) : !mayEdit ? (
-          // Advertisers read the same answers the retailer writes.
-          <FaqReadTab />
-        ) : (
+        <CardWithTabs
+          activeTab={tab}
+          onTabChange={setTab}
+          tabs={[
+            {
+              label: 'FAQs',
+              value: 'faqs',
+              content: (
+                <div className="mt-6">
+                  {!mayEdit ? (
+                    // Advertisers read the same answers the retailer writes.
+                    <FaqReadTab />
+                  ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
             {/* Which template the entries belong to. */}
-            <Card className="h-fit">
-              <CardContent className="p-2">
+            <div className="h-fit rounded-xl border border-border bg-background">
+              <div className="p-2">
                 {FAQ_SURFACES.map((s) => {
                   const count = countFor(s.id);
                   const active = s.id === surfaceId;
@@ -452,12 +452,11 @@ export const Overview = {
                     </button>
                   );
                 })}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             <div className="space-y-4">
-              <Card>
-                <CardContent className="p-6">
+              <div className="rounded-xl border border-border bg-background p-6">
                   <FormSection
                     title={surface.label}
                     headerClassName="mb-4"
@@ -540,15 +539,14 @@ export const Overview = {
                       </div>
                     )}
                   </FormSection>
-                </CardContent>
-              </Card>
+              </div>
 
               {/* What the reader gets — the same component the templates use,
                   so what is written here is what ships. Drafts are left out,
                   exactly as in-product. */}
               {preview && (
-                <Card>
-                  <CardContent className="p-6">
+                <div className="rounded-xl border border-border bg-background">
+                  <div className="p-6">
                     <p className="mb-4 text-sm text-muted-foreground">
                       Preview — how this looks on {surface.label}. Drafts are not included.
                     </p>
@@ -561,12 +559,19 @@ export const Overview = {
                     {entries.filter((e) => e.published).length === 0 && (
                       <p className="text-sm text-muted-foreground">Nothing published — the block is hidden entirely.</p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
           </div>
-        )}
+                  )}
+                </div>
+              ),
+            },
+            { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={mayEdit} /></div> },
+            { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={mayEdit} /></div> },
+          ]}
+        />
 
         <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
           <DialogContent className="max-w-2xl">

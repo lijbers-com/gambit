@@ -34,6 +34,7 @@ import {
   Rows3,
   LayoutList,
   CirclePlus,
+  Headset,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
@@ -77,6 +78,7 @@ export const renderIcon = (icon: string) => {
     WalletCards,
     Globe,
     Handshake,
+    Headset,
     Rows3,
     LayoutList,
     OrganisationsIcon,

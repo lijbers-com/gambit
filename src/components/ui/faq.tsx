@@ -30,10 +30,13 @@ export interface FaqProps {
    *  bare questions gives the reader nothing, and the first answer shows what
    *  kind of help this is. Pass `null` to start fully collapsed. */
   defaultOpenId?: string | null;
+  /** Bare list — no border, background or side padding — for sitting inside
+   *  a card that already provides the frame, styled like every other section. */
+  plain?: boolean;
   className?: string;
 }
 
-export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked questions', defaultOpenId, className }) => {
+export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked questions', defaultOpenId, plain, className }) => {
   // `undefined` means the reader hasn't touched the list yet, so the default
   // applies; `null` means they deliberately closed it. Collapsing the first
   // question has to stick, which it can't if "nothing open" and "not chosen
@@ -57,10 +60,10 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
     // One card holding the title and the questions, on the page background
     // rather than white: help is there for whoever wants it and should sit
     // quieter than the content it follows.
-    <section className={cn('w-full overflow-hidden rounded-xl border bg-page', className)}>
+    <section className={cn('w-full', !plain && 'overflow-hidden rounded-xl border bg-page', className)}>
       {heading !== null && (
         // Even padding top and bottom so the title sits centred in its band.
-        <h3 className="px-5 py-4 text-lg font-semibold">{heading}</h3>
+        <h3 className={cn('text-lg font-semibold', plain ? 'pb-3' : 'px-5 py-4')}>{heading}</h3>
       )}
       <div className={cn('divide-y divide-border', heading !== null && 'border-t border-border')}>
         {items.map((item) => {
@@ -71,7 +74,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 type="button"
                 aria-expanded={isOpen}
                 onClick={() => setChosenId(isOpen ? null : item.id)}
-                className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-hover"
+                className={cn('flex w-full items-center gap-3 py-3 text-left transition-colors hover:bg-surface-hover', plain ? 'px-0' : 'px-5')}
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{item.question}</span>
                 <ChevronDown
@@ -82,7 +85,7 @@ export const Faq: React.FC<FaqProps> = ({ items, heading = 'Frequently asked que
                 />
               </button>
               {isOpen && (
-                <div className="space-y-3 px-5 pb-4 pr-12 text-sm leading-relaxed text-muted-foreground">
+                <div className={cn('space-y-3 pb-4 pr-12 text-sm leading-relaxed text-muted-foreground', plain ? 'px-0' : 'px-5')}>
                   {item.answer.split(/\n\s*\n/).map((paragraph, i) => (
                     <p key={i}>{paragraph}</p>
                   ))}

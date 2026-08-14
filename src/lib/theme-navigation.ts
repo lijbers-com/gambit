@@ -188,7 +188,7 @@ export const advertiserRoutes: Route[] = [
     id: 16,
     name: "Help",
     type: "single" as const,
-    icon: { lucide: "CircleHelp" },
+    icon: { lucide: "Headset" },
     url: "/help",
   },
 ];

@@ -31,6 +31,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
+import { InsightsNotifications } from '@/components/ui/insights-notifications';
 import { Label } from '@/components/ui/label';
 
 const meta: Meta<typeof AppLayout> = {
@@ -3758,6 +3759,8 @@ export const FunnelView: Story = {
         }}
       >
         <div className="space-y-6">
+          {/* Insight & recommendation notifications, each with its case. */}
+          <InsightsNotifications />
           {/* FilterBar with Settings */}
           <div className="flex items-center gap-3">
             <DropdownMenu>

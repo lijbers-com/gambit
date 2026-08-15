@@ -101,30 +101,25 @@ export const CardInsightList: React.FC<{ insights: CardInsight[]; className?: st
             key={m.id}
             type="button"
             onClick={() => { markRead(m.id); setOpenId(m.id); }}
-            className="flex w-full items-start gap-2.5 p-4 text-left transition-colors hover:bg-surface-hover"
+            className="group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-hover"
           >
-            <span
-              className={
-                (status[m.id] ?? 'unread') === 'unread'
-                  ? 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary'
-                  : 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-transparent'
-              }
-            />
+            <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
+              {(status[m.id] ?? 'unread') === 'unread' && (
+                <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
+              )}
+            </span>
             <span className="min-w-0 flex-1">
-              <span className="flex items-start justify-between gap-2">
-                <span className="min-w-0 text-sm font-medium text-foreground">{m.subject}</span>
-                <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 text-xs capitalize">
+              <span className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{m.subject}</span>
+                <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
                   {m.kind}
                 </Badge>
               </span>
-              {/* Two lines of the message itself: enough to decide whether to
-                  open the case without leaving the chart. */}
-              <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{m.preview}</span>
-              {m.context && (
-                <span className="mt-1.5 block text-xs text-muted-foreground/80">{m.context}</span>
-              )}
+              {/* One line, like every other notification row. The context line
+                  the inbox adds is dropped here: the card IS the context. */}
+              <span className="mt-1.5 block truncate text-sm text-muted-foreground">{m.preview}</span>
             </span>
-            <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />
           </button>
         ))}
       </div>

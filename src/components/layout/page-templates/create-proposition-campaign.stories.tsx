@@ -4,6 +4,7 @@ import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
+import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -2236,6 +2237,32 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
   // Placements (sub-step 2)
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
+  const [spaLocations, setSpaLocations] = React.useState<string[]>(['loc-pdp']);
+
+  // Catalogues for the placements step. Descriptions carry the detail the
+  // production form shows beside each option.
+  const spProductOptions = [
+    { value: 'prod-001', label: 'Heineken 6-pack 330ml', description: 'HNK-330-6PK · Beer' },
+    { value: 'prod-002', label: 'Heineken 0.0 6-pack 330ml', description: 'HNK-00-330-6PK · Beer – alcohol free' },
+    { value: 'prod-003', label: 'Heineken Silver 6-pack 330ml', description: 'HNK-SLV-330-6PK · Beer' },
+    { value: 'prod-004', label: 'Heineken 24-pack 330ml', description: 'HNK-330-24PK · Beer' },
+    { value: 'prod-005', label: 'Heineken 1L bottle', description: 'HNK-1L-BTL · Beer' },
+  ];
+  const spKeywordSuggestions = ['beer', 'heineken', 'alcohol free beer', 'party drinks'];
+  const spCategoryOptions = [
+    { value: 'cat-primary', label: 'Global primary category', description: 'The product’s own category' },
+    { value: 'cat-beer', label: 'Beer & cider', description: '1,240 products' },
+    { value: 'cat-spirits', label: 'Spirits & liqueurs', description: '890 products' },
+    { value: 'cat-wine', label: 'Wine', description: '2,100 products' },
+    { value: 'cat-soft', label: 'Soft drinks & mixers', description: '560 products' },
+    { value: 'cat-snacks', label: 'Snacks & crisps', description: '740 products' },
+  ];
+  const spLocationOptions = [
+    { value: 'loc-pdp', label: 'Product detail page', description: 'Sponsored slots beneath the product' },
+    { value: 'loc-order', label: 'Order confirmation page', description: 'After checkout completes' },
+    { value: 'loc-past', label: 'Past purchases', description: 'In the reorder list' },
+    { value: 'loc-basket', label: 'Basket page', description: 'Alongside the basket contents' },
+  ];
   const [keywordInput, setKeywordInput] = React.useState('');
   const [keywords, setKeywords] = React.useState<string[]>(['summer sale', 'beverages', 'snacks']);
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
@@ -2247,13 +2274,17 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     selectedAdvertiser !== '' &&
     startDate !== undefined;
 
-  const isBookingComplete =
-    bookingCampaignName.trim() !== '' &&
-    selectedCampaign.trim() !== '' &&
-    bookingStartDate !== undefined &&
-    totalBudget.trim() !== '' &&
-    dailyBudget.trim() !== '' &&
-    biddingCPC.trim() !== '';
+  // What is still missing, by name. A disabled Next with no explanation is
+  // the same as a broken Next — the user cannot tell which it is.
+  const bookingMissing = [
+    !selectedCampaign.trim() && 'campaign',
+    !bookingCampaignName.trim() && 'booking name',
+    !bookingStartDate && 'start date',
+    !totalBudget.trim() && 'total budget',
+    !dailyBudget.trim() && 'daily budget',
+    !biddingCPC.trim() && 'bidding (CPC)',
+  ].filter(Boolean) as string[];
+  const isBookingComplete = bookingMissing.length === 0;
 
   // Build campaign options for booking step — the just-created campaign appears first
   const campaignOptionsForBooking = React.useMemo(() => {
@@ -2458,10 +2489,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-evaluation-id">Evaluation ID</Label>
-                        <Input id="bk-evaluation-id" placeholder="Enter evaluation ID" />
-                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label>Start date <span className="text-destructive">*</span></Label>
@@ -2530,13 +2557,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {localBrands.map((brand) => {
                         const isSelected = selectedLocalBrands.includes(brand.id);
                         return (
-                          <button
+                          <label
                             key={brand.id}
-                            type="button"
-                            onClick={() => setSelectedLocalBrands(prev =>
-                              prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                            )}
                             className={cn(
+                              'cursor-pointer',
                               // Same card a selected option gets everywhere else,
                               // so a picked brand reads as picked, not as a
                               // checked row in a list.
@@ -2546,23 +2570,35 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                                 : 'border-border bg-background hover:bg-surface-hover',
                             )}
                           >
-                            <Checkbox checked={isSelected} className="pointer-events-none" />
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => setSelectedLocalBrands(prev =>
+                                prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
+                              )}
+                            />
                             <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
-                          </button>
+                          </label>
                         );
                       })}
                     </div>
                   </FormSection>
 
                   {/* Navigation */}
-                  <div className="flex justify-between pt-1">
+                  <div className="flex items-center justify-between gap-4 pt-1">
                     <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
-                    <Button
-                      disabled={!isBookingComplete}
-                      onClick={() => setBookingSubStep(1)}
-                    >
-                      Next: Placements
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      {bookingMissing.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          Still needed: {bookingMissing.join(', ')}
+                        </span>
+                      )}
+                      <Button
+                        disabled={!isBookingComplete}
+                        onClick={() => setBookingSubStep(1)}
+                      >
+                        Next: Placements
+                      </Button>
+                    </div>
                   </div>
                   </CardContent>
                 </Card>
@@ -2570,96 +2606,64 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
               {/* ── Step 2: Booking – Sub-step 2: Placements ── */}
               {currentStepId === 'booking' && bookingSubStep === 1 && (
-                <div className="space-y-4">
+                <Card>
+                  <CardContent className="space-y-6 p-6">
 
-                  {/* Card 1: Retail products */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Retail products</CardTitle>
-                      <CardDescription>Select the products you want to promote in this booking.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {[
-                        { id: 'prod-001', name: 'Heineken 6-pack 330ml', sku: 'HNK-330-6PK', category: 'Beer' },
-                        { id: 'prod-002', name: 'Heineken 0.0 6-pack 330ml', sku: 'HNK-00-330-6PK', category: 'Beer – Alcohol Free' },
-                        { id: 'prod-003', name: 'Heineken Silver 6-pack 330ml', sku: 'HNK-SLV-330-6PK', category: 'Beer' },
-                        { id: 'prod-004', name: 'Heineken 24-pack 330ml', sku: 'HNK-330-24PK', category: 'Beer' },
-                        { id: 'prod-005', name: 'Heineken 1L bottle', sku: 'HNK-1L-BTL', category: 'Beer' },
-                      ].map((product) => {
-                        const isSelected = selectedProducts.includes(product.id);
-                        return (
-                          <button
-                            key={product.id}
-                            type="button"
-                            onClick={() => setSelectedProducts(prev =>
-                              prev.includes(product.id) ? prev.filter(p => p !== product.id) : [...prev, product.id]
-                            )}
-                            className={cn(
-                              "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
-                              isSelected ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30 hover:bg-muted/30"
-                            )}
-                          >
-                            <div className={cn(
-                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                              isSelected && "bg-primary text-primary-foreground"
-                            )}>
-                              {isSelected && <Check className="h-3 w-3" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium">{product.name}</p>
-                              <p className="text-xs text-muted-foreground">{product.sku} · {product.category}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
+                  {/* Products — the selection component, so searching for a
+                      product works the same as searching for anything else. */}
+                  <FormSection bordered title={`Add products (${selectedProducts.length}/500)`}>
+                    <SearchSelectList
+                      label={null}
+                      placeholder="Search for products…"
+                      icon={<ScanBarcode className="w-4 h-4" />}
+                      options={spProductOptions}
+                      value={selectedProducts}
+                      onChange={setSelectedProducts}
+                    />
+                  </FormSection>
 
-                  {/* Card 2: Keywords */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Keywords</CardTitle>
-                      <CardDescription>Add keywords to target shoppers searching for relevant products.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                  <FormSection bordered title={`Add keywords (${keywords.length}/1000)`}>
+                    <div className="space-y-3">
+                      <p className="-mt-2 text-xs text-muted-foreground">
+                        Add keywords to target shoppers searching for relevant products.
+                      </p>
                       <div className="flex gap-2">
                         <Input
-                          placeholder="e.g. beer, lager, party drinks"
                           value={keywordInput}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeywordInput(e.target.value)}
                           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                             if (e.key === 'Enter' && keywordInput.trim()) {
-                              setKeywords(prev => [...prev, keywordInput.trim()]);
+                              e.preventDefault();
+                              setKeywords(prev => [...prev, ...keywordInput.split(';').map(k => k.trim()).filter(Boolean)]);
                               setKeywordInput('');
                             }
                           }}
+                          placeholder="Add keywords separated with semicolons"
                           className="flex-1"
                         />
                         <Button
                           variant="outline"
+                          disabled={!keywordInput.trim()}
                           onClick={() => {
-                            if (keywordInput.trim()) {
-                              setKeywords(prev => [...prev, keywordInput.trim()]);
-                              setKeywordInput('');
-                            }
+                            setKeywords(prev => [...prev, ...keywordInput.split(';').map(k => k.trim()).filter(Boolean)]);
+                            setKeywordInput('');
                           }}
+                          className="gap-1.5"
                         >
                           <Plus className="h-4 w-4" />
                           Add
                         </Button>
                       </div>
                       {keywords.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-1">
+                        <div className="flex flex-wrap gap-1.5">
                           {keywords.map((kw, idx) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"
-                            >
+                            <span key={`${kw}-${idx}`} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
                               {kw}
                               <button
                                 type="button"
                                 onClick={() => setKeywords(prev => prev.filter((_, i) => i !== idx))}
-                                className="hover:text-destructive transition-colors"
+                                aria-label={`Remove ${kw}`}
+                                className="text-muted-foreground hover:text-foreground"
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -2667,52 +2671,112 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           ))}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                      {/* Suggestions come from the products picked above — the
+                          fastest keywords to add are the ones already implied. */}
+                      {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Suggested:{' '}
+                          {spKeywordSuggestions.filter(k => !keywords.includes(k)).map((k) => (
+                            <button
+                              key={k}
+                              type="button"
+                              onClick={() => setKeywords(prev => [...prev, k])}
+                              className="mr-2 text-primary underline-offset-2 hover:underline"
+                            >
+                              {k}
+                            </button>
+                          ))}
+                        </p>
+                      )}
+                    </div>
+                  </FormSection>
 
-                  {/* Card 3: Categories */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Categories</CardTitle>
-                      <CardDescription>Select product categories to broaden your reach.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {[
-                        { id: 'cat-beer', label: 'Beer & Cider', count: '1,240 products' },
-                        { id: 'cat-spirits', label: 'Spirits & Liqueurs', count: '890 products' },
-                        { id: 'cat-wine', label: 'Wine', count: '2,100 products' },
-                        { id: 'cat-soft', label: 'Soft Drinks & Mixers', count: '560 products' },
-                        { id: 'cat-snacks', label: 'Snacks & Crisps', count: '740 products' },
-                        { id: 'cat-party', label: 'Party & Entertaining', count: '320 products' },
-                      ].map((cat) => {
-                        const isSelected = selectedCategories.includes(cat.id);
+                  <FormSection
+                    bordered
+                    title="Enable categories"
+                    action={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedCategories(
+                          selectedCategories.length === spCategoryOptions.length ? [] : spCategoryOptions.map(c => c.value),
+                        )}
+                      >
+                        {selectedCategories.length === spCategoryOptions.length ? 'Clear all' : 'Select all'}
+                      </Button>
+                    }
+                  >
+                    <div className="space-y-2">
+                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Select product categories to broaden your reach.</p>
+                      {spCategoryOptions.map((cat) => {
+                        const isSelected = selectedCategories.includes(cat.value);
                         return (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setSelectedCategories(prev =>
-                              prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
-                            )}
+                          <label
+                            key={cat.value}
                             className={cn(
-                              "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
-                              isSelected ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30 hover:bg-muted/30"
+                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
                             )}
                           >
-                            <div className={cn(
-                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                              isSelected && "bg-primary text-primary-foreground"
-                            )}>
-                              {isSelected && <Check className="h-3 w-3" />}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">{cat.label}</p>
-                              <p className="text-xs text-muted-foreground">{cat.count}</p>
-                            </div>
-                          </button>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => setSelectedCategories(prev =>
+                                prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
+                              )}
+                            />
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium">{cat.label}</span>
+                              {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
+                            </span>
+                          </label>
                         );
                       })}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </FormSection>
+
+                  {/* Where else the sponsored products can surface. */}
+                  <FormSection
+                    bordered
+                    title="Enable other locations"
+                    action={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSpaLocations(
+                          spaLocations.length === spLocationOptions.length ? [] : spLocationOptions.map(l => l.value),
+                        )}
+                      >
+                        {spaLocations.length === spLocationOptions.length ? 'Clear all' : 'Select all'}
+                      </Button>
+                    }
+                  >
+                    <div className="space-y-2">
+                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Select other placements to broaden your reach.</p>
+                      {spLocationOptions.map((loc) => {
+                        const isSelected = spaLocations.includes(loc.value);
+                        return (
+                          <label
+                            key={loc.value}
+                            className={cn(
+                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                            )}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => setSpaLocations(prev =>
+                                prev.includes(loc.value) ? prev.filter(l => l !== loc.value) : [...prev, loc.value]
+                              )}
+                            />
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium">{loc.label}</span>
+                              {loc.description && <span className="block text-xs text-muted-foreground">{loc.description}</span>}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </FormSection>
 
                   {/* Navigation */}
                   <div className="flex justify-between pt-1">
@@ -2723,7 +2787,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       Save &amp; finish
                     </Button>
                   </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
             </div>

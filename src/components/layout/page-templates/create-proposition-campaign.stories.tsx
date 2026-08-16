@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary,
 import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
+import { SuggestionList } from '@/components/ui/suggestion-list';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -2249,7 +2250,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { value: 'prod-004', label: 'Heineken 24-pack 330ml', description: 'HNK-330-24PK · Beer' },
     { value: 'prod-005', label: 'Heineken 1L bottle', description: 'HNK-1L-BTL · Beer' },
   ];
-  const spKeywordSuggestions = ['beer', 'heineken', 'alcohol free beer', 'party drinks'];
+  // Long on purpose: a real feed suggests dozens, which is what the
+  // suggestion list has to cope with.
+  const spKeywordSuggestions = [
+    'beer', 'heineken', 'alcohol free beer', 'party drinks', 'lager', 'pilsner',
+    'beer crate', 'beer 6 pack', 'cold beer', 'craft beer', 'dutch beer',
+    'beer bottles', 'beer cans', 'weekend drinks', 'bbq drinks', 'football snacks',
+  ];
   const spCategoryOptions = [
     { value: 'cat-primary', label: 'Global primary category', description: 'The product’s own category' },
     { value: 'cat-beer', label: 'Beer & cider', description: '1,240 products' },
@@ -2617,6 +2624,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       label={null}
                       placeholder="Search for products…"
                       icon={<ScanBarcode className="w-4 h-4" />}
+                      maxVisibleSelected={6}
                       options={spProductOptions}
                       value={selectedProducts}
                       onChange={setSelectedProducts}
@@ -2635,23 +2643,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         label={null}
                         placeholder="Search or type a keyword…"
                         allowCreate
+                        maxVisibleSelected={6}
                         options={spKeywordSuggestions.map((k) => ({ value: k, label: k, description: 'Suggested keyword' }))}
                         value={keywords}
                         onChange={setKeywords}
                       />
-                      {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setKeywords(prev => [
-                            ...prev,
-                            ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                          ])}
-                          className="inline-flex items-center gap-1.5 text-xs text-primary underline-offset-2 hover:underline"
-                        >
-                          <CornerDownRight className="h-3.5 w-3.5" />
-                          Add all suggested keywords
-                        </button>
-                      )}
+                      <SuggestionList
+                        items={spKeywordSuggestions.filter(k => !keywords.includes(k))}
+                        onAdd={(k) => setKeywords(prev => [...prev, k])}
+                        onAddAll={() => setKeywords(prev => [
+                          ...prev,
+                          ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                        ])}
+                        label="Suggested keywords"
+                      />
                     </div>
                   </FormSection>
 

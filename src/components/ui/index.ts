@@ -72,3 +72,5 @@ export { AdvertiserBrandProducts } from './advertiser-brand-products';
 export type { AdvertiserBrandProductsProps } from './advertiser-brand-products';
 export { TargetSelect, TargetChipEditor, countTargets } from './target-select';
 export type { TargetSelectProps, TargetGroup } from './target-select';
+export { SuggestionList } from './suggestion-list';
+export type { SuggestionListProps } from './suggestion-list';

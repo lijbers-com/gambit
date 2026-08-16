@@ -45,6 +45,9 @@ export interface SearchSelectListProps {
    *  appears as the first row, "Add \"…\"". For lists like keywords, where the
    *  options are suggestions rather than the whole world of valid answers. */
   allowCreate?: boolean;
+  /** Show only this many selected cards before "Show all". A long selection
+   *  otherwise pushes the rest of the form off the screen. */
+  maxVisibleSelected?: number;
   className?: string;
 }
 
@@ -67,6 +70,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   selectedExtraBoxed,
   hideSelectedDescription,
   allowCreate,
+  maxVisibleSelected,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -90,6 +94,8 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
         // to be searchable too — people paste the number, not the name.
         (o.description ?? '').toLowerCase().includes(q)),
   );
+
+  const [showAllSelected, setShowAllSelected] = React.useState(false);
 
   const add = (val: string) => {
     onChange(multiple ? (value.includes(val) ? value : [...value, val]) : [val]);
@@ -191,7 +197,10 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
       </div>
       {selected.length > 0 && (
         <div className="space-y-2">
-          {selected.map((option) => (
+          {(maxVisibleSelected && !showAllSelected
+            ? selected.slice(0, maxVisibleSelected)
+            : selected
+          ).map((option) => (
             <div key={option.value} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
               {/* Title line — vertically centred with the remove button. */}
               <div className="flex items-center justify-between gap-3">
@@ -220,6 +229,17 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               )}
             </div>
           ))}
+          {maxVisibleSelected && selected.length > maxVisibleSelected && (
+            <button
+              type="button"
+              onClick={() => setShowAllSelected((v) => !v)}
+              className="text-xs text-primary underline-offset-2 hover:underline"
+            >
+              {showAllSelected
+                ? 'Show fewer'
+                : `Show all ${selected.length} — ${selected.length - maxVisibleSelected} more`}
+            </button>
+          )}
         </div>
       )}
     </div>

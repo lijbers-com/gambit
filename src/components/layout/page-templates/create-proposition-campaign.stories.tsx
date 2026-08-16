@@ -2655,20 +2655,26 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           Add
                         </Button>
                       </div>
+                      {/* Added keywords are selected items, so they get the
+                          selected-item card the products and categories use —
+                          not a lighter-weight badge. */}
                       {keywords.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="space-y-2">
                           {keywords.map((kw, idx) => (
-                            <span key={`${kw}-${idx}`} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
-                              {kw}
-                              <button
-                                type="button"
-                                onClick={() => setKeywords(prev => prev.filter((_, i) => i !== idx))}
-                                aria-label={`Remove ${kw}`}
-                                className="text-muted-foreground hover:text-foreground"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
+                            <div key={`${kw}-${idx}`} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0 truncate text-sm font-medium">{kw}</div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setKeywords(prev => prev.filter((_, i) => i !== idx))}
+                                  aria-label={`Remove ${kw}`}
+                                  className="h-8 w-8 shrink-0 p-0"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       )}

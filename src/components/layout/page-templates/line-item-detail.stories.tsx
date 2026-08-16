@@ -309,7 +309,9 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
  * Chips inside a selected target group — type or search to add, X to remove.
  * Module-level so the input keeps focus across re-renders.
  */
-const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
+const TargetChipEditor = ({ label, chips, suggestions, onAdd, onRemove }: {
+  /** The group's description, doing duty as the field label. */
+  label?: string;
   chips: string[];
   suggestions: string[];
   onAdd: (v: string) => void;
@@ -327,6 +329,7 @@ const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
   };
   return (
     <div className="space-y-2">
+      {label && <Label className="block">{label}</Label>}
       <div className="relative">
         <Input
           value={text}
@@ -351,7 +354,7 @@ const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
         )}
       </div>
       {chips.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 pt-1.5">
           {chips.map((c) => (
             <span key={c} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
               {c}
@@ -963,8 +966,10 @@ export const Display: Story = {
                               // Dropping a group drops its chips with it.
                               mode.setTargets(Object.fromEntries(Object.entries(mode.targets).filter(([k]) => vals.includes(k))));
                             }}
+                            hideSelectedDescription
                             renderSelectedExtra={(opt) => (
                               <TargetChipEditor
+                                label={opt.description}
                                 chips={mode.targets[opt.value] ?? []}
                                 suggestions={targetSuggestions[opt.value] ?? []}
                                 onAdd={(v) => mode.setTargets({ ...mode.targets, [opt.value]: [...(mode.targets[opt.value] ?? []), v] })}

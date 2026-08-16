@@ -561,10 +561,12 @@ export const Display: Story = {
 
     // The fields each toggle reveals — mirroring the production form, where a
     // switch is never just a switch but opens the numbers behind it.
+    const [objectivesEnabled, setObjectivesEnabled] = React.useState(false);
+    const [pricingEnabled, setPricingEnabled] = React.useState(false);
     const [freqCapImpressions, setFreqCapImpressions] = React.useState('');
     const [freqCapExpiry, setFreqCapExpiry] = React.useState('');
     const [exclusivityMode, setExclusivityMode] = React.useState('one-at-a-time');
-    const [priorityValue, setPriorityValue] = React.useState('Highest');
+    const [priorityValue, setPriorityValue] = React.useState('Inherited from campaign');
     const [reachUnit, setReachUnit] = React.useState('Impressions');
     const [reachAmount, setReachAmount] = React.useState('1000');
     const [limitAmount, setLimitAmount] = React.useState('');
@@ -620,19 +622,54 @@ export const Display: Story = {
       <h3 className="font-semibold text-sm">{_props.title}</h3>
     );
 
-    // Toggle row (used in delivery behavior / objectives / pricing)
+    // Toggle row (used in delivery behavior / pricing). `info` is the tooltip
+    // text — an i that opens nothing is a promise the page doesn't keep.
     const ToggleRow = ({ label, checked, onCheckedChange, info, rightText }: {
-      label: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: boolean; rightText?: string;
+      label: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: string; rightText?: string;
     }) => (
       <div className="flex items-center justify-between py-2">
-        <span className="font-medium text-sm">{label}</span>
-        <div className="flex items-center gap-3">
+        <span className="flex items-center gap-1.5 font-medium text-sm">
+          {label}
           {info && (
-            <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex cursor-help items-center text-muted-foreground"><Info className="h-3.5 w-3.5" /></span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{info}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
+        </span>
+        <div className="flex items-center gap-3">
           {rightText && <span className="text-sm text-muted-foreground">{rightText}</span>}
           <Switch checked={checked} onCheckedChange={onCheckedChange} />
         </div>
+      </div>
+    );
+
+    // A section that is one decision: off means "not used", on reveals its
+    // fields. Fewer toggles than a switch per row, and the header says
+    // plainly what turning it on means.
+    const ToggleSection = ({ title, info, checked, onCheckedChange, children }: {
+      title: string; info: string; checked: boolean; onCheckedChange: (v: boolean) => void; children: React.ReactNode;
+    }) => (
+      <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
+        <div className={cn('flex items-center justify-between gap-4', checked && 'mb-6')}>
+          <h2 className="flex items-center gap-1.5 text-lg font-semibold">
+            {title}
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex cursor-help items-center text-muted-foreground"><Info className="h-4 w-4" /></span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{info}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </h2>
+          <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </div>
+        {checked && children}
       </div>
     );
 
@@ -861,8 +898,8 @@ export const Display: Story = {
                 <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
                 {section3Open && (
                   <div className="space-y-3">
-                    <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info />
-                    <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info />
+                    <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info="Bids shift toward placements with cheaper clicks. Use when clicks, not views, are what the booking is judged on." />
+                    <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info="Limits how often one shopper sees this booking: the impressions amount per user, within the expiry window." />
                     {userFrequencyCap && (
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
@@ -876,10 +913,17 @@ export const Display: Story = {
                       </div>
                     )}
                     <div className="space-y-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">Delivery method</span>
-                        <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
-                      </div>
+                      <span className="flex items-center gap-1.5 font-medium text-sm">
+                        Delivery method
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex cursor-help items-center text-muted-foreground"><Info className="h-3.5 w-3.5" /></span>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">How the budget spreads over the flight: frontloaded spends faster early, even paces it flat, ASAP delivers as fast as inventory allows.</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" className="w-full flex items-center justify-between">
@@ -922,79 +966,72 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* Delivery objectives — what the flight must achieve. */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
-                <SectionHeader number={4} title="Delivery objectives" open={section4Open} onToggle={() => setSection4Open(v => !v)} />
-                {section4Open && (
-                  <div className="space-y-3">
-                    <ToggleRow label="Priority" checked={priorityOverride} onCheckedChange={setPriorityOverride} rightText={priorityOverride ? undefined : 'Inherited from campaign: Highest'} />
-                    {priorityOverride && (
-                      <div className="space-y-2">
-                        <Label className="block">Priority</Label>
-                        <MiniSelect value={priorityValue} options={['Highest', 'High', 'Normal', 'Low']} onChange={setPriorityValue} />
-                      </div>
-                    )}
-                    <ToggleRow label="Reach" checked={reachOverride} onCheckedChange={setReachOverride} />
-                    {reachOverride && (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label className="block">Reach unit</Label>
-                          <MiniSelect value={reachUnit} options={['Impressions', 'Unique users', 'Clicks']} onChange={setReachUnit} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="block">Reach amount</Label>
-                          <Input type="number" value={reachAmount} onChange={(e) => setReachAmount(e.target.value)} />
-                        </div>
-                      </div>
-                    )}
-                    <ToggleRow label="Delivery limit" checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
-                    {deliveryLimit && (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label className="block">Amount</Label>
-                          <Input type="number" value={limitAmount} onChange={(e) => setLimitAmount(e.target.value)} placeholder="e.g. 50000" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="block">Delivery limit event</Label>
-                          <MiniSelect value={limitEvent} options={['Impressions', 'Clicks', 'Conversions']} onChange={setLimitEvent} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="block">Delivery limit period</Label>
-                          <MiniSelect value={limitPeriod} options={['Daily', 'Weekly', 'Whole flight']} onChange={setLimitPeriod} />
-                        </div>
-                      </div>
-                    )}
+              {/* Delivery objectives — one decision: constrain the flight, or
+                  deliver as booked. The old switch-per-row made three toggles
+                  of what is really a single optional feature. */}
+              <ToggleSection
+                title="Delivery objectives"
+                info="Optional targets that constrain delivery: priority against other bookings, a reach goal, or a hard delivery limit. Off means the booking simply delivers as booked."
+                checked={objectivesEnabled}
+                onCheckedChange={setObjectivesEnabled}
+              >
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="block">Priority</Label>
+                    <MiniSelect value={priorityValue} options={['Inherited from campaign', 'Highest', 'High', 'Normal', 'Low']} onChange={setPriorityValue} />
                   </div>
-                )}
-              </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="block">Reach unit</Label>
+                      <MiniSelect value={reachUnit} options={['Impressions', 'Unique users', 'Clicks']} onChange={setReachUnit} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="block">Reach amount</Label>
+                      <Input type="number" value={reachAmount} onChange={(e) => setReachAmount(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label className="block">Delivery limit</Label>
+                      <Input type="number" value={limitAmount} onChange={(e) => setLimitAmount(e.target.value)} placeholder="No limit" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="block">Delivery limit event</Label>
+                      <MiniSelect value={limitEvent} options={['Impressions', 'Clicks', 'Conversions']} onChange={setLimitEvent} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="block">Delivery limit period</Label>
+                      <MiniSelect value={limitPeriod} options={['Daily', 'Weekly', 'Whole flight']} onChange={setLimitPeriod} />
+                    </div>
+                  </div>
+                </div>
+              </ToggleSection>
 
-              {/* Pricing — what the delivery costs. Commercial settings sit with
-                  the booking, never on the targeting tab. */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
-                <SectionHeader number={5} title="Pricing" open={section5Open} onToggle={() => setSection5Open(v => !v)} />
-                {section5Open && (
-                  <div className="space-y-3">
-                    <ToggleRow label="Pricing model" checked={pricingModel} onCheckedChange={setPricingModel} />
-                    {pricingModel && (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label className="block">Pricing type</Label>
-                          <MiniSelect value={pricingType} options={['CPM', 'CPC', 'Fixed fee']} onChange={setPricingType} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="block">Unit price</Label>
-                          <Input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="block">Calculated price</Label>
-                          <Input value={unitPrice} readOnly disabled />
-                        </div>
-                      </div>
-                    )}
-                    <ToggleRow label="Compete with RTB" checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
+              {/* Pricing — custom deal terms. Off means the rate card applies. */}
+              <ToggleSection
+                title="Pricing"
+                info="Custom deal terms for this booking. Off means the standard rate card for these positions applies."
+                checked={pricingEnabled}
+                onCheckedChange={setPricingEnabled}
+              >
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label className="block">Pricing type</Label>
+                      <MiniSelect value={pricingType} options={['CPM', 'CPC', 'Fixed fee']} onChange={setPricingType} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="block">Unit price</Label>
+                      <Input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="block">Calculated price</Label>
+                      <Input value={unitPrice} readOnly disabled />
+                    </div>
                   </div>
-                )}
-              </div>
+                  <ToggleRow label="Compete with RTB" checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} info="Lets open-exchange bids compete for these slots when this booking is not filling them — unsold delivery earns instead of idling." />
+                </div>
+              </ToggleSection>
 
               {/* Creatives tab — placeholder pending wiring to /creatives/[type]/[id] */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'creatives' && 'hidden')}>

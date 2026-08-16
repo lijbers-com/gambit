@@ -3,6 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { FormSection } from '@/components/ui/form-section';
+import { Checkbox } from '@/components/ui/checkbox';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -2535,15 +2536,18 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                             onClick={() => setSelectedLocalBrands(prev =>
                               prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
                             )}
-                            className="w-full flex items-center gap-3 py-2 px-1 rounded hover:bg-muted/40 transition-colors text-left"
+                            className={cn(
+                              // Same card a selected option gets everywhere else,
+                              // so a picked brand reads as picked, not as a
+                              // checked row in a list.
+                              'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              isSelected
+                                ? 'border-surface-selected-border bg-surface-selected'
+                                : 'border-border bg-background hover:bg-surface-hover',
+                            )}
                           >
-                            <div className={cn(
-                              "h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center",
-                              isSelected && "bg-primary text-primary-foreground"
-                            )}>
-                              {isSelected && <Check className="h-3 w-3" />}
-                            </div>
-                            <span className="text-sm">{brand.label}</span>
+                            <Checkbox checked={isSelected} className="pointer-events-none" />
+                            <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
                           </button>
                         );
                       })}

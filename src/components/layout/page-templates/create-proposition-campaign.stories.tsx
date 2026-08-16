@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary,
 import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
-import { SuggestionList } from '@/components/ui/suggestion-list';
+import { SuggestionList, COMPETITION } from '@/components/ui/suggestion-list';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -2251,12 +2251,29 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { value: 'prod-005', label: 'Heineken 1L bottle', description: 'HNK-1L-BTL · Beer' },
   ];
   // Long on purpose: a real feed suggests dozens, which is what the
-  // suggestion list has to cope with.
-  const spKeywordSuggestions = [
-    'beer', 'heineken', 'alcohol free beer', 'party drinks', 'lager', 'pilsner',
-    'beer crate', 'beer 6 pack', 'cold beer', 'craft beer', 'dutch beer',
-    'beer bottles', 'beer cans', 'weekend drinks', 'bbq drinks', 'football snacks',
-  ];
+  // suggestion list has to cope with. Reach and competition come with each
+  // one — a keyword is worth taking only in proportion to what it reaches
+  // and what it costs to win.
+  const spKeywordMeta: Record<string, { reach: string; competition: 'low' | 'medium' | 'high' }> = {
+    'beer': { reach: '48K searches', competition: 'high' },
+    'heineken': { reach: '31K searches', competition: 'high' },
+    'alcohol free beer': { reach: '12K searches', competition: 'medium' },
+    'party drinks': { reach: '9.4K searches', competition: 'medium' },
+    'lager': { reach: '18K searches', competition: 'medium' },
+    'pilsner': { reach: '6.2K searches', competition: 'low' },
+    'beer crate': { reach: '7.8K searches', competition: 'medium' },
+    'beer 6 pack': { reach: '5.1K searches', competition: 'low' },
+    'cold beer': { reach: '4.4K searches', competition: 'low' },
+    'craft beer': { reach: '22K searches', competition: 'high' },
+    'dutch beer': { reach: '3.6K searches', competition: 'low' },
+    'beer bottles': { reach: '8.9K searches', competition: 'medium' },
+    'beer cans': { reach: '11K searches', competition: 'medium' },
+    'weekend drinks': { reach: '2.8K searches', competition: 'low' },
+    'bbq drinks': { reach: '3.1K searches', competition: 'low' },
+    'football snacks': { reach: '5.7K searches', competition: 'low' },
+  };
+  const spKeywordSuggestions = Object.keys(spKeywordMeta);
+
   const spCategoryOptions = [
     { value: 'cat-primary', label: 'Global primary category', description: 'The product’s own category' },
     { value: 'cat-beer', label: 'Beer & cider', description: '1,240 products' },
@@ -2644,21 +2661,51 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         placeholder="Search or type a keyword…"
                         allowCreate
                         maxVisibleSelected={6}
-                        options={spKeywordSuggestions.map((k) => ({ value: k, label: k, description: 'Suggested keyword' }))}
+                        options={spKeywordSuggestions.map((k) => ({
+                          value: k,
+                          label: k,
+                          description: `${spKeywordMeta[k].reach} · ${COMPETITION[spKeywordMeta[k].competition].label} competition`,
+                        }))}
                         value={keywords}
                         onChange={setKeywords}
                       />
-                      <SuggestionList
-                        items={spKeywordSuggestions.filter(k => !keywords.includes(k))}
-                        onAdd={(k) => setKeywords(prev => [...prev, k])}
-                        onAddAll={() => setKeywords(prev => [
-                          ...prev,
-                          ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                        ])}
-                        label="Suggested keywords"
-                      />
                     </div>
                   </FormSection>
+
+                  {/* Suggestions are their own block: what the platform is
+                      offering, not part of what the user has already added. */}
+                  {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
+                    <FormSection
+                      bordered
+                      title={`Suggested keywords (${spKeywordSuggestions.filter(k => !keywords.includes(k)).length})`}
+                      action={
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setKeywords(prev => [
+                            ...prev,
+                            ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                          ])}
+                        >
+                          Add all suggestions
+                        </Button>
+                      }
+                    >
+                      <div className="space-y-2">
+                        <p className="-mt-2 mb-2 text-xs text-muted-foreground">
+                          Drawn from the products you picked. Click one to add it.
+                        </p>
+                        <SuggestionList
+                          bare
+                          initialVisible={10}
+                          items={spKeywordSuggestions
+                            .filter(k => !keywords.includes(k))
+                            .map(k => ({ value: k, meta: spKeywordMeta[k].reach, competition: spKeywordMeta[k].competition }))}
+                          onAdd={(k) => setKeywords(prev => [...prev, k])}
+                        />
+                      </div>
+                    </FormSection>
+                  )}
 
                   <FormSection
                     bordered

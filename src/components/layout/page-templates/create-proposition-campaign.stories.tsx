@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DateRangePicker, DatePicker, futureDateRangePresets } from '@/components/ui/date-picker';
+import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
@@ -2283,7 +2283,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const bookingMissing = [
     !selectedCampaign.trim() && 'campaign',
     !bookingCampaignName.trim() && 'booking name',
-    !bookingStartDate && 'start date',
+    !bookingStartDate && 'run time',
     !totalBudget.trim() && 'total budget',
     !dailyBudget.trim() && 'daily budget',
     !biddingCPC.trim() && 'bidding (CPC)',
@@ -2451,23 +2451,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label>Start date <span className="text-destructive">*</span></Label>
-                          <DatePicker
-                            date={bookingStartDate}
-                            onDateChange={setBookingStartDate}
-                            placeholder="Select start date"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>End date</Label>
-                          <DatePicker
-                            date={bookingEndDate}
-                            onDateChange={setBookingEndDate}
-                            placeholder="Select end date"
-                          />
-                        </div>
+                      {/* One field, both ends picked in one calendar — a run
+                          time is a span, not two independent dates. */}
+                      <div className="space-y-1.5">
+                        <Label>Run time <span className="text-destructive">*</span></Label>
+                        <DateRangePicker
+                          dateRange={bookingStartDate ? { from: bookingStartDate, to: bookingEndDate } : undefined}
+                          onDateRangeChange={(range) => {
+                            setBookingStartDate(range?.from);
+                            setBookingEndDate(range?.to);
+                          }}
+                          placeholder="Select start and end date"
+                          showPresets
+                          presets={futureDateRangePresets}
+                        />
                       </div>
                     </div>
                   </FormSection>

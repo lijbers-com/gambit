@@ -764,7 +764,7 @@ export const Display: Story = {
         </div>
         {/* An off section still says what the booking will do — silence reads
             as "unconfigured" when it actually means "the default applies". */}
-        {!checked && <p className="mt-1 text-sm text-muted-foreground">{offSummary}</p>}
+        {!checked && <p className="mt-3 text-sm text-muted-foreground">{offSummary}</p>}
         {checked && children}
       </div>
     );

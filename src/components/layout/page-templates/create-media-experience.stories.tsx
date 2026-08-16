@@ -1104,6 +1104,7 @@ export const GoalSelection: Story = {
                                 setSelectedKpis(vals);
                                 setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
                               }}
+                              selectedExtraBoxed
                               renderSelectedExtra={(opt) => {
                                 const kpi = opt.value;
                                 const pricing = studyPricing[kpi] ?? { fee: 2000, freeThreshold: 50000 };

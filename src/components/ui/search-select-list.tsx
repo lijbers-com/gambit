@@ -34,6 +34,10 @@ export interface SearchSelectListProps {
   /** Optional extra content rendered inside each selected item's card (below the
    *  label) — e.g. an optional brand-lift study toggle under a selected KPI. */
   renderSelectedExtra?: (option: SearchSelectOption) => React.ReactNode;
+  /** Frame the extra content in its own box. Off by default: extra detail
+   *  belongs inside the selected card, not in a card within a card. Turn it
+   *  on for something genuinely separate, like a paid add-on. */
+  selectedExtraBoxed?: boolean;
   className?: string;
 }
 
@@ -53,6 +57,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   multiple = true,
   disabledHint,
   renderSelectedExtra,
+  selectedExtraBoxed,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -179,7 +184,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                   brand-lift study), so it gets its own box rather than running
                   on from the description above it. */}
               {renderSelectedExtra && (
-                <div className="mt-3 rounded-md border border-surface-selected-border bg-card p-3">
+                <div className={cn('mt-3', selectedExtraBoxed && 'rounded-md border border-surface-selected-border bg-surface-selected p-3')}>
                   {renderSelectedExtra(option)}
                 </div>
               )}

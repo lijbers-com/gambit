@@ -879,6 +879,7 @@ export const MediaPlanDetail: Story = {
                           options={kpiFilterOptions}
                           value={kpis}
                           onChange={(vals) => { setKpis(vals); setKpiStudies((s) => s.filter((v) => vals.includes(v))); }}
+                          selectedExtraBoxed
                           renderSelectedExtra={(opt) => (
                             <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
                               <Checkbox

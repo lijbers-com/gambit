@@ -1475,7 +1475,7 @@ export const DigitalInStore: Story = {
                           openListModal(kind, list.id);
                         }
                       }}
-                      className="cursor-pointer rounded-md border bg-muted/40 p-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="cursor-pointer rounded-md border border-surface-selected-border bg-surface-selected p-3 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -1980,7 +1980,7 @@ export const DigitalInStore: Story = {
                                 {selectedCards.length > 0 ? (
                                   <div className="space-y-1">
                                     {selectedCards.map((c) => (
-                                      <div key={c.key} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                      <div key={c.key} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-2">
                                         <div className="min-w-0">
                                           <div className="truncate text-sm font-medium">{c.label}</div>
                                           <div className="text-xs text-muted-foreground">{c.meta}</div>
@@ -2044,7 +2044,7 @@ export const DigitalInStore: Story = {
                               {selectedAudiences.map((value) => {
                                 const audience = audienceOptions.find((a) => a.value === value);
                                 return audience ? (
-                                  <div key={value} className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-2">
+                                  <div key={value} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-2">
                                     <div className="text-sm font-medium">{audience.label}</div>
                                     <Button
                                       variant="outline"
@@ -3299,7 +3299,7 @@ export const OfflineInStore: Story = {
                                       openListModal(list.id);
                                     }
                                   }}
-                                  className="cursor-pointer rounded-md border bg-muted/40 p-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                  className="cursor-pointer rounded-md border border-surface-selected-border bg-surface-selected p-3 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">

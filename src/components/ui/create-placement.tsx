@@ -74,7 +74,7 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
         onChange={onMediaProductChange}
         multiple={false}
         renderSelectedExtra={() => (
-          <div className="mt-3 space-y-2">
+          <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground">
               {included.length} of {positions.length} {positionsLabel.toLowerCase()} included
             </div>

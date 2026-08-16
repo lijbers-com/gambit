@@ -329,7 +329,8 @@ const TargetChipEditor = ({ label, chips, suggestions, onAdd, onRemove }: {
   };
   return (
     <div className="space-y-2">
-      {label && <Label className="block">{label}</Label>}
+      {/* Quieter than the card title above it — it labels a field, not the card. */}
+      {label && <Label className="block font-normal text-muted-foreground">{label}</Label>}
       <div className="relative">
         <Input
           value={text}
@@ -806,9 +807,9 @@ export const Display: Story = {
               <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                 {[
                   { value: 'details',    label: 'Booking details' },
-                  { value: 'actions',    label: 'Notifications' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
+                  { value: 'actions',    label: 'Notifications' },
                   { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs',       label: 'Logs' },
                 ].map((t) => (
@@ -1944,9 +1945,9 @@ export const DigitalInStore: Story = {
                   <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -3334,9 +3335,9 @@ export const OfflineInStore: Story = {
                   <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -4337,9 +4338,9 @@ export const SponsoredProducts: Story = {
                   <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -4885,9 +4886,9 @@ export const OffsiteDisplay: Story = {
               <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'actions',    label: 'Notifications' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
+                      { value: 'actions',    label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (

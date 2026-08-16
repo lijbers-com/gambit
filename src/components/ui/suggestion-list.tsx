@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from './button';
 
 /**
  * Things the platform is offering, next to the things the user has chosen.
@@ -56,8 +57,17 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
   return (
     <div className={cn(!bare && 'rounded-md border border-dashed border-border bg-card p-3', className)}>
       {!bare && (
-      <div className="mb-3 text-xs font-medium text-muted-foreground">
-        {label} ({all.length})
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-muted-foreground">
+          {label} ({all.length})
+        </span>
+        {/* The same button "Select all" is, in the same corner — taking the
+            whole list is one action, wherever the list happens to be. */}
+        {onAddAll && (
+          <Button variant="outline" size="sm" onClick={onAddAll} className="shrink-0">
+            Add all
+          </Button>
+        )}
       </div>
       )}
       <div className="flex flex-wrap gap-1.5">
@@ -74,11 +84,11 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
           </button>
         ))}
       </div>
-      {/* Both ways out of the list sit under it, where the eye ends up after
-          reading the pills — not in a header it has already passed. */}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span>
-          {hidden > 0 && (
+      {/* The way into the rest of the list sits under it, where the eye ends
+          up after reading the pills. */}
+      {(hidden > 0 || (expanded && all.length > initialVisible)) && (
+        <div className="mt-3">
+          {hidden > 0 ? (
             <button
               type="button"
               onClick={() => setExpanded(true)}
@@ -86,8 +96,7 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
             >
               Show {hidden} more
             </button>
-          )}
-          {expanded && all.length > initialVisible && (
+          ) : (
             <button
               type="button"
               onClick={() => setExpanded(false)}
@@ -96,17 +105,8 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
               Show less
             </button>
           )}
-        </span>
-        {onAddAll && (
-          <button
-            type="button"
-            onClick={onAddAll}
-            className="shrink-0 text-xs text-primary underline-offset-2 hover:underline"
-          >
-            Add all
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -533,7 +533,7 @@ export const Display: Story = {
     const displayCurrentPositions = displayMediaProduct[0]
       ? dbDisplay.positions
           .filter((p) => p.mediaProductId === displayMediaProduct[0])
-          .map((p) => ({ value: p.id, label: p.name, description: `${p.dailyCapacity} bookable slots per day` }))
+          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: `${p.dailyCapacity} per day` }))
       : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
     const [positionSearch, setPositionSearch] = React.useState('');
@@ -4533,7 +4533,7 @@ export const OffsiteDisplay: Story = {
     const currentPositions = mediaProduct[0]
       ? dbOffsite.positions
           .filter((p) => p.mediaProductId === mediaProduct[0])
-          .map((p) => ({ value: p.id, label: p.name, description: `${p.dailyCapacity} bookable slots per day` }))
+          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: `${p.dailyCapacity} per day` }))
       : [];
 
     const retailProducts = [

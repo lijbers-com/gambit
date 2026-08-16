@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 11;
+export const SEED_VERSION = 12;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -347,20 +347,47 @@ export const seedData: DbData = {
     { id: 'mprod-off-dooh',       engine: 'offsite', name: 'Digital Out Of Home',        description: 'Digital screens out of home.', partner: 'Vistar' },
   ],
   positions: [
-    { id: 'pos-dsp-home-top', mediaProductId: 'mprod-dsp-home',  name: 'Homepage top banner',      dailyCapacity: 4 },
-    { id: 'pos-dsp-home-mid', mediaProductId: 'mprod-dsp-home',  name: 'Homepage mid banner',      dailyCapacity: 6 },
-    { id: 'pos-dsp-cat-top',  mediaProductId: 'mprod-dsp-cat',   name: 'Category top banner',      dailyCapacity: 8 },
-    { id: 'pos-dsp-pdp',      mediaProductId: 'mprod-dsp-pdp',   name: 'PDP banner',               dailyCapacity: 12 },
-    { id: 'pos-sp-search',    mediaProductId: 'mprod-sp-search', name: 'Search results slot',      dailyCapacity: 40 },
-    { id: 'pos-dis-entrance', mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',       dailyCapacity: 6 },
-    { id: 'pos-dis-aisle',    mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',          dailyCapacity: 10 },
-    { id: 'pos-ois-shelf',    mediaProductId: 'mprod-ois-print', name: 'Shelf displays',           dailyCapacity: 20 },
-    { id: 'pos-ois-floor',    mediaProductId: 'mprod-ois-print', name: 'Floor stickers',           dailyCapacity: 15 },
+    // Display onsite — a channel holds every slot on that page type.
+    { id: 'pos-dsp-home-top',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage top banner',       format: 'Billboard 970x250', dailyCapacity: 4 },
+    { id: 'pos-dsp-home-mid',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage mid banner',       format: 'Leaderboard 728x90', dailyCapacity: 6 },
+    { id: 'pos-dsp-home-rail',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage side rail',        format: 'Halfpage 300x600', dailyCapacity: 8 },
+    { id: 'pos-dsp-home-native', mediaProductId: 'mprod-dsp-home',  name: 'Homepage native row',       format: 'Native card', dailyCapacity: 10 },
+    { id: 'pos-dsp-home-hero',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage hero takeover',    format: 'Takeover', dailyCapacity: 1 },
+    { id: 'pos-dsp-cat-top',     mediaProductId: 'mprod-dsp-cat',   name: 'Category top banner',       format: 'Billboard 970x250', dailyCapacity: 8 },
+    { id: 'pos-dsp-cat-inline',  mediaProductId: 'mprod-dsp-cat',   name: 'Category inline banner',    format: 'Leaderboard 728x90', dailyCapacity: 12 },
+    { id: 'pos-dsp-cat-rail',    mediaProductId: 'mprod-dsp-cat',   name: 'Category side rail',        format: 'Halfpage 300x600', dailyCapacity: 10 },
+    { id: 'pos-dsp-cat-footer',  mediaProductId: 'mprod-dsp-cat',   name: 'Category footer banner',    format: 'Leaderboard 728x90', dailyCapacity: 14 },
+    { id: 'pos-dsp-pdp',         mediaProductId: 'mprod-dsp-pdp',   name: 'PDP banner',                format: 'Leaderboard 728x90', dailyCapacity: 12 },
+    { id: 'pos-dsp-pdp-related', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP related products',      format: 'Native card', dailyCapacity: 18 },
+    { id: 'pos-dsp-pdp-gallery', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP gallery slot',          format: 'Rich media', dailyCapacity: 6 },
+    { id: 'pos-dsp-pdp-basket',  mediaProductId: 'mprod-dsp-pdp',   name: 'Add-to-basket overlay',     format: 'Overlay 300x250', dailyCapacity: 9 },
+    // Sponsored products
+    { id: 'pos-sp-search',       mediaProductId: 'mprod-sp-search', name: 'Search results slot',       format: 'Product listing', dailyCapacity: 40 },
+    { id: 'pos-sp-search-top',   mediaProductId: 'mprod-sp-search', name: 'Search top-of-page',        format: 'Product listing', dailyCapacity: 12 },
+    { id: 'pos-sp-search-rail',  mediaProductId: 'mprod-sp-search', name: 'Search side rail',          format: 'Product listing', dailyCapacity: 20 },
+    { id: 'pos-sp-autocomplete', mediaProductId: 'mprod-sp-search', name: 'Autocomplete suggestion',   format: 'Text + thumbnail', dailyCapacity: 25 },
+    // Digital in-store
+    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6 },
+    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10 },
+    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12 },
+    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8 },
+    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20 },
+    // Offline in-store
+    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Shelf displays',            format: 'Shelf talker A6', dailyCapacity: 20 },
+    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Floor stickers',            format: 'Floor decal 60x60', dailyCapacity: 15 },
+    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'Endcap posters',            format: 'Poster A1', dailyCapacity: 10 },
+    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Trolley panels',            format: 'Panel A3', dailyCapacity: 25 },
+    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Window posters',            format: 'Poster A0', dailyCapacity: 8 },
     // Offsite positions per channel
-    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display',    name: 'Open web display',      dailyCapacity: 100 },
-    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       dailyCapacity: 60 },
-    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              dailyCapacity: 30 },
-    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     dailyCapacity: 50 },
+    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display',    name: 'Open web display',      format: 'MPU 300x250', dailyCapacity: 100 },
+    { id: 'pos-off-web-hpa',      mediaProductId: 'mprod-off-display',    name: 'High-impact takeover',  format: 'Skin + billboard', dailyCapacity: 15 },
+    { id: 'pos-off-web-native',   mediaProductId: 'mprod-off-display',    name: 'Native in-feed',        format: 'Native card', dailyCapacity: 80 },
+    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       format: 'Pre-roll 15s', dailyCapacity: 60 },
+    { id: 'pos-off-olv-outstream',mediaProductId: 'mprod-off-olv',        name: 'Out-stream video',      format: 'In-article 6s', dailyCapacity: 45 },
+    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              format: 'Spot 20s', dailyCapacity: 30 },
+    { id: 'pos-off-ctv-pause',    mediaProductId: 'mprod-off-ctv',        name: 'Pause ad',              format: 'Static overlay', dailyCapacity: 20 },
+    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     format: 'Native card', dailyCapacity: 50 },
+    { id: 'pos-off-ctx-article',  mediaProductId: 'mprod-off-contextual', name: 'Article placements',    format: 'In-article MPU', dailyCapacity: 40 },
     // Social Media: positions are the platforms
     { id: 'pos-off-soc-meta',      mediaProductId: 'mprod-off-social', name: 'Meta',            dailyCapacity: 100 },
     { id: 'pos-off-soc-tiktok',    mediaProductId: 'mprod-off-social', name: 'TikTok',          dailyCapacity: 100 },

@@ -187,6 +187,8 @@ export interface Position {
   name: string;
   description?: string;
   /** Bookable slots per day (capacity model kept deliberately simple). */
+  /** Creative format this slot takes, e.g. "Billboard 970x250". */
+  format?: string;
   dailyCapacity: number;
 }
 

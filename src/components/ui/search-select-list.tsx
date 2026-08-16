@@ -38,6 +38,9 @@ export interface SearchSelectListProps {
    *  belongs inside the selected card, not in a card within a card. Turn it
    *  on for something genuinely separate, like a paid add-on. */
   selectedExtraBoxed?: boolean;
+  /** Drop the option's description once it is selected — for cards that
+   *  summarise what is inside instead of repeating the catalogue blurb. */
+  hideSelectedDescription?: boolean;
   className?: string;
 }
 
@@ -58,6 +61,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   disabledHint,
   renderSelectedExtra,
   selectedExtraBoxed,
+  hideSelectedDescription,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -177,7 +181,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                 </Button>
               </div>
               {/* Everything else sits underneath, full width. */}
-              {option.description && (
+              {option.description && !hideSelectedDescription && (
                 <div className="mt-1 text-xs text-muted-foreground">{option.description}</div>
               )}
               {/* The extra is a separate decision about this option (add a

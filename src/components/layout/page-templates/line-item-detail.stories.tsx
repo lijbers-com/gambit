@@ -16,6 +16,7 @@ import { Input } from '../../ui/input';
 import { SearchInput } from '../../ui/search-input';
 import { RetailProductSelect } from '../../ui/retail-product-select';
 import { SearchSelectList } from '../../ui/search-select-list';
+import { TargetSelect, countTargets } from '../../ui/target-select';
 import { DatePicker, DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
 import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
@@ -304,67 +305,6 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
     adSpaces: adSpaces[pkg as keyof typeof adSpaces]
   }))
 );
-
-/**
- * Chips inside a selected target group — type or search to add, X to remove.
- * Module-level so the input keeps focus across re-renders.
- */
-const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
-  chips: string[];
-  suggestions: string[];
-  onAdd: (v: string) => void;
-  onRemove: (v: string) => void;
-}) => {
-  const [text, setText] = React.useState('');
-  const matches = suggestions.filter(
-    (sg) => sg.toLowerCase().includes(text.toLowerCase()) && !chips.includes(sg),
-  );
-  const add = (v: string) => {
-    const t = v.trim();
-    if (!t || chips.includes(t)) return;
-    onAdd(t);
-    setText('');
-  };
-  return (
-    <div className="space-y-2">
-      <div className="relative">
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              add(matches[0] ?? text);
-            }
-          }}
-          placeholder="Type or search to add…"
-          className="h-8 bg-background text-sm"
-        />
-        {text && matches.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border bg-card shadow-lg">
-            {matches.slice(0, 6).map((sg) => (
-              <button key={sg} type="button" onClick={() => add(sg)} className="block w-full px-3 py-1.5 text-left text-sm hover:bg-surface-hover">
-                {sg}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {chips.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 pt-1.5">
-          {chips.map((c) => (
-            <span key={c} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
-              {c}
-              <button type="button" onClick={() => onRemove(c)} aria-label={`Remove ${c}`} className="text-muted-foreground hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 // Shared component for campaign details sidebar
 const CampaignDetailsSidebar = () => (
@@ -717,10 +657,11 @@ export const Display: Story = {
 
     // Toggle row (used in delivery behavior / pricing). `info` is the tooltip
     // text — an i that opens nothing is a promise the page doesn't keep.
-    const ToggleRow = ({ label, checked, onCheckedChange, info, rightText }: {
-      label: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: string; rightText?: string;
+    const ToggleRow = ({ label, hint, checked, onCheckedChange, info, rightText }: {
+      label: string; hint?: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: string; rightText?: string;
     }) => (
-      <div className="flex items-center justify-between py-2">
+      <div className="flex items-start justify-between gap-4 py-2">
+        <span className="min-w-0">
         <span className="flex items-center gap-1.5 font-medium text-sm">
           {label}
           {info && (
@@ -734,7 +675,11 @@ export const Display: Story = {
             </TooltipProvider>
           )}
         </span>
-        <div className="flex items-center gap-3">
+        {/* One line of what the switch actually does — the tooltip carries the
+            detail, this carries the gist. */}
+        {hint && <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>}
+        </span>
+        <div className="flex shrink-0 items-center gap-3">
           {rightText && <span className="text-sm text-muted-foreground">{rightText}</span>}
           <Switch checked={checked} onCheckedChange={onCheckedChange} />
         </div>
@@ -764,7 +709,7 @@ export const Display: Story = {
         </div>
         {/* An off section still says what the booking will do — silence reads
             as "unconfigured" when it actually means "the default applies". */}
-        {!checked && <p className="mt-3 text-sm text-muted-foreground">{offSummary}</p>}
+        {!checked && <p className="mt-3 text-xs text-muted-foreground">{offSummary}</p>}
         {checked && children}
       </div>
     );
@@ -956,24 +901,11 @@ export const Display: Story = {
                         <div key={mode.key} className="space-y-2">
                           <Label className="block">{mode.label}</Label>
                           <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
-                          <SearchSelectList
-                            label={null}
+                          <TargetSelect
+                            groups={targetGroups.map((g) => ({ ...g, suggestions: targetSuggestions[g.value] }))}
+                            value={mode.targets}
+                            onChange={(next) => { mode.setTargets(next); mode.setGroups(Object.keys(next)); }}
                             placeholder="Add a target group — keyword, category, city…"
-                            options={targetGroups}
-                            value={mode.groups}
-                            onChange={(vals) => {
-                              mode.setGroups(vals);
-                              // Dropping a group drops its chips with it.
-                              mode.setTargets(Object.fromEntries(Object.entries(mode.targets).filter(([k]) => vals.includes(k))));
-                            }}
-                            renderSelectedExtra={(opt) => (
-                              <TargetChipEditor
-                                chips={mode.targets[opt.value] ?? []}
-                                suggestions={targetSuggestions[opt.value] ?? []}
-                                onAdd={(v) => mode.setTargets({ ...mode.targets, [opt.value]: [...(mode.targets[opt.value] ?? []), v] })}
-                                onRemove={(v) => mode.setTargets({ ...mode.targets, [opt.value]: (mode.targets[opt.value] ?? []).filter((c) => c !== v) })}
-                              />
-                            )}
                           />
                         </div>
                       ))}
@@ -989,8 +921,20 @@ export const Display: Story = {
                 <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
                 {section3Open && (
                   <div className="space-y-3">
-                    <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info="Bids shift toward placements with cheaper clicks. Use when clicks, not views, are what the booking is judged on." />
-                    <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info="Limits how often one shopper sees this booking: the impressions amount per user, within the expiry window." />
+                    <ToggleRow
+                      label="Optimise for cost per click"
+                      hint="Spend shifts toward the placements winning clicks most cheaply."
+                      checked={optimizeForCPC}
+                      onCheckedChange={setOptimizeForCPC}
+                      info="Bids shift toward placements with cheaper clicks. Use when clicks, not views, are what the booking is judged on."
+                    />
+                    <ToggleRow
+                      label="User frequency cap"
+                      hint="Limit how many times one shopper sees this booking."
+                      checked={userFrequencyCap}
+                      onCheckedChange={setUserFrequencyCap}
+                      info="Limits how often one shopper sees this booking: the impressions amount per user, within the expiry window."
+                    />
                     {userFrequencyCap && (
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
@@ -1029,10 +973,16 @@ export const Display: Story = {
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <p className="text-xs text-muted-foreground">
-                        Follows the default setting that is configured for your account (Frontloaded).
+                        Follows the default configured for your account (Frontloaded).
                       </p>
                     </div>
-                    <ToggleRow label="Exclusivity" checked={exclusivity} onCheckedChange={setExclusivity} />
+                    <ToggleRow
+                      label="Exclusivity"
+                      hint="Keep competing ads out of the slots this booking runs in."
+                      checked={exclusivity}
+                      onCheckedChange={setExclusivity}
+                      info="Reserves the placement: no other campaign, or no other creative, shares the slot while this booking delivers."
+                    />
                     {exclusivity && (
                       <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                         {[
@@ -1103,7 +1053,7 @@ export const Display: Story = {
               <ToggleSection
                 title="Pricing"
                 info="Custom deal terms for this booking. Off means the standard rate card for these positions applies."
-                offSummary="Standard rate card for these positions, and no competing RTB bids."
+                offSummary="Standard rate card for these positions, and no competing real-time bids."
                 checked={pricingEnabled}
                 onCheckedChange={setPricingEnabled}
               >
@@ -1122,7 +1072,13 @@ export const Display: Story = {
                       <Input value={unitPrice} readOnly disabled />
                     </div>
                   </div>
-                  <ToggleRow label="Compete with RTB" checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} info="Lets open-exchange bids compete for these slots when this booking is not filling them — unsold delivery earns instead of idling." />
+                  <ToggleRow
+                      label="Compete with real-time bidding"
+                      hint="Let open-exchange bids fill the slots this booking leaves empty."
+                      checked={competeWithRTB}
+                      onCheckedChange={setCompeteWithRTB}
+                      info="Lets open-exchange bids compete for these slots when this booking is not filling them — unsold delivery earns instead of idling."
+                    />
                 </div>
               </ToggleSection>
 
@@ -1482,6 +1438,7 @@ export const DigitalInStore: Story = {
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
+    const [storeTargets, setStoreTargets] = React.useState<Record<string, string[]>>({});
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [selectedRegions, setSelectedRegions] = React.useState<string[]>([]);
@@ -1508,13 +1465,15 @@ export const DigitalInStore: Story = {
     ];
 
 
+    // Reach belongs on the option: picking an audience is a size decision as
+    // much as a who decision — same shape as the media plan wizard's list.
     const audienceOptions = [
-      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
-      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
-      { label: 'Young adult', value: 'young-adult' },
-      { label: 'Family with Kids', value: 'family-with-kids' },
-      { label: 'Convenience stores', value: 'convenience-stores' },
-      { label: 'Traditional stores', value: 'traditional-stores' }
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk', description: 'Reach 2.8M · Shoppers in moderately urban areas' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk', description: 'Reach 4.1M · Shoppers in highly urban areas' },
+      { label: 'Young adult', value: 'young-adult', description: 'Reach 3.4M · Shoppers aged 18–34' },
+      { label: 'Family with Kids', value: 'family-with-kids', description: 'Reach 5.2M · Households with children at home' },
+      { label: 'Convenience stores', value: 'convenience-stores', description: 'Reach 1.6M · Shoppers at to-go formats' },
+      { label: 'Traditional stores', value: 'traditional-stores', description: 'Reach 6.9M · Shoppers at full-range supermarkets' },
     ];
 
     // Filter retail products based on search
@@ -2194,121 +2153,37 @@ export const DigitalInStore: Story = {
                       </Dialog>
 
                       <FormSection bordered title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          {(() => {
-                            const targetFilters = [
-                              { key: 'region', name: 'Region', meta: 'Region', options: regionOptions, selected: selectedRegions, setSelected: setSelectedRegions, search: false },
-                              { key: 'province', name: 'Province', meta: 'Province', options: provinceOptions, selected: selectedProvinces, setSelected: setSelectedProvinces, search: true },
-                              { key: 'storeType', name: 'Store type', meta: 'Store type', options: storeTypeOptions, selected: selectedStoreTypes, setSelected: setSelectedStoreTypes, search: false },
-                              { key: 'city', name: 'City', meta: 'City', options: cityOptions, selected: selectedCities, setSelected: setSelectedCities, search: true },
-                              { key: 'postal', name: 'Postal code', meta: 'Postal code', options: postalCodeOptions, selected: selectedPostalCodes, setSelected: setSelectedPostalCodes, search: true },
-                              { key: 'address', name: 'Address', meta: 'Address', options: addressOptions, selected: selectedAddresses, setSelected: setSelectedAddresses, search: true },
-                            ];
-                            const selectedCards: { key: string; meta: string; value: string; label: string; remove: () => void }[] = [];
-                            targetFilters.forEach((f) => {
-                              f.selected.forEach((value) => {
-                                const opt = f.options.find((o) => o.value === value);
-                                if (opt) selectedCards.push({ key: `${f.key}-${value}`, meta: f.meta, value, label: opt.label, remove: () => f.setSelected(f.selected.filter((v) => v !== value)) });
-                              });
-                            });
-                            return (
-                              <>
-                                <div className="flex flex-wrap gap-3">
-                                  {targetFilters.map((f) => (
-                                    <Filter
-                                      key={f.key}
-                                      name={f.name}
-                                      keepName
-                                      forceSearch={f.search}
-                                      options={f.options}
-                                      selectedValues={f.selected}
-                                      onChange={f.setSelected}
-                                    />
-                                  ))}
-                                </div>
-                                {selectedCards.length > 0 ? (
-                                  <div className="space-y-1">
-                                    {selectedCards.map((c) => (
-                                      <div key={c.key} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-2">
-                                        <div className="min-w-0">
-                                          <div className="truncate text-sm font-medium">{c.label}</div>
-                                          <div className="text-xs text-muted-foreground">{c.meta}</div>
-                                        </div>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={c.remove}
-                                          className="h-8 w-8 shrink-0 p-0"
-                                          aria-label={`Remove ${c.label}`}
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                                    No targets set yet. Add a region or store type to narrow down the audience.
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()}
+                        <div className="space-y-2 min-w-0">
+                          <p className="text-xs text-muted-foreground">
+                            Narrow the stores this booking runs in. No targets means every store in the list.
+                          </p>
+                          {/* Same targeting control as display — group first,
+                              values as chips inside it. See ui/target-select. */}
+                          <TargetSelect
+                            groups={[
+                              { value: 'region', label: 'Region', description: 'Sales regions', suggestions: regionOptions.map((o) => o.label) },
+                              { value: 'province', label: 'Province', description: 'Provinces', suggestions: provinceOptions.map((o) => o.label) },
+                              { value: 'storeType', label: 'Store type', description: 'Store formats', suggestions: storeTypeOptions.map((o) => o.label) },
+                              { value: 'city', label: 'City', description: 'Cities', suggestions: cityOptions.map((o) => o.label) },
+                              { value: 'postal', label: 'Postal code', description: 'Postal codes', suggestions: postalCodeOptions.map((o) => o.label) },
+                              { value: 'address', label: 'Address', description: 'Individual store addresses', suggestions: addressOptions.map((o) => o.label) },
+                            ]}
+                            value={storeTargets}
+                            onChange={setStoreTargets}
+                            placeholder="Add a target group — region, store type, city…"
+                          />
                         </div>
                       </FormSection>
 
                       <FormSection bordered title="Audience" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-2 min-w-0">
-                          <div className="relative" data-dropdown-container>
-                            <SearchInput
-                              value={audienceSearch}
-                              onChange={(e) => {
-                                setAudienceSearch(e.target.value);
-                                setShowAudienceResults(true);
-                              }}
-                              onClick={() => setShowAudienceResults(true)}
-                              placeholder="Search audiences..."
-                              className="w-full"
-                            />
-                            {showAudienceResults && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {filteredAudiences.length > 0 ? (
-                                  filteredAudiences.map((audience) => (
-                                    <div
-                                      key={audience.value}
-                                      className="p-3 hover:bg-neutral-50 cursor-pointer border-b last:border-b-0"
-                                      onClick={() => handleAudienceSelect(audience)}
-                                    >
-                                      <div className="font-medium text-sm">{audience.label}</div>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-muted-foreground">No audiences found</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          {selectedAudiences.length > 0 && (
-                            <div className="space-y-1">
-                              {selectedAudiences.map((value) => {
-                                const audience = audienceOptions.find((a) => a.value === value);
-                                return audience ? (
-                                  <div key={value} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-2">
-                                    <div className="text-sm font-medium">{audience.label}</div>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => removeAudience(value)}
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ) : null;
-                              })}
-                            </div>
-                          )}
-                        </div>
+                        <SearchSelectList
+                          label={null}
+                          placeholder="Search audience segments…"
+                          icon={<Users className="w-4 h-4" />}
+                          options={audienceOptions}
+                          value={selectedAudiences}
+                          onChange={setSelectedAudiences}
+                        />
                       </FormSection>
 
                       <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
@@ -3127,13 +3002,15 @@ export const OfflineInStore: Story = {
     ];
 
 
+    // Reach belongs on the option: picking an audience is a size decision as
+    // much as a who decision — same shape as the media plan wizard's list.
     const audienceOptions = [
-      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
-      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
-      { label: 'Young adult', value: 'young-adult' },
-      { label: 'Family with Kids', value: 'family-with-kids' },
-      { label: 'Convenience stores', value: 'convenience-stores' },
-      { label: 'Traditional stores', value: 'traditional-stores' }
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk', description: 'Reach 2.8M · Shoppers in moderately urban areas' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk', description: 'Reach 4.1M · Shoppers in highly urban areas' },
+      { label: 'Young adult', value: 'young-adult', description: 'Reach 3.4M · Shoppers aged 18–34' },
+      { label: 'Family with Kids', value: 'family-with-kids', description: 'Reach 5.2M · Households with children at home' },
+      { label: 'Convenience stores', value: 'convenience-stores', description: 'Reach 1.6M · Shoppers at to-go formats' },
+      { label: 'Traditional stores', value: 'traditional-stores', description: 'Reach 6.9M · Shoppers at full-range supermarkets' },
     ];
 
     // Filter retail products based on search
@@ -4209,13 +4086,15 @@ export const SponsoredProducts: Story = {
     ];
 
 
+    // Reach belongs on the option: picking an audience is a size decision as
+    // much as a who decision — same shape as the media plan wizard's list.
     const audienceOptions = [
-      { label: 'Matig Stedelijk', value: 'matig-stedelijk' },
-      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk' },
-      { label: 'Young adult', value: 'young-adult' },
-      { label: 'Family with Kids', value: 'family-with-kids' },
-      { label: 'Convenience stores', value: 'convenience-stores' },
-      { label: 'Traditional stores', value: 'traditional-stores' }
+      { label: 'Matig Stedelijk', value: 'matig-stedelijk', description: 'Reach 2.8M · Shoppers in moderately urban areas' },
+      { label: 'Zeer Stedelijk', value: 'zeer-stedelijk', description: 'Reach 4.1M · Shoppers in highly urban areas' },
+      { label: 'Young adult', value: 'young-adult', description: 'Reach 3.4M · Shoppers aged 18–34' },
+      { label: 'Family with Kids', value: 'family-with-kids', description: 'Reach 5.2M · Households with children at home' },
+      { label: 'Convenience stores', value: 'convenience-stores', description: 'Reach 1.6M · Shoppers at to-go formats' },
+      { label: 'Traditional stores', value: 'traditional-stores', description: 'Reach 6.9M · Shoppers at full-range supermarkets' },
     ];
 
     // Filter retail products based on search

@@ -70,3 +70,5 @@ export { CreatePlacement } from './create-placement';
 export type { CreatePlacementProps } from './create-placement';
 export { AdvertiserBrandProducts } from './advertiser-brand-products';
 export type { AdvertiserBrandProductsProps } from './advertiser-brand-products';
+export { TargetSelect, TargetChipEditor, countTargets } from './target-select';
+export type { TargetSelectProps, TargetGroup } from './target-select';

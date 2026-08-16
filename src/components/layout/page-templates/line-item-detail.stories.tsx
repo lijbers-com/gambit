@@ -305,6 +305,67 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
   }))
 );
 
+/**
+ * Chips inside a selected target group — type or search to add, X to remove.
+ * Module-level so the input keeps focus across re-renders.
+ */
+const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
+  chips: string[];
+  suggestions: string[];
+  onAdd: (v: string) => void;
+  onRemove: (v: string) => void;
+}) => {
+  const [text, setText] = React.useState('');
+  const matches = suggestions.filter(
+    (sg) => sg.toLowerCase().includes(text.toLowerCase()) && !chips.includes(sg),
+  );
+  const add = (v: string) => {
+    const t = v.trim();
+    if (!t || chips.includes(t)) return;
+    onAdd(t);
+    setText('');
+  };
+  return (
+    <div className="space-y-2">
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span key={c} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
+              {c}
+              <button type="button" onClick={() => onRemove(c)} aria-label={`Remove ${c}`} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              add(matches[0] ?? text);
+            }
+          }}
+          placeholder="Type or search to add…"
+          className="h-8 bg-background text-sm"
+        />
+        {text && matches.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border bg-card shadow-lg">
+            {matches.slice(0, 6).map((sg) => (
+              <button key={sg} type="button" onClick={() => add(sg)} className="block w-full px-3 py-1.5 text-left text-sm hover:bg-surface-hover">
+                {sg}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Shared component for campaign details sidebar
 const CampaignDetailsSidebar = () => (
   <SummaryCard
@@ -541,23 +602,40 @@ export const Display: Story = {
 
     // Targeting
     const [targetMode, setTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
-    // Targets in one searchable catalogue — the type is on the option, not a
-    // dropdown in front of it, the same way the store-list picker searches.
-    const [selectedTargets, setSelectedTargets] = React.useState<string[]>([]);
-    const targetOptions = [
-      { value: 'kw-cola', label: 'cola', description: 'Search keyword · 22K monthly searches' },
-      { value: 'kw-cola-zero', label: 'cola zero sugar', description: 'Search keyword · 8.1K monthly searches' },
-      { value: 'kw-energy', label: 'energy drink', description: 'Search keyword · 14K monthly searches' },
-      { value: 'kw-iced-tea', label: 'iced tea', description: 'Search keyword · 6.4K monthly searches' },
-      { value: 'cat-beverages', label: 'Beverages', description: 'Category' },
-      { value: 'cat-snacks', label: 'Snacks', description: 'Category' },
-      { value: 'cat-dairy', label: 'Dairy', description: 'Category' },
-      { value: 'cat-frozen', label: 'Frozen foods', description: 'Category' },
-      { value: 'brand-cocacola', label: 'Coca-Cola', description: 'Brand' },
-      { value: 'brand-fanta', label: 'Fanta', description: 'Brand' },
-      { value: 'aud-families', label: 'Households with kids', description: 'Audience segment · 480K shoppers' },
-      { value: 'aud-health', label: 'Health-focused shoppers', description: 'Audience segment · 310K shoppers' },
+    // Target groups, as production lists them. Selecting a group opens its
+    // card, where the individual targets are added as chips.
+    const [inclGroups, setInclGroups] = React.useState<string[]>([]);
+    const [inclTargets, setInclTargets] = React.useState<Record<string, string[]>>({});
+    const [exclGroups, setExclGroups] = React.useState<string[]>([]);
+    const [exclTargets, setExclTargets] = React.useState<Record<string, string[]>>({});
+    const targetGroups = [
+      { value: 'search-keyword', label: 'Search Keyword', description: 'Shoppers searching these terms' },
+      { value: 'single-category', label: 'Single Category', description: 'One category, without children' },
+      { value: 'category-child', label: 'Category — incl child categories', description: 'A category and everything under it' },
+      { value: 'brand', label: 'Brand', description: 'Shoppers viewing these brands' },
+      { value: 'interest', label: 'Interest', description: 'Behavioural interest segments' },
+      { value: 'page-type', label: 'Page Type', description: 'Where on the storefront the ad shows' },
+      { value: 'city', label: 'City', description: 'Delivery city' },
+      { value: 'city-group', label: 'City group', description: 'Named sets of cities' },
+      { value: 'zipcodes', label: 'Multicountry zipcodes', description: 'Postal code lists across countries' },
+      { value: 'app-version', label: 'App Version', description: 'Minimum or exact app versions' },
+      { value: 'delivery-mode', label: 'Delivery Mode', description: 'Home delivery vs pickup' },
+      { value: 'availability', label: 'Product availability', description: 'Only where the product is in stock' },
     ];
+    const targetSuggestions: Record<string, string[]> = {
+      'search-keyword': ['cola', 'cola zero sugar', 'energy drink', 'iced tea', 'sparkling water', 'soda multipack'],
+      'single-category': ['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'],
+      'category-child': ['Beverages', 'Snacks', 'Household', 'Baby & Child'],
+      'brand': ['Coca-Cola', 'Fanta', 'Sprite', 'Knorr', 'Unilever'],
+      'interest': ['Health-focused shoppers', 'Households with kids', 'Premium buyers', 'Bargain hunters'],
+      'page-type': ['Homepage', 'Category page', 'Search results', 'Product page', 'Checkout'],
+      'city': ['Amsterdam', 'Rotterdam', 'Utrecht', 'The Hague', 'Eindhoven'],
+      'city-group': ['Randstad', 'North', 'South'],
+      'zipcodes': [],
+      'app-version': ['≥ 8.0', '≥ 9.0', 'Latest only'],
+      'delivery-mode': ['Home delivery', 'Pickup'],
+      'availability': ['In stock', 'In stock incl. next day'],
+    };
 
     // Delivery behavior
     const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
@@ -846,43 +924,57 @@ export const Display: Story = {
                   <div className="">
                     <div className="space-y-4">
                       <div className="font-semibold text-sm">Targets</div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex rounded-lg bg-muted p-1 gap-1">
-                          {(['inclusive', 'exclusive'] as const).map(mode => (
-                            <button
-                              key={mode}
-                              onClick={() => setTargetMode(mode)}
-                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-                                targetMode === mode
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'text-muted-foreground hover:text-foreground'
-                              }`}
-                            >
-                              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Download className="w-4 h-4 mr-1" />
-                            Download template
-                          </Button>
-                          <Button size="sm">
-                            <Upload className="w-4 h-4 mr-1" />
-                            Upload CSV
-                          </Button>
-                        </div>
+                      {/* Bulk import lives behind the ellipsis — it is the
+                          exception, not the everyday way targets are added. */}
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" aria-label="More targeting options" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="gap-2">
+                              <Download className="h-4 w-4 text-muted-foreground" />
+                              Download template
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2">
+                              <Upload className="h-4 w-4 text-muted-foreground" />
+                              Upload CSV
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      {/* One searchable catalogue across keywords, categories,
-                          brands and audiences; selected targets render as the
-                          standard selected cards. */}
-                      <SearchSelectList
-                        label={null}
-                        placeholder="Search keywords, categories, brands or audiences…"
-                        options={targetOptions}
-                        value={selectedTargets}
-                        onChange={setSelectedTargets}
-                      />
+                      {/* Include and exclude are two lists in the form, not a
+                          mode the user has to notice they are in. */}
+                      {([
+                        { key: 'include', label: 'Include', hint: 'The booking shows to shoppers matching these targets.', groups: inclGroups, setGroups: setInclGroups, targets: inclTargets, setTargets: setInclTargets },
+                        { key: 'exclude', label: 'Exclude', hint: 'Never shown to shoppers matching these targets.', groups: exclGroups, setGroups: setExclGroups, targets: exclTargets, setTargets: setExclTargets },
+                      ] as const).map((mode) => (
+                        <div key={mode.key} className="space-y-2">
+                          <Label className="block">{mode.label}</Label>
+                          <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
+                          <SearchSelectList
+                            label={null}
+                            placeholder="Add a target group — keyword, category, city…"
+                            options={targetGroups}
+                            value={mode.groups}
+                            onChange={(vals) => {
+                              mode.setGroups(vals);
+                              // Dropping a group drops its chips with it.
+                              mode.setTargets(Object.fromEntries(Object.entries(mode.targets).filter(([k]) => vals.includes(k))));
+                            }}
+                            renderSelectedExtra={(opt) => (
+                              <TargetChipEditor
+                                chips={mode.targets[opt.value] ?? []}
+                                suggestions={targetSuggestions[opt.value] ?? []}
+                                onAdd={(v) => mode.setTargets({ ...mode.targets, [opt.value]: [...(mode.targets[opt.value] ?? []), v] })}
+                                onRemove={(v) => mode.setTargets({ ...mode.targets, [opt.value]: (mode.targets[opt.value] ?? []).filter((c) => c !== v) })}
+                              />
+                            )}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1178,7 +1270,9 @@ export const Display: Story = {
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
                     ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
                     ...(activeDays.length > 0 && activeDays.length < 7 ? [{ label: 'Active days', value: activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') }] : []),
-                    ...(selectedTargets.length > 0 ? [{ label: 'Targets', value: `${targetMode === 'inclusive' ? 'Include' : 'Exclude'} ${selectedTargets.length}` }] : []),
+                    ...((Object.values(inclTargets).flat().length + Object.values(exclTargets).flat().length) > 0
+                      ? [{ label: 'Targets', value: [Object.values(inclTargets).flat().length > 0 && `Include ${Object.values(inclTargets).flat().length}`, Object.values(exclTargets).flat().length > 0 && `Exclude ${Object.values(exclTargets).flat().length}`].filter(Boolean).join(' · ') }]
+                      : []),
                     ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
                   ]}
                 />

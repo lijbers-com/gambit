@@ -309,9 +309,7 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
  * Chips inside a selected target group — type or search to add, X to remove.
  * Module-level so the input keeps focus across re-renders.
  */
-const TargetChipEditor = ({ label, chips, suggestions, onAdd, onRemove }: {
-  /** The group's description, doing duty as the field label. */
-  label?: string;
+const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
   chips: string[];
   suggestions: string[];
   onAdd: (v: string) => void;
@@ -329,8 +327,6 @@ const TargetChipEditor = ({ label, chips, suggestions, onAdd, onRemove }: {
   };
   return (
     <div className="space-y-2">
-      {/* Quieter than the card title above it — it labels a field, not the card. */}
-      {label && <Label className="block font-normal text-muted-foreground">{label}</Label>}
       <div className="relative">
         <Input
           value={text}
@@ -748,11 +744,11 @@ export const Display: Story = {
     // A section that is one decision: off means "not used", on reveals its
     // fields. Fewer toggles than a switch per row, and the header says
     // plainly what turning it on means.
-    const ToggleSection = ({ title, info, checked, onCheckedChange, children }: {
-      title: string; info: string; checked: boolean; onCheckedChange: (v: boolean) => void; children: React.ReactNode;
+    const ToggleSection = ({ title, info, offSummary, checked, onCheckedChange, children }: {
+      title: string; info: string; offSummary: string; checked: boolean; onCheckedChange: (v: boolean) => void; children: React.ReactNode;
     }) => (
       <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
-        <div className={cn('flex items-center justify-between gap-4', checked && 'mb-6')}>
+        <div className={cn('flex items-start justify-between gap-4', checked && 'mb-6')}>
           <h2 className="flex items-center gap-1.5 text-lg font-semibold">
             {title}
             <TooltipProvider delayDuration={150}>
@@ -764,8 +760,11 @@ export const Display: Story = {
               </Tooltip>
             </TooltipProvider>
           </h2>
-          <Switch checked={checked} onCheckedChange={onCheckedChange} />
+          <Switch checked={checked} onCheckedChange={onCheckedChange} className="mt-1 shrink-0" />
         </div>
+        {/* An off section still says what the booking will do — silence reads
+            as "unconfigured" when it actually means "the default applies". */}
+        {!checked && <p className="mt-1 text-sm text-muted-foreground">{offSummary}</p>}
         {checked && children}
       </div>
     );
@@ -967,10 +966,8 @@ export const Display: Story = {
                               // Dropping a group drops its chips with it.
                               mode.setTargets(Object.fromEntries(Object.entries(mode.targets).filter(([k]) => vals.includes(k))));
                             }}
-                            hideSelectedDescription
                             renderSelectedExtra={(opt) => (
                               <TargetChipEditor
-                                label={opt.description}
                                 chips={mode.targets[opt.value] ?? []}
                                 suggestions={targetSuggestions[opt.value] ?? []}
                                 onAdd={(v) => mode.setTargets({ ...mode.targets, [opt.value]: [...(mode.targets[opt.value] ?? []), v] })}
@@ -1066,6 +1063,7 @@ export const Display: Story = {
               <ToggleSection
                 title="Delivery objectives"
                 info="Optional targets that constrain delivery: priority against other bookings, a reach goal, or a hard delivery limit. Off means the booking simply delivers as booked."
+                offSummary="Delivers as booked — priority inherited from the campaign, no reach goal and no delivery limit."
                 checked={objectivesEnabled}
                 onCheckedChange={setObjectivesEnabled}
               >
@@ -1105,6 +1103,7 @@ export const Display: Story = {
               <ToggleSection
                 title="Pricing"
                 info="Custom deal terms for this booking. Off means the standard rate card for these positions applies."
+                offSummary="Standard rate card for these positions, and no competing RTB bids."
                 checked={pricingEnabled}
                 onCheckedChange={setPricingEnabled}
               >

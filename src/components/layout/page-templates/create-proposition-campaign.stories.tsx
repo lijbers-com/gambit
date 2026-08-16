@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary,
 import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
-import { SuggestionList, COMPETITION } from '@/components/ui/suggestion-list';
+import { SuggestionList } from '@/components/ui/suggestion-list';
+import { LEVEL_LABELS, type Level } from '@/components/ui/level-meter';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
+import { DateRangePicker, DatePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
@@ -2251,26 +2252,26 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { value: 'prod-005', label: 'Heineken 1L bottle', description: 'HNK-1L-BTL · Beer' },
   ];
   // Long on purpose: a real feed suggests dozens, which is what the
-  // suggestion list has to cope with. Reach and competition come with each
-  // one — a keyword is worth taking only in proportion to what it reaches
-  // and what it costs to win.
-  const spKeywordMeta: Record<string, { reach: string; competition: 'low' | 'medium' | 'high' }> = {
-    'beer': { reach: '48K searches', competition: 'high' },
-    'heineken': { reach: '31K searches', competition: 'high' },
-    'alcohol free beer': { reach: '12K searches', competition: 'medium' },
-    'party drinks': { reach: '9.4K searches', competition: 'medium' },
-    'lager': { reach: '18K searches', competition: 'medium' },
-    'pilsner': { reach: '6.2K searches', competition: 'low' },
-    'beer crate': { reach: '7.8K searches', competition: 'medium' },
-    'beer 6 pack': { reach: '5.1K searches', competition: 'low' },
-    'cold beer': { reach: '4.4K searches', competition: 'low' },
-    'craft beer': { reach: '22K searches', competition: 'high' },
-    'dutch beer': { reach: '3.6K searches', competition: 'low' },
-    'beer bottles': { reach: '8.9K searches', competition: 'medium' },
-    'beer cans': { reach: '11K searches', competition: 'medium' },
-    'weekend drinks': { reach: '2.8K searches', competition: 'low' },
-    'bbq drinks': { reach: '3.1K searches', competition: 'low' },
-    'football snacks': { reach: '5.7K searches', competition: 'low' },
+  // suggestion list has to cope with. Each keyword carries what it is worth —
+  // how much is searched for it, and how hard it is to win — on the same
+  // five-step scale, so they can be weighed against each other.
+  const spKeywordMeta: Record<string, { reach: string; volume: Level; competition: Level }> = {
+    'beer':              { reach: '48K searches',  volume: 5, competition: 5 },
+    'heineken':          { reach: '31K searches',  volume: 5, competition: 4 },
+    'craft beer':        { reach: '22K searches',  volume: 4, competition: 5 },
+    'lager':             { reach: '18K searches',  volume: 4, competition: 3 },
+    'alcohol free beer': { reach: '12K searches',  volume: 4, competition: 3 },
+    'beer cans':         { reach: '11K searches',  volume: 3, competition: 3 },
+    'party drinks':      { reach: '9.4K searches', volume: 3, competition: 3 },
+    'beer bottles':      { reach: '8.9K searches', volume: 3, competition: 3 },
+    'beer crate':        { reach: '7.8K searches', volume: 3, competition: 2 },
+    'pilsner':           { reach: '6.2K searches', volume: 3, competition: 2 },
+    'football snacks':   { reach: '5.7K searches', volume: 2, competition: 2 },
+    'beer 6 pack':       { reach: '5.1K searches', volume: 2, competition: 2 },
+    'cold beer':         { reach: '4.4K searches', volume: 2, competition: 1 },
+    'dutch beer':        { reach: '3.6K searches', volume: 2, competition: 1 },
+    'bbq drinks':        { reach: '3.1K searches', volume: 1, competition: 1 },
+    'weekend drinks':    { reach: '2.8K searches', volume: 1, competition: 1 },
   };
   const spKeywordSuggestions = Object.keys(spKeywordMeta);
 
@@ -2419,48 +2420,43 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       </div>
                     </div>
 
-                    {/* Row 2: Budget + Advertiser */}
-                    <div className="grid grid-cols-2 gap-4 mb-5">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="v2-budget">Budget <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="v2-budget"
-                          type="number"
-                          placeholder="e.g. 200000"
-                          value={budget}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Advertiser <span className="text-destructive">*</span></Label>
-                        <Input
-                          dropdown
-                          options={advertiserOptions}
-                          value={selectedAdvertiser}
-                          onChange={(value: string) => setSelectedAdvertiser(value)}
-                          placeholder="Select an advertiser"
-                        />
-                      </div>
+                    {/* Row 2: Advertiser (full width) */}
+                    <div className="mb-5 space-y-1.5">
+                      <Label>Advertiser <span className="text-destructive">*</span></Label>
+                      <Input
+                        dropdown
+                        options={advertiserOptions}
+                        value={selectedAdvertiser}
+                        onChange={(value: string) => setSelectedAdvertiser(value)}
+                        placeholder="Select an advertiser"
+                      />
                     </div>
 
-                    {/* Row 3: Start Date + End Date */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="space-y-1.5">
-                        <Label>Start Date <span className="text-destructive">*</span></Label>
-                        <DatePicker
-                          date={startDate}
-                          onDateChange={setStartDate}
-                          placeholder="Select start date"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>End Date</Label>
-                        <DatePicker
-                          date={endDate}
-                          onDateChange={setEndDate}
-                          placeholder="Select end date"
-                        />
-                      </div>
+                    {/* Row 3: Budget (full width) */}
+                    <div className="mb-5 space-y-1.5">
+                      <Label htmlFor="v2-budget">Budget <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="v2-budget"
+                        type="number"
+                        placeholder="e.g. 200000"
+                        value={budget}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Row 4: Run time — one field, both ends picked in one calendar */}
+                    <div className="mb-6 space-y-1.5">
+                      <Label>Run time <span className="text-destructive">*</span></Label>
+                      <DateRangePicker
+                        dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                        onDateRangeChange={(range) => {
+                          setStartDate(range?.from);
+                          setEndDate(range?.to);
+                        }}
+                        placeholder="Select start and end date"
+                        showPresets
+                        presets={futureDateRangePresets}
+                      />
                     </div>
 
                     <div className="flex justify-end pt-2">
@@ -2664,48 +2660,27 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         options={spKeywordSuggestions.map((k) => ({
                           value: k,
                           label: k,
-                          description: `${spKeywordMeta[k].reach} · ${COMPETITION[spKeywordMeta[k].competition].label} competition`,
+                          // One muted sub-line, same as every other selected card.
+                          description: `Volume: ${LEVEL_LABELS[spKeywordMeta[k].volume]} · Competition: ${LEVEL_LABELS[spKeywordMeta[k].competition]} · ${spKeywordMeta[k].reach}`,
                         }))}
                         value={keywords}
                         onChange={setKeywords}
                       />
+                      {/* Offered, not chosen: dashed pills in their own tray,
+                          inside the section they feed. */}
+                      <SuggestionList
+                        items={spKeywordSuggestions
+                          .filter(k => !keywords.includes(k))
+                          .map(k => ({ value: k, meta: spKeywordMeta[k].reach }))}
+                        onAdd={(k) => setKeywords(prev => [...prev, k])}
+                        onAddAll={() => setKeywords(prev => [
+                          ...prev,
+                          ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                        ])}
+                        label="Suggested keywords"
+                      />
                     </div>
                   </FormSection>
-
-                  {/* Suggestions are their own block: what the platform is
-                      offering, not part of what the user has already added. */}
-                  {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
-                    <FormSection
-                      bordered
-                      title={`Suggested keywords (${spKeywordSuggestions.filter(k => !keywords.includes(k)).length})`}
-                      action={
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setKeywords(prev => [
-                            ...prev,
-                            ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                          ])}
-                        >
-                          Add all suggestions
-                        </Button>
-                      }
-                    >
-                      <div className="space-y-2">
-                        <p className="-mt-2 mb-2 text-xs text-muted-foreground">
-                          Drawn from the products you picked. Click one to add it.
-                        </p>
-                        <SuggestionList
-                          bare
-                          initialVisible={10}
-                          items={spKeywordSuggestions
-                            .filter(k => !keywords.includes(k))
-                            .map(k => ({ value: k, meta: spKeywordMeta[k].reach, competition: spKeywordMeta[k].competition }))}
-                          onAdd={(k) => setKeywords(prev => [...prev, k])}
-                        />
-                      </div>
-                    </FormSection>
-                  )}
 
                   <FormSection
                     bordered

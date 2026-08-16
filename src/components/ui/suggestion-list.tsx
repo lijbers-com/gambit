@@ -21,8 +21,6 @@ export interface Suggestion {
   value: string;
   /** e.g. "22K searches" — what taking it is worth. */
   meta?: string;
-  /** How contested it is; drives the dot colour. */
-  competition?: 'low' | 'medium' | 'high';
 }
 
 export interface SuggestionListProps {
@@ -38,14 +36,6 @@ export interface SuggestionListProps {
   bare?: boolean;
   className?: string;
 }
-
-/** Contested keywords cost more and win less often, so the level is a colour
- *  rather than a word — it is read at a glance, next to the number. */
-export const COMPETITION: Record<'low' | 'medium' | 'high', { label: string; dot: string; text: string }> = {
-  low: { label: 'Low', dot: 'bg-success-500', text: 'text-success-700' },
-  medium: { label: 'Medium', dot: 'bg-warning-500', text: 'text-warning-700' },
-  high: { label: 'High', dot: 'bg-destructive-500', text: 'text-destructive-700' },
-};
 
 export const SuggestionList: React.FC<SuggestionListProps> = ({
   items,
@@ -64,7 +54,7 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
   const hidden = all.length - visible.length;
 
   return (
-    <div className={cn(!bare && 'rounded-md border border-dashed border-border bg-page p-3', className)}>
+    <div className={cn(!bare && 'rounded-md border border-dashed border-border bg-card p-3', className)}>
       {!bare && (
       <div className="mb-2 flex items-center justify-between gap-3">
         <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -93,12 +83,6 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
             <Plus className="h-3 w-3 text-muted-foreground" />
             {item.value}
             {item.meta && <span className="text-muted-foreground">{item.meta}</span>}
-            {item.competition && (
-              <span
-                title={`${COMPETITION[item.competition].label} competition`}
-                className={cn('h-1.5 w-1.5 shrink-0 rounded-full', COMPETITION[item.competition].dot)}
-              />
-            )}
           </button>
         ))}
         {hidden > 0 && (

@@ -74,3 +74,5 @@ export { TargetSelect, TargetChipEditor, countTargets } from './target-select';
 export type { TargetSelectProps, TargetGroup } from './target-select';
 export { SuggestionList } from './suggestion-list';
 export type { SuggestionListProps } from './suggestion-list';
+export { LevelMeter, LEVEL_LABELS } from './level-meter';
+export type { LevelMeterProps, Level } from './level-meter';

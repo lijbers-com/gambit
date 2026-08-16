@@ -15,6 +15,8 @@ export type { ObjectiveKpiSelectProps, ObjectiveKpiValue, ObjectiveDef, FunnelDe
 export { SelectionList } from "./selection-list"
 export type { SelectionListProps, SelectionListItem } from "./selection-list"
 export { SummaryCard } from "./summary-card"
+export { LinkPickerDialog, LinkActionIcon } from "./link-picker"
+export type { LinkOption, LinkPickerDialogProps } from "./link-picker"
 export type { SummaryCardProps, SummaryCardVariant, SummaryItem, SummarySection, SummaryTotal, SummaryStep, SummaryAction, SummaryGroup } from "./summary-card"
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card"
 export { Input } from "./input"

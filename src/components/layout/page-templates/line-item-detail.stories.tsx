@@ -28,6 +28,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
+import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
@@ -306,39 +307,97 @@ const mockPlacements = zones.flatMap((zone, zoneIndex) =>
   }))
 );
 
+// What a booking can be moved to. A booking always hangs under a campaign,
+// which hangs under a media plan — so both are relinked the same way, from the
+// card that shows the link rather than from a dropdown in the form.
+const campaignLinkOptions = [
+  { value: 'camp-ah', label: 'Campaign AH ..', details: { Advertiser: 'Acme Media', Budget: '€10,000' } },
+  { value: 'camp-knorr', label: 'Knorr Summer Push', details: { Advertiser: 'Acme Media', Budget: '€24,000' } },
+  { value: 'camp-powerade', label: 'Powerade Always On', details: { Advertiser: 'Unilever Shopper Marketing', Budget: '€18,500' } },
+  { value: 'camp-heineken', label: 'Heineken Football', details: { Advertiser: 'Brand Alliance', Budget: '€31,000' } },
+];
+
+const mediaPlanLinkOptions = [
+  { value: 'mp-summer', label: 'Summer Launch Plan', details: { Advertiser: 'Acme Media', Budget: '€42,500' } },
+  { value: 'mp-q4', label: 'Q4 Trade Plan', details: { Advertiser: 'Acme Media', Budget: '€88,000' } },
+  { value: 'mp-always-on', label: 'Always On 2026', details: { Advertiser: 'Nestlé Trade Marketing', Budget: '€120,000' } },
+];
+
 // Shared component for campaign details sidebar
-const CampaignDetailsSidebar = () => (
-  <SummaryCard
-    title="Campaign details"
-    entity="campaign"
-    variant="details"
-    items={[
-      { label: 'Campaign name', value: 'Campaign AH ..' },
-      { label: 'PO Number', value: 'PO-123456' },
-      { label: 'Advertiser', value: 'Acme Media' },
-      { label: 'Brand', value: 'Knorr' },
-      { label: 'Goal', value: 'Awareness' },
-      { label: 'Budget', value: '€10,000' },
-      { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
-    ]}
-  />
-);
+const CampaignDetailsSidebar = () => {
+  const [linking, setLinking] = React.useState(false);
+  const [campaign, setCampaign] = React.useState('camp-ah');
+  const linked = campaignLinkOptions.find((c) => c.value === campaign);
+  return (
+    <>
+      <SummaryCard
+        title="Campaign details"
+        entity="campaign"
+        variant="details"
+        headerAction={{
+          icon: LinkActionIcon,
+          label: 'Change linked campaign',
+          onClick: () => setLinking(true),
+        }}
+        items={[
+          { label: 'Campaign name', value: linked?.label ?? '—' },
+          { label: 'PO Number', value: 'PO-123456' },
+          { label: 'Advertiser', value: linked?.details.Advertiser ?? '—' },
+          { label: 'Brand', value: 'Knorr' },
+          { label: 'Goal', value: 'Awareness' },
+          { label: 'Budget', value: linked?.details.Budget ?? '—' },
+          { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
+        ]}
+      />
+      <LinkPickerDialog
+        open={linking}
+        onOpenChange={setLinking}
+        entityLabel="campaign"
+        options={campaignLinkOptions}
+        value={campaign}
+        onChange={(v) => v && setCampaign(v)}
+      />
+    </>
+  );
+};
 
 // Shared component for the parent media plan summary (shown on every booking template)
-const MediaPlanSidebar = () => (
-  <SummaryCard
-    title="Media plan"
-    entity="media-plan"
-    variant="details"
-    items={[
-      { label: 'Media plan', value: 'Summer Launch Plan' },
-      { label: 'Advertiser', value: 'Acme Media' },
-      { label: 'Propositions', value: 'Display, Sponsored products, Digital in-store' },
-      { label: 'Total budget', value: '€42,500' },
-      { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
-    ]}
-  />
-);
+const MediaPlanSidebar = () => {
+  const [linking, setLinking] = React.useState(false);
+  const [plan, setPlan] = React.useState<string | undefined>('mp-summer');
+  const linked = mediaPlanLinkOptions.find((p) => p.value === plan);
+  return (
+    <>
+      <SummaryCard
+        title="Media plan"
+        entity="media-plan"
+        variant="details"
+        headerAction={{
+          icon: LinkActionIcon,
+          label: 'Change linked media plan',
+          onClick: () => setLinking(true),
+        }}
+        items={linked ? [
+          { label: 'Media plan', value: linked.label },
+          { label: 'Advertiser', value: linked.details.Advertiser },
+          { label: 'Propositions', value: 'Display, Sponsored products, Digital in-store' },
+          { label: 'Total budget', value: linked.details.Budget },
+          { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
+        ] : [{ label: 'Media plan', value: 'Not linked' }]}
+      />
+      <LinkPickerDialog
+        open={linking}
+        onOpenChange={setLinking}
+        entityLabel="media plan"
+        allowNone
+        noneLabel="No media plan"
+        options={mediaPlanLinkOptions}
+        value={plan}
+        onChange={setPlan}
+      />
+    </>
+  );
+};
 
 // Shared component for the creatives attached to this booking. Every
 // proposition has creatives except sponsored products, where the ad IS the

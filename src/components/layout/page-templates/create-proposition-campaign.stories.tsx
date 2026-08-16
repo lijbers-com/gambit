@@ -8,6 +8,7 @@ import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { LEVEL_LABELS, type Level } from '@/components/ui/level-meter';
 import { SummaryCard } from '@/components/ui/summary-card';
+import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -2329,6 +2330,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   ].filter(Boolean) as string[];
   const isCampaignDetailsComplete = campaignMissing.length === 0;
 
+  // Relinking happens from the summary cards, not from a field in the form.
+  const [linkingMediaPlan, setLinkingMediaPlan] = React.useState(false);
+  const [linkingCampaign, setLinkingCampaign] = React.useState(false);
+
   /** Creating the campaign hands its details down to the booking step. */
   const createCampaignAndContinue = () => {
     const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -2424,19 +2429,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               {currentStepId === 'campaign-details' && (
                 <Card>
                   <CardContent className="pt-6">
-                    {/* Row 0: Media plan (full width) */}
-                    <div className="mb-5">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="v2-media-plan">Media plan</Label>
-                        <SearchSelect
-                          id="v2-media-plan"
-                          options={mediaPlanOptionsWithDynamic}
-                          value={selectedMediaPlanV2}
-                          onChange={setSelectedMediaPlanV2}
-                          placeholder="Select a media plan"
-                        />
-                      </div>
-                    </div>
+                    {/* The media plan this hangs under is not a field of this
+                        form — it is changed from the Media plan summary card. */}
 
                     {/* Row 1: Name + External ID */}
                     <div className="grid grid-cols-2 gap-4 mb-5">
@@ -2513,16 +2507,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   <FormSection bordered title="Booking setup">
                     <div className="space-y-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-campaign">Campaign <span className="text-destructive">*</span></Label>
-                        <SearchSelect
-                          id="bk-campaign"
-                          options={campaignOptionsForBooking}
-                          value={selectedCampaign}
-                          onChange={setSelectedCampaign}
-                          placeholder="Select a campaign"
-                        />
-                      </div>
+                      {/* Which campaign this booking belongs to is changed from
+                          the Campaign details card, not asked for again here. */}
                       <div className="space-y-1.5">
                         <Label htmlFor="bk-name">Booking name <span className="text-destructive">*</span></Label>
                         <Input
@@ -2868,6 +2854,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       className={pending ? 'bg-card' : 'bg-page'}
                       entity="campaign"
                       variant="details"
+                      // Only a booking hangs under a campaign; on step 1 the
+                      // campaign is the thing being created, not linked.
+                      headerAction={pending ? undefined : {
+                        icon: LinkActionIcon,
+                        label: 'Change linked campaign',
+                        onClick: () => setLinkingCampaign(true),
+                      }}
                       actions={pending ? [
                         {
                           label: 'Create campaign',
@@ -2890,11 +2883,46 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       className="bg-page"
                       entity="media-plan"
                       variant="details"
+                      headerAction={{
+                        icon: LinkActionIcon,
+                        label: 'Change linked media plan',
+                        onClick: () => setLinkingMediaPlan(true),
+                      }}
                       items={mp ? [
                         { label: 'Media plan', value: mp.label },
                         ...('advertiser' in mp && mp.advertiser ? [{ label: 'Advertiser', value: String(mp.advertiser) }] : []),
                         ...('budget' in mp && mp.budget ? [{ label: 'Total budget', value: String(mp.budget) }] : []),
-                      ] : [{ label: 'Media plan', value: 'Not selected' }]}
+                      ] : [{ label: 'Media plan', value: 'Not linked' }]}
+                    />
+
+                    <LinkPickerDialog
+                      open={linkingMediaPlan}
+                      onOpenChange={setLinkingMediaPlan}
+                      entityLabel="media plan"
+                      allowNone
+                      noneLabel="No media plan"
+                      options={mediaPlanOptionsWithDynamic.map((o) => ({
+                        value: o.value,
+                        label: o.label,
+                        details: {
+                          Advertiser: 'advertiser' in o && o.advertiser ? String(o.advertiser) : '—',
+                          Budget: 'budget' in o && o.budget ? String(o.budget) : '—',
+                        },
+                      }))}
+                      value={selectedMediaPlanV2 || undefined}
+                      onChange={(v) => setSelectedMediaPlanV2(v ?? '')}
+                    />
+
+                    <LinkPickerDialog
+                      open={linkingCampaign}
+                      onOpenChange={setLinkingCampaign}
+                      entityLabel="campaign"
+                      options={campaignOptionsForBooking.map((o) => ({
+                        value: o.value,
+                        label: o.label,
+                      }))}
+                      value={selectedCampaign || undefined}
+                      onChange={(v) => setSelectedCampaign(v ?? '')}
                     />
                   </>
                 );

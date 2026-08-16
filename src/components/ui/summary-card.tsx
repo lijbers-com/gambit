@@ -106,6 +106,14 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
   totals?: SummaryTotal[]
   /** Buttons rendered in the card footer */
   actions?: SummaryAction[]
+  /** An icon button in the card's top-right — for acting on what the card
+   *  describes rather than on the form, e.g. relinking a campaign. */
+  headerAction?: {
+    icon: React.ReactNode
+    /** Accessible name; also the tooltip. */
+    label: string
+    onClick: () => void
+  }
   /** Small footnote text below actions */
   footer?: string
 }
@@ -313,6 +321,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       sections,
       totals,
       actions,
+      headerAction,
       footer,
       className,
       ...props
@@ -337,16 +346,32 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         {...props}
       >
         {/* Header */}
-        <div>
-          <h2 className="flex items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
-            {entity && (() => {
-              const EntityIcon = entityIcon[entity]
-              return <EntityIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-            })()}
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="text-[13px] text-muted-foreground mt-1">{subtitle}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
+              {entity && (() => {
+                const EntityIcon = entityIcon[entity]
+                return <EntityIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+              })()}
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="text-[13px] text-muted-foreground mt-1">{subtitle}</p>
+            )}
+          </div>
+          {headerAction && (
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
+              onClick={headerAction.onClick}
+              aria-label={headerAction.label}
+              title={headerAction.label}
+              // Small and quiet: the card's subject is the summary, not this.
+              className="-mr-1.5 -mt-1.5 h-7 w-7 shrink-0 text-muted-foreground"
+            >
+              {headerAction.icon}
+            </Button>
           )}
         </div>
 

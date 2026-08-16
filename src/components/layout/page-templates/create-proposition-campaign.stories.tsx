@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
+import { FormSection } from '@/components/ui/form-section';
+import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -2427,16 +2429,15 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               )}
 
               {/* ── Step 2: Booking – Sub-step 1: Setup ── */}
+              {/* One card holding bordered sections — the same shape every
+                  booking detail form uses, so creating and editing a booking
+                  look like the same job. */}
               {currentStepId === 'booking' && bookingSubStep === 0 && (
-                <div className="space-y-4">
+                <Card>
+                  <CardContent className="space-y-6 p-6">
 
-                  {/* Card 1: General information */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Booking setup</CardTitle>
-                      <CardDescription>Please fill in all the required* fields.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                  <FormSection bordered title="Booking setup">
+                    <div className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="bk-campaign">Campaign <span className="text-destructive">*</span></Label>
                         <SearchSelect
@@ -2478,16 +2479,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           />
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </FormSection>
 
-                  {/* Card 2: Budget and bidding */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Budget and bidding</CardTitle>
-                      <CardDescription>What are you trying to achieve with this campaign?</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                  <FormSection bordered title="Budget and bidding">
+                    <div className="space-y-4">
                       <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="bk-total">Total budget <span className="text-destructive">*</span></Label>
@@ -2520,20 +2516,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           />
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
+                      <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
                         <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
                         <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </FormSection>
 
-                  {/* Card 3: Targeting */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Targeting</CardTitle>
-                      <CardDescription>Which great local brand would you like to target?</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                  <FormSection bordered title="Targeting">
+                    <div className="space-y-2">
+                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
                       {localBrands.map((brand) => {
                         const isSelected = selectedLocalBrands.includes(brand.id);
                         return (
@@ -2555,8 +2547,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           </button>
                         );
                       })}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </FormSection>
 
                   {/* Navigation */}
                   <div className="flex justify-between pt-1">
@@ -2568,7 +2560,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       Next: Placements
                     </Button>
                   </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* ── Step 2: Booking – Sub-step 2: Placements ── */}
@@ -2734,154 +2727,63 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
 
-              {/* ── Media plan card ── */}
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>Media plan</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  {(() => {
-                    const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
-                    if (!mp) return <p className="text-xs text-muted-foreground italic">Not selected</p>;
-                    return (
-                      <div className="space-y-2 text-sm">
-                        <p className="font-medium">{mp.label}</p>
-                        {'advertiser' in mp && mp.advertiser && (
-                          <div className="flex justify-between gap-2 pt-1">
-                            <span className="text-muted-foreground shrink-0">Advertiser</span>
-                            <span className="font-medium text-right truncate">{mp.advertiser}</span>
-                          </div>
-                        )}
-                        {'budget' in mp && mp.budget && (
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Budget</span>
-                            <span className="font-medium text-right">{mp.budget}</span>
-                          </div>
-                        )}
-                        {'startDate' in mp && mp.startDate && (
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Start date</span>
-                            <span className="font-medium text-right">{mp.startDate}</span>
-                          </div>
-                        )}
-                        {'endDate' in mp && mp.endDate && (
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">End date</span>
-                            <span className="font-medium text-right">{mp.endDate}</span>
-                          </div>
-                        )}
-                        {'status' in mp && mp.status && (
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Status</span>
-                            <span className="font-medium text-right">{mp.status}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </CardSummaryContent>
-              </CardSummary>
+              {/* The same summary cards a booking detail page shows, in the
+                  same order — the wizard is building the thing those pages
+                  then display, so it should look like it. */}
+              {(() => {
+                const dash = '—';
+                const fmt = (d?: Date) => d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : dash;
+                const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
+                const campaign = campaignOptionsForBooking.find(o => o.value === selectedCampaign);
+                const pending = currentStepId === 'campaign-details';
+                return (
+                  <>
+                    <SummaryCard
+                      title="Booking"
+                      entity="booking"
+                      variant="details"
+                      className={pending ? 'opacity-40' : undefined}
+                      items={pending ? [{ label: 'Status', value: 'Complete campaign details first' }] : [
+                        { label: 'Booking name', value: bookingCampaignName || dash },
+                        { label: 'Campaign', value: campaign?.label ?? dash },
+                        { label: 'Runtime', value: bookingStartDate || bookingEndDate ? `${fmt(bookingStartDate)} - ${fmt(bookingEndDate)}` : dash },
+                        { label: 'Total budget', value: totalBudget ? `€${totalBudget}` : dash },
+                        { label: 'Daily budget', value: dailyBudget ? `€${dailyBudget}` : dash },
+                        { label: 'CPC bid', value: biddingCPC ? `€${biddingCPC}` : dash },
+                        ...(bookingSubStep >= 1 ? [
+                          { label: 'Retail products', value: selectedProducts.length > 0 ? `${selectedProducts.length} selected` : dash },
+                          { label: 'Keywords', value: keywords.length > 0 ? `${keywords.length} keywords` : dash },
+                          { label: 'Categories', value: selectedCategories.length > 0 ? `${selectedCategories.length} selected` : dash },
+                        ] : []),
+                      ]}
+                    />
 
-              {/* ── Campaign card ── */}
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>Campaign</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">Name</span>
-                      <span className="font-medium text-right truncate">{campaignName || <span className="italic text-muted-foreground">—</span>}</span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">External ID</span>
-                      <span className="font-medium text-right truncate">{externalId || <span className="italic text-muted-foreground">—</span>}</span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">Advertiser</span>
-                      <span className="font-medium text-right truncate">
-                        {advertiserOptions.find(a => a.value === selectedAdvertiser)?.label || <span className="italic text-muted-foreground">—</span>}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">Budget</span>
-                      <span className="font-medium text-right">{budget ? `€${budget}` : <span className="italic text-muted-foreground">—</span>}</span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">Start date</span>
-                      <span className="font-medium text-right">{startDate ? startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground shrink-0">End date</span>
-                      <span className="font-medium text-right">{endDate ? endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
-                    </div>
-                  </div>
-                </CardSummaryContent>
-              </CardSummary>
+                    <SummaryCard
+                      title="Campaign details"
+                      entity="campaign"
+                      variant="details"
+                      items={[
+                        { label: 'Campaign name', value: campaignName || campaign?.label || dash },
+                        ...(externalId ? [{ label: 'External ID', value: externalId }] : []),
+                        { label: 'Advertiser', value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? dash },
+                        { label: 'Budget', value: budget ? `€${budget}` : dash },
+                        { label: 'Runtime', value: startDate || endDate ? `${fmt(startDate)} - ${fmt(endDate)}` : dash },
+                      ]}
+                    />
 
-              {/* ── Booking card (includes placements when on sub-step 2) ── */}
-              <CardSummary className={currentStepId === 'campaign-details' ? 'opacity-40 pointer-events-none' : ''}>
-                <CardHeader>
-                  <CardSummaryTitle>Booking</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  {currentStepId === 'campaign-details' ? (
-                    <p className="text-xs text-muted-foreground italic">Complete campaign details first</p>
-                  ) : (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Booking name</span>
-                        <span className="font-medium text-right truncate">{bookingCampaignName || <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Campaign</span>
-                        <span className="font-medium text-right truncate">{campaignOptionsForBooking.find(o => o.value === selectedCampaign)?.label || <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Start date</span>
-                        <span className="font-medium text-right">{bookingStartDate ? bookingStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">End date</span>
-                        <span className="font-medium text-right">{bookingEndDate ? bookingEndDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Total budget</span>
-                        <span className="font-medium text-right">{totalBudget ? `€${totalBudget}` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">Daily budget</span>
-                        <span className="font-medium text-right">{dailyBudget ? `€${dailyBudget}` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground shrink-0">CPC bid</span>
-                        <span className="font-medium text-right">{biddingCPC ? `€${biddingCPC}` : <span className="italic text-muted-foreground">—</span>}</span>
-                      </div>
-
-                      {/* Placements section — shown once user reaches sub-step 2 */}
-                      {bookingSubStep >= 1 && (
-                        <>
-                          <div className="border-t border-border/50 pt-2 mt-2">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Placements</p>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Products</span>
-                            <span className="font-medium text-right">{selectedProducts.length > 0 ? `${selectedProducts.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Keywords</span>
-                            <span className="font-medium text-right">{keywords.length > 0 ? `${keywords.length} keywords` : <span className="italic text-muted-foreground">—</span>}</span>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <span className="text-muted-foreground shrink-0">Categories</span>
-                            <span className="font-medium text-right">{selectedCategories.length > 0 ? `${selectedCategories.length} selected` : <span className="italic text-muted-foreground">—</span>}</span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </CardSummaryContent>
-              </CardSummary>
+                    <SummaryCard
+                      title="Media plan"
+                      entity="media-plan"
+                      variant="details"
+                      items={mp ? [
+                        { label: 'Media plan', value: mp.label },
+                        ...('advertiser' in mp && mp.advertiser ? [{ label: 'Advertiser', value: String(mp.advertiser) }] : []),
+                        ...('budget' in mp && mp.budget ? [{ label: 'Total budget', value: String(mp.budget) }] : []),
+                      ] : [{ label: 'Media plan', value: 'Not selected' }]}
+                    />
+                  </>
+                );
+              })()}
 
             </div>
           </div>

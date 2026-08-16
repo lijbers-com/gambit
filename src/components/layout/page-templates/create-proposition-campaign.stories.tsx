@@ -2628,85 +2628,29 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       <p className="-mt-2 text-xs text-muted-foreground">
                         Add keywords to target shoppers searching for relevant products.
                       </p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={keywordInput}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeywordInput(e.target.value)}
-                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                            if (e.key === 'Enter' && keywordInput.trim()) {
-                              e.preventDefault();
-                              setKeywords(prev => [...prev, ...keywordInput.split(';').map(k => k.trim()).filter(Boolean)]);
-                              setKeywordInput('');
-                            }
-                          }}
-                          placeholder="Add keywords separated with semicolons"
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          disabled={!keywordInput.trim()}
-                          onClick={() => {
-                            setKeywords(prev => [...prev, ...keywordInput.split(';').map(k => k.trim()).filter(Boolean)]);
-                            setKeywordInput('');
-                          }}
-                          className="gap-1.5"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add
-                        </Button>
-                      </div>
-                      {/* Added keywords are selected items, so they get the
-                          selected-item card the products and categories use —
-                          not a lighter-weight badge. */}
-                      {keywords.length > 0 && (
-                        <div className="space-y-2">
-                          {keywords.map((kw, idx) => (
-                            <div key={`${kw}-${idx}`} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="min-w-0 truncate text-sm font-medium">{kw}</div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setKeywords(prev => prev.filter((_, i) => i !== idx))}
-                                  aria-label={`Remove ${kw}`}
-                                  className="h-8 w-8 shrink-0 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* Suggestions come from the products picked above — the
-                          fastest keywords to add are the ones already implied. */}
+                      {/* The selection component, with create turned on: the
+                          suggestions are a starting point, not the whole set of
+                          valid keywords. */}
+                      <SearchSelectList
+                        label={null}
+                        placeholder="Search or type a keyword…"
+                        allowCreate
+                        options={spKeywordSuggestions.map((k) => ({ value: k, label: k, description: 'Suggested keyword' }))}
+                        value={keywords}
+                        onChange={setKeywords}
+                      />
                       {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
-                        <div className="space-y-1.5">
-                          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                            <span>Suggested keywords:</span>
-                            {spKeywordSuggestions.filter(k => !keywords.includes(k)).map((k) => (
-                              <button
-                                key={k}
-                                type="button"
-                                onClick={() => setKeywords(prev => [...prev, k])}
-                                className="text-primary underline-offset-2 hover:underline"
-                              >
-                                {k}
-                              </button>
-                            ))}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setKeywords(prev => [
-                              ...prev,
-                              ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                            ])}
-                            className="inline-flex items-center gap-1.5 text-xs text-primary underline-offset-2 hover:underline"
-                          >
-                            <CornerDownRight className="h-3.5 w-3.5" />
-                            Add all suggested keywords
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setKeywords(prev => [
+                            ...prev,
+                            ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                          ])}
+                          className="inline-flex items-center gap-1.5 text-xs text-primary underline-offset-2 hover:underline"
+                        >
+                          <CornerDownRight className="h-3.5 w-3.5" />
+                          Add all suggested keywords
+                        </button>
                       )}
                     </div>
                   </FormSection>

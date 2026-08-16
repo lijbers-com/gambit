@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Search, X, ChevronDown } from 'lucide-react';
+import { Search, X, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { SearchInput } from './search-input';
@@ -41,6 +41,10 @@ export interface SearchSelectListProps {
   /** Drop the option's description once it is selected — for cards that
    *  summarise what is inside instead of repeating the catalogue blurb. */
   hideSelectedDescription?: boolean;
+  /** Let the user add a value that is not in the catalogue — the typed text
+   *  appears as the first row, "Add \"…\"". For lists like keywords, where the
+   *  options are suggestions rather than the whole world of valid answers. */
+  allowCreate?: boolean;
   className?: string;
 }
 
@@ -62,6 +66,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   renderSelectedExtra,
   selectedExtraBoxed,
   hideSelectedDescription,
+  allowCreate,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -69,7 +74,9 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   /** Only long catalogues get a search field; short ones act as a select. */
-  const searchable = options.length >= SEARCHABLE_THRESHOLD;
+  // Typing is the point when values can be created, however short the
+  // suggestion list is.
+  const searchable = allowCreate || options.length >= SEARCHABLE_THRESHOLD;
   /** "Search KPIs…" → "Select KPIs…" when the field behaves as a select. */
   const selectPlaceholder = placeholder.replace(/^Search\b/i, 'Select');
 
@@ -101,9 +108,10 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const selected = value
-    .map((v) => options.find((o) => o.value === v))
-    .filter(Boolean) as SearchSelectOption[];
+  // A created value has no catalogue entry, so it stands for itself.
+  const selected: SearchSelectOption[] = value.map(
+    (v) => options.find((o) => o.value === v) ?? { value: v, label: v },
+  );
 
   return (
     <div className={cn('min-w-0 space-y-2', className)}>
@@ -125,6 +133,12 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                   setShowResults(true);
                 }}
                 onClick={() => setShowResults(true)}
+                onKeyDown={(e) => {
+                  if (allowCreate && e.key === 'Enter' && search.trim()) {
+                    e.preventDefault();
+                    add(results[0]?.value ?? search.trim());
+                  }
+                }}
                 placeholder={placeholder}
                 className="w-full"
                 icon={icon ?? <Search className="w-4 h-4" />}
@@ -144,6 +158,18 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
             )}
             {showResults && (
               <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-card shadow-lg">
+                {allowCreate && search.trim() && !value.includes(search.trim()) &&
+                  !results.some((o) => o.label.toLowerCase() === search.trim().toLowerCase()) && (
+                  <div
+                    className="cursor-pointer border-b p-3 last:border-b-0 hover:bg-neutral-50"
+                    onClick={() => add(search.trim())}
+                  >
+                    <div className="flex items-center gap-1.5 text-sm font-medium">
+                      <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                      Add “{search.trim()}”
+                    </div>
+                  </div>
+                )}
                 {results.length > 0 ? (
                   results.map((option) => (
                     <div
@@ -155,9 +181,9 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                       {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
                     </div>
                   ))
-                ) : (
+                ) : !allowCreate || !search.trim() ? (
                   <div className="p-3 text-center text-sm text-muted-foreground">No matches</div>
-                )}
+                ) : null}
               </div>
             )}
           </>

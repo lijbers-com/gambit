@@ -46,6 +46,7 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
+import { Label } from '@/components/ui/label';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
@@ -558,6 +559,37 @@ export const Display: Story = {
     const [pricingModel, setPricingModel] = React.useState(false);
     const [competeWithRTB, setCompeteWithRTB] = React.useState(false);
 
+    // The fields each toggle reveals — mirroring the production form, where a
+    // switch is never just a switch but opens the numbers behind it.
+    const [freqCapImpressions, setFreqCapImpressions] = React.useState('');
+    const [freqCapExpiry, setFreqCapExpiry] = React.useState('');
+    const [exclusivityMode, setExclusivityMode] = React.useState('one-at-a-time');
+    const [priorityValue, setPriorityValue] = React.useState('Highest');
+    const [reachUnit, setReachUnit] = React.useState('Impressions');
+    const [reachAmount, setReachAmount] = React.useState('1000');
+    const [limitAmount, setLimitAmount] = React.useState('');
+    const [limitEvent, setLimitEvent] = React.useState('Impressions');
+    const [limitPeriod, setLimitPeriod] = React.useState('Daily');
+    const [pricingType, setPricingType] = React.useState('CPM');
+    const [unitPrice, setUnitPrice] = React.useState('10');
+
+    /** The Delivery-method-style dropdown, reused for every small select here. */
+    const MiniSelect = ({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full flex items-center justify-between font-normal">
+            {value}
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+          {options.map((opt) => (
+            <DropdownMenuItem key={opt} onClick={() => onChange(opt)}>{opt}</DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
     const dayLabels = [
       { id: 'mo', label: 'Mo' },
       { id: 'tu', label: 'Tu' },
@@ -822,13 +854,27 @@ export const Display: Story = {
                 )}
               </div>
 
-              {/* 3. Delivery behavior — Targeting tab */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
+              {/* Delivery behavior — how the booking spends its budget over
+                  the flight. Lives with the booking's own settings, not with
+                  targeting: it says how to deliver, not to whom. */}
+              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
                 {section3Open && (
                   <div className="space-y-3">
                     <ToggleRow label="Optimize for CPC" checked={optimizeForCPC} onCheckedChange={setOptimizeForCPC} info />
                     <ToggleRow label="User frequency cap" checked={userFrequencyCap} onCheckedChange={setUserFrequencyCap} info />
+                    {userFrequencyCap && (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label className="block">Impressions amount</Label>
+                          <Input type="number" value={freqCapImpressions} onChange={(e) => setFreqCapImpressions(e.target.value)} placeholder="e.g. 3" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Expiry in hours</Label>
+                          <Input type="number" value={freqCapExpiry} onChange={(e) => setFreqCapExpiry(e.target.value)} placeholder="e.g. 24" />
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-3 py-2">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">Delivery method</span>
@@ -852,28 +898,99 @@ export const Display: Story = {
                       </p>
                     </div>
                     <ToggleRow label="Exclusivity" checked={exclusivity} onCheckedChange={setExclusivity} />
+                    {exclusivity && (
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                        {[
+                          { id: 'one-at-a-time', label: 'One at a time' },
+                          { id: 'campaign', label: 'Exclusive on campaign' },
+                          { id: 'creative', label: 'Exclusive on creative' },
+                        ].map((opt) => (
+                          <label key={opt.id} className="flex cursor-pointer items-center gap-2 rounded-md border border-border p-3 text-sm has-[:checked]:border-surface-selected-border has-[:checked]:bg-surface-selected">
+                            <input
+                              type="radio"
+                              name="exclusivity-mode"
+                              className="h-4 w-4 accent-primary"
+                              checked={exclusivityMode === opt.id}
+                              onChange={() => setExclusivityMode(opt.id)}
+                            />
+                            {opt.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* 4. Delivery objectives — Targeting tab */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
+              {/* Delivery objectives — what the flight must achieve. */}
+              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={4} title="Delivery objectives" open={section4Open} onToggle={() => setSection4Open(v => !v)} />
                 {section4Open && (
                   <div className="space-y-3">
-                    <ToggleRow label="Priority" checked={priorityOverride} onCheckedChange={setPriorityOverride} rightText="Inherited from campaign: Highest" />
+                    <ToggleRow label="Priority" checked={priorityOverride} onCheckedChange={setPriorityOverride} rightText={priorityOverride ? undefined : 'Inherited from campaign: Highest'} />
+                    {priorityOverride && (
+                      <div className="space-y-2">
+                        <Label className="block">Priority</Label>
+                        <MiniSelect value={priorityValue} options={['Highest', 'High', 'Normal', 'Low']} onChange={setPriorityValue} />
+                      </div>
+                    )}
                     <ToggleRow label="Reach" checked={reachOverride} onCheckedChange={setReachOverride} />
+                    {reachOverride && (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label className="block">Reach unit</Label>
+                          <MiniSelect value={reachUnit} options={['Impressions', 'Unique users', 'Clicks']} onChange={setReachUnit} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Reach amount</Label>
+                          <Input type="number" value={reachAmount} onChange={(e) => setReachAmount(e.target.value)} />
+                        </div>
+                      </div>
+                    )}
                     <ToggleRow label="Delivery limit" checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
+                    {deliveryLimit && (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label className="block">Amount</Label>
+                          <Input type="number" value={limitAmount} onChange={(e) => setLimitAmount(e.target.value)} placeholder="e.g. 50000" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Delivery limit event</Label>
+                          <MiniSelect value={limitEvent} options={['Impressions', 'Clicks', 'Conversions']} onChange={setLimitEvent} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Delivery limit period</Label>
+                          <MiniSelect value={limitPeriod} options={['Daily', 'Weekly', 'Whole flight']} onChange={setLimitPeriod} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* 5. Pricing — Targeting tab */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
+              {/* Pricing — what the delivery costs. Commercial settings sit with
+                  the booking, never on the targeting tab. */}
+              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={5} title="Pricing" open={section5Open} onToggle={() => setSection5Open(v => !v)} />
                 {section5Open && (
                   <div className="space-y-3">
                     <ToggleRow label="Pricing model" checked={pricingModel} onCheckedChange={setPricingModel} />
+                    {pricingModel && (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label className="block">Pricing type</Label>
+                          <MiniSelect value={pricingType} options={['CPM', 'CPC', 'Fixed fee']} onChange={setPricingType} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Unit price</Label>
+                          <Input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Calculated price</Label>
+                          <Input value={unitPrice} readOnly disabled />
+                        </div>
+                      </div>
+                    )}
                     <ToggleRow label="Compete with RTB" checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
                   </div>
                 )}

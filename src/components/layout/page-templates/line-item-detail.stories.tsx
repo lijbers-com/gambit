@@ -327,18 +327,6 @@ const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
   };
   return (
     <div className="space-y-2">
-      {chips.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {chips.map((c) => (
-            <span key={c} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
-              {c}
-              <button type="button" onClick={() => onRemove(c)} aria-label={`Remove ${c}`} className="text-muted-foreground hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
       <div className="relative">
         <Input
           value={text}
@@ -362,6 +350,18 @@ const TargetChipEditor = ({ chips, suggestions, onAdd, onRemove }: {
           </div>
         )}
       </div>
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span key={c} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
+              {c}
+              <button type="button" onClick={() => onRemove(c)} aria-label={`Remove ${c}`} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -919,32 +919,31 @@ export const Display: Story = {
 
               {/* 2. Targeting — Targeting tab */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
-                <SectionHeader number={2} title="Targeting" open={section2Open} onToggle={() => setSection2Open(v => !v)} />
+                {/* Bulk import sits in the card header — the exception, not
+                    the everyday way targets are added. */}
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <h2 className="text-lg font-semibold">Targeting</h2>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" aria-label="More targeting options" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem className="gap-2">
+                        <Download className="h-4 w-4 text-muted-foreground" />
+                        Download template
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="gap-2">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        Upload CSV
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 {section2Open && (
                   <div className="">
                     <div className="space-y-4">
-                      <div className="font-semibold text-sm">Targets</div>
-                      {/* Bulk import lives behind the ellipsis — it is the
-                          exception, not the everyday way targets are added. */}
-                      <div className="flex items-center justify-end">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" aria-label="More targeting options" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2">
-                              <Download className="h-4 w-4 text-muted-foreground" />
-                              Download template
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
-                              <Upload className="h-4 w-4 text-muted-foreground" />
-                              Upload CSV
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
                       {/* Include and exclude are two lists in the form, not a
                           mode the user has to notice they are in. */}
                       {([

@@ -2275,6 +2275,33 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   };
   const spKeywordSuggestions = Object.keys(spKeywordMeta);
 
+  /**
+   * A keyword the user typed themselves is worth just as much to know about as
+   * one we suggested, so every added keyword gets the same line. Off the
+   * catalogue the numbers are derived from the word itself — stable per
+   * keyword, so it never reshuffles between renders.
+   */
+  const spKeywordDetail = (keyword: string) => {
+    const known = spKeywordMeta[keyword];
+    if (known) return known;
+    let hash = 0;
+    for (let i = 0; i < keyword.length; i += 1) hash = (hash * 31 + keyword.charCodeAt(i)) % 100000;
+    const searches = 800 + (hash % 9200);
+    // Volume is what the search count says it is — the two lines have to agree.
+    const volume = (searches < 1500 ? 1 : searches < 3000 ? 2 : searches < 5000 ? 3 : searches < 8000 ? 4 : 5) as Level;
+    const competition = (((hash >> 3) % 5) + 1) as Level;
+    return {
+      reach: searches >= 1000 ? `${(searches / 1000).toFixed(1)}K searches` : `${searches} searches`,
+      volume,
+      competition,
+    };
+  };
+
+  const spKeywordDescription = (keyword: string) => {
+    const { reach, volume, competition } = spKeywordDetail(keyword);
+    return `Volume: ${LEVEL_LABELS[volume]} · Competition: ${LEVEL_LABELS[competition]} · ${reach}`;
+  };
+
   const spCategoryOptions = [
     { value: 'cat-primary', label: 'Global primary category', description: 'The product’s own category' },
     { value: 'cat-beer', label: 'Beer & cider', description: '1,240 products' },
@@ -2657,11 +2684,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         placeholder="Search or type a keyword…"
                         allowCreate
                         maxVisibleSelected={6}
-                        options={spKeywordSuggestions.map((k) => ({
+                        options={Array.from(new Set([...spKeywordSuggestions, ...keywords])).map((k) => ({
                           value: k,
                           label: k,
-                          // One muted sub-line, same as every other selected card.
-                          description: `Volume: ${LEVEL_LABELS[spKeywordMeta[k].volume]} · Competition: ${LEVEL_LABELS[spKeywordMeta[k].competition]} · ${spKeywordMeta[k].reach}`,
+                          // One muted sub-line, same as every other selected card —
+                          // on typed keywords too, not just the suggested ones.
+                          description: spKeywordDescription(k),
                         }))}
                         value={keywords}
                         onChange={setKeywords}

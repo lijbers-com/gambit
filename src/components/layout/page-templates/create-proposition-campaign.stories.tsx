@@ -6,7 +6,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
-import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
+import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { MetricRow } from '@/components/ui/metric-row';
@@ -2613,7 +2613,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       <SuggestionList
                         items={spKeywordSuggestions
                           .filter(k => !keywords.includes(k))
-                          .map(k => ({ value: k, meta: spKeywordDetail(k).reach }))}
+                          .map(k => ({ value: k, meta: spKeywordDescription(k) }))}
                         onAdd={(k) => setKeywords(prev => [...prev, k])}
                         onAddAll={() => setKeywords(prev => [
                           ...prev,

@@ -30,7 +30,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { SuggestionList } from '@/components/ui/suggestion-list';
-import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
+import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
@@ -4426,7 +4426,7 @@ export const SponsoredProducts: Story = {
                           <SuggestionList
                             items={spKeywordSuggestions
                               .filter(k => !keywords.includes(k))
-                              .map(k => ({ value: k, meta: spKeywordDetail(k).reach }))}
+                              .map(k => ({ value: k, meta: spKeywordDescription(k) }))}
                             onAdd={(k) => setKeywords(prev => [...prev, k])}
                             onAddAll={() => setKeywords(prev => [
                               ...prev,

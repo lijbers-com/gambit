@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -56,9 +56,8 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
   return (
     <div className={cn(!bare && 'rounded-md border border-dashed border-border bg-card p-3', className)}>
       {!bare && (
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-muted-foreground">
           {label} ({all.length})
         </span>
         {onAddAll && (

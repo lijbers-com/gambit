@@ -8,16 +8,15 @@ import { Button } from './button';
 /**
  * Things the platform is offering, next to the things the user has chosen.
  *
- * Suggestions must not look like selections: a selected item is a card with a
- * remove button, so a suggestion is the opposite shape — a dashed outline pill
+ * Suggestions must not look like selections: a selected item is a full-width
+ * card with a remove button, so a suggestion is the opposite shape — a pill
  * carrying a plus. You add it by clicking it, and it leaves the list the
  * moment it becomes a real selection above.
  *
  * Suggestion sets can be long (a hundred keywords from a product feed), so
  * only the first handful show until the user asks for the rest.
  */
-/** A suggestion is a value, optionally with what it is worth: its reach and
- *  how contested it is. */
+/** A suggestion is a value, optionally with what it is worth. */
 export interface Suggestion {
   value: string;
   /** e.g. "22K searches" — what taking it is worth. */
@@ -76,7 +75,7 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
             key={item.value}
             type="button"
             onClick={() => onAdd(item.value)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-muted-foreground/40 bg-background px-2.5 py-1 text-xs text-foreground transition-colors hover:border-primary hover:bg-surface-hover"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-foreground transition-colors hover:border-primary hover:bg-surface-hover"
           >
             <Plus className="h-3 w-3 text-muted-foreground" />
             {item.value}

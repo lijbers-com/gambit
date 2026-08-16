@@ -56,19 +56,8 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
   return (
     <div className={cn(!bare && 'rounded-md border border-dashed border-border bg-card p-3', className)}>
       {!bare && (
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">
-          {label} ({all.length})
-        </span>
-        {onAddAll && (
-          <button
-            type="button"
-            onClick={onAddAll}
-            className="shrink-0 text-xs text-primary underline-offset-2 hover:underline"
-          >
-            Add all
-          </button>
-        )}
+      <div className="mb-3 text-xs font-medium text-muted-foreground">
+        {label} ({all.length})
       </div>
       )}
       <div className="flex flex-wrap gap-1.5">
@@ -84,22 +73,37 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({
             {item.meta && <span className="text-muted-foreground">{item.meta}</span>}
           </button>
         ))}
-        {hidden > 0 && (
+      </div>
+      {/* Both ways out of the list sit under it, where the eye ends up after
+          reading the pills — not in a header it has already passed. */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <span>
+          {hidden > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="text-xs text-primary underline-offset-2 hover:underline"
+            >
+              Show {hidden} more
+            </button>
+          )}
+          {expanded && all.length > initialVisible && (
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Show less
+            </button>
+          )}
+        </span>
+        {onAddAll && (
           <button
             type="button"
-            onClick={() => setExpanded(true)}
-            className="rounded-full px-2.5 py-1 text-xs text-primary underline-offset-2 hover:underline"
+            onClick={onAddAll}
+            className="shrink-0 text-xs text-primary underline-offset-2 hover:underline"
           >
-            Show {hidden} more
-          </button>
-        )}
-        {expanded && all.length > initialVisible && (
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            className="rounded-full px-2.5 py-1 text-xs text-muted-foreground underline-offset-2 hover:underline"
-          >
-            Show less
+            Add all
           </button>
         )}
       </div>

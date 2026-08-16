@@ -29,6 +29,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
+import { SuggestionList } from '@/components/ui/suggestion-list';
+import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
@@ -4086,7 +4088,7 @@ export const SponsoredProducts: Story = {
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -4117,6 +4119,13 @@ export const SponsoredProducts: Story = {
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    // What a sponsored-products booking is actually bought with.
+    const [keywords, setKeywords] = React.useState<string[]>(['beer', 'heineken', 'craft beer']);
+    const [selectedCategories, setSelectedCategories] = React.useState<string[]>(['cat-primary']);
+    const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>(localBrands.slice(0, 3).map(b => b.id));
+    const [dailyBudget, setDailyBudget] = React.useState('50');
+    const [biddingCPC, setBiddingCPC] = React.useState('0.60');
+    const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
@@ -4276,7 +4285,6 @@ export const SponsoredProducts: Story = {
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
-                      { value: 'creatives',  label: 'Creatives' },
                       { value: 'actions',    label: 'Notifications' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
@@ -4340,22 +4348,6 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
                       
-                      <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <CreatePlacement
-                          productLabel="Find placement*"
-                          positionsLabel="Ad spaces"
-                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
-                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
-                          onMediaProductChange={(v) => {
-                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
-                            setBookingPositions([]);
-                          }}
-                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
-                          positionsValue={bookingPositions}
-                          onPositionsChange={setBookingPositions}
-                        />
-                      </FormSection>
-
                       <BookingBudgetRuntime
                         className={cn(bookingTab !== 'details' && "hidden")}
                         budget={bookingBudget}
@@ -4372,132 +4364,147 @@ export const SponsoredProducts: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                       />
 
-                      <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection bordered title="Bidding" className={cn(bookingTab !== 'details' && "hidden")}>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
+                              <Input
+                                id="sp-daily-budget"
+                                type="number"
+                                placeholder="1.00"
+                                value={dailyBudget}
+                                onChange={(e) => setDailyBudget(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
+                              <Input
+                                id="sp-cpc"
+                                type="number"
+                                placeholder="0.50"
+                                value={biddingCPC}
+                                onChange={(e) => setBiddingCPC(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
+                            <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
+                            <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
+                          </div>
+                        </div>
+                      </FormSection>
+
+                      {/* Targeting is products, keywords and categories — the
+                          same three blocks the create flow builds, in the same
+                          order, so editing a booking looks like making one. */}
+                      <FormSection bordered title={`Add products (${selectedRetailProducts.length}/500)`} className={cn(bookingTab !== 'targeting' && "hidden")}>
                         <RetailProductSelect
                           value={selectedRetailProducts}
                           onChange={setSelectedRetailProducts}
                           products={retailProducts}
                           label={null}
-                          showCount
                         />
                       </FormSection>
 
-                      <FormSection bordered title="Store targets" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Location"
-                              options={locationOptions}
-                              selectedValues={selectedLocations}
-                              onChange={setSelectedLocations}
-                            />
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                            />
-                          </div>
+                      <FormSection bordered title={`Add keywords (${keywords.length}/1000)`} className={cn(bookingTab !== 'targeting' && "hidden")}>
+                        <div className="space-y-3">
+                          <p className="-mt-2 text-xs text-muted-foreground">Add keywords to target shoppers searching for relevant products.</p>
+                          <SearchSelectList
+                            label={null}
+                            placeholder="Search or type a keyword…"
+                            allowCreate
+                            maxVisibleSelected={5}
+                            options={Array.from(new Set([...spKeywordSuggestions, ...keywords])).map((k) => ({
+                              value: k,
+                              label: k,
+                              description: spKeywordDescription(k),
+                            }))}
+                            value={keywords}
+                            onChange={setKeywords}
+                          />
+                          <SuggestionList
+                            items={spKeywordSuggestions
+                              .filter(k => !keywords.includes(k))
+                              .map(k => ({ value: k, meta: spKeywordDetail(k).reach }))}
+                            onAdd={(k) => setKeywords(prev => [...prev, k])}
+                            onAddAll={() => setKeywords(prev => [
+                              ...prev,
+                              ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                            ])}
+                            label="Suggested keywords"
+                          />
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Stores" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Number of stores*</label>
-                            <div className="relative" data-dropdown-container>
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Store className="w-4 h-4" />
-                              </span>
-                              <Input 
-                                type="number"
-                                value={storeAmount}
-                                onChange={(e) => setStoreAmount(e.target.value)}
-                                placeholder="Enter number of stores" 
-                                className="w-full pl-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                min="1"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {storeAmount && !isNaN(parseInt(storeAmount)) && parseInt(storeAmount) > 0
-                              ? `This will generate ${calculateReach(storeAmount).toLocaleString()} reach`
-                              : 'Specify how many stores this booking will target'
-                            }
-                          </div>
+                      <FormSection
+                        bordered
+                        title="Enable categories"
+                        className={cn(bookingTab !== 'targeting' && "hidden")}
+                        action={
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedCategories(
+                              selectedCategories.length === spCategoryOptions.length ? [] : spCategoryOptions.map(c => c.value),
+                            )}
+                          >
+                            {selectedCategories.length === spCategoryOptions.length ? 'Clear all' : 'Select all'}
+                          </Button>
+                        }
+                      >
+                        <div className="space-y-2">
+                          <p className="-mt-2 mb-2 text-xs text-muted-foreground">Select product categories to broaden your reach.</p>
+                          {spCategoryOptions.map((cat) => {
+                            const isSelected = selectedCategories.includes(cat.value);
+                            return (
+                              <label
+                                key={cat.value}
+                                className={cn(
+                                  'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                                  isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                                )}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => setSelectedCategories(prev =>
+                                    prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
+                                  )}
+                                />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-medium">{cat.label}</span>
+                                  {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
+                                </span>
+                              </label>
+                            );
+                          })}
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Target" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                        <div className="space-y-4 min-w-0">
-                          <div className="text-sm text-muted-foreground mb-4">
-                            Add targeting criteria for this booking
-                          </div>
-                          <div className="flex gap-3">
-                            <Filter
-                              name="Store type"
-                              options={storeTypeOptions}
-                              selectedValues={selectedStoreTypes}
-                              onChange={setSelectedStoreTypes}
-                              className="flex-1"
-                            />
-                            <Filter
-                              name="Audience"
-                              options={audienceOptions}
-                              selectedValues={selectedAudiences}
-                              onChange={setSelectedAudiences}
-                              className="flex-1"
-                            />
-                          </div>
+                      <FormSection bordered title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                        <div className="space-y-2">
+                          <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
+                          {localBrands.map((brand) => {
+                            const isSelected = selectedLocalBrands.includes(brand.id);
+                            return (
+                              <label
+                                key={brand.id}
+                                className={cn(
+                                  'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                                  isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                                )}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => setSelectedLocalBrands(prev =>
+                                    prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
+                                  )}
+                                />
+                                <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
+                              </label>
+                            );
+                          })}
                         </div>
-                      </FormSection>
-
-                      <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
-                        {selectedCreatives.length > 0 && (
-                          <div className="mb-4 overflow-x-auto">
-                            <Table
-                              columns={[
-                                {
-                                  key: 'remove',
-                                  header: '',
-                                  render: (row) => (
-                                    <Button
-                                      size="icon"
-                                      variant="outline"
-                                      onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                                      aria-label="Remove creative"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  ),
-                                  className: 'w-10 text-center',
-                                },
-                                { key: 'name', header: 'Name' },
-                                { key: 'format', header: 'Format' },
-                                { key: 'status', header: 'Status' },
-                                { key: 'type', header: 'Type' },
-                              ]}
-                              data={selectedCreatives}
-                              rowKey={row => row.id}
-                              hideActions
-                              rowClassName={() => 'cursor-pointer'}
-                              onRowClick={row => {
-                                console.log('Navigate to creative details for', row.name);
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        <CreativeLinkingDialog 
-                          selectedCreatives={selectedCreatives} 
-                          onSelectionChange={setSelectedCreatives} 
-                        />
                       </FormSection>
 
                       <section className={cn(bookingTab !== 'logs' && "hidden")}>
@@ -4598,17 +4605,18 @@ export const SponsoredProducts: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
+                    actions={summaryActionsFor(bookingTab)}
+                    className="bg-card"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
-                      ...(selectedPlacement ? [{ label: 'Placement', value: selectedPlacement.name }] : []),
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
+                      ...(bookingBudget ? [{ label: 'Total budget', value: `€${bookingBudget}` }] : []),
+                      ...(dailyBudget ? [{ label: 'Daily budget', value: `€${dailyBudget}` }] : []),
+                      ...(biddingCPC ? [{ label: 'CPC bid', value: `€${biddingCPC}` }] : []),
                       ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
-                      ...(storeAmount ? [{ label: 'Stores', value: `${storeAmount} stores` }] : []),
-                      ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
-                      ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
-                      ...(selectedInventory.length > 0 ? [{ label: 'Inventory', value: `${(selectedInventory as any[]).length} selected` }] : []),
+                      ...(keywords.length > 0 ? [{ label: 'Keywords', value: `${keywords.length} keywords` }] : []),
+                      ...(selectedCategories.length > 0 ? [{ label: 'Categories', value: `${selectedCategories.length} selected` }] : []),
+                      ...(selectedLocalBrands.length > 0 ? [{ label: 'Local brands', value: `${selectedLocalBrands.length} selected` }] : []),
                     ]}
                   />
 

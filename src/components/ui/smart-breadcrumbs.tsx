@@ -111,6 +111,18 @@ const SmartBreadcrumbsInner = ({
     return formatLabel(path);
   };
 
+  /**
+   * Some path segments only exist to nest a detail page under — /campaigns/
+   * display/booking has no page of its own, so linking it lands on a 404. The
+   * crumb points at where those things are actually listed instead.
+   */
+  const resolveHref = (fullPath: string): string => {
+    const booking = fullPath.match(/^\/campaigns\/([^/]+)\/booking$/);
+    if (booking) return `/bookings/${booking[1]}`;
+    if (/^\/campaigns\/[^/]+\/creative$/.test(fullPath)) return '/creatives';
+    return fullPath;
+  };
+
   // Function to format labels
   const formatLabel = (label: string): string => {
     return label
@@ -148,7 +160,7 @@ const SmartBreadcrumbsInner = ({
     ...crumbs.map((crumb, index) => ({
       kind: 'crumb' as const,
       label: crumb.label,
-      href: constructUrl(crumb.pathName, passQueryParameters, searchParams),
+      href: constructUrl(resolveHref(crumb.pathName), passQueryParameters, searchParams),
       isPage: index === crumbs.length - 1,
       testId: `${getLastPartOfThePath(crumb.pathName)}-link`,
     })),

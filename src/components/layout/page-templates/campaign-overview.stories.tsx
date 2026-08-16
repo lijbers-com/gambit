@@ -178,6 +178,11 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     // ── Live campaigns + bookings from the prototype database ──────────
     const db = useDb();
     const engineId = engineTypeToId(engineType);
+    // Routes are slugs ('sponsored-products'), the story's engineType is a
+    // label ('sponsored products') — linking with the label 404s. On the
+    // all-engines overview each row carries its own engine, so use that.
+    const routeSlug = (rowEngine?: string) =>
+      engineId !== 'all' ? engineId : engineTypeToId(rowEngine ?? '') ;
     // The header's date range is session state, so it still applies when the
     // user arrives here from another overview (see lib/session-filters).
     const sessionFilters = useSessionFilters();
@@ -270,8 +275,8 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
       if (typeof window === 'undefined') return;
       // Sponsored-products bookings live inside the campaign page.
       window.location.href = c.engine === 'sponsored-products'
-        ? `/campaigns/${engineType}/${c.id}`
-        : `/campaigns/${engineType}/booking/${booking.id}`;
+        ? `/campaigns/${routeSlug(c.engine)}/${c.id}`
+        : `/campaigns/${routeSlug(c.engine)}/booking/${booking.id}`;
     };
 
     const tableRows: AnyRow[] = filteredCampaignData.flatMap((c) => {
@@ -546,7 +551,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       // Rows link into the campaign; bookings open their parent campaign
                       // (in this engine's section). The chevron alone toggles expansion.
                       const target = row._type === 'booking' ? row.parentId : row.id;
-                      window.location.href = `/campaigns/${engineType}/${target}`;
+                      window.location.href = `/campaigns/${routeSlug(row.engine)}/${target}`;
                     }}
                     rowClassName={(row) =>
                       row._type === 'booking'

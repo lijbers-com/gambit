@@ -6,7 +6,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
-import { LEVEL_LABELS, type Level } from '@/components/ui/level-meter';
+import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { MetricRow } from '@/components/ui/metric-row';
@@ -201,14 +201,6 @@ const mediaPlanOptions = [
   },
 ];
 
-const localBrands = [
-  { id: 'food-lion', label: 'Food Lion' },
-  { id: 'giant-food', label: 'Giant Food' },
-  { id: 'hannaford', label: 'Hannaford' },
-  { id: 'martins', label: "Martin's" },
-  { id: 'stop-shop', label: 'Stop & Shop' },
-  { id: 'giant-company', label: 'The Giant Company' },
-];
 
 const advertiserOptions = [
   { label: 'Acme Media', value: 'acme-media' },
@@ -2252,65 +2244,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { value: 'prod-004', label: 'Heineken 24-pack 330ml', description: 'HNK-330-24PK · Beer' },
     { value: 'prod-005', label: 'Heineken 1L bottle', description: 'HNK-1L-BTL · Beer' },
   ];
-  // Long on purpose: a real feed suggests dozens, which is what the
-  // suggestion list has to cope with. Each keyword carries what it is worth —
-  // how much is searched for it, and how hard it is to win — on the same
-  // five-step scale, so they can be weighed against each other.
-  const spKeywordMeta: Record<string, { reach: string; volume: Level; competition: Level }> = {
-    'beer':              { reach: '48K searches',  volume: 5, competition: 5 },
-    'heineken':          { reach: '31K searches',  volume: 5, competition: 4 },
-    'craft beer':        { reach: '22K searches',  volume: 4, competition: 5 },
-    'lager':             { reach: '18K searches',  volume: 4, competition: 3 },
-    'alcohol free beer': { reach: '12K searches',  volume: 4, competition: 3 },
-    'beer cans':         { reach: '11K searches',  volume: 3, competition: 3 },
-    'party drinks':      { reach: '9.4K searches', volume: 3, competition: 3 },
-    'beer bottles':      { reach: '8.9K searches', volume: 3, competition: 3 },
-    'beer crate':        { reach: '7.8K searches', volume: 3, competition: 2 },
-    'pilsner':           { reach: '6.2K searches', volume: 3, competition: 2 },
-    'football snacks':   { reach: '5.7K searches', volume: 2, competition: 2 },
-    'beer 6 pack':       { reach: '5.1K searches', volume: 2, competition: 2 },
-    'cold beer':         { reach: '4.4K searches', volume: 2, competition: 1 },
-    'dutch beer':        { reach: '3.6K searches', volume: 2, competition: 1 },
-    'bbq drinks':        { reach: '3.1K searches', volume: 1, competition: 1 },
-    'weekend drinks':    { reach: '2.8K searches', volume: 1, competition: 1 },
-  };
-  const spKeywordSuggestions = Object.keys(spKeywordMeta);
-
-  /**
-   * A keyword the user typed themselves is worth just as much to know about as
-   * one we suggested, so every added keyword gets the same line. Off the
-   * catalogue the numbers are derived from the word itself — stable per
-   * keyword, so it never reshuffles between renders.
-   */
-  const spKeywordDetail = (keyword: string) => {
-    const known = spKeywordMeta[keyword];
-    if (known) return known;
-    let hash = 0;
-    for (let i = 0; i < keyword.length; i += 1) hash = (hash * 31 + keyword.charCodeAt(i)) % 100000;
-    const searches = 800 + (hash % 9200);
-    // Volume is what the search count says it is — the two lines have to agree.
-    const volume = (searches < 1500 ? 1 : searches < 3000 ? 2 : searches < 5000 ? 3 : searches < 8000 ? 4 : 5) as Level;
-    const competition = (((hash >> 3) % 5) + 1) as Level;
-    return {
-      reach: searches >= 1000 ? `${(searches / 1000).toFixed(1)}K searches` : `${searches} searches`,
-      volume,
-      competition,
-    };
-  };
-
-  const spKeywordDescription = (keyword: string) => {
-    const { reach, volume, competition } = spKeywordDetail(keyword);
-    return `Volume: ${LEVEL_LABELS[volume]} · Competition: ${LEVEL_LABELS[competition]} · ${reach}`;
-  };
-
-  const spCategoryOptions = [
-    { value: 'cat-primary', label: 'Global primary category', description: 'The product’s own category' },
-    { value: 'cat-beer', label: 'Beer & cider', description: '1,240 products' },
-    { value: 'cat-spirits', label: 'Spirits & liqueurs', description: '890 products' },
-    { value: 'cat-wine', label: 'Wine', description: '2,100 products' },
-    { value: 'cat-soft', label: 'Soft drinks & mixers', description: '560 products' },
-    { value: 'cat-snacks', label: 'Snacks & crisps', description: '740 products' },
-  ];
   const spLocationOptions = [
     { value: 'loc-pdp', label: 'Product detail page', description: 'Sponsored slots beneath the product' },
     { value: 'loc-order', label: 'Order confirmation page', description: 'After checkout completes' },
@@ -2680,7 +2613,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       <SuggestionList
                         items={spKeywordSuggestions
                           .filter(k => !keywords.includes(k))
-                          .map(k => ({ value: k, meta: spKeywordMeta[k].reach }))}
+                          .map(k => ({ value: k, meta: spKeywordDetail(k).reach }))}
                         onAdd={(k) => setKeywords(prev => [...prev, k])}
                         onAddAll={() => setKeywords(prev => [
                           ...prev,

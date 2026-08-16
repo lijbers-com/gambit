@@ -541,8 +541,23 @@ export const Display: Story = {
 
     // Targeting
     const [targetMode, setTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
-    const [targetKeywordType, setTargetKeywordType] = React.useState('Search Keyword');
-    const [targetValue, setTargetValue] = React.useState('');
+    // Targets in one searchable catalogue — the type is on the option, not a
+    // dropdown in front of it, the same way the store-list picker searches.
+    const [selectedTargets, setSelectedTargets] = React.useState<string[]>([]);
+    const targetOptions = [
+      { value: 'kw-cola', label: 'cola', description: 'Search keyword · 22K monthly searches' },
+      { value: 'kw-cola-zero', label: 'cola zero sugar', description: 'Search keyword · 8.1K monthly searches' },
+      { value: 'kw-energy', label: 'energy drink', description: 'Search keyword · 14K monthly searches' },
+      { value: 'kw-iced-tea', label: 'iced tea', description: 'Search keyword · 6.4K monthly searches' },
+      { value: 'cat-beverages', label: 'Beverages', description: 'Category' },
+      { value: 'cat-snacks', label: 'Snacks', description: 'Category' },
+      { value: 'cat-dairy', label: 'Dairy', description: 'Category' },
+      { value: 'cat-frozen', label: 'Frozen foods', description: 'Category' },
+      { value: 'brand-cocacola', label: 'Coca-Cola', description: 'Brand' },
+      { value: 'brand-fanta', label: 'Fanta', description: 'Brand' },
+      { value: 'aud-families', label: 'Households with kids', description: 'Audience segment · 480K shoppers' },
+      { value: 'aud-health', label: 'Health-focused shoppers', description: 'Audience segment · 310K shoppers' },
+    ];
 
     // Delivery behavior
     const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
@@ -858,34 +873,16 @@ export const Display: Story = {
                           </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-1 min-w-[140px] justify-between">
-                              {targetKeywordType}
-                              <ChevronDown className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => (
-                              <DropdownMenuItem key={opt} onClick={() => setTargetKeywordType(opt)}>{opt}</DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex-1 flex items-center justify-between">
-                              <span className="text-muted-foreground">{targetValue || 'Select target'}</span>
-                              <ChevronDown className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-56">
-                            {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => (
-                              <DropdownMenuItem key={opt} onClick={() => setTargetValue(opt)}>{opt}</DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      {/* One searchable catalogue across keywords, categories,
+                          brands and audiences; selected targets render as the
+                          standard selected cards. */}
+                      <SearchSelectList
+                        label={null}
+                        placeholder="Search keywords, categories, brands or audiences…"
+                        options={targetOptions}
+                        value={selectedTargets}
+                        onChange={setSelectedTargets}
+                      />
                     </div>
                   </div>
                 )}
@@ -1181,7 +1178,7 @@ export const Display: Story = {
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
                     ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
                     ...(activeDays.length > 0 && activeDays.length < 7 ? [{ label: 'Active days', value: activeDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') }] : []),
-                    ...(targetValue ? [{ label: 'Target', value: `${targetMode === 'inclusive' ? '+ ' : '- '}${targetValue}` }] : []),
+                    ...(selectedTargets.length > 0 ? [{ label: 'Targets', value: `${targetMode === 'inclusive' ? 'Include' : 'Exclude'} ${selectedTargets.length}` }] : []),
                     ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
                   ]}
                 />

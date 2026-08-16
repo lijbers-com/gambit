@@ -2321,11 +2321,24 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
-  const isCampaignDetailsComplete =
-    campaignName.trim() !== '' &&
-    budget.trim() !== '' &&
-    selectedAdvertiser !== '' &&
-    startDate !== undefined;
+  const campaignMissing = [
+    !campaignName.trim() && 'campaign name',
+    !selectedAdvertiser && 'advertiser',
+    !budget.trim() && 'budget',
+    !startDate && 'run time',
+  ].filter(Boolean) as string[];
+  const isCampaignDetailsComplete = campaignMissing.length === 0;
+
+  /** Creating the campaign hands its details down to the booking step. */
+  const createCampaignAndContinue = () => {
+    const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
+    setSelectedCampaign(key);
+    setBookingCampaignName('');
+    if (startDate) setBookingStartDate(startDate);
+    if (endDate) setBookingEndDate(endDate);
+    if (budget.trim()) setTotalBudget(budget);
+    setCurrentStep(1);
+  };
 
   // What is still missing, by name. A disabled Next with no explanation is
   // the same as a broken Next — the user cannot tell which it is.
@@ -2486,24 +2499,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </div>
 
-                    <div className="flex justify-end pt-2">
-                      <Button
-                        disabled={!isCampaignDetailsComplete}
-                        onClick={() => {
-                          // Pre-fill booking step from campaign details
-                          const key = 'new-' + campaignName.toLowerCase().replace(/[\s–—]+/g, '-').replace(/[^a-z0-9-]/g, '');
-                          setSelectedCampaign(key);
-                          setBookingCampaignName('');
-                          if (startDate) setBookingStartDate(startDate);
-                          if (endDate) setBookingEndDate(endDate);
-                          if (budget.trim()) setTotalBudget(budget);
-                          setCurrentStep(1);
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        Create campaign
-                      </Button>
-                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -2664,7 +2659,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       label={null}
                       placeholder="Search for products…"
                       icon={<ScanBarcode className="w-4 h-4" />}
-                      maxVisibleSelected={6}
+                      maxVisibleSelected={5}
                       options={spProductOptions}
                       value={selectedProducts}
                       onChange={setSelectedProducts}
@@ -2683,7 +2678,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         label={null}
                         placeholder="Search or type a keyword…"
                         allowCreate
-                        maxVisibleSelected={6}
+                        maxVisibleSelected={5}
                         options={Array.from(new Set([...spKeywordSuggestions, ...keywords])).map((k) => ({
                           value: k,
                           label: k,
@@ -2826,6 +2821,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 const pending = currentStepId === 'campaign-details';
                 return (
                   <>
+                    {/* No booking exists until the campaign has been created,
+                        so there is nothing to summarise — an empty Booking
+                        card claims a booking that isn't there. */}
+                    {!pending && (
                     <SummaryCard
                       title="Booking"
                       entity="booking"
@@ -2833,8 +2832,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       // The step being worked on is the white card, and it
                       // carries the step's actions — same as the booking
                       // detail pages, where the open form's card does.
-                      className={pending ? 'opacity-40 bg-page' : 'bg-card'}
-                      actions={pending ? undefined : (
+                      className="bg-card"
+                      actions={(
                         bookingSubStep === 0
                           ? [
                               { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
@@ -2845,8 +2844,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                               { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
                             ]
                       )}
-                      footer={!pending && bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
-                      items={pending ? [{ label: 'Status', value: 'Complete campaign details first' }] : [
+                      footer={bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
+                      items={[
                         { label: 'Booking name', value: bookingCampaignName || dash },
                         { label: 'Campaign', value: campaign?.label ?? dash },
                         { label: 'Runtime', value: bookingStartDate || bookingEndDate ? `${fmt(bookingStartDate)} - ${fmt(bookingEndDate)}` : dash },
@@ -2860,12 +2859,23 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         ] : []),
                       ]}
                     />
+                    )}
 
                     <SummaryCard
                       title="Campaign details"
-                      className="bg-page"
+                      // Step 1 is the campaign, so on step 1 this is the open
+                      // form's card: white, first, and carrying its action.
+                      className={pending ? 'bg-card' : 'bg-page'}
                       entity="campaign"
                       variant="details"
+                      actions={pending ? [
+                        {
+                          label: 'Create campaign',
+                          disabled: !isCampaignDetailsComplete,
+                          onClick: createCampaignAndContinue,
+                        },
+                      ] : undefined}
+                      footer={pending && campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined}
                       items={[
                         { label: 'Campaign name', value: campaignName || campaign?.label || dash },
                         ...(externalId ? [{ label: 'External ID', value: externalId }] : []),

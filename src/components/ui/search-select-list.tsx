@@ -45,8 +45,9 @@ export interface SearchSelectListProps {
    *  appears as the first row, "Add \"…\"". For lists like keywords, where the
    *  options are suggestions rather than the whole world of valid answers. */
   allowCreate?: boolean;
-  /** Show only this many selected cards before "Show all". A long selection
-   *  otherwise pushes the rest of the form off the screen. */
+  /** Cap the selected list at this many cards and scroll past them. A long
+   *  selection otherwise pushes the rest of the form off the screen. The last
+   *  card is cut in half so the list reads as continuing rather than ending. */
   maxVisibleSelected?: number;
   className?: string;
 }
@@ -95,7 +96,24 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
         (o.description ?? '').toLowerCase().includes(q)),
   );
 
-  const [showAllSelected, setShowAllSelected] = React.useState(false);
+  /**
+   * The cap is a height, not a count: the list scrolls, and the card at the
+   * cut is left half-showing so it is obvious there is more below. Card
+   * heights differ (a description adds a line), so it is measured rather than
+   * guessed.
+   */
+  const listRef = React.useRef<HTMLDivElement>(null);
+  const [rowHeight, setRowHeight] = React.useState<number | null>(null);
+  const scrolls = Boolean(maxVisibleSelected && value.length > maxVisibleSelected);
+  React.useEffect(() => {
+    const first = listRef.current?.firstElementChild as HTMLElement | null;
+    if (first) setRowHeight(first.offsetHeight);
+  }, [value, scrolls]);
+  const SELECTED_GAP = 8; // space-y-2
+  const maxListHeight =
+    scrolls && rowHeight
+      ? (maxVisibleSelected! - 1) * (rowHeight + SELECTED_GAP) + rowHeight / 2
+      : undefined;
 
   const add = (val: string) => {
     onChange(multiple ? (value.includes(val) ? value : [...value, val]) : [val]);
@@ -196,11 +214,12 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
         )}
       </div>
       {selected.length > 0 && (
-        <div className="space-y-2">
-          {(maxVisibleSelected && !showAllSelected
-            ? selected.slice(0, maxVisibleSelected)
-            : selected
-          ).map((option) => (
+        <div
+          ref={listRef}
+          className={cn('space-y-2', scrolls && 'overflow-y-auto pr-1')}
+          style={maxListHeight ? { maxHeight: maxListHeight } : undefined}
+        >
+          {selected.map((option) => (
             <div key={option.value} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
               {/* Title line — vertically centred with the remove button. */}
               <div className="flex items-center justify-between gap-3">
@@ -229,17 +248,6 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               )}
             </div>
           ))}
-          {maxVisibleSelected && selected.length > maxVisibleSelected && (
-            <button
-              type="button"
-              onClick={() => setShowAllSelected((v) => !v)}
-              className="text-xs text-primary underline-offset-2 hover:underline"
-            >
-              {showAllSelected
-                ? 'Show fewer'
-                : `Show all ${selected.length} — ${selected.length - maxVisibleSelected} more`}
-            </button>
-          )}
         </div>
       )}
     </div>

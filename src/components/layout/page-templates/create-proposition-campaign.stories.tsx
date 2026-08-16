@@ -50,6 +50,7 @@ import {
   Upload,
   Calendar,
   Clock,
+  CornerDownRight,
   type LucideIcon,
 } from 'lucide-react';
 import { AddInlineLabel } from '@/components/ui/add-button';
@@ -2674,19 +2675,32 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {/* Suggestions come from the products picked above — the
                           fastest keywords to add are the ones already implied. */}
                       {spKeywordSuggestions.filter(k => !keywords.includes(k)).length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Suggested:{' '}
-                          {spKeywordSuggestions.filter(k => !keywords.includes(k)).map((k) => (
-                            <button
-                              key={k}
-                              type="button"
-                              onClick={() => setKeywords(prev => [...prev, k])}
-                              className="mr-2 text-primary underline-offset-2 hover:underline"
-                            >
-                              {k}
-                            </button>
-                          ))}
-                        </p>
+                        <div className="space-y-1.5">
+                          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                            <span>Suggested keywords:</span>
+                            {spKeywordSuggestions.filter(k => !keywords.includes(k)).map((k) => (
+                              <button
+                                key={k}
+                                type="button"
+                                onClick={() => setKeywords(prev => [...prev, k])}
+                                className="text-primary underline-offset-2 hover:underline"
+                              >
+                                {k}
+                              </button>
+                            ))}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setKeywords(prev => [
+                              ...prev,
+                              ...spKeywordSuggestions.filter(k => !prev.includes(k)),
+                            ])}
+                            className="inline-flex items-center gap-1.5 text-xs text-primary underline-offset-2 hover:underline"
+                          >
+                            <CornerDownRight className="h-3.5 w-3.5" />
+                            Add all suggested keywords
+                          </button>
+                        </div>
                       )}
                     </div>
                   </FormSection>
@@ -2811,7 +2825,22 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       title="Booking"
                       entity="booking"
                       variant="details"
-                      className={pending ? 'opacity-40' : undefined}
+                      // The step being worked on is the white card, and it
+                      // carries the step's actions — same as the booking
+                      // detail pages, where the open form's card does.
+                      className={pending ? 'opacity-40 bg-page' : 'bg-card'}
+                      actions={pending ? undefined : (
+                        bookingSubStep === 0
+                          ? [
+                              { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
+                              { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
+                            ]
+                          : [
+                              { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
+                              { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
+                            ]
+                      )}
+                      footer={!pending && bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
                       items={pending ? [{ label: 'Status', value: 'Complete campaign details first' }] : [
                         { label: 'Booking name', value: bookingCampaignName || dash },
                         { label: 'Campaign', value: campaign?.label ?? dash },
@@ -2829,6 +2858,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                     <SummaryCard
                       title="Campaign details"
+                      className="bg-page"
                       entity="campaign"
                       variant="details"
                       items={[
@@ -2842,6 +2872,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                     <SummaryCard
                       title="Media plan"
+                      className="bg-page"
                       entity="media-plan"
                       variant="details"
                       items={mp ? [

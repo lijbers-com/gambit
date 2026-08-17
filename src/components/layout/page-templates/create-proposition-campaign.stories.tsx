@@ -2789,81 +2789,83 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
               const campaign = campaignOptionsForBooking.find(o => o.value === selectedCampaign);
               const pending = currentStepId === 'campaign-details';
-              const stepIndex = pending ? 0 : bookingSubStep === 0 ? 1 : 2;
-              const stepStatus = (i: number) =>
-                i < stepIndex ? 'completed' as const : i === stepIndex ? 'active' as const : 'pending' as const;
-              // The timeline carries the current step's actions and what is
-              // still missing — one place drives the flow, however many steps
-              // a proposition ends up splitting its form into.
-              const stepActions = pending
-                ? [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
-                : bookingSubStep === 0
-                  ? [
-                      { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
-                      { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
-                    ]
-                  : [
-                      { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
-                      { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
-                    ];
-              const stepFooter = pending
-                ? (campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined)
-                : bookingSubStep === 0 && bookingMissing.length > 0
-                  ? `Still needed: ${bookingMissing.join(', ')}`
-                  : undefined;
-              // Step 1 creates the campaign; every later step creates its
-              // booking. The white timeline card is whichever of the two is
-              // being made right now — the booking summary only joins the
-              // chain once there is a booking to summarise.
-              const timeline = (
-                    <SummaryCard
-                      title={pending ? 'Campaign' : 'Booking'}
-                      entity={pending ? 'campaign' : 'booking'}
-                      variant="process"
-                      className="bg-card"
-                      steps={[
-                        {
-                          id: 'campaign-details',
-                          label: 'Campaign details',
-                          status: stepStatus(0),
-                          values: [
-                            campaignName || 'Unnamed campaign',
-                            budget ? `€${budget}` : '',
-                            startDate ? `${fmt(startDate)} - ${fmt(endDate)}` : '',
-                          ].filter(Boolean),
-                          onClick: () => setCurrentStep(0),
-                        },
-                        {
-                          id: 'booking-setup',
-                          label: 'Booking setup',
-                          status: stepStatus(1),
-                          values: [
-                            bookingCampaignName || 'Unnamed booking',
-                            totalBudget ? `€${totalBudget}` : '',
-                            biddingCPC ? `€${biddingCPC} CPC` : '',
-                          ].filter(Boolean),
-                          onClick: () => { setCurrentStep(1); setBookingSubStep(0); },
-                        },
-                        {
-                          id: 'placements',
-                          label: 'Placements',
-                          status: stepStatus(2),
-                          values: [
-                            selectedProducts.length > 0 ? `${selectedProducts.length} products` : '',
-                            keywords.length > 0 ? `${keywords.length} keywords` : '',
-                            selectedCategories.length > 0 ? `${selectedCategories.length} categories` : '',
-                          ].filter(Boolean),
-                          onClick: () => { setCurrentStep(1); setBookingSubStep(1); },
-                        },
-                      ]}
-                      actions={stepActions}
-                      footer={stepFooter}
-                    />
+              // Each entity owns its own steps. A campaign's details are the
+              // campaign's, not the booking's, so they live on the campaign's
+              // timeline — the booking's starts where the booking does. Same
+              // shape whichever entity a flow happens to start from.
+              const campaignTimeline = (
+                <SummaryCard
+                  title="Campaign"
+                  entity="campaign"
+                  variant="process"
+                  className="bg-card"
+                  steps={[
+                    {
+                      id: 'campaign-details',
+                      label: 'Campaign details',
+                      status: pending ? 'active' as const : 'completed' as const,
+                      values: [
+                        campaignName || 'Unnamed campaign',
+                        budget ? `€${budget}` : '',
+                        startDate ? `${fmt(startDate)} - ${fmt(endDate)}` : '',
+                      ].filter(Boolean),
+                      onClick: () => setCurrentStep(0),
+                    },
+                  ]}
+                  actions={[{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]}
+                  footer={campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined}
+                />
+              );
+              const bookingStatus = (i: number) =>
+                i < bookingSubStep ? 'completed' as const : i === bookingSubStep ? 'active' as const : 'pending' as const;
+              const bookingTimeline = (
+                <SummaryCard
+                  title="Booking"
+                  entity="booking"
+                  variant="process"
+                  className="bg-card"
+                  steps={[
+                    {
+                      id: 'booking-setup',
+                      label: 'Booking setup',
+                      status: bookingStatus(0),
+                      values: [
+                        bookingCampaignName || 'Unnamed booking',
+                        totalBudget ? `€${totalBudget}` : '',
+                        biddingCPC ? `€${biddingCPC} CPC` : '',
+                      ].filter(Boolean),
+                      onClick: () => setBookingSubStep(0),
+                    },
+                    {
+                      id: 'placements',
+                      label: 'Placements',
+                      status: bookingStatus(1),
+                      values: [
+                        selectedProducts.length > 0 ? `${selectedProducts.length} products` : '',
+                        keywords.length > 0 ? `${keywords.length} keywords` : '',
+                        selectedCategories.length > 0 ? `${selectedCategories.length} categories` : '',
+                      ].filter(Boolean),
+                      onClick: () => setBookingSubStep(1),
+                    },
+                  ]}
+                  actions={
+                    bookingSubStep === 0
+                      ? [
+                          { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
+                          { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
+                        ]
+                      : [
+                          { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
+                          { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
+                        ]
+                  }
+                  footer={bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
+                />
               );
               return (
                 <HierarchySidebar
                   active={pending ? 'campaign' : 'booking'}
-                  booking={pending ? undefined : timeline}
+                  booking={pending ? undefined : bookingTimeline}
                   mediaPlan={
                     <>
                       <SummaryCard
@@ -2902,7 +2904,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </>
                   }
-                  campaign={pending ? timeline : (
+                  campaign={pending ? campaignTimeline : (
                     <>
                       <SummaryCard
                         title="Campaign details"

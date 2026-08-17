@@ -8,10 +8,9 @@ import type { SummaryEntity } from './summary-card';
  * The rule for every booking surface's summary column.
  *
  * A booking lives in a hierarchy, and its detail page and its create wizard
- * both show the whole chain in the sidebar, always in the same order: booking,
- * then campaign, then media plan — the thing itself first, then upward, one
- * parent at a time. Creatives trail the chain: they are what hangs off the
- * booking, not something above it. The active card is lifted to the top and
+ * both show the whole chain in the sidebar, always in the same order: booking
+ * and its creatives — the two live on the same level — then upward, one parent
+ * at a time: campaign, then media plan. The active card is lifted to the top and
  * is the white one; on a wizard it is drawn as a step timeline instead of a
  * key/value list — the shape changes with the moment, the position and colour
  * do not.
@@ -22,7 +21,7 @@ import type { SummaryEntity } from './summary-card';
  * the form's actions.
  */
 
-export const HIERARCHY_ORDER: SummaryEntity[] = ['booking', 'campaign', 'media-plan', 'creative'];
+export const HIERARCHY_ORDER: SummaryEntity[] = ['booking', 'creative', 'campaign', 'media-plan'];
 
 export interface HierarchySidebarProps {
   /** Which entity is being worked on — its card is lifted to the top. */

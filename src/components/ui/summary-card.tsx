@@ -356,12 +356,14 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="flex items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
+            {/* One line, always: a wrapped two-line heading pushes the whole
+                card out of step with the ones beside it. */}
+            <h2 className="flex min-w-0 items-center gap-2 text-[18px] font-semibold leading-tight tracking-tight">
               {entity && (() => {
                 const EntityIcon = entityIcon[entity]
                 return <EntityIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
               })()}
-              {title}
+              <span className="min-w-0 truncate" title={title}>{title}</span>
             </h2>
             {subtitle && (
               <p className="text-[13px] text-muted-foreground mt-1">{subtitle}</p>

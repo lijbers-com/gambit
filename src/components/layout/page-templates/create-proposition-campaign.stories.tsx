@@ -2263,6 +2263,56 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   ].filter(Boolean) as string[];
   const isCampaignDetailsComplete = campaignMissing.length === 0;
 
+  /**
+   * A campaign being built has no performance yet, so the metric row carries
+   * the forecast instead: what the budget buys at the bid being asked for.
+   * Same row, same place — it fills in as the form does.
+   */
+  const spForecastMetrics = (() => {
+    const dash = '—';
+    const total = parseFloat(totalBudget || budget) || 0;
+    const cpc = parseFloat(biddingCPC) || 0;
+    // Before the booking exists the campaign's own run time is the span.
+    const from = bookingStartDate ?? startDate;
+    const to = bookingEndDate ?? endDate;
+    const days = from && to
+      ? Math.max(1, Math.ceil((to.getTime() - from.getTime()) / 86400000) + 1)
+      : 0;
+    const clicks = cpc > 0 ? Math.round(total / cpc) : 0;
+    // A wider keyword set converts a little better; enough to move with the form.
+    const conversionRate = 0.04 + Math.min(keywords.length, 20) * 0.001;
+    const orders = Math.round(clicks * conversionRate);
+    const sales = orders * 18;
+    return [
+      {
+        key: 'budget',
+        label: 'Budget',
+        value: total > 0 ? `€${total.toLocaleString()}` : dash,
+        subMetric: total > 0
+          ? (days > 0 ? `€${Math.round(total / days)}/day over ${days} days` : 'No run time set')
+          : 'No budget set',
+      },
+      {
+        key: 'clicks',
+        label: 'Est. clicks',
+        value: clicks > 0 ? clicks.toLocaleString() : dash,
+        subMetric: cpc > 0 ? `At €${cpc.toFixed(2)} CPC` : 'Set a bid to calculate',
+      },
+      {
+        key: 'sales',
+        label: 'Est. sales',
+        value: sales > 0 ? `€${sales.toLocaleString()}` : dash,
+        subMetric: orders > 0 ? `${orders.toLocaleString()} orders` : 'Set budget and bid',
+      },
+      {
+        key: 'roas',
+        label: 'Est. ROAS',
+        value: sales > 0 && total > 0 ? `${(sales / total).toFixed(1)}x` : dash,
+        subMetric: keywords.length > 0 ? `${keywords.length} keywords targeted` : 'Add keywords to lift this',
+      },
+    ];
+  })();
+
   // Relinking happens from the summary cards, not from a field in the form.
   const [linkingMediaPlan, setLinkingMediaPlan] = React.useState(false);
   const [linkingCampaign, setLinkingCampaign] = React.useState(false);
@@ -2343,16 +2393,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
           title: currentStepId === 'booking'
             ? bookingCampaignName || 'Untitled'
             : campaignName || 'Untitled',
-          subtitle: currentStepId === 'campaign-details'
-            ? 'Step 1 of 3 – Campaign details'
-            : currentStepId === 'booking'
-              ? bookingSubStep === 0
-                ? 'Step 2 of 3 – Booking setup'
-                : 'Step 3 of 3 – Placements'
-              : '',
+          // Where you are in the flow is the timeline's job, in the sidebar.
+          subtitle: '',
           headerRight: null,
         }}
       >
+        <div className="mb-3">
+          <MetricRow
+            metrics={spForecastMetrics}
+            maxVisible={4}
+            defaultVariant="default"
+            removable={false}
+            bleedEdges
+          />
+        </div>
         <div className="space-y-3">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main content */}
@@ -2735,8 +2789,55 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
                 const campaign = campaignOptionsForBooking.find(o => o.value === selectedCampaign);
                 const pending = currentStepId === 'campaign-details';
+                // Three steps: the campaign, then the booking's setup and its
+                // placements. Which one you are on belongs here, next to what
+                // each has captured so far — not in the page header.
+                const stepIndex = currentStepId === 'campaign-details' ? 0 : bookingSubStep === 0 ? 1 : 2;
+                const stepStatus = (i: number) =>
+                  i < stepIndex ? 'completed' as const : i === stepIndex ? 'active' as const : 'pending' as const;
                 return (
                   <>
+                    <SummaryCard
+                      title="Steps"
+                      className="bg-page"
+                      variant="process"
+                      steps={[
+                        {
+                          id: 'campaign-details',
+                          label: 'Campaign details',
+                          status: stepStatus(0),
+                          values: [
+                            campaignName || 'Unnamed campaign',
+                            budget ? `€${budget}` : '',
+                            startDate ? `${fmt(startDate)} - ${fmt(endDate)}` : '',
+                          ].filter(Boolean),
+                          onClick: () => setCurrentStep(0),
+                        },
+                        {
+                          id: 'booking-setup',
+                          label: 'Booking setup',
+                          status: stepStatus(1),
+                          values: [
+                            bookingCampaignName || 'Unnamed booking',
+                            totalBudget ? `€${totalBudget}` : '',
+                            biddingCPC ? `€${biddingCPC} CPC` : '',
+                          ].filter(Boolean),
+                          onClick: () => { setCurrentStep(1); setBookingSubStep(0); },
+                        },
+                        {
+                          id: 'placements',
+                          label: 'Placements',
+                          status: stepStatus(2),
+                          values: [
+                            selectedProducts.length > 0 ? `${selectedProducts.length} products` : '',
+                            keywords.length > 0 ? `${keywords.length} keywords` : '',
+                            selectedCategories.length > 0 ? `${selectedCategories.length} categories` : '',
+                          ].filter(Boolean),
+                          onClick: () => { setCurrentStep(1); setBookingSubStep(1); },
+                        },
+                      ]}
+                    />
+
                     {/* No booking exists until the campaign has been created,
                         so there is nothing to summarise — an empty Booking
                         card claims a booking that isn't there. */}

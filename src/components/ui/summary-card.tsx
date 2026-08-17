@@ -215,23 +215,26 @@ function ProcessContent({ steps }: { steps: SummaryStep[] }) {
                     "hover:underline cursor-pointer",
                 )}
                 onClick={step.onClick}
-                disabled={step.status !== "completed"}
+                disabled={step.status === "pending" || !step.onClick}
               >
                 {step.label}
               </button>
-              {step.status === "completed" && step.values && step.values.length > 0 && (
+              {/* The step you are on has usually captured something already —
+                  showing it is the point of the timeline. Only a genuinely
+                  empty step says so. */}
+              {step.status !== "pending" && step.values && step.values.length > 0 && (
                 <div className="mt-1 space-y-0.5">
                   {step.values.map((v, i) => (
                     <div key={i} className="text-xs text-muted-foreground">{v}</div>
                   ))}
                 </div>
               )}
-              {step.status === "completed" && step.value && !step.values && (
+              {step.status !== "pending" && step.value && !step.values && (
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {step.value}
                 </div>
               )}
-              {step.status === "active" && (
+              {step.status === "active" && !step.value && !step.values?.length && (
                 <div className="text-xs text-muted-foreground italic mt-0.5">
                   Not filled in
                 </div>

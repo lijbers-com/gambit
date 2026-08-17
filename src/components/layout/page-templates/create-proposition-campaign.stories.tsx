@@ -9,6 +9,7 @@ import { SuggestionList } from '@/components/ui/suggestion-list';
 import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
+import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -2777,30 +2778,48 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
             </div>
 
-            {/* Summary sidebar */}
-            <div className="flex flex-col gap-4">
-
-              {/* The same summary cards a booking detail page shows, in the
-                  same order — the wizard is building the thing those pages
-                  then display, so it should look like it. */}
-              {(() => {
-                const dash = '—';
-                const fmt = (d?: Date) => d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : dash;
-                const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
-                const campaign = campaignOptionsForBooking.find(o => o.value === selectedCampaign);
-                const pending = currentStepId === 'campaign-details';
-                // Three steps: the campaign, then the booking's setup and its
-                // placements. Which one you are on belongs here, next to what
-                // each has captured so far — not in the page header.
-                const stepIndex = currentStepId === 'campaign-details' ? 0 : bookingSubStep === 0 ? 1 : 2;
-                const stepStatus = (i: number) =>
-                  i < stepIndex ? 'completed' as const : i === stepIndex ? 'active' as const : 'pending' as const;
-                return (
-                  <>
+            {/* Summary sidebar — the booking hierarchy, the thing being
+                worked on first and white. In a wizard that active card is the
+                booking drawn as a step timeline (the same shape the media
+                plan wizard uses); the chain above it keeps its normal
+                summary cards, muted, in hierarchy order. */}
+            {(() => {
+              const dash = '—';
+              const fmt = (d?: Date) => d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : dash;
+              const mp = mediaPlanOptionsWithDynamic.find(m => m.value === selectedMediaPlanV2);
+              const campaign = campaignOptionsForBooking.find(o => o.value === selectedCampaign);
+              const pending = currentStepId === 'campaign-details';
+              const stepIndex = pending ? 0 : bookingSubStep === 0 ? 1 : 2;
+              const stepStatus = (i: number) =>
+                i < stepIndex ? 'completed' as const : i === stepIndex ? 'active' as const : 'pending' as const;
+              // The timeline carries the current step's actions and what is
+              // still missing — one place drives the flow, however many steps
+              // a proposition ends up splitting its form into.
+              const stepActions = pending
+                ? [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
+                : bookingSubStep === 0
+                  ? [
+                      { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
+                      { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
+                    ]
+                  : [
+                      { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
+                      { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
+                    ];
+              const stepFooter = pending
+                ? (campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined)
+                : bookingSubStep === 0 && bookingMissing.length > 0
+                  ? `Still needed: ${bookingMissing.join(', ')}`
+                  : undefined;
+              return (
+                <HierarchySidebar
+                  active="booking"
+                  booking={
                     <SummaryCard
-                      title="Steps"
-                      className="bg-page"
+                      title="Booking"
+                      entity="booking"
                       variant="process"
+                      className="bg-card"
                       steps={[
                         {
                           id: 'campaign-details',
@@ -2836,130 +2855,86 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           onClick: () => { setCurrentStep(1); setBookingSubStep(1); },
                         },
                       ]}
+                      actions={stepActions}
+                      footer={stepFooter}
                     />
-
-                    {/* No booking exists until the campaign has been created,
-                        so there is nothing to summarise — an empty Booking
-                        card claims a booking that isn't there. */}
-                    {!pending && (
-                    <SummaryCard
-                      title="Booking"
-                      entity="booking"
-                      variant="details"
-                      // The step being worked on is the white card, and it
-                      // carries the step's actions — same as the booking
-                      // detail pages, where the open form's card does.
-                      className="bg-card"
-                      actions={(
-                        bookingSubStep === 0
-                          ? [
-                              { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
-                              { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
-                            ]
-                          : [
-                              { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
-                              { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
-                            ]
-                      )}
-                      footer={bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
-                      items={[
-                        { label: 'Booking name', value: bookingCampaignName || dash },
-                        { label: 'Campaign', value: campaign?.label ?? dash },
-                        { label: 'Runtime', value: bookingStartDate || bookingEndDate ? `${fmt(bookingStartDate)} - ${fmt(bookingEndDate)}` : dash },
-                        { label: 'Total budget', value: totalBudget ? `€${totalBudget}` : dash },
-                        { label: 'Daily budget', value: dailyBudget ? `€${dailyBudget}` : dash },
-                        { label: 'CPC bid', value: biddingCPC ? `€${biddingCPC}` : dash },
-                        ...(bookingSubStep >= 1 ? [
-                          { label: 'Retail products', value: selectedProducts.length > 0 ? `${selectedProducts.length} selected` : dash },
-                          { label: 'Keywords', value: keywords.length > 0 ? `${keywords.length} keywords` : dash },
-                          { label: 'Categories', value: selectedCategories.length > 0 ? `${selectedCategories.length} selected` : dash },
-                        ] : []),
-                      ]}
-                    />
-                    )}
-
-                    <SummaryCard
-                      title="Campaign details"
-                      // Step 1 is the campaign, so on step 1 this is the open
-                      // form's card: white, first, and carrying its action.
-                      className={pending ? 'bg-card' : 'bg-page'}
-                      entity="campaign"
-                      variant="details"
-                      // Only a booking hangs under a campaign; on step 1 the
-                      // campaign is the thing being created, not linked.
-                      headerAction={pending ? undefined : {
-                        icon: LinkActionIcon,
-                        label: 'Change linked campaign',
-                        onClick: () => setLinkingCampaign(true),
-                      }}
-                      actions={pending ? [
-                        {
-                          label: 'Create campaign',
-                          disabled: !isCampaignDetailsComplete,
-                          onClick: createCampaignAndContinue,
-                        },
-                      ] : undefined}
-                      footer={pending && campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined}
-                      items={[
-                        { label: 'Campaign name', value: campaignName || campaign?.label || dash },
-                        ...(externalId ? [{ label: 'External ID', value: externalId }] : []),
-                        { label: 'Advertiser', value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? dash },
-                        { label: 'Budget', value: budget ? `€${budget}` : dash },
-                        { label: 'Runtime', value: startDate || endDate ? `${fmt(startDate)} - ${fmt(endDate)}` : dash },
-                      ]}
-                    />
-
-                    <SummaryCard
-                      title="Media plan"
-                      className="bg-page"
-                      entity="media-plan"
-                      variant="details"
-                      headerAction={{
-                        icon: LinkActionIcon,
-                        label: 'Change linked media plan',
-                        onClick: () => setLinkingMediaPlan(true),
-                      }}
-                      items={mp ? [
-                        { label: 'Media plan', value: mp.label },
-                        ...('advertiser' in mp && mp.advertiser ? [{ label: 'Advertiser', value: String(mp.advertiser) }] : []),
-                        ...('budget' in mp && mp.budget ? [{ label: 'Total budget', value: String(mp.budget) }] : []),
-                      ] : [{ label: 'Media plan', value: 'Not linked' }]}
-                    />
-
-                    <LinkPickerDialog
-                      open={linkingMediaPlan}
-                      onOpenChange={setLinkingMediaPlan}
-                      entityLabel="media plan"
-                      allowNone
-                      noneLabel="No media plan"
-                      options={mediaPlanOptionsWithDynamic.map((o) => ({
-                        value: o.value,
-                        label: o.label,
-                        details: {
-                          Advertiser: 'advertiser' in o && o.advertiser ? String(o.advertiser) : '—',
-                          Budget: 'budget' in o && o.budget ? String(o.budget) : '—',
-                        },
-                      }))}
-                      value={selectedMediaPlanV2 || undefined}
-                      onChange={(v) => setSelectedMediaPlanV2(v ?? '')}
-                    />
-
-                    <LinkPickerDialog
-                      open={linkingCampaign}
-                      onOpenChange={setLinkingCampaign}
-                      entityLabel="campaign"
-                      options={campaignOptionsForBooking.map((o) => ({
-                        value: o.value,
-                        label: o.label,
-                      }))}
-                      value={selectedCampaign || undefined}
-                      onChange={(v) => setSelectedCampaign(v ?? '')}
-                    />
-                  </>
-                );
-              })()}
-
-            </div>
+                  }
+                  mediaPlan={
+                    <>
+                      <SummaryCard
+                        title="Media plan"
+                        className="bg-page"
+                        entity="media-plan"
+                        variant="details"
+                        headerAction={{
+                          icon: LinkActionIcon,
+                          label: 'Change linked media plan',
+                          onClick: () => setLinkingMediaPlan(true),
+                        }}
+                        items={mp ? [
+                          { label: 'Media plan', value: mp.label },
+                          ...('advertiser' in mp && mp.advertiser ? [{ label: 'Advertiser', value: String(mp.advertiser) }] : []),
+                          ...('budget' in mp && mp.budget ? [{ label: 'Total budget', value: String(mp.budget) }] : []),
+                        ] : [{ label: 'Media plan', value: 'Not linked' }]}
+                      />
+                      <LinkPickerDialog
+                        open={linkingMediaPlan}
+                        onOpenChange={setLinkingMediaPlan}
+                        entityLabel="media plan"
+                        allowNone
+                        noneLabel="No media plan"
+                        options={mediaPlanOptionsWithDynamic.map((o) => ({
+                          value: o.value,
+                          label: o.label,
+                          details: {
+                            Advertiser: 'advertiser' in o && o.advertiser ? String(o.advertiser) : '—',
+                            Budget: 'budget' in o && o.budget ? String(o.budget) : '—',
+                          },
+                        }))}
+                        value={selectedMediaPlanV2 || undefined}
+                        onChange={(v) => setSelectedMediaPlanV2(v ?? '')}
+                      />
+                    </>
+                  }
+                  campaign={
+                    <>
+                      <SummaryCard
+                        title="Campaign details"
+                        className="bg-page"
+                        entity="campaign"
+                        variant="details"
+                        // Only a booking hangs under a campaign; while the
+                        // campaign is still being created there is nothing to
+                        // relink it to.
+                        headerAction={pending ? undefined : {
+                          icon: LinkActionIcon,
+                          label: 'Change linked campaign',
+                          onClick: () => setLinkingCampaign(true),
+                        }}
+                        items={[
+                          { label: 'Campaign name', value: campaignName || campaign?.label || dash },
+                          ...(externalId ? [{ label: 'External ID', value: externalId }] : []),
+                          { label: 'Advertiser', value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? dash },
+                          { label: 'Budget', value: budget ? `€${budget}` : dash },
+                          { label: 'Runtime', value: startDate || endDate ? `${fmt(startDate)} - ${fmt(endDate)}` : dash },
+                        ]}
+                      />
+                      <LinkPickerDialog
+                        open={linkingCampaign}
+                        onOpenChange={setLinkingCampaign}
+                        entityLabel="campaign"
+                        options={campaignOptionsForBooking.map((o) => ({
+                          value: o.value,
+                          label: o.label,
+                        }))}
+                        value={selectedCampaign || undefined}
+                        onChange={(v) => setSelectedCampaign(v ?? '')}
+                      />
+                    </>
+                  }
+                />
+              );
+            })()}
           </div>
         </div>
       </AppLayout>

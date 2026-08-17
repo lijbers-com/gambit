@@ -29,6 +29,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
+import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
@@ -1278,8 +1279,13 @@ export const Display: Story = {
               {/* end form card */}
               </div>
               {/* end form column */}
-              <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                            {/* The rule for every booking surface: the whole hierarchy in the
+                  sidebar, the active card first and white, the rest muted in
+                  hierarchy order. */}
+              <HierarchySidebar
+                active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                booking={
+                  <>
                 <SummaryCard
                   title="Booking"
                   entity="booking"
@@ -1297,10 +1303,18 @@ export const Display: Story = {
                     ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
                   ]}
                 />
-                <CampaignDetailsSidebar />
-                <MediaPlanSidebar />
-                {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
-              </aside>
+                  </>
+                }
+                mediaPlan={<MediaPlanSidebar />}
+                campaign={<CampaignDetailsSidebar />}
+                creative={
+                  <CreativesSidebar
+                    count={selectedCreatives.length}
+                    actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
+                    className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                  />
+                }
+              />
               </div>
               {/* end form + summary grid */}
               </div>
@@ -2642,8 +2656,13 @@ export const DigitalInStore: Story = {
                   {/* end form card */}
                   </div>
                   {/* end form column */}
-                  <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                                    {/* The rule for every booking surface: the whole hierarchy in the
+                      sidebar, the active card first and white, the rest muted in
+                      hierarchy order. */}
+                  <HierarchySidebar
+                    active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                    booking={
+                      <>
                   <SummaryCard
                     title="Booking"
                     entity="booking"
@@ -2712,11 +2731,18 @@ export const DigitalInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-
-                  <CampaignDetailsSidebar />
-                  <MediaPlanSidebar />
-                    {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
-                  </aside>
+                      </>
+                    }
+                    mediaPlan={<MediaPlanSidebar />}
+                    campaign={<CampaignDetailsSidebar />}
+                    creative={
+                      <CreativesSidebar
+                        count={selectedCreatives.length}
+                        actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
+                        className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                      />
+                    }
+                  />
                   {/* end summary column */}
                   </div>
                   {/* end form + summary grid */}
@@ -4001,8 +4027,13 @@ export const OfflineInStore: Story = {
                   {/* end form card */}
                   </div>
                   {/* end form column */}
-                  <aside className="space-y-4">
-                    {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                                    {/* The rule for every booking surface: the whole hierarchy in the
+                      sidebar, the active card first and white, the rest muted in
+                      hierarchy order. */}
+                  <HierarchySidebar
+                    active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                    booking={
+                      <>
                   <SummaryCard
                     title="Booking"
                     entity="booking"
@@ -4054,11 +4085,18 @@ export const OfflineInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-
-                  <CampaignDetailsSidebar />
-                  <MediaPlanSidebar />
-                    {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
-                  </aside>
+                      </>
+                    }
+                    mediaPlan={<MediaPlanSidebar />}
+                    campaign={<CampaignDetailsSidebar />}
+                    creative={
+                      <CreativesSidebar
+                        count={selectedCreatives.length}
+                        actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
+                        className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                      />
+                    }
+                  />
                   {/* end summary column */}
                   </div>
                   {/* end form + summary grid */}
@@ -4600,7 +4638,13 @@ export const SponsoredProducts: Story = {
                   {/* end form card */}
                   </div>
                   {/* end form column */}
-                  <aside className="space-y-4">
+                                    {/* The rule for every booking surface: the whole hierarchy in the
+                      sidebar, the active card first and white, the rest muted in
+                      hierarchy order. */}
+                  <HierarchySidebar
+                    active="booking"
+                    booking={
+                      <>
                   <SummaryCard
                     title="Booking"
                     entity="booking"
@@ -4648,10 +4692,11 @@ export const SponsoredProducts: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
-
-                  <CampaignDetailsSidebar />
-                  <MediaPlanSidebar />
-                  </aside>
+                      </>
+                    }
+                    mediaPlan={<MediaPlanSidebar />}
+                    campaign={<CampaignDetailsSidebar />}
+                  />
                   {/* end summary column */}
                   </div>
                   {/* end form + summary grid */}
@@ -5138,8 +5183,13 @@ export const OffsiteDisplay: Story = {
               {/* end form card */}
               </div>
               {/* end form column */}
-              <aside className="space-y-4">
-                {bookingTab === 'creatives' && <CreativesSidebar count={selectedCreatives.length} actions={summaryActionsFor(bookingTab)} className="bg-card" />}
+                            {/* The rule for every booking surface: the whole hierarchy in the
+                  sidebar, the active card first and white, the rest muted in
+                  hierarchy order. */}
+              <HierarchySidebar
+                active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                booking={
+                  <>
               <SummaryCard
                 title="Booking"
                 entity="booking"
@@ -5158,7 +5208,10 @@ export const OffsiteDisplay: Story = {
                   ...(selectedGeos.length > 0 ? [{ label: 'Geo', value: `${selectedGeos.length} selected` }] : []),
                 ]}
               />
-
+                  </>
+                }
+                mediaPlan={<MediaPlanSidebar />}
+                campaign={
               <SummaryCard
                 title="Campaign details"
                 entity="campaign"
@@ -5173,9 +5226,15 @@ export const OffsiteDisplay: Story = {
                   { label: 'Runtime', value: '01 Jun, 2024 - 30 Jun, 2024' },
                 ]}
               />
-              <MediaPlanSidebar />
-                {bookingTab !== 'creatives' && <CreativesSidebar count={selectedCreatives.length} />}
-              </aside>
+                }
+                creative={
+                  <CreativesSidebar
+                    count={selectedCreatives.length}
+                    actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
+                    className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                  />
+                }
+              />
               {/* end summary column */}
               </div>
               {/* end form + summary grid */}

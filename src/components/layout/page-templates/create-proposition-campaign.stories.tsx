@@ -2811,13 +2811,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 : bookingSubStep === 0 && bookingMissing.length > 0
                   ? `Still needed: ${bookingMissing.join(', ')}`
                   : undefined;
-              return (
-                <HierarchySidebar
-                  active="booking"
-                  booking={
+              // Step 1 creates the campaign; every later step creates its
+              // booking. The white timeline card is whichever of the two is
+              // being made right now — the booking summary only joins the
+              // chain once there is a booking to summarise.
+              const timeline = (
                     <SummaryCard
-                      title="Booking"
-                      entity="booking"
+                      title={pending ? 'Campaign' : 'Booking'}
+                      entity={pending ? 'campaign' : 'booking'}
                       variant="process"
                       className="bg-card"
                       steps={[
@@ -2858,7 +2859,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       actions={stepActions}
                       footer={stepFooter}
                     />
-                  }
+              );
+              return (
+                <HierarchySidebar
+                  active={pending ? 'campaign' : 'booking'}
+                  booking={pending ? undefined : timeline}
                   mediaPlan={
                     <>
                       <SummaryCard
@@ -2896,7 +2901,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </>
                   }
-                  campaign={
+                  campaign={pending ? timeline : (
                     <>
                       <SummaryCard
                         title="Campaign details"
@@ -2931,7 +2936,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         onChange={(v) => setSelectedCampaign(v ?? '')}
                       />
                     </>
-                  }
+                  )}
                 />
               );
             })()}

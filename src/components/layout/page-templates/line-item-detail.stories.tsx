@@ -386,7 +386,8 @@ const MediaPlanSidebar = () => {
           { label: 'Propositions', value: 'Display, Sponsored products, Digital in-store' },
           { label: 'Total budget', value: linked.details.Budget },
           { label: 'Runtime', value: '01 Aug, 2024 - 30 Aug, 2024' },
-        ] : [{ label: 'Media plan', value: 'Not linked' }]}
+        ] : undefined}
+        empty={linked ? undefined : 'No media plan linked'}
       />
       <LinkPickerDialog
         open={linking}

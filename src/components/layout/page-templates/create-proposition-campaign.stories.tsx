@@ -2880,7 +2880,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           { label: 'Media plan', value: mp.label },
                           ...('advertiser' in mp && mp.advertiser ? [{ label: 'Advertiser', value: String(mp.advertiser) }] : []),
                           ...('budget' in mp && mp.budget ? [{ label: 'Total budget', value: String(mp.budget) }] : []),
-                        ] : [{ label: 'Media plan', value: 'Not linked' }]}
+                        ] : undefined}
+                        empty={mp ? undefined : 'No media plan linked'}
                       />
                       <LinkPickerDialog
                         open={linkingMediaPlan}

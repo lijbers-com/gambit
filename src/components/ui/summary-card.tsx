@@ -116,6 +116,10 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
   }
   /** Small footnote text below actions */
   footer?: string
+  /** Nothing to summarise yet — renders a centred icon and this text instead
+   *  of content, the same shape an empty table uses, so absence reads as
+   *  absence rather than as a one-line summary. */
+  empty?: string
 }
 
 // ─── Sub-renderers ────────────────────────────────────────────────────────────
@@ -326,6 +330,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       actions,
       headerAction,
       footer,
+      empty,
       className,
       ...props
     },
@@ -378,9 +383,21 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
           )}
         </div>
 
+        {/* Nothing linked yet: absence drawn as absence — a centred icon and
+            a line, the same shape an empty table uses. */}
+        {empty && (
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            {entity && (() => {
+              const EntityIcon = entityIcon[entity]
+              return <EntityIcon className="h-6 w-6 text-muted-foreground/40" />
+            })()}
+            <span className="text-[13px] text-muted-foreground">{empty}</span>
+          </div>
+        )}
+
         {/* Content. Rendered only when there is some, so an empty card does not
             keep a gap where the body would have been. */}
-        {hasContent && (
+        {!empty && hasContent && (
           <div>
             {variant === "details" && (items || groups) && (
               <DetailsContent items={items} groups={groups} />

@@ -13,6 +13,9 @@ export interface GoalCardProps {
   /** The KPIs this goal is judged on — and nothing else. Spelled out on the
    *  card so the trade-off is part of choosing, not a surprise later. */
   kpis?: string[];
+  /** KPIs the user has since chosen — their chips light up so the card shows
+   *  which of its promises the plan is actually being judged on. */
+  highlightKpis?: string[];
   className?: string;
 }
 
@@ -25,7 +28,7 @@ export interface GoalCardProps {
  * without looking like a different kind of thing. Used by the create-media-plan
  * wizard and the media-plan details form.
  */
-export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, selected, onClick, readOnly, kpis, className }) => {
+export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, selected, onClick, readOnly, kpis, highlightKpis, className }) => {
   // Read-only renders a div: a button that cannot do anything still shows a
   // pointer and a hover state, which reads as "click me" and then disappoints.
   const Tag = readOnly ? 'div' : 'button';
@@ -46,15 +49,26 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
         <span className={cn('shrink-0', selected ? 'text-foreground' : 'text-muted-foreground')}>{icon}</span>
         <span className="min-w-0 truncate text-sm font-medium">{title}</span>
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p>
       {kpis && kpis.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1">
           <span className="text-[11px] font-medium text-muted-foreground">Focus KPIs:</span>
-          {kpis.map((k) => (
-            <span key={k} className="rounded-full border border-border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              {k}
-            </span>
-          ))}
+          {kpis.map((k) => {
+            const chosen = highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase()));
+            return (
+              <span
+                key={k}
+                className={cn(
+                  'rounded-full border px-1.5 py-0.5 text-[11px]',
+                  chosen
+                    ? 'border-primary/30 bg-primary/10 font-medium text-primary'
+                    : 'border-border bg-background text-muted-foreground',
+                )}
+              >
+                {k}
+              </span>
+            );
+          })}
         </div>
       )}
     </Tag>

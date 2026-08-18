@@ -42,24 +42,75 @@ const RightDrawerOverlay = React.forwardRef<
 ))
 RightDrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
+/** Resizable between a readable minimum and the viewport, remembered across
+ *  drawers — a width chosen once is a preference, not a per-message choice. */
+const DRAWER_WIDTH_KEY = "right-drawer-width"
+const MIN_DRAWER_WIDTH = 380
+
+const clampDrawerWidth = (w: number) =>
+  Math.min(Math.max(w, MIN_DRAWER_WIDTH), Math.max(MIN_DRAWER_WIDTH, window.innerWidth - 96))
+
 const RightDrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <RightDrawerPortal>
-    <RightDrawerOverlay />
-    <DrawerPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l bg-background shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-2xl",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </DrawerPrimitive.Content>
-  </RightDrawerPortal>
-))
+>(({ className, children, style, ...props }, ref) => {
+  const [width, setWidth] = React.useState<number | null>(null)
+
+  // Stored width is applied after mount — the drawer only ever opens client
+  // side, but reading localStorage during render would still be a hydration
+  // hazard for any drawer that starts open.
+  React.useEffect(() => {
+    const stored = Number(window.localStorage.getItem(DRAWER_WIDTH_KEY))
+    if (stored > 0) setWidth(clampDrawerWidth(stored))
+  }, [])
+
+  const startResize = (e: React.PointerEvent) => {
+    // Keep the drag ours: vaul reads pointer drags on the content as
+    // swipe-to-dismiss, which would close the drawer instead of resizing it.
+    e.preventDefault()
+    e.stopPropagation()
+    document.body.style.userSelect = "none"
+    document.body.style.cursor = "ew-resize"
+    const onMove = (ev: PointerEvent) => setWidth(clampDrawerWidth(window.innerWidth - ev.clientX))
+    const onUp = (ev: PointerEvent) => {
+      window.localStorage.setItem(DRAWER_WIDTH_KEY, String(clampDrawerWidth(window.innerWidth - ev.clientX)))
+      document.body.style.userSelect = ""
+      document.body.style.cursor = ""
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
+  }
+
+  return (
+    <RightDrawerPortal>
+      <RightDrawerOverlay />
+      <DrawerPrimitive.Content
+        ref={ref}
+        className={cn(
+          "group/drawer fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l bg-background shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-2xl",
+          className
+        )}
+        // A dragged width wins over the class cap; until then the cap rules.
+        style={width !== null ? { width, maxWidth: "none", ...style } : style}
+        {...props}
+      >
+        {/* Resize handle on the drawer's leading edge — a wide hit area with a
+            grip that appears on hover, like a window splitter. */}
+        <div
+          onPointerDown={startResize}
+          title="Drag to resize"
+          aria-hidden
+          className="absolute inset-y-0 left-0 z-10 hidden w-2.5 cursor-ew-resize sm:block"
+        >
+          <div className="absolute left-1 top-1/2 h-16 w-1 -translate-y-1/2 rounded-full bg-muted-foreground/30 opacity-0 transition-opacity duration-150 group-hover/drawer:opacity-100" />
+        </div>
+        {children}
+      </DrawerPrimitive.Content>
+    </RightDrawerPortal>
+  )
+})
 RightDrawerContent.displayName = "RightDrawerContent"
 
 const RightDrawerHeader = ({

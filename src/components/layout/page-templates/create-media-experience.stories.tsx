@@ -178,6 +178,22 @@ const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: stri
 // for free once the total media budget clears its threshold; below that it can
 // still be added for the listed one-off fee. Conversion-stage objectives have
 // no brand study (sales attribution is tracked automatically).
+/**
+ * Which brand KPIs each objective is judged on — the funnel table's rows. The
+ * stage pool (funnelKpis) is what the stage CAN measure; this is what the
+ * chosen objective actually IS measured on, so the KPI select narrows to it.
+ * Objectives absent here (sales, promotion support, new customers) have no
+ * brand-lift KPI — their sales and media KPIs are tracked automatically.
+ */
+const objectiveBrandKpis: Record<string, string[]> = {
+  'Brand awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
+  'Product awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
+  'Brand associations': ['Brand associations & values', 'Category entry points'],
+  'Brand/product consideration': ['Brand/product consideration'],
+  'Brand preference': ['Brand preference'],
+  'Purchase intent': ['Purchase intent'],
+};
+
 const studyPricing: Record<string, { fee: number; freeThreshold: number }> = {
   'Top-of-mind awareness': { fee: 1500, freeThreshold: 25000 },
   'Unaided brand/product awareness': { fee: 1500, freeThreshold: 25000 },
@@ -1071,6 +1087,7 @@ export const GoalSelection: Story = {
                               title={goal.title}
                               description={goal.description}
                               kpis={goal.kpis}
+                              highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
                               selected={selectedGoal === goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />
@@ -1097,7 +1114,9 @@ export const GoalSelection: Story = {
                         // KPIs for the chosen objective's stage. Brand KPIs have a
                         // matching brand-lift study (research); if the stage has none,
                         // sales & ROAS are tracked automatically.
-                        const kpiOptions = funnelKpis[stage]?.brand ?? [];
+                        // The objective picks its own KPIs from the stage pool.
+                        const kpiOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
+                          .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
                         const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
                         const budgetNum = parseFloat(budgetAmount) || 0;
                         const studyCost = selectedStudies.reduce((sum, name) => {

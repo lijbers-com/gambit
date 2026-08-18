@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Logo } from '@/components/ui/logo';
-import { Image } from '@/lib/router-context';
+import { Image, Link } from '@/lib/router-context';
 import React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
@@ -144,7 +144,17 @@ const LoginTemplate: React.FC<LoginTemplateProps> = ({ themes, initialTheme = 'a
             backgroundPosition: 'top left',
             backgroundRepeat: 'no-repeat',
           }}
-        />
+        >
+          {/* The wordmark is painted into the SVG, so the link is an overlay
+              sized in panel percentages — it tracks the logo as `cover`
+              scales the artwork with the panel. */}
+          <Link
+            href="/product"
+            aria-label="About edge.os"
+            title="About edge.os"
+            className="absolute left-[6%] top-[5%] h-[9%] w-[28%]"
+          />
+        </div>
       ) : (
         <div
           className="hidden lg:flex lg:w-1/2 relative overflow-hidden"

@@ -131,15 +131,23 @@ const goalObjectives: Record<string, { stage: string; objectives: string[] }> = 
 
 // Demo estimates for the headline KPIs we surface in the metric row as the
 // plan is built. Only KPIs with an estimate here are promoted to a metric card.
+/**
+ * A forecast is a band, not a point — showing "€8,208" promises a precision
+ * the model doesn't have. ±8% around the midpoint, the two ends formatted the
+ * same way, unit stated once.
+ */
+const forecastRange = (mid: number, fmt: (n: number) => string, unit = '') =>
+  `${fmt(mid * 0.92)}–${fmt(mid * 1.08)}${unit}`;
+
 const kpiEstimates: Record<string, { value: string; sub: string }> = {
-  'Reach': { value: '21.6M', sub: 'Estimated reach' },
-  'Frequency': { value: '3.4', sub: 'Avg. per shopper' },
-  'CTR': { value: '0.84%', sub: 'vs. 0.7% target' },
-  'CPM': { value: '€4.50', sub: 'Blended' },
-  'VCR': { value: '68%', sub: 'Video completion' },
-  'Conversion rate': { value: '2.1%', sub: 'Estimated' },
-  'Incremental ROAS': { value: '3.8×', sub: 'Incremental' },
-  'Sales lift': { value: '+12%', sub: 'vs. baseline' },
+  'Reach': { value: '19.9M–23.3M', sub: 'Estimated reach' },
+  'Frequency': { value: '3.1–3.7', sub: 'Avg. per shopper' },
+  'CTR': { value: '0.77–0.91%', sub: 'vs. 0.7% target' },
+  'CPM': { value: '€4.14–4.86', sub: 'Blended' },
+  'VCR': { value: '63–73%', sub: 'Video completion' },
+  'Conversion rate': { value: '1.9–2.3%', sub: 'Estimated' },
+  'Incremental ROAS': { value: '3.5–4.1×', sub: 'Incremental' },
+  'Sales lift': { value: '+10–14%', sub: 'vs. baseline' },
 };
 
 // KPIs the plan is judged on per funnel stage (the funnel → KPI framework).
@@ -847,7 +855,7 @@ export const GoalSelection: Story = {
                       ? (() => {
                           const baseReach = parseFloat(estimatedReach?.replace('M', '') || '0');
                           const totalReach = baseReach + propositionImpact.additionalReach;
-                          return `${totalReach.toFixed(1)}M`;
+                          return forecastRange(totalReach, (n) => n.toFixed(1), 'M');
                         })()
                       : '-',
                     subMetric: selectedAudiences.length > 0
@@ -875,7 +883,7 @@ export const GoalSelection: Story = {
                       ? (() => {
                           const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0) + (selectedAudiences.length > 2 ? 0.5 : 0);
                           const boostedRoas = baseRoas * (1 + propositionImpact.roasBoost / 100);
-                          return `${boostedRoas.toFixed(1)}x`;
+                          return forecastRange(boostedRoas, (n) => n.toFixed(1), 'x');
                         })()
                       : '-',
                     subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',
@@ -890,7 +898,7 @@ export const GoalSelection: Story = {
                           const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0) + (selectedAudiences.length > 2 ? 0.5 : 0);
                           const baseSales = parseFloat(budgetAmount) * baseRoas;
                           const totalSales = baseSales + propositionImpact.additionalSales;
-                          return `€${Math.round(totalSales).toLocaleString()}`;
+                          return '€' + forecastRange(totalSales, (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)));
                         })()
                       : '-',
                     subMetric: budgetAmount.trim() !== '' ? 'Projected revenue' : 'Set budget to calculate',
@@ -1003,24 +1011,31 @@ export const GoalSelection: Story = {
                         />
                       )}
 
-                      {/* Recommendations — only once there is input to base them on. */}
-                      {selectedBrands.length > 0 && (
+                      {/* Recommendations are about what the user is creating,
+                          so nothing shows until a retail product is chosen —
+                          who the advertiser is doesn't need advice. Insights
+                          belong to the plan once it exists, not the wizard. */}
+                      {selectedRetailProducts.length > 0 && advertiserStats.categories.length > 1 && (
                         <OptimisationCard
                           items={[
                             {
-                              badge: 'AI Insight',
-                              tone: 'insight' as const,
-                              title: 'Strong category benchmark', message: `${advertiserStats.categories[0]} buyers return ${advertiserStats.roas.toFixed(1)}× on average and reach ~${advertiserStats.reach.toFixed(1)}M shoppers — a strong base for a conversion goal.`,
-                              explain: brandReachExplain({ reach: advertiserStats.reach, roas: advertiserStats.roas, category: advertiserStats.categories[0] }),
+                              badge: 'Suggestion',
+                              tone: 'tip' as const,
+                              title: 'Split by category',
+                              message: `The selected products span ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.`,
+                              explain: {
+                                stats: [
+                                  { label: 'Categories', value: String(advertiserStats.categories.length), sub: 'In this selection' },
+                                  { label: 'Products', value: String(advertiserStats.products), sub: 'SKUs in scope' },
+                                  { label: 'Attribution', value: 'Per category', sub: 'After the split', tone: 'success' as const },
+                                ],
+                                insights: [
+                                  { title: 'Why split', text: 'One campaign per category keeps sales attribution clean — a click on a beer ad is never credited to a snacks sale.' },
+                                  { title: 'What it costs', text: 'Nothing in budget: the same total is spread over more focused campaigns.' },
+                                  { title: 'Reversible', text: 'Campaigns can be merged later; attribution history stays with each category.' },
+                                ],
+                              },
                             },
-                            ...(selectedBrandsHaveRetailProducts
-                              ? [advertiserStats.products === 0
-                                  ? { badge: 'Tip', tone: 'tip' as const, title: 'Add retail products', message: 'Add retail products to enable sales attribution and product-level KPIs.' }
-                                  : { badge: 'AI Insight', tone: 'success' as const, title: 'Sales attribution enabled', message: `${advertiserStats.products} SKU${advertiserStats.products === 1 ? '' : 's'} in scope — sales attribution and basket metrics are enabled.` }]
-                              : [{ badge: 'Tip', tone: 'tip' as const, title: 'No retail products in-store', message: "This brand has no retail products in-store — focus on reach and brand KPIs; sales attribution won't be available." }]),
-                            ...(advertiserStats.categories.length > 1
-                              ? [{ badge: 'Tip', tone: 'tip' as const, title: 'Split by category', message: `Spanning ${advertiserStats.categories.length} categories (${advertiserStats.categories.join(', ')}) — splitting into focused campaigns improves attribution accuracy.` }]
-                              : []),
                           ]}
                         />
                       )}
@@ -1147,43 +1162,51 @@ export const GoalSelection: Story = {
                         value={selectedAudiences}
                         onChange={setSelectedAudiences}
                       />
+                      {/* Only recommendations about the choices being made on
+                          this step, each with its case. What a goal means for
+                          KPIs is explained by the selection UI itself. */}
+                      {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (selectedAudiences.length === 0 || (getStudiesForStage(goalObjectives[selectedGoal].stage).length > 0 && selectedStudies.length === 0)) && (
                       <OptimisationCard
-                        assisted={assistedExperience}
-                        onToggle={setAssisted}
-                        items={
-                          selectedGoal && selectedObjective && goalObjectives[selectedGoal]
-                            ? [
-                                {
-                                  badge: 'AI Insight',
-                                  tone: 'insight' as const,
-                                  title: 'KPIs set by your goal', message: `${goals.find((g) => g.id === selectedGoal)?.title} + ${selectedObjective} maps to the ${goalObjectives[selectedGoal].stage} stage — the matching KPIs are now in the metric row above.`,
-                                  explain: funnelKpiExplain({
-                                    stage: goalObjectives[selectedGoal].stage,
-                                    kpis: [
-                                      ...funnelKpis[goalObjectives[selectedGoal].stage].brand,
-                                      ...funnelKpis[goalObjectives[selectedGoal].stage].media,
-                                      ...funnelKpis[goalObjectives[selectedGoal].stage].sales,
-                                    ],
-                                  }),
+                        items={[
+                          ...(selectedAudiences.length === 0
+                            ? [{
+                                badge: 'Suggestion', tone: 'tip' as const,
+                                title: 'Add an audience',
+                                message: 'Add one or more audience segments — reach becomes estimable and the plan can be priced against a real pool of shoppers.',
+                                explain: {
+                                  stats: [
+                                    { label: 'Audiences', value: '0', sub: 'Selected' },
+                                    { label: 'Est. reach', value: '—', sub: 'Needs an audience' },
+                                    { label: 'Largest pool', value: `${audienceOptions[0]?.reach ?? '—'}`, sub: audienceOptions[0]?.label ?? '' },
+                                  ],
+                                  insights: [
+                                    { title: 'Why it matters', text: 'Without an audience the plan targets everyone, which prices like no one — reach, frequency and CPM all stay unknown.' },
+                                    { title: 'Start broad', text: 'One broad segment is enough to estimate; narrower ones can be layered on later.' },
+                                  ],
                                 },
-                                goalObjectives[selectedGoal].stage === 'Conversion'
-                                  ? { badge: 'AI Insight', tone: 'insight' as const, title: 'Best proposition mix', message: 'Conversion plans perform best with Sponsored Products + Display working together.' }
-                                  : { badge: 'AI Insight', tone: 'insight' as const, title: 'Best proposition mix', message: 'Awareness goals lean on Display and Digital in-store for broad, high-frequency reach.' },
-                                selectedAudiences.length === 0
-                                  ? { badge: 'Tip', tone: 'tip' as const, title: 'Add an audience', message: 'Add one or more audience segments to estimate reach.' }
-                                  : { badge: 'Tip', tone: 'tip' as const, title: 'Widen your reach', message: `${selectedAudiences.length} audience${selectedAudiences.length === 1 ? '' : 's'} selected — add more to widen reach.` },
-                                ...(getStudiesForStage(goalObjectives[selectedGoal].stage).length === 0
-                                  ? []
-                                  : selectedStudies.length === 0
-                                    ? [{ badge: 'Tip', tone: 'tip' as const, title: 'Add a brand-lift study', message: `Add a brand-lift study to prove ${selectedObjective} — most are free once your media budget passes €25k.` }]
-                                    : [{ badge: 'AI Insight', tone: 'success' as const, title: 'Brand lift measured', message: `${selectedStudies.length} brand stud${selectedStudies.length === 1 ? 'y' : 'ies'} selected — measured pre/post against a matched control group, free above the budget threshold.` }]),
-                              ]
-                            : [
-                                { badge: 'Tip', tone: 'tip' as const, title: 'Pick a goal', message: 'Pick a goal and objective — the KPIs this plan is judged on appear in the metric row.' },
-                                { badge: 'AI Insight', tone: 'insight' as const, title: 'How KPIs are chosen', message: 'Your goal sets the objective, which sets the Brand, Media and Sales KPIs we report on.' },
-                              ]
-                        }
+                              }]
+                            : []),
+                          ...(getStudiesForStage(goalObjectives[selectedGoal].stage).length > 0 && selectedStudies.length === 0
+                            ? [{
+                                badge: 'Suggestion', tone: 'tip' as const,
+                                title: 'Add a brand-lift study',
+                                message: `Add a brand-lift study to prove ${selectedObjective} — most are free once your media budget passes €25k.`,
+                                explain: {
+                                  stats: [
+                                    { label: 'Objective', value: selectedObjective ?? '—', sub: 'To prove' },
+                                    { label: 'Method', value: 'Pre/post', sub: 'Matched control group' },
+                                    { label: 'Cost', value: 'Free', sub: 'Above €25k budget', tone: 'success' as const },
+                                  ],
+                                  insights: [
+                                    { title: 'Why now', text: 'A study must start with the flight — added afterwards there is no clean pre-measurement to compare against.' },
+                                    { title: 'What you get', text: `Evidence that ${selectedObjective ?? 'the objective'} actually moved, not just that media was delivered.` },
+                                  ],
+                                },
+                              }]
+                            : []),
+                        ]}
                       />
+                      )}
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => goToStep(1)}>Back</Button>
@@ -1232,44 +1255,49 @@ export const GoalSelection: Story = {
                         </div>
                         <FieldHint>The maximum total amount for the entire campaign duration</FieldHint>
                       </div>
-                      {/* Offered at the point the budget is set, so the choice
-                          is made once rather than discovered later on the plan. */}
-                      <label className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
-                        <span className="text-sm font-medium leading-none">
-                          Auto budget allocation
-                          <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                            Splits the budget across your propositions by the return each one delivers, and
-                            keeps rebalancing it. Setting a campaign budget by hand switches it off.
-                          </span>
-                        </span>
-                        <Switch checked={autoBudget} onCheckedChange={setAutoBudget} />
-                      </label>
                       <OptimisationCard
                         assisted={assistedExperience}
                         onToggle={setAssisted}
                         items={(() => {
-                          const autoBudgetAdvice: Advice = autoBudgetOptimization
-                            ? { badge: 'AI Insight', tone: 'success', title: 'Automatic budget is on', message: 'Automatic budget is on — spend reallocates to the best-performing propositions in real time (~+18% ROAS).', explain: budgetOptimisationExplain() }
-                            : { badge: 'Suggestion', tone: 'tip', title: 'Optimise budget automatically', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() };
+                          // Accepted advice leaves the list rather than
+                          // returning as an "it's on" insight — insights wait
+                          // for the plan to exist.
+                          const autoBudgetAdvice: Advice[] = autoBudgetOptimization
+                            ? []
+                            : [{ badge: 'Suggestion', tone: 'tip', title: 'Optimise budget automatically', message: 'Let us distribute your budget automatically across propositions to maximise ROAS (~+18%).', action: { label: 'Set budget to automatic', onClick: () => setAutoBudgetOptimization(true) }, explain: budgetOptimisationExplain() }];
                           if (budgetAmount.trim() === '' || !dateRange?.from || !dateRange?.to) {
                             return [
                               ...(budgetAmount.trim() === ''
                                 ? [{ badge: 'Suggestion', tone: 'tip' as const, title: 'Suggested starting budget', message: 'Start with €5,000 — a common budget for plans like this.', action: { label: 'Use €5,000', onClick: () => setBudgetAmount('5000') }, explain: budgetStarterExplain() }]
                                 : []),
-                              autoBudgetAdvice,
+                              ...autoBudgetAdvice,
                             ];
                           }
                           const days = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
                           const daily = parseFloat(budgetAmount) / days;
                           const items: Advice[] = [];
+                          // Silence is the healthy state — a note saying the
+                          // pace is fine is noise next to the ones that matter.
                           if (daily < 150) {
                             items.push({ badge: 'Budget Alert', tone: 'alert', title: 'Budget may be too thin', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.`, explain: budgetStarterExplain() });
-                          } else {
-                            items.push({ badge: 'AI Insight', tone: 'insight', title: 'Healthy daily pace', message: `€${daily.toFixed(0)}/day over ${days} days is a healthy pace for sustained frequency.` });
                           }
-                          items.push(autoBudgetAdvice);
+                          items.push(...autoBudgetAdvice);
                           if (days < 21) {
-                            items.push({ badge: 'Tip', tone: 'tip', title: 'Consider a longer flight', message: 'Flights of 3+ weeks build the frequency needed for awareness and consideration goals.' });
+                            items.push({
+                              badge: 'Suggestion', tone: 'tip', title: 'Consider a longer flight',
+                              message: 'Flights of 3+ weeks build the frequency needed for awareness and consideration goals.',
+                              explain: {
+                                stats: [
+                                  { label: 'Flight', value: `${days} days`, sub: 'As planned' },
+                                  { label: 'Recommended', value: '21+ days', sub: 'For frequency build-up' },
+                                  { label: 'Frequency', value: `~${Math.max(1, Math.round(days / 7))}×`, sub: 'Per shopper at this length' },
+                                ],
+                                insights: [
+                                  { title: 'Why longer', text: 'Awareness works by repetition — a shopper needs several exposures before a brand registers, and short flights end before that builds.' },
+                                  { title: 'Same budget', text: 'Stretching the flight does not need more budget; the same total spread thinner per day usually beats a loud, short burst.' },
+                                ],
+                              },
+                            });
                           }
                           return items;
                         })()}
@@ -1490,31 +1518,35 @@ export const GoalSelection: Story = {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
+                    {/* One recommendation when the mix leaves reach on the
+                        table; mode counts and projections are insights and
+                        wait for the plan to exist. */}
+                    {propositions.length - propositionImpact.selectedCount > 0 && (
                     <div className="mt-6">
                       <OptimisationCard
-                        assisted={assistedExperience}
-                        onToggle={setAssisted}
                         items={(() => {
                           const missing = propositions.length - propositionImpact.selectedCount;
-                          const assistedCount = campaignRows.filter((r) => r.mode === 'preset').length;
-                          const expertCount = campaignRows.length - assistedCount;
-                          return [
-                            missing > 0
-                              ? { badge: 'Incomplete', tone: 'alert' as const, title: 'Propositions missing', message: `${missing} proposition${missing === 1 ? '' : 's'} not in this plan — adding a campaign for them brings incremental reach for the same audience.` }
-                              : { badge: 'AI Insight', tone: 'success' as const, title: 'Full proposition coverage', message: 'Every proposition has a campaign — the widest reach for this audience.' },
-                            {
-                              badge: 'AI Insight', tone: 'insight' as const,
-                              message: assistedCount > 0
-                                ? `${assistedCount} assisted campaign${assistedCount === 1 ? '' : 's'} prefilled by AI presets${expertCount > 0 ? `, ${expertCount} set up in expert mode` : ''} — switch any campaign between the two.`
-                                : 'All campaigns are in expert mode — switch a campaign to assisted to have the AI prefill its placements.',
+                          const missingNames = propositions.filter((prop) => !campaignRows.some((r) => r.engine === prop.id)).map((prop) => prop.name);
+                          return [{
+                            badge: 'Suggestion', tone: 'tip' as const,
+                            title: 'Propositions missing',
+                            message: `${missing} proposition${missing === 1 ? '' : 's'} not in this plan — adding a campaign for them brings incremental reach for the same audience.`,
+                            explain: {
+                              stats: [
+                                { label: 'In the plan', value: String(propositionImpact.selectedCount), sub: 'Propositions' },
+                                { label: 'Missing', value: String(missing), sub: missingNames.slice(0, 2).join(', ') || 'None' },
+                                { label: 'Extra reach', value: `+${(missing * 1.1).toFixed(1)}M`, sub: 'Est. if all added', tone: 'success' as const },
+                              ],
+                              insights: [
+                                { title: 'Same audience, new surfaces', text: 'Each proposition reaches the audience in a different moment — adding one extends reach without buying the same impression twice.' },
+                                { title: 'Budget still yours', text: 'Adding a campaign does not raise the plan budget; the split across campaigns is set on each row.' },
+                              ],
                             },
-                            ...(propositionImpact.additionalSales > 0
-                              ? [{ badge: 'AI Insight', tone: 'success' as const, title: 'Projected incremental sales', message: `Projected +€${propositionImpact.additionalSales.toLocaleString()} incremental sales from this mix.` }]
-                              : []),
-                          ];
+                          }];
                         })()}
                       />
                     </div>
+                    )}
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => goToStep(3)}>Back</Button>
                       <Button onClick={createMediaPlanFlow}>
@@ -1768,7 +1800,7 @@ export const NoGoalTargeting: Story = {
                     key: 'reach',
                     label: 'Est. Reach',
                     value: propositionImpact.selectedCount > 0
-                      ? `${propositionImpact.additionalReach.toFixed(1)}M`
+                      ? forecastRange(propositionImpact.additionalReach, (n) => n.toFixed(1), 'M')
                       : '-',
                     subMetric: propositionImpact.selectedCount > 0
                       ? `${propositionImpact.selectedCount} proposition${propositionImpact.selectedCount !== 1 ? 's' : ''}`
@@ -1793,7 +1825,7 @@ export const NoGoalTargeting: Story = {
                       ? (() => {
                           const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0);
                           const boostedRoas = baseRoas * (1 + propositionImpact.roasBoost / 100);
-                          return `${boostedRoas.toFixed(1)}x`;
+                          return forecastRange(boostedRoas, (n) => n.toFixed(1), 'x');
                         })()
                       : '-',
                     subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',
@@ -1808,7 +1840,7 @@ export const NoGoalTargeting: Story = {
                           const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0);
                           const baseSales = parseFloat(budgetAmount) * baseRoas;
                           const totalSales = baseSales + propositionImpact.additionalSales;
-                          return `€${Math.round(totalSales).toLocaleString()}`;
+                          return '€' + forecastRange(totalSales, (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)));
                         })()
                       : '-',
                     subMetric: budgetAmount.trim() !== '' ? 'Projected revenue' : 'Set budget to calculate',

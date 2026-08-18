@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowRight, Check, Undo2 } from 'lucide-react';
+import { ArrowRight, Check, Undo2, X } from 'lucide-react';
 import { Inbox, type InboxItem } from './inbox';
 import { Button } from './button';
 import { MessageDrawer, type MessageBusinessCase } from './message-drawer';
@@ -158,6 +158,28 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
             if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
           }}
           footer={
+            active.kind === 'recommendation' && status[active.id] !== 'done' ? (
+              // A recommendation is a proposal, so its two answers are the
+              // proposal's: take it or turn it down. Either way it is
+              // answered — both close the case as done.
+              <>
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { markDone(active.id); setOpenId(null); }}
+                >
+                  <X className="h-4 w-4" />
+                  Decline
+                </Button>
+                <Button
+                  className="gap-1.5"
+                  onClick={() => { markDone(active.id); setOpenId(null); }}
+                >
+                  <Check className="h-4 w-4" />
+                  Accept
+                </Button>
+              </>
+            ) : (
             <>
               {status[active.id] === 'done' ? (
                 <Button
@@ -188,6 +210,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </>
+            )
           }
         />
       )}

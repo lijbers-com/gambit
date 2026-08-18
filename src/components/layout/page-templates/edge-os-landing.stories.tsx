@@ -177,7 +177,7 @@ export const EdgeOsLanding = () => (
 
             <div className="mb-9 flex flex-wrap gap-3.5">
               <MarketingButton href="/login">Login</MarketingButton>
-              <MarketingButton href="#solutions" tone="lime">
+              <MarketingButton href="#solutions" tone="accent">
                 Explore solutions
               </MarketingButton>
               <MarketingButton href="#products" tone="outline">

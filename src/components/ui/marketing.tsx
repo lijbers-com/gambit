@@ -103,26 +103,34 @@ export const MarketingHeading: React.FC<MarketingHeadingProps> = ({
   </div>
 );
 
-const marketingButtonVariants = cva('rounded-full px-[22px] font-bold transition hover:-translate-y-0.5', {
-  variants: {
-    tone: {
-      teal: 'bg-edge-teal text-white shadow-[0_12px_25px_rgba(0,85,85,0.22)] hover:bg-edge-teal-dark',
-      lime: 'border border-edge-lime bg-edge-lime text-edge-teal hover:border-edge-lime-dark hover:bg-edge-lime-dark',
-      outline: 'border border-white/40 bg-transparent text-white hover:border-white hover:bg-white/10',
-    },
-  },
-  defaultVariants: { tone: 'teal' },
-});
+/**
+ * A call to action: the app's Button, rendered as a link.
+ *
+ * It takes the app's own variants rather than restyling them. A button is not
+ * its element — it is its radius, weight, shadow and hover, and overriding
+ * those gave a control that shared a component with the app while looking
+ * nothing like it. So only the accent tone is Edge-specific: `lime` is the one
+ * colour the app has no variant for, and it changes the fill and nothing else.
+ */
+export type MarketingButtonTone = 'primary' | 'accent' | 'outline';
 
-export interface MarketingButtonProps extends VariantProps<typeof marketingButtonVariants> {
+export interface MarketingButtonProps {
   href: string;
+  tone?: MarketingButtonTone;
   children: React.ReactNode;
   className?: string;
 }
 
-/** A call to action: the app's Button, always rendered as a link. */
-export const MarketingButton: React.FC<MarketingButtonProps> = ({ href, tone, children, className }) => (
-  <Button asChild size="lg" className={cn(marketingButtonVariants({ tone }), className)}>
+export const MarketingButton: React.FC<MarketingButtonProps> = ({ href, tone = 'primary', children, className }) => (
+  <Button
+    asChild
+    size="lg"
+    variant={tone === 'outline' ? 'outline' : 'default'}
+    className={cn(
+      tone === 'accent' && 'bg-edge-lime text-edge-teal hover:bg-edge-lime-dark',
+      className,
+    )}
+  >
     <a href={href}>{children}</a>
   </Button>
 );

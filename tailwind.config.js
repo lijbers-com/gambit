@@ -24,6 +24,20 @@ module.exports = {
         'table-row-active': 'var(--table-row-active)',
         'tooltip-surface': 'var(--tooltip-surface)',
         'tooltip-surface-strong': 'var(--tooltip-surface-strong)',
+        // Edge's own brand colours, fixed. The `brand-*` scale below follows
+        // whichever retailer theme the app has loaded; the edge.os marketing
+        // page is always Edge, so it gets tokens no theme can override.
+        edge: {
+          teal: '#005555',
+          'teal-dark': '#003f3f',
+          'teal-deep': '#0b2525',
+          lime: '#c8f000',
+          'lime-dark': '#a7c900',
+          ink: '#102a2a',
+          body: '#425c5c',
+          muted: '#667f7f',
+          line: '#e6dec9',
+        },
         // Cream palette — Gambit / Edge brand neutral scale.
         // Referenced by --neutral-* in :root. Kept here for direct use when needed.
         cream: {

@@ -17,6 +17,12 @@ export type { SelectionListProps, SelectionListItem } from "./selection-list"
 export { SummaryCard } from "./summary-card"
 export { LinkPickerDialog, LinkActionIcon } from "./link-picker"
 export { HierarchySidebar, HIERARCHY_ORDER } from "./hierarchy-sidebar"
+export {
+  MarketingSection, MarketingContainer, MarketingHeading, MarketingLabel, MarketingButton,
+  MarketingCard, MarketingFeatureCard, MarketingStat, MarketingAudienceCard, MarketingCheck,
+  MarketingFeatureRow,
+} from "./marketing"
+export type { MarketingTone, MarketingSectionProps, MarketingHeadingProps, MarketingCardProps, MarketingFeatureCardProps } from "./marketing"
 export type { HierarchySidebarProps } from "./hierarchy-sidebar"
 export type { LinkOption, LinkPickerDialogProps } from "./link-picker"
 export type { SummaryCardProps, SummaryCardVariant, SummaryItem, SummarySection, SummaryTotal, SummaryStep, SummaryAction, SummaryGroup } from "./summary-card"

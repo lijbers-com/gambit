@@ -30,12 +30,13 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
 import { Euro, Lock } from 'lucide-react';
+import { useToast, queueToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
@@ -172,30 +173,51 @@ const BudgetCell = ({ value, onSave, className }: { value: number; onSave: (next
   const [editing, setEditing] = React.useState(false);
   React.useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
 
-  const commit = () => {
+  const parsed = Number(draft.replace(/[^0-9.]/g, ''));
+  const dirty = editing && Number.isFinite(parsed) && parsed >= 0 && parsed !== value;
+
+  // A budget change moves money on every campaign below it, so it commits on
+  // the tick (or Enter) — never as a side effect of the field losing focus.
+  const confirm = () => {
     setEditing(false);
-    const next = Number(draft.replace(/[^0-9.]/g, ''));
-    if (Number.isFinite(next) && next >= 0 && next !== value) onSave(next);
+    if (dirty) onSave(parsed);
     else setDraft(String(value));
   };
+  const cancel = () => { setDraft(String(value)); setEditing(false); };
 
   return (
-    <input
-      value={editing ? draft : fmtEuro(value)}
-      onChange={(e) => setDraft(e.target.value)}
-      onFocus={() => { setEditing(true); setDraft(String(value)); }}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-        if (e.key === 'Escape') { setDraft(String(value)); setEditing(false); (e.target as HTMLInputElement).blur(); }
-      }}
-      onClick={(e) => e.stopPropagation()}
-      aria-label="Budget"
-      className={cn(
-        'w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
-        className,
+    <span className={cn('relative inline-flex items-center', dirty && '[&>input]:pr-8')} onClick={(e) => e.stopPropagation()}>
+      <input
+        value={editing ? draft : fmtEuro(value)}
+        onChange={(e) => setDraft(e.target.value)}
+        onFocus={() => { setEditing(true); setDraft(String(value)); }}
+        onBlur={cancel}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') confirm();
+          if (e.key === 'Escape') { cancel(); (e.target as HTMLInputElement).blur(); }
+        }}
+        aria-label="Budget"
+        // No drop shadow: inside a table row it collected in the rounded
+        // corners and read as dirt rather than depth.
+        className={cn(
+          'w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
+          className,
+        )}
+      />
+      {dirty && (
+        <button
+          type="button"
+          aria-label="Confirm budget change"
+          title="Confirm budget change"
+          // mousedown, because click would arrive after the input's blur has
+          // already cancelled the edit.
+          onMouseDown={(e) => { e.preventDefault(); confirm(); }}
+          className="absolute right-1.5 flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <Check className="h-3.5 w-3.5" />
+        </button>
       )}
-    />
+    </span>
   );
 };
 
@@ -295,6 +317,7 @@ export const MediaPlanDetail: Story = {
     // Which tab is open, so the FAQ under the card answers questions about
     // what the user is actually looking at.
     const [activeTab, setActiveTab] = React.useState(tab ?? 'campaigns');
+    const toast = useToast();
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -570,6 +593,7 @@ export const MediaPlanDetail: Story = {
         creativeStatus: 'missing',
       });
       if (typeof window === 'undefined') return;
+      queueToast({ title: 'Booking created', description: booking.name });
       const seg = routeSeg[c.engine];
       // Sponsored-products bookings live inside the campaign page.
       window.location.href = c.engine === 'sponsored-products'
@@ -617,6 +641,7 @@ export const MediaPlanDetail: Story = {
         endDate: plan.endDate,
       });
       if (typeof window !== 'undefined') {
+        queueToast({ title: 'Campaign created', description: campaign.name });
         window.location.href = `/campaigns/${routeSeg[engine]}/${campaign.id}`;
       }
     };
@@ -702,9 +727,15 @@ export const MediaPlanDetail: Story = {
             <BudgetCell
               value={r.budgetValue}
               onSave={(next) => {
+                const prev = r.budgetValue ?? 0;
                 updateCampaign(r._id, { budget: next });
                 // A hand-set number means the split is no longer automatic.
                 if (plan?.autoBudget) updateMediaPlan(plan.id, { autoBudget: false });
+                toast({
+                  title: 'Campaign budget updated',
+                  description: `${r.name}: €${prev.toLocaleString()} → €${next.toLocaleString()}.`,
+                  undo: () => updateCampaign(r._id, { budget: prev }),
+                });
               }}
             />
           ),
@@ -925,8 +956,22 @@ export const MediaPlanDetail: Story = {
                           value={plan?.budget ?? 0}
                           onSave={(next) => {
                             if (!plan) return;
+                            const prevBudget = plan.budget;
+                            const prevSplit = db.campaigns
+                              .filter((c) => c.mediaPlanId === plan.id)
+                              .map((c) => ({ id: c.id, budget: c.budget }));
                             updateMediaPlan(plan.id, { budget: next });
-                            if (autoBudget) reallocate(next);
+                            // The plan total caps every campaign below it, so a
+                            // new total re-divides across them automatically.
+                            reallocate(next);
+                            toast({
+                              title: 'Media plan budget updated',
+                              description: `€${prevBudget.toLocaleString()} → €${next.toLocaleString()}, divided across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
+                              undo: () => {
+                                updateMediaPlan(plan.id, { budget: prevBudget });
+                                prevSplit.forEach(({ id, budget }) => updateCampaign(id, { budget }));
+                              },
+                            });
                           }}
                         />
                       </div>

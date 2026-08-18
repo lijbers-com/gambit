@@ -5,6 +5,7 @@ import '@/styles/globals.css';
 // import { PostHogProvider } from '@/contexts/posthog-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { ToastProvider } from '@/components/ui/toast';
 import { NavigationWrapper } from './components/navigation-wrapper';
 import { AppLayoutWrapper } from './components/app-layout-wrapper';
 
@@ -56,11 +57,13 @@ export default function RootLayout({
         {/* <PostHogProvider> */}
           <MenuContextProvider>
             <ThemeProvider>
-              <NavigationWrapper>
-                <AppLayoutWrapper>
-                  {children}
-                </AppLayoutWrapper>
-              </NavigationWrapper>
+              <ToastProvider>
+                <NavigationWrapper>
+                  <AppLayoutWrapper>
+                    {children}
+                  </AppLayoutWrapper>
+                </NavigationWrapper>
+              </ToastProvider>
             </ThemeProvider>
           </MenuContextProvider>
         {/* </PostHogProvider> */}

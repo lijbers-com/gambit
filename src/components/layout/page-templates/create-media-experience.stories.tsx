@@ -19,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
+import { queueToast } from '@/components/ui/toast';
 import { getDb, createMediaPlan, updateMediaPlan, createCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
@@ -773,7 +774,10 @@ export const GoalSelection: Story = {
       // Land on the new plan's Inbox: a plan straight out of the wizard always
       // has work left (creatives to upload, placements to pick), so the first
       // screen should be that list rather than the form the user just filled in.
-      if (typeof window !== 'undefined') window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
+      if (typeof window !== 'undefined') {
+        queueToast({ title: 'Media plan created', description: plan.name });
+        window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
+      }
     };
 
     // ── Draft persistence ────────────────────────────────────────────────

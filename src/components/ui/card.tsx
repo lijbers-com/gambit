@@ -43,6 +43,17 @@ export interface CardWithTabsProps extends React.HTMLAttributes<HTMLDivElement> 
   onTabChange?: (tab: string) => void;
 }
 
+/**
+ * Reorder a CardWithTabs tab list so one tab leads. The work tab — Bookings,
+ * Campaigns & bookings — is both the landing tab and the first in the strip on
+ * every template, so the reorder lives here rather than in ten hand-sorted
+ * arrays. Unknown values leave the list untouched.
+ */
+export function tabFirst<T extends { value: string }>(tabs: T[], value: string): T[] {
+  const i = tabs.findIndex((t) => t.value === value);
+  return i <= 0 ? tabs : [tabs[i], ...tabs.slice(0, i), ...tabs.slice(i + 1)];
+}
+
 export function CardWithTabs({
   tabs,
   action,

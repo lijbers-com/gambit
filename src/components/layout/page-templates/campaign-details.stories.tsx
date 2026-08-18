@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 import { AppLayout } from '../app-layout';
-import { CardWithTabs } from '../../ui/card';
+import { CardWithTabs, tabFirst } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
@@ -884,7 +884,7 @@ const updatedForecastMetrics = [
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -1079,7 +1079,7 @@ const updatedForecastMetrics = [
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -1446,7 +1446,7 @@ export const DigitalInstoreRunning: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -1630,7 +1630,7 @@ export const DigitalInstoreRunning: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -1935,7 +1935,7 @@ export const OfflineInstoreRunning: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -2153,7 +2153,7 @@ export const OfflineInstoreRunning: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -2483,7 +2483,7 @@ export const DisplayRunning: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -2691,7 +2691,7 @@ export const DisplayRunning: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -3023,7 +3023,7 @@ export const OfflineInstoreInOption: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -3209,7 +3209,7 @@ export const OfflineInstoreInOption: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -3541,7 +3541,7 @@ export const DisplayInOption: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -3749,7 +3749,7 @@ export const DisplayInOption: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -4391,7 +4391,7 @@ export const SponsoredProductsInOption: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -4693,7 +4693,7 @@ export const SponsoredProductsInOption: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
             <LifecycleActions
@@ -5129,7 +5129,7 @@ export const SponsoredProductsRunning: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -5442,7 +5442,7 @@ export const SponsoredProductsRunning: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
             <LifecycleActions
@@ -5738,7 +5738,7 @@ export const OffsiteRunning: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -5994,7 +5994,7 @@ export const OffsiteRunning: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking
@@ -6287,7 +6287,7 @@ export const OffsiteInOption: Story = {
               </form>
             ) : null
           }
-          tabs={[
+          tabs={tabFirst([
             {
               label: 'Campaign details',
               value: 'details',
@@ -6542,7 +6542,7 @@ export const OffsiteInOption: Story = {
                 </div>
               ),
             },
-          ]}
+          ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
               {/* Run controls first: they act on the campaign and every booking

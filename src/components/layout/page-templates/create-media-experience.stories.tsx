@@ -1356,6 +1356,23 @@ export const GoalSelection: Story = {
                         const prefill = `${campaignName || 'New Media plan'} — ${prop.name}`;
                         // The bookings an assisted campaign creates on launch.
                         const rowBookings = assistedBookings[row.engine] ?? [];
+                        // Inventory check: how contested each proposed position
+                        // is, counted from real bookings on the same position
+                        // whose flight overlaps this plan's window.
+                        const availabilityOf = (positionId: string) => {
+                          const from = (row.dateRange?.from ?? dateRange?.from)?.getTime();
+                          const to = (row.dateRange?.to ?? dateRange?.to)?.getTime();
+                          const clashes = getDb().bookings.filter((b) => {
+                            if (!b.positionIds.includes(positionId)) return false;
+                            if (b.status !== 'running' && b.status !== 'in-option') return false;
+                            if (!from || !to) return true;
+                            return new Date(b.startDate).getTime() <= to && new Date(b.endDate).getTime() >= from;
+                          }).length;
+                          return clashes <= 1 ? 'available' as const : clashes <= 2 ? 'limited' as const : 'tight' as const;
+                        };
+                        const availability = rowBookings.map((b) => ({ ...b, availability: availabilityOf(b.positionId) }));
+                        const worstAvailability = availability.some((b) => b.availability === 'tight')
+                          ? 'tight' : availability.some((b) => b.availability === 'limited') ? 'limited' : 'available';
                         // Budget share: this row's own budget, or an even split of
                         // whatever the plan budget has left for unbudgeted rows.
                         const planBudget = parseFloat(budgetAmount) || 0;
@@ -1404,13 +1421,29 @@ export const GoalSelection: Story = {
                                     preview matches what gets created. */}
                                 <p className="text-xs text-muted-foreground leading-relaxed">
                                   {prop.aiPreset.description} Books{' '}
-                                  {rowBookings.map((b, i) => (
+                                  {availability.map((b, i) => (
                                     <React.Fragment key={b.name}>
-                                      {i > 0 && (i === rowBookings.length - 1 ? ' and ' : ', ')}
+                                      {i > 0 && (i === availability.length - 1 ? ' and ' : ', ')}
                                       <span className="font-medium text-foreground">{b.name}</span>
                                       <span> ({b.detail})</span>
+                                      {/* The check, next to the thing checked. */}
+                                      <span
+                                        title={b.availability === 'available' ? 'Inventory available in this window' : b.availability === 'limited' ? 'Limited inventory in this window' : 'Inventory is tight in this window'}
+                                        className={cn(
+                                          'mx-1 inline-block h-1.5 w-1.5 rounded-full align-middle',
+                                          b.availability === 'available' ? 'bg-success-500' : b.availability === 'limited' ? 'bg-warning-500' : 'bg-destructive-500',
+                                        )}
+                                      />
                                     </React.Fragment>
                                   ))}.
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Inventory checked for this run time —{' '}
+                                  {worstAvailability === 'available'
+                                    ? 'all positions available.'
+                                    : worstAvailability === 'limited'
+                                      ? 'some positions have limited inventory; booking early secures them.'
+                                      : 'some positions are nearly booked out in this window — consider shifting the run time.'}
                                 </p>
                                 <div className="space-y-2">
                                   <Label>Campaign name</Label>

@@ -6,6 +6,7 @@ import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { Badge } from '@/components/ui/badge';
 import {
   CardWithTabs,
+  tabFirst,
   BudgetStackedMini,
   BudgetStackedDetail,
   DonutLegendDetail,
@@ -293,7 +294,7 @@ export const MediaPlanDetail: Story = {
     const { planId, tab } = (args ?? {}) as { planId?: string; tab?: string };
     // Which tab is open, so the FAQ under the card answers questions about
     // what the user is actually looking at.
-    const [activeTab, setActiveTab] = React.useState(tab ?? 'details');
+    const [activeTab, setActiveTab] = React.useState(tab ?? 'campaigns');
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -792,7 +793,7 @@ export const MediaPlanDetail: Story = {
                 <AddCampaignMenu onSelect={addCampaign} />
               </div>
             }
-            tabs={[
+            tabs={tabFirst([
               {
                 label: 'Media plan details',
                 value: 'details',
@@ -1139,7 +1140,7 @@ export const MediaPlanDetail: Story = {
                   </div>
                 ),
               },
-            ]}
+            ], 'campaigns')}
           />
 
         {/* Deleting a plan takes its campaigns and bookings with it, so the

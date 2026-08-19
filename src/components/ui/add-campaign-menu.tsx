@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe } from 'lucide-react';
+import { Plus, Link2, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { TAB_ACTION_LABEL } from './tab-actions';
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from './dropdown-menu';
 import type { EngineId } from '@/lib/db';
 
@@ -35,6 +36,9 @@ export interface AddCampaignMenuProps {
   /** Replace the default button — e.g. the table's inline "Add campaign" row
    *  link. The menu behaviour stays identical. */
   trigger?: React.ReactNode;
+  /** Offer "Add existing campaign…" under the propositions — a new campaign
+   *  and a relinked one are answers to the same question. */
+  onAddExisting?: () => void;
   className?: string;
 }
 
@@ -42,6 +46,7 @@ export const AddCampaignMenu: React.FC<AddCampaignMenuProps> = ({
   onSelect,
   label = 'Add campaign',
   trigger,
+  onAddExisting,
   className,
 }) => (
   <DropdownMenu>
@@ -67,6 +72,15 @@ export const AddCampaignMenu: React.FC<AddCampaignMenuProps> = ({
           {name}
         </DropdownMenuItem>
       ))}
+      {onAddExisting && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="gap-2" onClick={onAddExisting}>
+            <Link2 className="h-4 w-4 text-muted-foreground" />
+            Add existing campaign…
+          </DropdownMenuItem>
+        </>
+      )}
     </DropdownMenuContent>
   </DropdownMenu>
 );

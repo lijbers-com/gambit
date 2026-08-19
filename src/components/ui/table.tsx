@@ -84,6 +84,33 @@ export interface TableProps<T> {
    * the column they happen to land in rather than to the row.
    */
   fullWidthRow?: (row: T) => React.ReactNode | null;
+  /** Hide the "Data refreshed …" line under the table. It is on by default:
+   *  numbers without an age invite decisions on stale data. */
+  hideRefreshedAt?: boolean;
+}
+
+/**
+ * When the data behind every table on this page was last pulled. The prototype
+ * has no pipeline, so all tables share one moment: page load, on the minute.
+ * Rendered only after mount — the server doesn't know the client's clock, and
+ * a mismatched timestamp would be a hydration error over a footnote.
+ */
+function RefreshedAt() {
+  const [label, setLabel] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    const d = new Date();
+    setLabel(
+      d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+        ', ' +
+        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    );
+  }, []);
+  if (!label) return null;
+  return (
+    <div className="mt-1.5 text-right text-[11px] text-muted-foreground/80">
+      Data refreshed {label}
+    </div>
+  );
 }
 
 // Unified draggable column item for both fixed and columns sections
@@ -131,7 +158,7 @@ function ColumnItem({
   );
 }
 
-export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState }: TableProps<T>) {
+export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState, hideRefreshedAt }: TableProps<T>) {
   // Default rowKey function if not provided
   const getRowKey = rowKey || ((row: T, index: number) => {
     if (row && typeof row === 'object' && 'id' in row) {
@@ -703,6 +730,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   const hasFixedColumns = fixedCols.length > 0 || !!selectionCol || isActionsFixed;
 
   return (
+    <>
     <div className={cn('overflow-x-auto overflow-y-hidden bg-card border border-border rounded-xl', className)}>
       <table className="min-w-full text-[14px] text-neutral-700 table-auto">
         <thead className="bg-table-surface">
@@ -872,5 +900,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
         </tbody>
       </table>
     </div>
+    {!hideRefreshedAt && data.length > 0 && <RefreshedAt />}
+    </>
   );
 }

@@ -20,7 +20,9 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
-import { getDb, createMediaPlan, updateMediaPlan, createCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
+import { LinkPickerDialog } from '@/components/ui/link-picker';
+import { Link2 } from 'lucide-react';
+import { getDb, createMediaPlan, updateMediaPlan, createCampaign, updateCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
   DropdownMenu,
@@ -677,6 +679,22 @@ export const GoalSelection: Story = {
 
     // Launching writes the media plan + one campaign per enabled proposition
     // into the prototype database, then opens the new plan's detail page.
+    // Existing campaigns picked up into this plan: chosen in the same table
+    // dialog every link change uses, relinked once the plan is created.
+    const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
+    const [linkedExistingIds, setLinkedExistingIds] = React.useState<string[]>([]);
+    const existingCampaignOptions = getDb().campaigns
+      .filter((c) => !linkedExistingIds.includes(c.id))
+      .map((c) => ({
+        value: c.id,
+        label: c.name,
+        details: {
+          Proposition: c.engine.replace('-instore', ' in-store').replace(/-/g, ' '),
+          Status: c.status,
+          Budget: `€${c.budget.toLocaleString()}`,
+        },
+      }));
+
     const createMediaPlanFlow = () => {
       const name = campaignName || 'New Media plan';
       const db = getDb();
@@ -774,6 +792,8 @@ export const GoalSelection: Story = {
       // Land on the new plan's Inbox: a plan straight out of the wizard always
       // has work left (creatives to upload, placements to pick), so the first
       // screen should be that list rather than the form the user just filled in.
+      // Existing campaigns chosen on the last step move under the new plan.
+      linkedExistingIds.forEach((id) => updateCampaign(id, { mediaPlanId: plan.id }));
       if (typeof window !== 'undefined') {
         queueToast({ title: 'Media plan created', description: plan.name });
         window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
@@ -1571,8 +1591,58 @@ export const GoalSelection: Story = {
                               </DropdownMenuItem>
                             );
                           })}
+                          <DropdownMenuItem
+                            onClick={() => setLinkExistingOpen(true)}
+                            className="cursor-pointer flex-col items-start gap-0.5 rounded-none p-3"
+                          >
+                            <span className="flex w-full items-center gap-2">
+                              <Link2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Add existing campaign…</span>
+                            </span>
+                            <span className="text-xs text-muted-foreground">Move a campaign that already exists into this plan.</span>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+
+                      {/* The existing campaigns this plan will absorb on save. */}
+                      {linkedExistingIds.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {linkedExistingIds.map((id) => {
+                            const c = getDb().campaigns.find((x) => x.id === id);
+                            if (!c) return null;
+                            return (
+                              <div key={id} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
+                                <span className="min-w-0">
+                                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                                    <Link2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                    <span className="truncate">{c.name}</span>
+                                  </span>
+                                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                                    Existing campaign · joins this plan on save
+                                  </span>
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  iconOnly
+                                  aria-label={`Remove ${c.name}`}
+                                  onClick={() => setLinkedExistingIds((prev) => prev.filter((x) => x !== id))}
+                                >
+                                  <X size={14} />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <LinkPickerDialog
+                        open={linkExistingOpen}
+                        onOpenChange={setLinkExistingOpen}
+                        entityLabel="campaign"
+                        options={existingCampaignOptions}
+                        onChange={(id) => { if (id) setLinkedExistingIds((prev) => [...prev, id]); }}
+                      />
                     </div>
                     {/* One recommendation when the mix leaves reach on the
                         table; mode counts and projections are insights and

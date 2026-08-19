@@ -19,6 +19,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
+import { LinkPickerDialog } from '@/components/ui/link-picker';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -628,6 +629,34 @@ export const MediaPlanDetail: Story = {
      * automatically or typed into the row — asking again here would duplicate
      * both.
      */
+    // "Add existing campaign" — relink a campaign from elsewhere into this
+    // plan, picked from a searchable table like every other link change.
+    const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
+    const existingCampaignOptions = db.campaigns
+      .filter((c) => c.mediaPlanId !== plan?.id)
+      .map((c) => ({
+        value: c.id,
+        label: c.name,
+        details: {
+          Proposition: propositionMeta[c.engine].label,
+          Status: c.status,
+          Budget: fmtEuro(c.budget),
+          'Current plan': db.mediaPlans.find((mp) => mp.id === c.mediaPlanId)?.name ?? '—',
+        },
+      }));
+    const addExistingCampaign = (id?: string) => {
+      if (!id || !plan) return;
+      const c = db.campaigns.find((x) => x.id === id);
+      if (!c) return;
+      const prevPlanId = c.mediaPlanId;
+      updateCampaign(id, { mediaPlanId: plan.id });
+      toast({
+        title: 'Campaign added to this plan',
+        description: c.name,
+        undo: () => updateCampaign(id, { mediaPlanId: prevPlanId }),
+      });
+    };
+
     const addCampaign = (engine: EngineId) => {
       if (!plan) return;
       const campaign = createCampaign({
@@ -826,7 +855,7 @@ export const MediaPlanDetail: Story = {
                     playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
                   />
                 )}
-                <AddCampaignMenu onSelect={addCampaign} />
+                <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
               </div>
             }
             tabs={tabFirst([
@@ -1076,6 +1105,7 @@ export const MediaPlanDetail: Story = {
                             <span onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2">
                               <AddCampaignMenu
                                 onSelect={addCampaign}
+                                onAddExisting={() => setLinkExistingOpen(true)}
                                 trigger={
                                   <button type="button" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
                                     <Plus className="h-3.5 w-3.5" />
@@ -1105,7 +1135,7 @@ export const MediaPlanDetail: Story = {
                           <p className="text-sm text-muted-foreground">
                             No campaigns in this media plan yet — add the first proposition.
                           </p>
-                          <AddCampaignMenu onSelect={addCampaign} />
+                          <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
                         </div>
                       }
                       expandable={{
@@ -1262,7 +1292,14 @@ export const MediaPlanDetail: Story = {
             </RightDrawerBody>
           </RightDrawerContent>
         </RightDrawer>
-        </AppLayout>
+        <LinkPickerDialog
+        open={linkExistingOpen}
+        onOpenChange={setLinkExistingOpen}
+        entityLabel="campaign"
+        options={existingCampaignOptions}
+        onChange={addExistingCampaign}
+      />
+      </AppLayout>
       </MenuContextProvider>
     );
   },

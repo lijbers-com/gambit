@@ -656,23 +656,58 @@ export const BudgetStackedMini = ({
   caption?: React.ReactNode;
 }) => {
   const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const fmtBar = (n: number) =>
+    n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
   return (
     <div>
     {caption && (
       <div className={cn('mb-1', CHART_FIGURE)}>{caption}</div>
     )}
-    <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
-      {budgetData.map((d, i) => (
-        <div
-          key={`${d.name}-${i}`}
-          style={{
-            width: `${totalBudget > 0 ? (d.spent / totalBudget) * 100 : 0}%`,
-            backgroundColor: colorFromIndex(i, d.color),
-          }}
-        />
-      ))}
-      <div className="flex-1" style={{ backgroundColor: 'rgb(var(--neutral-200))' }} />
-    </div>
+    {/* The bar shows proportions; the split itself — who has what — is one
+        hover away, so the legend never has to crowd the card. */}
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex h-2.5 cursor-default rounded-full overflow-hidden border border-border bg-background">
+            {budgetData.map((d, i) => (
+              <div
+                key={`${d.name}-${i}`}
+                style={{
+                  width: `${totalBudget > 0 ? (d.spent / totalBudget) * 100 : 0}%`,
+                  backgroundColor: colorFromIndex(i, d.color),
+                }}
+              />
+            ))}
+            <div className="flex-1" style={{ backgroundColor: 'rgb(var(--neutral-200))' }} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="p-2.5">
+          <div className="space-y-1.5">
+            {budgetData.map((d, i) => (
+              <div key={`${d.name}-tip-${i}`} className="flex items-center justify-between gap-4 text-xs">
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: colorFromIndex(i, d.color) }}
+                  />
+                  {d.name}
+                </span>
+                <span className="tabular-nums">
+                  {d.spent === d.budget
+                    ? fmtBar(d.budget)
+                    : `${fmtBar(d.spent)} of ${fmtBar(d.budget)}`}
+                  {totalBudget > 0 && (
+                    <span className="ml-1 text-muted-foreground">
+                      ({Math.round((d.spent / totalBudget) * 100)}%)
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
     </div>
   );
 };

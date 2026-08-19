@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRight, Check, Inbox as InboxIcon, WalletCards, Rows3, LayoutList } from 'lucide-react';
+import { ChevronRight, Check, WalletCards, Rows3, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { FilterBar } from './filter-bar';
@@ -147,8 +147,9 @@ export const Inbox: React.FC<InboxProps> = ({
       )}
 
       {visible.length === 0 ? (
+        // No icon: an empty inbox is good news, and a pictogram of emptiness
+        // made it read as something missing rather than something achieved.
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
-          <InboxIcon className="h-5 w-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">
             {kinds.length > 0 || statuses.length > 0
               ? 'Nothing matches these filters.'

@@ -413,7 +413,7 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
         status={itemStatus}
         showFilters={false}
         heading="Recommendations and insights"
-        emptyMessage="Notifications appear as you make selections."
+        emptyMessage="This setup looks good to us — nothing to recommend right now."
         onOpen={(item) => {
           setOpened((prev) => new Set(prev).add(item.id));
           if (item.id === HEALTH_ID) {

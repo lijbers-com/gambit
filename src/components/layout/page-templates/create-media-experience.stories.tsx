@@ -1517,7 +1517,7 @@ export const GoalSelection: Story = {
                                           </span>
                                           <LevelMeter
                                             className="shrink-0"
-                                            label="Stock"
+                                            label="Volume"
                                             tone="supply"
                                             level={b.availability === 'available' ? 4 : b.availability === 'limited' ? 2 : 1}
                                           />

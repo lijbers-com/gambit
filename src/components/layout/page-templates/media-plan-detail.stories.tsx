@@ -734,6 +734,17 @@ export const MediaPlanDetail: Story = {
           ) : null,
       },
       {
+        key: 'id', header: 'ID',
+        render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._id}</span>),
+      },
+      {
+        key: 'state', header: 'Status', render: (r) => {
+          const s = r._type === 'campaign' ? r.state : r.status;
+          const badge = s ? statusBadge[s] : undefined;
+          return badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null;
+        },
+      },
+      {
         key: 'proposition', header: 'Proposition', render: (r) => {
           if (r._type !== 'campaign' || !r.engine) return null;
           const p = propositionMeta[r.engine];
@@ -747,11 +758,23 @@ export const MediaPlanDetail: Story = {
         },
       },
       {
-        key: 'state', header: 'State', render: (r) => {
-          const s = r._type === 'campaign' ? r.state : r.status;
-          const badge = s ? statusBadge[s] : undefined;
-          return badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null;
-        },
+        // Right after budget & run time: what still needs doing. Health sits
+        // in here — it is a notification, not a metric.
+        key: 'notifications', header: 'Notifications', width: 280,
+        render: (r) => r._type === 'add' ? null : (
+          <NotificationsCell
+            actions={r.actionCount}
+            recommendations={r.recommendationCount}
+            insights={r.insightCount}
+            onOpen={() => setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name })}
+          />
+        ),
+      },
+      {
+        key: 'dates', header: 'Run time', width: 260,
+        render: (r) => r._type !== 'campaign'
+          ? (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>)
+          : <DatesCell start={r.startDate} end={r.endDate} onSave={(startDate, endDate) => updateCampaign(r._id, { startDate, endDate })} />,
       },
       {
         key: 'budget', header: 'Budget',
@@ -773,25 +796,6 @@ export const MediaPlanDetail: Story = {
               }}
             />
           ),
-      },
-      {
-        key: 'dates', header: 'Dates', width: 260,
-        render: (r) => r._type !== 'campaign'
-          ? (r._type === 'add' ? null : <span className="text-muted-foreground">{r.dates}</span>)
-          : <DatesCell start={r.startDate} end={r.endDate} onSave={(startDate, endDate) => updateCampaign(r._id, { startDate, endDate })} />,
-      },
-      {
-        // Right after budget & run time: what still needs doing. Health sits
-        // in here — it is a notification, not a metric.
-        key: 'notifications', header: 'Notifications', width: 280,
-        render: (r) => r._type === 'add' ? null : (
-          <NotificationsCell
-            actions={r.actionCount}
-            recommendations={r.recommendationCount}
-            insights={r.insightCount}
-            onOpen={() => setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name })}
-          />
-        ),
       },
       {
         key: 'health', header: 'Health',

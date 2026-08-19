@@ -280,17 +280,16 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                       />
                       <Table
                         columns={[
-                          { key: 'id', header: 'Booking ID' },
+                          { key: 'name', header: 'Name' },
+                          { key: 'id', header: 'ID' },
                           { key: 'status', header: 'Status', render: (row: BookingRow) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
+                          { key: 'placement', header: 'Placement' },
+                          { key: 'aiRecommendation', header: 'Notifications', render: (row: BookingRow) => <Badge variant={aiVariant(row.aiRecommendation)}>{row.aiRecommendation}</Badge> },
+                          { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                           { key: 'advertiser', header: 'Advertiser' },
                           { key: 'campaign', header: 'Campaign' },
-                          { key: 'name', header: 'Name' },
-                          { key: 'placement', header: 'Placement' },
                           { key: 'spend', header: 'Spend', render: (row: BookingRow) => formatCurrency(row.spend) },
                           { key: 'impressions', header: 'Impressions', render: (row: BookingRow) => formatImpressions(row.impressions) },
-                          { key: 'start', header: 'Start date', render: (row: BookingRow) => formatDate(row.start) },
-                          { key: 'end', header: 'End date', render: (row: BookingRow) => formatDate(row.end) },
-                          { key: 'aiRecommendation', header: 'AI Recommendation', render: (row: BookingRow) => <Badge variant={aiVariant(row.aiRecommendation)}>{row.aiRecommendation}</Badge> },
                         ]}
                         data={filteredBookingData}
                         rowKey={(row: BookingRow) => row.id}

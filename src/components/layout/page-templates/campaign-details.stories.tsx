@@ -935,13 +935,12 @@ const updatedForecastMetrics = [
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                     ]}
                     data={bookingData.filter(row => {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
@@ -1497,13 +1496,12 @@ export const DigitalInstoreRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                     ]}
                     data={bookingData.filter(row => {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
@@ -1987,13 +1985,12 @@ export const OfflineInstoreRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                       { key: 'adSpend', header: 'Ad Spend' },
                       { key: 'impressions', header: 'Impressions' },
                       { key: 'clicks', header: 'Clicks + Add to Carts' },
@@ -2535,13 +2532,12 @@ export const DisplayRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                       { key: 'totalSkuConversions', header: 'Total SKU conversions' },
                       { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
                       { key: 'totalSkuUnits', header: 'Total SKU units' },
@@ -3075,13 +3071,12 @@ export const OfflineInstoreInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                     ]}
                     data={bookingData.filter(row => {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
@@ -3593,13 +3588,12 @@ export const DisplayInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
-                      { key: 'aiRecommendation', header: 'AI Recommendation', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'placement', header: 'Placement' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                       { key: 'totalSkuConversions', header: 'Total SKU conversions' },
                       { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
                       { key: 'totalSkuUnits', header: 'Total SKU units' },
@@ -5805,9 +5799,10 @@ export const OffsiteRunning: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                       { key: 'retailMedia', header: 'Retail products', render: row => {
                         const maxShow = 3;
                         const shown = row.retailMedia.images.slice(0, maxShow);
@@ -5822,8 +5817,6 @@ export const OffsiteRunning: Story = {
                         );
                       }},
                       { key: 'destination', header: 'Destinations' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'adSpend', header: 'Ad Spend' },
                       { key: 'impressions', header: 'Impressions' },
                       { key: 'clicks', header: 'Clicks' },
@@ -6354,9 +6347,10 @@ export const OffsiteInOption: Story = {
                   />
                   <Table
                     columns={[
-                      { key: 'id', header: 'Booking ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
                       { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                       { key: 'retailMedia', header: 'Retail products', render: row => {
                         const maxShow = 3;
                         const shown = row.retailMedia.images.slice(0, maxShow);
@@ -6371,8 +6365,6 @@ export const OffsiteInOption: Story = {
                         );
                       }},
                       { key: 'channel', header: 'Placements' },
-                      { key: 'start', header: 'Start date', render: row => new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'end', header: 'End date', render: row => new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
                       { key: 'adSpend', header: 'Ad Spend' },
                       { key: 'impressions', header: 'Impressions' },
                       { key: 'clicks', header: 'Clicks + Add to Carts' },

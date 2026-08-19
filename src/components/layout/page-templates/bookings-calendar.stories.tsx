@@ -967,8 +967,8 @@ const BookingCalendarTemplate = ({
               
               <Table
                 columns={[
-                  { key: 'id', header: 'Booking ID' },
-                  { key: 'name', header: 'Campaign Name' },
+                  { key: 'name', header: 'Name' },
+                  { key: 'id', header: 'ID' },
                   { key: 'mediaProductName', header: 'Media Product' },
                   ...(bookingTableVariant === 'display'
                     ? [
@@ -994,8 +994,7 @@ const BookingCalendarTemplate = ({
                           render: (row: any) => <Badge variant="secondary">{row.stores}</Badge>,
                         },
                       ]),
-                  { key: 'startWeek', header: 'Start date', render: (row: any) => weekToDate(row.startWeek) },
-                  { key: 'endWeek', header: 'End date', render: (row: any) => weekToDate(row.endWeek) },
+                  { key: 'runtime', header: 'Run time', render: (row: any) => `${weekToDate(row.startWeek)} – ${weekToDate(row.endWeek)}` },
                 ]}
                 data={getBookingsForWeek()}
                 rowKey={row => row.id}
@@ -2710,16 +2709,15 @@ const OfflineInstoreCalendarTemplate = ({
               
               <Table
                 columns={[
-                  { key: 'id', header: 'Booking ID' },
-                  { key: 'name', header: 'Campaign Name' },
+                  { key: 'name', header: 'Name' },
+                  { key: 'id', header: 'ID' },
                   { key: 'mediaProductName', header: 'Media Product' },
                   {
                     key: 'stores',
                     header: 'Stores',
                     render: row => <Badge variant="secondary">{row.stores}</Badge>,
                   },
-                  { key: 'startWeek', header: 'Start date', render: row => weekToDate(row.startWeek) },
-                  { key: 'endWeek', header: 'End date', render: row => weekToDate(row.endWeek) },
+                  { key: 'runtime', header: 'Run time', render: row => `${weekToDate(row.startWeek)} – ${weekToDate(row.endWeek)}` },
                 ]}
                 data={getBookingsForWeek()}
                 rowKey={row => row.id}

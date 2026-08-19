@@ -490,17 +490,15 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                     columns={[
                       // Wide enough for a booking name: child rows put their
                       // name in this column (Table.expandable.childLabel).
-                      { key: 'id', header: 'ID', width: 200, render: row => (row._type === 'add' ? null : row.id) },
-                      { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
-                      { key: 'advertiser', header: 'Advertiser' },
-                      // The expand chevron lives in the table's own leading
-                      // column, so Name only carries the name and the count.
                       { key: 'name', header: 'Name', width: 320, render: row => row._type === 'booking' ? row.name : row._type !== 'campaign' ? null : (
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate font-medium">{row.name}</span>
                           <span className="shrink-0 text-xs text-muted-foreground">({row.bookings} booking{row.bookings === 1 ? '' : 's'})</span>
                         </span>
                       ) },
+                      { key: 'id', header: 'ID', width: 200, render: row => (row._type === 'add' ? null : row.id) },
+                      { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
+                      { key: 'advertiser', header: 'Advertiser' },
                       ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: () => 'Epsilon' }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
                         if (row._type === 'booking') return null;
@@ -521,8 +519,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'placements', header: 'Placements', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.placements}</Badge> : null },
                       { key: 'spendToDate', header: 'Spend to date', render: row => (row._type === 'add' ? null : `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) },
                       { key: 'spendingLimit', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
-                      { key: 'start', header: 'Start date', render: row => (row._type === 'add' ? null : new Date(row.start).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })) },
-                      { key: 'end', header: 'End date', render: row => (row._type === 'add' ? null : new Date(row.end).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })) },
+                      { key: 'runtime', header: 'Run time', render: row => (row._type === 'add' ? null : `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`) },
                     ]}
                     data={tableRows}
                     rowKey={row => row._id}

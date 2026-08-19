@@ -1504,9 +1504,16 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                             ) : (
-                              /* Expert mode — the campaign form to fill in. */
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                              /* Expert mode — the same two steps as assisted,
+                                 with the campaign step as a form and the
+                                 bookings step honestly empty: expert campaigns
+                                 start blank. */
+                              <div className="rounded-md border border-border">
+                                <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">1</span>
+                                  <span className="text-xs font-medium">Campaign</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-2">
                                   <div className="space-y-2">
                                     <Label>Campaign name</Label>
                                     <Input
@@ -1545,9 +1552,15 @@ export const GoalSelection: Story = {
                                     />
                                   </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Placements and targeting are set on the campaign after launch.
-                                </p>
+                                <div className="px-3 py-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
+                                    <span className="text-xs font-medium">Bookings (0)</span>
+                                  </div>
+                                  <p className="pl-7 pt-1 text-[11px] text-muted-foreground">
+                                    No bookings yet — you add them on the campaign once the plan is created.
+                                  </p>
+                                </div>
                               </div>
                             )}
                           </div>

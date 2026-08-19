@@ -31,11 +31,21 @@ const RISK_COLOURS: Record<Level, string> = {
   5: 'bg-destructive-500',
 };
 
+/** Stock runs the risk scale backwards: empty is the emergency. */
+const SUPPLY_COLOURS: Record<Level, string> = {
+  1: 'bg-destructive-500',
+  2: 'bg-warning-500',
+  3: 'bg-warning-500',
+  4: 'bg-success-500',
+  5: 'bg-success-500',
+};
+
 export interface LevelMeterProps {
   label: string;
   level: Level;
-  /** 'scale' fills in one colour (more is better); 'risk' runs green→red. */
-  tone?: 'scale' | 'risk';
+  /** 'scale' fills in one colour (more is better); 'risk' runs green→red;
+   *  'supply' is stock level — red when it is nearly gone. */
+  tone?: 'scale' | 'risk' | 'supply';
   /** Extra context after the level word, e.g. the raw search count. */
   detail?: string;
   className?: string;
@@ -59,7 +69,9 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({
             step <= level
               ? tone === 'risk'
                 ? RISK_COLOURS[level]
-                : 'bg-primary'
+                : tone === 'supply'
+                  ? SUPPLY_COLOURS[level]
+                  : 'bg-primary'
               : 'bg-muted-foreground/20',
           )}
         />

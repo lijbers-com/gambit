@@ -285,7 +285,7 @@ const NotificationsCell = ({
   onOpen?: () => void;
 }) => {
   const parts = [
-    { count: actions, label: 'action', plural: 'actions', variant: 'warning' as const },
+    { count: actions, label: 'action', plural: 'actions', variant: 'todo' as const },
     { count: recommendations, label: 'recommendation', plural: 'recommendations', variant: 'secondary' as const },
     { count: insights, label: 'insight', plural: 'insights', variant: 'secondary' as const },
   ].filter((p) => p.count > 0);

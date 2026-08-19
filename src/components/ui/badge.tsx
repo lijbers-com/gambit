@@ -22,6 +22,10 @@ const badgeVariants = cva(
           "border-border bg-transparent text-foreground",
         info:
           "border-border bg-neutral-50 text-neutral-600",
+        // An open step, not an alarm: soft amber, regular weight. The same
+        // chip whether it counts ("2 actions") or names ("To do").
+        todo:
+          "border-warning-200 bg-warning-50 text-warning-700 font-medium",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",

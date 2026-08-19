@@ -6,6 +6,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
+import { GoalCard } from '@/components/ui/goal-card';
 import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
@@ -306,34 +307,6 @@ const otherPlacements = [
   { id: 'search-results', name: 'Search results page' },
   { id: 'homepage', name: 'Homepage' },
 ];
-
-// --- Goal Card Component ---
-
-interface GoalCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  selected?: boolean;
-  onClick?: () => void;
-}
-
-const GoalCard = ({ icon, title, description, selected, onClick }: GoalCardProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`flex flex-col items-start text-left p-6 rounded-lg border-2 transition-all cursor-pointer hover:border-primary/50 hover:shadow-sm h-full ${
-      selected
-        ? 'border-primary bg-primary/5 shadow-sm'
-        : 'border-border bg-card'
-    }`}
-  >
-    <div className={`mb-4 ${selected ? 'text-primary' : 'text-muted-foreground'}`}>
-      {icon}
-    </div>
-    <h3 className="font-semibold text-sm mb-1">{title}</h3>
-    <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
-  </button>
-);
 
 // --- Proposition Wizard Component ---
 
@@ -1196,6 +1169,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                                 title={goal.title}
                                 description={goal.description}
                                 selected={selectedGoal === goal.id}
+                                dimmed={selectedGoal !== null && selectedGoal !== goal.id}
                                 onClick={() => setSelectedGoal(goal.id)}
                               />
                             ))}
@@ -2149,6 +2123,12 @@ export interface SPWizardInitialValues {
   mediaPlanStatus?: string;
   startDate?: Date;
   endDate?: Date;
+  /** Enter at the booking step: the campaign fields above describe an
+   *  existing campaign a booking is being added to, not one being made. */
+  startAtBooking?: boolean;
+  /** The existing campaign's id, so the booking links to it rather than to a
+   *  slug derived from its name. */
+  campaignId?: string;
 }
 
 export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizardInitialValues } = {}) => {
@@ -2162,7 +2142,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { id: 'booking', label: 'Booking' },
   ];
 
-  const [currentStep, setCurrentStep] = React.useState(0);
+  // "Add booking" on an existing campaign lands here mid-flow: the campaign
+  // step is already done by definition, so the wizard opens on the booking.
+  const startAtBooking = Boolean(initialValues?.startAtBooking && initialValues?.campaignName);
+  const [currentStep, setCurrentStep] = React.useState(startAtBooking ? 1 : 0);
   const currentStepId = wizardSteps[currentStep]?.id;
 
   // ── Step 1: Campaign details ──
@@ -2222,11 +2205,17 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [bookingSubStep, setBookingSubStep] = React.useState(0);
   // General information card
   const [bookingCampaignName, setBookingCampaignName] = React.useState('');
-  const [selectedCampaign, setSelectedCampaign] = React.useState('');
-  const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(undefined);
-  const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(undefined);
+  const [selectedCampaign, setSelectedCampaign] = React.useState(
+    startAtBooking ? (initialValues?.campaignId ?? 'existing-campaign') : '',
+  );
+  const [bookingStartDate, setBookingStartDate] = React.useState<Date | undefined>(
+    startAtBooking ? initialValues?.startDate : undefined,
+  );
+  const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(
+    startAtBooking ? initialValues?.endDate : undefined,
+  );
   // Budget and bidding card
-  const [totalBudget, setTotalBudget] = React.useState('');
+  const [totalBudget, setTotalBudget] = React.useState(startAtBooking ? (initialValues?.budget ?? '') : '');
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [biddingCPC, setBiddingCPC] = React.useState('');
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
@@ -2343,6 +2332,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
   // Build campaign options for booking step — the just-created campaign appears first
   const campaignOptionsForBooking = React.useMemo(() => {
+    // Entered from an existing campaign, that campaign IS the list — the
+    // booking must not silently attach to a demo option.
+    if (startAtBooking) {
+      return [{
+        label: initialValues?.campaignName ?? 'Campaign',
+        value: initialValues?.campaignId ?? 'existing-campaign',
+      }];
+    }
     const base = [
       { label: 'Knorr Summer Sale – Sponsored', value: 'knorr-summer-sale' },
       { label: 'Lay\'s Back to School – Display', value: 'lays-back-to-school' },
@@ -2354,7 +2351,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       return [{ label: campaignName, value: key }, ...base];
     }
     return base;
-  }, [campaignName]);
+  }, [campaignName, startAtBooking, initialValues?.campaignName, initialValues?.campaignId]);
 
   const getStepStatus = (stepIndex: number): 'completed' | 'active' | 'pending' => {
     if (stepIndex < currentStep) return 'completed';

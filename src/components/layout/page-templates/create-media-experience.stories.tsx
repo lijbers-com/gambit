@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { GoalCard } from '@/components/ui/goal-card';
+import { LevelMeter } from '@/components/ui/level-meter';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -417,6 +418,17 @@ export const GoalSelection: Story = {
     // KPIs the user picks for the chosen objective — each can reveal a matching
     // brand-lift study (research) below.
     const [selectedKpis, setSelectedKpis] = React.useState<string[]>([]);
+    // The goal card's chips are KPI families ("Brand awareness"); the picker
+    // chooses members ("Top-of-mind awareness"). Lighting a chip means "your
+    // chosen KPI belongs to this", so the selection is expanded through the
+    // family map before it reaches the card.
+    const highlightChipKpis = React.useMemo(() => {
+      const set = new Set(selectedKpis);
+      for (const [family, members] of Object.entries(objectiveBrandKpis)) {
+        if (members.some((m) => set.has(m))) set.add(family);
+      }
+      return Array.from(set);
+    }, [selectedKpis]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
@@ -1111,8 +1123,9 @@ export const GoalSelection: Story = {
                               title={goal.title}
                               description={goal.description}
                               kpis={goal.kpis}
-                              highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
+                              highlightKpis={selectedGoal === goal.id ? highlightChipKpis : []}
                               selected={selectedGoal === goal.id}
+                              dimmed={selectedGoal !== null && selectedGoal !== goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />
                           ))}
@@ -1440,35 +1453,6 @@ export const GoalSelection: Story = {
 
                             {isAssisted ? (
                               <div className="space-y-3">
-                                {/* What the AI preset booked — named concretely
-                                    (which keywords, which media product) so the
-                                    preview matches what gets created. */}
-                                <p className="text-xs text-muted-foreground leading-relaxed">
-                                  {prop.aiPreset.description} Books{' '}
-                                  {availability.map((b, i) => (
-                                    <React.Fragment key={b.name}>
-                                      {i > 0 && (i === availability.length - 1 ? ' and ' : ', ')}
-                                      <span className="font-medium text-foreground">{b.name}</span>
-                                      <span> ({b.detail})</span>
-                                      {/* The check, next to the thing checked. */}
-                                      <span
-                                        title={b.availability === 'available' ? 'Inventory available in this window' : b.availability === 'limited' ? 'Limited inventory in this window' : 'Inventory is tight in this window'}
-                                        className={cn(
-                                          'mx-1 inline-block h-1.5 w-1.5 rounded-full align-middle',
-                                          b.availability === 'available' ? 'bg-success-500' : b.availability === 'limited' ? 'bg-warning-500' : 'bg-destructive-500',
-                                        )}
-                                      />
-                                    </React.Fragment>
-                                  ))}.
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Inventory checked for this run time —{' '}
-                                  {worstAvailability === 'available'
-                                    ? 'all positions available.'
-                                    : worstAvailability === 'limited'
-                                      ? 'some positions have limited inventory; booking early secures them.'
-                                      : 'some positions are nearly booked out in this window — consider shifting the run time.'}
-                                </p>
                                 <div className="space-y-2">
                                   <Label>Campaign name</Label>
                                   <Input
@@ -1477,31 +1461,46 @@ export const GoalSelection: Story = {
                                     onChange={(e) => updateRow(row.id, { name: e.target.value })}
                                   />
                                 </div>
-                                {/* Prefilled settings, in the media-plan card's
-                                    label-and-value style. */}
-                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
-                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Bookings:</span>
-                                    <span className="font-medium text-foreground">{rowBookings.length}</span>
-                                  </span>
-                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                                    <Sparkles className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Impressions:</span>
-                                    <span className="font-medium text-foreground">~{prop.aiPreset.estImpressions}</span>
-                                  </span>
-                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Run time:</span>
-                                    <span className="font-medium text-foreground">{runTime}</span>
-                                  </span>
-                                  <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                                    <Euro className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Budget:</span>
-                                    <span className="font-medium text-foreground">
-                                      {share > 0 ? `€${share.toLocaleString()}` : 'No budget set'}
+                                {/* The proposal drawn as the thing it creates: a
+                                    campaign, then its bookings — the same two
+                                    steps every wizard walks. Each booking carries
+                                    its stock level, from the inventory check for
+                                    this run time. */}
+                                <div className="rounded-md border border-border">
+                                  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">1</span>
+                                    <span className="text-xs font-medium">Campaign</span>
+                                    <span className="ml-auto text-xs tabular-nums text-muted-foreground">
+                                      {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
                                     </span>
-                                  </span>
+                                  </div>
+                                  <div className="px-3 py-2">
+                                    <div className="mb-1.5 flex items-center gap-2">
+                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
+                                      <span className="text-xs font-medium">Bookings ({rowBookings.length})</span>
+                                      {worstAvailability !== 'available' && (
+                                        <span className="ml-auto text-[11px] text-muted-foreground">
+                                          {worstAvailability === 'limited' ? 'Book early to secure' : 'Nearly booked out — consider shifting the run time'}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="divide-y divide-border/60 pl-7">
+                                      {availability.map((b) => (
+                                        <div key={b.name} className="flex items-center justify-between gap-4 py-1.5">
+                                          <span className="min-w-0">
+                                            <span className="block truncate text-xs font-medium text-foreground">{b.name}</span>
+                                            <span className="block truncate text-[11px] text-muted-foreground">{b.detail}</span>
+                                          </span>
+                                          <LevelMeter
+                                            className="shrink-0"
+                                            label="Stock"
+                                            tone="supply"
+                                            level={b.availability === 'available' ? 4 : b.availability === 'limited' ? 2 : 1}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             ) : (

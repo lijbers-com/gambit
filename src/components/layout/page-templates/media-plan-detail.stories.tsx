@@ -684,6 +684,11 @@ export const MediaPlanDetail: Story = {
           ]
         : []),
     ]);
+    // The same affordance one level up: the table ends with an Add campaign
+    // row, so growing the plan reads the same as growing a campaign.
+    if (rows.length > 0) {
+      rows.push({ _type: 'add' as const, _id: 'add-campaign', name: '', budget: '', objectiveKpi: '' } as Row);
+    }
 
     const columns: TableColumn<Row>[] = [
       {
@@ -837,6 +842,12 @@ export const MediaPlanDetail: Story = {
                         <div className="space-y-2">
                           <Label htmlFor="mp-name">Media plan name</Label>
                           <Input id="mp-name" value={planName} onChange={(e) => setPlanName(e.target.value)} hint="Give your media plan a descriptive name to easily identify it later" />
+                        </div>
+                        {/* Same read-only ID a booking's details show — the
+                            handle other systems and colleagues refer to. */}
+                        <div className="space-y-2">
+                          <Label htmlFor="mp-id">Media plan ID</Label>
+                          <Input id="mp-id" value={plan?.id ?? ''} readOnly disabled />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="mp-po">PO number <span className="font-normal text-muted-foreground">(optional)</span></Label>
@@ -1058,16 +1069,34 @@ export const MediaPlanDetail: Story = {
                       rowKey={(r) => r._id}
                       // Row-level action, so it spans rather than sitting in a
                       // column — see Table.fullWidthRow.
-                      fullWidthRow={(r) => r._type !== 'add' ? null : (
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
-                          className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Add booking
-                        </button>
-                      )}
+                      fullWidthRow={(r) => {
+                        if (r._type !== 'add') return null;
+                        if (r._id === 'add-campaign') {
+                          return (
+                            <span onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2">
+                              <AddCampaignMenu
+                                onSelect={addCampaign}
+                                trigger={
+                                  <button type="button" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Add campaign
+                                  </button>
+                                }
+                              />
+                            </span>
+                          );
+                        }
+                        return (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); addBookingTo(r._id.replace(/^add-/, '')); }}
+                            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Add booking
+                          </button>
+                        );
+                      }}
                       hideActions
                       // A plan without campaigns explains itself and offers
                       // the fix in place — same menu as the header button.

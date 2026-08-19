@@ -32,20 +32,26 @@ export interface AddCampaignMenuProps {
   /** Called with the chosen proposition. Falls back to the create route. */
   onSelect?: (engine: EngineId) => void;
   label?: string;
+  /** Replace the default button — e.g. the table's inline "Add campaign" row
+   *  link. The menu behaviour stays identical. */
+  trigger?: React.ReactNode;
   className?: string;
 }
 
 export const AddCampaignMenu: React.FC<AddCampaignMenuProps> = ({
   onSelect,
   label = 'Add campaign',
+  trigger,
   className,
 }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
+      {trigger ?? (
       <Button className={cn('gap-1.5', className)} title={label}>
         <Plus className="h-4 w-4" />
         <span className={TAB_ACTION_LABEL}>{label}</span>
       </Button>
+      )}
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
       {PROPOSITIONS.map(({ engine, label: name, href, Icon }) => (

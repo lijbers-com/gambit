@@ -178,11 +178,17 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     });
 
     // What the filters left in view, against the whole proposition.
-    const visibleSpend = filteredBookingData.reduce((sum, row) => sum + row.spend, 0);
+    const engineRows = bookingData.filter((row) => normalizedEngine === 'all' || row.engine === normalizedEngine);
+    const engineSpend = engineRows.reduce((sum, row) => sum + row.spend, 0);
+    // The cards follow the table only while the table is in front of the
+    // user: on any other tab they fall back to the proposition's totals, and
+    // pick the filtered numbers back up when the bookings tab returns.
+    const tableFiltersActive =
+      status.length > 0 || advertiser.length > 0 || aiRec.length > 0 || search.length > 0;
+    const followTable = activeTab === 'bookings' && tableFiltersActive;
+    const scopedRows = followTable ? filteredBookingData : engineRows;
+    const visibleSpend = scopedRows.reduce((sum, row) => sum + row.spend, 0);
     const visibleBudget = Math.max(visibleSpend, Math.round(visibleSpend * 1.35));
-    const engineSpend = bookingData
-      .filter((row) => normalizedEngine === 'all' || row.engine === normalizedEngine)
-      .reduce((sum, row) => sum + row.spend, 0);
     const metricRowId = `bookings:${engineType}`;
 
     return (
@@ -221,6 +227,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                 budget: visibleBudget,
                 share: engineSpend > 0 ? visibleSpend / engineSpend : 1,
               })}
+              filterNote={followTable ? `Filtered · ${filteredBookingData.length} of ${engineRows.length} bookings` : undefined}
               selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
               onSelectionChange={(keys) => setSessionMetricKeys(metricRowId, keys)}
               maxVisible={5}

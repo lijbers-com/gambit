@@ -192,10 +192,28 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
         withinSessionRange(sessionFilters, c.startDate, c.endDate),
     );
 
+    // The table's own filters, applied to the same DB rows the table shows.
+    const tableFiltersActive = status.length > 0 || advertiser.length > 0 || retailProduct.length > 0;
+    const statusLabelOf = (c: (typeof engineCampaigns)[number]) => c.status.toLowerCase().replace(/ /g, '-');
+    const advertiserOf = (c: (typeof engineCampaigns)[number]) => {
+      const plan = db.mediaPlans.find((mp) => mp.id === c.mediaPlanId);
+      return (db.advertisers.find((a) => a.id === plan?.advertiserId)?.name ?? '').toLowerCase().replace(/ /g, '-');
+    };
+    const filterScopedCampaigns = engineCampaigns.filter(
+      (c) =>
+        (status.length === 0 || status.includes(statusLabelOf(c))) &&
+        (advertiser.length === 0 || advertiser.includes(advertiserOf(c))),
+    );
+    // The cards follow the table only while the table is in front of the
+    // user; other tabs show the proposition's totals, and the filtered
+    // numbers return with the campaigns tab.
+    const followTable = activeTab === 'campaigns' && tableFiltersActive;
+    const scopedCampaigns = followTable ? filterScopedCampaigns : engineCampaigns;
+
     // What the filters left in view, against the proposition as a whole — the
     // ratio is how far the illustrative volume cards are scaled down.
-    const visibleSpend = engineCampaigns.reduce((sum, c) => sum + c.spend, 0);
-    const visibleBudget = engineCampaigns.reduce((sum, c) => sum + c.budget, 0);
+    const visibleSpend = scopedCampaigns.reduce((sum, c) => sum + c.spend, 0);
+    const visibleBudget = scopedCampaigns.reduce((sum, c) => sum + c.budget, 0);
     const propositionSpend = db.campaigns
       .filter((c) => engineId === 'all' || c.engine === engineId)
       .reduce((sum, c) => sum + c.spend, 0);
@@ -334,6 +352,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
             budget: visibleBudget,
             share: propositionSpend > 0 ? visibleSpend / propositionSpend : 1,
           })}
+          filterNote={followTable ? `Filtered · ${filterScopedCampaigns.length} of ${engineCampaigns.length} campaigns` : undefined}
           selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
           onSelectionChange={(keys) => setSessionMetricKeys(metricRowId, keys)}
           maxVisible={5}

@@ -7,7 +7,7 @@ import { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar, type CalendarEvent } from "@/components/ui/calendar"
 import {
   Popover,
   PopoverContent,
@@ -62,6 +62,10 @@ export interface DateRangePickerProps {
    * Clearing emits `undefined`.
    */
   clearLabel?: string
+  /** Dated moments drawn as coloured dots in the calendar (retail events,
+   *  holidays), with a legend underneath — the bookings calendar's marker
+   *  language, inside the picker. */
+  events?: CalendarEvent[]
 }
 
 // Conversion window options
@@ -320,6 +324,7 @@ export function DateRangePicker({
   conversionWindow,
   onConversionWindowChange,
   clearLabel,
+  events,
 }: DateRangePickerProps) {
   const presetList = presets ?? defaultPresets
   const [selectedPreset, setSelectedPreset] = React.useState<string | undefined>(defaultPreset)
@@ -519,11 +524,22 @@ export function DateRangePicker({
               onSelect={handleManualRangeChange}
               numberOfMonths={2}
               initialFocus
-              weekStartsOn={showWeekNumbers ? 1 : undefined}
               showWeekNumber={showWeekNumbers}
               onWeekClick={showWeekNumbers ? handleWeekSelect : undefined}
+              events={events}
             />
           </div>
+          {/* The dots decoded: which colour is which moment. */}
+          {events && events.length > 0 && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-3 py-2">
+              {events.map((ev) => (
+                <span key={`${ev.date}-${ev.label}`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: ev.color }} />
+                  {ev.label}
+                </span>
+              ))}
+            </div>
+          )}
           {clearLabel && dateRange?.from && (
             <div className="border-t p-3 flex-shrink-0">
               <Button

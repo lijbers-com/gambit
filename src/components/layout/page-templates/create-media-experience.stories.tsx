@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
+import { retailMoments } from '@/lib/retail-moments';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
@@ -1315,6 +1316,8 @@ export const GoalSelection: Story = {
                           onDateRangeChange={setDateRange}
                           placeholder="Select start and end date"
                           showPresets
+                          showWeekNumbers
+                          events={retailMoments}
                           presets={futureDateRangePresets}
                         />
                         <FieldHint>Your campaign will automatically start and stop on the selected dates</FieldHint>
@@ -2127,6 +2130,8 @@ export const NoGoalTargeting: Story = {
                           onDateRangeChange={setDateRange}
                           placeholder="Select start and end date"
                           showPresets
+                          showWeekNumbers
+                          events={retailMoments}
                           presets={futureDateRangePresets}
                         />
                         <FieldHint>Your campaign will automatically start and stop on the selected dates</FieldHint>

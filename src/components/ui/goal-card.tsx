@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
 export interface GoalCardProps {
   icon: React.ReactNode;
@@ -57,7 +59,28 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p>
       {kpis && kpis.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1">
-          <span className="text-[11px] font-medium text-muted-foreground">Focus KPIs:</span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+            Focus KPIs:
+            {/* What "focus" means has to be said, or the list reads as
+                everything that will be reported. */}
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    role="img"
+                    aria-label="What are focus KPIs?"
+                    className="inline-flex cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Info className="h-3 w-3" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[260px]">
+                  These are the KPIs this goal is steered and judged on. Other metrics are still measured and reported, but the plan optimises for these — not for them.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </span>
           {kpis.map((k) => {
             const chosen = highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase()));
             return (

@@ -11,6 +11,15 @@ import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 
+/** A dated moment worth seeing while picking dates — a retail event, a
+ *  holiday, a campaign already running. Drawn as a coloured dot on its day,
+ *  the same marker language the bookings calendar uses. */
+export interface CalendarEvent {
+  date: Date | string
+  color: string
+  label?: string
+}
+
 function Calendar({
   className,
   classNames,
@@ -20,17 +29,32 @@ function Calendar({
   formatters,
   components,
   onWeekClick,
+  weekStartsOn = 1,
+  events,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
   /** When set (with showWeekNumber), week numbers become clickable to select the whole week */
   onWeekClick?: (days: Date[]) => void
+  /** Coloured day markers. */
+  events?: CalendarEvent[]
 }) {
   const defaultClassNames = getDefaultClassNames()
+
+  // Day → its event, so the day button can look itself up in O(1).
+  const eventByDay = React.useMemo(() => {
+    const map = new Map<string, CalendarEvent>()
+    for (const ev of events ?? []) {
+      map.set(new Date(ev.date).toDateString(), ev)
+    }
+    return map
+  }, [events])
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      // The whole app plans in ISO weeks: Monday first, everywhere.
+      weekStartsOn={weekStartsOn}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
@@ -158,7 +182,10 @@ function Calendar({
             <ChevronDownIcon className={cn("size-4", className)} {...props} />
           )
         },
-        DayButton: CalendarDayButton,
+        DayButton: (dayProps) => {
+          const ev = eventByDay.get(dayProps.day.date.toDateString())
+          return <CalendarDayButton {...dayProps} eventColor={ev?.color} eventLabel={ev?.label} />
+        },
         WeekNumber: ({ week, children, ...props }) => {
           return (
             <td {...props}>
@@ -190,8 +217,11 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  eventColor,
+  eventLabel,
+  children,
   ...props
-}: React.ComponentProps<typeof DayButton>) {
+}: React.ComponentProps<typeof DayButton> & { eventColor?: string; eventLabel?: string }) {
   const defaultClassNames = getDefaultClassNames()
 
   const ref = React.useRef<HTMLButtonElement>(null)
@@ -216,11 +246,22 @@ function CalendarDayButton({
       data-range-middle={modifiers.range_middle}
       className={cn(
         "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        "relative",
         defaultClassNames.day,
         className
       )}
+      title={eventLabel}
       {...props}
-    />
+    >
+      {children}
+      {eventColor && (
+        <span
+          aria-hidden
+          className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: eventColor }}
+        />
+      )}
+    </Button>
   )
 }
 

@@ -37,6 +37,8 @@ import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
+import { retailMoments } from '@/lib/retail-moments';
+import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
@@ -243,6 +245,8 @@ const DatesCell = ({
         }
       }}
       showPresets={false}
+      showWeekNumbers
+      events={retailMoments}
       className={className}
       placeholder="Set run time"
     />
@@ -322,6 +326,20 @@ export const MediaPlanDetail: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
+    // Checklist cards the user skipped. Loaded in an effect, never during
+    // render — localStorage at render time breaks hydration.
+    const [skippedChecklist, setSkippedChecklist] = React.useState<string[]>([]);
+    const skipKey = 'gambit-setup-skipped';
+    React.useEffect(() => {
+      try { setSkippedChecklist(JSON.parse(window.localStorage.getItem(skipKey) ?? '[]')); } catch { /* fresh */ }
+    }, []);
+    const skipChecklistCards = (ids: string[]) => {
+      setSkippedChecklist((prev) => {
+        const next = Array.from(new Set([...prev, ...ids]));
+        try { window.localStorage.setItem(skipKey, JSON.stringify(next)); } catch { /* private mode */ }
+        return next;
+      });
+    };
     // The table exists to show the plan's contents, so campaigns start open.
     // Keyed on the plan so navigating between plans re-opens the new one's rows.
     const expandedInitFor = React.useRef<string | null>(null);
@@ -623,6 +641,54 @@ export const MediaPlanDetail: Story = {
       recommendations: planOwnMsgs.filter((m) => m.kind === 'recommendation').length,
       insights: planOwnMsgs.filter((m) => m.kind === 'insight').length,
     };
+
+    /**
+     * The setup checklist: per campaign, the steps between here and live —
+     * derived from the data, so a step completes itself the moment the work
+     * exists, and a finished card leaves on its own. Each step opens the
+     * surface where that work is done.
+     */
+    const checklistCards = plan
+      ? db.campaigns
+          .filter((c) => c.mediaPlanId === plan.id && c.status !== 'completed' && !skippedChecklist.includes(c.id))
+          .map((c) => {
+            const bookings = db.bookings.filter((b) => b.campaignId === c.id);
+            const meta = propositionMeta[c.engine];
+            const CardIcon = meta.icon;
+            const openCampaign = () => { window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
+            const steps = [
+              {
+                id: `${c.id}-bookings`,
+                title: 'Create bookings',
+                description: 'Set up the foundation for your campaign.',
+                done: bookings.length > 0,
+                onClick: () => addBookingTo(c.id),
+              },
+              c.engine === 'sponsored-products'
+                ? {
+                    id: `${c.id}-targeting`,
+                    title: 'Add products and keywords',
+                    description: 'Target the right products and terms.',
+                    done: bookings.length > 0 && bookings.every((b) => b.positionIds.length > 0),
+                    onClick: openCampaign,
+                  }
+                : {
+                    id: `${c.id}-creatives`,
+                    title: 'Create and link creatives to bookings',
+                    description: 'Connect your ad assets to the bookings.',
+                    done: bookings.length > 0 && bookings.every((b) => b.creativeStatus !== 'missing'),
+                    onClick: () => {
+                      const missing = bookings.find((b) => b.creativeStatus === 'missing');
+                      window.location.href = missing
+                        ? `/campaigns/${routeSeg[c.engine]}/booking/${missing.id}`
+                        : `/campaigns/${routeSeg[c.engine]}/${c.id}`;
+                    },
+                  },
+            ];
+            return { id: c.id, icon: <CardIcon />, title: `${meta.label} proposition`, steps };
+          })
+          .filter((card) => card.steps.some((step) => !step.done))
+      : [];
 
     const planBlockers = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
@@ -1079,6 +1145,14 @@ export const MediaPlanDetail: Story = {
                         </div>
                       </div>
                     </section>
+                    {checklistCards.length > 0 && (
+                      <SetupChecklist
+                        subtitle="Complete these steps to take the plan live. You can skip any card for now."
+                        cards={checklistCards}
+                        onDismiss={(id) => skipChecklistCards([id])}
+                        onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
+                      />
+                    )}
                     <FilterBar
                       filters={[
                         {

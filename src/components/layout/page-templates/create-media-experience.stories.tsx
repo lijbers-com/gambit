@@ -444,6 +444,9 @@ export const GoalSelection: Story = {
       externalId: string;
       budget: string;
       dateRange: DateRange | undefined;
+      /** Bookings added by hand on top of the preset's — created empty with
+       *  the plan, filled in on the campaign afterwards. Only names here. */
+      extraBookings: string[];
     };
     const rowSeq = React.useRef(0);
     const nextRowId = () => `row-${(rowSeq.current += 1)}`;
@@ -455,6 +458,7 @@ export const GoalSelection: Story = {
       externalId: '',
       budget: '',
       dateRange: undefined,
+      extraBookings: [],
     });
     // Default: one assisted campaign per proposition.
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
@@ -466,6 +470,7 @@ export const GoalSelection: Story = {
         externalId: '',
         budget: '',
         dateRange: undefined,
+        extraBookings: [],
       })),
     );
     const updateRow = (id: string, patch: Partial<CampaignRow>) =>
@@ -799,6 +804,23 @@ export const GoalSelection: Story = {
             });
           });
         }
+
+        // Bookings added by hand on the card are created exactly as promised:
+        // empty drafts, ready to fill on the campaign. No position, no budget —
+        // the to-do engine flags both until they are chosen.
+        row.extraBookings.forEach((bookingName, bi) => {
+          createBooking({
+            campaignId: campaign.id,
+            name: bookingName.trim() || `${campaign.name} — Booking ${bi + 1}`,
+            status: 'draft',
+            budget: 0,
+            spend: 0,
+            startDate: campaignStart,
+            endDate: campaignEnd,
+            positionIds: [],
+            creativeStatus: 'missing',
+          });
+        });
       });
 
       // Land on the new plan's Inbox: a plan straight out of the wizard always
@@ -1479,7 +1501,7 @@ export const GoalSelection: Story = {
                                   <div className="px-3 py-2">
                                     <div className="mb-1.5 flex items-center gap-2">
                                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
-                                      <span className="text-xs font-medium">Bookings ({rowBookings.length})</span>
+                                      <span className="text-xs font-medium">Bookings ({rowBookings.length + row.extraBookings.length})</span>
                                       {worstAvailability !== 'available' && (
                                         <span className="ml-auto text-[11px] text-muted-foreground">
                                           {worstAvailability === 'limited' ? 'Book early to secure' : 'Nearly booked out — consider shifting the run time'}
@@ -1501,7 +1523,36 @@ export const GoalSelection: Story = {
                                           />
                                         </div>
                                       ))}
+                                      {row.extraBookings.map((bn, bi) => (
+                                        <div key={`extra-${bi}`} className="flex items-center justify-between gap-4 py-1.5">
+                                          <Input
+                                            value={bn}
+                                            placeholder="Name the booking (optional)"
+                                            className="h-7 max-w-[260px] text-xs"
+                                            onChange={(e) => updateRow(row.id, { extraBookings: row.extraBookings.map((x, xi) => xi === bi ? e.target.value : x) })}
+                                          />
+                                          <span className="flex shrink-0 items-center gap-2">
+                                            <span className="text-[11px] text-muted-foreground">Created empty with the plan</span>
+                                            <button
+                                              type="button"
+                                              aria-label="Remove booking"
+                                              onClick={() => updateRow(row.id, { extraBookings: row.extraBookings.filter((_, xi) => xi !== bi) })}
+                                              className="text-muted-foreground transition-colors hover:text-foreground"
+                                            >
+                                              <X size={12} />
+                                            </button>
+                                          </span>
+                                        </div>
+                                      ))}
                                     </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateRow(row.id, { extraBookings: [...row.extraBookings, ''] })}
+                                      className="mt-1 flex items-center gap-1.5 pl-7 text-xs font-medium text-primary hover:underline"
+                                    >
+                                      <Plus size={13} />
+                                      Add booking
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -1557,11 +1608,45 @@ export const GoalSelection: Story = {
                                 <div className="px-3 py-2">
                                   <div className="flex items-center gap-2">
                                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
-                                    <span className="text-xs font-medium">Bookings (0)</span>
+                                    <span className="text-xs font-medium">Bookings ({row.extraBookings.length})</span>
                                   </div>
-                                  <p className="pl-7 pt-1 text-[11px] text-muted-foreground">
-                                    No bookings yet — you add them on the campaign once the plan is created.
-                                  </p>
+                                  {row.extraBookings.length === 0 ? (
+                                    <p className="pl-7 pt-1 text-[11px] text-muted-foreground">
+                                      No bookings yet — add them here, or on the campaign once the plan is created.
+                                    </p>
+                                  ) : (
+                                    <div className="divide-y divide-border/60 pl-7">
+                                      {row.extraBookings.map((bn, bi) => (
+                                        <div key={`extra-${bi}`} className="flex items-center justify-between gap-4 py-1.5">
+                                          <Input
+                                            value={bn}
+                                            placeholder="Name the booking (optional)"
+                                            className="h-7 max-w-[260px] text-xs"
+                                            onChange={(e) => updateRow(row.id, { extraBookings: row.extraBookings.map((x, xi) => xi === bi ? e.target.value : x) })}
+                                          />
+                                          <span className="flex shrink-0 items-center gap-2">
+                                            <span className="text-[11px] text-muted-foreground">Created empty with the plan</span>
+                                            <button
+                                              type="button"
+                                              aria-label="Remove booking"
+                                              onClick={() => updateRow(row.id, { extraBookings: row.extraBookings.filter((_, xi) => xi !== bi) })}
+                                              className="text-muted-foreground transition-colors hover:text-foreground"
+                                            >
+                                              <X size={12} />
+                                            </button>
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <button
+                                      type="button"
+                                      onClick={() => updateRow(row.id, { extraBookings: [...row.extraBookings, ''] })}
+                                      className="mt-1 flex items-center gap-1.5 pl-7 text-xs font-medium text-primary hover:underline"
+                                    >
+                                      <Plus size={13} />
+                                      Add booking
+                                    </button>
                                 </div>
                               </div>
                             )}

@@ -1453,18 +1453,12 @@ export const GoalSelection: Story = {
 
                             {isAssisted ? (
                               <div className="space-y-3">
-                                <div className="space-y-2">
-                                  <Label>Campaign name</Label>
-                                  <Input
-                                    value={row.name}
-                                    placeholder={prefill}
-                                    onChange={(e) => updateRow(row.id, { name: e.target.value })}
-                                  />
-                                </div>
                                 {/* The proposal drawn as the thing it creates: a
                                     campaign, then its bookings — the same two
-                                    steps every wizard walks. Each booking carries
-                                    its stock level, from the inventory check for
+                                    steps every wizard walks. The name lives in
+                                    the campaign step, because it is the
+                                    campaign's name, and each booking carries
+                                    its stock level from the inventory check for
                                     this run time. */}
                                 <div className="rounded-md border border-border">
                                   <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
@@ -1473,6 +1467,14 @@ export const GoalSelection: Story = {
                                     <span className="ml-auto text-xs tabular-nums text-muted-foreground">
                                       {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
                                     </span>
+                                  </div>
+                                  <div className="space-y-2 border-b border-border p-3">
+                                    <Label>Campaign name</Label>
+                                    <Input
+                                      value={row.name}
+                                      placeholder={prefill}
+                                      onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                    />
                                   </div>
                                   <div className="px-3 py-2">
                                     <div className="mb-1.5 flex items-center gap-2">

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Bell, User, Building2, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NotificationDot } from './notification-dot';
 import { Button } from './button';
 import { HeaderSearch } from './header-search';
 import { Route } from './side-navigation';
@@ -111,11 +112,9 @@ export const HeaderActions = React.forwardRef<
         <Bell className="h-5 w-5" />
         {showBadge && (
           unreadCount > 0 ? (
-            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold tabular-nums text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+            <NotificationDot count={unreadCount} className="absolute -right-1.5 -top-1.5" />
           ) : (
-            <span className="absolute top-2 right-[9px] h-2 w-2 rounded-full bg-red-500" />
+            <span className="absolute top-2 right-[9px] h-2 w-2 rounded-full bg-destructive" />
           )
         )}
       </Button>

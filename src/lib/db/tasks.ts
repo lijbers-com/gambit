@@ -357,10 +357,14 @@ export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHeal
       message: `Live with ${blocking.length} blocking issue${blocking.length === 1 ? '' : 's'} — ${blocking[0].title.toLowerCase()} first.`,
     };
   }
-  if (blocking.length > 0) {
+  // Health judges a running plan. A plan that isn't live can't be unhealthy —
+  // open setup work belongs to the to-do list, not to a red health chip.
+  if (!live) {
     return {
-      level: 'attention',
-      message: `${blocking.length} blocker${blocking.length === 1 ? '' : 's'} to clear before it can go live.`,
+      level: 'good',
+      message: blocking.length > 0
+        ? `Not live yet — ${blocking.length} blocker${blocking.length === 1 ? '' : 's'} to clear before launch.`
+        : 'Not live yet — nothing to monitor.',
     };
   }
   if (tasks.length > 0) {

@@ -322,6 +322,9 @@ export const MediaPlanDetail: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
     const [expanded, setExpanded] = React.useState<string[]>([]);
+    // The table exists to show the plan's contents, so campaigns start open.
+    // Keyed on the plan so navigating between plans re-opens the new one's rows.
+    const expandedInitFor = React.useRef<string | null>(null);
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
     const [logActions, setLogActions] = React.useState<string[]>([]);
     // A row's notifications, opened in the side panel from the table.
@@ -334,6 +337,11 @@ export const MediaPlanDetail: Story = {
     // it falls back to the first seeded plan.
     const db = useDb();
     const plan = db.mediaPlans.find((p) => p.id === planId) ?? db.mediaPlans[0];
+    React.useEffect(() => {
+      if (!plan || expandedInitFor.current === plan.id) return;
+      expandedInitFor.current = plan.id;
+      setExpanded(db.campaigns.filter((c) => c.mediaPlanId === plan.id).map((c) => c.id));
+    }, [plan, db.campaigns]);
     const planAdvertiser = db.advertisers.find((a) => a.id === plan?.advertiserId);
 
     // Form option lists come from the store.

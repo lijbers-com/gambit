@@ -7,6 +7,7 @@ import { Badge } from "./badge"
 import { formatYAxisTick } from "./chart-types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 import { TabActionGroup, TAB_LABEL } from "./tab-actions"
+import { NotificationDot } from "./notification-dot"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -29,7 +30,7 @@ export interface CardWithTabsTab {
   content: React.ReactNode;
   /** Unread count for this tab. Anything above 0 puts a red dot on the tab so
    *  the reader sees there is something new without opening it; the number
-   *  shows once there is room for it (9+ above nine, like the header bell). */
+   *  shows once there is room for it (capped at 9, like the header bell). */
   badgeCount?: number;
 }
 
@@ -95,9 +96,7 @@ export function CardWithTabs({
             >
               <span data-tab-label className={TAB_LABEL}>{tab.label}</span>
               {!!tab.badgeCount && tab.badgeCount > 0 && (
-                <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                  {tab.badgeCount > 9 ? '9+' : tab.badgeCount}
-                </span>
+                <NotificationDot count={tab.badgeCount} />
               )}
             </button>
           ))}
@@ -966,17 +965,18 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 </Pie>
                 <RechartsTooltip
                   cursor={false}
+                  wrapperStyle={{ zIndex: 20 }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const item = payload[0];
                     return (
-                      <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-sm flex items-center gap-2">
+                      <div className="flex items-center gap-2 whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-md">
                         <span
-                          className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                          className="inline-block h-2 w-2 flex-shrink-0 rounded-full"
                           style={{ backgroundColor: item.payload?.fill ?? (item.color as string) }}
                         />
-                        <span className="text-muted-foreground">{item.name}</span>
-                        <span className="font-semibold ml-1">{(item.value as number).toLocaleString()}</span>
+                        <span className="text-primary-foreground/80">{item.name}</span>
+                        <span className="ml-1 font-medium tabular-nums">{(item.value as number).toLocaleString()}</span>
                       </div>
                     );
                   }}
@@ -1039,13 +1039,14 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                   </Bar>
                   <RechartsTooltip
                     cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                    wrapperStyle={{ zIndex: 20 }}
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
                       const item = payload[0];
                       return (
-                        <div className="rounded-lg border bg-background px-2 py-1.5 shadow-md text-xs">
-                          <div className="text-muted-foreground">{item.payload.date}</div>
-                          <div className="font-semibold tabular-nums">{fmt(item.value as number)}</div>
+                        <div className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-md">
+                          <div className="text-primary-foreground/80">{item.payload.date}</div>
+                          <div className="font-medium tabular-nums">{fmt(item.value as number)}</div>
                         </div>
                       );
                     }}

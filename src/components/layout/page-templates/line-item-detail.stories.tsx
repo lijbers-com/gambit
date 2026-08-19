@@ -31,6 +31,7 @@ import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { SuggestionList } from '@/components/ui/suggestion-list';
+import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
@@ -837,9 +838,7 @@ export const Display: Story = {
                     <span className="inline-flex min-w-0 items-center gap-2">
                       <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                       {t.value === 'actions' && bookingUnread > 0 && (
-                        <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                          {bookingUnread > 9 ? '9+' : bookingUnread}
-                        </span>
+                        <NotificationDot count={bookingUnread} />
                       )}
                     </span>
                   </button>
@@ -2002,9 +2001,7 @@ export const DigitalInStore: Story = {
                         <span className="inline-flex min-w-0 items-center gap-2">
                           <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
-                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                              {bookingUnread > 9 ? '9+' : bookingUnread}
-                            </span>
+                            <NotificationDot count={bookingUnread} />
                           )}
                         </span>
                       </button>
@@ -3322,9 +3319,7 @@ export const OfflineInStore: Story = {
                         <span className="inline-flex min-w-0 items-center gap-2">
                           <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
-                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                              {bookingUnread > 9 ? '9+' : bookingUnread}
-                            </span>
+                            <NotificationDot count={bookingUnread} />
                           )}
                         </span>
                       </button>
@@ -4345,9 +4340,7 @@ export const SponsoredProducts: Story = {
                         <span className="inline-flex min-w-0 items-center gap-2">
                           <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
-                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                              {bookingUnread > 9 ? '9+' : bookingUnread}
-                            </span>
+                            <NotificationDot count={bookingUnread} />
                           )}
                         </span>
                       </button>
@@ -4900,9 +4893,7 @@ export const OffsiteDisplay: Story = {
                         <span className="inline-flex min-w-0 items-center gap-2">
                           <span data-tab-label className={TAB_LABEL}>{t.label}</span>
                           {t.value === 'actions' && bookingUnread > 0 && (
-                            <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-white">
-                              {bookingUnread > 9 ? '9+' : bookingUnread}
-                            </span>
+                            <NotificationDot count={bookingUnread} />
                           )}
                         </span>
                       </button>

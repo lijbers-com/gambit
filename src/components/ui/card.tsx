@@ -897,7 +897,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             {subMetric && (
               <div
                 className={cn(
-                  "text-sm text-muted-foreground transition-all duration-500 ease-in-out",
+                  "text-xs text-muted-foreground transition-all duration-500 ease-in-out",
                   value && "mt-2",
                 )}
               >

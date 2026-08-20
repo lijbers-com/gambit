@@ -971,9 +971,14 @@ export const GoalSelection: Story = {
                     color: propositionColor(engine as never),
                   }));
                 const stage = selectedGoal ? goalObjectives[selectedGoal]?.stage : undefined;
+                // Until the campaign step, the split is the platform's default
+                // share, not a decision anyone has made — so the forecast
+                // shows as one total and the split charts wait for the step
+                // where the split is actually set.
+                const splitDecided = currentStep >= 4;
                 return (
                   <MetricRow
-                    metrics={buildForecastMetrics({ budget: draftBudget, days, engines, stage })}
+                    metrics={buildForecastMetrics({ budget: draftBudget, days, engines: splitDecided ? engines : [], stage })}
                     maxVisible={8}
                     defaultVariant="default"
                     removable={false}

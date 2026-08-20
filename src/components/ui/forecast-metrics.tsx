@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { MetricDefinition } from './metric-row';
 import { BudgetStackedMini } from './card';
-import { planForecast, fmtForecastRange, forecastByEngine, IMPRESSIONS_PER_EURO, CONVERSIONS_PER_EURO } from '@/lib/forecast';
+import { planForecast, fmtForecastRange, fmtForecastCount, forecastByEngine, IMPRESSIONS_PER_EURO, CONVERSIONS_PER_EURO } from '@/lib/forecast';
 import { kpiEstimates, stageEstimateKpis } from '@/lib/funnel';
 
 /**
@@ -73,7 +73,7 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: 
     {
       key: 'impressions',
       label: 'Impressions',
-      value: noBudget ? '-' : fmtForecastRange(fc.impressions, fmtCompact),
+      value: noBudget ? '-' : fmtForecastCount(fc.impressions),
       subMetric: noBudget ? 'Set budget to forecast' : 'Expected over the full run time',
       ...forecastBadge,
       ...(withEngines
@@ -88,7 +88,7 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: 
     {
       key: 'conversions',
       label: 'Conversions',
-      value: noBudget ? '-' : fmtForecastRange(fc.conversions, fmtCompact),
+      value: noBudget ? '-' : fmtForecastCount(fc.conversions),
       subMetric: noBudget ? 'Set budget to forecast' : 'Expected over the full run time',
       ...forecastBadge,
       ...(withEngines

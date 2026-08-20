@@ -48,6 +48,21 @@ export function fmtForecastRange(r: ForecastRange, fmt: (n: number) => string, u
 }
 
 /**
+ * A count range for a metric card: "552–648K", "2.2–2.6M", "184–216". One
+ * magnitude suffix for the whole range — repeating it on both ends made the
+ * string too wide for the card and it truncated to "552.0K–64…".
+ */
+export function fmtForecastCount(r: ForecastRange): string {
+  const unit = r.high >= 1_000_000 ? 1_000_000 : r.high >= 1000 ? 1000 : 1;
+  const suffix = unit === 1_000_000 ? 'M' : unit === 1000 ? 'K' : '';
+  const f = (n: number) => {
+    const v = n / unit;
+    return v >= 100 || unit === 1 ? String(Math.round(v)) : v.toFixed(1).replace(/\.0$/, '');
+  };
+  return `${f(r.low)}–${f(r.high)}${suffix}`;
+}
+
+/**
  * The forecast split across a plan's engines, for the donut and bar
  * breakdowns — midpoints, because a chart of ranges is unreadable. Sums back
  * to (the midpoint of) the headline, the same invariant the actuals keep.

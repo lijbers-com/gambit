@@ -1174,7 +1174,6 @@ export const GoalSelection: Story = {
                               kpis={goalKpis[goal.id]}
                               highlightKpis={selectedGoal === goal.id ? highlightChipKpis : []}
                               selected={selectedGoal === goal.id}
-                              dimmed={selectedGoal !== null && selectedGoal !== goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />
                           ))}

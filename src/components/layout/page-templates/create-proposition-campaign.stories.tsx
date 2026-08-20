@@ -1169,7 +1169,6 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                                 title={goal.title}
                                 description={goal.description}
                                 selected={selectedGoal === goal.id}
-                                dimmed={selectedGoal !== null && selectedGoal !== goal.id}
                                 onClick={() => setSelectedGoal(goal.id)}
                               />
                             ))}

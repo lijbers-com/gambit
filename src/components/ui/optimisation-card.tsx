@@ -385,13 +385,19 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
           preview: health.message,
         }]
       : []),
-    ...items.map((a, i) => ({
-      id: String(i),
-      kind: adviceKind(a) as InboxItem['kind'],
-      subject: subjectOf(a),
-      // Only a preview when the subject isn't already the message itself.
-      preview: a.title ? a.message : null,
-    })),
+    ...items
+      // While the plan is being built, only advice you can act on belongs
+      // here. Insights read the past, and there is no past yet — they land on
+      // the plan once it is created and has delivered something to observe.
+      .map((a, i) => ({ a, i }))
+      .filter(({ a }) => adviceKind(a) !== 'insight')
+      .map(({ a, i }) => ({
+        id: String(i),
+        kind: adviceKind(a) as InboxItem['kind'],
+        subject: subjectOf(a),
+        // Only a preview when the subject isn't already the message itself.
+        preview: a.title ? a.message : null,
+      })),
   ];
 
   const itemStatus: Record<string, MessageStatus> = {};
@@ -405,14 +411,15 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
 
   return (
     <div className={cn('w-full', className)}>
-      {/* The wizard never produces action-needed messages — there is nothing to
-          act on yet — so filtering would only ever have one useful state. It
-          names what the list holds instead. */}
+      {/* Recommendations only: the wizard has nothing to act on yet, and
+          insights read a past this plan does not have. With one kind in the
+          list, filters would only ever have one useful state — the heading
+          names what is here instead. */}
       <Inbox
         items={inboxItems}
         status={itemStatus}
         showFilters={false}
-        heading="Recommendations and insights"
+        heading="Recommendations"
         emptyMessage="This setup looks good to us — nothing to recommend right now."
         onOpen={(item) => {
           setOpened((prev) => new Set(prev).add(item.id));

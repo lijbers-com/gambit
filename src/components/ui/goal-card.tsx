@@ -18,8 +18,6 @@ export interface GoalCardProps {
   /** KPIs the user has since chosen — their chips light up so the card shows
    *  which of its promises the plan is actually being judged on. */
   highlightKpis?: string[];
-  /** Another card is selected and this one isn't: tone it down. */
-  dimmed?: boolean;
   className?: string;
 }
 
@@ -32,7 +30,7 @@ export interface GoalCardProps {
  * without looking like a different kind of thing. Used by the create-media-plan
  * wizard and the media-plan details form.
  */
-export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, selected, onClick, readOnly, kpis, highlightKpis, dimmed, className }) => {
+export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, selected, onClick, readOnly, kpis, highlightKpis, className }) => {
   // Read-only renders a div: a button that cannot do anything still shows a
   // pointer and a hover state, which reads as "click me" and then disappoints.
   const Tag = readOnly ? 'div' : 'button';
@@ -57,7 +55,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
         selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
         // Once one goal is chosen the rest step back — still readable, still
         // clickable, but no longer competing with the choice already made.
-        dimmed && 'opacity-55 hover:opacity-100',
         className,
       )}
     >

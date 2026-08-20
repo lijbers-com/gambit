@@ -56,14 +56,25 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
    */
   const [kpisExpanded, setKpisExpanded] = React.useState(false);
   const kpiListRef = React.useRef<HTMLSpanElement>(null);
-  // How many badges fall below the clamp — counted from where they actually
-  // landed, since the clamp is a height and the badges are different widths.
+  /**
+   * The clamp is measured from a badge, not guessed: a hard-coded height cut
+   * the third row through the middle, leaving a sliver of chip under the
+   * "+N more". Three badge heights plus the two gaps between them lands
+   * exactly on the row boundary at any font size.
+   */
+  const KPI_ROW_GAP = 4; // gap-1
+  const [clampHeight, setClampHeight] = React.useState<number | null>(null);
   const [hiddenCount, setHiddenCount] = React.useState(0);
   React.useEffect(() => {
     const el = kpiListRef.current;
     if (!el || kpisExpanded) return;
     const check = () => {
-      const cutoff = el.getBoundingClientRect().top + el.clientHeight;
+      const first = el.firstElementChild;
+      if (!first) return;
+      const rowHeight = first.getBoundingClientRect().height;
+      const clamp = rowHeight * 3 + KPI_ROW_GAP * 2;
+      setClampHeight(clamp);
+      const cutoff = el.getBoundingClientRect().top + clamp;
       setHiddenCount(
         Array.from(el.children).filter((child) => child.getBoundingClientRect().top >= cutoff - 2).length,
       );
@@ -124,8 +135,8 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               what the goal is judged on, it is not the KPI reference. */}
           <span
             ref={kpiListRef}
-            // 3 rows: badge line-height ~20px plus the 4px gap between rows.
-            className={cn('flex flex-wrap gap-1 overflow-hidden', !kpisExpanded && 'max-h-[68px]')}
+            className="flex flex-wrap gap-1 overflow-hidden"
+            style={{ maxHeight: kpisExpanded || clampHeight === null ? undefined : clampHeight }}
           >
           {orderedKpis.map((k) => {
             const chosen = isChosenKpi(k);
@@ -156,7 +167,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setKpisExpanded((v) => !v); }
               }}
-              className="mt-1 inline-block cursor-pointer rounded-full border border-dashed border-border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              className="mt-1 inline-block cursor-pointer rounded-full border border-border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
             >
               {kpisExpanded ? 'Show fewer' : `+${hiddenCount} more`}
             </span>

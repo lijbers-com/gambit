@@ -34,6 +34,9 @@ export interface SetupChecklistCardData {
   id: string;
   icon?: React.ReactNode;
   title: string;
+  /** The campaign's governing facts — run time, budget — as one muted line,
+   *  the same summary the wizard's last step showed for this campaign. */
+  facts?: string;
   steps: SetupChecklistStep[];
 }
 
@@ -86,6 +89,12 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                     </span>
                   </span>
                 </div>
+
+                {card.facts && (
+                  <div className="rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
+                    {card.facts}
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">

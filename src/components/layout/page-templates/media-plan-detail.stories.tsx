@@ -697,6 +697,8 @@ export const MediaPlanDetail: Story = {
             const meta = propositionMeta[c.engine];
             const CardIcon = meta.icon;
             const openCampaign = () => { window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
+            const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            const facts = `${fmtD(c.startDate)} → ${fmtD(c.endDate)} ${new Date(c.endDate).getFullYear()} · ${c.budget > 0 ? `€${c.budget.toLocaleString()}` : 'no budget set'}`;
             const steps = [
               {
                 id: `${c.id}-bookings`,
@@ -726,7 +728,7 @@ export const MediaPlanDetail: Story = {
                     },
                   },
             ];
-            return { id: c.id, icon: <CardIcon />, title: `${meta.label} proposition`, steps };
+            return { id: c.id, icon: <CardIcon />, title: `${meta.label} proposition`, facts, steps };
           })
           .filter((card) => card.steps.some((step) => !step.done))
       : [];
@@ -1257,6 +1259,16 @@ export const MediaPlanDetail: Story = {
                           onDismiss={(id) => skipChecklistCards([id])}
                           onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
                         />
+                      ) : planCampaignRows.length === 0 ? (
+                        // No campaigns at all — the same empty state the table
+                        // shows, so both views tell one story and offer the
+                        // same fix.
+                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center">
+                          <p className="text-sm text-muted-foreground">
+                            No campaigns in this media plan yet — add the first proposition.
+                          </p>
+                          <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
+                        </div>
                       ) : (
                         // Everything set up (or skipped): the cards have done
                         // their job, so say so and hand over to the table.

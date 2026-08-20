@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
+import { planForecast, fmtForecastRange } from '@/lib/forecast';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
@@ -973,73 +974,56 @@ export const GoalSelection: Story = {
         >
           <div className="space-y-3">
             {/* Metric cards - always visible, show '-' when no data */}
-              <MetricRow
-                metrics={[
-                  {
-                    key: 'reach',
-                    label: 'Est. Reach',
-                    value: selectedAudiences.length > 0
-                      ? (() => {
-                          const baseReach = parseFloat(estimatedReach?.replace('M', '') || '0');
-                          const totalReach = baseReach + propositionImpact.additionalReach;
-                          return forecastRange(totalReach, (n) => n.toFixed(1), 'M');
-                        })()
-                      : '-',
-                    subMetric: selectedAudiences.length > 0
-                      ? (propositionImpact.selectedCount > 0
-                          ? `${selectedAudiences.length} audience${selectedAudiences.length !== 1 ? 's' : ''} · ${propositionImpact.selectedCount} proposition${propositionImpact.selectedCount !== 1 ? 's' : ''}`
-                          : `${selectedAudiences.length} audience${selectedAudiences.length !== 1 ? 's' : ''}`)
-                      : 'No audience selected',
-                    badgeValue: selectedAudiences.length > 0 && propositionImpact.additionalReach > 0 ? `+${propositionImpact.additionalReach.toFixed(1)}M` : (selectedAudiences.length > 1 ? 'Combined' : undefined),
-                    badgeVariant: propositionImpact.additionalReach > 0 ? 'success' as const : 'info' as const,
-                  },
-                  {
-                    key: 'budget',
-                    label: 'Budget',
-                    value: budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : '-',
-                    subMetric: budgetAmount.trim() !== ''
-                      ? (dateRange?.from && dateRange?.to
-                          ? `€${(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(0)}/day`
-                          : 'No dates set')
-                      : 'No budget set',
-                  },
-                  {
-                    key: 'roas',
-                    label: 'Est. ROAS',
-                    value: budgetAmount.trim() !== ''
-                      ? (() => {
-                          const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0) + (selectedAudiences.length > 2 ? 0.5 : 0);
-                          const boostedRoas = baseRoas * (1 + propositionImpact.roasBoost / 100);
-                          return forecastRange(boostedRoas, (n) => n.toFixed(1), 'x');
-                        })()
-                      : '-',
-                    subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',
-                    badgeValue: budgetAmount.trim() !== '' ? (propositionImpact.roasBoost > 0 ? `+${propositionImpact.roasBoost}%` : '+12%') : undefined,
-                    badgeVariant: 'success' as const,
-                  },
-                  {
-                    key: 'sales',
-                    label: 'Est. Sales',
-                    value: budgetAmount.trim() !== ''
-                      ? (() => {
-                          const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0) + (selectedAudiences.length > 2 ? 0.5 : 0);
-                          const baseSales = parseFloat(budgetAmount) * baseRoas;
-                          const totalSales = baseSales + propositionImpact.additionalSales;
-                          return '€' + forecastRange(totalSales, (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)));
-                        })()
-                      : '-',
-                    subMetric: budgetAmount.trim() !== '' ? 'Projected revenue' : 'Set budget to calculate',
-                    badgeValue: budgetAmount.trim() !== '' ? (propositionImpact.additionalSales > 0 ? `+€${propositionImpact.additionalSales.toLocaleString()}` : 'Based on avg.') : undefined,
-                    badgeVariant: propositionImpact.additionalSales > 0 ? 'success' as const : 'secondary' as const,
-                  },
-                  // KPIs for the selected funnel stage, added as you progress.
-                  ...kpiMetrics,
-                ]}
-                selectedKeys={['reach', 'budget', 'roas', 'sales', ...kpiMetrics.map((m) => m.key)]}
-                maxVisible={4 + kpiMetrics.length}
-                defaultVariant="default"
-                removable={false}
-              />
+              {/* The same four cards the plan detail page shows, from the
+                  same forecast model — so saving the plan changes nothing
+                  about the numbers, only (eventually) their badge. Reach
+                  lives with the audience selector, not in this row. */}
+              {(() => {
+                const draftBudget = parseFloat(budgetAmount) || 0;
+                const fc = planForecast(draftBudget);
+                const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n)}`);
+                const fmtCompact = (n: number) =>
+                  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
+                const days = dateRange?.from && dateRange?.to
+                  ? Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1
+                  : 0;
+                const noBudget = draftBudget <= 0;
+                const forecastCard = (key: string, label: string, value: string, emptyHint: string): MetricDefinition => ({
+                  key,
+                  label,
+                  value: noBudget ? '-' : value,
+                  subMetric: noBudget ? emptyHint : 'Expected over the full run time',
+                  ...(noBudget ? {} : { badgeValue: 'Forecast', badgeVariant: 'secondary' as const }),
+                });
+                return (
+                  <MetricRow
+                    metrics={[
+                      {
+                        key: 'budget',
+                        label: 'Budget',
+                        value: noBudget ? '-' : fmtK(draftBudget),
+                        subMetric: noBudget
+                          ? 'No budget set'
+                          : days > 0
+                            ? `€${(draftBudget / days).toFixed(0)}/day over ${days} days`
+                            : 'No dates set',
+                      },
+                      forecastCard('impressions', 'Impressions', fmtForecastRange(fc.impressions, fmtCompact), 'Set budget to forecast'),
+                      forecastCard('conversions', 'Conversions', fmtForecastRange(fc.conversions, fmtCompact), 'Set budget to forecast'),
+                      {
+                        ...forecastCard('roas', 'ROAS', fmtForecastRange(fc.roas, (v) => v.toFixed(1), 'x'), 'Set budget to forecast'),
+                        subMetric: noBudget ? 'Set budget to forecast' : 'Predicted return at full delivery',
+                      },
+                      // KPIs for the selected funnel stage, added as you progress.
+                      ...kpiMetrics,
+                    ]}
+                    selectedKeys={['budget', 'impressions', 'conversions', 'roas', ...kpiMetrics.map((m) => m.key)]}
+                    maxVisible={4 + kpiMetrics.length}
+                    defaultVariant="default"
+                    removable={false}
+                  />
+                );
+              })()}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main content */}

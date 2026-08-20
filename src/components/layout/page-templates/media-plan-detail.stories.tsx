@@ -38,6 +38,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { retailMoments } from '@/lib/retail-moments';
+import { planForecast, fmtForecastRange, forecastByEngine, IMPRESSIONS_PER_EURO, CONVERSIONS_PER_EURO } from '@/lib/forecast';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -489,9 +490,80 @@ export const MediaPlanDetail: Story = {
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
     const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
 
+    /**
+     * Before the plan runs there are no actuals — a row of zeros read as the
+     * wizard's forecast being wiped the moment the plan was created. So a
+     * pre-live plan keeps the forecast reading, from the same model the
+     * wizard used: the identical four cards, ranges instead of measurements,
+     * each wearing a Forecast badge that disappears when the plan goes live.
+     */
+    const preLive = !!plan && (plan.status === 'draft' || plan.status === 'in-option');
+    const fc = planForecast(plan?.budget ?? 0);
+    const engineBudgets = byEngine.map((e) => ({ name: e.name, budget: e.budget, color: e.color }));
+    const forecastMetrics: MetricDefinition[] = [
+      {
+        key: 'budget',
+        // Nothing is spent yet, so the headline is the plan's budget and the
+        // bar is the planned split.
+        label: 'Budget',
+        value: fmtK(plan?.budget ?? 0),
+        badgeValue: 'Forecast',
+        badgeVariant: 'secondary',
+        variant: 'budgetStacked',
+        budgetData: engineBudgets.map((e) => ({ name: e.name, spent: e.budget, budget: e.budget, color: e.color })),
+        valueFormatter: fmtK,
+        chart: (
+          <BudgetStackedMini
+            budgetData={engineBudgets.map((e) => ({ name: e.name, spent: e.budget, budget: e.budget, color: e.color }))}
+            caption="planned split by proposition"
+          />
+        ),
+      },
+      {
+        key: 'impressions',
+        label: 'Impressions',
+        value: fmtForecastRange(fc.impressions, fmtNumberCompact),
+        badgeValue: 'Forecast',
+        badgeVariant: 'secondary',
+        subMetric: 'Expected over the full run time',
+        ...(engineBudgets.length > 0
+          ? {
+              variant: 'donut' as const,
+              donutData: forecastByEngine(engineBudgets, IMPRESSIONS_PER_EURO),
+              donutColors: propositionColors,
+              valueFormatter: fmtNumberCompact,
+            }
+          : {}),
+      },
+      {
+        key: 'conversions',
+        label: 'Conversions',
+        value: fmtForecastRange(fc.conversions, fmtNumberCompact),
+        badgeValue: 'Forecast',
+        badgeVariant: 'secondary',
+        subMetric: 'Expected over the full run time',
+        ...(engineBudgets.length > 0
+          ? {
+              variant: 'donut' as const,
+              donutData: forecastByEngine(engineBudgets, CONVERSIONS_PER_EURO),
+              donutColors: propositionColors,
+              valueFormatter: fmtNumberCompact,
+            }
+          : {}),
+      },
+      {
+        key: 'roas',
+        label: 'ROAS',
+        value: fmtForecastRange(fc.roas, (v) => v.toFixed(1), 'x'),
+        badgeValue: 'Forecast',
+        badgeVariant: 'secondary',
+        subMetric: 'Predicted return at full delivery',
+      },
+    ];
+
     // The same cards the media plan card shows, each expanding in place to its
     // per-proposition breakdown.
-    const metrics: MetricDefinition[] = [
+    const liveMetrics: MetricDefinition[] = [
       {
         key: 'budget',
         // The number is what has been SPENT; the budget is the "of €15.0K"
@@ -920,7 +992,7 @@ export const MediaPlanDetail: Story = {
           <div className="mb-3">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
-            <MetricRow metrics={metrics} maxVisible={4} defaultVariant="graph" showCharts removable={false} bleedEdges />
+            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
           </div>
 
           {/* The plan's main controls: what it may spend and when it runs,

@@ -36,6 +36,16 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
   // Read-only renders a div: a button that cannot do anything still shows a
   // pointer and a hover state, which reads as "click me" and then disappoints.
   const Tag = readOnly ? 'div' : 'button';
+  // Cap the badge list, but never hide a KPI the user has actually chosen.
+  const MAX_KPI_BADGES = 6;
+  const orderedKpis = (kpis ?? []).slice().sort((a, b) => {
+    const isChosen = (k: string) =>
+      highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase())) ? 0 : 1;
+    return isChosen(a) - isChosen(b);
+  });
+  const visibleKpis = orderedKpis.slice(0, MAX_KPI_BADGES);
+  const hiddenKpis = orderedKpis.slice(MAX_KPI_BADGES);
+
   return (
     <Tag
       {...(readOnly ? {} : { type: 'button' as const, onClick })}
@@ -58,8 +68,8 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
       </div>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p>
       {kpis && kpis.length > 0 && (
-        <div className="mt-2 flex flex-wrap items-center gap-1">
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+        <div className="mt-2">
+          <span className="mb-1.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
             Focus KPIs:
             {/* What "focus" means has to be said, or the list reads as
                 everything that will be reported. */}
@@ -81,7 +91,11 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               </Tooltip>
             </TooltipProvider>
           </span>
-          {kpis.map((k) => {
+          {/* Own row, so the label reads as a heading rather than the first
+              item in the list. Long frameworks are capped — the card names
+              what the goal is judged on, it is not the KPI reference. */}
+          <span className="flex flex-wrap gap-1">
+          {visibleKpis.map((k) => {
             const chosen = highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase()));
             return (
               <span
@@ -97,6 +111,24 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               </span>
             );
           })}
+          {hiddenKpis.length > 0 && (
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help rounded-full border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    +{hiddenKpis.length} more
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[260px]">
+                  {hiddenKpis.join(' · ')}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          </span>
         </div>
       )}
     </Tag>

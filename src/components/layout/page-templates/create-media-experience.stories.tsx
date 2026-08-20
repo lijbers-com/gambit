@@ -96,28 +96,24 @@ type Story = StoryObj<typeof meta>;
 const goals = [
   {
     id: 'awareness',
-    kpis: ['Reach', 'Frequency', 'Brand awareness', 'Ad recall'],
     icon: <Eye size={24} />,
     title: 'Awareness',
     description: 'Reach a broad audience and make them aware of your brand, product or service',
   },
   {
     id: 'consideration',
-    kpis: ['CTR', 'Purchase intent', 'Brand preference', 'Engagement'],
     icon: <Brain size={24} />,
     title: 'Consideration',
     description: 'Encourage people to think about your brand and seek out more information',
   },
   {
     id: 'purchase',
-    kpis: ['Incremental ROAS', 'Conversion rate', 'Sales lift'],
     icon: <ShoppingCart size={24} />,
     title: 'Purchase',
     description: 'Drive sales and conversions on your website, in your app or in physical stores',
   },
   {
     id: 'loyalty',
-    kpis: ['Repeat purchases', 'Incremental ROAS', 'Sales lift'],
     icon: <Heart size={24} />,
     title: 'Loyalty',
     description: 'Strengthen existing customer relationships and drive repeat purchases',
@@ -176,6 +172,35 @@ const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: stri
 };
 
 
+
+/**
+ * What each goal is judged on, taken from the funnel framework rather than
+ * written out again — the card used to list a hand-picked four, which read as
+ * the whole set and disagreed with the KPI step further down. Brand KPIs first
+ * (the outcome), then the media KPIs that steer towards it; Conversion splits
+ * into the sales KPIs that suit buying versus keeping a customer.
+ */
+const LOYALTY_KPIS = [
+  'Repeat', 'Purchase frequency', 'Win-back customers', 'CLV', 'Sales per customer',
+  'Sales driver: existing customers', 'Redemption (loyalty product only)', 'Incremental ROAS',
+];
+const goalKpis: Record<string, string[]> = {
+  awareness: [
+    ...funnelKpis.Awareness.brand,
+    'Reach', 'Unique reach', 'Frequency', 'Video completion rate', 'CPM', 'Share of voice (category)',
+  ],
+  consideration: [
+    ...funnelKpis.Consideration.brand,
+    'Click-through rate', 'Average time on page', 'Post engagement rate',
+    ...funnelKpis.Consideration.sales,
+  ],
+  purchase: [
+    'Sales lift', 'Incremental ROAS', 'Conversion rate', 'Sales online', 'Sales offline',
+    'Trial (new to product)', 'New to brand', 'New to category', 'Basket size (SIS only)',
+    'Share of basket (SIS only)',
+  ],
+  loyalty: LOYALTY_KPIS,
+};
 
 // Brand-lift "studies" a user can commission per objective. The available
 // studies follow the funnel → brand KPI framework — they are the brand KPIs of
@@ -1146,7 +1171,7 @@ export const GoalSelection: Story = {
                               icon={goal.icon}
                               title={goal.title}
                               description={goal.description}
-                              kpis={goal.kpis}
+                              kpis={goalKpis[goal.id]}
                               highlightKpis={selectedGoal === goal.id ? highlightChipKpis : []}
                               selected={selectedGoal === goal.id}
                               dimmed={selectedGoal !== null && selectedGoal !== goal.id}
@@ -1234,14 +1259,29 @@ export const GoalSelection: Story = {
                           </div>
                         );
                       })()}
-                      <SearchSelectList
-                        label="Audience segments (optional)"
-                        placeholder="Search audience segments…"
-                        icon={<Users className="h-4 w-4" />}
-                        options={audienceOptions.map((a) => ({ value: a.id, label: a.label, description: `Reach ${a.reach} · ${a.description}` }))}
-                        value={selectedAudiences}
-                        onChange={setSelectedAudiences}
-                      />
+                      {/* Audience comes after the KPI, because the goal and its
+                          KPI decide who is worth reaching. A conversion-stage
+                          objective has no brand KPI to pick, so for those the
+                          objective itself is the gate. */}
+                      {(() => {
+                        const stage = selectedGoal ? goalObjectives[selectedGoal]?.stage : undefined;
+                        const hasKpiStep = !!selectedObjective && stage
+                          ? (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
+                              .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k)).length > 0
+                          : false;
+                        const ready = !!selectedObjective && (!hasKpiStep || selectedKpis.length > 0);
+                        if (!ready) return null;
+                        return (
+                          <SearchSelectList
+                            label="Audience segments (optional)"
+                            placeholder="Search audience segments…"
+                            icon={<Users className="h-4 w-4" />}
+                            options={audienceOptions.map((a) => ({ value: a.id, label: a.label, description: `Reach ${a.reach} · ${a.description}` }))}
+                            value={selectedAudiences}
+                            onChange={setSelectedAudiences}
+                          />
+                        );
+                      })()}
                       {/* Only recommendations about the choices being made on
                           this step, each with its case. What a goal means for
                           KPIs is explained by the selection UI itself. */}

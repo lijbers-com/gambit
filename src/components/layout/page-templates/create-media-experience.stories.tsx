@@ -1231,45 +1231,42 @@ export const GoalSelection: Story = {
                                 setSelectedKpis(vals);
                                 setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
                               }}
-                              selectedExtraBoxed
                               renderSelectedExtra={(opt) => {
                                 const kpi = opt.value;
-                                // Sales KPIs are attributed from the data, not
-                                // surveyed — there is no study to sell.
                                 const pricing = studyPricing[kpi];
                                 const isSelected = selectedStudies.includes(kpi);
-                                const optimisationNote = (
-                                  <p className="text-xs text-muted-foreground">
-                                    The plan is optimised for {kpi} alone. Everything else stays measured and
-                                    reported, but delivery is never steered towards it.
-                                  </p>
-                                );
-                                // Sales KPIs are attributed from the data, not
-                                // surveyed — there is no study to sell.
-                                if (!pricing) return optimisationNote;
-                                const isFree = budgetNum >= pricing.freeThreshold;
+                                const isFree = pricing ? budgetNum >= pricing.freeThreshold : false;
                                 return (
-                                  /* Checkbox + title on one line; the explanation
-                                     sits below on the card's own left edge. */
                                   <div className="space-y-3">
-                                    {optimisationNote}
-                                    <div className="space-y-1">
-                                    <label className="flex cursor-pointer items-center gap-2.5">
-                                      <Checkbox
-                                        checked={isSelected}
-                                        onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
-                                      />
-                                      <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                                        <FlaskConical className="h-3.5 w-3.5 shrink-0" />
-                                        Add a brand-lift study
-                                        <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
-                                      </span>
-                                    </label>
+                                    {/* What choosing this KPI commits the plan to.
+                                        It is a property of the KPI, so it sits in
+                                        the KPI's own card; the study below is an
+                                        optional paid extra and keeps its own box. */}
                                     <p className="text-xs text-muted-foreground">
-                                      Measures the uplift this KPI drives against a control group.{' '}
-                                      {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
+                                      The plan is optimised for {kpi} alone. Everything else stays measured and
+                                      reported, but delivery is never steered towards it.
                                     </p>
-                                    </div>
+                                    {/* Sales KPIs are attributed from the data
+                                        rather than surveyed — no study to sell. */}
+                                    {pricing && (
+                                      <div className="space-y-1 rounded-md border border-surface-selected-border bg-surface-selected p-3">
+                                        <label className="flex cursor-pointer items-center gap-2.5">
+                                          <Checkbox
+                                            checked={isSelected}
+                                            onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                          />
+                                          <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                                            <FlaskConical className="h-3.5 w-3.5 shrink-0" />
+                                            Add a brand-lift study
+                                            <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
+                                          </span>
+                                        </label>
+                                        <p className="text-xs text-muted-foreground">
+                                          Measures the uplift this KPI drives against a control group.{' '}
+                                          {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               }}

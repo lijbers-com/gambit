@@ -56,11 +56,18 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
    */
   const [kpisExpanded, setKpisExpanded] = React.useState(false);
   const kpiListRef = React.useRef<HTMLSpanElement>(null);
-  const [kpisOverflow, setKpisOverflow] = React.useState(false);
+  // How many badges fall below the clamp — counted from where they actually
+  // landed, since the clamp is a height and the badges are different widths.
+  const [hiddenCount, setHiddenCount] = React.useState(0);
   React.useEffect(() => {
     const el = kpiListRef.current;
     if (!el || kpisExpanded) return;
-    const check = () => setKpisOverflow(el.scrollHeight > el.clientHeight + 1);
+    const check = () => {
+      const cutoff = el.getBoundingClientRect().top + el.clientHeight;
+      setHiddenCount(
+        Array.from(el.children).filter((child) => child.getBoundingClientRect().top >= cutoff - 2).length,
+      );
+    };
     check();
     if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(check);
@@ -137,19 +144,21 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
             );
           })}
           </span>
-          {(kpisOverflow || kpisExpanded) && (
+          {(hiddenCount > 0 || kpisExpanded) && (
             <span
               role="button"
               tabIndex={0}
               // A span, not a button: this card is itself a button, and a
-              // button inside one is invalid and un-clickable.
+              // button inside one is invalid and un-clickable. It wears the
+              // badge's own shape — dashed, so it reads as the way into the
+              // rest of the list rather than as another KPI.
               onClick={(e) => { e.stopPropagation(); setKpisExpanded((v) => !v); }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setKpisExpanded((v) => !v); }
               }}
-              className="mt-1 inline-block cursor-pointer text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+              className="mt-1 inline-block cursor-pointer rounded-full border border-dashed border-border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
             >
-              {kpisExpanded ? 'Show fewer' : `Show all ${orderedKpis.length}`}
+              {kpisExpanded ? 'Show fewer' : `+${hiddenCount} more`}
             </span>
           )}
         </div>

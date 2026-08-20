@@ -1,0 +1,38 @@
+'use client';
+
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { Label } from './label';
+
+/**
+ * An entity's main controls, as one white card: the handful of governing
+ * facts — budget, run time, state — that sit between the metric row and the
+ * tabs and apply to everything below them. The media plan detail page is the
+ * first user; anything else that grows a controls band uses this instead of
+ * hand-rolling the row.
+ *
+ * Layout is a wrapping flex row: items sit side by side and fold on narrow
+ * screens; a `fullWidth` item (a split bar, a progress strip) takes its own
+ * row at the end.
+ */
+export const ControlBar: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className,
+}) => (
+  <section className={cn('flex flex-wrap items-end gap-6 rounded-xl border border-border bg-card p-4', className)}>
+    {children}
+  </section>
+);
+
+export const ControlBarItem: React.FC<{
+  label: string;
+  children: React.ReactNode;
+  /** Take a full row at the end of the bar — for bars and strips. */
+  fullWidth?: boolean;
+  className?: string;
+}> = ({ label, children, fullWidth, className }) => (
+  <div className={cn('space-y-2', fullWidth && 'order-last w-full basis-full', className)}>
+    <Label className="block">{label}</Label>
+    {children}
+  </div>
+);

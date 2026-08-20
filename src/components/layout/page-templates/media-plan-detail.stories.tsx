@@ -41,6 +41,7 @@ import { retailMoments } from '@/lib/retail-moments';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { stageForGoal } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
+import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
@@ -950,7 +951,9 @@ export const MediaPlanDetail: Story = {
             headerRight: null,
           }}
         >
-          <div className="mb-3">
+          {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
+              keep between themselves — the whole column shares one gap. */}
+          <div className="mb-1">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
             <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 8 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
@@ -960,9 +963,10 @@ export const MediaPlanDetail: Story = {
               with the health and notification state that follows from them.
               They govern every campaign in the plan, so they sit with the
               metrics above the tabs rather than inside one of them. */}
-          <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
-            <div className="space-y-2">
-              <Label className="block">Media plan budget</Label>
+          {/* mb-1 + the tab card's built-in 12px above its strip = the same
+              16px gap the metric cards keep. */}
+          <ControlBar className="mb-1">
+            <ControlBarItem label="Media plan budget">
               <BudgetCell
                 className="h-9 w-44 px-3"
                 value={plan?.budget ?? 0}
@@ -986,24 +990,22 @@ export const MediaPlanDetail: Story = {
                   });
                 }}
               />
-            </div>
-            <div className="space-y-2">
-              <Label className="block">Media plan run time</Label>
+            </ControlBarItem>
+            <ControlBarItem label="Media plan run time">
               <DatesCell
                 className="h-9 w-72 text-sm font-normal"
                 start={plan?.startDate}
                 end={plan?.endDate}
                 onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
               />
-            </div>
+            </ControlBarItem>
             {/* How the plan budget is split across propositions —
                 the sum the editable rows below add up to. */}
             {(() => {
               const rows = db.campaigns.filter((c) => c.mediaPlanId === plan?.id && c.budget > 0);
               if (rows.length === 0) return null;
               return (
-                <div className="basis-full space-y-2 order-last w-full">
-                  <Label className="block">Budget split by proposition</Label>
+                <ControlBarItem label="Budget split by proposition" fullWidth>
                   <BudgetStackedMini
                     budgetData={rows.map((c) => ({
                       name: propositionMeta[c.engine].label,
@@ -1012,11 +1014,10 @@ export const MediaPlanDetail: Story = {
                       color: propositionColor(c.engine),
                     }))}
                   />
-                </div>
+                </ControlBarItem>
               );
             })()}
-            <div className="space-y-2">
-              <Label className="block">Health</Label>
+            <ControlBarItem label="Health">
               <div className="flex h-9 items-center">
                 <button
                   type="button"
@@ -1026,9 +1027,8 @@ export const MediaPlanDetail: Story = {
                   <HealthCell health={plan ? ({ good: 'good', attention: 'attention', risk: 'risk' } as const)[derivePlanHealth(db, plan).level] : 'good'} />
                 </button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="block">Notifications</Label>
+            </ControlBarItem>
+            <ControlBarItem label="Notifications">
               <div className="flex h-9 items-center">
                 <NotificationsCell
                   actions={planOwnCounts.actions}
@@ -1037,8 +1037,8 @@ export const MediaPlanDetail: Story = {
                   onOpen={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
                 />
               </div>
-            </div>
-          </section>
+            </ControlBarItem>
+          </ControlBar>
 
           <CardWithTabs
             // A plan arrived at straight from the wizard opens on its Inbox, so
@@ -1230,6 +1230,7 @@ export const MediaPlanDetail: Story = {
                           iconOnly
                           aria-label="Setup cards view"
                           title="Setup cards"
+                          className={cn('h-9', campaignsView === 'cards' && 'border border-input')}
                           onClick={() => setCampaignViewOverride('cards')}
                         >
                           <LayoutGrid className="h-4 w-4" />
@@ -1240,6 +1241,7 @@ export const MediaPlanDetail: Story = {
                           iconOnly
                           aria-label="Table view"
                           title="Table"
+                          className={cn('h-9', campaignsView === 'table' && 'border border-input')}
                           onClick={() => setCampaignViewOverride('table')}
                         >
                           <Table2 className="h-4 w-4" />

@@ -662,18 +662,15 @@ export const MediaPlanDetail: Story = {
         : `/campaigns/${seg}/booking/${booking.id}`;
     };
 
-    // Blocking work for this plan, from the same derived messages the
-    // Notifications tab shows — so the button and the list always agree.
-    // The plan's own messages — level 'media-plan' only. The table rows carry
-    // the campaign and booking ones; without this the plan's were invisible
-    // on this tab.
-    const planOwnMsgs = plan
-      ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.level === 'media-plan')
-      : [];
+    // The control bar summarises the whole plan, so its Notifications cell
+    // counts every message under it — plan, campaigns and bookings — the same
+    // population the Notifications tab badges. Counting only the plan-level
+    // ones showed "—" while the tab said 4.
+    const planAllMsgs = plan ? deriveMessages(db, { mediaPlanId: plan.id }) : [];
     const planOwnCounts = {
-      actions: planOwnMsgs.filter((m) => m.kind === 'action' || m.kind === 'health').length,
-      recommendations: planOwnMsgs.filter((m) => m.kind === 'recommendation').length,
-      insights: planOwnMsgs.filter((m) => m.kind === 'insight').length,
+      actions: planAllMsgs.filter((m) => m.kind === 'action' || m.kind === 'health').length,
+      recommendations: planAllMsgs.filter((m) => m.kind === 'recommendation').length,
+      insights: planAllMsgs.filter((m) => m.kind === 'insight').length,
     };
 
     /**
@@ -979,7 +976,7 @@ export const MediaPlanDetail: Story = {
                   the split per campaign, edit either the total (rows rescale)
                   or a row (the total follows), Apply to commit. */}
               <BudgetSelect
-                className="w-44"
+                className="w-40"
                 total={plan?.budget ?? 0}
                 rows={db.campaigns
                   .filter((c) => c.mediaPlanId === plan?.id)

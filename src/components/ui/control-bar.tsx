@@ -19,7 +19,9 @@ export const ControlBar: React.FC<{ children: React.ReactNode; className?: strin
   children,
   className,
 }) => (
-  <section className={cn('flex flex-wrap items-end gap-6 rounded-xl border border-border bg-card p-4', className)}>
+  // gap-x-4, not 6 — the bar holds five things and the tighter gap is what
+  // lets them share one row on a laptop; wrapping stays the fallback.
+  <section className={cn('flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-border bg-card p-4', className)}>
     {children}
   </section>
 );

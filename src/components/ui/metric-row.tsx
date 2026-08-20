@@ -63,6 +63,10 @@ export interface MetricRowProps {
   onSelectionChange?: (selectedKeys: string[]) => void
   /** Maximum number of visible metric cards (excluding the add button) */
   maxVisible?: number
+  /** Hard cap on how many metrics can be picked at once, enforced by the
+   *  Edit-metrics dialog. Past this many, every card sits at its minimum
+   *  width and the numbers truncate — so the picker stops, not the layout. */
+  maxSelectable?: number
   /** Additional class name */
   className?: string
   /** Fallback variant when MetricDefinition doesn't specify one */
@@ -105,6 +109,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     selectedKeys: controlledSelectedKeys,
     onSelectionChange,
     maxVisible = 4,
+    maxSelectable = 6,
     className,
     defaultVariant = "graph",
     activeKey: controlledActiveKey,
@@ -120,7 +125,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     ...props
   }, ref) => {
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(
-      controlledSelectedKeys ?? metrics.slice(0, maxVisible).map(m => m.key)
+      controlledSelectedKeys ?? metrics.slice(0, Math.min(maxVisible, maxSelectable)).map(m => m.key)
     )
     const [internalActiveKey, setInternalActiveKey] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -139,11 +144,12 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       updateSelection(selectedKeys.filter(k => k !== key))
     }
 
-    /** Toggle a metric in the picker. No cap — users can select all. */
+    /** Toggle a metric in the picker, refusing to grow past the cap. */
+    const atCap = selectedKeys.length >= maxSelectable
     const toggleMetric = (key: string) => {
       if (selectedKeys.includes(key)) {
         updateSelection(selectedKeys.filter(k => k !== key))
-      } else {
+      } else if (!atCap) {
         updateSelection([...selectedKeys, key])
       }
     }
@@ -259,7 +265,9 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           <DialogHeader>
             <DialogTitle>Edit metrics</DialogTitle>
             <DialogDescription>
-              Pick the metrics to show in the row. The row scrolls horizontally if there are more than fit.
+              {/* The cap keeps every card wide enough to read its number. */}
+              Pick up to {maxSelectable} metrics to show in the row — {selectedKeys.length} of {maxSelectable} selected.
+              {atCap && ' Deselect one to pick another.'}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[500px] overflow-y-auto p-4">
@@ -285,10 +293,12 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
                     totalRow={metric.totalRow}
                     valueFormatter={metric.valueFormatter}
                     className={cn(
-                      "cursor-pointer transition-shadow",
+                      "transition-shadow",
                       isPicked
-                        ? "ring-2 ring-primary shadow-md"
-                        : "hover:ring-2 hover:ring-primary/40 opacity-90 hover:opacity-100"
+                        ? "cursor-pointer ring-2 ring-primary shadow-md"
+                        : atCap
+                          ? "cursor-not-allowed opacity-40"
+                          : "cursor-pointer hover:ring-2 hover:ring-primary/40 opacity-90 hover:opacity-100"
                     )}
                     onClick={() => toggleMetric(metric.key)}
                   />

@@ -964,7 +964,7 @@ export const MediaPlanDetail: Story = {
           <div className="mb-1">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
-            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 8 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
+            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
           </div>
 
           {/* The plan's main controls: what it may spend and when it runs,

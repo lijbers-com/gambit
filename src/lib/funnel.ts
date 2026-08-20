@@ -37,7 +37,10 @@ export const stageForGoal: Record<string, string> = {
 /** Demo estimates for the headline KPIs surfaced as metric cards. Only KPIs
  *  with an estimate here are promoted to a card. */
 export const kpiEstimates: Record<string, { value: string; sub: string }> = {
-  'Reach': { value: '19.9M–23.3M', sub: 'Estimated reach' },
+  // Rounded, shared-suffix range — "19.9M–23.3M" was the one value wide
+  // enough to truncate at the card's minimum width, and an estimate does
+  // not earn a decimal anyway.
+  'Reach': { value: '20–23M', sub: 'Estimated reach' },
   'Frequency': { value: '3.1–3.7', sub: 'Avg. per shopper' },
   'CTR': { value: '0.77–0.91%', sub: 'vs. 0.7% target' },
   'CPM': { value: '€4.14–4.86', sub: 'Blended' },

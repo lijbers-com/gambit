@@ -956,7 +956,7 @@ export const GoalSelection: Story = {
                 return (
                   <MetricRow
                     metrics={buildForecastMetrics({ budget: draftBudget, days, engines: splitDecided ? engines : [], stage })}
-                    maxVisible={8}
+                    maxVisible={6}
                     defaultVariant="default"
                     removable={false}
                   />

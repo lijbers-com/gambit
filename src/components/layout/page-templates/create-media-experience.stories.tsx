@@ -1461,7 +1461,18 @@ export const GoalSelection: Story = {
                           // Silence is the healthy state — a note saying the
                           // pace is fine is noise next to the ones that matter.
                           if (daily < 150) {
-                            items.push({ badge: 'Budget Alert', tone: 'alert', title: 'Budget may be too thin', message: `At €${daily.toFixed(0)}/day over ${days} days, delivery may be thin — raising the budget builds usable frequency faster.`, explain: budgetStarterExplain() });
+                            // A recommendation, not a to-do: nothing is wrong
+                            // with the plan, there is a better number on offer
+                            // — so it names that number and can be accepted.
+                            const suggested = Math.ceil((150 * days) / 500) * 500;
+                            items.push({
+                              badge: 'Recommendation',
+                              tone: 'tip',
+                              title: 'Raise the budget for steadier delivery',
+                              message: `At €${daily.toFixed(0)}/day over ${days} days delivery may be thin. €${suggested.toLocaleString()} lifts it to about €150/day, the point where frequency builds.`,
+                              action: { label: `Use €${suggested.toLocaleString()}`, onClick: () => setBudgetAmount(String(suggested)) },
+                              explain: budgetStarterExplain(),
+                            });
                           }
                           items.push(...autoBudgetAdvice);
                           if (days < 21) {

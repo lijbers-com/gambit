@@ -326,6 +326,19 @@ export function DateRangePicker({
   clearLabel,
   events,
 }: DateRangePickerProps) {
+  /**
+   * Which months the calendar is showing, so the legend can name only the
+   * moments actually on screen — listing all six while none of their dots
+   * were in view explained colours that were not there.
+   */
+  const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(undefined);
+  const firstMonth = displayMonth ?? dateRange?.from ?? new Date();
+  const windowStart = startOfMonth(firstMonth);
+  const windowEnd = endOfMonth(addMonths(windowStart, 1)); // two months are shown
+  const visibleEvents = (events ?? []).filter((ev) => {
+    const d = new Date(ev.date);
+    return d >= windowStart && d <= windowEnd;
+  });
   const presetList = presets ?? defaultPresets
   const [selectedPreset, setSelectedPreset] = React.useState<string | undefined>(defaultPreset)
   const [fromInputValue, setFromInputValue] = React.useState(
@@ -519,7 +532,8 @@ export function DateRangePicker({
           <div className="overflow-auto">
             <Calendar
               mode="range"
-              defaultMonth={dateRange?.from}
+              month={firstMonth}
+              onMonthChange={setDisplayMonth}
               selected={dateRange}
               onSelect={handleManualRangeChange}
               numberOfMonths={2}
@@ -530,9 +544,9 @@ export function DateRangePicker({
             />
           </div>
           {/* The dots decoded: which colour is which moment. */}
-          {events && events.length > 0 && (
+          {visibleEvents.length > 0 && (
             <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-3 py-2">
-              {events.map((ev) => (
+              {visibleEvents.map((ev) => (
                 <span key={`${ev.date}-${ev.label}`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: ev.color }} />
                   {ev.label}

@@ -911,6 +911,90 @@ export const MediaPlanDetail: Story = {
             <MetricRow metrics={metrics} maxVisible={4} defaultVariant="graph" showCharts removable={false} bleedEdges />
           </div>
 
+          {/* The plan's main controls: what it may spend and when it runs,
+              with the health and notification state that follows from them.
+              They govern every campaign in the plan, so they sit with the
+              metrics above the tabs rather than inside one of them. */}
+          <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
+            <div className="space-y-2">
+              <Label className="block">Media plan budget</Label>
+              <BudgetCell
+                className="h-9 w-44 px-3"
+                value={plan?.budget ?? 0}
+                onSave={(next) => {
+                  if (!plan) return;
+                  const prevBudget = plan.budget;
+                  const prevSplit = db.campaigns
+                    .filter((c) => c.mediaPlanId === plan.id)
+                    .map((c) => ({ id: c.id, budget: c.budget }));
+                  updateMediaPlan(plan.id, { budget: next });
+                  // The plan total caps every campaign below it, so a
+                  // new total re-divides across them automatically.
+                  reallocate(next);
+                  toast({
+                    title: 'Media plan budget updated',
+                    description: `€${prevBudget.toLocaleString()} → €${next.toLocaleString()}, divided across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
+                    undo: () => {
+                      updateMediaPlan(plan.id, { budget: prevBudget });
+                      prevSplit.forEach(({ id, budget }) => updateCampaign(id, { budget }));
+                    },
+                  });
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="block">Media plan run time</Label>
+              <DatesCell
+                className="h-9 w-72 text-sm font-normal"
+                start={plan?.startDate}
+                end={plan?.endDate}
+                onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
+              />
+            </div>
+            {/* How the plan budget is split across propositions —
+                the sum the editable rows below add up to. */}
+            {(() => {
+              const rows = db.campaigns.filter((c) => c.mediaPlanId === plan?.id && c.budget > 0);
+              if (rows.length === 0) return null;
+              return (
+                <div className="basis-full space-y-2 order-last w-full">
+                  <Label className="block">Budget split by proposition</Label>
+                  <BudgetStackedMini
+                    budgetData={rows.map((c) => ({
+                      name: propositionMeta[c.engine].label,
+                      spent: c.budget,
+                      budget: c.budget,
+                      color: propositionColor(c.engine),
+                    }))}
+                  />
+                </div>
+              );
+            })()}
+            <div className="space-y-2">
+              <Label className="block">Health</Label>
+              <div className="flex h-9 items-center">
+                <button
+                  type="button"
+                  onClick={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
+                  title="Open notifications"
+                >
+                  <HealthCell health={plan ? ({ good: 'good', attention: 'attention', risk: 'risk' } as const)[derivePlanHealth(db, plan).level] : 'good'} />
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="block">Notifications</Label>
+              <div className="flex h-9 items-center">
+                <NotificationsCell
+                  actions={planOwnCounts.actions}
+                  recommendations={planOwnCounts.recommendations}
+                  insights={planOwnCounts.insights}
+                  onOpen={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
+                />
+              </div>
+            </div>
+          </section>
+
           <CardWithTabs
             // A plan arrived at straight from the wizard opens on its Inbox, so
             // the first thing the user sees is what still has to be done.
@@ -1063,88 +1147,6 @@ export const MediaPlanDetail: Story = {
                 value: 'campaigns',
                 content: (
                   <div className="mt-6 space-y-6">
-                    {/* The plan's own budget and run time sit above the rows
-                        they cap: campaign budgets are only meaningful against
-                        the total, so both are editable in the same place. */}
-                    <section className="flex flex-wrap items-end gap-6 rounded-xl border border-border p-4">
-                      <div className="space-y-2">
-                        <Label className="block">Media plan budget</Label>
-                        <BudgetCell
-                          className="h-9 w-44 px-3"
-                          value={plan?.budget ?? 0}
-                          onSave={(next) => {
-                            if (!plan) return;
-                            const prevBudget = plan.budget;
-                            const prevSplit = db.campaigns
-                              .filter((c) => c.mediaPlanId === plan.id)
-                              .map((c) => ({ id: c.id, budget: c.budget }));
-                            updateMediaPlan(plan.id, { budget: next });
-                            // The plan total caps every campaign below it, so a
-                            // new total re-divides across them automatically.
-                            reallocate(next);
-                            toast({
-                              title: 'Media plan budget updated',
-                              description: `€${prevBudget.toLocaleString()} → €${next.toLocaleString()}, divided across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
-                              undo: () => {
-                                updateMediaPlan(plan.id, { budget: prevBudget });
-                                prevSplit.forEach(({ id, budget }) => updateCampaign(id, { budget }));
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="block">Media plan run time</Label>
-                        <DatesCell
-                          className="h-9 w-72 text-sm font-normal"
-                          start={plan?.startDate}
-                          end={plan?.endDate}
-                          onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
-                        />
-                      </div>
-                      {/* How the plan budget is split across propositions —
-                          the sum the editable rows below add up to. */}
-                      {(() => {
-                        const rows = db.campaigns.filter((c) => c.mediaPlanId === plan?.id && c.budget > 0);
-                        if (rows.length === 0) return null;
-                        return (
-                          <div className="basis-full space-y-2 order-last w-full">
-                            <Label className="block">Budget split by proposition</Label>
-                            <BudgetStackedMini
-                              budgetData={rows.map((c) => ({
-                                name: propositionMeta[c.engine].label,
-                                spent: c.budget,
-                                budget: c.budget,
-                                color: propositionColor(c.engine),
-                              }))}
-                            />
-                          </div>
-                        );
-                      })()}
-                      <div className="space-y-2">
-                        <Label className="block">Health</Label>
-                        <div className="flex h-9 items-center">
-                          <button
-                            type="button"
-                            onClick={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
-                            title="Open notifications"
-                          >
-                            <HealthCell health={plan ? ({ good: 'good', attention: 'attention', risk: 'risk' } as const)[derivePlanHealth(db, plan).level] : 'good'} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="block">Notifications</Label>
-                        <div className="flex h-9 items-center">
-                          <NotificationsCell
-                            actions={planOwnCounts.actions}
-                            recommendations={planOwnCounts.recommendations}
-                            insights={planOwnCounts.insights}
-                            onOpen={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
-                          />
-                        </div>
-                      </div>
-                    </section>
                     {checklistCards.length > 0 && (
                       <SetupChecklist
                         subtitle="Complete these steps to take the plan live. You can skip any card for now."

@@ -55,16 +55,16 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: 
         ? { subMetric: 'No budget set' }
         : withEngines
           ? {
-              // The split bar, with the pace as its caption — the two facts a
-              // planned budget is made of.
+              // The pace reads under the number like every other card's
+              // sub-line; the bar carries only the split.
               ...forecastBadge,
+              subMetric: perDay,
               variant: 'budgetStacked' as const,
               budgetData: engines.map((e) => ({ name: e.name, spent: e.budget, budget: e.budget, color: e.color })),
               valueFormatter: fmtK,
               chart: (
                 <BudgetStackedMini
                   budgetData={engines.map((e) => ({ name: e.name, spent: e.budget, budget: e.budget, color: e.color }))}
-                  caption={perDay}
                 />
               ),
             }

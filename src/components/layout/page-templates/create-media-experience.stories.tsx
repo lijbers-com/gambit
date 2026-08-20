@@ -1495,7 +1495,10 @@ export const GoalSelection: Story = {
                                   onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
                                   aria-label={`${prop.name} campaign mode`}
                                 />
-                                <span className={cn('text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
+                                {/* Fixed width: "Assisted" and "Expert" differ,
+                                    and the word deciding where the toggle sits
+                                    made the whole header twitch on flip. */}
+                                <span className={cn('w-14 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
                                   {isAssisted ? 'Assisted' : 'Expert'}
                                 </span>
                               </label>
@@ -1552,7 +1555,7 @@ export const GoalSelection: Story = {
                               /* Expert mode — the campaign form, nothing else.
                                  Bookings are made on the campaign after the
                                  plan is created. */
-                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-x-2 gap-y-3 sm:grid-cols-2">
                                 <div className="space-y-2 sm:col-span-2">
                                   <Label>Campaign name</Label>
                                   <Input

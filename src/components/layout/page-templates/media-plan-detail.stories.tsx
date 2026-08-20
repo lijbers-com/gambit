@@ -522,12 +522,13 @@ export const MediaPlanDetail: Story = {
         // context underneath. Labelling it Budget said the opposite.
         label: 'Spend',
         value: fmtK(planSpend),
+        subMetric: `of ${fmtK(plan?.budget ?? 0)} budget`,
         badgeValue: `${spentPct}%`,
         badgeVariant: 'secondary',
         variant: 'budgetStacked',
         budgetData: budgetVsSpend,
         valueFormatter: fmtK,
-        chart: <BudgetStackedMini budgetData={budgetVsSpend} caption={`of ${fmtK(plan?.budget ?? 0)} budget`} />,
+        chart: <BudgetStackedMini budgetData={budgetVsSpend} />,
         expandedContent: <BudgetStackedDetail budgetData={budgetVsSpend} valueFormatter={fmtK} />,
       },
       {

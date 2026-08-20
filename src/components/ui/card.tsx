@@ -884,10 +884,11 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             row is read for, and the chart underneath says how that figure is
             made up. A card without a `value` simply starts at its sub-line. */}
         {(value || subMetric) && (
-          // The label block takes the slack, so the chart under it sits on the
-          // bottom edge of the card. Cards in a row stretch to the tallest one,
-          // and charts that floated at their natural height read as ragged.
-          <div className="flex-1">
+          // The headline takes its natural height; the chart block below takes
+          // the slack and centres in it, and the badge row anchors the bottom —
+          // so cards stretched to the tallest in the row centre their charts
+          // instead of pinning them to the floor.
+          <div>
             {value && (
               <div className="text-3xl font-bold text-foreground truncate transition-all duration-500 ease-in-out">
                 {value}
@@ -905,9 +906,10 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             )}
           </div>
         )}
-        {chart && <div className="mt-4">{chart}</div>}
+        {chart && <div className="mt-4 flex flex-1 flex-col justify-center">{chart}</div>}
         {variant === "graph" && graphData && (
-          <div className="h-14 w-full mt-4">
+          <div className="mt-4 flex min-h-14 w-full flex-1 flex-col justify-center">
+          <div className="h-14 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={graphData} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
                 <Line
@@ -920,6 +922,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
                 />
               </LineChart>
             </ResponsiveContainer>
+          </div>
           </div>
         )}
         {variant === "donut" && donutData && (() => {
@@ -937,7 +940,8 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           const donutSlices = donutTotal > 0 ? donutData : [{ name: 'No data', value: 1 }];
           const donutFills = donutTotal > 0 ? donutColors : ['rgb(var(--neutral-200))'];
           return (
-          <div className="relative mt-4 aspect-square w-20">
+          <div className="mt-4 flex flex-1 items-center">
+          <div className="relative aspect-square w-20">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -986,6 +990,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span className={cn(CHART_FIGURE, 'font-semibold text-foreground')}>{topShare}%</span>
             </div>
+          </div>
           </div>
           );
         })()}
@@ -1057,7 +1062,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
           );
         })()}
         {badgeValue && (
-          <div className="flex justify-end mt-3">
+          <div className="mt-auto flex justify-end pt-3">
             <Badge variant={badgeVariant} className="text-xs transition-all duration-500 ease-in-out">
               {badgeValue}
             </Badge>

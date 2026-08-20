@@ -1526,6 +1526,8 @@ export const GoalSelection: Story = {
                                     onChange={(e) => updateRow(row.id, { name: e.target.value })}
                                   />
                                 </div>
+                                <div className="space-y-2">
+                                <Label>Campaign summary</Label>
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border border-border px-3 py-2">
                                   <span className="text-xs tabular-nums text-muted-foreground">
                                     {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
@@ -1543,6 +1545,7 @@ export const GoalSelection: Story = {
                                       </span>
                                     )}
                                   </span>
+                                </div>
                                 </div>
                               </div>
                             ) : (

@@ -20,6 +20,9 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { planForecast, fmtForecastRange } from '@/lib/forecast';
+import { funnelKpis, kpiEstimates, stageForGoal, stageEstimateKpis } from '@/lib/funnel';
+import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
+import { propositionColor } from '@/lib/proposition-colors';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
@@ -141,36 +144,11 @@ const goalObjectives: Record<string, { stage: string; objectives: string[] }> = 
 const forecastRange = (mid: number, fmt: (n: number) => string, unit = '') =>
   `${fmt(mid * 0.92)}–${fmt(mid * 1.08)}${unit}`;
 
-const kpiEstimates: Record<string, { value: string; sub: string }> = {
-  'Reach': { value: '19.9M–23.3M', sub: 'Estimated reach' },
-  'Frequency': { value: '3.1–3.7', sub: 'Avg. per shopper' },
-  'CTR': { value: '0.77–0.91%', sub: 'vs. 0.7% target' },
-  'CPM': { value: '€4.14–4.86', sub: 'Blended' },
-  'VCR': { value: '63–73%', sub: 'Video completion' },
-  'Conversion rate': { value: '1.9–2.3%', sub: 'Estimated' },
-  'Incremental ROAS': { value: '3.5–4.1×', sub: 'Incremental' },
-  'Sales lift': { value: '+10–14%', sub: 'vs. baseline' },
-};
+// kpiEstimates moved to @/lib/funnel — shared with the plan detail page.
 
 // KPIs the plan is judged on per funnel stage (the funnel → KPI framework).
 // Awareness has no Sales KPIs; Conversion has no standalone Brand KPIs.
-const funnelKpis: Record<string, { brand: string[]; media: string[]; sales: string[] }> = {
-  Awareness: {
-    brand: ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall', 'Category entry points', 'Brand associations & values'],
-    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate'],
-    sales: [],
-  },
-  Consideration: {
-    brand: ['Brand/product consideration', 'Brand associations & values', 'Brand preference', 'Purchase intent'],
-    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
-    sales: ['Sales lift', 'Trial (new to product)', 'New to brand', 'New to category', 'Purchase frequency', 'Recipe saved to favourites (Allerhande only)'],
-  },
-  Conversion: {
-    brand: [],
-    media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
-    sales: ['Sales lift', 'Incremental ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to category', 'Sales driver: existing customers', 'Sales per customer', 'CLV', 'Redemption (loyalty product only)', 'Basket size (SIS only)', 'Share of basket (SIS only)', 'Trial (new to product)', 'Repeat', 'Purchase frequency', 'Win-back customers'],
-  },
-};
+// funnelKpis moved to @/lib/funnel — shared with the plan detail page.
 
 
 
@@ -567,15 +545,7 @@ export const GoalSelection: Story = {
 
     // KPIs the plan is judged on (per funnel stage) become metric cards in the
     // top row once a goal + objective are chosen — the row fills in as you go.
-    const kpiMetrics = React.useMemo(() => {
-      if (!selectedGoal || !selectedObjective || !goalObjectives[selectedGoal]) return [];
-      const stage = goalObjectives[selectedGoal].stage;
-      const k = funnelKpis[stage];
-      return [...k.media, ...k.sales]
-        .filter((name) => kpiEstimates[name])
-        .slice(0, 4)
-        .map((name) => ({ key: `kpi-${name}`, label: name, value: kpiEstimates[name].value, subMetric: kpiEstimates[name].sub }));
-    }, [selectedGoal, selectedObjective]);
+    // KPI estimate cards come from the shared builder (stageEstimateKpis).
 
     // Step completion checks
     const isSetupComplete = campaignName.trim() !== '';
@@ -974,51 +944,37 @@ export const GoalSelection: Story = {
         >
           <div className="space-y-3">
             {/* Metric cards - always visible, show '-' when no data */}
-              {/* The same four cards the plan detail page shows, from the
-                  same forecast model — so saving the plan changes nothing
-                  about the numbers, only (eventually) their badge. Reach
-                  lives with the audience selector, not in this row. */}
+              {/* One builder for this row and the plan detail page's — the
+                  cards, charts and numbers are decided once, so saving the
+                  plan changes nothing on screen. The engines split appears as
+                  soon as the campaign step gives each proposition a budget. */}
               {(() => {
                 const draftBudget = parseFloat(budgetAmount) || 0;
-                const fc = planForecast(draftBudget);
-                const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n)}`);
-                const fmtCompact = (n: number) =>
-                  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
                 const days = dateRange?.from && dateRange?.to
                   ? Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1
                   : 0;
-                const noBudget = draftBudget <= 0;
-                const forecastCard = (key: string, label: string, value: string, emptyHint: string): MetricDefinition => ({
-                  key,
-                  label,
-                  value: noBudget ? '-' : value,
-                  subMetric: noBudget ? emptyHint : 'Expected over the full run time',
-                  ...(noBudget ? {} : { badgeValue: 'Forecast', badgeVariant: 'secondary' as const }),
+                // Planned split: hand-set row budgets, remainder shared —
+                // the same arithmetic the save uses.
+                const claimed = campaignRows.reduce((sum, r) => sum + (parseFloat(r.budget) || 0), 0);
+                const unbudgeted = campaignRows.filter((r) => !(parseFloat(r.budget) > 0)).length;
+                const perRow = unbudgeted > 0 ? Math.max(Math.floor((draftBudget - claimed) / unbudgeted), 0) : 0;
+                const engineAgg = new Map<string, number>();
+                campaignRows.forEach((r) => {
+                  const b = parseFloat(r.budget) || perRow;
+                  engineAgg.set(r.engine, (engineAgg.get(r.engine) ?? 0) + b);
                 });
+                const engines = [...engineAgg.entries()]
+                  .filter(([, b]) => b > 0)
+                  .map(([engine, b]) => ({
+                    name: propositions.find((pr) => pr.id === engine)?.name ?? engine,
+                    budget: b,
+                    color: propositionColor(engine as never),
+                  }));
+                const stage = selectedGoal ? goalObjectives[selectedGoal]?.stage : undefined;
                 return (
                   <MetricRow
-                    metrics={[
-                      {
-                        key: 'budget',
-                        label: 'Budget',
-                        value: noBudget ? '-' : fmtK(draftBudget),
-                        subMetric: noBudget
-                          ? 'No budget set'
-                          : days > 0
-                            ? `€${(draftBudget / days).toFixed(0)}/day over ${days} days`
-                            : 'No dates set',
-                      },
-                      forecastCard('impressions', 'Impressions', fmtForecastRange(fc.impressions, fmtCompact), 'Set budget to forecast'),
-                      forecastCard('conversions', 'Conversions', fmtForecastRange(fc.conversions, fmtCompact), 'Set budget to forecast'),
-                      {
-                        ...forecastCard('roas', 'ROAS', fmtForecastRange(fc.roas, (v) => v.toFixed(1), 'x'), 'Set budget to forecast'),
-                        subMetric: noBudget ? 'Set budget to forecast' : 'Predicted return at full delivery',
-                      },
-                      // KPIs for the selected funnel stage, added as you progress.
-                      ...kpiMetrics,
-                    ]}
-                    selectedKeys={['budget', 'impressions', 'conversions', 'roas', ...kpiMetrics.map((m) => m.key)]}
-                    maxVisible={4 + kpiMetrics.length}
+                    metrics={buildForecastMetrics({ budget: draftBudget, days, engines, stage })}
+                    maxVisible={8}
                     defaultVariant="default"
                     removable={false}
                   />

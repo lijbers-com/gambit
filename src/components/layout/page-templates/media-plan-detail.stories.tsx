@@ -1006,24 +1006,8 @@ export const MediaPlanDetail: Story = {
                 onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
               />
             </ControlBarItem>
-            {/* How the plan budget is split across propositions —
-                the sum the editable rows below add up to. */}
-            {(() => {
-              const rows = db.campaigns.filter((c) => c.mediaPlanId === plan?.id && c.budget > 0);
-              if (rows.length === 0) return null;
-              return (
-                <ControlBarItem label="Budget split by proposition" fullWidth>
-                  <BudgetStackedMini
-                    budgetData={rows.map((c) => ({
-                      name: propositionMeta[c.engine].label,
-                      spent: c.budget,
-                      budget: c.budget,
-                      color: propositionColor(c.engine),
-                    }))}
-                  />
-                </ControlBarItem>
-              );
-            })()}
+            {/* The split lives inside the budget picker now — repeating it as
+                a bar here said the same thing twice on one card. */}
             <ControlBarItem label="Health">
               <div className="flex h-9 items-center">
                 <button

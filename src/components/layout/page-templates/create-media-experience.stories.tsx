@@ -1175,11 +1175,22 @@ export const GoalSelection: Story = {
                               icon={goal.icon}
                               title={goal.title}
                               description={goal.description}
-                              // Once an objective is chosen, the card stops
-                              // listing KPIs that objective has ruled out.
-                              kpis={selectedGoal === goal.id && selectedObjective
-                                ? kpiPoolFor(goal.id, selectedObjective)
-                                : goalKpis[goal.id]}
+                              /**
+                               * The KPI list narrows as the choice is made. With
+                               * no goal picked the cards list their KPIs so the
+                               * goals can be compared on them; once one is
+                               * picked the others drop theirs, because none of
+                               * those KPIs is available any more. The chosen
+                               * card then narrows again to what its objective
+                               * allows.
+                               */
+                              kpis={selectedGoal === null
+                                ? goalKpis[goal.id]
+                                : selectedGoal !== goal.id
+                                  ? undefined
+                                  : selectedObjective
+                                    ? kpiPoolFor(goal.id, selectedObjective)
+                                    : goalKpis[goal.id]}
                               highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
                               selected={selectedGoal === goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}

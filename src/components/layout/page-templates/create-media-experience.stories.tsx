@@ -1185,20 +1185,20 @@ export const GoalSelection: Story = {
                       )}
                       {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
                         const stage = goalObjectives[selectedGoal].stage;
-                        // KPIs for the chosen objective's stage. Brand KPIs have a
-                        // matching brand-lift study (research); if the stage has none,
-                        // sales & ROAS are tracked automatically.
-                        // The objective picks its own KPIs from the stage pool.
-                        const kpiOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
+                        /**
+                         * Every objective is judged on a KPI, so every objective
+                         * offers one. Brand objectives pick from their own
+                         * brand-lift KPIs; a Conversion objective has none of
+                         * those, so it picks from the goal's outcome KPIs —
+                         * the same list its goal card shows. Only brand KPIs
+                         * can carry a brand-lift study, which is what the
+                         * add-on below keys off.
+                         */
+                        const brandOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
                           .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
+                        const kpiOptions = brandOptions.length > 0 ? brandOptions : (goalKpis[selectedGoal] ?? []);
                         const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
                         const budgetNum = parseFloat(budgetAmount) || 0;
-                        const studyCost = selectedStudies.reduce((sum, name) => {
-                          const s = studyPricing[name];
-                          if (!s) return sum;
-                          return budgetNum >= s.freeThreshold ? sum : sum + s.fee;
-                        }, 0);
-                        // Conversion-stage objectives have no brand KPIs — show nothing.
                         if (kpiOptions.length === 0) return null;
                         return (
                           <div className="space-y-2">
@@ -1215,7 +1215,10 @@ export const GoalSelection: Story = {
                               selectedExtraBoxed
                               renderSelectedExtra={(opt) => {
                                 const kpi = opt.value;
-                                const pricing = studyPricing[kpi] ?? { fee: 2000, freeThreshold: 50000 };
+                                // Sales KPIs are attributed from the data, not
+                                // surveyed — there is no study to sell.
+                                const pricing = studyPricing[kpi];
+                                if (!pricing) return null;
                                 const isSelected = selectedStudies.includes(kpi);
                                 const isFree = budgetNum >= pricing.freeThreshold;
                                 return (
@@ -1242,7 +1245,10 @@ export const GoalSelection: Story = {
                               }}
                             />
                             <div className="text-xs text-muted-foreground mt-1">
-                              Pick the KPI {selectedObjective} is judged on. It can be measured with a matching brand-lift study.
+                              Pick the KPI {selectedObjective} is judged on.{' '}
+                              {brandOptions.length > 0
+                                ? 'It can be measured with a matching brand-lift study.'
+                                : 'Conversion KPIs are attributed from sales data — no study needed.'}
                             </div>
                           </div>
                         );

@@ -444,17 +444,6 @@ export const GoalSelection: Story = {
     // KPIs the user picks for the chosen objective — each can reveal a matching
     // brand-lift study (research) below.
     const [selectedKpis, setSelectedKpis] = React.useState<string[]>([]);
-    // The goal card's chips are KPI families ("Brand awareness"); the picker
-    // chooses members ("Top-of-mind awareness"). Lighting a chip means "your
-    // chosen KPI belongs to this", so the selection is expanded through the
-    // family map before it reaches the card.
-    const highlightChipKpis = React.useMemo(() => {
-      const set = new Set(selectedKpis);
-      for (const [family, members] of Object.entries(objectiveBrandKpis)) {
-        if (members.some((m) => set.has(m))) set.add(family);
-      }
-      return Array.from(set);
-    }, [selectedKpis]);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
@@ -1172,7 +1161,7 @@ export const GoalSelection: Story = {
                               title={goal.title}
                               description={goal.description}
                               kpis={goalKpis[goal.id]}
-                              highlightKpis={selectedGoal === goal.id ? highlightChipKpis : []}
+                              highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
                               selected={selectedGoal === goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
                             />

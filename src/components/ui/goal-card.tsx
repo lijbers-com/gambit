@@ -34,13 +34,20 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
   // Read-only renders a div: a button that cannot do anything still shows a
   // pointer and a hover state, which reads as "click me" and then disappoints.
   const Tag = readOnly ? 'div' : 'button';
+  /**
+   * Exact matches only. Substring matching lit up every chip that merely
+   * contained the chosen KPI's words — picking "Top-of-mind awareness" also
+   * highlighted "Unaided brand/product awareness" and "Aided brand/product
+   * awareness", so three KPIs looked chosen when only one can be.
+   */
+  const chosenSet = new Set(highlightKpis ?? []);
+  const isChosenKpi = (k: string) => chosenSet.has(k);
+
   // Cap the badge list, but never hide a KPI the user has actually chosen.
   const MAX_KPI_BADGES = 6;
-  const orderedKpis = (kpis ?? []).slice().sort((a, b) => {
-    const isChosen = (k: string) =>
-      highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase())) ? 0 : 1;
-    return isChosen(a) - isChosen(b);
-  });
+  const orderedKpis = (kpis ?? []).slice().sort(
+    (a, b) => (isChosenKpi(a) ? 0 : 1) - (isChosenKpi(b) ? 0 : 1),
+  );
   const visibleKpis = orderedKpis.slice(0, MAX_KPI_BADGES);
   const hiddenKpis = orderedKpis.slice(MAX_KPI_BADGES);
 
@@ -93,7 +100,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               what the goal is judged on, it is not the KPI reference. */}
           <span className="flex flex-wrap gap-1">
           {visibleKpis.map((k) => {
-            const chosen = highlightKpis?.some((h) => h === k || h.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(h.toLowerCase()));
+            const chosen = isChosenKpi(k);
             return (
               <span
                 key={k}

@@ -42,6 +42,7 @@ import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { stageForGoal } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
+import { BudgetSelect } from '@/components/ui/budget-select';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
@@ -969,22 +970,26 @@ export const MediaPlanDetail: Story = {
               16px gap the metric cards keep. */}
           <ControlBar className="mb-1">
             <ControlBarItem label="Media plan budget">
-              <BudgetCell
-                className="h-9 w-44 px-3"
-                value={plan?.budget ?? 0}
-                onSave={(next) => {
+              {/* The budget opens like the date field beside it: click, see
+                  the split per campaign, edit either the total (rows rescale)
+                  or a row (the total follows), Apply to commit. */}
+              <BudgetSelect
+                className="w-44"
+                total={plan?.budget ?? 0}
+                rows={db.campaigns
+                  .filter((c) => c.mediaPlanId === plan?.id)
+                  .map((c) => ({ id: c.id, label: c.name, color: propositionColor(c.engine), budget: c.budget }))}
+                onApply={(nextTotal, budgets) => {
                   if (!plan) return;
                   const prevBudget = plan.budget;
                   const prevSplit = db.campaigns
                     .filter((c) => c.mediaPlanId === plan.id)
                     .map((c) => ({ id: c.id, budget: c.budget }));
-                  updateMediaPlan(plan.id, { budget: next });
-                  // The plan total caps every campaign below it, so a
-                  // new total re-divides across them automatically.
-                  reallocate(next);
+                  updateMediaPlan(plan.id, { budget: nextTotal });
+                  Object.entries(budgets).forEach(([id, budget]) => updateCampaign(id, { budget }));
                   toast({
                     title: 'Media plan budget updated',
-                    description: `€${prevBudget.toLocaleString()} → €${next.toLocaleString()}, divided across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
+                    description: `€${prevBudget.toLocaleString()} → €${nextTotal.toLocaleString()} across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
                     undo: () => {
                       updateMediaPlan(plan.id, { budget: prevBudget });
                       prevSplit.forEach(({ id, budget }) => updateCampaign(id, { budget }));

@@ -459,7 +459,29 @@ export const GoalSelection: Story = {
     // KPIs the user picks for the chosen objective — each can reveal a matching
     // brand-lift study (research) below.
     const [selectedKpis, setSelectedKpis] = React.useState<string[]>([]);
+    /**
+     * Picking a goal empties the other cards' KPI lists, which would shrink
+     * the grid and jump everything below it up the page. The grid keeps the
+     * height it had while all four were still listing their KPIs — measured
+     * whenever nothing is picked yet, then held.
+     */
+    const goalGridRef = React.useRef<HTMLDivElement>(null);
+    const [goalGridHeight, setGoalGridHeight] = React.useState<number | null>(null);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
+    React.useEffect(() => {
+      const el = goalGridRef.current;
+      // Only measure while the full lists are on screen; afterwards the last
+      // measurement is the reserved height.
+      if (!el || selectedGoal !== null) return;
+      const measure = () => setGoalGridHeight(el.getBoundingClientRect().height);
+      measure();
+      if (typeof ResizeObserver === 'undefined') return;
+      const ro = new ResizeObserver(measure);
+      ro.observe(el);
+      return () => ro.disconnect();
+      // currentStep matters: the grid only exists on the goal step, so without
+      // it the effect ran once on mount against nothing and never again.
+    }, [selectedGoal, currentStep]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
 
@@ -1168,7 +1190,13 @@ export const GoalSelection: Story = {
                     <div className="space-y-6">
                       <div>
                         <Label className="mb-3 block">Media plan goal</Label>
-                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div
+                          ref={goalGridRef}
+                          // auto-rows-fr so the reserved height is shared by the
+                          // rows rather than pooling as dead space underneath.
+                          className="grid grid-cols-1 gap-2 sm:auto-rows-fr sm:grid-cols-2"
+                          style={{ minHeight: goalGridHeight ?? undefined }}
+                        >
                           {goals.map((goal) => (
                             <GoalCard
                               key={goal.id}

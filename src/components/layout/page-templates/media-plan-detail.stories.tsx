@@ -683,6 +683,14 @@ export const MediaPlanDetail: Story = {
     const checklistCards = plan
       ? db.campaigns
           .filter((c) => c.mediaPlanId === plan.id && c.status !== 'completed' && !skippedChecklist.includes(c.id))
+          // The same filters and search the table obeys — one filter row
+          // governs both presentations of the campaigns.
+          .filter((c) => {
+            const q = rowSearch.trim().toLowerCase();
+            return (!q || c.name.toLowerCase().includes(q))
+              && (propFilter.length === 0 || propFilter.includes(c.engine))
+              && (stateFilter.length === 0 || stateFilter.includes(c.status));
+          })
           .map((c) => {
             const bookings = db.bookings.filter((b) => b.campaignId === c.id);
             const meta = propositionMeta[c.engine];
@@ -1184,15 +1192,37 @@ export const MediaPlanDetail: Story = {
                 value: 'campaigns',
                 content: (
                   <div className="mt-6 space-y-6">
-                    {/* Two presentations of the same campaigns. The plan's
-                        status picks which one greets you; the switch shows
-                        the other without changing the default. */}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm text-muted-foreground">
-                        {campaignsView === 'cards'
-                          ? 'Setup view — what each campaign still needs before it can run.'
-                          : 'Table view — every campaign and booking in the plan.'}
-                      </span>
+                    {/* One filter row for both presentations of the same
+                        campaigns, with the cards/table switch at its right —
+                        the icons say what the views are, and the plan's
+                        status picks which one greets you. */}
+                    <div className="flex items-start gap-3">
+                      <FilterBar
+                        className="min-w-0 flex-1"
+                        filters={[
+                          {
+                            name: 'Proposition',
+                            options: (Object.keys(propositionMeta) as EngineId[]).map((e) => ({
+                              label: propositionMeta[e].label,
+                              value: e,
+                            })),
+                            selectedValues: propFilter,
+                            onChange: setPropFilter,
+                          },
+                          {
+                            name: 'State',
+                            options: (Object.keys(statusBadge) as PlanStatus[]).map((st) => ({
+                              label: statusBadge[st].label,
+                              value: st,
+                            })),
+                            selectedValues: stateFilter,
+                            onChange: setStateFilter,
+                          },
+                        ]}
+                        searchValue={rowSearch}
+                        onSearchChange={setRowSearch}
+                        searchPlaceholder="Search campaigns & bookings..."
+                      />
                       <span className="flex shrink-0 gap-1">
                         <Button
                           variant={campaignsView === 'cards' ? 'secondary' : 'ghost'}
@@ -1237,31 +1267,6 @@ export const MediaPlanDetail: Story = {
                       )
                     )}
                     {campaignsView === 'table' && (<>
-                    <FilterBar
-                      filters={[
-                        {
-                          name: 'Proposition',
-                          options: (Object.keys(propositionMeta) as EngineId[]).map((e) => ({
-                            label: propositionMeta[e].label,
-                            value: e,
-                          })),
-                          selectedValues: propFilter,
-                          onChange: setPropFilter,
-                        },
-                        {
-                          name: 'State',
-                          options: (Object.keys(statusBadge) as PlanStatus[]).map((s) => ({
-                            label: statusBadge[s].label,
-                            value: s,
-                          })),
-                          selectedValues: stateFilter,
-                          onChange: setStateFilter,
-                        },
-                      ]}
-                      searchValue={rowSearch}
-                      onSearchChange={setRowSearch}
-                      searchPlaceholder="Search campaigns & bookings..."
-                    />
                     <Table
                       columns={columns}
                       data={rows}

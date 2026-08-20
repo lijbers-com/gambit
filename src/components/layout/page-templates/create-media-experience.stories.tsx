@@ -475,10 +475,6 @@ export const GoalSelection: Story = {
       externalId: string;
       budget: string;
       dateRange: DateRange | undefined;
-      /** Bookings added by hand on top of the preset's — created empty with
-       *  the plan and filled in on the campaign afterwards. Nothing to
-       *  configure here, so a count is the whole state. */
-      extraBookings: number;
     };
     const rowSeq = React.useRef(0);
     const nextRowId = () => `row-${(rowSeq.current += 1)}`;
@@ -490,7 +486,6 @@ export const GoalSelection: Story = {
       externalId: '',
       budget: '',
       dateRange: undefined,
-      extraBookings: 0,
     });
     // Default: one assisted campaign per proposition.
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
@@ -502,7 +497,6 @@ export const GoalSelection: Story = {
         externalId: '',
         budget: '',
         dateRange: undefined,
-        extraBookings: 0,
       })),
     );
     const updateRow = (id: string, patch: Partial<CampaignRow>) =>
@@ -828,23 +822,6 @@ export const GoalSelection: Story = {
             });
           });
         }
-
-        // Bookings added by hand on the card are created exactly as promised:
-        // empty drafts, ready to fill on the campaign. No position, no budget —
-        // the to-do engine flags both until they are chosen.
-        Array.from({ length: row.extraBookings }).forEach((_, bi) => {
-          createBooking({
-            campaignId: campaign.id,
-            name: `${campaign.name} — Booking ${bi + 1}`,
-            status: 'draft',
-            budget: 0,
-            spend: 0,
-            startDate: campaignStart,
-            endDate: campaignEnd,
-            positionIds: [],
-            creativeStatus: 'missing',
-          });
-        });
       });
 
       // Land on the new plan's Inbox: a plan straight out of the wizard always
@@ -1534,161 +1511,73 @@ export const GoalSelection: Story = {
                             </div>
 
                             {isAssisted ? (
+                              /* Assisted keeps the decisions and drops the
+                                 detail: name it, see when it runs, what it
+                                 costs, what it should deliver, and whether
+                                 there is still room to buy. The bookings the
+                                 preset creates are the platform's business —
+                                 they appear on the campaign once it exists. */
                               <div className="space-y-3">
-                                {/* The proposal drawn as the thing it creates: a
-                                    campaign, then its bookings — the same two
-                                    steps every wizard walks. The name lives in
-                                    the campaign step, because it is the
-                                    campaign's name, and each booking carries
-                                    its stock level from the inventory check for
-                                    this run time. */}
-                                <div className="rounded-md border border-border">
-                                  <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">1</span>
-                                    <span className="text-xs font-medium">Campaign</span>
-                                    <span className="ml-auto text-xs tabular-nums text-muted-foreground">
-                                      {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
-                                    </span>
-                                  </div>
-                                  <div className="space-y-2 border-b border-border p-3">
-                                    <Label>Campaign name</Label>
-                                    <Input
-                                      value={row.name}
-                                      placeholder={prefill}
-                                      onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                <div className="space-y-2">
+                                  <Label>Campaign name</Label>
+                                  <Input
+                                    value={row.name}
+                                    placeholder={prefill}
+                                    onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                  />
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border border-border px-3 py-2">
+                                  <span className="text-xs tabular-nums text-muted-foreground">
+                                    {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
+                                  </span>
+                                  <span className="ml-auto flex items-center gap-2">
+                                    <LevelMeter
+                                      className="shrink-0"
+                                      label="Volume"
+                                      tone="supply"
+                                      level={worstAvailability === 'available' ? 4 : worstAvailability === 'limited' ? 2 : 1}
                                     />
-                                  </div>
-                                  <div className="p-3 pt-2">
-                                    <div className="mb-1.5 flex items-center gap-2">
-                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
-                                      <span className="text-xs font-medium">Bookings ({rowBookings.length + row.extraBookings})</span>
-                                      {worstAvailability !== 'available' && (
-                                        <span className="ml-auto text-[11px] text-muted-foreground">
-                                          {worstAvailability === 'limited' ? 'Book early to secure' : 'Nearly booked out — consider shifting the run time'}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="divide-y divide-border/60">
-                                      {availability.map((b) => (
-                                        <div key={b.name} className="flex items-center justify-between gap-4 py-2">
-                                          <span className="min-w-0">
-                                            <span className="block truncate text-sm font-medium text-foreground">{b.name}</span>
-                                            <span className="block truncate text-xs text-muted-foreground">{b.detail}</span>
-                                          </span>
-                                          <LevelMeter
-                                            className="shrink-0"
-                                            label="Volume"
-                                            tone="supply"
-                                            level={b.availability === 'available' ? 4 : b.availability === 'limited' ? 2 : 1}
-                                          />
-                                        </div>
-                                      ))}
-                                      {Array.from({ length: row.extraBookings }).map((_, bi) => (
-                                        <div key={`extra-${bi}`} className="flex items-center justify-between gap-4 py-2">
-                                          <span className="min-w-0">
-                                            <span className="block truncate text-sm font-medium text-foreground">New booking</span>
-                                            <span className="block truncate text-xs text-muted-foreground">Will be created with the plan — fill it in on the campaign</span>
-                                          </span>
-                                          <button
-                                            type="button"
-                                            aria-label="Remove booking"
-                                            onClick={() => updateRow(row.id, { extraBookings: row.extraBookings - 1 })}
-                                            className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-                                          >
-                                            <X size={13} />
-                                          </button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateRow(row.id, { extraBookings: row.extraBookings + 1 })}
-                                      className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                                    >
-                                      <Plus size={13} />
-                                      Add booking
-                                    </button>
-                                  </div>
+                                    {worstAvailability !== 'available' && (
+                                      <span className="text-[11px] text-muted-foreground">
+                                        {worstAvailability === 'limited' ? 'Book early to secure' : 'Nearly booked out'}
+                                      </span>
+                                    )}
+                                  </span>
                                 </div>
                               </div>
                             ) : (
-                              /* Expert mode — the same two steps as assisted,
-                                 with the campaign step as a form and the
-                                 bookings step honestly empty: expert campaigns
-                                 start blank. */
-                              <div className="rounded-md border border-border">
-                                <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-                                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">1</span>
-                                  <span className="text-xs font-medium">Campaign</span>
+                              /* Expert mode — the campaign form, nothing else.
+                                 Bookings are made on the campaign after the
+                                 plan is created. */
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <div className="space-y-2 sm:col-span-2">
+                                  <Label>Campaign name</Label>
+                                  <Input
+                                    value={row.name}
+                                    placeholder="Name the campaign"
+                                    onChange={(e) => updateRow(row.id, { name: e.target.value })}
+                                  />
                                 </div>
-                                <div className="grid grid-cols-1 gap-2 border-b border-border p-3 sm:grid-cols-2">
-                                  <div className="space-y-2 sm:col-span-2">
-                                    <Label>Campaign name</Label>
-                                    <Input
-                                      value={row.name}
-                                      placeholder="Name the campaign"
-                                      onChange={(e) => updateRow(row.id, { name: e.target.value })}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Campaign budget</Label>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      value={row.budget}
-                                      placeholder={share > 0 ? String(share) : 'Enter budget amount'}
-                                      onChange={(e) => updateRow(row.id, { budget: e.target.value })}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Campaign run time</Label>
-                                    <DateRangePicker
-                                      dateRange={row.dateRange}
-                                      onDateRangeChange={(r) => updateRow(row.id, { dateRange: r })}
-                                      placeholder="Inherits the plan run time"
-                                      showPresets
-                                      presets={futureDateRangePresets}
-                                      className="w-full"
-                                    />
-                                  </div>
+                                <div className="space-y-2">
+                                  <Label>Campaign budget</Label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    value={row.budget}
+                                    placeholder={share > 0 ? String(share) : 'Enter budget amount'}
+                                    onChange={(e) => updateRow(row.id, { budget: e.target.value })}
+                                  />
                                 </div>
-                                <div className="p-3 pt-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] font-semibold text-muted-foreground">2</span>
-                                    <span className="text-xs font-medium">Bookings ({row.extraBookings})</span>
-                                  </div>
-                                  {row.extraBookings === 0 ? (
-                                    <p className="pt-1 text-xs text-muted-foreground">
-                                      No bookings yet — add them here, or on the campaign once the plan is created.
-                                    </p>
-                                  ) : (
-                                    <div className="divide-y divide-border/60">
-                                      {Array.from({ length: row.extraBookings }).map((_, bi) => (
-                                        <div key={`extra-${bi}`} className="flex items-center justify-between gap-4 py-2">
-                                          <span className="min-w-0">
-                                            <span className="block truncate text-sm font-medium text-foreground">New booking</span>
-                                            <span className="block truncate text-xs text-muted-foreground">Will be created with the plan — fill it in on the campaign</span>
-                                          </span>
-                                          <button
-                                            type="button"
-                                            aria-label="Remove booking"
-                                            onClick={() => updateRow(row.id, { extraBookings: row.extraBookings - 1 })}
-                                            className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-                                          >
-                                            <X size={13} />
-                                          </button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                  <button
-                                      type="button"
-                                      onClick={() => updateRow(row.id, { extraBookings: row.extraBookings + 1 })}
-                                      className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                                    >
-                                      <Plus size={13} />
-                                      Add booking
-                                    </button>
+                                <div className="space-y-2">
+                                  <Label>Campaign run time</Label>
+                                  <DateRangePicker
+                                    dateRange={row.dateRange}
+                                    onDateRangeChange={(r) => updateRow(row.id, { dateRange: r })}
+                                    placeholder="Inherits the plan run time"
+                                    showPresets
+                                    presets={futureDateRangePresets}
+                                    className="w-full"
+                                  />
                                 </div>
                               </div>
                             )}

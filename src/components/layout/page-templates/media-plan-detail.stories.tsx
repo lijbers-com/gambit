@@ -699,7 +699,12 @@ export const MediaPlanDetail: Story = {
             const CardIcon = meta.icon;
             const openCampaign = () => { window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
             const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-            const facts = `${fmtD(c.startDate)} → ${fmtD(c.endDate)} ${new Date(c.endDate).getFullYear()} · ${c.budget > 0 ? `€${c.budget.toLocaleString()}` : 'no budget set'}`;
+            // Budget first, then run time — the same order and labels the
+            // plan's control bar states them in.
+            const facts = [
+              { label: 'Budget', value: c.budget > 0 ? `€${c.budget.toLocaleString()}` : 'No budget set' },
+              { label: 'Run time', value: `${fmtD(c.startDate)} → ${fmtD(c.endDate)} ${new Date(c.endDate).getFullYear()}` },
+            ];
             const steps = [
               {
                 id: `${c.id}-bookings`,
@@ -1000,7 +1005,7 @@ export const MediaPlanDetail: Story = {
             </ControlBarItem>
             <ControlBarItem label="Media plan run time">
               <DatesCell
-                className="h-9 w-72 text-sm font-normal"
+                className="h-9 w-64 text-sm font-normal"
                 start={plan?.startDate}
                 end={plan?.endDate}
                 onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
@@ -1029,6 +1034,22 @@ export const MediaPlanDetail: Story = {
                 />
               </div>
             </ControlBarItem>
+            {/* The plan's run state — launch, pause, resume, stop — and Add
+                campaign are controls of the plan itself, so they live on this
+                card, right-aligned, not on the tab strip. */}
+            <div className="ml-auto flex items-center gap-2">
+              {plan && (
+                <LifecycleActions
+                  level="media-plan"
+                  entityId={plan.id}
+                  status={plan.status}
+                  name={plan.name}
+                  playDisabled={!canLaunch}
+                  playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+                />
+              )}
+              <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
+            </div>
           </ControlBar>
 
           <CardWithTabs
@@ -1038,24 +1059,6 @@ export const MediaPlanDetail: Story = {
             // Controlled only so the FAQ below can follow the open tab.
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            // One control for the plan's run state at every stage — launching,
-            // pausing, resuming, stopping — reaching every campaign and booking
-            // beneath it, with Add campaign beside it.
-            action={
-              <div className="flex items-center gap-2">
-                {plan && (
-                  <LifecycleActions
-                    level="media-plan"
-                    entityId={plan.id}
-                    status={plan.status}
-                    name={plan.name}
-                    playDisabled={!canLaunch}
-                    playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-                  />
-                )}
-                <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
-              </div>
-            }
             tabs={tabFirst([
               {
                 label: 'Media plan details',

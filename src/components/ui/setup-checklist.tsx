@@ -34,9 +34,9 @@ export interface SetupChecklistCardData {
   id: string;
   icon?: React.ReactNode;
   title: string;
-  /** The campaign's governing facts — run time, budget — as one muted line,
-   *  the same summary the wizard's last step showed for this campaign. */
-  facts?: string;
+  /** The campaign's governing facts — budget, run time — each a labelled
+   *  field, in the same order the plan's control bar states them. */
+  facts?: Array<{ label: string; value: string }>;
   steps: SetupChecklistStep[];
 }
 
@@ -90,9 +90,16 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                   </span>
                 </div>
 
-                {card.facts && (
-                  <div className="rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
-                    {card.facts}
+                {card.facts && card.facts.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {card.facts.map((f) => (
+                      <div key={f.label} className="space-y-1">
+                        <span className="block text-xs font-medium text-muted-foreground">{f.label}</span>
+                        <div className="truncate rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
+                          {f.value}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -101,11 +108,11 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                     <span className="text-muted-foreground">Progress</span>
                     <span className="font-medium tabular-nums">{done}/{card.steps.length}</span>
                   </div>
-                  {/* The nav-hover accent (Edge lime) fills the bar, matching
-                      the design draft; the track is the neutral rail. */}
+                  {/* Progress is state, not celebration — the fill is the same
+                      dark the step ticks and primary buttons use. */}
                   <div className="h-2 overflow-hidden rounded-full bg-neutral-200">
                     <div
-                      className="h-full rounded-full bg-[var(--brand-nav-hover,hsl(var(--primary)))] transition-all"
+                      className="h-full rounded-full bg-primary transition-all"
                       style={{ width: `${(done / card.steps.length) * 100}%` }}
                     />
                   </div>

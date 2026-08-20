@@ -59,10 +59,12 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
 
   return (
     <section className={cn('space-y-4', className)}>
-      <div>
-        <h3 className="text-lg font-semibold">{heading}</h3>
-        {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
-      </div>
+      {(heading || subtitle) && (
+        <div>
+          {heading && <h3 className="text-lg font-semibold">{heading}</h3>}
+          {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {cards.map((card) => {

@@ -39,7 +39,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { retailMoments } from '@/lib/retail-moments';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
-import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
@@ -328,6 +328,13 @@ export const MediaPlanDetail: Story = {
     const [expanded, setExpanded] = React.useState<string[]>([]);
     // Checklist cards the user skipped. Loaded in an effect, never during
     // render — localStorage at render time breaks hydration.
+    /**
+     * The campaigns tab has two presentations of the same campaigns: setup
+     * cards while the plan is being built, the performance table once it
+     * runs. The plan's status picks the default; the switch top-right lets
+     * the user look at the other one without changing that default.
+     */
+    const [campaignViewOverride, setCampaignViewOverride] = React.useState<'cards' | 'table' | null>(null);
     const [skippedChecklist, setSkippedChecklist] = React.useState<string[]>([]);
     const skipKey = 'gambit-setup-skipped';
     React.useEffect(() => {
@@ -689,6 +696,11 @@ export const MediaPlanDetail: Story = {
           })
           .filter((card) => card.steps.some((step) => !step.done))
       : [];
+
+    // Cards are for plans still being built; anything that has ever run —
+    // running, paused, completed — opens on the table it is judged in.
+    const planHasRun = !!plan && ['running', 'paused', 'completed', 'stopped'].includes(plan.status);
+    const campaignsView = campaignViewOverride ?? (planHasRun ? 'table' : 'cards');
 
     const planBlockers = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
@@ -1147,14 +1159,59 @@ export const MediaPlanDetail: Story = {
                 value: 'campaigns',
                 content: (
                   <div className="mt-6 space-y-6">
-                    {checklistCards.length > 0 && (
-                      <SetupChecklist
-                        subtitle="Complete these steps to take the plan live. You can skip any card for now."
-                        cards={checklistCards}
-                        onDismiss={(id) => skipChecklistCards([id])}
-                        onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
-                      />
+                    {/* Two presentations of the same campaigns. The plan's
+                        status picks which one greets you; the switch shows
+                        the other without changing the default. */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-muted-foreground">
+                        {campaignsView === 'cards'
+                          ? 'Setup view — what each campaign still needs before it can run.'
+                          : 'Table view — every campaign and booking in the plan.'}
+                      </span>
+                      <span className="flex shrink-0 gap-1">
+                        <Button
+                          variant={campaignsView === 'cards' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          iconOnly
+                          aria-label="Setup cards view"
+                          title="Setup cards"
+                          onClick={() => setCampaignViewOverride('cards')}
+                        >
+                          <LayoutGrid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={campaignsView === 'table' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          iconOnly
+                          aria-label="Table view"
+                          title="Table"
+                          onClick={() => setCampaignViewOverride('table')}
+                        >
+                          <Table2 className="h-4 w-4" />
+                        </Button>
+                      </span>
+                    </div>
+                    {campaignsView === 'cards' && (
+                      checklistCards.length > 0 ? (
+                        <SetupChecklist
+                          heading=""
+                          subtitle=""
+                          cards={checklistCards}
+                          onDismiss={(id) => skipChecklistCards([id])}
+                          onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
+                        />
+                      ) : (
+                        // Everything set up (or skipped): the cards have done
+                        // their job, so say so and hand over to the table.
+                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center">
+                          <p className="text-sm text-muted-foreground">Every campaign is set up — nothing left to prepare.</p>
+                          <Button variant="outline" onClick={() => setCampaignViewOverride('table')}>
+                            Open the table view
+                          </Button>
+                        </div>
+                      )
                     )}
+                    {campaignsView === 'table' && (<>
                     <FilterBar
                       filters={[
                         {
@@ -1266,6 +1323,7 @@ export const MediaPlanDetail: Story = {
                           : cn('cursor-pointer', expanded.includes(r._id) && '[&>td]:!bg-muted')
                       }
                     />
+                    </>)}
                   </div>
                 ),
               },

@@ -43,13 +43,30 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
   const chosenSet = new Set(highlightKpis ?? []);
   const isChosenKpi = (k: string) => chosenSet.has(k);
 
-  // Cap the badge list, but never hide a KPI the user has actually chosen.
-  const MAX_KPI_BADGES = 6;
+  // Chosen KPI first, so it is always inside the visible rows.
   const orderedKpis = (kpis ?? []).slice().sort(
     (a, b) => (isChosenKpi(a) ? 0 : 1) - (isChosenKpi(b) ? 0 : 1),
   );
-  const visibleKpis = orderedKpis.slice(0, MAX_KPI_BADGES);
-  const hiddenKpis = orderedKpis.slice(MAX_KPI_BADGES);
+
+  /**
+   * Three rows of badges, then the rest on request. Clamped by height rather
+   * than by count: the names run from "CLV" to "Unaided brand/product
+   * awareness", so any fixed number of badges is three lines on one card and
+   * one line on another.
+   */
+  const [kpisExpanded, setKpisExpanded] = React.useState(false);
+  const kpiListRef = React.useRef<HTMLSpanElement>(null);
+  const [kpisOverflow, setKpisOverflow] = React.useState(false);
+  React.useEffect(() => {
+    const el = kpiListRef.current;
+    if (!el || kpisExpanded) return;
+    const check = () => setKpisOverflow(el.scrollHeight > el.clientHeight + 1);
+    check();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [orderedKpis.length, kpisExpanded]);
 
   return (
     <Tag
@@ -98,8 +115,12 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
           {/* Own row, so the label reads as a heading rather than the first
               item in the list. Long frameworks are capped — the card names
               what the goal is judged on, it is not the KPI reference. */}
-          <span className="flex flex-wrap gap-1">
-          {visibleKpis.map((k) => {
+          <span
+            ref={kpiListRef}
+            // 3 rows: badge line-height ~20px plus the 4px gap between rows.
+            className={cn('flex flex-wrap gap-1 overflow-hidden', !kpisExpanded && 'max-h-[68px]')}
+          >
+          {orderedKpis.map((k) => {
             const chosen = isChosenKpi(k);
             return (
               <span
@@ -115,24 +136,22 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
               </span>
             );
           })}
-          {hiddenKpis.length > 0 && (
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className="cursor-help rounded-full border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    +{hiddenKpis.length} more
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[260px]">
-                  {hiddenKpis.join(' · ')}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
           </span>
+          {(kpisOverflow || kpisExpanded) && (
+            <span
+              role="button"
+              tabIndex={0}
+              // A span, not a button: this card is itself a button, and a
+              // button inside one is invalid and un-clickable.
+              onClick={(e) => { e.stopPropagation(); setKpisExpanded((v) => !v); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setKpisExpanded((v) => !v); }
+              }}
+              className="mt-1 inline-block cursor-pointer text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+            >
+              {kpisExpanded ? 'Show fewer' : `Show all ${orderedKpis.length}`}
+            </span>
+          )}
         </div>
       )}
     </Tag>

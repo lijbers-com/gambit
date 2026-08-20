@@ -202,6 +202,21 @@ const goalKpis: Record<string, string[]> = {
   loyalty: LOYALTY_KPIS,
 };
 
+/**
+ * Which KPIs are still selectable once a goal and objective are chosen.
+ * Brand objectives narrow to their own brand-lift KPIs; a Conversion
+ * objective has none of those, so it uses the goal's outcome KPIs. Shared by
+ * the KPI picker and the goal card, so the card stops showing KPIs the
+ * objective has already ruled out.
+ */
+const kpiPoolFor = (goalId: string, objective: string | null): string[] => {
+  const stage = goalObjectives[goalId]?.stage;
+  if (!stage) return [];
+  const stageBrand = funnelKpis[stage]?.brand ?? [];
+  const brand = (objectiveBrandKpis[objective ?? ''] ?? stageBrand).filter((k) => stageBrand.includes(k));
+  return brand.length > 0 ? brand : (goalKpis[goalId] ?? []);
+};
+
 // Brand-lift "studies" a user can commission per objective. The available
 // studies follow the funnel → brand KPI framework — they are the brand KPIs of
 // the selected objective's stage (funnelKpis[stage].brand). A study is included
@@ -1160,7 +1175,11 @@ export const GoalSelection: Story = {
                               icon={goal.icon}
                               title={goal.title}
                               description={goal.description}
-                              kpis={goalKpis[goal.id]}
+                              // Once an objective is chosen, the card stops
+                              // listing KPIs that objective has ruled out.
+                              kpis={selectedGoal === goal.id && selectedObjective
+                                ? kpiPoolFor(goal.id, selectedObjective)
+                                : goalKpis[goal.id]}
                               highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
                               selected={selectedGoal === goal.id}
                               onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
@@ -1196,7 +1215,7 @@ export const GoalSelection: Story = {
                          */
                         const brandOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
                           .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
-                        const kpiOptions = brandOptions.length > 0 ? brandOptions : (goalKpis[selectedGoal] ?? []);
+                        const kpiOptions = kpiPoolFor(selectedGoal, selectedObjective);
                         const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
                         const budgetNum = parseFloat(budgetAmount) || 0;
                         if (kpiOptions.length === 0) return null;
@@ -1218,13 +1237,23 @@ export const GoalSelection: Story = {
                                 // Sales KPIs are attributed from the data, not
                                 // surveyed — there is no study to sell.
                                 const pricing = studyPricing[kpi];
-                                if (!pricing) return null;
                                 const isSelected = selectedStudies.includes(kpi);
+                                const optimisationNote = (
+                                  <p className="text-xs text-muted-foreground">
+                                    The plan is optimised for {kpi} alone. Everything else stays measured and
+                                    reported, but delivery is never steered towards it.
+                                  </p>
+                                );
+                                // Sales KPIs are attributed from the data, not
+                                // surveyed — there is no study to sell.
+                                if (!pricing) return optimisationNote;
                                 const isFree = budgetNum >= pricing.freeThreshold;
                                 return (
                                   /* Checkbox + title on one line; the explanation
                                      sits below on the card's own left edge. */
-                                  <div className="space-y-1">
+                                  <div className="space-y-3">
+                                    {optimisationNote}
+                                    <div className="space-y-1">
                                     <label className="flex cursor-pointer items-center gap-2.5">
                                       <Checkbox
                                         checked={isSelected}
@@ -1240,6 +1269,7 @@ export const GoalSelection: Story = {
                                       Measures the uplift this KPI drives against a control group.{' '}
                                       {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
                                     </p>
+                                    </div>
                                   </div>
                                 );
                               }}

@@ -526,7 +526,7 @@ const PropositionWizard = ({
   // it (display first grew it; the flow is the same everywhere).
   const isDisplay = propositionType === 'display';
   const [bookings, setBookings] = React.useState<{
-    id: string; name: string; startDate?: Date; startTime: string;
+    id: string; name: string; budget: number; startDate?: Date; startTime: string;
     endDate?: Date; endTime: string; activeDays: string[]; positionIds: string[];
     /** Per-position CPC on auction campaigns — the bid lives on the placement. */
     bids: Record<string, string>;
@@ -545,10 +545,11 @@ const PropositionWizard = ({
   const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
   const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
   const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-  const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
-  const [positionOpen, setPositionOpen] = React.useState(true);
-  const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
   const [positionSearch, setPositionSearch] = React.useState('');
+  /** The booking's own budget, part of its Budget & run time section. */
+  const [bookingBudget, setBookingBudget] = React.useState('');
+  /** Channels expanded in the placement picker (channel → ad positions). */
+  const [openChannelIds, setOpenChannelIds] = React.useState<string[]>([]);
   // The booking's placement — real positions from the proposition's inventory,
   // because positionIds is what the to-do engine judges "placed" by.
   const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
@@ -579,7 +580,8 @@ const PropositionWizard = ({
   const saveBooking = () => {
     setBookings(prev => [...prev, {
       id: String(Date.now()),
-      name: bookingName, startDate: bookingDateRange?.from, startTime: bookingStartTime,
+      name: bookingName, budget: parseFloat(bookingBudget) || 0,
+      startDate: bookingDateRange?.from, startTime: bookingStartTime,
       endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
       positionIds: [...bookingPositionIds],
       bids: { ...positionBids },
@@ -589,7 +591,7 @@ const PropositionWizard = ({
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingDateRange(undefined);
+    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({});
@@ -624,13 +626,22 @@ const PropositionWizard = ({
     ? wizardSteps[currentStep + 1]?.id === 'bookings'
     : currentStep === wizardSteps.length - 1;
 
-  // The proposition's real inventory, for the booking's placement pick.
-  const enginePositions = React.useMemo(() => {
-    const products = db.mediaProducts.filter((mp) => mp.engine === propositionType);
-    return products.flatMap((mp) =>
-      db.positions.filter((p) => p.mediaProductId === mp.id).map((p) => ({ id: p.id, name: p.name, product: mp.name })),
-    );
+  // The proposition's real inventory, the way it is sold: CHANNELS group ad
+  // positions. The placement picker asks channel first, positions second.
+  const engineChannels = React.useMemo(() => {
+    return db.mediaProducts
+      .filter((mp) => mp.engine === propositionType)
+      .map((mp) => ({
+        id: mp.id,
+        name: mp.name,
+        positions: db.positions.filter((p) => p.mediaProductId === mp.id),
+      }))
+      .filter((ch) => ch.positions.length > 0);
   }, [db, propositionType]);
+  const enginePositions = React.useMemo(
+    () => engineChannels.flatMap((ch) => ch.positions.map((p) => ({ id: p.id, name: p.name, product: ch.name }))),
+    [engineChannels],
+  );
 
   // What the creative step works on: the bookings made in this run — or, in
   // creatives-only mode, the campaign's existing bookings still missing one.
@@ -694,6 +705,7 @@ const PropositionWizard = ({
     if (routeCampaign.mode === 'assisted' && !creativesOnly) {
       const firstFree = enginePositions[0];
       if (firstFree) setBookingPositionIds((prev) => (prev.length ? prev : [firstFree.id]));
+      if (routeCampaign.budget > 0) setBookingBudget((prev) => prev || String(routeCampaign.budget));
       setBookingSubStep((prev) => prev ?? 0);
     }
     // `mode` is a dep because the hydration snapshot (the seed) can resolve
@@ -745,7 +757,7 @@ const PropositionWizard = ({
       campaignId: campaignRecord.id,
       name: b.name || `${campaignRecord.name} — Booking`,
       status: 'draft',
-      budget: 0,
+      budget: b.budget,
       spend: 0,
       startDate: toIso(b.startDate) ?? campaignRecord.startDate,
       endDate: toIso(b.endDate) ?? campaignRecord.endDate,
@@ -1884,28 +1896,44 @@ const PropositionWizard = ({
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Booking setup</CardTitle>
-                            <CardDescription>Configure the booking schedule, active days and position</CardDescription>
+                            <CardDescription>Name the booking, set its budget and run time, and pick where it runs</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
                               <Label>Booking name <span className="text-destructive">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
                             </div>
-                            <div className="space-y-2">
-                              <Label>Evaluation ID</Label>
-                              <Input placeholder="Enter evaluation ID" />
-                            </div>
-                            <div className="space-y-3">
-                              <Label className="text-sm font-semibold">Schedule</Label>
-                              <DateRangePicker
-                                dateRange={bookingDateRange}
-                                onDateRangeChange={setBookingDateRange}
-                                placeholder="Select start and end date"
-                                showPresets
-                                showWeekNumbers
-                                events={retailMoments}
-                                presets={futureDateRangePresets}
-                              />
+                            {/* Budget & run time — one section, the same block the
+                                booking detail page uses: how much, when, and on
+                                which days. (Evaluation ID is a later feature,
+                                activated on the booking page itself.) */}
+                            <div className="rounded-lg border p-4 space-y-4">
+                              <div className="text-sm font-semibold">Budget &amp; run time</div>
+                              <div className="space-y-2">
+                                <Label>Booking budget</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={bookingBudget}
+                                  onChange={(e) => setBookingBudget(e.target.value)}
+                                  placeholder="Enter budget"
+                                />
+                                {budgetAmount.trim() !== '' && (
+                                  <p className="text-xs text-muted-foreground">Campaign budget: €{Number(budgetAmount).toLocaleString()}</p>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Run time <span className="text-destructive">*</span></Label>
+                                <DateRangePicker
+                                  dateRange={bookingDateRange}
+                                  onDateRangeChange={setBookingDateRange}
+                                  placeholder="Select start and end date"
+                                  showPresets
+                                  showWeekNumbers
+                                  events={retailMoments}
+                                  presets={futureDateRangePresets}
+                                />
+                              </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
                                   <label className="block text-sm text-muted-foreground">Start time</label>
@@ -1922,84 +1950,99 @@ const PropositionWizard = ({
                                   </div>
                                 </div>
                               </div>
+                              <div className="space-y-3">
+                                <div className="text-sm font-medium">Active days</div>
+                                <div className="flex gap-2">
+                                  {dayLabels.map(day => (
+                                    <button key={day.id} onClick={() => toggleDay(day.id)}
+                                      className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                      {day.label}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <span>Select:</span>
+                                  <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
+                                  <span>·</span>
+                                  <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                                  <span>·</span>
+                                  <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
+                                </div>
+                              </div>
                             </div>
-                            <div className="rounded-lg border p-4 space-y-1">
-                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setActiveDaysOpen(v => !v)}>
-                                Active days <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${activeDaysOpen ? '' : '-rotate-90'}`} />
-                              </button>
-                              {activeDaysOpen && (
-                                <div className="pt-3 space-y-3">
-                                  <div className="flex gap-2">
-                                    {dayLabels.map(day => (
-                                      <button key={day.id} onClick={() => toggleDay(day.id)}
-                                        className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                        {day.label}
+                            {/* Placement: pick the CHANNEL first, then tweak its
+                                ad positions — the shape the inventory is sold in.
+                                On auction campaigns each picked position carries
+                                its own bid. */}
+                            <div className="rounded-lg border p-4 space-y-3">
+                              <div className="text-sm font-semibold">Position</div>
+                              <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search channels and positions..." className="w-full" />
+                              <div className="space-y-2">
+                                {engineChannels.map((ch) => {
+                                  const q = positionSearch.trim().toLowerCase();
+                                  const positions = ch.positions.filter((p) => !q || `${ch.name} ${p.name}`.toLowerCase().includes(q));
+                                  if (q && positions.length === 0) return null;
+                                  const selectedCount = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
+                                  // Searching opens everything; a lone channel needs no fold.
+                                  const open = q !== '' || engineChannels.length === 1 || openChannelIds.includes(ch.id);
+                                  return (
+                                    <div key={ch.id} className={cn('rounded-md border', selectedCount > 0 ? 'border-surface-selected-border' : 'border-border')}>
+                                      <button
+                                        type="button"
+                                        className="flex w-full items-center justify-between gap-2 p-3 text-left"
+                                        onClick={() => setOpenChannelIds(prev => prev.includes(ch.id) ? prev.filter(x => x !== ch.id) : [...prev, ch.id])}
+                                      >
+                                        <span className="min-w-0">
+                                          <span className="block truncate text-sm font-medium">{ch.name}</span>
+                                          <span className="block text-xs text-muted-foreground">
+                                            {ch.positions.length} ad position{ch.positions.length === 1 ? '' : 's'}
+                                            {selectedCount > 0 ? ` · ${selectedCount} selected` : ''}
+                                          </span>
+                                        </span>
+                                        <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open ? '' : '-rotate-90')} />
                                       </button>
-                                    ))}
-                                  </div>
-                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <span>Select:</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                                    <span>·</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                                    <span>·</span>
-                                    <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                            <div className="rounded-lg border p-4 space-y-1">
-                              <button className="w-full flex items-center justify-between text-sm font-semibold" onClick={() => setPositionOpen(v => !v)}>
-                                Position <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${positionOpen ? '' : '-rotate-90'}`} />
-                              </button>
-                              {positionOpen && (
-                                <div className="pt-3 space-y-3">
-                                  <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search positions..." className="w-full" />
-                                  {/* Real inventory: a booking without a position cannot
-                                      deliver, so the pick writes positionIds. */}
-                                  <div className="space-y-2">
-                                    {enginePositions
-                                      .filter((p) => !positionSearch || `${p.product} ${p.name}`.toLowerCase().includes(positionSearch.toLowerCase()))
-                                      .slice(0, 6)
-                                      .map((p) => {
-                                        const picked = bookingPositionIds.includes(p.id);
-                                        return (
-                                          <div
-                                            key={p.id}
-                                            className={cn(
-                                              'rounded-md border p-3 transition-colors',
-                                              picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
-                                            )}
-                                          >
-                                            <label className="flex w-full cursor-pointer items-center gap-3 text-left">
-                                              <Checkbox
-                                                checked={picked}
-                                                onCheckedChange={() => setBookingPositionIds(prev =>
-                                                  prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                                              />
-                                              <span className="min-w-0">
-                                                <span className="block truncate text-sm font-medium">{p.name}</span>
-                                                <span className="block text-xs text-muted-foreground">{p.product}</span>
-                                              </span>
-                                            </label>
-                                            {/* On auction campaigns the price lives here,
-                                                on the placement it buys. */}
-                                            {picked && isAuction && (
-                                              <BidRow
-                                                id={p.id}
-                                                value={positionBids[p.id] ?? ''}
-                                                onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
-                                              />
-                                            )}
-                                          </div>
-                                        );
-                                      })}
-                                    {enginePositions.length === 0 && (
-                                      <p className="text-xs text-muted-foreground">No positions configured for this proposition yet.</p>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
+                                      {open && (
+                                        <div className="space-y-2 border-t border-border p-3">
+                                          {positions.map((p) => {
+                                            const picked = bookingPositionIds.includes(p.id);
+                                            return (
+                                              <div
+                                                key={p.id}
+                                                className={cn(
+                                                  'rounded-md border p-3 transition-colors',
+                                                  picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                                                )}
+                                              >
+                                                <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                                                  <Checkbox
+                                                    checked={picked}
+                                                    onCheckedChange={() => setBookingPositionIds(prev =>
+                                                      prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
+                                                  />
+                                                  <span className="min-w-0">
+                                                    <span className="block truncate text-sm font-medium">{p.name}</span>
+                                                    <span className="block text-xs text-muted-foreground">{p.format ?? ch.name}</span>
+                                                  </span>
+                                                </label>
+                                                {picked && isAuction && (
+                                                  <BidRow
+                                                    id={p.id}
+                                                    value={positionBids[p.id] ?? ''}
+                                                    onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
+                                                  />
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                                {engineChannels.length === 0 && (
+                                  <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
+                                )}
+                              </div>
                             </div>
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
@@ -2337,11 +2380,32 @@ const PropositionWizard = ({
                 );
               })}
 
-              {/* Campaign summary card — always at the bottom */}
+              {/* Campaign summary card — always at the bottom. A booking is
+                  never campaign-less: in booking mode the card carries the
+                  existing campaign's facts, so what the booking hangs under
+                  is always on screen. */}
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>{proposition.name} campaign</CardSummaryTitle>
+                  <CardSummaryTitle>{bookingMode && routeCampaign ? routeCampaign.name : `${proposition.name} campaign`}</CardSummaryTitle>
                 </CardHeader>
+                {bookingMode && routeCampaign && (
+                  <CardSummaryContent>
+                    <div className="space-y-2 text-sm">
+                      {[
+                        ['Budget', routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—'],
+                        ['Run time', `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}`],
+                        ['Buying type', (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction'],
+                        ...(linkedPlan ? [['Media plan', linkedPlan.name] as [string, string]] : []),
+                      ].map(([label, value]) => (
+                        <div key={label} className="flex items-baseline justify-between gap-3">
+                          <span className="shrink-0 text-muted-foreground">{label}</span>
+                          <span className="min-w-0 truncate text-right font-medium">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardSummaryContent>
+                )}
+                {!(bookingMode && routeCampaign) && (
                 <CardSummaryContent>
                   <div className="relative pl-12">
                     <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
@@ -2375,6 +2439,7 @@ const PropositionWizard = ({
                     </div>
                   </div>
                 </CardSummaryContent>
+                )}
                 {/* The campaign phase hands over to the booking phase, the
                     booking phase to creatives, and the creative step is where
                     the wizard actually saves — one continuing flow. */}

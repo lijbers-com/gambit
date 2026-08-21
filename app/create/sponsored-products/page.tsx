@@ -19,8 +19,14 @@ function CreateSponsoredProductsContent() {
   const mediaPlanStatus = searchParams.get('mediaPlanStatus') ?? undefined;
   const startDateRaw = searchParams.get('startDate');
   const endDateRaw = searchParams.get('endDate');
+  // Real database context: planId creates the campaign inside that media
+  // plan; campaignId enters at the booking step for an existing campaign.
+  const planId = searchParams.get('planId') ?? undefined;
+  const campaignId = searchParams.get('campaignId') ?? undefined;
 
   const initialValues = {
+    planId,
+    campaignId,
     campaignName,
     externalId,
     budget,

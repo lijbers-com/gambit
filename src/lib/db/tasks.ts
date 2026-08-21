@@ -42,6 +42,11 @@ export interface DerivedTask {
     stats?: { label: string; value: string; sub?: string; tone?: string }[];
     insights?: { title: string; text: string }[];
   };
+  /** Acting on this opens the guided setup wizard rather than a detail page —
+   *  set on the per-campaign setup-help message. */
+  opensWizard?: boolean;
+  /** Wizard step to open on — 'creatives' when that is all that is missing. */
+  wizardStep?: string;
 }
 
 /** All derived to-dos for the whole database, most severe first. */
@@ -83,41 +88,45 @@ export function deriveTasks(db: DbData): DerivedTask[] {
     for (const campaign of campaigns) {
       const bookings = db.bookings.filter((b) => b.campaignId === campaign.id);
 
-      if (bookings.length === 0 && campaign.status !== 'completed') {
-        tasks.push({
-          id: `${campaign.id}-bookings`, kind: 'action', severity: live ? 'blocking' : 'attention',
-          level: 'campaign', entityId: campaign.id, mediaPlanId: plan.id, engine: campaign.engine,
-          title: 'Add bookings', detail: `"${campaign.name}" has no bookings — nothing can deliver on this proposition.`,
-          side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
-        });
-      }
-
-      // ── Booking-level rules ────────────────────────────────────────
-      for (const booking of bookings) {
-        if (booking.creativeStatus === 'missing' && booking.status !== 'completed') {
+      // One guided-setup offer per campaign instead of a to-do per missing
+      // fact. "Add bookings", "Upload creative" and "Choose a placement" all
+      // meant the same thing — the campaign's setup wizard hasn't been
+      // finished — so the inbox now says that once, as an offer of help, and
+      // acting on it opens the wizard that walks through all of it.
+      if (campaign.status !== 'completed') {
+        const open = bookings.filter((b) => b.status !== 'completed');
+        const missing: string[] = [];
+        if (bookings.length === 0) {
+          missing.push(campaign.engine === 'sponsored-products' ? 'a booking with products and keywords' : 'bookings');
+        } else if (campaign.engine === 'sponsored-products') {
+          if (open.some((b) => b.positionIds.length === 0)) missing.push('products and keywords');
+        } else {
+          if (open.some((b) => b.creativeStatus === 'missing')) missing.push('creatives');
+          if (open.some((b) => b.positionIds.length === 0)) missing.push('placements');
+        }
+        if (missing.length > 0) {
           tasks.push({
-            id: `${booking.id}-creative`, kind: 'action', severity: 'blocking',
-            level: 'booking', entityId: booking.id, mediaPlanId: plan.id, engine: campaign.engine,
-            // Advertisers supply creatives; campaign builders chase them on
-            // managed campaigns — both sides see this to-do.
-            title: 'Upload creative', detail: `"${booking.name}" has no creative — it cannot go live without one.`,
-            side: 'both', personaKeys: ['media-agency-advertiser', 'campaign-builder'],
+            id: `${campaign.id}-setup`, kind: 'action', severity: 'blocking',
+            level: 'campaign', entityId: campaign.id, mediaPlanId: plan.id, engine: campaign.engine,
+            title: 'Get help setting up this campaign',
+            detail: `"${campaign.name}" still needs ${missing.join(' and ')}. Open the guided setup and we'll walk you through the remaining steps.`,
+            side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
+            opensWizard: true,
+            // Only creatives left → straight to the wizard's creative step.
+            wizardStep: missing.length === 1 && missing[0] === 'creatives' ? 'creatives' : undefined,
           });
         }
+      }
+
+      // Creative approval stays its own to-do — it is the retailer's review
+      // step, not part of the advertiser's setup.
+      for (const booking of bookings) {
         if (booking.creativeStatus === 'submitted' && booking.status !== 'completed') {
           tasks.push({
             id: `${booking.id}-approve`, kind: 'action', severity: 'attention',
             level: 'booking', entityId: booking.id, mediaPlanId: plan.id, engine: campaign.engine,
             title: 'Approve creative', detail: `The creative for "${booking.name}" awaits approval.`,
             side: 'retailer', personaKeys: ['campaign-manager-managed', 'self-service-support-specialist'],
-          });
-        }
-        if (booking.positionIds.length === 0 && booking.status !== 'completed') {
-          tasks.push({
-            id: `${booking.id}-placement`, kind: 'action', severity: 'blocking',
-            level: 'booking', entityId: booking.id, mediaPlanId: plan.id, engine: campaign.engine,
-            title: 'Choose a placement', detail: `"${booking.name}" has no position selected — pick a media product and position.`,
-            side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
           });
         }
       }

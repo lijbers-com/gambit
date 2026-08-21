@@ -1,13 +1,33 @@
 'use client';
 
-import { OffsiteInOption } from '@/components/layout/page-templates/campaign-details.stories';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { CreateOffsite } from '@/components/layout/page-templates/create-proposition-campaign.stories';
 
-export default function CreateOffsitePage() {
-  const Component = OffsiteInOption.render as () => React.JSX.Element;
+// ?planId= creates the campaign inside that media plan; ?campaignId= enters
+// the same wizard at its booking step for an existing campaign, and
+// &step=creatives runs only the creative step.
+function CreateOffsiteContent() {
+  const searchParams = useSearchParams();
+  const Component = CreateOffsite.render as (args: { planId?: string; campaignId?: string; step?: string }) => React.JSX.Element;
 
   if (!Component) {
     return <div>Offsite Campaign</div>;
   }
 
-  return <Component />;
+  return (
+    <Component
+      planId={searchParams?.get('planId') ?? undefined}
+      campaignId={searchParams?.get('campaignId') ?? undefined}
+      step={searchParams?.get('step') ?? undefined}
+    />
+  );
+}
+
+export default function CreateOffsitePage() {
+  return (
+    <Suspense>
+      <CreateOffsiteContent />
+    </Suspense>
+  );
 }

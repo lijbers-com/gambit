@@ -56,6 +56,11 @@ const routeSegment: Record<EngineId, string> = {
 /** Where a message takes you when you act on it. */
 function hrefFor(db: DbData, task: DerivedTask): string {
   const seg = routeSegment[task.engine ?? 'display'];
+  // The setup-help message acts by opening the guided setup wizard for its
+  // campaign, not the campaign's detail page.
+  if (task.opensWizard && task.level === 'campaign') {
+    return `/create/${seg}?campaignId=${task.entityId}${task.wizardStep ? `&step=${task.wizardStep}` : ''}`;
+  }
   if (task.level === 'media-plan') return `/campaigns/plan/${task.entityId}`;
   if (task.level === 'campaign') return `/campaigns/${seg}/${task.entityId}`;
   // Sponsored-products keyword bookings live inside their campaign, so open the

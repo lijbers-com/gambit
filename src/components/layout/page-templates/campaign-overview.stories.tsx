@@ -25,7 +25,7 @@ import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { addDays } from 'date-fns';
-import { useDb, createBooking, type EngineId } from '@/lib/db';
+import { useDb, type EngineId } from '@/lib/db';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
@@ -276,25 +276,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     type AnyRow = CampaignRow | BookingRow | AddRow;
 
     /** Create a draft booking on this campaign and open it. */
+    /** Open the booking wizard for this campaign — booking step first, then
+     *  creatives. The detail page is the wizard's result, not its start. */
     const addBookingTo = (campaignId: string) => {
       const c = db.campaigns.find((x) => x.id === campaignId);
-      if (!c) return;
-      const booking = createBooking({
-        campaignId: c.id,
-        name: `${c.name} — New booking`,
-        status: 'draft',
-        budget: 0,
-        spend: 0,
-        startDate: c.startDate,
-        endDate: c.endDate,
-        positionIds: [],
-        creativeStatus: 'missing',
-      });
-      if (typeof window === 'undefined') return;
-      // Sponsored-products bookings live inside the campaign page.
-      window.location.href = c.engine === 'sponsored-products'
-        ? `/campaigns/${routeSlug(c.engine)}/${c.id}`
-        : `/campaigns/${routeSlug(c.engine)}/booking/${booking.id}`;
+      if (!c || typeof window === 'undefined') return;
+      window.location.href = `/create/${routeSlug(c.engine)}?campaignId=${c.id}`;
     };
 
     const tableRows: AnyRow[] = filteredCampaignData.flatMap((c) => {

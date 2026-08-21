@@ -24,6 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
+import { useDb, createCampaign, createBooking, updateBooking, type EngineId } from '@/lib/db';
+import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -56,6 +58,8 @@ import {
   Calendar,
   Clock,
   CornerDownRight,
+  Globe,
+  ImagePlus,
   type LucideIcon,
 } from 'lucide-react';
 import { AddInlineLabel } from '@/components/ui/add-button';
@@ -134,6 +138,14 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     icon: MonitorPlay,
     metrics: { reach: '680K', roas: '1.9x', sales: '€3,200', roasChange: '+5%' },
     campaignRoute: '/campaigns/digital-instore',
+  },
+  offsite: {
+    id: 'offsite',
+    name: 'Offsite',
+    description: 'Reach shoppers beyond the retailer — open web, social, CTV',
+    icon: Globe,
+    metrics: { reach: '5.6M', roas: '2.2x', sales: '€6,100', roasChange: '+6%' },
+    campaignRoute: '/campaigns/offsite',
   },
 };
 
@@ -252,6 +264,13 @@ const retailProducts = [
   { id: '617861', name: 'Nespresso - vertuo capsules - 30 pack', image: productImages[2] },
 ];
 
+/**
+ * Every proposition's wizard runs its campaign steps and then CONTINUES into
+ * the booking and creative steps — one flow from "new campaign" to something
+ * that can actually deliver, ending on the campaign's detail page. Sponsored
+ * products is the exception without creatives: its ad is the product listing,
+ * so its flow ends at keywords & placements.
+ */
 const getWizardSteps = (propositionType: string) => {
   if (propositionType === 'display') {
     return [
@@ -259,18 +278,26 @@ const getWizardSteps = (propositionType: string) => {
       { id: 'advertiser', label: 'Advertiser' },
       { id: 'budget', label: 'Run time & budget' },
       { id: 'bookings', label: 'Bookings' },
+      { id: 'creatives', label: 'Creatives' },
     ];
   }
-  const base = [
+  if (propositionType === 'sponsored-products') {
+    return [
+      { id: 'setup', label: 'Setup' },
+      { id: 'advertiser', label: 'Advertiser' },
+      { id: 'budget', label: 'Run time & budget' },
+      { id: 'targeting', label: 'Goals & targets' },
+      { id: 'keywords', label: 'Keywords & placements' },
+    ];
+  }
+  return [
     { id: 'setup', label: 'Setup' },
     { id: 'advertiser', label: 'Advertiser' },
     { id: 'budget', label: 'Run time & budget' },
     { id: 'targeting', label: 'Goals & targets' },
+    { id: 'bookings', label: 'Bookings' },
+    { id: 'creatives', label: 'Creatives' },
   ];
-  if (propositionType === 'sponsored-products') {
-    base.push({ id: 'keywords', label: 'Keywords & placements' });
-  }
-  return base;
 };
 
 // --- Keywords & Placements data (Sponsored Products) ---
@@ -310,14 +337,50 @@ const otherPlacements = [
 
 // --- Proposition Wizard Component ---
 
-const PropositionWizard = ({ propositionType }: { propositionType: string }) => {
+const PropositionWizard = ({
+  propositionType,
+  planId,
+  campaignId,
+  step: entryStep,
+}: {
+  propositionType: string;
+  /** Create the campaign inside this media plan (run time prefills from it). */
+  planId?: string;
+  /** Booking mode: the campaign exists — run only the booking and creative
+   *  steps against it, and land on the created booking. */
+  campaignId?: string;
+  /** With campaignId: 'creatives' runs only the creative step, against the
+   *  campaign's existing bookings that still miss one. */
+  step?: string;
+}) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
   const routes = getRoutesForTheme(currentTheme);
   const proposition = propositionConfigs[propositionType];
   const PropositionIcon = proposition.icon;
-  const wizardSteps = React.useMemo(() => getWizardSteps(propositionType), [propositionType]);
   const isSponsoredProducts = propositionType === 'sponsored-products';
+
+  // The prototype database — the wizard READS context (plan, campaign,
+  // positions) from it and WRITES its result into it: finishing is what
+  // creates the campaign and bookings the detail pages then show.
+  const db = useDb();
+  const routeCampaign = campaignId ? db.campaigns.find((c) => c.id === campaignId) : undefined;
+  const linkedPlan = planId
+    ? db.mediaPlans.find((p) => p.id === planId)
+    : routeCampaign
+      ? db.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)
+      : undefined;
+  const bookingMode = !!campaignId;
+  const creativesOnly = bookingMode && entryStep === 'creatives';
+
+  // Booking mode skips the campaign phase — those steps are already answered
+  // by the existing campaign; creatives-only mode is just the last step.
+  const wizardSteps = React.useMemo(() => {
+    const all = getWizardSteps(propositionType);
+    if (creativesOnly) return all.filter((s) => s.id === 'creatives');
+    if (bookingMode) return all.filter((s) => s.id === 'bookings' || s.id === 'creatives');
+    return all;
+  }, [propositionType, bookingMode, creativesOnly]);
 
   // Wizard state
   const [currentStep, setCurrentStep] = React.useState(0);
@@ -366,12 +429,12 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const [placementSearch, setPlacementSearch] = React.useState('');
   const [showPlacementResults, setShowPlacementResults] = React.useState(false);
 
-  // Display-specific steps state
+  // Bookings phase state — every proposition except sponsored products runs
+  // it (display first grew it; the flow is the same everywhere).
   const isDisplay = propositionType === 'display';
-  // Bookings list (Display)
   const [bookings, setBookings] = React.useState<{
     id: string; name: string; startDate?: Date; startTime: string;
-    endDate?: Date; endTime: string; activeDays: string[];
+    endDate?: Date; endTime: string; activeDays: string[]; positionIds: string[];
     targetMode: string; targetKeywordType: string; targetValue: string;
     optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
     exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
@@ -389,6 +452,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
   const [positionOpen, setPositionOpen] = React.useState(true);
   const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
   const [positionSearch, setPositionSearch] = React.useState('');
+  // The booking's placement — real positions from the proposition's inventory,
+  // because positionIds is what the to-do engine judges "placed" by.
+  const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
+  // Creative step: per booking, the chosen creative ('' = add later).
+  const [creativeChoice, setCreativeChoice] = React.useState<Record<string, string>>({});
   // Targeting (line item)
   const [lineTargetMode, setLineTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
   const [lineTargetKeywordType, setLineTargetKeywordType] = React.useState('Search Keyword');
@@ -417,6 +485,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
       id: String(Date.now()),
       name: bookingName, startDate: bookingDateRange?.from, startTime: bookingStartTime,
       endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
+      positionIds: [...bookingPositionIds],
       targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
       optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
       priorityOverride, reachOverride, deliveryLimit, pricingModel, competeWithRTB,
@@ -426,6 +495,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
     setBookingName(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+    setBookingPositionIds([]);
     setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
     setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
     setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
@@ -448,10 +518,100 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
     : selectedGoal !== null && selectedAudiences.length > 0;
   const isKeywordsComplete = isSponsoredProducts ? (selectedKeywords.length > 0 || selectedCategories.length > 0) : true;
 
-  // Display-specific derived helpers
-  const displayCampaignSteps = isDisplay ? wizardSteps.filter(s => s.id !== 'bookings') : wizardSteps;
-  const isInBookingsPhase = isDisplay && currentStepId === 'bookings';
-  const isLastCampaignStep = isDisplay ? currentStepId === 'budget' : currentStep === wizardSteps.length - 1;
+  // Phase helpers. The campaign phase is everything before 'bookings'; the
+  // booking/creative phase continues the same wizard — one flow, two entities.
+  const hasBookingsPhase = wizardSteps.some(s => s.id === 'bookings') || creativesOnly;
+  const displayCampaignSteps = wizardSteps.filter(s => s.id !== 'bookings' && s.id !== 'creatives');
+  const isInBookingsPhase = currentStepId === 'bookings' || currentStepId === 'creatives';
+  const isLastCampaignStep = hasBookingsPhase
+    ? wizardSteps[currentStep + 1]?.id === 'bookings'
+    : currentStep === wizardSteps.length - 1;
+
+  // Booking mode: the campaign's own facts come from the existing record.
+  // Seeded after mount (never during render) so server and client agree.
+  React.useEffect(() => {
+    if (!routeCampaign) return;
+    setCampaignName(routeCampaign.name);
+    if (routeCampaign.budget > 0) setBudgetAmount(String(routeCampaign.budget));
+    setDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
+    setBookingDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeCampaign?.id]);
+
+  // The proposition's real inventory, for the booking's placement pick.
+  const enginePositions = React.useMemo(() => {
+    const products = db.mediaProducts.filter((mp) => mp.engine === propositionType);
+    return products.flatMap((mp) =>
+      db.positions.filter((p) => p.mediaProductId === mp.id).map((p) => ({ id: p.id, name: p.name, product: mp.name })),
+    );
+  }, [db, propositionType]);
+
+  // What the creative step works on: the bookings made in this run — or, in
+  // creatives-only mode, the campaign's existing bookings still missing one.
+  const creativeTargets = creativesOnly
+    ? db.bookings
+        .filter((b) => b.campaignId === campaignId && b.creativeStatus === 'missing' && b.status !== 'completed')
+        .map((b) => ({ id: b.id, name: b.name }))
+    : bookings.map((b, i) => ({ id: b.id, name: b.name || `Booking ${i + 1}` }));
+
+  /** Demo creative library — linking one marks the booking 'submitted'. */
+  const creativeOptions = [
+    { id: 'cr-hero', name: 'Summer hero banner' },
+    { id: 'cr-spotlight', name: 'Product spotlight set' },
+    { id: 'cr-video', name: 'Brand video 15s' },
+  ];
+
+  const toIso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+
+  /**
+   * The wizard's result: real records. The campaign (unless it already
+   * existed), its bookings, and each booking's creative state — then the
+   * detail page of what was just made, because a detail page is the RESULT
+   * of a wizard, never the starting point.
+   */
+  const finishWizard = () => {
+    if (creativesOnly) {
+      creativeTargets.forEach((t) => {
+        if (creativeChoice[t.id]) updateBooking(t.id, { creativeStatus: 'submitted' });
+      });
+      queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]).length} booking(s) updated` });
+      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${campaignId}`;
+      return;
+    }
+    const fallbackStart = toIso(dateRange?.from) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
+    const fallbackEnd = toIso(dateRange?.to) ?? linkedPlan?.endDate ?? fallbackStart;
+    const campaignRecord = routeCampaign ?? createCampaign({
+      mediaPlanId: linkedPlan?.id ?? '',
+      name: campaignName || `New ${proposition.name} campaign`,
+      engine: propositionType as EngineId,
+      status: 'draft',
+      budget: parseFloat(budgetAmount) || 0,
+      spend: 0,
+      startDate: fallbackStart,
+      endDate: fallbackEnd,
+    });
+    const created = bookings.map((b) => createBooking({
+      campaignId: campaignRecord.id,
+      name: b.name || `${campaignRecord.name} — Booking`,
+      status: 'draft',
+      budget: 0,
+      spend: 0,
+      startDate: toIso(b.startDate) ?? campaignRecord.startDate,
+      endDate: toIso(b.endDate) ?? campaignRecord.endDate,
+      positionIds: b.positionIds,
+      creativeStatus: creativeChoice[b.id] ? 'submitted' : 'missing',
+    }));
+    queueToast(
+      bookingMode
+        ? { title: 'Booking created', description: created[0]?.name ?? '' }
+        : { title: 'Campaign created', description: campaignRecord.name },
+    );
+    if (typeof window === 'undefined') return;
+    // Booking mode lands on the booking it made; campaign mode on the campaign.
+    window.location.href = bookingMode && created[0]
+      ? `${proposition.campaignRoute}/booking/${created[0].id}`
+      : `${proposition.campaignRoute}/${campaignRecord.id}`;
+  };
 
   const isCurrentStepComplete = (() => {
     switch (currentStepId) {
@@ -461,6 +621,7 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
       case 'targeting': return isTargetingComplete;
       case 'keywords': return isKeywordsComplete;
       case 'bookings': return bookings.length > 0;
+      case 'creatives': return true;
       default: return false;
     }
   })();
@@ -689,6 +850,10 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
       case 'bookings': {
         if (bookings.length === 0) return null;
         return bookings.map((b, i) => b.name || `Booking ${i + 1}`);
+      }
+      case 'creatives': {
+        const linked = creativeTargets.filter((t) => creativeChoice[t.id]).length;
+        return linked > 0 ? [`${linked} creative${linked === 1 ? '' : 's'} linked`] : null;
       }
       default:
         return null;
@@ -1544,9 +1709,11 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                           <AddInlineLabel className="font-medium">Add booking</AddInlineLabel>
                           <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
                         </button>
-                        <div className="flex justify-start mt-2">
-                          <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
-                        </div>
+                        {currentStep > 0 && (
+                          <div className="flex justify-start mt-2">
+                            <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )}
@@ -1625,15 +1792,39 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                               </button>
                               {positionOpen && (
                                 <div className="pt-3 space-y-3">
-                                  <div className="flex rounded-lg bg-muted p-1 w-fit gap-1">
-                                    {(['channels', 'positions'] as const).map(tab => (
-                                      <button key={tab} onClick={() => setPositionTab(tab)}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${positionTab === tab ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                      </button>
-                                    ))}
+                                  <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search positions..." className="w-full" />
+                                  {/* Real inventory: a booking without a position cannot
+                                      deliver, so the pick writes positionIds. */}
+                                  <div className="space-y-2">
+                                    {enginePositions
+                                      .filter((p) => !positionSearch || `${p.product} ${p.name}`.toLowerCase().includes(positionSearch.toLowerCase()))
+                                      .slice(0, 6)
+                                      .map((p) => {
+                                        const picked = bookingPositionIds.includes(p.id);
+                                        return (
+                                          <label
+                                            key={p.id}
+                                            className={cn(
+                                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                                              picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                                            )}
+                                          >
+                                            <Checkbox
+                                              checked={picked}
+                                              onCheckedChange={() => setBookingPositionIds(prev =>
+                                                prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
+                                            />
+                                            <span className="min-w-0">
+                                              <span className="block truncate text-sm font-medium">{p.name}</span>
+                                              <span className="block text-xs text-muted-foreground">{p.product}</span>
+                                            </span>
+                                          </label>
+                                        );
+                                      })}
+                                    {enginePositions.length === 0 && (
+                                      <p className="text-xs text-muted-foreground">No positions configured for this proposition yet.</p>
+                                    )}
                                   </div>
-                                  <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search..." className="w-full" />
                                 </div>
                               )}
                             </div>
@@ -1785,6 +1976,67 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </>
                   )}
                 </div>
+              )}
+
+              {/* Step: Creatives — the last step of every proposition except
+                  sponsored products. Each booking either links a creative now
+                  or explicitly leaves it for later; nothing here blocks
+                  finishing, but "later" stays visible as the campaign's
+                  remaining setup. */}
+              {currentStepId === 'creatives' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Creatives</CardTitle>
+                    <CardDescription>
+                      Link a creative to each booking, or add them later — a booking cannot go live without one.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {creativeTargets.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {creativesOnly ? 'Every booking on this campaign already has a creative.' : 'No bookings yet — go back and add one first.'}
+                      </p>
+                    )}
+                    {creativeTargets.map((t) => (
+                      <div key={t.id} className="rounded-lg border p-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">{t.name}</span>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {creativeOptions.map((c) => {
+                            const picked = creativeChoice[t.id] === c.id;
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => setCreativeChoice(prev => ({ ...prev, [t.id]: picked ? '' : c.id }))}
+                                className={cn(
+                                  'flex items-center gap-2 rounded-md border p-3 text-left text-sm transition-colors',
+                                  picked ? 'border-surface-selected-border bg-surface-selected font-medium' : 'border-border bg-background hover:bg-surface-hover',
+                                )}
+                              >
+                                {picked ? <Check className="h-4 w-4 shrink-0" /> : <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                                {c.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {creativeChoice[t.id] ? 'Submitted for approval when you finish.' : 'No creative yet — the setup checklist will keep this open.'}
+                        </p>
+                      </div>
+                    ))}
+                    <div className="flex justify-between pt-1">
+                      {currentStep > 0 ? (
+                        <Button variant="outline" onClick={goToPrevStep}>Back</Button>
+                      ) : <span />}
+                      <Button onClick={finishWizard}>
+                        {creativesOnly ? 'Save creatives' : bookingMode ? 'Save booking' : 'Save campaign'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
             </div>
@@ -1983,25 +2235,31 @@ const PropositionWizard = ({ propositionType }: { propositionType: string }) => 
                     </div>
                   </div>
                 </CardSummaryContent>
+                {/* The campaign phase hands over to the booking phase, the
+                    booking phase to creatives, and the creative step is where
+                    the wizard actually saves — one continuing flow. */}
                 {!isInBookingsPhase && isLastCampaignStep && (
                   <div className="px-4 pb-4">
                     <Button
                       className="w-full"
-                      disabled={isDisplay ? !isCurrentStepComplete : false}
-                      onClick={isDisplay ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                      disabled={hasBookingsPhase ? !isCurrentStepComplete : false}
+                      onClick={hasBookingsPhase ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
                     >
-                      {isDisplay ? 'Save campaign' : 'Launch campaign'}
+                      {hasBookingsPhase ? 'Continue: Bookings' : 'Launch campaign'}
                     </Button>
                   </div>
                 )}
-                {isInBookingsPhase && (
+                {currentStepId === 'bookings' && (
                   <div className="px-4 pb-4">
-                    <Button
-                      className="w-full"
-                      disabled={bookings.length === 0}
-                      onClick={() => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
-                    >
-                      Launch campaign
+                    <Button className="w-full" disabled={bookings.length === 0} onClick={goToNextStep}>
+                      Continue: Creatives
+                    </Button>
+                  </div>
+                )}
+                {currentStepId === 'creatives' && (
+                  <div className="px-4 pb-4">
+                    <Button className="w-full" onClick={finishWizard}>
+                      {creativesOnly ? 'Save creatives' : bookingMode ? 'Save booking' : 'Save campaign'}
                     </Button>
                   </div>
                 )}
@@ -2126,8 +2384,10 @@ export interface SPWizardInitialValues {
    *  existing campaign a booking is being added to, not one being made. */
   startAtBooking?: boolean;
   /** The existing campaign's id, so the booking links to it rather than to a
-   *  slug derived from its name. */
+   *  slug derived from its name. A real db id implies startAtBooking. */
   campaignId?: string;
+  /** Create the campaign inside this media plan. */
+  planId?: string;
 }
 
 export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizardInitialValues } = {}) => {
@@ -2136,6 +2396,18 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const routes = getRoutesForTheme(currentTheme);
   const proposition = propositionConfigs['sponsored-products'];
 
+  // The prototype database: campaign/plan context is read from it, and
+  // finishing the wizard writes the campaign and booking into it.
+  const spDb = useDb();
+  const routeCampaign = initialValues?.campaignId
+    ? spDb.campaigns.find((c) => c.id === initialValues.campaignId)
+    : undefined;
+  const linkedPlan = initialValues?.planId
+    ? spDb.mediaPlans.find((p) => p.id === initialValues.planId)
+    : routeCampaign
+      ? spDb.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)
+      : undefined;
+
   const wizardSteps = [
     { id: 'campaign-details', label: 'Campaign details' },
     { id: 'booking', label: 'Booking' },
@@ -2143,7 +2415,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
   // "Add booking" on an existing campaign lands here mid-flow: the campaign
   // step is already done by definition, so the wizard opens on the booking.
-  const startAtBooking = Boolean(initialValues?.startAtBooking && initialValues?.campaignName);
+  const startAtBooking = Boolean(
+    routeCampaign || (initialValues?.startAtBooking && initialValues?.campaignName),
+  );
   const [currentStep, setCurrentStep] = React.useState(startAtBooking ? 1 : 0);
   const currentStepId = wizardSteps[currentStep]?.id;
 
@@ -2160,6 +2434,21 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // Merge a dynamic media plan entry if the label didn't match any static option
   // Include detail fields (advertiser, budget, dates, status) so the summary card shows them
   const mediaPlanOptionsWithDynamic = React.useMemo(() => {
+    // A real plan from the database outranks the demo options — the campaign
+    // is being created inside it.
+    if (linkedPlan) {
+      return [
+        {
+          label: linkedPlan.name,
+          value: `db-${linkedPlan.id}`,
+          budget: `€${linkedPlan.budget.toLocaleString()}`,
+          startDate: linkedPlan.startDate,
+          endDate: linkedPlan.endDate,
+          status: linkedPlan.status,
+        },
+        ...mediaPlanOptions,
+      ];
+    }
     if (!initialValues?.mediaPlanLabel) return mediaPlanOptions;
     const alreadyExists = mediaPlanOptions.some(m =>
       m.label.toLowerCase() === initialValues.mediaPlanLabel!.toLowerCase()
@@ -2177,7 +2466,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       },
       ...mediaPlanOptions,
     ];
-  }, [initialValues?.mediaPlanLabel, initialValues?.mediaPlanAdvertiser, initialValues?.mediaPlanBudget, initialValues?.mediaPlanStartDate, initialValues?.mediaPlanEndDate, initialValues?.mediaPlanStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedPlan?.id, initialValues?.mediaPlanLabel, initialValues?.mediaPlanAdvertiser, initialValues?.mediaPlanBudget, initialValues?.mediaPlanStartDate, initialValues?.mediaPlanEndDate, initialValues?.mediaPlanStatus]);
 
   // Resolve advertiser value: initialValues.advertiser may be a label or a value
   const resolvedAdvertiserValue = React.useMemo(() => {
@@ -2198,6 +2488,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [selectedMediaPlanV2, setSelectedMediaPlanV2] = React.useState(resolvedMediaPlanValue);
   const [startDate, setStartDate] = React.useState<Date | undefined>(initialValues?.startDate);
   const [endDate, setEndDate] = React.useState<Date | undefined>(initialValues?.endDate);
+
+  // Context from the database, seeded after mount (never during render, so
+  // server and client HTML agree): the plan the campaign is created in, and —
+  // in booking mode — the existing campaign's own facts.
+  React.useEffect(() => {
+    if (linkedPlan) setSelectedMediaPlanV2(`db-${linkedPlan.id}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedPlan?.id]);
 
   // ── Step 2: Booking ──
   // Sub-step within booking: 0 = Setup, 1 = Placements
@@ -2220,6 +2518,23 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   // Targeting card
   const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
+
+  // Booking mode against a real campaign: its facts prefill the form and the
+  // flow opens on the booking step. Runs post-mount because the campaign may
+  // only exist in this browser's store, which the server render cannot see.
+  React.useEffect(() => {
+    if (!routeCampaign) return;
+    setCampaignName(routeCampaign.name);
+    if (routeCampaign.budget > 0) setBudget(String(routeCampaign.budget));
+    setStartDate(new Date(routeCampaign.startDate));
+    setEndDate(new Date(routeCampaign.endDate));
+    setSelectedCampaign(routeCampaign.id);
+    setBookingStartDate(new Date(routeCampaign.startDate));
+    setBookingEndDate(new Date(routeCampaign.endDate));
+    if (routeCampaign.budget > 0) setTotalBudget((prev) => prev || String(routeCampaign.budget));
+    setCurrentStep(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeCampaign?.id]);
   // Placements (sub-step 2)
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [spaLocations, setSpaLocations] = React.useState<string[]>(['loc-pdp']);
@@ -2335,8 +2650,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     // booking must not silently attach to a demo option.
     if (startAtBooking) {
       return [{
-        label: initialValues?.campaignName ?? 'Campaign',
-        value: initialValues?.campaignId ?? 'existing-campaign',
+        label: routeCampaign?.name ?? initialValues?.campaignName ?? 'Campaign',
+        value: routeCampaign?.id ?? initialValues?.campaignId ?? 'existing-campaign',
       }];
     }
     const base = [
@@ -2350,7 +2665,48 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       return [{ label: campaignName, value: key }, ...base];
     }
     return base;
-  }, [campaignName, startAtBooking, initialValues?.campaignName, initialValues?.campaignId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignName, startAtBooking, routeCampaign?.id, initialValues?.campaignName, initialValues?.campaignId]);
+
+  /**
+   * The wizard's result: a real campaign (unless it already existed) and a
+   * real booking, written to the store — then the campaign's detail page,
+   * where sponsored-products bookings live. SP has no creative step: the
+   * product listing is the ad, so the booking arrives creative-complete.
+   */
+  const finishSPWizard = () => {
+    const iso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+    const fallbackStart = iso(startDate) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
+    const fallbackEnd = iso(endDate) ?? linkedPlan?.endDate ?? fallbackStart;
+    const campaignRecord = routeCampaign ?? createCampaign({
+      mediaPlanId: linkedPlan?.id ?? '',
+      name: campaignName || 'New Sponsored products campaign',
+      engine: 'sponsored-products',
+      status: 'draft',
+      budget: parseFloat(budget) || 0,
+      spend: 0,
+      startDate: fallbackStart,
+      endDate: fallbackEnd,
+    });
+    createBooking({
+      campaignId: campaignRecord.id,
+      name: bookingCampaignName || `${campaignRecord.name} — Booking`,
+      status: 'draft',
+      budget: parseFloat(totalBudget) || 0,
+      spend: 0,
+      startDate: iso(bookingStartDate) ?? campaignRecord.startDate,
+      endDate: iso(bookingEndDate) ?? campaignRecord.endDate,
+      // SP "placements" are its products, keywords, categories and locations.
+      positionIds: [...selectedProducts, ...keywords, ...selectedCategories, ...spaLocations],
+      creativeStatus: 'approved',
+    });
+    queueToast(
+      routeCampaign
+        ? { title: 'Booking created', description: bookingCampaignName || campaignRecord.name }
+        : { title: 'Campaign created', description: campaignRecord.name },
+    );
+    if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${campaignRecord.id}`;
+  };
 
   const getStepStatus = (stepIndex: number): 'completed' | 'active' | 'pending' => {
     if (stepIndex < currentStep) return 'completed';
@@ -2763,7 +3119,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   <div className="flex justify-between pt-1">
                     <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                     <Button
-                      onClick={() => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; }}
+                      onClick={finishSPWizard}
                     >
                       Save &amp; finish
                     </Button>
@@ -2851,7 +3207,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
                         ]
                       : [
-                          { label: 'Save & finish', onClick: () => { window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(campaignName || 'New Campaign')}`; } },
+                          { label: 'Save & finish', onClick: finishSPWizard },
                           { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
                         ]
                   }
@@ -2948,12 +3304,34 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
 // --- Story Variants ---
 
+/** The route args every create page passes through: `planId` links the new
+ *  campaign into a media plan; `campaignId` enters at the booking step for an
+ *  existing campaign; `step=creatives` runs only the creative step. */
+type CreateArgs = { planId?: string; campaignId?: string; step?: string };
+
 export const CreateDisplay: Story = {
-  render: () => <PropositionWizard propositionType="display" />,
+  render: (args) => {
+    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="display" planId={planId} campaignId={campaignId} step={step} />;
+  },
   parameters: {
     docs: {
       description: {
         story: 'Wizard flow for creating a Display campaign with banner ads across the retailer website and app.',
+      },
+    },
+  },
+};
+
+export const CreateOffsite: Story = {
+  render: (args) => {
+    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offsite" planId={planId} campaignId={campaignId} step={step} />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Wizard flow for creating an Offsite campaign reaching shoppers beyond the retailer — open web, social, CTV.',
       },
     },
   },
@@ -2982,7 +3360,10 @@ export const CreateSponsoredProductsV2: Story = {
 };
 
 export const CreateOfflineInstore: Story = {
-  render: () => <PropositionWizard propositionType="offline-instore" />,
+  render: (args) => {
+    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offline-instore" planId={planId} campaignId={campaignId} step={step} />;
+  },
   parameters: {
     docs: {
       description: {
@@ -2993,7 +3374,10 @@ export const CreateOfflineInstore: Story = {
 };
 
 export const CreateDigitalInstore: Story = {
-  render: () => <PropositionWizard propositionType="digital-instore" />,
+  render: (args) => {
+    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="digital-instore" planId={planId} campaignId={campaignId} step={step} />;
+  },
   parameters: {
     docs: {
       description: {

@@ -31,7 +31,7 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
 import { Euro, Lock } from 'lucide-react';
-import { useToast, queueToast } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -45,7 +45,7 @@ import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { BudgetSelect } from '@/components/ui/budget-select';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, createCampaign, createBooking, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -638,28 +638,13 @@ export const MediaPlanDetail: Story = {
       'offsite': 'offsite',
     };
 
-    /** Create a draft booking on this campaign and open it. */
+    /** Open the booking wizard for this campaign — the campaign wizard
+     *  entered at its booking step, ending in the creative step. The booking
+     *  detail page is the RESULT of that flow, not the starting point. */
     const addBookingTo = (campaignId: string) => {
       const c = db.campaigns.find((x) => x.id === campaignId);
-      if (!c) return;
-      const booking = createBooking({
-        campaignId: c.id,
-        name: `${c.name} — New booking`,
-        status: 'draft',
-        budget: 0,
-        spend: 0,
-        startDate: c.startDate,
-        endDate: c.endDate,
-        positionIds: [],
-        creativeStatus: 'missing',
-      });
-      if (typeof window === 'undefined') return;
-      queueToast({ title: 'Booking created', description: booking.name });
-      const seg = routeSeg[c.engine];
-      // Sponsored-products bookings live inside the campaign page.
-      window.location.href = c.engine === 'sponsored-products'
-        ? `/campaigns/${seg}/${c.id}`
-        : `/campaigns/${seg}/booking/${booking.id}`;
+      if (!c || typeof window === 'undefined') return;
+      window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
     };
 
     // The control bar summarises the whole plan, so its Notifications cell
@@ -694,7 +679,6 @@ export const MediaPlanDetail: Story = {
             const bookings = db.bookings.filter((b) => b.campaignId === c.id);
             const meta = propositionMeta[c.engine];
             const CardIcon = meta.icon;
-            const openCampaign = () => { window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
             const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
             // Budget first, then run time — the same order and labels the
             // plan's control bar states them in.
@@ -702,11 +686,15 @@ export const MediaPlanDetail: Story = {
               { label: 'Budget', value: c.budget > 0 ? `€${c.budget.toLocaleString()}` : 'No budget set' },
               { label: 'Run time', value: `${fmtD(c.startDate)} → ${fmtD(c.endDate)} ${new Date(c.endDate).getFullYear()}` },
             ];
+            // Each step IS a wizard run — the same booking-and-creatives flow
+            // "Add campaign" continues into, entered at the right step. The
+            // media plan wizard stopped at campaigns; these cards carry what
+            // it deliberately left open.
             const steps = [
               {
                 id: `${c.id}-bookings`,
                 title: 'Create bookings',
-                description: 'Set up the foundation for your campaign.',
+                description: 'The guided setup walks through schedule, placement and delivery.',
                 done: bookings.length > 0,
                 onClick: () => addBookingTo(c.id),
               },
@@ -714,20 +702,19 @@ export const MediaPlanDetail: Story = {
                 ? {
                     id: `${c.id}-targeting`,
                     title: 'Add products and keywords',
-                    description: 'Target the right products and terms.',
+                    description: 'Part of the booking setup — target the right products and terms.',
                     done: bookings.length > 0 && bookings.every((b) => b.positionIds.length > 0),
-                    onClick: openCampaign,
+                    onClick: () => addBookingTo(c.id),
                   }
                 : {
                     id: `${c.id}-creatives`,
-                    title: 'Create and link creatives to bookings',
-                    description: 'Connect your ad assets to the bookings.',
+                    title: 'Link creatives',
+                    description: 'The creative step of the setup wizard, for bookings still missing one.',
                     done: bookings.length > 0 && bookings.every((b) => b.creativeStatus !== 'missing'),
                     onClick: () => {
-                      const missing = bookings.find((b) => b.creativeStatus === 'missing');
-                      window.location.href = missing
-                        ? `/campaigns/${routeSeg[c.engine]}/booking/${missing.id}`
-                        : `/campaigns/${routeSeg[c.engine]}/${c.id}`;
+                      window.location.href = bookings.some((b) => b.creativeStatus === 'missing')
+                        ? `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=creatives`
+                        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
                     },
                   },
             ];
@@ -782,22 +769,12 @@ export const MediaPlanDetail: Story = {
       });
     };
 
+    /** Open the campaign wizard for the chosen proposition, inside this plan.
+     *  The wizard runs the campaign steps and continues into bookings and
+     *  creatives; the campaign record is created when it finishes. */
     const addCampaign = (engine: EngineId) => {
-      if (!plan) return;
-      const campaign = createCampaign({
-        mediaPlanId: plan.id,
-        name: `New ${engine.replace(/-/g, ' ')} campaign`,
-        engine,
-        status: 'draft',
-        budget: 0,
-        spend: 0,
-        startDate: plan.startDate,
-        endDate: plan.endDate,
-      });
-      if (typeof window !== 'undefined') {
-        queueToast({ title: 'Campaign created', description: campaign.name });
-        window.location.href = `/campaigns/${routeSeg[engine]}/${campaign.id}`;
-      }
+      if (!plan || typeof window === 'undefined') return;
+      window.location.href = `/create/${routeSeg[engine]}?planId=${plan.id}`;
     };
 
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {

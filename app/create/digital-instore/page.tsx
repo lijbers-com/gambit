@@ -1,13 +1,33 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CreateDigitalInstore } from '@/components/layout/page-templates/create-proposition-campaign.stories';
 
-export default function CreateDigitalInstorePage() {
-  const Component = CreateDigitalInstore.render as () => React.JSX.Element;
+// ?planId= creates the campaign inside that media plan; ?campaignId= enters
+// the same wizard at its booking step for an existing campaign, and
+// &step=creatives runs only the creative step.
+function CreateDigitalInstoreContent() {
+  const searchParams = useSearchParams();
+  const Component = CreateDigitalInstore.render as (args: { planId?: string; campaignId?: string; step?: string }) => React.JSX.Element;
 
   if (!Component) {
     return <div>Digital In-Store Campaign</div>;
   }
 
-  return <Component />;
+  return (
+    <Component
+      planId={searchParams?.get('planId') ?? undefined}
+      campaignId={searchParams?.get('campaignId') ?? undefined}
+      step={searchParams?.get('step') ?? undefined}
+    />
+  );
+}
+
+export default function CreateDigitalInstorePage() {
+  return (
+    <Suspense>
+      <CreateDigitalInstoreContent />
+    </Suspense>
+  );
 }

@@ -148,14 +148,17 @@ for (const t of derived) {
 }
 ok(`${derived.length} to-dos derived, all referencing real entities`);
 
-// Expected triggers from the seed must fire.
+// Expected triggers from the seed must fire. Incomplete setup — missing
+// bookings, creatives or placements — now surfaces as ONE guided-setup offer
+// per campaign, whose href opens the setup wizard.
 const has = (id: string) => derived.some((t) => t.id === id);
-if (!has('B-010-creative')) fail('missing expected task: B-010 creative missing');
+const campaignOf = (bookingId: string) => d.bookings.find((b) => b.id === bookingId)?.campaignId ?? '';
+if (!has(`${campaignOf('B-010')}-setup`)) fail('missing expected task: setup help for B-010’s campaign (creative missing)');
 if (!has('B-009-approve')) fail('missing expected task: B-009 creative approval');
-if (!has('B-012-placement')) fail('missing expected task: B-012 placement missing');
+if (!has(`${campaignOf('B-012')}-setup`)) fail('missing expected task: setup help for B-012’s campaign (placement missing)');
 if (!has('MP-008-budget')) fail('missing expected task: MP-008 budget unset');
-if (!has('C-017-bookings')) fail('missing expected task: C-017 no bookings');
-ok('expected seed triggers all fire (creative, approval, placement, budget, bookings)');
+if (!has('C-017-setup')) fail('missing expected task: C-017 setup help (no bookings)');
+ok('expected seed triggers all fire (setup help, approval, budget)');
 
 // Health must derive consistently from tasks.
 const holidayHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-002')!);
@@ -183,7 +186,9 @@ for (const m of messages) {
     (m.level === 'campaign' && msgCampaignIds.has(m.entityId)) ||
     (m.level === 'booking' && msgBookingIds.has(m.entityId));
   if (!known) fail(`message ${m.id} points at unknown ${m.level} ${m.entityId}`);
-  if (!m.href.startsWith('/campaigns/')) fail(`message ${m.id} has no usable href (${m.href})`);
+  // Detail pages live under /campaigns/; the setup-help messages open the
+  // guided setup wizard under /create/ instead.
+  if (!m.href.startsWith('/campaigns/') && !m.href.startsWith('/create/')) fail(`message ${m.id} has no usable href (${m.href})`);
   if (!m.subject || !m.preview) fail(`message ${m.id} is missing subject or preview`);
 }
 ok(`${messages.length} messages derived, ids unique, all linking to real entities`);

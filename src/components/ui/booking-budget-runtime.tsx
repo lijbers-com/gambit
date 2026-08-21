@@ -38,6 +38,9 @@ export interface BookingBudgetRuntimeProps {
   /** Weekday scheduling, for the propositions that support it. */
   activeDays?: string[];
   onActiveDaysChange?: (days: string[]) => void;
+  /** The detail pages render this as a standalone bordered section; inside a
+   *  wizard's step card the border is the card's, so pass false. */
+  bordered?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
@@ -108,10 +111,11 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   campaignRuntime,
   activeDays,
   onActiveDaysChange,
+  bordered = true,
   children,
   className,
 }) => (
-  <FormSection bordered title="Budget & run time" className={className}>
+  <FormSection bordered={bordered} title="Budget & run time" className={className}>
     <div className="space-y-4 min-w-0">
       <div>
         <label className="block text-sm font-medium mb-2">Booking budget*</label>

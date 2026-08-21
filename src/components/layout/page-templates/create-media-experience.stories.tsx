@@ -792,7 +792,9 @@ export const GoalSelection: Story = {
         const campaignEnd = iso(row.dateRange?.to ?? end);
         const campaign = createCampaign({
           mediaPlanId: plan.id,
-          name: row.name.trim() || `${name} — ${propName}`,
+          // The proposition frames the campaign (cards, tables, columns) —
+          // it is not part of the campaign's name.
+          name: row.name.trim() || name,
           engine: row.engine as EngineId,
           // Persisted so the follow-up booking/creative wizards know whether
           // to open fully prefilled (assisted) or only with the shared facts.

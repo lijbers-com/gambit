@@ -22,3 +22,15 @@ export const propositionLabel = (engine: EngineId): string =>
     .replace('-instore', ' in-store')
     .replace(/-/g, ' ')
     .replace(/^\w/, (c) => c.toUpperCase());
+
+/**
+ * "Holiday Sale — Display" → "Holiday Sale". The proposition belongs to the
+ * frame around a campaign — a summary card's title, a table's Proposition
+ * column — never inside the campaign's own name, where it would say the same
+ * thing twice. Strips a trailing "— <proposition>" whatever dash it used.
+ */
+export const stripPropositionSuffix = (name: string): string =>
+  name.replace(
+    /\s*[—–-]\s*(display|sponsored products|digital in-store|offline in-store|offsite)\s*$/i,
+    '',
+  );

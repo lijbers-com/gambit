@@ -23,6 +23,7 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
+import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { CreatePlacement } from '@/components/ui/create-placement';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -676,7 +677,7 @@ const PropositionWizard = ({
   // advertiser and brand, and the unallocated share of its budget.
   React.useEffect(() => {
     if (!linkedPlan || routeCampaign) return;
-    setCampaignName((prev) => prev || `${linkedPlan.name} — ${proposition.name}`);
+    setCampaignName((prev) => prev || linkedPlan.name);
     setDateRange({ from: new Date(linkedPlan.startDate), to: new Date(linkedPlan.endDate) });
     const siblings = db.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
     const unallocated = Math.max(linkedPlan.budget - siblings.reduce((s, c) => s + c.budget, 0), 0);
@@ -709,7 +710,7 @@ const PropositionWizard = ({
     setDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
     setBookingDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
     const existing = db.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
-    setBookingName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
+    setBookingName((prev) => prev || `${stripPropositionSuffix(routeCampaign.name)} — Booking ${existing + 1}`);
     if (routeCampaign.mode === 'assisted' && !creativesOnly) {
       const firstChannel = engineChannels[0];
       if (firstChannel) {
@@ -755,7 +756,7 @@ const PropositionWizard = ({
     const fallbackEnd = toIso(dateRange?.to) ?? linkedPlan?.endDate ?? fallbackStart;
     const campaignRecord = routeCampaign ?? createCampaign({
       mediaPlanId: linkedPlan?.id ?? '',
-      name: campaignName || `New ${proposition.name} campaign`,
+      name: campaignName || 'New campaign',
       engine: propositionType as EngineId,
       ...(hasBuyingType ? { buyingType } : {}),
       status: 'draft',
@@ -1939,6 +1940,7 @@ const PropositionWizard = ({
                         <Card>
                           <CardContent className="space-y-6 p-6">
                             <BookingBudgetRuntime
+                              bordered={false}
                               budget={bookingBudget}
                               onBudgetChange={setBookingBudget}
                               startDate={bookingDateRange?.from}
@@ -1968,7 +1970,7 @@ const PropositionWizard = ({
                       {bookingSubStep === 2 && (
                         <Card>
                           <CardContent className="space-y-6 p-6">
-                            <FormSection bordered title="Create placement">
+                            <FormSection title="Create placement">
                               <CreatePlacement
                                 mediaProducts={engineChannels.map((ch) => ({
                                   value: ch.id,
@@ -2015,7 +2017,7 @@ const PropositionWizard = ({
                             <CardDescription>Set inclusive or exclusive targeting rules for this booking</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <div className="rounded-lg border p-4 space-y-4">
+                            <div className="space-y-4">
                               <Label className="text-sm font-semibold">Targets</Label>
                               <div className="flex items-center justify-between">
                                 <div className="flex rounded-lg bg-muted p-1 gap-1">
@@ -2042,7 +2044,7 @@ const PropositionWizard = ({
                               </div>
                             </div>
                             {isDisplay && (
-                              <div className="rounded-lg border p-4 space-y-3">
+                              <div className="space-y-3">
                                 <Label className="text-sm font-semibold">Delivery behavior</Label>
                                 {[
                                   { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
@@ -2067,7 +2069,7 @@ const PropositionWizard = ({
                               </div>
                             )}
                             {isDisplay && (
-                              <div className="rounded-lg border p-4 space-y-3">
+                              <div className="space-y-3">
                                 <Label className="text-sm font-semibold">Delivery objectives</Label>
                                 <div className="flex items-center justify-between p-3 rounded-lg border">
                                   <span className="font-medium text-sm">Priority</span>
@@ -2323,13 +2325,13 @@ const PropositionWizard = ({
               {bookingMode && routeCampaign ? (
                 <>
                   <SummaryCard
-                    title="Campaign"
+                    title={`${proposition.name} campaign`}
                     entity="campaign"
                     variant="details"
                     collapsible
                     className="bg-page"
                     items={[
-                      { label: 'Campaign name', value: routeCampaign.name },
+                      { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
                       { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
                       { label: 'Run time', value: `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}` },
                       { label: 'Buying type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
@@ -2642,7 +2644,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     if (!linkedPlan) return;
     setSelectedMediaPlanV2(`db-${linkedPlan.id}`);
     if (routeCampaign) return; // booking mode seeds from the campaign instead
-    setCampaignName((prev) => prev || `${linkedPlan.name} — Sponsored products`);
+    setCampaignName((prev) => prev || linkedPlan.name);
     setStartDate((prev) => prev ?? new Date(linkedPlan.startDate));
     setEndDate((prev) => prev ?? new Date(linkedPlan.endDate));
     const siblings = spDb.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
@@ -2691,7 +2693,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     setBookingEndDate(new Date(routeCampaign.endDate));
     if (routeCampaign.budget > 0) setTotalBudget((prev) => prev || String(routeCampaign.budget));
     const existing = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
-    setBookingCampaignName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
+    setBookingCampaignName((prev) => prev || `${stripPropositionSuffix(routeCampaign.name)} — Booking ${existing + 1}`);
     // An assisted campaign fills the whole booking — daily pace from the run
     // time, and the suggested bid accepted on every default placement — so
     // the form only needs checking.
@@ -2855,7 +2857,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     const fallbackEnd = iso(endDate) ?? linkedPlan?.endDate ?? fallbackStart;
     const campaignRecord = routeCampaign ?? createCampaign({
       mediaPlanId: linkedPlan?.id ?? '',
-      name: campaignName || 'New Sponsored products campaign',
+      name: campaignName || 'New campaign',
       engine: 'sponsored-products',
       buyingType: spBuyingType,
       status: 'draft',
@@ -3029,7 +3031,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardContent className="space-y-6 p-6">
 
-                  <FormSection bordered title="Booking setup">
+                  <FormSection title="Booking setup">
                     <div className="space-y-4">
                       {/* Which campaign this booking belongs to is changed from
                           the Campaign details card, not asked for again here. */}
@@ -3062,7 +3064,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     </div>
                   </FormSection>
 
-                  <FormSection bordered title="Budget and bidding">
+                  <FormSection title="Budget and bidding">
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
@@ -3096,7 +3098,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     </div>
                   </FormSection>
 
-                  <FormSection bordered title="Targeting">
+                  <FormSection title="Targeting">
                     <div className="space-y-2">
                       <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
                       {localBrands.map((brand) => {
@@ -3156,7 +3158,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   {/* Products — the selection component, so searching for a
                       product works the same as searching for anything else. */}
-                  <FormSection bordered title={`Add products (${selectedProducts.length}/500)`}>
+                  <FormSection title={`Add products (${selectedProducts.length}/500)`}>
                     <SearchSelectList
                       label={null}
                       placeholder="Search for products…"
@@ -3168,7 +3170,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     />
                   </FormSection>
 
-                  <FormSection bordered title={`Add keywords (${keywords.length}/1000)`}>
+                  <FormSection title={`Add keywords (${keywords.length}/1000)`}>
                     <div className="space-y-3">
                       <p className="-mt-2 text-xs text-muted-foreground">
                         Add keywords to target shoppers searching for relevant products.
@@ -3226,7 +3228,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   </FormSection>
 
                   <FormSection
-                    bordered
                     title="Enable categories"
                     action={
                       <Button
@@ -3279,7 +3280,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   {/* Where else the sponsored products can surface. */}
                   <FormSection
-                    bordered
                     title="Enable other locations"
                     action={
                       <Button
@@ -3475,7 +3475,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   campaign={pending ? campaignTimeline : (
                     <>
                       <SummaryCard
-                        title="Campaign details"
+                        title="Sponsored products campaign"
                         className="bg-page"
                         entity="campaign"
                         variant="details"

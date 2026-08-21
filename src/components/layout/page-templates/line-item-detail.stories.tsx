@@ -328,14 +328,14 @@ const mediaPlanLinkOptions = [
 ];
 
 // Shared component for campaign details sidebar
-const CampaignDetailsSidebar = () => {
+const CampaignDetailsSidebar = ({ title = 'Campaign' }: { title?: string } = {}) => {
   const [linking, setLinking] = React.useState(false);
   const [campaign, setCampaign] = React.useState('camp-ah');
   const linked = campaignLinkOptions.find((c) => c.value === campaign);
   return (
     <>
       <SummaryCard
-        title="Campaign details"
+        title={title}
         entity="campaign"
         variant="details"
         collapsible
@@ -1309,7 +1309,7 @@ export const Display: Story = {
                   </>
                 }
                 mediaPlan={<MediaPlanSidebar />}
-                campaign={<CampaignDetailsSidebar />}
+                campaign={<CampaignDetailsSidebar title="Display campaign" />}
                 creative={
                   <CreativesSidebar
                     count={selectedCreatives.length}
@@ -2736,7 +2736,7 @@ export const DigitalInStore: Story = {
                       </>
                     }
                     mediaPlan={<MediaPlanSidebar />}
-                    campaign={<CampaignDetailsSidebar />}
+                    campaign={<CampaignDetailsSidebar title="Digital in-store campaign" />}
                     creative={
                       <CreativesSidebar
                         count={selectedCreatives.length}
@@ -4089,7 +4089,7 @@ export const OfflineInStore: Story = {
                       </>
                     }
                     mediaPlan={<MediaPlanSidebar />}
-                    campaign={<CampaignDetailsSidebar />}
+                    campaign={<CampaignDetailsSidebar title="Offline in-store campaign" />}
                     creative={
                       <CreativesSidebar
                         count={selectedCreatives.length}
@@ -4695,7 +4695,7 @@ export const SponsoredProducts: Story = {
                       </>
                     }
                     mediaPlan={<MediaPlanSidebar />}
-                    campaign={<CampaignDetailsSidebar />}
+                    campaign={<CampaignDetailsSidebar title="Sponsored products campaign" />}
                   />
                   {/* end summary column */}
                   </div>
@@ -5211,7 +5211,7 @@ export const OffsiteDisplay: Story = {
                 mediaPlan={<MediaPlanSidebar />}
                 campaign={
               <SummaryCard
-                title="Campaign details"
+                title="Offsite campaign"
                 entity="campaign"
                 variant="details"
                 collapsible

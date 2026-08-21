@@ -3140,6 +3140,15 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         }))}
                         value={keywords}
                         onChange={setKeywords}
+                        // Auction: the bid lives on the keyword card itself,
+                        // with the suggestion to accept — like every placement.
+                        renderSelectedExtra={spIsAuction ? (opt) => (
+                          <BidRow
+                            id={opt.value}
+                            value={spBids[opt.value] ?? ''}
+                            onChange={(v) => setSpBids(prev => ({ ...prev, [opt.value]: v }))}
+                          />
+                        ) : undefined}
                       />
                       {/* Offered, not chosen: dashed pills in their own tray,
                           inside the section they feed. */}
@@ -3154,24 +3163,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         ])}
                         label="Suggested keywords"
                       />
-                      {/* Auction: each selected keyword carries its own bid,
-                          with a suggestion to accept. */}
-                      {spIsAuction && keywords.length > 0 && (
-                        <div className="space-y-2 rounded-md border border-border p-3">
-                          <p className="text-xs font-medium text-muted-foreground">Bid per keyword</p>
-                          {keywords.map((k) => (
-                            <div key={k} className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="min-w-0 flex-1 truncate text-sm">{k}</span>
-                              <BidRow
-                                id={k}
-                                className=""
-                                value={spBids[k] ?? ''}
-                                onChange={(v) => setSpBids(prev => ({ ...prev, [k]: v }))}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </FormSection>
 

@@ -392,11 +392,7 @@ export const MediaPlanDetail: Story = {
     const [objective, setObjective] = React.useState(plan?.objective ?? '');
     const [kpis, setKpis] = React.useState<string[]>(plan?.kpis ?? []);
     const [kpiStudies, setKpiStudies] = React.useState<string[]>([]);
-    const [budgetAmount, setBudgetAmount] = React.useState(String(plan?.budget ?? ''));
     const [status, setStatus] = React.useState(plan?.status ?? 'draft');
-    const [runTime, setRunTime] = React.useState<DateRange | undefined>(
-      plan ? { from: new Date(plan.startDate), to: new Date(plan.endDate) } : undefined,
-    );
 
     // Re-seed the form when the plan id changes (client navigation).
     const seededPlanId = React.useRef(plan?.id);
@@ -410,9 +406,7 @@ export const MediaPlanDetail: Story = {
       setGoal(plan.goal ?? 'awareness');
       setObjective(plan.objective ?? '');
       setKpis(plan.kpis);
-      setBudgetAmount(String(plan.budget));
       setStatus(plan.status);
-      setRunTime({ from: new Date(plan.startDate), to: new Date(plan.endDate) });
     }, [plan]);
 
     // Persist the form back into the store.
@@ -426,10 +420,10 @@ export const MediaPlanDetail: Story = {
         goal,
         objective: objective || undefined,
         kpis,
-        budget: parseFloat(budgetAmount) || 0,
         status: status as PlanStatus,
-        ...(runTime?.from ? { startDate: runTime.from.toISOString().slice(0, 10) } : {}),
-        ...(runTime?.to ? { endDate: runTime.to.toISOString().slice(0, 10) } : {}),
+        // Budget and run time belong to the control bar (BudgetSelect and the
+        // date picker), which write to the store directly. Saving them from
+        // here again reverted control-bar edits to this form's stale copies.
       });
     };
 

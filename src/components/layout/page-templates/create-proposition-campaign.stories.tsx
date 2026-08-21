@@ -539,11 +539,11 @@ const PropositionWizard = ({
     deliveryLimit: boolean;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  // The booking's four questions, in order: what it is, what it may spend
-  // and when, where it runs, and who it targets. No Pricing step — the price
-  // sits on each selected placement card (auction campaigns). For display,
-  // delivery behaviour and delivery objectives are part of Targeting.
-  const bookingSubStepLabels = ['Setup', 'Budget & run time', 'Placement', 'Targeting'];
+  // The booking's three questions, in order: what it is (name, budget and
+  // run time as one block), where it runs, and who it targets. No Pricing
+  // step — the price sits on each selected placement (auction campaigns).
+  // For display, delivery behaviour and objectives are part of Targeting.
+  const bookingSubStepLabels = ['Setup', 'Placement', 'Targeting'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -1909,12 +1909,14 @@ const PropositionWizard = ({
                   {bookingSubStep !== null && (
                     <>
                       {/* Booking setup step */}
-                      {/* Step 1: Setup — what this booking is. */}
+                      {/* Step 1: Setup — what this booking is, and what it
+                          may spend and when, as one block (same shape as the
+                          sponsored products setup). */}
                       {bookingSubStep === 0 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Setup</CardTitle>
-                            <CardDescription>Name the booking and give it an external reference</CardDescription>
+                            <CardDescription>Name the booking, set its budget and run time</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
@@ -1925,20 +1927,6 @@ const PropositionWizard = ({
                               <Label>External ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
                               <Input value={bookingExternalId} onChange={(e) => setBookingExternalId(e.target.value)} placeholder="e.g. 11743347" />
                             </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Step 2: Budget & run time — the SAME shared block the
-                          booking detail page uses, so creating and editing a
-                          booking are one form. */}
-                      {bookingSubStep === 1 && (
-                        <Card>
-                          <CardContent className="space-y-6 p-6">
                             <BookingBudgetRuntime
                               bordered={false}
                               budget={bookingBudget}
@@ -1955,9 +1943,9 @@ const PropositionWizard = ({
                               activeDays={canScheduleDays ? activeDays : undefined}
                               onActiveDaysChange={canScheduleDays ? setActiveDays : undefined}
                             />
-                            <div className="flex justify-end gap-3">
-                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1967,7 +1955,7 @@ const PropositionWizard = ({
                           the booking detail page uses: find the channel, get
                           everything in it, trim ad positions in the modal.
                           Auction campaigns bid per position in that modal. */}
-                      {bookingSubStep === 2 && (
+                      {bookingSubStep === 1 && (
                         <Card>
                           <CardContent className="space-y-6 p-6">
                             <FormSection title="Create placement">
@@ -2000,8 +1988,8 @@ const PropositionWizard = ({
                               />
                             </FormSection>
                             <div className="flex justify-end gap-3">
-                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
+                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -2010,7 +1998,7 @@ const PropositionWizard = ({
                       {/* Step 4: Targeting — who this booking reaches. For
                           display, delivery behaviour and delivery objectives
                           are part of targeting too. */}
-                      {bookingSubStep === 3 && (
+                      {bookingSubStep === 2 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Targeting</CardTitle>
@@ -2091,7 +2079,7 @@ const PropositionWizard = ({
                             {/* Last step — the sidebar's Create booking is the
                                 way forward from here. */}
                             <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
+                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -2170,27 +2158,22 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookingSubStep !== null && (() => {
                 const getLiveBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: { // Setup
+                    case 0: { // Setup — name, budget & run time as one block
                       const vals: string[] = [];
                       if (bookingName.trim()) vals.push(bookingName);
-                      if (bookingExternalId.trim()) vals.push(bookingExternalId);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 1: { // Budget & run time
-                      const vals: string[] = [];
                       if (bookingBudget.trim()) vals.push(`€${Number(bookingBudget).toLocaleString()}`);
                       if (bookingDateRange?.from) vals.push(`${bookingDateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}${bookingDateRange.to ? ` – ${bookingDateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${bookingEndTime}` : ''}`);
                       if (activeDays.length < 7) vals.push(activeDays.join(', '));
                       return vals.length > 0 ? vals : null;
                     }
-                    case 2: { // Placement
+                    case 1: { // Placement
                       const vals: string[] = [];
                       if (bookingPositionIds.length > 0) vals.push(`${bookingPositionIds.length} position${bookingPositionIds.length === 1 ? '' : 's'}`);
                       const bidCount = Object.values(positionBids).filter(Boolean).length;
                       if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 3: { // Targeting (incl. delivery for display)
+                    case 2: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (lineTargetValue) vals.push(`${lineTargetKeywordType}: ${lineTargetValue}`);
                       if (lineTargetMode !== 'inclusive') vals.push(lineTargetMode);
@@ -2252,24 +2235,22 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookings.map((booking, index) => {
                 const getBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: { // Setup
-                      return booking.name ? [booking.name] : null;
-                    }
-                    case 1: { // Budget & run time
+                    case 0: { // Setup — name, budget & run time as one block
                       const vals: string[] = [];
+                      if (booking.name) vals.push(booking.name);
                       if (booking.budget > 0) vals.push(`€${booking.budget.toLocaleString()}`);
                       if (booking.startDate) vals.push(`${booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${booking.startTime}${booking.endDate ? ` – ${booking.endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${booking.endTime}` : ''}`);
                       if (booking.activeDays.length < 7) vals.push(`${booking.activeDays.join(', ')}`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 2: { // Placement
+                    case 1: { // Placement
                       const vals: string[] = [];
                       if (booking.positionIds.length > 0) vals.push(`${booking.positionIds.length} position${booking.positionIds.length === 1 ? '' : 's'}`);
                       const bidCount = Object.values(booking.bids).filter(Boolean).length;
                       if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 3: { // Targeting (incl. delivery for display)
+                    case 2: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (booking.targetValue) vals.push(`${booking.targetKeywordType}: ${booking.targetValue}`);
                       if (booking.targetMode !== 'inclusive') vals.push(booking.targetMode);

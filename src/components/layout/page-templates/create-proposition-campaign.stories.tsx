@@ -24,6 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
+import { TargetSelect, countTargets } from '@/components/ui/target-select';
+import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -533,7 +535,7 @@ const PropositionWizard = ({
     endDate?: Date; endTime: string; activeDays: string[]; positionIds: string[];
     /** Per-position CPC on auction campaigns — the bid lives on the placement. */
     bids: Record<string, string>;
-    targetMode: string; targetKeywordType: string; targetValue: string;
+    inclTargets: Record<string, string[]>; exclTargets: Record<string, string[]>;
     optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
     exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
     deliveryLimit: boolean;
@@ -566,10 +568,10 @@ const PropositionWizard = ({
   const [positionBids, setPositionBids] = React.useState<Record<string, string>>({});
   // Creative step: per booking, the chosen creative ('' = add later).
   const [creativeChoice, setCreativeChoice] = React.useState<Record<string, string>>({});
-  // Targeting (line item)
-  const [lineTargetMode, setLineTargetMode] = React.useState<'inclusive' | 'exclusive'>('inclusive');
-  const [lineTargetKeywordType, setLineTargetKeywordType] = React.useState('Search Keyword');
-  const [lineTargetValue, setLineTargetValue] = React.useState('');
+  // Targeting — the same include/exclude target-group control the booking
+  // detail page uses (ui/target-select): groups first, values as chips.
+  const [inclTargets, setInclTargets] = React.useState<Record<string, string[]>>({});
+  const [exclTargets, setExclTargets] = React.useState<Record<string, string[]>>({});
   // Delivery behavior
   const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
   const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
@@ -594,7 +596,7 @@ const PropositionWizard = ({
       endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
       positionIds: [...bookingPositionIds],
       bids: { ...positionBids },
-      targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
+      inclTargets: { ...inclTargets }, exclTargets: { ...exclTargets },
       optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
       priorityOverride, reachOverride, deliveryLimit,
     }]);
@@ -604,7 +606,7 @@ const PropositionWizard = ({
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
-    setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
+    setInclTargets({}); setExclTargets({});
     setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
     setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
     setDeliveryLimit(false);
@@ -1876,7 +1878,8 @@ const PropositionWizard = ({
                               <div className="font-medium text-sm">{booking.name || `Booking ${i + 1}`}</div>
                               <div className="text-xs text-muted-foreground mt-0.5">
                                 {booking.startDate ? booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
-                                {booking.targetValue && ` · ${booking.targetMode === 'inclusive' ? '+' : '–'} ${booking.targetValue}`}
+                                {countTargets(booking.inclTargets) + countTargets(booking.exclTargets) > 0 &&
+                                  ` · ${countTargets(booking.inclTargets) + countTargets(booking.exclTargets)} targets`}
                               </div>
                             </div>
                             <Button variant="outline" size="sm" onClick={() => removeBooking(booking.id)}>Remove</Button>
@@ -2006,30 +2009,24 @@ const PropositionWizard = ({
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="space-y-4">
-                              <Label className="text-sm font-semibold">Targets</Label>
-                              <div className="flex items-center justify-between">
-                                <div className="flex rounded-lg bg-muted p-1 gap-1">
-                                  {(['inclusive', 'exclusive'] as const).map(mode => (
-                                    <button key={mode} onClick={() => setLineTargetMode(mode)}
-                                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${lineTargetMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                                    </button>
-                                  ))}
+                              {/* Include and exclude are two lists, not a mode
+                                  the user has to notice they are in — the same
+                                  control as the booking detail page. */}
+                              {([
+                                { key: 'include', label: 'Include', hint: 'The booking shows to shoppers matching these targets.', targets: inclTargets, setTargets: setInclTargets },
+                                { key: 'exclude', label: 'Exclude', hint: 'Never shown to shoppers matching these targets.', targets: exclTargets, setTargets: setExclTargets },
+                              ] as const).map((mode) => (
+                                <div key={mode.key} className="space-y-2">
+                                  <Label className="block">{mode.label}</Label>
+                                  <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
+                                  <TargetSelect
+                                    groups={onlineTargetGroups}
+                                    value={mode.targets}
+                                    onChange={mode.setTargets}
+                                    placeholder="Add a target group — keyword, category, city…"
+                                  />
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-1.5" />Download template</Button>
-                                  <Button size="sm"><Upload className="w-4 h-4 mr-1.5" />Upload CSV</Button>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <select value={lineTargetKeywordType} onChange={(e) => setLineTargetKeywordType(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background min-w-[150px]">
-                                  {['Search Keyword', 'Product ID', 'Category', 'Brand'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                                <select value={lineTargetValue} onChange={(e) => setLineTargetValue(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-background flex-1">
-                                  <option value="">Select target</option>
-                                  {['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                              </div>
+                              ))}
                             </div>
                             {isDisplay && (
                               <div className="space-y-3">
@@ -2175,8 +2172,8 @@ const PropositionWizard = ({
                     }
                     case 2: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
-                      if (lineTargetValue) vals.push(`${lineTargetKeywordType}: ${lineTargetValue}`);
-                      if (lineTargetMode !== 'inclusive') vals.push(lineTargetMode);
+                      if (countTargets(inclTargets) > 0) vals.push(`${countTargets(inclTargets)} included`);
+                      if (countTargets(exclTargets) > 0) vals.push(`${countTargets(exclTargets)} excluded`);
                       if (deliveryMethod && deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
                       if (optimizeForCPC) vals.push('Optimize for CPC');
                       if (userFrequencyCap) vals.push('Frequency cap on');
@@ -2252,8 +2249,8 @@ const PropositionWizard = ({
                     }
                     case 2: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
-                      if (booking.targetValue) vals.push(`${booking.targetKeywordType}: ${booking.targetValue}`);
-                      if (booking.targetMode !== 'inclusive') vals.push(booking.targetMode);
+                      if (countTargets(booking.inclTargets) > 0) vals.push(`${countTargets(booking.inclTargets)} included`);
+                      if (countTargets(booking.exclTargets) > 0) vals.push(`${countTargets(booking.exclTargets)} excluded`);
                       if (booking.deliveryMethod && booking.deliveryMethod !== 'Account setting') vals.push(booking.deliveryMethod);
                       if (booking.optimizeForCPC) vals.push('Optimize for CPC');
                       if (booking.userFrequencyCap) vals.push('Frequency cap on');
@@ -2657,8 +2654,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [spBids, setSpBids] = React.useState<Record<string, string>>({});
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
-  // Targeting card
-  const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
+  // Targeting — the same include/exclude target-group control as everywhere.
+  const [spInclTargets, setSpInclTargets] = React.useState<Record<string, string[]>>({});
+  const [spExclTargets, setSpExclTargets] = React.useState<Record<string, string[]>>({});
 
   // Booking mode against a real campaign: its facts prefill the form and the
   // flow opens on the booking step. Runs post-mount because the campaign may
@@ -2887,7 +2885,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     const vals: string[] = [];
     if (bookingCampaignName.trim()) vals.push(bookingCampaignName);
     if (totalBudget.trim()) vals.push(`€${totalBudget}`);
-    if (selectedLocalBrands.length > 0) vals.push(`${selectedLocalBrands.length} brand${selectedLocalBrands.length !== 1 ? 's' : ''}`);
+    const spTargetCount = countTargets(spInclTargets) + countTargets(spExclTargets);
+    if (spTargetCount > 0) vals.push(`${spTargetCount} target${spTargetCount !== 1 ? 's' : ''}`);
     return vals;
   };
 
@@ -3295,34 +3294,25 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardContent className="space-y-6 p-6">
                   <FormSection title="Targeting">
-                    <div className="space-y-2">
-                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
-                      {localBrands.map((brand) => {
-                        const isSelected = selectedLocalBrands.includes(brand.id);
-                        return (
-                          <label
-                            key={brand.id}
-                            className={cn(
-                              'cursor-pointer',
-                              // Same card a selected option gets everywhere else,
-                              // so a picked brand reads as picked, not as a
-                              // checked row in a list.
-                              'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
-                              isSelected
-                                ? 'border-surface-selected-border bg-surface-selected'
-                                : 'border-border bg-background hover:bg-surface-hover',
-                            )}
-                          >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => setSelectedLocalBrands(prev =>
-                                prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                              )}
-                            />
-                            <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
-                          </label>
-                        );
-                      })}
+                    <div className="space-y-4">
+                      {/* Include and exclude are two lists, not a mode the
+                          user has to notice they are in — the same control as
+                          the booking detail page. */}
+                      {([
+                        { key: 'include', label: 'Include', hint: 'The booking shows to shoppers matching these targets.', targets: spInclTargets, setTargets: setSpInclTargets },
+                        { key: 'exclude', label: 'Exclude', hint: 'Never shown to shoppers matching these targets.', targets: spExclTargets, setTargets: setSpExclTargets },
+                      ] as const).map((mode) => (
+                        <div key={mode.key} className="space-y-2">
+                          <Label className="block">{mode.label}</Label>
+                          <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
+                          <TargetSelect
+                            groups={onlineTargetGroups}
+                            value={mode.targets}
+                            onChange={mode.setTargets}
+                            placeholder="Add a target group — keyword, category, city…"
+                          />
+                        </div>
+                      ))}
                     </div>
                   </FormSection>
 
@@ -3413,7 +3403,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       label: 'Targeting',
                       status: bookingStatus(2),
                       values: [
-                        selectedLocalBrands.length > 0 ? `${selectedLocalBrands.length} local brand${selectedLocalBrands.length === 1 ? '' : 's'}` : '',
+                        countTargets(spInclTargets) > 0 ? `${countTargets(spInclTargets)} included` : '',
+                        countTargets(spExclTargets) > 0 ? `${countTargets(spExclTargets)} excluded` : '',
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(2),
                     },

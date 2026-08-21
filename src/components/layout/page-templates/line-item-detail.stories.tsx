@@ -17,6 +17,7 @@ import { SearchInput } from '../../ui/search-input';
 import { RetailProductSelect } from '../../ui/retail-product-select';
 import { SearchSelectList } from '../../ui/search-select-list';
 import { TargetSelect, countTargets } from '../../ui/target-select';
+import { onlineTargetGroups } from '@/lib/target-groups';
 import { DatePicker, DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
 import type { DateRange } from 'react-day-picker';
 import { Table } from '@/components/ui/table';
@@ -615,34 +616,8 @@ export const Display: Story = {
     const [inclTargets, setInclTargets] = React.useState<Record<string, string[]>>({});
     const [exclGroups, setExclGroups] = React.useState<string[]>([]);
     const [exclTargets, setExclTargets] = React.useState<Record<string, string[]>>({});
-    const targetGroups = [
-      { value: 'search-keyword', label: 'Search Keyword', description: 'Shoppers searching these terms' },
-      { value: 'single-category', label: 'Single Category', description: 'One category, without children' },
-      { value: 'category-child', label: 'Category — incl child categories', description: 'A category and everything under it' },
-      { value: 'brand', label: 'Brand', description: 'Shoppers viewing these brands' },
-      { value: 'interest', label: 'Interest', description: 'Behavioural interest segments' },
-      { value: 'page-type', label: 'Page Type', description: 'Where on the storefront the ad shows' },
-      { value: 'city', label: 'City', description: 'Delivery city' },
-      { value: 'city-group', label: 'City group', description: 'Named sets of cities' },
-      { value: 'zipcodes', label: 'Multicountry zipcodes', description: 'Postal code lists across countries' },
-      { value: 'app-version', label: 'App Version', description: 'Minimum or exact app versions' },
-      { value: 'delivery-mode', label: 'Delivery Mode', description: 'Home delivery vs pickup' },
-      { value: 'availability', label: 'Product availability', description: 'Only where the product is in stock' },
-    ];
-    const targetSuggestions: Record<string, string[]> = {
-      'search-keyword': ['cola', 'cola zero sugar', 'energy drink', 'iced tea', 'sparkling water', 'soda multipack'],
-      'single-category': ['Beverages', 'Snacks', 'Dairy', 'Frozen foods', 'Health & Beauty'],
-      'category-child': ['Beverages', 'Snacks', 'Household', 'Baby & Child'],
-      'brand': ['Coca-Cola', 'Fanta', 'Sprite', 'Knorr', 'Unilever'],
-      'interest': ['Health-focused shoppers', 'Households with kids', 'Premium buyers', 'Bargain hunters'],
-      'page-type': ['Homepage', 'Category page', 'Search results', 'Product page', 'Checkout'],
-      'city': ['Amsterdam', 'Rotterdam', 'Utrecht', 'The Hague', 'Eindhoven'],
-      'city-group': ['Randstad', 'North', 'South'],
-      'zipcodes': [],
-      'app-version': ['≥ 8.0', '≥ 9.0', 'Latest only'],
-      'delivery-mode': ['Home delivery', 'Pickup'],
-      'availability': ['In stock', 'In stock incl. next day'],
-    };
+    // The shared online catalogue — the same list the booking wizards use.
+    const targetGroups = onlineTargetGroups;
 
     // Delivery behavior
     const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
@@ -967,7 +942,7 @@ export const Display: Story = {
                           <Label className="block">{mode.label}</Label>
                           <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
                           <TargetSelect
-                            groups={targetGroups.map((g) => ({ ...g, suggestions: targetSuggestions[g.value] }))}
+                            groups={targetGroups}
                             value={mode.targets}
                             onChange={(next) => { mode.setTargets(next); mode.setGroups(Object.keys(next)); }}
                             placeholder="Add a target group — keyword, category, city…"

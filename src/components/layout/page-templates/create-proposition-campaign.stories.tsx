@@ -23,6 +23,7 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { useDb, createCampaign, createBooking, updateBooking, type EngineId } from '@/lib/db';
@@ -547,12 +548,13 @@ const PropositionWizard = ({
   const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
   const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
   const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-  const [positionSearch, setPositionSearch] = React.useState('');
   /** The booking's own budget, part of its Budget & run time step. */
   const [bookingBudget, setBookingBudget] = React.useState('');
   const [bookingExternalId, setBookingExternalId] = React.useState('');
-  /** Channels expanded in the placement picker (channel → ad positions). */
-  const [openChannelIds, setOpenChannelIds] = React.useState<string[]>([]);
+  /** Channels picked in the Placement step; selecting one selects all its ad
+   *  positions, which are then tweaked per channel in a modal. */
+  const [selectedChannelIds, setSelectedChannelIds] = React.useState<string[]>([]);
+  const [editChannelId, setEditChannelId] = React.useState<string | null>(null);
   // The booking's placement — real positions from the proposition's inventory,
   // because positionIds is what the to-do engine judges "placed" by.
   const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
@@ -597,7 +599,7 @@ const PropositionWizard = ({
     setBookingName(''); setBookingExternalId(''); setBookingBudget(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-    setBookingPositionIds([]); setPositionBids({});
+    setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
     setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
     setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
     setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
@@ -706,8 +708,11 @@ const PropositionWizard = ({
     const existing = db.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
     setBookingName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
     if (routeCampaign.mode === 'assisted' && !creativesOnly) {
-      const firstFree = enginePositions[0];
-      if (firstFree) setBookingPositionIds((prev) => (prev.length ? prev : [firstFree.id]));
+      const firstChannel = engineChannels[0];
+      if (firstChannel) {
+        setSelectedChannelIds((prev) => (prev.length ? prev : [firstChannel.id]));
+        setBookingPositionIds((prev) => (prev.length ? prev : firstChannel.positions.map((p) => p.id)));
+      }
       if (routeCampaign.budget > 0) setBookingBudget((prev) => prev || String(routeCampaign.budget));
       setBookingSubStep((prev) => prev ?? 0);
     }
@@ -1882,11 +1887,16 @@ const PropositionWizard = ({
                           <AddInlineLabel className="font-medium">Add booking</AddInlineLabel>
                           <div className="text-xs text-muted-foreground mt-1">Setup, budget &amp; run time, placement and targeting</div>
                         </button>
-                        {currentStep > 0 && (
-                          <div className="flex justify-start mt-2">
+                        {/* The step's own progression — the sidebar cards stay
+                            CTA-free unless they are the active card. */}
+                        <div className="flex items-center justify-between gap-3 mt-2">
+                          {currentStep > 0 ? (
                             <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
-                          </div>
-                        )}
+                          ) : <span />}
+                          <Button size="sm" disabled={bookings.length === 0} onClick={goToNextStep}>
+                            Continue: Creatives
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   )}
@@ -1996,44 +2006,81 @@ const PropositionWizard = ({
                         </Card>
                       )}
 
-                      {/* Step 3: Placement — pick the CHANNEL first, then tweak
-                          its ad positions. On auction campaigns each picked
-                          position carries its own bid. */}
+                      {/* Step 3: Placement — the search-and-select control the
+                          whole product uses: search channels, select them, and
+                          tweak each selected channel's ad positions in a modal.
+                          Selecting a channel selects all its positions; on
+                          auction campaigns each kept position carries its bid. */}
                       {bookingSubStep === 2 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Placement</CardTitle>
-                            <CardDescription>Pick the channel, then the ad positions this booking runs on</CardDescription>
+                            <CardDescription>Pick the channels this booking runs on, then edit their ad positions</CardDescription>
                           </CardHeader>
-                          <CardContent className="space-y-3">
-                            <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search channels and positions..." className="w-full" />
-                            <div className="space-y-2">
-                              {engineChannels.map((ch) => {
-                                const q = positionSearch.trim().toLowerCase();
-                                const positions = ch.positions.filter((p) => !q || `${ch.name} ${p.name}`.toLowerCase().includes(q));
-                                if (q && positions.length === 0) return null;
-                                const selectedCount = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
-                                // Searching opens everything; a lone channel needs no fold.
-                                const open = q !== '' || engineChannels.length === 1 || openChannelIds.includes(ch.id);
+                          <CardContent className="space-y-4">
+                            <SearchSelectList
+                              label={null}
+                              placeholder="Search channels…"
+                              options={engineChannels.map((ch) => ({
+                                value: ch.id,
+                                label: ch.name,
+                                description: `${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
+                              }))}
+                              value={selectedChannelIds}
+                              onChange={(values) => {
+                                const added = values.filter((v) => !selectedChannelIds.includes(v));
+                                const removed = selectedChannelIds.filter((v) => !values.includes(v));
+                                setSelectedChannelIds(values);
+                                setBookingPositionIds((prev) => {
+                                  let next = [...prev];
+                                  added.forEach((id) => {
+                                    engineChannels.find((c) => c.id === id)?.positions.forEach((p) => {
+                                      if (!next.includes(p.id)) next.push(p.id);
+                                    });
+                                  });
+                                  removed.forEach((id) => {
+                                    const ids = new Set(engineChannels.find((c) => c.id === id)?.positions.map((p) => p.id));
+                                    next = next.filter((x) => !ids.has(x));
+                                  });
+                                  return next;
+                                });
+                              }}
+                              hideSelectedDescription
+                              renderSelectedExtra={(opt) => {
+                                const ch = engineChannels.find((c) => c.id === opt.value);
+                                if (!ch) return null;
+                                const count = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
+                                const bidCount = isAuction ? ch.positions.filter((p) => positionBids[p.id]).length : 0;
                                 return (
-                                  <div key={ch.id} className={cn('rounded-md border', selectedCount > 0 ? 'border-surface-selected-border' : 'border-border')}>
-                                    <button
-                                      type="button"
-                                      className="flex w-full items-center justify-between gap-2 p-3 text-left"
-                                      onClick={() => setOpenChannelIds(prev => prev.includes(ch.id) ? prev.filter(x => x !== ch.id) : [...prev, ch.id])}
-                                    >
-                                      <span className="min-w-0">
-                                        <span className="block truncate text-sm font-medium">{ch.name}</span>
-                                        <span className="block text-xs text-muted-foreground">
-                                          {ch.positions.length} ad position{ch.positions.length === 1 ? '' : 's'}
-                                          {selectedCount > 0 ? ` · ${selectedCount} selected` : ''}
-                                        </span>
-                                      </span>
-                                      <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open ? '' : '-rotate-90')} />
-                                    </button>
-                                    {open && (
-                                      <div className="space-y-2 border-t border-border p-3">
-                                        {positions.map((p) => {
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {count} of {ch.positions.length} ad positions
+                                      {bidCount > 0 ? ` · ${bidCount} bid${bidCount === 1 ? '' : 's'} set` : ''}
+                                    </span>
+                                    <Button variant="outline" size="sm" onClick={() => setEditChannelId(ch.id)}>
+                                      Edit ad positions
+                                    </Button>
+                                  </div>
+                                );
+                              }}
+                            />
+                            {/* The per-channel tweak: select or deselect ad
+                                positions, with the bid on each kept position. */}
+                            <Dialog open={!!editChannelId} onOpenChange={(o) => { if (!o) setEditChannelId(null); }}>
+                              <DialogContent className="sm:max-w-[520px]">
+                                {(() => {
+                                  const ch = engineChannels.find((c) => c.id === editChannelId);
+                                  if (!ch) return null;
+                                  return (
+                                    <>
+                                      <DialogHeader>
+                                        <DialogTitle>{ch.name}</DialogTitle>
+                                        <DialogDescription>
+                                          Select or deselect the ad positions this booking runs on{isAuction ? ' — each kept position carries its own bid' : ''}.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                                        {ch.positions.map((p) => {
                                           const picked = bookingPositionIds.includes(p.id);
                                           return (
                                             <div
@@ -2065,14 +2112,17 @@ const PropositionWizard = ({
                                           );
                                         })}
                                       </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                              {engineChannels.length === 0 && (
-                                <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
-                              )}
-                            </div>
+                                      <div className="flex justify-end">
+                                        <Button onClick={() => setEditChannelId(null)}>Done</Button>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </DialogContent>
+                            </Dialog>
+                            {engineChannels.length === 0 && (
+                              <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
+                            )}
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
@@ -2392,31 +2442,41 @@ const PropositionWizard = ({
               })}
 
               {/* Campaign summary card — always at the bottom. A booking is
-                  never campaign-less: in booking mode the card carries the
-                  existing campaign's facts, so what the booking hangs under
-                  is always on screen. */}
+                  never campaign-less: in booking mode the existing campaign
+                  (and its media plan) render as the shared SummaryCard, with
+                  the entity icon and left-aligned details — and NO call to
+                  action, because only the active card carries one. */}
+              {bookingMode && routeCampaign ? (
+                <>
+                  <SummaryCard
+                    title="Campaign"
+                    entity="campaign"
+                    variant="details"
+                    className="bg-page"
+                    items={[
+                      { label: 'Campaign name', value: routeCampaign.name },
+                      { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
+                      { label: 'Run time', value: `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}` },
+                      { label: 'Buying type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
+                    ]}
+                  />
+                  <SummaryCard
+                    title="Media plan"
+                    entity="media-plan"
+                    variant="details"
+                    className="bg-page"
+                    items={linkedPlan ? [
+                      { label: 'Media plan', value: linkedPlan.name },
+                      { label: 'Total budget', value: `€${linkedPlan.budget.toLocaleString()}` },
+                    ] : undefined}
+                    empty={linkedPlan ? undefined : 'No media plan linked'}
+                  />
+                </>
+              ) : (
               <CardSummary>
                 <CardHeader>
-                  <CardSummaryTitle>{bookingMode && routeCampaign ? routeCampaign.name : `${proposition.name} campaign`}</CardSummaryTitle>
+                  <CardSummaryTitle>{`${proposition.name} campaign`}</CardSummaryTitle>
                 </CardHeader>
-                {bookingMode && routeCampaign && (
-                  <CardSummaryContent>
-                    <div className="space-y-2 text-sm">
-                      {[
-                        ['Budget', routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—'],
-                        ['Run time', `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}`],
-                        ['Buying type', (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction'],
-                        ...(linkedPlan ? [['Media plan', linkedPlan.name] as [string, string]] : []),
-                      ].map(([label, value]) => (
-                        <div key={label} className="flex items-baseline justify-between gap-3">
-                          <span className="shrink-0 text-muted-foreground">{label}</span>
-                          <span className="min-w-0 truncate text-right font-medium">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardSummaryContent>
-                )}
-                {!(bookingMode && routeCampaign) && (
                 <CardSummaryContent>
                   <div className="relative pl-12">
                     <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
@@ -2450,10 +2510,11 @@ const PropositionWizard = ({
                     </div>
                   </div>
                 </CardSummaryContent>
-                )}
-                {/* The campaign phase hands over to the booking phase, the
-                    booking phase to creatives, and the creative step is where
-                    the wizard actually saves — one continuing flow. */}
+                {/* Only the ACTIVE card carries a call to action, and only for
+                    the NEXT step: during the campaign phase this card is the
+                    active one, so it hands over to Bookings. In the booking
+                    and creative phases the progression lives in the main
+                    content, next to the step it belongs to. */}
                 {!isInBookingsPhase && isLastCampaignStep && (
                   <div className="px-4 pb-4">
                     <Button
@@ -2465,21 +2526,8 @@ const PropositionWizard = ({
                     </Button>
                   </div>
                 )}
-                {currentStepId === 'bookings' && (
-                  <div className="px-4 pb-4">
-                    <Button className="w-full" disabled={bookings.length === 0} onClick={goToNextStep}>
-                      Continue: Creatives
-                    </Button>
-                  </div>
-                )}
-                {currentStepId === 'creatives' && (
-                  <div className="px-4 pb-4">
-                    <Button className="w-full" onClick={finishWizard}>
-                      {creativesOnly ? 'Save creatives' : bookingMode ? 'Save booking' : 'Save campaign'}
-                    </Button>
-                  </div>
-                )}
               </CardSummary>
+              )}
             </div>
           </div>
         </div>

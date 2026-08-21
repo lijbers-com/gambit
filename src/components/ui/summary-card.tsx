@@ -359,12 +359,20 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
           // own bottom padding meant whichever happened to be last decided the
           // card's bottom edge, leaving it shorter than the top.
           "rounded-xl border bg-neutral-100 text-card-foreground text-[14px] p-6 flex flex-col gap-4",
+          isCollapsible && !expanded && "cursor-pointer",
           className,
         )}
+        // A collapsed context card opens on click anywhere — the chevron is
+        // the affordance, not the only target.
+        onClick={isCollapsible && !expanded ? () => setExpanded(true) : undefined}
         {...props}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        {/* Header — on an expanded collapsible card, clicking it folds the
+            card back up. */}
+        <div
+          className={cn("flex items-start justify-between gap-3", isCollapsible && expanded && "cursor-pointer")}
+          onClick={isCollapsible && expanded ? () => setExpanded(false) : undefined}
+        >
           <div className="min-w-0">
             {/* One line, always: a wrapped two-line heading pushes the whole
                 card out of step with the ones beside it. */}
@@ -385,7 +393,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
                 variant="ghost"
                 size="sm"
                 iconOnly
-                onClick={headerAction.onClick}
+                onClick={(e) => { e.stopPropagation(); headerAction.onClick(); }}
                 aria-label={headerAction.label}
                 title={headerAction.label}
                 // Small and quiet: the card's subject is the summary, not this.
@@ -399,7 +407,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
                 variant="ghost"
                 size="sm"
                 iconOnly
-                onClick={() => setExpanded((v) => !v)}
+                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
                 aria-label={expanded ? "Hide details" : "Show details"}
                 aria-expanded={expanded}
                 title={expanded ? "Hide details" : "Show details"}

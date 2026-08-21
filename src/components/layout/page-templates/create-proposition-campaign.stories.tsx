@@ -336,6 +336,91 @@ const otherPlacements = [
   { id: 'homepage', name: 'Homepage' },
 ];
 
+// ── Bidding ─────────────────────────────────────────────────────────────
+//
+// On auction campaigns the price lives WHERE the inventory is picked: every
+// selected placement card carries its own CPC with a suggested bid to accept.
+// Guaranteed campaigns buy at fixed price and show no bids at all — the
+// choice is made once, in campaign setup.
+
+/** Deterministic demo bid suggestion per placement/keyword — €0.30–€0.79. */
+const suggestedBid = (id: string) => {
+  const seed = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return (0.3 + (seed % 50) / 100).toFixed(2);
+};
+
+/** The CPC row on a selected placement card: bid input + suggestion. */
+const BidRow = ({
+  id,
+  value,
+  onChange,
+  className,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) => (
+  <div className={cn('flex flex-wrap items-center gap-2', className ?? 'mt-2 border-t border-border pt-2')} onClick={(e) => e.stopPropagation()}>
+    <span className="text-xs text-muted-foreground">Bid (CPC)</span>
+    <div className="relative w-24">
+      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+      <Input
+        type="number"
+        min="0"
+        step="0.05"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-7 pl-6 text-sm tabular-nums"
+        placeholder={suggestedBid(id)}
+        aria-label={`Bid for ${id}`}
+      />
+    </div>
+    {value !== suggestedBid(id) && (
+      <button
+        type="button"
+        className="text-xs font-medium text-primary hover:underline"
+        onClick={() => onChange(suggestedBid(id))}
+      >
+        Use suggested €{suggestedBid(id)}
+      </button>
+    )}
+  </div>
+);
+
+/** Auction vs guaranteed — the campaign-setup question that decides whether
+ *  placements carry bids. */
+const BuyingTypePicker = ({
+  value,
+  onChange,
+}: {
+  value: 'auction' | 'guaranteed';
+  onChange: (v: 'auction' | 'guaranteed') => void;
+}) => (
+  <div className="space-y-2">
+    <Label>Buying type</Label>
+    <div className="grid gap-3 sm:grid-cols-2">
+      {([
+        { id: 'auction' as const, title: 'Auction', text: 'Bid per placement — each selected placement carries its own CPC.' },
+        { id: 'guaranteed' as const, title: 'Guaranteed', text: 'Fixed price, reserved delivery — no bidding.' },
+      ]).map((opt) => (
+        <button
+          key={opt.id}
+          type="button"
+          onClick={() => onChange(opt.id)}
+          className={cn(
+            'rounded-md border p-3 text-left transition-colors',
+            value === opt.id ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+          )}
+        >
+          <span className="block text-sm font-medium">{opt.title}</span>
+          <span className="block text-xs text-muted-foreground">{opt.text}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 // --- Proposition Wizard Component ---
 
 const PropositionWizard = ({
@@ -387,6 +472,13 @@ const PropositionWizard = ({
   const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepId = wizardSteps[currentStep]?.id;
 
+  // Buying type — display and digital in-store auction OR reserve their
+  // inventory; the choice decides whether placements carry bids. Booking mode
+  // inherits the answer from the existing campaign.
+  const hasBuyingType = propositionType === 'display' || propositionType === 'digital-instore';
+  const [buyingType, setBuyingType] = React.useState<'auction' | 'guaranteed'>('auction');
+  const isAuction = (routeCampaign?.buyingType ?? buyingType) !== 'guaranteed';
+
   // Step 1: Setup
   const [campaignName, setCampaignName] = React.useState('');
   const [objectiveKpi, setObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
@@ -436,13 +528,17 @@ const PropositionWizard = ({
   const [bookings, setBookings] = React.useState<{
     id: string; name: string; startDate?: Date; startTime: string;
     endDate?: Date; endTime: string; activeDays: string[]; positionIds: string[];
+    /** Per-position CPC on auction campaigns — the bid lives on the placement. */
+    bids: Record<string, string>;
     targetMode: string; targetKeywordType: string; targetValue: string;
     optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
     exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
-    deliveryLimit: boolean; pricingModel: boolean; competeWithRTB: boolean;
+    deliveryLimit: boolean;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives', 'Pricing'];
+  // No Pricing step: the price sits on each selected placement card in
+  // Booking setup (auction campaigns), not at the bottom of the form.
+  const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -456,6 +552,8 @@ const PropositionWizard = ({
   // The booking's placement — real positions from the proposition's inventory,
   // because positionIds is what the to-do engine judges "placed" by.
   const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
+  // The bid per selected position (auction campaigns only).
+  const [positionBids, setPositionBids] = React.useState<Record<string, string>>({});
   // Creative step: per booking, the chosen creative ('' = add later).
   const [creativeChoice, setCreativeChoice] = React.useState<Record<string, string>>({});
   // Targeting (line item)
@@ -471,9 +569,6 @@ const PropositionWizard = ({
   const [priorityOverride, setPriorityOverride] = React.useState(false);
   const [reachOverride, setReachOverride] = React.useState(false);
   const [deliveryLimit, setDeliveryLimit] = React.useState(false);
-  // Pricing
-  const [pricingModel, setPricingModel] = React.useState(false);
-  const [competeWithRTB, setCompeteWithRTB] = React.useState(false);
 
   const dayLabels = [
     { id: 'mo', label: 'Mo' }, { id: 'tu', label: 'Tu' }, { id: 'we', label: 'We' },
@@ -487,20 +582,21 @@ const PropositionWizard = ({
       name: bookingName, startDate: bookingDateRange?.from, startTime: bookingStartTime,
       endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
       positionIds: [...bookingPositionIds],
+      bids: { ...positionBids },
       targetMode: lineTargetMode, targetKeywordType: lineTargetKeywordType, targetValue: lineTargetValue,
       optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
-      priorityOverride, reachOverride, deliveryLimit, pricingModel, competeWithRTB,
+      priorityOverride, reachOverride, deliveryLimit,
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
     setBookingName(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
-    setBookingPositionIds([]);
+    setBookingPositionIds([]); setPositionBids({});
     setLineTargetMode('inclusive'); setLineTargetKeywordType('Search Keyword'); setLineTargetValue('');
     setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
     setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
-    setDeliveryLimit(false); setPricingModel(false); setCompeteWithRTB(false);
+    setDeliveryLimit(false);
   };
   const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
 
@@ -638,6 +734,7 @@ const PropositionWizard = ({
       mediaPlanId: linkedPlan?.id ?? '',
       name: campaignName || `New ${proposition.name} campaign`,
       engine: propositionType as EngineId,
+      ...(hasBuyingType ? { buyingType } : {}),
       status: 'draft',
       budget: parseFloat(budgetAmount) || 0,
       spend: 0,
@@ -1054,6 +1151,7 @@ const PropositionWizard = ({
                         />
                       </div>
                       <ObjectiveKpiSelect value={objectiveKpi} onChange={setObjectiveKpi} />
+                      {hasBuyingType && <BuyingTypePicker value={buyingType} onChange={setBuyingType} />}
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
@@ -1866,23 +1964,34 @@ const PropositionWizard = ({
                                       .map((p) => {
                                         const picked = bookingPositionIds.includes(p.id);
                                         return (
-                                          <label
+                                          <div
                                             key={p.id}
                                             className={cn(
-                                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                                              'rounded-md border p-3 transition-colors',
                                               picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
                                             )}
                                           >
-                                            <Checkbox
-                                              checked={picked}
-                                              onCheckedChange={() => setBookingPositionIds(prev =>
-                                                prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                                            />
-                                            <span className="min-w-0">
-                                              <span className="block truncate text-sm font-medium">{p.name}</span>
-                                              <span className="block text-xs text-muted-foreground">{p.product}</span>
-                                            </span>
-                                          </label>
+                                            <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                                              <Checkbox
+                                                checked={picked}
+                                                onCheckedChange={() => setBookingPositionIds(prev =>
+                                                  prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
+                                              />
+                                              <span className="min-w-0">
+                                                <span className="block truncate text-sm font-medium">{p.name}</span>
+                                                <span className="block text-xs text-muted-foreground">{p.product}</span>
+                                              </span>
+                                            </label>
+                                            {/* On auction campaigns the price lives here,
+                                                on the placement it buys. */}
+                                            {picked && isAuction && (
+                                              <BidRow
+                                                id={p.id}
+                                                value={positionBids[p.id] ?? ''}
+                                                onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
+                                              />
+                                            )}
+                                          </div>
                                         );
                                       })}
                                     {enginePositions.length === 0 && (
@@ -2007,32 +2116,11 @@ const PropositionWizard = ({
                               <span className="font-medium text-sm">Delivery limit</span>
                               <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
                             </div>
+                            {/* Last sub-step — the price already sits on the
+                                selected placements, so the sidebar's Create
+                                booking is the only way forward. */}
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(4)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Pricing step */}
-                      {bookingSubStep === 4 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Pricing</CardTitle>
-                            <CardDescription>Set the pricing model and RTB competition settings</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Pricing model</span>
-                              <Switch checked={pricingModel} onCheckedChange={setPricingModel} />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Compete with RTB</span>
-                              <Switch checked={competeWithRTB} onCheckedChange={setCompeteWithRTB} />
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(3)}>Back</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -2138,12 +2226,6 @@ const PropositionWizard = ({
                       if (deliveryLimit) vals.push('Delivery limit set');
                       return vals.length > 0 ? vals : null;
                     }
-                    case 4: {
-                      const vals: string[] = [];
-                      if (pricingModel) vals.push('Custom pricing');
-                      if (competeWithRTB) vals.push('Compete with RTB');
-                      return vals.length > 0 ? vals : null;
-                    }
                     default: return null;
                   }
                 };
@@ -2218,12 +2300,6 @@ const PropositionWizard = ({
                       if (booking.priorityOverride) vals.push('Priority override');
                       if (booking.reachOverride) vals.push('Reach override');
                       if (booking.deliveryLimit) vals.push('Delivery limit set');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 4: { // Pricing
-                      const vals: string[] = [];
-                      if (booking.pricingModel) vals.push('Custom pricing');
-                      if (booking.competeWithRTB) vals.push('Compete with RTB');
                       return vals.length > 0 ? vals : null;
                     }
                     default: return null;
@@ -2548,6 +2624,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [campaignName, setCampaignName] = React.useState(initialValues?.campaignName ?? '');
   const [externalId, setExternalId] = React.useState(initialValues?.externalId ?? '');
   const [budget, setBudget] = React.useState(initialValues?.budget ?? '');
+  // Auction bids per keyword/category/placement live on their cards in the
+  // placements step; guaranteed campaigns show none. Booking mode inherits
+  // the answer from the existing campaign.
+  const [spBuyingType, setSpBuyingType] = React.useState<'auction' | 'guaranteed'>('auction');
+  const spIsAuction = (routeCampaign?.buyingType ?? spBuyingType) !== 'guaranteed';
   const [selectedAdvertiser, setSelectedAdvertiser] = React.useState(resolvedAdvertiserValue);
   const [selectedMediaPlanV2, setSelectedMediaPlanV2] = React.useState(resolvedMediaPlanValue);
   const [startDate, setStartDate] = React.useState<Date | undefined>(initialValues?.startDate);
@@ -2587,10 +2668,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [bookingEndDate, setBookingEndDate] = React.useState<Date | undefined>(
     startAtBooking ? initialValues?.endDate : undefined,
   );
-  // Budget and bidding card
+  // Budget card. The CPC is NOT here — on auction campaigns each selected
+  // keyword, category and placement carries its own bid on its card.
   const [totalBudget, setTotalBudget] = React.useState(startAtBooking ? (initialValues?.budget ?? '') : '');
   const [dailyBudget, setDailyBudget] = React.useState('');
-  const [biddingCPC, setBiddingCPC] = React.useState('');
+  const [spBids, setSpBids] = React.useState<Record<string, string>>({});
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   // Targeting card
   const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>([...localBrands.map(b => b.id)]);
@@ -2611,11 +2693,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     const existing = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
     setBookingCampaignName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
     // An assisted campaign fills the whole booking — daily pace from the run
-    // time, a standard bid — so the form only needs checking.
+    // time, and the suggested bid accepted on every default placement — so
+    // the form only needs checking.
     if (routeCampaign.mode === 'assisted' && routeCampaign.budget > 0) {
       const days = Math.max(1, Math.round((new Date(routeCampaign.endDate).getTime() - new Date(routeCampaign.startDate).getTime()) / 86400000) + 1);
       setDailyBudget((prev) => prev || String(Math.max(1, Math.round(routeCampaign.budget / days))));
-      setBiddingCPC((prev) => prev || '0.50');
+      setSpBids((prev) => Object.keys(prev).length ? prev
+        : Object.fromEntries([...keywords, ...spaLocations].map((k) => [k, suggestedBid(k)])));
     }
     setCurrentStep(1);
     // `mode` is a dep because the hydration snapshot (the seed) can resolve
@@ -2662,7 +2746,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const spForecastMetrics = (() => {
     const dash = '—';
     const total = parseFloat(totalBudget || budget) || 0;
-    const cpc = parseFloat(biddingCPC) || 0;
+    // Auction: the blended bid across the placements' own CPCs. Guaranteed
+    // buys at a fixed rate, so the estimate uses the standard €0.50.
+    const bidValues = Object.values(spBids).map((v) => parseFloat(v)).filter((n) => n > 0);
+    const cpc = spIsAuction
+      ? (bidValues.length ? bidValues.reduce((a, b) => a + b, 0) / bidValues.length : 0)
+      : 0.5;
     // Before the booking exists the campaign's own run time is the span.
     const from = bookingStartDate ?? startDate;
     const to = bookingEndDate ?? endDate;
@@ -2727,7 +2816,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     !bookingStartDate && 'run time',
     !totalBudget.trim() && 'total budget',
     !dailyBudget.trim() && 'daily budget',
-    !biddingCPC.trim() && 'bidding (CPC)',
   ].filter(Boolean) as string[];
   const isBookingComplete = bookingMissing.length === 0;
 
@@ -2769,6 +2857,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       mediaPlanId: linkedPlan?.id ?? '',
       name: campaignName || 'New Sponsored products campaign',
       engine: 'sponsored-products',
+      buyingType: spBuyingType,
       status: 'draft',
       budget: parseFloat(budget) || 0,
       spend: 0,
@@ -2905,7 +2994,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </div>
 
-                    {/* Row 4: Run time — one field, both ends picked in one calendar */}
+                    {/* Row 4: Buying type — decides whether the placements
+                        step carries bids at all. */}
+                    <div className="mb-5">
+                      <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
+                    </div>
+
+                    {/* Row 5: Run time — one field, both ends picked in one calendar */}
                     <div className="mb-6 space-y-1.5">
                       <Label>Run time <span className="text-destructive">*</span></Label>
                       <DateRangePicker
@@ -2969,7 +3064,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   <FormSection bordered title="Budget and bidding">
                     <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="bk-total">Total budget <span className="text-destructive">*</span></Label>
                           <Input
@@ -2990,17 +3085,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
                           />
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="bk-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
-                          <Input
-                            id="bk-cpc"
-                            type="number"
-                            placeholder="0.50"
-                            value={biddingCPC}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
-                          />
-                        </div>
                       </div>
+                      {/* No CPC field here — on auction campaigns each
+                          selected placement carries its own bid, on the next
+                          step's cards. */}
                       <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
                         <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
                         <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
@@ -3116,6 +3204,24 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         ])}
                         label="Suggested keywords"
                       />
+                      {/* Auction: each selected keyword carries its own bid,
+                          with a suggestion to accept. */}
+                      {spIsAuction && keywords.length > 0 && (
+                        <div className="space-y-2 rounded-md border border-border p-3">
+                          <p className="text-xs font-medium text-muted-foreground">Bid per keyword</p>
+                          {keywords.map((k) => (
+                            <div key={k} className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="min-w-0 flex-1 truncate text-sm">{k}</span>
+                              <BidRow
+                                id={k}
+                                className=""
+                                value={spBids[k] ?? ''}
+                                onChange={(v) => setSpBids(prev => ({ ...prev, [k]: v }))}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </FormSection>
 
@@ -3139,24 +3245,33 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {spCategoryOptions.map((cat) => {
                         const isSelected = selectedCategories.includes(cat.value);
                         return (
-                          <label
+                          <div
                             key={cat.value}
                             className={cn(
-                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              'rounded-md border p-3 transition-colors',
                               isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
                             )}
                           >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => setSelectedCategories(prev =>
-                                prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
-                              )}
-                            />
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-medium">{cat.label}</span>
-                              {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
-                            </span>
-                          </label>
+                            <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => setSelectedCategories(prev =>
+                                  prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
+                                )}
+                              />
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium">{cat.label}</span>
+                                {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
+                              </span>
+                            </label>
+                            {isSelected && spIsAuction && (
+                              <BidRow
+                                id={cat.value}
+                                value={spBids[cat.value] ?? ''}
+                                onChange={(v) => setSpBids(prev => ({ ...prev, [cat.value]: v }))}
+                              />
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -3183,24 +3298,33 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {spLocationOptions.map((loc) => {
                         const isSelected = spaLocations.includes(loc.value);
                         return (
-                          <label
+                          <div
                             key={loc.value}
                             className={cn(
-                              'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              'rounded-md border p-3 transition-colors',
                               isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
                             )}
                           >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => setSpaLocations(prev =>
-                                prev.includes(loc.value) ? prev.filter(l => l !== loc.value) : [...prev, loc.value]
-                              )}
-                            />
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-medium">{loc.label}</span>
-                              {loc.description && <span className="block text-xs text-muted-foreground">{loc.description}</span>}
-                            </span>
-                          </label>
+                            <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => setSpaLocations(prev =>
+                                  prev.includes(loc.value) ? prev.filter(l => l !== loc.value) : [...prev, loc.value]
+                                )}
+                              />
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium">{loc.label}</span>
+                                {loc.description && <span className="block text-xs text-muted-foreground">{loc.description}</span>}
+                              </span>
+                            </label>
+                            {isSelected && spIsAuction && (
+                              <BidRow
+                                id={loc.value}
+                                value={spBids[loc.value] ?? ''}
+                                onChange={(v) => setSpBids(prev => ({ ...prev, [loc.value]: v }))}
+                              />
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -3275,7 +3399,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       values: [
                         bookingCampaignName || 'Unnamed booking',
                         totalBudget ? `€${totalBudget}` : '',
-                        biddingCPC ? `€${biddingCPC} CPC` : '',
+                        Object.keys(spBids).length > 0 ? `${Object.keys(spBids).length} bid${Object.keys(spBids).length === 1 ? '' : 's'} set` : '',
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(0),
                     },

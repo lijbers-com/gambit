@@ -124,6 +124,11 @@ export interface Campaign {
    *  creative wizards open fully filled, for the user to check rather than
    *  type. Absent means the campaign was built by hand (expert). */
   mode?: 'assisted' | 'expert';
+  /** How the inventory is bought. Auction campaigns bid per placement (the
+   *  CPC lives on each selected placement card); guaranteed campaigns buy at
+   *  a fixed price and show no bids. Only sponsored products, display and
+   *  digital in-store ask this; absent reads as auction. */
+  buyingType?: 'auction' | 'guaranteed';
   status: PlanStatus;
   budget: number;
   spend: number;

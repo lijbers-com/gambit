@@ -23,7 +23,8 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CreatePlacement } from '@/components/ui/create-placement';
+import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { useDb, createCampaign, createBooking, updateBooking, type EngineId } from '@/lib/db';
@@ -551,10 +552,12 @@ const PropositionWizard = ({
   /** The booking's own budget, part of its Budget & run time step. */
   const [bookingBudget, setBookingBudget] = React.useState('');
   const [bookingExternalId, setBookingExternalId] = React.useState('');
-  /** Channels picked in the Placement step; selecting one selects all its ad
-   *  positions, which are then tweaked per channel in a modal. */
+  /** The channel picked in the Placement step (CreatePlacement is
+   *  single-select: one media product per booking, everything in it included,
+   *  trimmed in the modal). */
   const [selectedChannelIds, setSelectedChannelIds] = React.useState<string[]>([]);
-  const [editChannelId, setEditChannelId] = React.useState<string | null>(null);
+  /** Weekday scheduling exists for the propositions that can switch by day. */
+  const canScheduleDays = ['display', 'digital-instore', 'offsite'].includes(propositionType);
   // The booking's placement — real positions from the proposition's inventory,
   // because positionIds is what the to-do engine judges "placed" by.
   const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
@@ -1929,76 +1932,28 @@ const PropositionWizard = ({
                         </Card>
                       )}
 
-                      {/* Step 2: Budget & run time — how much it may spend and
-                          when it runs, the way the media plan asks it. */}
+                      {/* Step 2: Budget & run time — the SAME shared block the
+                          booking detail page uses, so creating and editing a
+                          booking are one form. */}
                       {bookingSubStep === 1 && (
                         <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Budget &amp; run time</CardTitle>
-                            <CardDescription>How much this booking may spend, and when it runs</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-6">
-                            <div className="space-y-2">
-                              <Label>Booking budget</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                value={bookingBudget}
-                                onChange={(e) => setBookingBudget(e.target.value)}
-                                placeholder="Enter budget"
-                              />
-                              {budgetAmount.trim() !== '' && (
-                                <p className="text-xs text-muted-foreground">Campaign budget: €{Number(budgetAmount).toLocaleString()}</p>
-                              )}
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Run time <span className="text-destructive">*</span></Label>
-                              <DateRangePicker
-                                dateRange={bookingDateRange}
-                                onDateRangeChange={setBookingDateRange}
-                                placeholder="Select start and end date"
-                                showPresets
-                                showWeekNumbers
-                                events={retailMoments}
-                                presets={futureDateRangePresets}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1">
-                                <label className="block text-sm text-muted-foreground">Start time</label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                  <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
-                                </div>
-                              </div>
-                              <div className="space-y-1">
-                                <label className="block text-sm text-muted-foreground">End time</label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                  <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-3">
-                              <div className="text-sm font-medium">Active days</div>
-                              <div className="flex gap-2">
-                                {dayLabels.map(day => (
-                                  <button key={day.id} onClick={() => toggleDay(day.id)}
-                                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                    {day.label}
-                                  </button>
-                                ))}
-                              </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <span>Select:</span>
-                                <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                                <span>·</span>
-                                <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                                <span>·</span>
-                                <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
-                              </div>
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
+                          <CardContent className="space-y-6 p-6">
+                            <BookingBudgetRuntime
+                              budget={bookingBudget}
+                              onBudgetChange={setBookingBudget}
+                              startDate={bookingDateRange?.from}
+                              endDate={bookingDateRange?.to}
+                              onStartDateChange={(d) => setBookingDateRange((r) => (d || r?.to ? { from: d, to: r?.to } : undefined))}
+                              onEndDateChange={(d) => setBookingDateRange((r) => (d || r?.from ? { from: r?.from as Date | undefined, to: d } : undefined))}
+                              startTime={bookingStartTime}
+                              endTime={bookingEndTime}
+                              onStartTimeChange={setBookingStartTime}
+                              onEndTimeChange={setBookingEndTime}
+                              campaignBudget={budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : undefined}
+                              activeDays={canScheduleDays ? activeDays : undefined}
+                              onActiveDaysChange={canScheduleDays ? setActiveDays : undefined}
+                            />
+                            <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
                             </div>
@@ -2006,124 +1961,43 @@ const PropositionWizard = ({
                         </Card>
                       )}
 
-                      {/* Step 3: Placement — the search-and-select control the
-                          whole product uses: search channels, select them, and
-                          tweak each selected channel's ad positions in a modal.
-                          Selecting a channel selects all its positions; on
-                          auction campaigns each kept position carries its bid. */}
+                      {/* Step 3: Placement — the SAME "Create placement" block
+                          the booking detail page uses: find the channel, get
+                          everything in it, trim ad positions in the modal.
+                          Auction campaigns bid per position in that modal. */}
                       {bookingSubStep === 2 && (
                         <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Placement</CardTitle>
-                            <CardDescription>Pick the channels this booking runs on, then edit their ad positions</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <SearchSelectList
-                              label={null}
-                              placeholder="Search channels…"
-                              options={engineChannels.map((ch) => ({
-                                value: ch.id,
-                                label: ch.name,
-                                description: `${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
-                              }))}
-                              value={selectedChannelIds}
-                              onChange={(values) => {
-                                const added = values.filter((v) => !selectedChannelIds.includes(v));
-                                const removed = selectedChannelIds.filter((v) => !values.includes(v));
-                                setSelectedChannelIds(values);
-                                setBookingPositionIds((prev) => {
-                                  let next = [...prev];
-                                  added.forEach((id) => {
-                                    engineChannels.find((c) => c.id === id)?.positions.forEach((p) => {
-                                      if (!next.includes(p.id)) next.push(p.id);
-                                    });
-                                  });
-                                  removed.forEach((id) => {
-                                    const ids = new Set(engineChannels.find((c) => c.id === id)?.positions.map((p) => p.id));
-                                    next = next.filter((x) => !ids.has(x));
-                                  });
-                                  return next;
-                                });
-                              }}
-                              hideSelectedDescription
-                              renderSelectedExtra={(opt) => {
-                                const ch = engineChannels.find((c) => c.id === opt.value);
-                                if (!ch) return null;
-                                const count = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
-                                const bidCount = isAuction ? ch.positions.filter((p) => positionBids[p.id]).length : 0;
-                                return (
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="text-xs text-muted-foreground">
-                                      {count} of {ch.positions.length} ad positions
-                                      {bidCount > 0 ? ` · ${bidCount} bid${bidCount === 1 ? '' : 's'} set` : ''}
-                                    </span>
-                                    <Button variant="outline" size="sm" onClick={() => setEditChannelId(ch.id)}>
-                                      Edit ad positions
-                                    </Button>
-                                  </div>
-                                );
-                              }}
-                            />
-                            {/* The per-channel tweak: select or deselect ad
-                                positions, with the bid on each kept position. */}
-                            <Dialog open={!!editChannelId} onOpenChange={(o) => { if (!o) setEditChannelId(null); }}>
-                              <DialogContent className="sm:max-w-[520px]">
-                                {(() => {
-                                  const ch = engineChannels.find((c) => c.id === editChannelId);
-                                  if (!ch) return null;
-                                  return (
-                                    <>
-                                      <DialogHeader>
-                                        <DialogTitle>{ch.name}</DialogTitle>
-                                        <DialogDescription>
-                                          Select or deselect the ad positions this booking runs on{isAuction ? ' — each kept position carries its own bid' : ''}.
-                                        </DialogDescription>
-                                      </DialogHeader>
-                                      <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                                        {ch.positions.map((p) => {
-                                          const picked = bookingPositionIds.includes(p.id);
-                                          return (
-                                            <div
-                                              key={p.id}
-                                              className={cn(
-                                                'rounded-md border p-3 transition-colors',
-                                                picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
-                                              )}
-                                            >
-                                              <label className="flex w-full cursor-pointer items-center gap-3 text-left">
-                                                <Checkbox
-                                                  checked={picked}
-                                                  onCheckedChange={() => setBookingPositionIds(prev =>
-                                                    prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                                                />
-                                                <span className="min-w-0">
-                                                  <span className="block truncate text-sm font-medium">{p.name}</span>
-                                                  <span className="block text-xs text-muted-foreground">{p.format ?? ch.name}</span>
-                                                </span>
-                                              </label>
-                                              {picked && isAuction && (
-                                                <BidRow
-                                                  id={p.id}
-                                                  value={positionBids[p.id] ?? ''}
-                                                  onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
-                                                />
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                      <div className="flex justify-end">
-                                        <Button onClick={() => setEditChannelId(null)}>Done</Button>
-                                      </div>
-                                    </>
-                                  );
-                                })()}
-                              </DialogContent>
-                            </Dialog>
-                            {engineChannels.length === 0 && (
-                              <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
-                            )}
-                            <div className="flex justify-end gap-3 mt-4">
+                          <CardContent className="space-y-6 p-6">
+                            <FormSection bordered title="Create placement">
+                              <CreatePlacement
+                                mediaProducts={engineChannels.map((ch) => ({
+                                  value: ch.id,
+                                  label: ch.name,
+                                  description: `${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
+                                }))}
+                                positions={(engineChannels.find((c) => c.id === selectedChannelIds[0])?.positions ?? []).map((p) => ({
+                                  value: p.id,
+                                  label: p.name,
+                                  format: p.format,
+                                  description: `${p.dailyCapacity}/day`,
+                                }))}
+                                mediaProduct={selectedChannelIds}
+                                onMediaProductChange={(v) => {
+                                  setSelectedChannelIds(v);
+                                  setBookingPositionIds([]);
+                                  setPositionBids({});
+                                }}
+                                positionsValue={bookingPositionIds}
+                                onPositionsChange={setBookingPositionIds}
+                                productLabel="Find channel"
+                                {...(isAuction ? {
+                                  bids: positionBids,
+                                  onBidChange: (id: string, v: string) => setPositionBids((prev) => ({ ...prev, [id]: v })),
+                                  suggestedBid,
+                                } : {})}
+                              />
+                            </FormSection>
+                            <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
                             </div>

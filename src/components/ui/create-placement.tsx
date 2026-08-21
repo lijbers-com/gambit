@@ -4,6 +4,7 @@ import * as React from 'react';
 import { LayoutDashboard, Pencil } from 'lucide-react';
 import { SearchSelectList, type SearchSelectOption } from './search-select-list';
 import { Button } from './button';
+import { Input } from './input';
 import { FilterBar } from './filter-bar';
 import { Table } from './table';
 import { Checkbox } from './checkbox';
@@ -37,6 +38,12 @@ export interface CreatePlacementProps {
   productLabel?: string;
   /** What this proposition calls the things inside ("Ad positions", "Ad spaces"). */
   positionsLabel?: string;
+  /** Auction campaigns: the CPC per included position, edited in the modal's
+   *  Bid column with a suggestion to accept. Omit on guaranteed campaigns —
+   *  no bids render at all. All three props travel together. */
+  bids?: Record<string, string>;
+  onBidChange?: (positionId: string, value: string) => void;
+  suggestedBid?: (positionId: string) => string;
   className?: string;
 }
 
@@ -49,8 +56,12 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
   onPositionsChange,
   productLabel = 'Find media product',
   positionsLabel = 'Ad positions',
+  bids,
+  onBidChange,
+  suggestedBid,
   className,
 }) => {
+  const showBids = !!bids && !!onBidChange;
   const [editing, setEditing] = React.useState(false);
   const [staged, setStaged] = React.useState<string[]>([]);
   const [search, setSearch] = React.useState('');
@@ -91,6 +102,9 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
               {included.length} of {positions.length} {positionsLabel.toLowerCase()}
+              {showBids && included.filter((p) => bids![p.value]).length > 0 && (
+                <> · {included.filter((p) => bids![p.value]).length} bid{included.filter((p) => bids![p.value]).length === 1 ? '' : 's'} set</>
+              )}
             </div>
             <Button
               variant="outline"
@@ -153,6 +167,40 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
                 { key: 'label', header: 'Position' },
                 { key: 'format', header: 'Format', render: (row) => <span className="text-muted-foreground">{row.format ?? '—'}</span> },
                 { key: 'capacity', header: 'Capacity', render: (row) => <span className="tabular-nums text-muted-foreground">{row.description}</span> },
+                // Auction campaigns: the price lives on the placement it buys —
+                // a bid per included position, with a suggestion to accept.
+                ...(showBids ? [{
+                  key: 'bid',
+                  header: 'Bid (CPC)',
+                  render: (row: SearchSelectOption & { format?: string }) =>
+                    staged.includes(row.value) ? (
+                      <span className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="relative">
+                          <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.05"
+                            value={bids![row.value] ?? ''}
+                            onChange={(e) => onBidChange!(row.value, e.target.value)}
+                            placeholder={suggestedBid?.(row.value)}
+                            className="h-7 w-20 pl-5 text-sm tabular-nums"
+                            aria-label={`Bid for ${row.label}`}
+                          />
+                        </span>
+                        {suggestedBid && bids![row.value] !== suggestedBid(row.value) && (
+                          <button
+                            type="button"
+                            className="whitespace-nowrap text-xs font-medium text-primary hover:underline"
+                            title={`Use suggested bid €${suggestedBid(row.value)}`}
+                            onClick={() => onBidChange!(row.value, suggestedBid(row.value))}
+                          >
+                            Use €{suggestedBid(row.value)}
+                          </button>
+                        )}
+                      </span>
+                    ) : <span className="text-muted-foreground">—</span>,
+                }] : []),
               ]}
               data={visible}
               rowKey={(row) => row.value}

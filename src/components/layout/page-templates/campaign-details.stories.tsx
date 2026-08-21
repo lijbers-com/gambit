@@ -29,7 +29,8 @@ import { SearchableSelect } from '../../ui/searchable-select';
 import { Switch } from '../../ui/switch';
 import { Label } from '../../ui/label';
 import { cn } from '@/lib/utils';
-import { DateRangePicker, DatePicker } from '../../ui/date-picker';
+import { DateRangePicker, futureDateRangePresets } from '../../ui/date-picker';
+import { retailMoments } from '@/lib/retail-moments';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
@@ -840,14 +841,18 @@ const updatedForecastMetrics = [
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
@@ -1401,14 +1406,18 @@ export const DigitalInstoreRunning: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
@@ -1919,14 +1928,18 @@ export const OfflineInstoreRunning: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -2466,14 +2479,18 @@ export const DisplayRunning: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -3005,14 +3022,18 @@ export const OfflineInstoreInOption: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -3522,14 +3543,18 @@ export const DisplayInOption: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -4371,14 +4396,18 @@ export const SponsoredProductsInOption: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -5109,14 +5138,18 @@ export const SponsoredProductsRunning: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -5718,14 +5751,18 @@ export const OffsiteRunning: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
@@ -6266,14 +6303,18 @@ export const OffsiteInOption: Story = {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Run Time</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <DatePicker placeholder="Start date" date={startDate} onDateChange={setStartDate} />
-                      </div>
-                      <div>
-                        <DatePicker placeholder="End date" date={endDate} onDateChange={setEndDate} />
-                      </div>
-                    </div>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                   </div>
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>

@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
+import { retailMoments } from '@/lib/retail-moments';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { useDb, createCampaign, createBooking, updateBooking, type EngineId } from '@/lib/db';
@@ -1182,6 +1183,9 @@ const PropositionWizard = ({
                             onDateRangeChange={setDateRange}
                             placeholder="Select start and end date"
                             showPresets
+                            showWeekNumbers
+                            events={retailMoments}
+                            presets={futureDateRangePresets}
                           />
                           <div className="text-xs text-muted-foreground">
                             Your campaign will automatically start and stop on the selected dates
@@ -1248,6 +1252,9 @@ const PropositionWizard = ({
                             onDateRangeChange={setDateRange}
                             placeholder="Select start and end date"
                             showPresets
+                            showWeekNumbers
+                            events={retailMoments}
+                            presets={futureDateRangePresets}
                           />
                           <div className="text-xs text-muted-foreground">
                             Your campaign will automatically start and stop on the selected dates
@@ -1796,6 +1803,10 @@ const PropositionWizard = ({
                                 dateRange={bookingDateRange}
                                 onDateRangeChange={setBookingDateRange}
                                 placeholder="Select start and end date"
+                                showPresets
+                                showWeekNumbers
+                                events={retailMoments}
+                                presets={futureDateRangePresets}
                               />
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
@@ -2905,6 +2916,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         }}
                         placeholder="Select start and end date"
                         showPresets
+                        showWeekNumbers
+                        events={retailMoments}
                         presets={futureDateRangePresets}
                       />
                     </div>
@@ -2946,6 +2959,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           }}
                           placeholder="Select start and end date"
                           showPresets
+                          showWeekNumbers
+                          events={retailMoments}
                           presets={futureDateRangePresets}
                         />
                       </div>

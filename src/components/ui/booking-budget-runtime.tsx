@@ -1,18 +1,21 @@
 'use client';
 
 import * as React from 'react';
+import { Clock } from 'lucide-react';
 import { FormSection } from './form-section';
 import { Input, FieldHint } from './input';
-import { DatePicker } from './date-picker';
+import { DateRangePicker, futureDateRangePresets } from './date-picker';
+import { retailMoments } from '@/lib/retail-moments';
 
 /**
  * Budget & run time — one block, the same on every booking form.
  *
  * The two answer one question, "how much, and when", the way the media plan
  * already presents them together; as separate sections each form drew them
- * differently and some dropped budget entirely. Each end of the run is a
- * single date-and-time field (see DatePicker's time support): bookings start
- * and stop mid-day, and one field asks that as one question.
+ * differently and some dropped budget entirely. The run time is ONE range
+ * field — a run is a span, not two independent dates — with the same retail
+ * events in its calendar the media plan's picker shows. Bookings start and
+ * stop mid-day, so a compact start/end time pair sits under the range.
  *
  * Active days is part of the block too, behind `activeDays` — only the
  * propositions that can schedule by weekday (display, digital in-store,
@@ -122,32 +125,40 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
         />
         {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
       </div>
-      <div className="min-w-0">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+      <div className="min-w-0 space-y-3">
         <div className="min-w-0">
-          <label className="block text-sm font-medium mb-2">Start date & time*</label>
-          <DatePicker
-            date={startDate}
-            onDateChange={onStartDateChange}
-            time={startTime}
-            onTimeChange={onStartTimeChange}
-            placeholder="Select date & time"
+          <label className="block text-sm font-medium mb-2">Run time*</label>
+          <DateRangePicker
+            dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+            onDateRangeChange={(range) => {
+              onStartDateChange(range?.from);
+              onEndDateChange(range?.to);
+            }}
+            placeholder="Select start and end date"
+            showPresets
+            showWeekNumbers
+            events={retailMoments}
+            presets={futureDateRangePresets}
             className="w-full min-w-0"
           />
         </div>
-        <div className="min-w-0">
-          <label className="block text-sm font-medium mb-2">End date & time*</label>
-          <DatePicker
-            date={endDate}
-            onDateChange={onEndDateChange}
-            time={endTime}
-            onTimeChange={onEndTimeChange}
-            placeholder="Select date & time"
-            className="w-full min-w-0"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+          <div className="min-w-0">
+            <label className="block text-sm text-muted-foreground mb-1">Start time</label>
+            <div className="relative">
+              <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={startTime} onChange={(e) => onStartTimeChange(e.target.value)} className="pl-9" placeholder="00:00" />
+            </div>
+          </div>
+          <div className="min-w-0">
+            <label className="block text-sm text-muted-foreground mb-1">End time</label>
+            <div className="relative">
+              <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={endTime} onChange={(e) => onEndTimeChange(e.target.value)} className="pl-9" placeholder="23:59" />
+            </div>
+          </div>
         </div>
-      </div>
-      {campaignRuntime && <FieldHint>Campaign runtime: {campaignRuntime}</FieldHint>}
+        {campaignRuntime && <FieldHint>Campaign runtime: {campaignRuntime}</FieldHint>}
       </div>
       {activeDays && onActiveDaysChange && (
         <ActiveDays value={activeDays} onChange={onActiveDaysChange} />

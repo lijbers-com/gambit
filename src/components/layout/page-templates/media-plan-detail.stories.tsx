@@ -717,10 +717,21 @@ export const MediaPlanDetail: Story = {
           .filter((card) => card.steps.some((step) => !step.done))
       : [];
 
-    // Cards are for plans still being built; anything that has ever run —
-    // running, paused, completed — opens on the table it is judged in.
-    const planHasRun = !!plan && ['running', 'paused', 'completed', 'stopped'].includes(plan.status);
-    const campaignsView = campaignViewOverride ?? (planHasRun ? 'table' : 'cards');
+    // Cards are for setup that is still open; anything that has ever run —
+    // running, paused, completed — opens on the table it is judged in, and so
+    // does a pre-live plan whose campaigns are all set up (or skipped): a
+    // checklist with nothing left is not worth greeting the user with.
+    const planHasRun = !!plan && ['running', 'paused', 'completed'].includes(plan.status);
+    // Unfiltered, unlike checklistCards — a search must not flip the view.
+    const planNeedsSetup = !!plan && db.campaigns.some((c) => {
+      if (c.mediaPlanId !== plan.id || c.status === 'completed' || skippedChecklist.includes(c.id)) return false;
+      const bookings = db.bookings.filter((b) => b.campaignId === c.id);
+      if (bookings.length === 0) return true;
+      return c.engine === 'sponsored-products'
+        ? bookings.some((b) => b.positionIds.length === 0)
+        : bookings.some((b) => b.creativeStatus === 'missing');
+    });
+    const campaignsView = campaignViewOverride ?? (planHasRun || !planNeedsSetup ? 'table' : 'cards');
 
     const planBlockers = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')

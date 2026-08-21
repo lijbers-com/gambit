@@ -827,14 +827,13 @@ export const GoalSelection: Story = {
         }
       });
 
-      // Land on the new plan's Inbox: a plan straight out of the wizard always
-      // has work left (creatives to upload, placements to pick), so the first
-      // screen should be that list rather than the form the user just filled in.
       // Existing campaigns chosen on the last step move under the new plan.
       linkedExistingIds.forEach((id) => updateCampaign(id, { mediaPlanId: plan.id }));
       if (typeof window !== 'undefined') {
         queueToast({ title: 'Media plan created', description: plan.name });
-        window.location.href = `/campaigns/plan/${plan.id}?tab=inbox`;
+        // Land on the plan's Campaigns & bookings tab (the default): the
+        // setup cards there ARE the remaining work, one card per campaign.
+        window.location.href = `/campaigns/plan/${plan.id}`;
       }
     };
 

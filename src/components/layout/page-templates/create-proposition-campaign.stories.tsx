@@ -366,7 +366,7 @@ const BidRow = ({
   onChange: (v: string) => void;
   className?: string;
 }) => (
-  <div className={cn('flex flex-wrap items-center gap-2', className ?? 'mt-2 border-t border-border pt-2')} onClick={(e) => e.stopPropagation()}>
+  <div className={cn('flex flex-wrap items-center gap-2', className ?? 'mt-2')} onClick={(e) => e.stopPropagation()}>
     <span className="text-xs text-muted-foreground">Bid (CPC)</span>
     <div className="relative w-24">
       <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
@@ -2654,9 +2654,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [spBids, setSpBids] = React.useState<Record<string, string>>({});
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
-  // Targeting — the same include/exclude target-group control as everywhere.
-  const [spInclTargets, setSpInclTargets] = React.useState<Record<string, string[]>>({});
-  const [spExclTargets, setSpExclTargets] = React.useState<Record<string, string[]>>({});
+  // Targeting — the same target-group control as everywhere, but sponsored
+  // products only targets its local brands: one group, no include/exclude
+  // split, and every brand selected until the user trims.
+  const [spTargets, setSpTargets] = React.useState<Record<string, string[]>>({
+    'local-brands': localBrands.map((b) => b.label),
+  });
 
   // Booking mode against a real campaign: its facts prefill the form and the
   // flow opens on the booking step. Runs post-mount because the campaign may
@@ -2885,7 +2888,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     const vals: string[] = [];
     if (bookingCampaignName.trim()) vals.push(bookingCampaignName);
     if (totalBudget.trim()) vals.push(`€${totalBudget}`);
-    const spTargetCount = countTargets(spInclTargets) + countTargets(spExclTargets);
+    const spTargetCount = countTargets(spTargets);
     if (spTargetCount > 0) vals.push(`${spTargetCount} target${spTargetCount !== 1 ? 's' : ''}`);
     return vals;
   };
@@ -3285,25 +3288,22 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardContent className="space-y-6 p-6">
                   <FormSection title="Targeting">
-                    <div className="space-y-4">
-                      {/* Include and exclude are two lists, not a mode the
-                          user has to notice they are in — the same control as
-                          the booking detail page. */}
-                      {([
-                        { key: 'include', label: 'Include', hint: 'The booking shows to shoppers matching these targets.', targets: spInclTargets, setTargets: setSpInclTargets },
-                        { key: 'exclude', label: 'Exclude', hint: 'Never shown to shoppers matching these targets.', targets: spExclTargets, setTargets: setSpExclTargets },
-                      ] as const).map((mode) => (
-                        <div key={mode.key} className="space-y-2">
-                          <Label className="block">{mode.label}</Label>
-                          <p className="-mt-1 text-xs text-muted-foreground">{mode.hint}</p>
-                          <TargetSelect
-                            groups={onlineTargetGroups}
-                            value={mode.targets}
-                            onChange={mode.setTargets}
-                            placeholder="Add a target group — keyword, category, city…"
-                          />
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      {/* The same targeting control as everywhere — sponsored
+                          products only asks which local brands, all of them
+                          in until the user removes some. */}
+                      <p className="-mt-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
+                      <TargetSelect
+                        groups={[{
+                          value: 'local-brands',
+                          label: 'Local brands',
+                          description: 'The banners this booking runs under',
+                          suggestions: localBrands.map((b) => b.label),
+                        }]}
+                        value={spTargets}
+                        onChange={setSpTargets}
+                        placeholder="Add a target group — local brands…"
+                      />
                     </div>
                   </FormSection>
 
@@ -3394,8 +3394,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       label: 'Targeting',
                       status: bookingStatus(2),
                       values: [
-                        countTargets(spInclTargets) > 0 ? `${countTargets(spInclTargets)} included` : '',
-                        countTargets(spExclTargets) > 0 ? `${countTargets(spExclTargets)} excluded` : '',
+                        countTargets(spTargets) > 0 ? `${countTargets(spTargets)} local brand${countTargets(spTargets) === 1 ? '' : 's'}` : '',
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(2),
                     },

@@ -338,6 +338,7 @@ const CampaignDetailsSidebar = () => {
         title="Campaign details"
         entity="campaign"
         variant="details"
+        collapsible
         headerAction={{
           icon: LinkActionIcon,
           label: 'Change linked campaign',
@@ -376,6 +377,7 @@ const MediaPlanSidebar = () => {
         title="Media plan"
         entity="media-plan"
         variant="details"
+        collapsible
         headerAction={{
           icon: LinkActionIcon,
           label: 'Change linked media plan',
@@ -407,11 +409,12 @@ const MediaPlanSidebar = () => {
 // Shared component for the creatives attached to this booking. Every
 // proposition has creatives except sponsored products, where the ad IS the
 // product listing — so that template omits this card.
-const CreativesSidebar = ({ count = 2, actions, className }: { count?: number; actions?: SummaryAction[]; className?: string }) => (
+const CreativesSidebar = ({ count = 2, actions, className, collapsible }: { count?: number; actions?: SummaryAction[]; className?: string; collapsible?: boolean }) => (
   <SummaryCard
     title="Creatives"
     entity="creative"
     variant="details"
+    collapsible={collapsible}
     actions={actions}
     className={className}
     items={[
@@ -1312,6 +1315,7 @@ export const Display: Story = {
                     count={selectedCreatives.length}
                     actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
                     className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                    collapsible={bookingTab !== 'creatives'}
                   />
                 }
               />
@@ -2738,6 +2742,7 @@ export const DigitalInStore: Story = {
                         count={selectedCreatives.length}
                         actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
                         className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                        collapsible={bookingTab !== 'creatives'}
                       />
                     }
                   />
@@ -4090,6 +4095,7 @@ export const OfflineInStore: Story = {
                         count={selectedCreatives.length}
                         actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
                         className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                        collapsible={bookingTab !== 'creatives'}
                       />
                     }
                   />
@@ -5208,6 +5214,7 @@ export const OffsiteDisplay: Story = {
                 title="Campaign details"
                 entity="campaign"
                 variant="details"
+                collapsible
                 items={[
                   { label: 'Campaign name', value: 'Offsite: Summer Launch' },
                   { label: 'PO Number', value: 'PO-789012' },
@@ -5224,6 +5231,7 @@ export const OffsiteDisplay: Story = {
                     count={selectedCreatives.length}
                     actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
                     className={bookingTab === 'creatives' ? 'bg-card' : undefined}
+                    collapsible={bookingTab !== 'creatives'}
                   />
                 }
               />

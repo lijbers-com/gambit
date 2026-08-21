@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
+import { Check, ChevronDown, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { SplitButton } from "./split-button"
@@ -120,6 +120,11 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
    *  of content, the same shape an empty table uses, so absence reads as
    *  absence rather than as a one-line summary. */
   empty?: string
+  /** For INACTIVE context cards (`details` variant): only the entity's name —
+   *  the first item's value — stays visible; the remaining details fold
+   *  behind an accordion the user can open at any time. The active card of a
+   *  page stays fully open; the chain above it collapses to names. */
+  collapsible?: boolean
 }
 
 // ─── Sub-renderers ────────────────────────────────────────────────────────────
@@ -331,6 +336,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       headerAction,
       footer,
       empty,
+      collapsible,
       className,
       ...props
     },
@@ -340,6 +346,10 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       (variant === "details" && !!(items || groups)) ||
       (variant === "process" && !!steps) ||
       (variant === "order" && !!sections)
+    // Collapsed context card: the first item's value is the entity's NAME and
+    // stays visible; everything else waits behind the chevron.
+    const isCollapsible = !!collapsible && variant === "details" && !empty && (items?.length ?? 0) > 0
+    const [expanded, setExpanded] = React.useState(false)
     return (
       <div
         ref={ref}
@@ -369,21 +379,43 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
               <p className="text-[13px] text-muted-foreground mt-1">{subtitle}</p>
             )}
           </div>
-          {headerAction && (
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              onClick={headerAction.onClick}
-              aria-label={headerAction.label}
-              title={headerAction.label}
-              // Small and quiet: the card's subject is the summary, not this.
-              className="-mr-1.5 -mt-1.5 h-7 w-7 shrink-0 text-muted-foreground"
-            >
-              {headerAction.icon}
-            </Button>
-          )}
+          <div className="flex shrink-0 items-center">
+            {headerAction && (
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                onClick={headerAction.onClick}
+                aria-label={headerAction.label}
+                title={headerAction.label}
+                // Small and quiet: the card's subject is the summary, not this.
+                className="-mr-1.5 -mt-1.5 h-7 w-7 shrink-0 text-muted-foreground"
+              >
+                {headerAction.icon}
+              </Button>
+            )}
+            {isCollapsible && (
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                onClick={() => setExpanded((v) => !v)}
+                aria-label={expanded ? "Hide details" : "Show details"}
+                aria-expanded={expanded}
+                title={expanded ? "Hide details" : "Show details"}
+                className="-mr-1.5 -mt-1.5 h-7 w-7 shrink-0 text-muted-foreground"
+              >
+                <ChevronDown className={cn("h-4 w-4 transition-transform", !expanded && "-rotate-90")} />
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* The entity's name — always visible on a collapsed context card,
+            because knowing WHAT the chain hangs under never folds away. */}
+        {isCollapsible && (
+          <div className="-mt-2 min-w-0 truncate text-[13px] font-medium">{items![0].value}</div>
+        )}
 
         {/* Nothing linked yet: absence drawn as absence — a centred icon and
             a line, the same shape an empty table uses. */}
@@ -398,11 +430,12 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
         )}
 
         {/* Content. Rendered only when there is some, so an empty card does not
-            keep a gap where the body would have been. */}
-        {!empty && hasContent && (
+            keep a gap where the body would have been. A collapsed context card
+            shows it only once opened — minus the name, which is already up top. */}
+        {!empty && hasContent && (!isCollapsible || expanded) && (
           <div>
             {variant === "details" && (items || groups) && (
-              <DetailsContent items={items} groups={groups} />
+              <DetailsContent items={isCollapsible ? items?.slice(1) : items} groups={groups} />
             )}
             {variant === "process" && steps && (
               <ProcessContent steps={steps} />

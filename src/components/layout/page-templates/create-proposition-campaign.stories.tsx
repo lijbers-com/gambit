@@ -2452,6 +2452,7 @@ const PropositionWizard = ({
                     title="Campaign"
                     entity="campaign"
                     variant="details"
+                    collapsible
                     className="bg-page"
                     items={[
                       { label: 'Campaign name', value: routeCampaign.name },
@@ -2464,6 +2465,7 @@ const PropositionWizard = ({
                     title="Media plan"
                     entity="media-plan"
                     variant="details"
+                    collapsible
                     className="bg-page"
                     items={linkedPlan ? [
                       { label: 'Media plan', value: linkedPlan.name },
@@ -3564,6 +3566,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         className="bg-page"
                         entity="media-plan"
                         variant="details"
+                        collapsible
                         headerAction={{
                           icon: LinkActionIcon,
                           label: 'Change linked media plan',
@@ -3602,6 +3605,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         className="bg-page"
                         entity="campaign"
                         variant="details"
+                        collapsible
                         // Only a booking hangs under a campaign; while the
                         // campaign is still being created there is nothing to
                         // relink it to.

@@ -3098,38 +3098,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     </div>
                   </FormSection>
 
-                  <FormSection title="Targeting">
-                    <div className="space-y-2">
-                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
-                      {localBrands.map((brand) => {
-                        const isSelected = selectedLocalBrands.includes(brand.id);
-                        return (
-                          <label
-                            key={brand.id}
-                            className={cn(
-                              'cursor-pointer',
-                              // Same card a selected option gets everywhere else,
-                              // so a picked brand reads as picked, not as a
-                              // checked row in a list.
-                              'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
-                              isSelected
-                                ? 'border-surface-selected-border bg-surface-selected'
-                                : 'border-border bg-background hover:bg-surface-hover',
-                            )}
-                          >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => setSelectedLocalBrands(prev =>
-                                prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
-                              )}
-                            />
-                            <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </FormSection>
-
                   {/* Navigation */}
                   <div className="flex items-center justify-between gap-4 pt-1">
                     <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
@@ -3333,9 +3301,54 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   {/* Navigation */}
                   <div className="flex justify-between pt-1">
                     <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                    <Button
-                      onClick={finishSPWizard}
-                    >
+                    <Button onClick={() => setBookingSubStep(2)}>
+                      Next: Targeting
+                    </Button>
+                  </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* ── Step 2: Booking – Sub-step 3: Targeting ── */}
+              {currentStepId === 'booking' && bookingSubStep === 2 && (
+                <Card>
+                  <CardContent className="space-y-6 p-6">
+                  <FormSection title="Targeting">
+                    <div className="space-y-2">
+                      <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
+                      {localBrands.map((brand) => {
+                        const isSelected = selectedLocalBrands.includes(brand.id);
+                        return (
+                          <label
+                            key={brand.id}
+                            className={cn(
+                              'cursor-pointer',
+                              // Same card a selected option gets everywhere else,
+                              // so a picked brand reads as picked, not as a
+                              // checked row in a list.
+                              'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                              isSelected
+                                ? 'border-surface-selected-border bg-surface-selected'
+                                : 'border-border bg-background hover:bg-surface-hover',
+                            )}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => setSelectedLocalBrands(prev =>
+                                prev.includes(brand.id) ? prev.filter(b => b !== brand.id) : [...prev, brand.id]
+                              )}
+                            />
+                            <span className="min-w-0 truncate text-sm font-medium">{brand.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </FormSection>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between pt-1">
+                    <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                    <Button onClick={finishSPWizard}>
                       Save &amp; finish
                     </Button>
                   </div>
@@ -3394,7 +3407,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   steps={[
                     {
                       id: 'booking-setup',
-                      label: 'Booking setup',
+                      label: 'Setup',
                       status: bookingStatus(0),
                       values: [
                         bookingCampaignName || 'Unnamed booking',
@@ -3414,6 +3427,15 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(1),
                     },
+                    {
+                      id: 'targeting',
+                      label: 'Targeting',
+                      status: bookingStatus(2),
+                      values: [
+                        selectedLocalBrands.length > 0 ? `${selectedLocalBrands.length} local brand${selectedLocalBrands.length === 1 ? '' : 's'}` : '',
+                      ].filter(Boolean),
+                      onClick: () => setBookingSubStep(2),
+                    },
                   ]}
                   actions={
                     bookingSubStep === 0
@@ -3421,10 +3443,15 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
                           { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
                         ]
-                      : [
-                          { label: 'Save & finish', onClick: finishSPWizard },
-                          { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
-                        ]
+                      : bookingSubStep === 1
+                        ? [
+                            { label: 'Next: Targeting', onClick: () => setBookingSubStep(2) },
+                            { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
+                          ]
+                        : [
+                            { label: 'Save & finish', onClick: finishSPWizard },
+                            { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(1) },
+                          ]
                   }
                   footer={bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
                 />

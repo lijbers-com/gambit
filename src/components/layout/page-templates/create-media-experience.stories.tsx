@@ -794,6 +794,9 @@ export const GoalSelection: Story = {
           mediaPlanId: plan.id,
           name: row.name.trim() || `${name} — ${propName}`,
           engine: row.engine as EngineId,
+          // Persisted so the follow-up booking/creative wizards know whether
+          // to open fully prefilled (assisted) or only with the shared facts.
+          mode: row.mode === 'preset' ? 'assisted' : 'expert',
           status: 'in-option',
           budget: rowBudget,
           spend: 0,

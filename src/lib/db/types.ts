@@ -119,6 +119,11 @@ export interface Campaign {
   mediaPlanId: string;
   name: string;
   engine: EngineId;
+  /** How the campaign was set up in the media plan wizard. Assisted campaigns
+   *  carry AI-prefilled defaults all the way down: the follow-up booking and
+   *  creative wizards open fully filled, for the user to check rather than
+   *  type. Absent means the campaign was built by hand (expert). */
+  mode?: 'assisted' | 'expert';
   status: PlanStatus;
   budget: number;
   spend: number;

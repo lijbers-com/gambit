@@ -527,17 +527,6 @@ const PropositionWizard = ({
     ? wizardSteps[currentStep + 1]?.id === 'bookings'
     : currentStep === wizardSteps.length - 1;
 
-  // Booking mode: the campaign's own facts come from the existing record.
-  // Seeded after mount (never during render) so server and client agree.
-  React.useEffect(() => {
-    if (!routeCampaign) return;
-    setCampaignName(routeCampaign.name);
-    if (routeCampaign.budget > 0) setBudgetAmount(String(routeCampaign.budget));
-    setDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
-    setBookingDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeCampaign?.id]);
-
   // The proposition's real inventory, for the booking's placement pick.
   const enginePositions = React.useMemo(() => {
     const products = db.mediaProducts.filter((mp) => mp.engine === propositionType);
@@ -562,6 +551,70 @@ const PropositionWizard = ({
   ];
 
   const toIso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+
+  // ── Prefill — the questions the media plan already answered are not asked
+  //    again. All seeded after mount (never during render) so server and
+  //    client HTML agree. ──────────────────────────────────────────────────
+
+  // Campaign mode inside a plan: name, run time, the plan's goal, its
+  // advertiser and brand, and the unallocated share of its budget.
+  React.useEffect(() => {
+    if (!linkedPlan || routeCampaign) return;
+    setCampaignName((prev) => prev || `${linkedPlan.name} — ${proposition.name}`);
+    setDateRange({ from: new Date(linkedPlan.startDate), to: new Date(linkedPlan.endDate) });
+    const siblings = db.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
+    const unallocated = Math.max(linkedPlan.budget - siblings.reduce((s, c) => s + c.budget, 0), 0);
+    if (unallocated > 0) setBudgetAmount((prev) => prev || String(unallocated));
+    if (linkedPlan.goal) setSelectedGoal((prev) => prev ?? linkedPlan.goal!);
+    // The plan's advertiser and brand, matched by name into the demo options.
+    const adv = db.advertisers.find((a) => a.id === linkedPlan.advertiserId);
+    if (adv) {
+      const advOpt = advertiserOptions.find((o) => o.label.toLowerCase() === adv.name.toLowerCase());
+      if (advOpt) setSelectedAdvertiser((prev) => prev || advOpt.value);
+      const planBrand = adv.brands.find((b) => linkedPlan.brandIds.includes(b.id)) ?? adv.brands[0];
+      // Prefix match either way — the store says "Pepsi", the option "PepsiCo".
+      const brandOpt = planBrand && brandOptions.find((o) => {
+        const a = o.label.toLowerCase(); const b = planBrand.name.toLowerCase();
+        return a === b || a.startsWith(b) || b.startsWith(a);
+      });
+      if (brandOpt) setSelectedBrand((prev) => prev || brandOpt.value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedPlan?.id, routeCampaign?.id]);
+
+  // Booking mode: the campaign's own facts come from the existing record, and
+  // the booking form opens pre-named and pre-dated. An ASSISTED campaign goes
+  // further — position preselected and the form already open, so the user
+  // checks a filled booking instead of building one.
+  React.useEffect(() => {
+    if (!routeCampaign) return;
+    setCampaignName(routeCampaign.name);
+    if (routeCampaign.budget > 0) setBudgetAmount(String(routeCampaign.budget));
+    setDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
+    setBookingDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
+    const existing = db.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
+    setBookingName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
+    if (routeCampaign.mode === 'assisted' && !creativesOnly) {
+      const firstFree = enginePositions[0];
+      if (firstFree) setBookingPositionIds((prev) => (prev.length ? prev : [firstFree.id]));
+      setBookingSubStep((prev) => prev ?? 0);
+    }
+    // `mode` is a dep because the hydration snapshot (the seed) can resolve
+    // the campaign first, without the mode the browser's store carries.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeCampaign?.id, routeCampaign?.mode]);
+
+  // Assisted creatives: arrive chosen, not empty — the first creative is
+  // staged per booking and the user swaps or clears it.
+  React.useEffect(() => {
+    if (currentStepId !== 'creatives' || routeCampaign?.mode !== 'assisted') return;
+    setCreativeChoice((prev) => {
+      const next = { ...prev };
+      creativeTargets.forEach((t) => { if (!(t.id in next)) next[t.id] = creativeOptions[0].id; });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepId, routeCampaign?.id, routeCampaign?.mode]);
 
   /**
    * The wizard's result: real records. The campaign (unless it already
@@ -2490,12 +2543,24 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [endDate, setEndDate] = React.useState<Date | undefined>(initialValues?.endDate);
 
   // Context from the database, seeded after mount (never during render, so
-  // server and client HTML agree): the plan the campaign is created in, and —
-  // in booking mode — the existing campaign's own facts.
+  // server and client HTML agree): the plan the campaign is created in
+  // answers name, run time, budget share and advertiser — those questions are
+  // not asked again, only shown for checking.
   React.useEffect(() => {
-    if (linkedPlan) setSelectedMediaPlanV2(`db-${linkedPlan.id}`);
+    if (!linkedPlan) return;
+    setSelectedMediaPlanV2(`db-${linkedPlan.id}`);
+    if (routeCampaign) return; // booking mode seeds from the campaign instead
+    setCampaignName((prev) => prev || `${linkedPlan.name} — Sponsored products`);
+    setStartDate((prev) => prev ?? new Date(linkedPlan.startDate));
+    setEndDate((prev) => prev ?? new Date(linkedPlan.endDate));
+    const siblings = spDb.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
+    const unallocated = Math.max(linkedPlan.budget - siblings.reduce((s, c) => s + c.budget, 0), 0);
+    if (unallocated > 0) setBudget((prev) => prev || String(unallocated));
+    const adv = spDb.advertisers.find((a) => a.id === linkedPlan.advertiserId);
+    const advOpt = adv && advertiserOptions.find((o) => o.label.toLowerCase() === adv.name.toLowerCase());
+    if (advOpt) setSelectedAdvertiser((prev) => prev || advOpt.value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkedPlan?.id]);
+  }, [linkedPlan?.id, routeCampaign?.id]);
 
   // ── Step 2: Booking ──
   // Sub-step within booking: 0 = Setup, 1 = Placements
@@ -2532,9 +2597,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     setBookingStartDate(new Date(routeCampaign.startDate));
     setBookingEndDate(new Date(routeCampaign.endDate));
     if (routeCampaign.budget > 0) setTotalBudget((prev) => prev || String(routeCampaign.budget));
+    const existing = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
+    setBookingCampaignName((prev) => prev || `${routeCampaign.name} — Booking ${existing + 1}`);
+    // An assisted campaign fills the whole booking — daily pace from the run
+    // time, a standard bid — so the form only needs checking.
+    if (routeCampaign.mode === 'assisted' && routeCampaign.budget > 0) {
+      const days = Math.max(1, Math.round((new Date(routeCampaign.endDate).getTime() - new Date(routeCampaign.startDate).getTime()) / 86400000) + 1);
+      setDailyBudget((prev) => prev || String(Math.max(1, Math.round(routeCampaign.budget / days))));
+      setBiddingCPC((prev) => prev || '0.50');
+    }
     setCurrentStep(1);
+    // `mode` is a dep because the hydration snapshot (the seed) can resolve
+    // the campaign first, without the mode the browser's store carries.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeCampaign?.id]);
+  }, [routeCampaign?.id, routeCampaign?.mode]);
   // Placements (sub-step 2)
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [spaLocations, setSpaLocations] = React.useState<string[]>(['loc-pdp']);

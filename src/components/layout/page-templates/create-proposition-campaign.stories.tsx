@@ -536,9 +536,11 @@ const PropositionWizard = ({
     deliveryLimit: boolean;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  // No Pricing step: the price sits on each selected placement card in
-  // Booking setup (auction campaigns), not at the bottom of the form.
-  const bookingSubStepLabels = ['Booking setup', 'Targeting', 'Delivery behavior', 'Delivery objectives'];
+  // The booking's four questions, in order: what it is, what it may spend
+  // and when, where it runs, and who it targets. No Pricing step — the price
+  // sits on each selected placement card (auction campaigns). For display,
+  // delivery behaviour and delivery objectives are part of Targeting.
+  const bookingSubStepLabels = ['Setup', 'Budget & run time', 'Placement', 'Targeting'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -546,8 +548,9 @@ const PropositionWizard = ({
   const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
   const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
   const [positionSearch, setPositionSearch] = React.useState('');
-  /** The booking's own budget, part of its Budget & run time section. */
+  /** The booking's own budget, part of its Budget & run time step. */
   const [bookingBudget, setBookingBudget] = React.useState('');
+  const [bookingExternalId, setBookingExternalId] = React.useState('');
   /** Channels expanded in the placement picker (channel → ad positions). */
   const [openChannelIds, setOpenChannelIds] = React.useState<string[]>([]);
   // The booking's placement — real positions from the proposition's inventory,
@@ -591,7 +594,7 @@ const PropositionWizard = ({
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined);
+    setBookingName(''); setBookingExternalId(''); setBookingBudget(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({});
@@ -1877,7 +1880,7 @@ const PropositionWizard = ({
                           onClick={() => setBookingSubStep(0)}
                         >
                           <AddInlineLabel className="font-medium">Add booking</AddInlineLabel>
-                          <div className="text-xs text-muted-foreground mt-1">Configure schedule, targeting and delivery</div>
+                          <div className="text-xs text-muted-foreground mt-1">Setup, budget &amp; run time, placement and targeting</div>
                         </button>
                         {currentStep > 0 && (
                           <div className="flex justify-start mt-2">
@@ -1892,157 +1895,21 @@ const PropositionWizard = ({
                   {bookingSubStep !== null && (
                     <>
                       {/* Booking setup step */}
+                      {/* Step 1: Setup — what this booking is. */}
                       {bookingSubStep === 0 && (
                         <Card>
                           <CardHeader>
-                            <CardTitle className="text-lg">Booking setup</CardTitle>
-                            <CardDescription>Name the booking, set its budget and run time, and pick where it runs</CardDescription>
+                            <CardTitle className="text-lg">Setup</CardTitle>
+                            <CardDescription>Name the booking and give it an external reference</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
                               <Label>Booking name <span className="text-destructive">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
                             </div>
-                            {/* Budget & run time — one section, the same block the
-                                booking detail page uses: how much, when, and on
-                                which days. (Evaluation ID is a later feature,
-                                activated on the booking page itself.) */}
-                            <div className="rounded-lg border p-4 space-y-4">
-                              <div className="text-sm font-semibold">Budget &amp; run time</div>
-                              <div className="space-y-2">
-                                <Label>Booking budget</Label>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  value={bookingBudget}
-                                  onChange={(e) => setBookingBudget(e.target.value)}
-                                  placeholder="Enter budget"
-                                />
-                                {budgetAmount.trim() !== '' && (
-                                  <p className="text-xs text-muted-foreground">Campaign budget: €{Number(budgetAmount).toLocaleString()}</p>
-                                )}
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Run time <span className="text-destructive">*</span></Label>
-                                <DateRangePicker
-                                  dateRange={bookingDateRange}
-                                  onDateRangeChange={setBookingDateRange}
-                                  placeholder="Select start and end date"
-                                  showPresets
-                                  showWeekNumbers
-                                  events={retailMoments}
-                                  presets={futureDateRangePresets}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                  <label className="block text-sm text-muted-foreground">Start time</label>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                    <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
-                                  </div>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="block text-sm text-muted-foreground">End time</label>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
-                                    <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="space-y-3">
-                                <div className="text-sm font-medium">Active days</div>
-                                <div className="flex gap-2">
-                                  {dayLabels.map(day => (
-                                    <button key={day.id} onClick={() => toggleDay(day.id)}
-                                      className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                      {day.label}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <span>Select:</span>
-                                  <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
-                                  <span>·</span>
-                                  <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
-                                  <span>·</span>
-                                  <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Placement: pick the CHANNEL first, then tweak its
-                                ad positions — the shape the inventory is sold in.
-                                On auction campaigns each picked position carries
-                                its own bid. */}
-                            <div className="rounded-lg border p-4 space-y-3">
-                              <div className="text-sm font-semibold">Position</div>
-                              <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search channels and positions..." className="w-full" />
-                              <div className="space-y-2">
-                                {engineChannels.map((ch) => {
-                                  const q = positionSearch.trim().toLowerCase();
-                                  const positions = ch.positions.filter((p) => !q || `${ch.name} ${p.name}`.toLowerCase().includes(q));
-                                  if (q && positions.length === 0) return null;
-                                  const selectedCount = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
-                                  // Searching opens everything; a lone channel needs no fold.
-                                  const open = q !== '' || engineChannels.length === 1 || openChannelIds.includes(ch.id);
-                                  return (
-                                    <div key={ch.id} className={cn('rounded-md border', selectedCount > 0 ? 'border-surface-selected-border' : 'border-border')}>
-                                      <button
-                                        type="button"
-                                        className="flex w-full items-center justify-between gap-2 p-3 text-left"
-                                        onClick={() => setOpenChannelIds(prev => prev.includes(ch.id) ? prev.filter(x => x !== ch.id) : [...prev, ch.id])}
-                                      >
-                                        <span className="min-w-0">
-                                          <span className="block truncate text-sm font-medium">{ch.name}</span>
-                                          <span className="block text-xs text-muted-foreground">
-                                            {ch.positions.length} ad position{ch.positions.length === 1 ? '' : 's'}
-                                            {selectedCount > 0 ? ` · ${selectedCount} selected` : ''}
-                                          </span>
-                                        </span>
-                                        <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open ? '' : '-rotate-90')} />
-                                      </button>
-                                      {open && (
-                                        <div className="space-y-2 border-t border-border p-3">
-                                          {positions.map((p) => {
-                                            const picked = bookingPositionIds.includes(p.id);
-                                            return (
-                                              <div
-                                                key={p.id}
-                                                className={cn(
-                                                  'rounded-md border p-3 transition-colors',
-                                                  picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
-                                                )}
-                                              >
-                                                <label className="flex w-full cursor-pointer items-center gap-3 text-left">
-                                                  <Checkbox
-                                                    checked={picked}
-                                                    onCheckedChange={() => setBookingPositionIds(prev =>
-                                                      prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                                                  />
-                                                  <span className="min-w-0">
-                                                    <span className="block truncate text-sm font-medium">{p.name}</span>
-                                                    <span className="block text-xs text-muted-foreground">{p.format ?? ch.name}</span>
-                                                  </span>
-                                                </label>
-                                                {picked && isAuction && (
-                                                  <BidRow
-                                                    id={p.id}
-                                                    value={positionBids[p.id] ?? ''}
-                                                    onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
-                                                  />
-                                                )}
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                                {engineChannels.length === 0 && (
-                                  <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
-                                )}
-                              </div>
+                            <div className="space-y-2">
+                              <Label>External ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                              <Input value={bookingExternalId} onChange={(e) => setBookingExternalId(e.target.value)} placeholder="e.g. 11743347" />
                             </div>
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
@@ -2052,8 +1919,172 @@ const PropositionWizard = ({
                         </Card>
                       )}
 
-                      {/* Targeting step */}
+                      {/* Step 2: Budget & run time — how much it may spend and
+                          when it runs, the way the media plan asks it. */}
                       {bookingSubStep === 1 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Budget &amp; run time</CardTitle>
+                            <CardDescription>How much this booking may spend, and when it runs</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                              <Label>Booking budget</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={bookingBudget}
+                                onChange={(e) => setBookingBudget(e.target.value)}
+                                placeholder="Enter budget"
+                              />
+                              {budgetAmount.trim() !== '' && (
+                                <p className="text-xs text-muted-foreground">Campaign budget: €{Number(budgetAmount).toLocaleString()}</p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Run time <span className="text-destructive">*</span></Label>
+                              <DateRangePicker
+                                dateRange={bookingDateRange}
+                                onDateRangeChange={setBookingDateRange}
+                                placeholder="Select start and end date"
+                                showPresets
+                                showWeekNumbers
+                                events={retailMoments}
+                                presets={futureDateRangePresets}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <label className="block text-sm text-muted-foreground">Start time</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
+                                  <Input value={bookingStartTime} onChange={(e) => setBookingStartTime(e.target.value)} className="pl-9" placeholder="00:00" />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-sm text-muted-foreground">End time</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><Clock className="w-4 h-4" /></span>
+                                  <Input value={bookingEndTime} onChange={(e) => setBookingEndTime(e.target.value)} className="pl-9" placeholder="23:59" />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <div className="text-sm font-medium">Active days</div>
+                              <div className="flex gap-2">
+                                {dayLabels.map(day => (
+                                  <button key={day.id} onClick={() => toggleDay(day.id)}
+                                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${activeDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                    {day.label}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <span>Select:</span>
+                                <button className="text-primary hover:underline" onClick={() => setActiveDays(['sa', 'su'])}>Weekend</button>
+                                <span>·</span>
+                                <button className="text-primary hover:underline" onClick={() => setActiveDays(['mo', 'tu', 'we', 'th', 'fr'])}>Weekdays</button>
+                                <span>·</span>
+                                <button className="text-primary hover:underline" onClick={() => setActiveDays([])}>Deselect All</button>
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Step 3: Placement — pick the CHANNEL first, then tweak
+                          its ad positions. On auction campaigns each picked
+                          position carries its own bid. */}
+                      {bookingSubStep === 2 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Placement</CardTitle>
+                            <CardDescription>Pick the channel, then the ad positions this booking runs on</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <Input value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} placeholder="Search channels and positions..." className="w-full" />
+                            <div className="space-y-2">
+                              {engineChannels.map((ch) => {
+                                const q = positionSearch.trim().toLowerCase();
+                                const positions = ch.positions.filter((p) => !q || `${ch.name} ${p.name}`.toLowerCase().includes(q));
+                                if (q && positions.length === 0) return null;
+                                const selectedCount = ch.positions.filter((p) => bookingPositionIds.includes(p.id)).length;
+                                // Searching opens everything; a lone channel needs no fold.
+                                const open = q !== '' || engineChannels.length === 1 || openChannelIds.includes(ch.id);
+                                return (
+                                  <div key={ch.id} className={cn('rounded-md border', selectedCount > 0 ? 'border-surface-selected-border' : 'border-border')}>
+                                    <button
+                                      type="button"
+                                      className="flex w-full items-center justify-between gap-2 p-3 text-left"
+                                      onClick={() => setOpenChannelIds(prev => prev.includes(ch.id) ? prev.filter(x => x !== ch.id) : [...prev, ch.id])}
+                                    >
+                                      <span className="min-w-0">
+                                        <span className="block truncate text-sm font-medium">{ch.name}</span>
+                                        <span className="block text-xs text-muted-foreground">
+                                          {ch.positions.length} ad position{ch.positions.length === 1 ? '' : 's'}
+                                          {selectedCount > 0 ? ` · ${selectedCount} selected` : ''}
+                                        </span>
+                                      </span>
+                                      <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open ? '' : '-rotate-90')} />
+                                    </button>
+                                    {open && (
+                                      <div className="space-y-2 border-t border-border p-3">
+                                        {positions.map((p) => {
+                                          const picked = bookingPositionIds.includes(p.id);
+                                          return (
+                                            <div
+                                              key={p.id}
+                                              className={cn(
+                                                'rounded-md border p-3 transition-colors',
+                                                picked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
+                                              )}
+                                            >
+                                              <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                                                <Checkbox
+                                                  checked={picked}
+                                                  onCheckedChange={() => setBookingPositionIds(prev =>
+                                                    prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
+                                                />
+                                                <span className="min-w-0">
+                                                  <span className="block truncate text-sm font-medium">{p.name}</span>
+                                                  <span className="block text-xs text-muted-foreground">{p.format ?? ch.name}</span>
+                                                </span>
+                                              </label>
+                                              {picked && isAuction && (
+                                                <BidRow
+                                                  id={p.id}
+                                                  value={positionBids[p.id] ?? ''}
+                                                  onChange={(v) => setPositionBids(prev => ({ ...prev, [p.id]: v }))}
+                                                />
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                              {engineChannels.length === 0 && (
+                                <p className="text-xs text-muted-foreground">No channels configured for this proposition yet.</p>
+                              )}
+                            </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Step 4: Targeting — who this booking reaches. For
+                          display, delivery behaviour and delivery objectives
+                          are part of targeting too. */}
+                      {bookingSubStep === 3 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Targeting</CardTitle>
@@ -2086,82 +2117,53 @@ const PropositionWizard = ({
                                 </select>
                               </div>
                             </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Delivery behavior step */}
-                      {bookingSubStep === 2 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Delivery behavior</CardTitle>
-                            <CardDescription>Configure how your ads are delivered</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {[
-                              { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
-                              { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap },
-                            ].map(({ label, checked, onChange }) => (
-                              <div key={label} className="flex items-center justify-between p-4 rounded-lg border">
-                                <span className="font-medium text-sm">{label}</span>
-                                <div className="flex items-center gap-3">
-                                  <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
-                                  <Switch checked={checked} onCheckedChange={onChange} />
+                            {isDisplay && (
+                              <div className="rounded-lg border p-4 space-y-3">
+                                <Label className="text-sm font-semibold">Delivery behavior</Label>
+                                {[
+                                  { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
+                                  { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap },
+                                ].map(({ label, checked, onChange }) => (
+                                  <div key={label} className="flex items-center justify-between p-3 rounded-lg border">
+                                    <span className="font-medium text-sm">{label}</span>
+                                    <Switch checked={checked} onCheckedChange={onChange} />
+                                  </div>
+                                ))}
+                                <div className="rounded-lg border p-3 space-y-2">
+                                  <span className="font-medium text-sm">Delivery method</span>
+                                  <select value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm bg-background">
+                                    {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                  </select>
+                                  <p className="text-xs text-muted-foreground">Follows the default setting that is configured for your account (Frontloaded).</p>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border">
+                                  <span className="font-medium text-sm">Exclusivity</span>
+                                  <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
                                 </div>
                               </div>
-                            ))}
-                            <div className="rounded-lg border p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm">Delivery method</span>
-                                <div className="w-5 h-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs text-muted-foreground cursor-help select-none">i</div>
+                            )}
+                            {isDisplay && (
+                              <div className="rounded-lg border p-4 space-y-3">
+                                <Label className="text-sm font-semibold">Delivery objectives</Label>
+                                <div className="flex items-center justify-between p-3 rounded-lg border">
+                                  <span className="font-medium text-sm">Priority</span>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
+                                    <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border">
+                                  <span className="font-medium text-sm">Reach</span>
+                                  <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border">
+                                  <span className="font-medium text-sm">Delivery limit</span>
+                                  <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
+                                </div>
                               </div>
-                              <select value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm bg-background">
-                                {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                              </select>
-                              <p className="text-xs text-muted-foreground">Follows the default setting that is configured for your account (Frontloaded).</p>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Exclusivity</span>
-                              <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
-                            </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Delivery objectives step */}
-                      {bookingSubStep === 3 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-lg">Delivery objectives</CardTitle>
-                            <CardDescription>Override delivery priority, reach and impression limits</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Priority</span>
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
-                                <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Reach</span>
-                              <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                              <span className="font-medium text-sm">Delivery limit</span>
-                              <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
-                            </div>
-                            {/* Last sub-step — the price already sits on the
-                                selected placements, so the sidebar's Create
-                                booking is the only way forward. */}
+                            )}
+                            {/* Last step — the sidebar's Create booking is the
+                                way forward from here. */}
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
                             </div>
@@ -2242,28 +2244,34 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookingSubStep !== null && (() => {
                 const getLiveBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: {
+                    case 0: { // Setup
                       const vals: string[] = [];
+                      if (bookingName.trim()) vals.push(bookingName);
+                      if (bookingExternalId.trim()) vals.push(bookingExternalId);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 1: { // Budget & run time
+                      const vals: string[] = [];
+                      if (bookingBudget.trim()) vals.push(`€${Number(bookingBudget).toLocaleString()}`);
                       if (bookingDateRange?.from) vals.push(`${bookingDateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}${bookingDateRange.to ? ` – ${bookingDateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${bookingEndTime}` : ''}`);
                       if (activeDays.length < 7) vals.push(activeDays.join(', '));
                       return vals.length > 0 ? vals : null;
                     }
-                    case 1: {
+                    case 2: { // Placement
+                      const vals: string[] = [];
+                      if (bookingPositionIds.length > 0) vals.push(`${bookingPositionIds.length} position${bookingPositionIds.length === 1 ? '' : 's'}`);
+                      const bidCount = Object.values(positionBids).filter(Boolean).length;
+                      if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 3: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (lineTargetValue) vals.push(`${lineTargetKeywordType}: ${lineTargetValue}`);
                       if (lineTargetMode !== 'inclusive') vals.push(lineTargetMode);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 2: {
-                      const vals: string[] = [];
                       if (deliveryMethod && deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
                       if (optimizeForCPC) vals.push('Optimize for CPC');
                       if (userFrequencyCap) vals.push('Frequency cap on');
                       if (exclusivity) vals.push('Exclusivity on');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 3: {
-                      const vals: string[] = [];
                       if (priorityOverride) vals.push('Priority override');
                       if (reachOverride) vals.push('Reach override');
                       if (deliveryLimit) vals.push('Delivery limit set');
@@ -2318,28 +2326,31 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookings.map((booking, index) => {
                 const getBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: { // Booking setup
+                    case 0: { // Setup
+                      return booking.name ? [booking.name] : null;
+                    }
+                    case 1: { // Budget & run time
                       const vals: string[] = [];
+                      if (booking.budget > 0) vals.push(`€${booking.budget.toLocaleString()}`);
                       if (booking.startDate) vals.push(`${booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${booking.startTime}${booking.endDate ? ` – ${booking.endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${booking.endTime}` : ''}`);
                       if (booking.activeDays.length < 7) vals.push(`${booking.activeDays.join(', ')}`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 1: { // Targeting
+                    case 2: { // Placement
+                      const vals: string[] = [];
+                      if (booking.positionIds.length > 0) vals.push(`${booking.positionIds.length} position${booking.positionIds.length === 1 ? '' : 's'}`);
+                      const bidCount = Object.values(booking.bids).filter(Boolean).length;
+                      if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
+                      return vals.length > 0 ? vals : null;
+                    }
+                    case 3: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (booking.targetValue) vals.push(`${booking.targetKeywordType}: ${booking.targetValue}`);
                       if (booking.targetMode !== 'inclusive') vals.push(booking.targetMode);
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 2: { // Delivery behavior
-                      const vals: string[] = [];
                       if (booking.deliveryMethod && booking.deliveryMethod !== 'Account setting') vals.push(booking.deliveryMethod);
                       if (booking.optimizeForCPC) vals.push('Optimize for CPC');
                       if (booking.userFrequencyCap) vals.push('Frequency cap on');
                       if (booking.exclusivity) vals.push('Exclusivity on');
-                      return vals.length > 0 ? vals : null;
-                    }
-                    case 3: { // Delivery objectives
-                      const vals: string[] = [];
                       if (booking.priorityOverride) vals.push('Priority override');
                       if (booking.reachOverride) vals.push('Reach override');
                       if (booking.deliveryLimit) vals.push('Delivery limit set');

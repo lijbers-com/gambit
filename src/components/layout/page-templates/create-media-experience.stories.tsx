@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
+import { SummaryCard } from '@/components/ui/summary-card';
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -1731,76 +1732,25 @@ export const GoalSelection: Story = {
 
             {/* Summary sidebar */}
             <div className="flex flex-col gap-4">
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>Media plan</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  <div className="relative pl-12">
-                    {/* Vertical timeline line */}
-                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-
-                    <div className="space-y-4">
-                      {wizardSteps.map((step, index) => {
-                        const status = getStepStatus(step.id, index);
-                        const stepValues = getStepValues(step.id);
-
-                        return (
-                          <div key={step.id} className="relative flex items-start -ml-12">
-                            {/* Circle on the timeline */}
-                            <div className="w-10 flex justify-center">
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                                  status === 'completed'
-                                    ? 'bg-primary text-primary-foreground'
-                                    : status === 'active'
-                                      ? 'bg-background text-primary border border-primary'
-                                      : 'bg-background text-muted-foreground border border-border'
-                                }`}
-                              >
-                                {status === 'completed' ? <Check size={14} /> : index + 1}
-                              </div>
-                            </div>
-                            {/* Step content */}
-                            <div className="ml-3 flex-1 min-w-0 pt-1">
-                              <button
-                                type="button"
-                                className={`text-sm text-left ${
-                                  status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'
-                                } ${status === 'completed' ? 'hover:underline cursor-pointer' : ''}`}
-                                onClick={() => {
-                                  if (status === 'completed') goToStep(index);
-                                }}
-                                disabled={status !== 'completed'}
-                              >
-                                {step.label}
-                              </button>
-                              {status === 'completed' && stepValues && stepValues.length > 0 ? (
-                                <div className="mt-1 space-y-0.5">
-                                  {stepValues.map((v, i) => (
-                                    <div key={i} className="text-xs text-muted-foreground">{v}</div>
-                                  ))}
-                                </div>
-                              ) : status === 'active' ? (
-                                <div className="text-xs text-muted-foreground italic mt-0.5">
-                                  Not filled in
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CardSummaryContent>
-                {currentStep === wizardSteps.length - 1 && (
-                  <div className="px-4 pb-4">
-                    <Button className="w-full" onClick={createMediaPlanFlow}>
-                      Save media plan
-                    </Button>
-                  </div>
-                )}
-              </CardSummary>
+              {/* The same process card every wizard draws its timeline with. */}
+              <SummaryCard
+                title="Media plan"
+                entity="media-plan"
+                variant="process"
+                className="bg-card"
+                steps={wizardSteps.map((step, index) => {
+                  const status = getStepStatus(step.id, index);
+                  const stepValues = getStepValues(step.id);
+                  return {
+                    id: step.id,
+                    label: step.label,
+                    status,
+                    values: stepValues && stepValues.length > 0 ? stepValues : undefined,
+                    onClick: status === 'completed' ? () => goToStep(index) : undefined,
+                  };
+                })}
+                actions={currentStep === wizardSteps.length - 1 ? [{ label: 'Save media plan', onClick: createMediaPlanFlow }] : undefined}
+              />
             </div>
           </div>
           </div>

@@ -2202,60 +2202,32 @@ const PropositionWizard = ({
                   />
                 </>
               ) : (
-              <CardSummary>
-                <CardHeader>
-                  <CardSummaryTitle>{`${proposition.name} campaign`}</CardSummaryTitle>
-                </CardHeader>
-                <CardSummaryContent>
-                  <div className="relative pl-12">
-                    <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
-                    <div className="space-y-4">
-                      {displayCampaignSteps.map((step, index) => {
-                        const status = isInBookingsPhase ? 'completed' : getStepStatus(index);
-                        const stepValues = getStepValues(step.id);
-                        return (
-                          <div key={step.id} className="relative flex items-start -ml-12">
-                            <div className="w-10 flex justify-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
-                                {status === 'completed' ? <Check size={14} /> : index + 1}
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1 min-w-0 pt-1">
-                              <button type="button"
-                                className={`text-sm text-left ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'} ${status === 'completed' && !isInBookingsPhase ? 'hover:underline cursor-pointer' : ''}`}
-                                onClick={() => { if (status === 'completed' && !isInBookingsPhase) goToStepById(step.id); }}
-                                disabled={status !== 'completed' || isInBookingsPhase}>
-                                {step.label}
-                              </button>
-                              {status === 'completed' && stepValues ? (
-                                <div className="text-sm text-muted-foreground mt-0.5">{Array.isArray(stepValues) ? stepValues.join(', ') : stepValues}</div>
-                              ) : status === 'active' ? (
-                                <div className="text-xs text-muted-foreground italic mt-0.5">{step.id === 'setup' ? 'Not filled in' : 'Not selected'}</div>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CardSummaryContent>
-                {/* Only the ACTIVE card carries a call to action, and only for
-                    the NEXT step: during the campaign phase this card is the
-                    active one, so it hands over to Bookings. In the booking
-                    and creative phases the progression lives in the main
-                    content, next to the step it belongs to. */}
-                {!isInBookingsPhase && isLastCampaignStep && (
-                  <div className="px-4 pb-4">
-                    <Button
-                      className="w-full"
-                      disabled={hasBookingsPhase ? !isCurrentStepComplete : false}
-                      onClick={hasBookingsPhase ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
-                    >
-                      {hasBookingsPhase ? 'Continue: Bookings' : 'Launch campaign'}
-                    </Button>
-                  </div>
-                )}
-              </CardSummary>
+              <SummaryCard
+                title={`${proposition.name} campaign`}
+                entity="campaign"
+                variant="process"
+                className="bg-card"
+                steps={displayCampaignSteps.map((step, index) => {
+                  const status = isInBookingsPhase ? 'completed' as const : getStepStatus(index);
+                  const stepValues = getStepValues(step.id);
+                  return {
+                    id: step.id,
+                    label: step.label,
+                    status,
+                    values: stepValues ? (Array.isArray(stepValues) ? stepValues : [stepValues]) : undefined,
+                    onClick: status === 'completed' && !isInBookingsPhase ? () => goToStepById(step.id) : undefined,
+                  };
+                })}
+                // Only the ACTIVE card carries a call to action, and only for
+                // the NEXT step: during the campaign phase this card is the
+                // active one, so it hands over to Bookings. In the booking and
+                // creative phases the progression lives in the main content.
+                actions={!isInBookingsPhase && isLastCampaignStep ? [{
+                  label: hasBookingsPhase ? 'Continue: Bookings' : 'Launch campaign',
+                  disabled: hasBookingsPhase ? !isCurrentStepComplete : false,
+                  onClick: hasBookingsPhase ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; },
+                }] : undefined}
+              />
               )}
 
               {/* The media plan this campaign hangs under — last in the

@@ -26,6 +26,7 @@ import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
+import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
@@ -506,9 +507,7 @@ const PropositionWizard = ({
     /** Per-position CPC on auction campaigns — the bid lives on the placement. */
     bids: Record<string, string>;
     inclTargets: Record<string, string[]>; exclTargets: Record<string, string[]>;
-    optimizeForCPC: boolean; userFrequencyCap: boolean; deliveryMethod: string;
-    exclusivity: boolean; priorityOverride: boolean; reachOverride: boolean;
-    deliveryLimit: boolean;
+    deliveryBehavior: DeliveryBehaviorValue; objectivesEnabled: boolean; deliveryObjectives: DeliveryObjectivesValue;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
   // The booking's four questions, in order: what it is, when it runs and
@@ -542,15 +541,10 @@ const PropositionWizard = ({
   // detail page uses (ui/target-select): groups first, values as chips.
   const [inclTargets, setInclTargets] = React.useState<Record<string, string[]>>({});
   const [exclTargets, setExclTargets] = React.useState<Record<string, string[]>>({});
-  // Delivery behavior
-  const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
-  const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
-  const [deliveryMethod, setDeliveryMethod] = React.useState('Account setting');
-  const [exclusivity, setExclusivity] = React.useState(false);
-  // Delivery objectives
-  const [priorityOverride, setPriorityOverride] = React.useState(false);
-  const [reachOverride, setReachOverride] = React.useState(false);
-  const [deliveryLimit, setDeliveryLimit] = React.useState(false);
+  // Delivery settings — the same value shapes the booking detail form uses.
+  const [deliveryBehavior, setDeliveryBehavior] = React.useState<DeliveryBehaviorValue>(defaultDeliveryBehavior);
+  const [objectivesEnabled, setObjectivesEnabled] = React.useState(false);
+  const [deliveryObjectives, setDeliveryObjectives] = React.useState<DeliveryObjectivesValue>(defaultDeliveryObjectives);
 
   const dayLabels = [
     { id: 'mo', label: 'Mo' }, { id: 'tu', label: 'Tu' }, { id: 'we', label: 'We' },
@@ -567,8 +561,7 @@ const PropositionWizard = ({
       positionIds: [...bookingPositionIds],
       bids: { ...positionBids },
       inclTargets: { ...inclTargets }, exclTargets: { ...exclTargets },
-      optimizeForCPC, userFrequencyCap, deliveryMethod, exclusivity,
-      priorityOverride, reachOverride, deliveryLimit,
+      deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
@@ -577,9 +570,7 @@ const PropositionWizard = ({
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
     setInclTargets({}); setExclTargets({});
-    setOptimizeForCPC(false); setUserFrequencyCap(false); setDeliveryMethod('Account setting');
-    setExclusivity(false); setPriorityOverride(false); setReachOverride(false);
-    setDeliveryLimit(false);
+    setDeliveryBehavior(defaultDeliveryBehavior); setObjectivesEnabled(false); setDeliveryObjectives(defaultDeliveryObjectives);
   };
   const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
 
@@ -1933,47 +1924,20 @@ const PropositionWizard = ({
                             {isDisplay && (
                               <div className="space-y-3">
                                 <Label className="text-sm font-semibold">Delivery behavior</Label>
-                                {[
-                                  { label: 'Optimize for CPC', checked: optimizeForCPC, onChange: setOptimizeForCPC },
-                                  { label: 'User frequency cap', checked: userFrequencyCap, onChange: setUserFrequencyCap },
-                                ].map(({ label, checked, onChange }) => (
-                                  <div key={label} className="flex items-center justify-between p-3 rounded-lg border">
-                                    <span className="font-medium text-sm">{label}</span>
-                                    <Switch checked={checked} onCheckedChange={onChange} />
-                                  </div>
-                                ))}
-                                <div className="rounded-lg border p-3 space-y-2">
-                                  <span className="font-medium text-sm">Delivery method</span>
-                                  <select value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm bg-background">
-                                    {['Account setting', 'Frontloaded', 'Even', 'ASAP'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                  </select>
-                                  <p className="text-xs text-muted-foreground">Follows the default setting that is configured for your account (Frontloaded).</p>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-lg border">
-                                  <span className="font-medium text-sm">Exclusivity</span>
-                                  <Switch checked={exclusivity} onCheckedChange={setExclusivity} />
-                                </div>
+                                <DeliveryBehaviorFields value={deliveryBehavior} onChange={setDeliveryBehavior} />
                               </div>
                             )}
                             {isDisplay && (
-                              <div className="space-y-3">
-                                <Label className="text-sm font-semibold">Delivery objectives</Label>
-                                <div className="flex items-center justify-between p-3 rounded-lg border">
-                                  <span className="font-medium text-sm">Priority</span>
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-sm text-muted-foreground">Inherited from campaign: Highest</span>
-                                    <Switch checked={priorityOverride} onCheckedChange={setPriorityOverride} />
-                                  </div>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-lg border">
-                                  <span className="font-medium text-sm">Reach</span>
-                                  <Switch checked={reachOverride} onCheckedChange={setReachOverride} />
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-lg border">
-                                  <span className="font-medium text-sm">Delivery limit</span>
-                                  <Switch checked={deliveryLimit} onCheckedChange={setDeliveryLimit} />
-                                </div>
-                              </div>
+                              <ToggleSection
+                                bordered={false}
+                                title="Delivery objectives"
+                                info={DELIVERY_OBJECTIVES_INFO}
+                                offSummary={DELIVERY_OBJECTIVES_OFF}
+                                checked={objectivesEnabled}
+                                onCheckedChange={setObjectivesEnabled}
+                              >
+                                <DeliveryObjectivesFields value={deliveryObjectives} onChange={setDeliveryObjectives} />
+                              </ToggleSection>
                             )}
                             {/* Last step — the sidebar's Create booking is the
                                 way forward from here. */}
@@ -2078,13 +2042,11 @@ const PropositionWizard = ({
                       const vals: string[] = [];
                       if (countTargets(inclTargets) > 0) vals.push(`${countTargets(inclTargets)} included`);
                       if (countTargets(exclTargets) > 0) vals.push(`${countTargets(exclTargets)} excluded`);
-                      if (deliveryMethod && deliveryMethod !== 'Account setting') vals.push(deliveryMethod);
-                      if (optimizeForCPC) vals.push('Optimize for CPC');
-                      if (userFrequencyCap) vals.push('Frequency cap on');
-                      if (exclusivity) vals.push('Exclusivity on');
-                      if (priorityOverride) vals.push('Priority override');
-                      if (reachOverride) vals.push('Reach override');
-                      if (deliveryLimit) vals.push('Delivery limit set');
+                      if (deliveryBehavior.deliveryMethod !== 'Account setting') vals.push(deliveryBehavior.deliveryMethod);
+                      if (deliveryBehavior.optimizeForCPC) vals.push('Optimise for CPC');
+                      if (deliveryBehavior.userFrequencyCap) vals.push('Frequency cap on');
+                      if (deliveryBehavior.exclusivity) vals.push('Exclusivity on');
+                      if (objectivesEnabled) vals.push('Delivery objectives set');
                       return vals.length > 0 ? vals : null;
                     }
                     default: return null;
@@ -2157,13 +2119,11 @@ const PropositionWizard = ({
                       const vals: string[] = [];
                       if (countTargets(booking.inclTargets) > 0) vals.push(`${countTargets(booking.inclTargets)} included`);
                       if (countTargets(booking.exclTargets) > 0) vals.push(`${countTargets(booking.exclTargets)} excluded`);
-                      if (booking.deliveryMethod && booking.deliveryMethod !== 'Account setting') vals.push(booking.deliveryMethod);
-                      if (booking.optimizeForCPC) vals.push('Optimize for CPC');
-                      if (booking.userFrequencyCap) vals.push('Frequency cap on');
-                      if (booking.exclusivity) vals.push('Exclusivity on');
-                      if (booking.priorityOverride) vals.push('Priority override');
-                      if (booking.reachOverride) vals.push('Reach override');
-                      if (booking.deliveryLimit) vals.push('Delivery limit set');
+                      if (booking.deliveryBehavior.deliveryMethod !== 'Account setting') vals.push(booking.deliveryBehavior.deliveryMethod);
+                      if (booking.deliveryBehavior.optimizeForCPC) vals.push('Optimise for CPC');
+                      if (booking.deliveryBehavior.userFrequencyCap) vals.push('Frequency cap on');
+                      if (booking.deliveryBehavior.exclusivity) vals.push('Exclusivity on');
+                      if (booking.objectivesEnabled) vals.push('Delivery objectives set');
                       return vals.length > 0 ? vals : null;
                     }
                     default: return null;

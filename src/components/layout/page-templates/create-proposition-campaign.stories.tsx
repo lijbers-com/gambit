@@ -250,7 +250,7 @@ const getWizardSteps = (propositionType: string) => {
     return [
       { id: 'setup', label: 'Setup' },
       { id: 'advertiser', label: 'Advertiser' },
-      { id: 'budget', label: 'Budget & run time' },
+      { id: 'budget', label: 'Run time & budget' },
       { id: 'bookings', label: 'Bookings' },
       { id: 'creatives', label: 'Creatives' },
     ];
@@ -259,7 +259,7 @@ const getWizardSteps = (propositionType: string) => {
     return [
       { id: 'setup', label: 'Setup' },
       { id: 'advertiser', label: 'Advertiser' },
-      { id: 'budget', label: 'Budget & run time' },
+      { id: 'budget', label: 'Run time & budget' },
       { id: 'targeting', label: 'Goals & targets' },
       { id: 'keywords', label: 'Keywords & placements' },
     ];
@@ -267,7 +267,7 @@ const getWizardSteps = (propositionType: string) => {
   return [
     { id: 'setup', label: 'Setup' },
     { id: 'advertiser', label: 'Advertiser' },
-    { id: 'budget', label: 'Budget & run time' },
+    { id: 'budget', label: 'Run time & budget' },
     { id: 'targeting', label: 'Goals & targets' },
     { id: 'bookings', label: 'Bookings' },
     { id: 'creatives', label: 'Creatives' },
@@ -470,7 +470,6 @@ const PropositionWizard = ({
   const [biddingCPC, setBiddingCPC] = React.useState('');
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
-  const [autoBudgetOptimization, setAutoBudgetOptimization] = React.useState(true);
 
   // Step 4: Goals & targets
   const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
@@ -1379,40 +1378,6 @@ const PropositionWizard = ({
                             </p>
                           </div>
                         )}
-                        {/* Auto Budget Optimization */}
-                        <div className={cn(
-                          "rounded-lg border p-4 transition-all",
-                          autoBudgetOptimization ? 'border-primary/30 bg-primary/5' : 'border-border'
-                        )}>
-                          <div className="flex items-start gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <Sparkles size={14} className={autoBudgetOptimization ? 'text-primary' : 'text-muted-foreground'} />
-                                <span className="text-sm font-medium">Auto budget optimization</span>
-                                {autoBudgetOptimization && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">AI</Badge>}
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Automatically optimize your budget allocation based on real-time performance data to maximise ROAS
-                              </p>
-                            </div>
-                            <Switch
-                              checked={autoBudgetOptimization}
-                              onCheckedChange={setAutoBudgetOptimization}
-                            />
-                          </div>
-                          {autoBudgetOptimization && budgetAmount && (
-                            <div className="mt-3 pt-3 border-t border-primary/20 flex gap-4">
-                              <div className="flex items-center gap-1.5">
-                                <TrendingUp size={12} className="text-primary" />
-                                <span className="text-xs text-muted-foreground">Avg. +18% ROAS improvement</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <DollarSign size={12} className="text-primary" />
-                                <span className="text-xs text-muted-foreground">Real-time rebalancing</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     )}
                     <div className="flex justify-end gap-3 mt-8">
@@ -2276,18 +2241,6 @@ const PropositionWizard = ({
                       { label: 'Buying type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
                     ]}
                   />
-                  <SummaryCard
-                    title="Media plan"
-                    entity="media-plan"
-                    variant="details"
-                    collapsible
-                    className="bg-page"
-                    items={linkedPlan ? [
-                      { label: 'Media plan', value: linkedPlan.name },
-                      { label: 'Total budget', value: `€${linkedPlan.budget.toLocaleString()}` },
-                    ] : undefined}
-                    empty={linkedPlan ? undefined : 'No media plan linked'}
-                  />
                 </>
               ) : (
               <CardSummary>
@@ -2345,6 +2298,22 @@ const PropositionWizard = ({
                 )}
               </CardSummary>
               )}
+
+              {/* The media plan this campaign hangs under — last in the
+                  hierarchy, always present: an empty card when nothing is
+                  linked, the plan's name and budget when one is. */}
+              <SummaryCard
+                title="Media plan"
+                entity="media-plan"
+                variant="details"
+                collapsible
+                className="bg-page"
+                items={linkedPlan ? [
+                  { label: 'Media plan', value: linkedPlan.name },
+                  { label: 'Total budget', value: `€${linkedPlan.budget.toLocaleString()}` },
+                ] : undefined}
+                empty={linkedPlan ? undefined : 'No media plan linked'}
+              />
             </div>
           </div>
         </div>
@@ -2501,7 +2470,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [currentStep, setCurrentStep] = React.useState(startAtBooking ? 1 : 0);
   // The campaign's three questions, one card each: what it is (name and how
   // it buys), who it is for, and what it may spend and when.
-  const campaignSubStepLabels = ['Setup', 'Advertiser', 'Budget & run time'];
+  const campaignSubStepLabels = ['Setup', 'Advertiser', 'Run time & budget'];
   const [campaignSubStep, setCampaignSubStep] = React.useState(0);
   const [spBrand, setSpBrand] = React.useState('');
   const [spRetailProducts, setSpRetailProducts] = React.useState<string[]>([]);
@@ -2968,8 +2937,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               {currentStepId === 'campaign-details' && campaignSubStep === 2 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Budget &amp; run time</CardTitle>
-                    <CardDescription>What this campaign may spend, and when it runs</CardDescription>
+                    <CardTitle className="text-lg">Run time &amp; budget</CardTitle>
+                    <CardDescription>When this campaign runs, and what it may spend</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-1.5">

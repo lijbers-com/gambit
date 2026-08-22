@@ -2185,8 +2185,28 @@ const PropositionWizard = ({
                   (and its media plan) render as the shared SummaryCard, with
                   the entity icon and left-aligned details — and NO call to
                   action, because only the active card carries one. */}
-              {bookingMode && routeCampaign ? (
-                <>
+              {/* A campaign whose steps are done — an existing one in booking
+                  mode, or the one just set up once the flow moves on to its
+                  bookings — is no longer the active card: it steps back into
+                  the collapsed context card on the page background, so only
+                  one timeline (the booking's) is ever active. */}
+              {(bookingMode && routeCampaign) || isInBookingsPhase ? (() => {
+                const facts = routeCampaign
+                  ? {
+                      name: stripPropositionSuffix(routeCampaign.name),
+                      budget: routeCampaign.budget,
+                      start: new Date(routeCampaign.startDate),
+                      end: new Date(routeCampaign.endDate),
+                      type: routeCampaign.buyingType ?? 'auction',
+                    }
+                  : {
+                      name: campaignName || 'New campaign',
+                      budget: parseFloat(budgetAmount) || 0,
+                      start: dateRange?.from,
+                      end: dateRange?.to,
+                      type: buyingType,
+                    };
+                return (
                   <SummaryCard
                     title={`${proposition.name} campaign`}
                     entity="campaign"
@@ -2194,14 +2214,14 @@ const PropositionWizard = ({
                     collapsible
                     className="bg-page"
                     items={[
-                      { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
-                      { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
-                      { label: 'Run time', value: `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}` },
-                      { label: 'Buying type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
+                      { label: 'Campaign name', value: facts.name },
+                      { label: 'Budget', value: facts.budget > 0 ? `€${facts.budget.toLocaleString()}` : '—' },
+                      { label: 'Run time', value: facts.start && facts.end ? `${formatDate(facts.start)} – ${formatDate(facts.end)}` : '—' },
+                      { label: 'Campaign type', value: facts.type === 'guaranteed' ? 'Guaranteed' : 'Auction' },
                     ]}
                   />
-                </>
-              ) : (
+                );
+              })() : (
               <SummaryCard
                 title={`${proposition.name} campaign`}
                 entity="campaign"

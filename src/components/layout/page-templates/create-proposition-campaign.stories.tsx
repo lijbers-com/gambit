@@ -422,11 +422,13 @@ const PropositionWizard = ({
   // creates the campaign and bookings the detail pages then show.
   const db = useDb();
   const routeCampaign = campaignId ? db.campaigns.find((c) => c.id === campaignId) : undefined;
-  const linkedPlan = planId
-    ? db.mediaPlans.find((p) => p.id === planId)
-    : routeCampaign
-      ? db.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)
-      : undefined;
+  // Seeded from the route (`?planId=`, or the campaign's own plan in booking
+  // mode); the Media plan card's link action can change it.
+  const [linkedPlanId, setLinkedPlanId] = React.useState<string | undefined>(
+    planId ?? routeCampaign?.mediaPlanId ?? undefined,
+  );
+  const [linkingMediaPlan, setLinkingMediaPlan] = React.useState(false);
+  const linkedPlan = linkedPlanId ? db.mediaPlans.find((p) => p.id === linkedPlanId) : undefined;
   const bookingMode = !!campaignId;
   const creativesOnly = bookingMode && entryStep === 'creatives';
 
@@ -2308,11 +2310,33 @@ const PropositionWizard = ({
                 variant="details"
                 collapsible
                 className="bg-page"
+                headerAction={{
+                  icon: LinkActionIcon,
+                  label: linkedPlan ? 'Change linked media plan' : 'Link a media plan',
+                  onClick: () => setLinkingMediaPlan(true),
+                }}
                 items={linkedPlan ? [
                   { label: 'Media plan', value: linkedPlan.name },
                   { label: 'Total budget', value: `€${linkedPlan.budget.toLocaleString()}` },
                 ] : undefined}
                 empty={linkedPlan ? undefined : 'No media plan linked'}
+              />
+              <LinkPickerDialog
+                open={linkingMediaPlan}
+                onOpenChange={setLinkingMediaPlan}
+                entityLabel="media plan"
+                allowNone
+                noneLabel="No media plan"
+                options={db.mediaPlans.map((mp) => ({
+                  value: mp.id,
+                  label: mp.name,
+                  details: {
+                    Advertiser: db.advertisers.find((a) => a.id === mp.advertiserId)?.name ?? '—',
+                    Budget: `€${mp.budget.toLocaleString()}`,
+                  },
+                }))}
+                value={linkedPlanId}
+                onChange={(v) => setLinkedPlanId(v || undefined)}
               />
             </div>
           </div>

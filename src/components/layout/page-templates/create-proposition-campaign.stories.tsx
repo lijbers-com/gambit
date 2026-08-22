@@ -268,7 +268,6 @@ const getWizardSteps = (propositionType: string) => {
     { id: 'setup', label: 'Setup' },
     { id: 'advertiser', label: 'Advertiser' },
     { id: 'budget', label: 'Run time & budget' },
-    { id: 'targeting', label: 'Goals & targets' },
     { id: 'bookings', label: 'Bookings' },
     { id: 'creatives', label: 'Creatives' },
   ];
@@ -1188,58 +1187,16 @@ const PropositionWizard = ({
                         <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
                       </div>
                       <div className="space-y-2">
-                        <Label>{isSponsoredProducts ? 'SKU' : 'Retail products'} <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                        <div className="relative" data-dropdown-container>
-                          <SearchInput
-                            value={retailProductSearch}
-                            onChange={handleRetailProductSearchChange}
-                            onClick={() => setShowRetailProductResults(true)}
-                            placeholder="Select product by name or ID..."
-                            className="w-full"
-                            icon={<ScanBarcode className="w-4 h-4" />}
-                          />
-                          {showRetailProductResults && (
-                            <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                              {!retailProductSearch && (
-                                <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-                                  Suggestions
-                                </div>
-                              )}
-                              {filteredRetailProducts.length > 0 ? (
-                                filteredRetailProducts.map((product) => (
-                                  <div
-                                    key={product.id}
-                                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 ${
-                                      selectedRetailProducts.includes(product.id) ? 'bg-primary/5' : ''
-                                    }`}
-                                    onClick={() => handleRetailProductSelect(product)}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm">{product.name}</span>
-                                      <span className="text-xs text-muted-foreground">#{product.id}</span>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="p-3 text-sm text-muted-foreground">No products found</div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <SelectionList
-                          variant="list"
-                          items={selectedRetailProducts
-                            .map((id) => retailProducts.find((p) => p.id === id))
-                            .filter(Boolean)
-                            .map((p) => ({ id: p!.id, label: p!.name, meta: `#${p!.id}`, image: p!.image }))}
-                          onRemove={(id) => removeRetailProduct(id)}
-                          className="mt-2"
+                        <SearchSelectList
+                          label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                          placeholder="Select product by name or ID…"
+                          icon={<ScanBarcode className="w-4 h-4" />}
+                          options={retailProducts.map((r) => ({ value: r.id, label: r.name, description: r.id }))}
+                          value={selectedRetailProducts}
+                          onChange={setSelectedRetailProducts}
+                          maxVisibleSelected={5}
                         />
-                        <div className="text-xs text-muted-foreground">
-                          {selectedRetailProducts.length > 0
-                            ? `${selectedRetailProducts.length} retail product${selectedRetailProducts.length > 1 ? 's' : ''} selected`
-                            : 'Search and select retail products to target for this campaign'}
-                        </div>
+                        <div className="text-xs text-muted-foreground">Search and select retail products to target for this campaign</div>
                       </div>
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
@@ -2497,6 +2454,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const campaignSubStepLabels = ['Setup', 'Advertiser', 'Run time & budget'];
   const [campaignSubStep, setCampaignSubStep] = React.useState(0);
   const [spBrand, setSpBrand] = React.useState('');
+  const [spPoNumber, setSpPoNumber] = React.useState('');
   const [spRetailProducts, setSpRetailProducts] = React.useState<string[]>([]);
   const currentStepId = wizardSteps[currentStep]?.id;
 
@@ -2864,7 +2822,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         pageHeaderProps={{
           title: currentStepId === 'booking'
             ? bookingCampaignName || 'Untitled'
-            : campaignName || 'Untitled',
+            : campaignName || 'Create sponsored products campaign',
           // Where you are in the flow is the timeline's job, in the sidebar.
           subtitle: '',
           headerRight: null,
@@ -2889,24 +2847,35 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Setup</CardTitle>
-                    <CardDescription>Name the campaign and choose how it buys</CardDescription>
+                    <CardDescription>Enter the basic details for your new sponsored products campaign</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* The media plan this hangs under is not a field of this
                         form — it is changed from the Media plan summary card. */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="v2-name">Campaign name <span className="text-foreground">*</span></Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="v2-name">Campaign name</Label>
                       <Input
                         id="v2-name"
-                        placeholder="e.g. Summer Sale 2026 – Powerade"
+                        placeholder="e.g. Summer Sale 2026"
                         value={campaignName}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
+                        hint="Give your campaign a descriptive name to easily identify it later"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="v2-po">PO number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                      <Input
+                        id="v2-po"
+                        placeholder="e.g. PO-123456"
+                        value={spPoNumber}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpPoNumber(e.target.value)}
                       />
                     </div>
                     {/* How the campaign buys is part of what it is — it
                         decides whether the placements step carries bids. */}
                     <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
-                    <div className="flex justify-end gap-3">
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost">Cancel</Button>
                       <Button disabled={!campaignName.trim()} onClick={() => setCampaignSubStep(1)}>Continue</Button>
                     </div>
                   </CardContent>
@@ -2920,8 +2889,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     <CardDescription>Select the advertiser, brand and retail products for this campaign</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="space-y-1.5">
-                      <Label>Advertiser <span className="text-foreground">*</span></Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="advertiser">Advertiser</Label>
                       <Input
                         dropdown
                         options={advertiserOptions}
@@ -2930,8 +2899,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         placeholder="Select an advertiser"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label>Brand</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="brand">Brand</Label>
                       <Input
                         dropdown
                         options={brandOptions}
@@ -2939,19 +2908,22 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         onChange={(value: string) => setSpBrand(value)}
                         placeholder="Select a brand"
                       />
-                      <div className="text-xs text-muted-foreground">Choose the brand this campaign will advertise for</div>
+                      <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
                     </div>
-                    <SearchSelectList
-                      label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
-                      placeholder="Select product by name or ID…"
-                      icon={<ScanBarcode className="w-4 h-4" />}
-                      options={retailProducts.map((r) => ({ value: r.id, label: r.name, description: r.id }))}
-                      value={spRetailProducts}
-                      onChange={setSpRetailProducts}
-                      maxVisibleSelected={5}
-                    />
-                    <div className="flex justify-end gap-3">
-                      <Button variant="outline" onClick={() => setCampaignSubStep(0)}>Back</Button>
+                    <div className="space-y-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={retailProducts.map((r) => ({ value: r.id, label: r.name, description: r.id }))}
+                        value={spRetailProducts}
+                        onChange={setSpRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                      <div className="text-xs text-muted-foreground">Search and select retail products to target for this campaign</div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCampaignSubStep(0)}>Back</Button>
                       <Button disabled={!selectedAdvertiser} onClick={() => setCampaignSubStep(2)}>Continue</Button>
                     </div>
                   </CardContent>
@@ -2962,22 +2934,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Run time &amp; budget</CardTitle>
-                    <CardDescription>When this campaign runs, and what it may spend</CardDescription>
+                    <CardDescription>Set when your campaign runs and how much you want to spend</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="v2-budget">Budget <span className="text-foreground">*</span></Label>
-                      <Input
-                        id="v2-budget"
-                        type="number"
-                        placeholder="e.g. 200000"
-                        value={budget}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
-                      />
-                    </div>
                     {/* One field, both ends picked in one calendar */}
-                    <div className="space-y-1.5">
-                      <Label>Run time <span className="text-foreground">*</span></Label>
+                    <div className="space-y-2">
+                      <Label>Run time</Label>
                       <DateRangePicker
                         dateRange={startDate ? { from: startDate, to: endDate } : undefined}
                         onDateRangeChange={(range) => {
@@ -2990,11 +2952,40 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         events={retailMoments}
                         presets={futureDateRangePresets}
                       />
+                      <div className="text-xs text-muted-foreground">Your campaign will automatically start and stop on the selected dates</div>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="v2-budget">Total budget</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                        <Input
+                          id="v2-budget"
+                          type="number"
+                          placeholder="e.g. 5000"
+                          value={budget}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
+                          className="pl-7"
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">The maximum total amount for the entire campaign duration</div>
+                    </div>
+                    {budget && startDate && endDate && (
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Daily average</span>
+                          <span className="text-sm font-semibold text-primary">
+                            €{(parseFloat(budget) / (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          €{budget} over {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
+                        </p>
+                      </div>
+                    )}
                     {/* Last card — the campaign card's Create campaign is the
                         way forward from here. */}
-                    <div className="flex justify-end gap-3">
-                      <Button variant="outline" onClick={() => setCampaignSubStep(1)}>Back</Button>
+                    <div className="flex justify-end gap-3 mt-8">
+                      <Button variant="ghost" onClick={() => setCampaignSubStep(1)}>Back</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -3331,7 +3322,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               // shape whichever entity a flow happens to start from.
               const campaignTimeline = (
                 <SummaryCard
-                  title="Campaign"
+                  title="Sponsored products campaign"
                   entity="campaign"
                   variant="process"
                   className="bg-card"
@@ -3350,12 +3341,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       onClick: () => { setCurrentStep(0); setCampaignSubStep(i); },
                     };
                   })}
+                  // Only the last campaign step carries the call to action,
+                  // the same rule the other propositions' wizards follow.
                   actions={
-                    campaignSubStep < campaignSubStepLabels.length - 1
-                      ? [{ label: `Next: ${campaignSubStepLabels[campaignSubStep + 1]}`, onClick: () => setCampaignSubStep(campaignSubStep + 1) }]
-                      : [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
+                    campaignSubStep === campaignSubStepLabels.length - 1
+                      ? [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
+                      : undefined
                   }
-                  footer={campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined}
                 />
               );
               const bookingStatus = (i: number) =>

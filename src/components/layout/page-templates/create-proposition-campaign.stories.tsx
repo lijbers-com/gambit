@@ -36,38 +36,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { DateRange } from 'react-day-picker';
-import {
-  Eye,
-  Brain,
-  ShoppingCart,
-  Heart,
-  Check,
-  X,
-  Users,
-  Tag,
-  TrendingUp,
-  DollarSign,
-  Sparkles,
-  ScanBarcode,
-  MonitorSpeaker,
-  ListStart,
-  MonitorPlay,
-  Store,
-  CalendarDays,
-  Target,
-  Search,
-  Plus,
-  ChevronDown,
-  ChevronRight,
-  Download,
-  Upload,
-  Calendar,
-  Clock,
-  CornerDownRight,
-  Globe,
-  ImagePlus,
-  type LucideIcon,
-} from 'lucide-react';
+import { Eye, Brain, ShoppingCart, Heart, Check, X, Users, Tag, TrendingUp, DollarSign, Sparkles, ScanBarcode, MonitorSpeaker, ListStart, MonitorPlay, Store, CalendarDays, Target, Search, Plus, ChevronDown, ChevronRight, Download, Upload, Calendar, Clock, CornerDownRight, Globe, ImagePlus, type LucideIcon, Gavel, ShieldCheck } from 'lucide-react';
 import { AddInlineLabel } from '@/components/ui/add-button';
 
 const meta: Meta<typeof AppLayout> = {
@@ -394,7 +363,9 @@ const BidRow = ({
 );
 
 /** Auction vs guaranteed — the campaign-setup question that decides whether
- *  placements carry bids. */
+ *  placements carry bids. The same GoalCard the media plan's goal step uses,
+ *  in the same grid, so a campaign type reads as the same kind of choice as
+ *  a goal. */
 const BuyingTypePicker = ({
   value,
   onChange,
@@ -403,24 +374,20 @@ const BuyingTypePicker = ({
   onChange: (v: 'auction' | 'guaranteed') => void;
 }) => (
   <div className="space-y-2">
-    <Label>Buying type</Label>
-    <div className="grid gap-3 sm:grid-cols-2">
+    <Label>Campaign type</Label>
+    <div className="grid grid-cols-1 gap-2 sm:auto-rows-fr sm:grid-cols-2">
       {([
-        { id: 'auction' as const, title: 'Auction', text: 'Bid per placement — each selected placement carries its own CPC.' },
-        { id: 'guaranteed' as const, title: 'Guaranteed', text: 'Fixed price, reserved delivery — no bidding.' },
+        { id: 'auction' as const, icon: <Gavel />, title: 'Auction', text: 'Bid per placement — each selected placement carries its own CPC.' },
+        { id: 'guaranteed' as const, icon: <ShieldCheck />, title: 'Guaranteed', text: 'Fixed price, reserved delivery — no bidding.' },
       ]).map((opt) => (
-        <button
+        <GoalCard
           key={opt.id}
-          type="button"
+          icon={opt.icon}
+          title={opt.title}
+          description={opt.text}
+          selected={value === opt.id}
           onClick={() => onChange(opt.id)}
-          className={cn(
-            'rounded-md border p-3 text-left transition-colors',
-            value === opt.id ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
-          )}
-        >
-          <span className="block text-sm font-medium">{opt.title}</span>
-          <span className="block text-xs text-muted-foreground">{opt.text}</span>
-        </button>
+        />
       ))}
     </div>
   </div>
@@ -2967,7 +2934,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </div>
 
-                    {/* Row 3: Budget (full width) */}
+                    {/* Row 3: Campaign type — decides whether the placements
+                        step carries bids at all, so it comes before the money. */}
+                    <div className="mb-5">
+                      <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
+                    </div>
+
+                    {/* Row 4: Budget (full width) */}
                     <div className="mb-5 space-y-1.5">
                       <Label htmlFor="v2-budget">Budget <span className="text-destructive">*</span></Label>
                       <Input
@@ -2977,12 +2950,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         value={budget}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
                       />
-                    </div>
-
-                    {/* Row 4: Buying type — decides whether the placements
-                        step carries bids at all. */}
-                    <div className="mb-5">
-                      <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
                     </div>
 
                     {/* Row 5: Run time — one field, both ends picked in one calendar */}

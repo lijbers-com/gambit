@@ -521,7 +521,6 @@ const PropositionWizard = ({
   const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
   /** The booking's own budget, part of its Budget & run time step. */
   const [bookingBudget, setBookingBudget] = React.useState('');
-  const [bookingExternalId, setBookingExternalId] = React.useState('');
   /** The channel picked in the Placement step (CreatePlacement is
    *  single-select: one media product per booking, everything in it included,
    *  trimmed in the modal). */
@@ -569,7 +568,7 @@ const PropositionWizard = ({
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingExternalId(''); setBookingBudget(''); setBookingDateRange(undefined);
+    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
@@ -1268,7 +1267,7 @@ const PropositionWizard = ({
                     {isSponsoredProducts ? (
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <Label>Run time <span className="text-destructive">*</span></Label>
+                          <Label>Run time <span className="text-foreground">*</span></Label>
                           <DateRangePicker
                             dateRange={dateRange}
                             onDateRangeChange={setDateRange}
@@ -1284,7 +1283,7 @@ const PropositionWizard = ({
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="budget-amount">Total budget <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="budget-amount">Total budget <span className="text-foreground">*</span></Label>
                             <div className="relative">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                               <Input
@@ -1298,7 +1297,7 @@ const PropositionWizard = ({
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="daily-budget">Daily budget <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="daily-budget">Daily budget <span className="text-foreground">*</span></Label>
                             <div className="relative">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                               <Input
@@ -1312,7 +1311,7 @@ const PropositionWizard = ({
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="bidding-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="bidding-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
                             <div className="relative">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                               <Input
@@ -1890,12 +1889,8 @@ const PropositionWizard = ({
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
-                              <Label>Booking name <span className="text-destructive">*</span></Label>
+                              <Label>Booking name <span className="text-foreground">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>External ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                              <Input value={bookingExternalId} onChange={(e) => setBookingExternalId(e.target.value)} placeholder="e.g. 11743347" />
                             </div>
                             <BookingBudgetRuntime
                               bordered={false}
@@ -2456,7 +2451,6 @@ const SearchSelect: React.FC<SearchSelectProps> = ({ options, value, onChange, p
 
 export interface SPWizardInitialValues {
   campaignName?: string;
-  externalId?: string;
   budget?: string;
   advertiser?: string;
   mediaPlanLabel?: string;
@@ -2569,7 +2563,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   }, [initialValues?.advertiser]);
 
   const [campaignName, setCampaignName] = React.useState(initialValues?.campaignName ?? '');
-  const [externalId, setExternalId] = React.useState(initialValues?.externalId ?? '');
   const [budget, setBudget] = React.useState(initialValues?.budget ?? '');
   // Auction bids per keyword/category/placement live on their cards in the
   // placements step; guaranteed campaigns show none. Booking mode inherits
@@ -2900,31 +2893,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     {/* The media plan this hangs under is not a field of this
                         form — it is changed from the Media plan summary card. */}
 
-                    {/* Row 1: Name + External ID */}
-                    <div className="grid grid-cols-2 gap-4 mb-5">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="v2-name">Campaign name <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="v2-name"
-                          placeholder="e.g. Summer Sale 2026 – Powerade"
-                          value={campaignName}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="v2-ext-id">External ID <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="v2-ext-id"
-                          placeholder="e.g. 11743347"
-                          value={externalId}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExternalId(e.target.value)}
-                        />
-                      </div>
+                    {/* Row 1: Name (full width) */}
+                    <div className="mb-5 space-y-1.5">
+                      <Label htmlFor="v2-name">Campaign name <span className="text-foreground">*</span></Label>
+                      <Input
+                        id="v2-name"
+                        placeholder="e.g. Summer Sale 2026 – Powerade"
+                        value={campaignName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
+                      />
                     </div>
 
                     {/* Row 2: Advertiser (full width) */}
                     <div className="mb-5 space-y-1.5">
-                      <Label>Advertiser <span className="text-destructive">*</span></Label>
+                      <Label>Advertiser <span className="text-foreground">*</span></Label>
                       <Input
                         dropdown
                         options={advertiserOptions}
@@ -2942,7 +2924,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                     {/* Row 4: Budget (full width) */}
                     <div className="mb-5 space-y-1.5">
-                      <Label htmlFor="v2-budget">Budget <span className="text-destructive">*</span></Label>
+                      <Label htmlFor="v2-budget">Budget <span className="text-foreground">*</span></Label>
                       <Input
                         id="v2-budget"
                         type="number"
@@ -2954,7 +2936,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                     {/* Row 5: Run time — one field, both ends picked in one calendar */}
                     <div className="mb-6 space-y-1.5">
-                      <Label>Run time <span className="text-destructive">*</span></Label>
+                      <Label>Run time <span className="text-foreground">*</span></Label>
                       <DateRangePicker
                         dateRange={startDate ? { from: startDate, to: endDate } : undefined}
                         onDateRangeChange={(range) => {
@@ -2986,7 +2968,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {/* Which campaign this booking belongs to is changed from
                           the Campaign details card, not asked for again here. */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-name">Booking name <span className="text-destructive">*</span></Label>
+                        <Label htmlFor="bk-name">Booking name <span className="text-foreground">*</span></Label>
                         <Input
                           id="bk-name"
                           placeholder="e.g. Enter booking name"
@@ -2997,7 +2979,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {/* One field, both ends picked in one calendar — a run
                           time is a span, not two independent dates. */}
                       <div className="space-y-1.5">
-                        <Label>Run time <span className="text-destructive">*</span></Label>
+                        <Label>Run time <span className="text-foreground">*</span></Label>
                         <DateRangePicker
                           dateRange={bookingStartDate ? { from: bookingStartDate, to: bookingEndDate } : undefined}
                           onDateRangeChange={(range) => {
@@ -3018,7 +3000,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label htmlFor="bk-total">Total budget <span className="text-destructive">*</span></Label>
+                          <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>
                           <Input
                             id="bk-total"
                             type="number"
@@ -3028,7 +3010,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="bk-daily">Daily budget <span className="text-destructive">*</span></Label>
+                          <Label htmlFor="bk-daily">Daily budget <span className="text-foreground">*</span></Label>
                           <Input
                             id="bk-daily"
                             type="number"
@@ -3446,7 +3428,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         }}
                         items={[
                           { label: 'Campaign name', value: campaignName || campaign?.label || dash },
-                          ...(externalId ? [{ label: 'External ID', value: externalId }] : []),
                           { label: 'Advertiser', value: advertiserOptions.find(a => a.value === selectedAdvertiser)?.label ?? dash },
                           { label: 'Budget', value: budget ? `€${budget}` : dash },
                           { label: 'Runtime', value: startDate || endDate ? `${fmt(startDate)} - ${fmt(endDate)}` : dash },

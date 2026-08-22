@@ -856,7 +856,7 @@ export const Display: Story = {
                 {section1Open && (
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium">Booking name <span className="text-destructive">*</span></label>
+                      <label className="block text-sm font-medium">Booking name <span className="text-foreground">*</span></label>
                       <Input
                         value={bookingName}
                         onChange={(e) => setBookingName(e.target.value)}
@@ -4381,7 +4381,7 @@ export const SponsoredProducts: Story = {
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label htmlFor="sp-daily-budget">Daily budget <span className="text-destructive">*</span></Label>
+                              <Label htmlFor="sp-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
                               <Input
                                 id="sp-daily-budget"
                                 type="number"
@@ -4391,7 +4391,7 @@ export const SponsoredProducts: Story = {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-destructive">*</span></Label>
+                              <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
                               <Input
                                 id="sp-cpc"
                                 type="number"

@@ -420,7 +420,12 @@ const PropositionWizard = ({
   // positions) from it and WRITES its result into it: finishing is what
   // creates the campaign and bookings the detail pages then show.
   const db = useDb();
-  const routeCampaign = campaignId ? db.campaigns.find((c) => c.id === campaignId) : undefined;
+  // The campaign the booking hangs under: seeded from the route, and the
+  // campaign card's link action can point the booking at another one — even
+  // right after creating a campaign here.
+  const [linkedCampaignId, setLinkedCampaignId] = React.useState<string | undefined>(campaignId);
+  const [linkingCampaign, setLinkingCampaign] = React.useState(false);
+  const routeCampaign = linkedCampaignId ? db.campaigns.find((c) => c.id === linkedCampaignId) : undefined;
   // Seeded from the route (`?planId=`, or the campaign's own plan in booking
   // mode); the Media plan card's link action can change it.
   const [linkedPlanId, setLinkedPlanId] = React.useState<string | undefined>(
@@ -506,11 +511,12 @@ const PropositionWizard = ({
     deliveryLimit: boolean;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  // The booking's three questions, in order: what it is (name, budget and
-  // run time as one block), where it runs, and who it targets. No Pricing
-  // step — the price sits on each selected placement (auction campaigns).
-  // For display, delivery behaviour and objectives are part of Targeting.
-  const bookingSubStepLabels = ['Setup', 'Placement', 'Targeting'];
+  // The booking's four questions, in order: what it is, when it runs and
+  // what it may spend (with active days), where it runs, and who it targets.
+  // No Pricing step — the price sits on each selected placement (auction
+  // campaigns). For display, delivery behaviour and objectives are part of
+  // Targeting.
+  const bookingSubStepLabels = ['Setup', 'Run time & budget', 'Placement', 'Targeting'];
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -1801,20 +1807,31 @@ const PropositionWizard = ({
                   {bookingSubStep !== null && (
                     <>
                       {/* Booking setup step */}
-                      {/* Step 1: Setup — what this booking is, and what it
-                          may spend and when, as one block (same shape as the
-                          sponsored products setup). */}
+                      {/* Step 1: Setup — what this booking is. */}
                       {bookingSubStep === 0 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Setup</CardTitle>
-                            <CardDescription>Name the booking, set its budget and run time</CardDescription>
+                            <CardDescription>Name the booking</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
                               <Label>Booking name <span className="text-foreground">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
                             </div>
+                            <div className="flex justify-end gap-3 mt-4">
+                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Step 2: Run time & budget — the SAME shared block the
+                          booking detail page uses, active days included. */}
+                      {bookingSubStep === 1 && (
+                        <Card>
+                          <CardContent className="space-y-6 p-6">
                             <BookingBudgetRuntime
                               bordered={false}
                               budget={bookingBudget}
@@ -1831,9 +1848,9 @@ const PropositionWizard = ({
                               activeDays={canScheduleDays ? activeDays : undefined}
                               onActiveDaysChange={canScheduleDays ? setActiveDays : undefined}
                             />
-                            <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
+                            <div className="flex justify-end gap-3">
+                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1843,7 +1860,7 @@ const PropositionWizard = ({
                           the booking detail page uses: find the channel, get
                           everything in it, trim ad positions in the modal.
                           Auction campaigns bid per position in that modal. */}
-                      {bookingSubStep === 1 && (
+                      {bookingSubStep === 2 && (
                         <Card>
                           <CardContent className="space-y-6 p-6">
                             <FormSection title="Create placement">
@@ -1876,8 +1893,8 @@ const PropositionWizard = ({
                               />
                             </FormSection>
                             <div className="flex justify-end gap-3">
-                              <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                              <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
+                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                              <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1886,7 +1903,7 @@ const PropositionWizard = ({
                       {/* Step 4: Targeting — who this booking reaches. For
                           display, delivery behaviour and delivery objectives
                           are part of targeting too. */}
-                      {bookingSubStep === 2 && (
+                      {bookingSubStep === 3 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Targeting</CardTitle>
@@ -1961,7 +1978,7 @@ const PropositionWizard = ({
                             {/* Last step — the sidebar's Create booking is the
                                 way forward from here. */}
                             <div className="flex justify-end gap-3 mt-4">
-                              <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                              <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -2040,22 +2057,24 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookingSubStep !== null && (() => {
                 const getLiveBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: { // Setup — name, budget & run time as one block
+                    case 0: { // Setup
+                      return bookingName.trim() ? [bookingName] : null;
+                    }
+                    case 1: { // Run time & budget
                       const vals: string[] = [];
-                      if (bookingName.trim()) vals.push(bookingName);
                       if (bookingBudget.trim()) vals.push(`€${Number(bookingBudget).toLocaleString()}`);
                       if (bookingDateRange?.from) vals.push(`${bookingDateRange.from.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${bookingStartTime}${bookingDateRange.to ? ` – ${bookingDateRange.to.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${bookingEndTime}` : ''}`);
                       if (activeDays.length < 7) vals.push(activeDays.join(', '));
                       return vals.length > 0 ? vals : null;
                     }
-                    case 1: { // Placement
+                    case 2: { // Placement
                       const vals: string[] = [];
                       if (bookingPositionIds.length > 0) vals.push(`${bookingPositionIds.length} position${bookingPositionIds.length === 1 ? '' : 's'}`);
                       const bidCount = Object.values(positionBids).filter(Boolean).length;
                       if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 2: { // Targeting (incl. delivery for display)
+                    case 3: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (countTargets(inclTargets) > 0) vals.push(`${countTargets(inclTargets)} included`);
                       if (countTargets(exclTargets) > 0) vals.push(`${countTargets(exclTargets)} excluded`);
@@ -2117,22 +2136,24 @@ const PropositionWizard = ({
               {isInBookingsPhase && bookings.map((booking, index) => {
                 const getBookingStepValues = (stepIndex: number): string[] | null => {
                   switch (stepIndex) {
-                    case 0: { // Setup — name, budget & run time as one block
+                    case 0: { // Setup
+                      return booking.name ? [booking.name] : null;
+                    }
+                    case 1: { // Run time & budget
                       const vals: string[] = [];
-                      if (booking.name) vals.push(booking.name);
                       if (booking.budget > 0) vals.push(`€${booking.budget.toLocaleString()}`);
                       if (booking.startDate) vals.push(`${booking.startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${booking.startTime}${booking.endDate ? ` – ${booking.endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${booking.endTime}` : ''}`);
                       if (booking.activeDays.length < 7) vals.push(`${booking.activeDays.join(', ')}`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 1: { // Placement
+                    case 2: { // Placement
                       const vals: string[] = [];
                       if (booking.positionIds.length > 0) vals.push(`${booking.positionIds.length} position${booking.positionIds.length === 1 ? '' : 's'}`);
                       const bidCount = Object.values(booking.bids).filter(Boolean).length;
                       if (bidCount > 0) vals.push(`${bidCount} bid${bidCount === 1 ? '' : 's'} set`);
                       return vals.length > 0 ? vals : null;
                     }
-                    case 2: { // Targeting (incl. delivery for display)
+                    case 3: { // Targeting (incl. delivery for display)
                       const vals: string[] = [];
                       if (countTargets(booking.inclTargets) > 0) vals.push(`${countTargets(booking.inclTargets)} included`);
                       if (countTargets(booking.exclTargets) > 0) vals.push(`${countTargets(booking.exclTargets)} excluded`);
@@ -2207,12 +2228,18 @@ const PropositionWizard = ({
                       type: buyingType,
                     };
                 return (
+                  <>
                   <SummaryCard
                     title={`${proposition.name} campaign`}
                     entity="campaign"
                     variant="details"
                     collapsible
                     className="bg-page"
+                    headerAction={{
+                      icon: LinkActionIcon,
+                      label: 'Change linked campaign',
+                      onClick: () => setLinkingCampaign(true),
+                    }}
                     items={[
                       { label: 'Campaign name', value: facts.name },
                       { label: 'Budget', value: facts.budget > 0 ? `€${facts.budget.toLocaleString()}` : '—' },
@@ -2220,6 +2247,29 @@ const PropositionWizard = ({
                       { label: 'Campaign type', value: facts.type === 'guaranteed' ? 'Guaranteed' : 'Auction' },
                     ]}
                   />
+                  <LinkPickerDialog
+                    open={linkingCampaign}
+                    onOpenChange={setLinkingCampaign}
+                    entityLabel="campaign"
+                    // A booking always belongs to a campaign; while one is
+                    // being created here, "none" means this new one.
+                    allowNone={!bookingMode}
+                    noneLabel="This new campaign"
+                    options={db.campaigns
+                      .filter((c) => c.engine === propositionType)
+                      .map((c) => ({
+                        value: c.id,
+                        label: stripPropositionSuffix(c.name),
+                        details: {
+                          'Media plan': db.mediaPlans.find((mp) => mp.id === c.mediaPlanId)?.name ?? '—',
+                          Budget: c.budget > 0 ? `€${c.budget.toLocaleString()}` : '—',
+                          Status: c.status,
+                        },
+                      }))}
+                    value={linkedCampaignId}
+                    onChange={(v) => setLinkedCampaignId(v || undefined)}
+                  />
+                  </>
                 );
               })() : (
               <SummaryCard
@@ -2988,21 +3038,35 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   look like the same job. */}
               {currentStepId === 'booking' && bookingSubStep === 0 && (
                 <Card>
-                  <CardContent className="space-y-6 p-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Setup</CardTitle>
+                    <CardDescription>Name the booking</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Which campaign this booking belongs to is changed from
+                        the Campaign details card, not asked for again here. */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bk-name">Booking name <span className="text-foreground">*</span></Label>
+                      <Input
+                        id="bk-name"
+                        placeholder="Enter booking name"
+                        value={bookingCampaignName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 mt-4">
+                      <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
+                      <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                  <FormSection title="Booking setup">
+              {currentStepId === 'booking' && bookingSubStep === 1 && (
+                <Card>
+                  <CardContent className="space-y-6 p-6">
+                  <FormSection title="Run time & budget">
                     <div className="space-y-4">
-                      {/* Which campaign this booking belongs to is changed from
-                          the Campaign details card, not asked for again here. */}
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-name">Booking name <span className="text-foreground">*</span></Label>
-                        <Input
-                          id="bk-name"
-                          placeholder="e.g. Enter booking name"
-                          value={bookingCampaignName}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
-                        />
-                      </div>
                       {/* One field, both ends picked in one calendar — a run
                           time is a span, not two independent dates. */}
                       <div className="space-y-1.5">
@@ -3020,11 +3084,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           presets={futureDateRangePresets}
                         />
                       </div>
-                    </div>
-                  </FormSection>
-
-                  <FormSection title="Budget and bidding">
-                    <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>
@@ -3056,30 +3115,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       </div>
                     </div>
                   </FormSection>
-
-                  {/* Navigation */}
-                  <div className="flex items-center justify-between gap-4 pt-1">
-                    <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
-                    <div className="flex items-center gap-3">
-                      {bookingMissing.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          Still needed: {bookingMissing.join(', ')}
-                        </span>
-                      )}
-                      <Button
-                        disabled={!isBookingComplete}
-                        onClick={() => setBookingSubStep(1)}
-                      >
-                        Next: Placements
-                      </Button>
-                    </div>
+                  <div className="flex justify-end gap-3">
+                    <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
+                    <Button disabled={!isBookingComplete} onClick={() => setBookingSubStep(2)}>Continue</Button>
                   </div>
                   </CardContent>
                 </Card>
               )}
 
               {/* ── Step 2: Booking – Sub-step 2: Placements ── */}
-              {currentStepId === 'booking' && bookingSubStep === 1 && (
+              {currentStepId === 'booking' && bookingSubStep === 2 && (
                 <Card>
                   <CardContent className="space-y-6 p-6">
 
@@ -3249,18 +3294,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   </FormSection>
 
                   {/* Navigation */}
-                  <div className="flex justify-between pt-1">
-                    <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
-                    <Button onClick={() => setBookingSubStep(2)}>
-                      Next: Targeting
-                    </Button>
+                  <div className="flex justify-end gap-3 pt-1">
+                    <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
+                    <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
                   </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* ── Step 2: Booking – Sub-step 3: Targeting ── */}
-              {currentStepId === 'booking' && bookingSubStep === 2 && (
+              {/* ── Step 2: Booking – Sub-step 4: Targeting ── */}
+              {currentStepId === 'booking' && bookingSubStep === 3 && (
                 <Card>
                   <CardContent className="space-y-6 p-6">
                   <FormSection title="Targeting">
@@ -3284,11 +3327,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   </FormSection>
 
                   {/* Navigation */}
-                  <div className="flex justify-between pt-1">
-                    <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
-                    <Button onClick={finishSPWizard}>
-                      Save &amp; finish
-                    </Button>
+                  {/* Last step — the booking card's Save & finish is the way
+                      forward from here. */}
+                  <div className="flex justify-end gap-3 pt-1">
+                    <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
                   </div>
                   </CardContent>
                 </Card>
@@ -3352,51 +3394,44 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       id: 'booking-setup',
                       label: 'Setup',
                       status: bookingStatus(0),
-                      values: [
-                        bookingCampaignName || 'Unnamed booking',
-                        totalBudget ? `€${totalBudget}` : '',
-                        Object.keys(spBids).length > 0 ? `${Object.keys(spBids).length} bid${Object.keys(spBids).length === 1 ? '' : 's'} set` : '',
-                      ].filter(Boolean),
+                      values: [bookingCampaignName].filter(Boolean),
                       onClick: () => setBookingSubStep(0),
                     },
                     {
-                      id: 'placements',
-                      label: 'Placements',
+                      id: 'booking-budget',
+                      label: 'Run time & budget',
                       status: bookingStatus(1),
                       values: [
-                        selectedProducts.length > 0 ? `${selectedProducts.length} products` : '',
-                        keywords.length > 0 ? `${keywords.length} keywords` : '',
-                        selectedCategories.length > 0 ? `${selectedCategories.length} categories` : '',
+                        totalBudget ? `€${totalBudget}` : '',
+                        bookingStartDate ? `${fmt(bookingStartDate)} - ${fmt(bookingEndDate)}` : '',
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(1),
                     },
                     {
-                      id: 'targeting',
-                      label: 'Targeting',
+                      id: 'placements',
+                      label: 'Placements',
                       status: bookingStatus(2),
                       values: [
-                        countTargets(spTargets) > 0 ? `${countTargets(spTargets)} local brand${countTargets(spTargets) === 1 ? '' : 's'}` : '',
+                        selectedProducts.length > 0 ? `${selectedProducts.length} products` : '',
+                        keywords.length > 0 ? `${keywords.length} keywords` : '',
+                        selectedCategories.length > 0 ? `${selectedCategories.length} categories` : '',
+                        Object.keys(spBids).length > 0 ? `${Object.keys(spBids).length} bid${Object.keys(spBids).length === 1 ? '' : 's'} set` : '',
                       ].filter(Boolean),
                       onClick: () => setBookingSubStep(2),
                     },
+                    {
+                      id: 'targeting',
+                      label: 'Targeting',
+                      status: bookingStatus(3),
+                      values: [
+                        countTargets(spTargets) > 0 ? `${countTargets(spTargets)} local brand${countTargets(spTargets) === 1 ? '' : 's'}` : '',
+                      ].filter(Boolean),
+                      onClick: () => setBookingSubStep(3),
+                    },
                   ]}
-                  actions={
-                    bookingSubStep === 0
-                      ? [
-                          { label: 'Next: Placements', onClick: () => setBookingSubStep(1), disabled: !isBookingComplete },
-                          { label: 'Back', variant: 'outline' as const, onClick: () => setCurrentStep(0) },
-                        ]
-                      : bookingSubStep === 1
-                        ? [
-                            { label: 'Next: Targeting', onClick: () => setBookingSubStep(2) },
-                            { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(0) },
-                          ]
-                        : [
-                            { label: 'Save & finish', onClick: finishSPWizard },
-                            { label: 'Back', variant: 'outline' as const, onClick: () => setBookingSubStep(1) },
-                          ]
-                  }
-                  footer={bookingSubStep === 0 && bookingMissing.length > 0 ? `Still needed: ${bookingMissing.join(', ')}` : undefined}
+                  // Only the last step carries the call to action — the same
+                  // rule every wizard's cards follow.
+                  actions={bookingSubStep === 3 ? [{ label: 'Save & finish', onClick: finishSPWizard }] : undefined}
                 />
               );
               return (

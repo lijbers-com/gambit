@@ -8,7 +8,7 @@ import { DateRangePicker, futureDateRangePresets } from './date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
- * Budget & run time — one block, the same on every booking form.
+ * Run time & budget — one block, the same on every booking form.
  *
  * The two answer one question, "how much, and when", the way the media plan
  * already presents them together; as separate sections each form drew them
@@ -115,20 +115,8 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   children,
   className,
 }) => (
-  <FormSection bordered={bordered} title="Budget & run time" className={className}>
+  <FormSection bordered={bordered} title="Run time & budget" className={className}>
     <div className="space-y-4 min-w-0">
-      <div>
-        <label className="block text-sm font-medium mb-2">Booking budget*</label>
-        <Input
-          type="number"
-          value={budget}
-          onChange={(e) => onBudgetChange(e.target.value)}
-          placeholder="Enter budget"
-          className="w-full"
-          min="0"
-        />
-        {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
-      </div>
       <div className="min-w-0 space-y-3">
         <div className="min-w-0">
           <label className="block text-sm font-medium mb-2">Run time*</label>
@@ -163,6 +151,18 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
           </div>
         </div>
         {campaignRuntime && <FieldHint>Campaign runtime: {campaignRuntime}</FieldHint>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2">Booking budget*</label>
+        <Input
+          type="number"
+          value={budget}
+          onChange={(e) => onBudgetChange(e.target.value)}
+          placeholder="Enter budget"
+          className="w-full"
+          min="0"
+        />
+        {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
       </div>
       {activeDays && onActiveDaysChange && (
         <ActiveDays value={activeDays} onChange={onActiveDaysChange} />

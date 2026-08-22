@@ -1737,7 +1737,6 @@ export const GoalSelection: Story = {
                 title="Media plan"
                 entity="media-plan"
                 variant="process"
-                className="bg-card"
                 steps={wizardSteps.map((step, index) => {
                   const status = getStepStatus(step.id, index);
                   const stepValues = getStepValues(step.id);

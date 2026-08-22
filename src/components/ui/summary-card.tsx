@@ -350,6 +350,10 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
     // stays visible; everything else waits behind the chevron.
     const isCollapsible = !!collapsible && variant === "details" && !empty && (items?.length ?? 0) > 0
     const [expanded, setExpanded] = React.useState(false)
+    // A timeline in progress sits on the page background; once every step
+    // is complete the card turns white, like any finished entity's card.
+    const timelineFinished = variant === "process" && !!steps && steps.length > 0 && steps.every((st) => st.status === "completed")
+    const processSurface = variant === "process" ? (timelineFinished ? "bg-card" : "bg-page") : undefined
     return (
       <div
         ref={ref}
@@ -359,6 +363,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
           // own bottom padding meant whichever happened to be last decided the
           // card's bottom edge, leaving it shorter than the top.
           "rounded-xl border bg-neutral-100 text-card-foreground text-[14px] p-6 flex flex-col gap-4",
+          processSurface,
           isCollapsible && !expanded && "cursor-pointer",
           className,
         )}

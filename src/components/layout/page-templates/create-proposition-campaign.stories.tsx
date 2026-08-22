@@ -2206,7 +2206,6 @@ const PropositionWizard = ({
                 title={`${proposition.name} campaign`}
                 entity="campaign"
                 variant="process"
-                className="bg-card"
                 steps={displayCampaignSteps.map((step, index) => {
                   const status = isInBookingsPhase ? 'completed' as const : getStepStatus(index);
                   const stepValues = getStepValues(step.id);
@@ -3297,7 +3296,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   title="Sponsored products campaign"
                   entity="campaign"
                   variant="process"
-                  className="bg-card"
                   steps={campaignSubStepLabels.map((label, i) => {
                     const status = !pending || i < campaignSubStep ? 'completed' as const : i === campaignSubStep ? 'active' as const : 'pending' as const;
                     const values = [
@@ -3329,7 +3327,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   title="Booking"
                   entity="booking"
                   variant="process"
-                  className="bg-card"
                   steps={[
                     {
                       id: 'booking-setup',

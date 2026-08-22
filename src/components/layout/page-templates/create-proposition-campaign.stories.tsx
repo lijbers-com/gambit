@@ -14,7 +14,6 @@ import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { MetricRow } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ObjectiveKpiSelect, type ObjectiveKpiValue } from '@/components/ui/objective-kpi-select';
 import { SearchInput } from '@/components/ui/search-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -453,7 +452,6 @@ const PropositionWizard = ({
 
   // Step 1: Setup
   const [campaignName, setCampaignName] = React.useState('');
-  const [objectiveKpi, setObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
   const [poNumber, setPoNumber] = React.useState('');
 
   // Step 2: Advertiser
@@ -1142,7 +1140,6 @@ const PropositionWizard = ({
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPoNumber(e.target.value)}
                         />
                       </div>
-                      <ObjectiveKpiSelect value={objectiveKpi} onChange={setObjectiveKpi} />
                       {/* How the campaign buys is part of what it is — it
                           decides whether the booking's placements carry bids. */}
                       <BuyingTypePicker value={buyingType} onChange={setBuyingType} />

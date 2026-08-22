@@ -251,7 +251,7 @@ const getWizardSteps = (propositionType: string) => {
     return [
       { id: 'setup', label: 'Setup' },
       { id: 'advertiser', label: 'Advertiser' },
-      { id: 'budget', label: 'Run time & budget' },
+      { id: 'budget', label: 'Budget & run time' },
       { id: 'bookings', label: 'Bookings' },
       { id: 'creatives', label: 'Creatives' },
     ];
@@ -260,7 +260,7 @@ const getWizardSteps = (propositionType: string) => {
     return [
       { id: 'setup', label: 'Setup' },
       { id: 'advertiser', label: 'Advertiser' },
-      { id: 'budget', label: 'Run time & budget' },
+      { id: 'budget', label: 'Budget & run time' },
       { id: 'targeting', label: 'Goals & targets' },
       { id: 'keywords', label: 'Keywords & placements' },
     ];
@@ -268,7 +268,7 @@ const getWizardSteps = (propositionType: string) => {
   return [
     { id: 'setup', label: 'Setup' },
     { id: 'advertiser', label: 'Advertiser' },
-    { id: 'budget', label: 'Run time & budget' },
+    { id: 'budget', label: 'Budget & run time' },
     { id: 'targeting', label: 'Goals & targets' },
     { id: 'bookings', label: 'Bookings' },
     { id: 'creatives', label: 'Creatives' },
@@ -726,7 +726,7 @@ const PropositionWizard = ({
       mediaPlanId: linkedPlan?.id ?? '',
       name: campaignName || 'New campaign',
       engine: propositionType as EngineId,
-      ...(hasBuyingType ? { buyingType } : {}),
+      buyingType,
       status: 'draft',
       budget: parseFloat(budgetAmount) || 0,
       spend: 0,
@@ -1143,7 +1143,9 @@ const PropositionWizard = ({
                         />
                       </div>
                       <ObjectiveKpiSelect value={objectiveKpi} onChange={setObjectiveKpi} />
-                      {hasBuyingType && <BuyingTypePicker value={buyingType} onChange={setBuyingType} />}
+                      {/* How the campaign buys is part of what it is — it
+                          decides whether the booking's placements carry bids. */}
+                      <BuyingTypePicker value={buyingType} onChange={setBuyingType} />
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost">Cancel</Button>
@@ -2500,6 +2502,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     routeCampaign || (initialValues?.startAtBooking && initialValues?.campaignName),
   );
   const [currentStep, setCurrentStep] = React.useState(startAtBooking ? 1 : 0);
+  // The campaign's three questions, one card each: what it is (name and how
+  // it buys), who it is for, and what it may spend and when.
+  const campaignSubStepLabels = ['Setup', 'Advertiser', 'Budget & run time'];
+  const [campaignSubStep, setCampaignSubStep] = React.useState(0);
+  const [spBrand, setSpBrand] = React.useState('');
+  const [spRetailProducts, setSpRetailProducts] = React.useState<string[]>([]);
   const currentStepId = wizardSteps[currentStep]?.id;
 
   // ── Step 1: Campaign details ──
@@ -2886,15 +2894,17 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0 space-y-4">
 
-              {/* ── Step 1: Campaign details ── */}
-              {currentStepId === 'campaign-details' && (
+              {/* ── Step 1: Campaign, in four cards ── */}
+              {currentStepId === 'campaign-details' && campaignSubStep === 0 && (
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Setup</CardTitle>
+                    <CardDescription>Name the campaign and choose how it buys</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                     {/* The media plan this hangs under is not a field of this
                         form — it is changed from the Media plan summary card. */}
-
-                    {/* Row 1: Name (full width) */}
-                    <div className="mb-5 space-y-1.5">
+                    <div className="space-y-1.5">
                       <Label htmlFor="v2-name">Campaign name <span className="text-foreground">*</span></Label>
                       <Input
                         id="v2-name"
@@ -2903,9 +2913,24 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
                       />
                     </div>
+                    {/* How the campaign buys is part of what it is — it
+                        decides whether the placements step carries bids. */}
+                    <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
+                    <div className="flex justify-end gap-3">
+                      <Button disabled={!campaignName.trim()} onClick={() => setCampaignSubStep(1)}>Continue</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                    {/* Row 2: Advertiser (full width) */}
-                    <div className="mb-5 space-y-1.5">
+              {currentStepId === 'campaign-details' && campaignSubStep === 1 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Advertiser</CardTitle>
+                    <CardDescription>Select the advertiser, brand and retail products for this campaign</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-1.5">
                       <Label>Advertiser <span className="text-foreground">*</span></Label>
                       <Input
                         dropdown
@@ -2915,15 +2940,42 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         placeholder="Select an advertiser"
                       />
                     </div>
-
-                    {/* Row 3: Campaign type — decides whether the placements
-                        step carries bids at all, so it comes before the money. */}
-                    <div className="mb-5">
-                      <BuyingTypePicker value={spBuyingType} onChange={setSpBuyingType} />
+                    <div className="space-y-1.5">
+                      <Label>Brand</Label>
+                      <Input
+                        dropdown
+                        options={brandOptions}
+                        value={spBrand}
+                        onChange={(value: string) => setSpBrand(value)}
+                        placeholder="Select a brand"
+                      />
+                      <div className="text-xs text-muted-foreground">Choose the brand this campaign will advertise for</div>
                     </div>
+                    <SearchSelectList
+                      label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                      placeholder="Select product by name or ID…"
+                      icon={<ScanBarcode className="w-4 h-4" />}
+                      options={retailProducts.map((r) => ({ value: r.id, label: r.name, description: r.id }))}
+                      value={spRetailProducts}
+                      onChange={setSpRetailProducts}
+                      maxVisibleSelected={5}
+                    />
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => setCampaignSubStep(0)}>Back</Button>
+                      <Button disabled={!selectedAdvertiser} onClick={() => setCampaignSubStep(2)}>Continue</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                    {/* Row 4: Budget (full width) */}
-                    <div className="mb-5 space-y-1.5">
+              {currentStepId === 'campaign-details' && campaignSubStep === 2 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Budget &amp; run time</CardTitle>
+                    <CardDescription>What this campaign may spend, and when it runs</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-1.5">
                       <Label htmlFor="v2-budget">Budget <span className="text-foreground">*</span></Label>
                       <Input
                         id="v2-budget"
@@ -2933,9 +2985,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudget(e.target.value)}
                       />
                     </div>
-
-                    {/* Row 5: Run time — one field, both ends picked in one calendar */}
-                    <div className="mb-6 space-y-1.5">
+                    {/* One field, both ends picked in one calendar */}
+                    <div className="space-y-1.5">
                       <Label>Run time <span className="text-foreground">*</span></Label>
                       <DateRangePicker
                         dateRange={startDate ? { from: startDate, to: endDate } : undefined}
@@ -2950,7 +3001,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         presets={futureDateRangePresets}
                       />
                     </div>
-
+                    {/* Last card — the campaign card's Create campaign is the
+                        way forward from here. */}
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => setCampaignSubStep(1)}>Back</Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -3290,20 +3345,26 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   entity="campaign"
                   variant="process"
                   className="bg-card"
-                  steps={[
-                    {
-                      id: 'campaign-details',
-                      label: 'Campaign details',
-                      status: pending ? 'active' as const : 'completed' as const,
-                      values: [
-                        campaignName || 'Unnamed campaign',
-                        budget ? `€${budget}` : '',
-                        startDate ? `${fmt(startDate)} - ${fmt(endDate)}` : '',
-                      ].filter(Boolean),
-                      onClick: () => setCurrentStep(0),
-                    },
-                  ]}
-                  actions={[{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]}
+                  steps={campaignSubStepLabels.map((label, i) => {
+                    const status = !pending || i < campaignSubStep ? 'completed' as const : i === campaignSubStep ? 'active' as const : 'pending' as const;
+                    const values = [
+                      i === 0 ? [campaignName, spBuyingType === 'guaranteed' ? 'Guaranteed' : 'Auction'] : [],
+                      i === 1 ? [advertiserOptions.find((a) => a.value === selectedAdvertiser)?.label ?? '', brandOptions.find((b) => b.value === spBrand)?.label ?? ''] : [],
+                      i === 2 ? [budget ? `€${budget}` : '', startDate ? `${fmt(startDate)} - ${fmt(endDate)}` : ''] : [],
+                    ].flat().filter(Boolean);
+                    return {
+                      id: `campaign-${i}`,
+                      label,
+                      status,
+                      values,
+                      onClick: () => { setCurrentStep(0); setCampaignSubStep(i); },
+                    };
+                  })}
+                  actions={
+                    campaignSubStep < campaignSubStepLabels.length - 1
+                      ? [{ label: `Next: ${campaignSubStepLabels[campaignSubStep + 1]}`, onClick: () => setCampaignSubStep(campaignSubStep + 1) }]
+                      : [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
+                  }
                   footer={campaignMissing.length > 0 ? `Still needed: ${campaignMissing.join(', ')}` : undefined}
                 />
               );

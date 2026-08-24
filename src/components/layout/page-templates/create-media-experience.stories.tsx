@@ -806,7 +806,9 @@ export const GoalSelection: Story = {
           // to open fully prefilled (assisted) or only with the shared facts.
           mode: row.mode === 'preset' ? 'assisted' : 'expert',
           buyingType: row.buyingType,
-          status: 'in-option',
+          // Proposed, not yet checked: the plan's setup checklist asks the
+          // user to run the campaign's own steps and approve it.
+          status: 'draft',
           budget: rowBudget,
           spend: 0,
           startDate: campaignStart,

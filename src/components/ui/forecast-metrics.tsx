@@ -30,17 +30,24 @@ export interface ForecastMetricsInput {
   engines?: ForecastEngineBudget[];
   /** Funnel stage of the plan's goal; appends the stage's KPI estimate cards. */
   stage?: string;
+  /** Spend to date. Given it, the first card is SPEND against the budget
+   *  rather than the budget itself — for surfaces whose control panel already
+   *  states the budget, so the row never repeats it. */
+  spend?: number;
 }
 
 const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n)}`);
 const fmtCompact = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
 
-export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: ForecastMetricsInput): MetricDefinition[] {
+export function buildForecastMetrics({ budget, days = 0, engines = [], stage, spend }: ForecastMetricsInput): MetricDefinition[] {
   const noBudget = budget <= 0;
   const fc = planForecast(budget);
   const withEngines = !noBudget && engines.length > 0;
   const perDay = days > 0 ? `€${(budget / days).toFixed(0)}/day over ${days} days` : 'No dates set';
+  // Surfaces that already state the budget elsewhere (a control panel) lead
+  // with spend instead, so the row never says the same number twice.
+  const leadsWithSpend = spend !== undefined;
 
   const forecastBadge = noBudget
     ? {}
@@ -49,16 +56,16 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: 
   return [
     {
       key: 'budget',
-      label: 'Budget',
-      value: noBudget ? '-' : fmtK(budget),
+      label: leadsWithSpend ? 'Spend' : 'Budget',
+      value: noBudget ? '-' : leadsWithSpend ? fmtK(spend as number) : fmtK(budget),
       ...(noBudget
-        ? { subMetric: 'No budget set' }
+        ? { subMetric: leadsWithSpend ? 'No budget set' : 'No budget set' }
         : withEngines
           ? {
               // The pace reads under the number like every other card's
               // sub-line; the bar carries only the split.
               ...forecastBadge,
-              subMetric: perDay,
+              subMetric: leadsWithSpend ? `of ${fmtK(budget)} budget` : perDay,
               variant: 'budgetStacked' as const,
               budgetData: engines.map((e) => ({ name: e.name, spent: e.budget, budget: e.budget, color: e.color })),
               valueFormatter: fmtK,
@@ -68,7 +75,7 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage }: 
                 />
               ),
             }
-          : { subMetric: perDay }),
+          : { subMetric: leadsWithSpend ? `of ${fmtK(budget)} budget` : perDay }),
     },
     {
       key: 'impressions',

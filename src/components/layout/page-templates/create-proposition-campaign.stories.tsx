@@ -32,7 +32,7 @@ import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaul
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
-import { useDb, createCampaign, createBooking, updateBooking, type EngineId } from '@/lib/db';
+import { useDb, createCampaign, createBooking, updateBooking, updateCampaign, type EngineId } from '@/lib/db';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -421,15 +421,20 @@ const PropositionWizard = ({
   const linkedPlan = linkedPlanId ? db.mediaPlans.find((p) => p.id === linkedPlanId) : undefined;
   const bookingMode = !!campaignId || !!bookingId;
   const creativesOnly = bookingMode && entryStep === 'creatives';
+  /** Approving a campaign the media plan wizard proposed: its own steps run
+   *  against the existing record, and the flow continues into the bookings
+   *  and creatives that make it deliverable. */
+  const campaignReview = bookingMode && entryStep === 'campaign';
 
   // Booking mode skips the campaign phase — those steps are already answered
   // by the existing campaign; creatives-only mode is just the last step.
   const wizardSteps = React.useMemo(() => {
     const all = getWizardSteps(propositionType);
     if (creativesOnly) return all.filter((s) => s.id === 'creatives');
+    if (campaignReview) return all;
     if (bookingMode) return all.filter((s) => s.id === 'bookings' || s.id === 'creatives');
     return all;
-  }, [propositionType, bookingMode, creativesOnly]);
+  }, [propositionType, bookingMode, creativesOnly, campaignReview]);
 
   // Wizard state
   const [currentStep, setCurrentStep] = React.useState(0);
@@ -604,13 +609,26 @@ const PropositionWizard = ({
     [engineChannels],
   );
 
-  // What the creative step works on: the bookings made in this run — or, in
-  // creatives-only mode, the campaign's existing bookings still missing one.
+  /** The campaign's bookings as they stand in the store — what a run against
+   *  an EXISTING campaign is working on, as opposed to what it just staged. */
+  const existingBookings = React.useMemo(
+    () => (linkedCampaignId ? db.bookings.filter((b) => b.campaignId === linkedCampaignId) : []),
+    [db, linkedCampaignId],
+  );
+
+  // What the creative step works on: the bookings this run made, plus the
+  // campaign's own bookings that still need one — so approving a campaign
+  // carries through to dressing the bookings it already had.
   const creativeTargets = creativesOnly
-    ? db.bookings
-        .filter((b) => b.campaignId === campaignId && b.creativeStatus === 'missing' && b.status !== 'completed')
+    ? existingBookings
+        .filter((b) => b.creativeStatus === 'missing' && b.status !== 'completed')
         .map((b) => ({ id: b.id, name: b.name }))
-    : bookings.map((b, i) => ({ id: b.id, name: b.name || `Booking ${i + 1}` }));
+    : [
+        ...bookings.map((b, i) => ({ id: b.id, name: b.name || `Booking ${i + 1}` })),
+        ...existingBookings
+          .filter((b) => b.creativeStatus === 'missing' && b.status !== 'completed' && b.id !== routeBooking?.id)
+          .map((b) => ({ id: b.id, name: b.name })),
+      ];
 
   /** Demo creative library — linking one marks the booking 'submitted'. */
   const creativeOptions = [
@@ -628,13 +646,19 @@ const PropositionWizard = ({
   // Campaign mode inside a plan: name, run time, the plan's goal, its
   // advertiser and brand, and the unallocated share of its budget.
   React.useEffect(() => {
-    if (!linkedPlan || routeCampaign) return;
-    setCampaignName((prev) => prev || linkedPlan.name);
-    setDateRange({ from: new Date(linkedPlan.startDate), to: new Date(linkedPlan.endDate) });
-    const siblings = db.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
-    const unallocated = Math.max(linkedPlan.budget - siblings.reduce((s, c) => s + c.budget, 0), 0);
-    if (unallocated > 0) setBudgetAmount((prev) => prev || String(unallocated));
-    if (linkedPlan.goal) setSelectedGoal((prev) => prev ?? linkedPlan.goal!);
+    if (!linkedPlan) return;
+    // A campaign being CREATED takes the plan's name, dates and unclaimed
+    // budget; one that already exists keeps its own (the effect below fills
+    // those from the record). Either way it inherits the plan's advertiser
+    // and brand, which is why that part runs for both.
+    if (!routeCampaign) {
+      setCampaignName((prev) => prev || linkedPlan.name);
+      setDateRange({ from: new Date(linkedPlan.startDate), to: new Date(linkedPlan.endDate) });
+      const siblings = db.campaigns.filter((c) => c.mediaPlanId === linkedPlan.id);
+      const unallocated = Math.max(linkedPlan.budget - siblings.reduce((s, c) => s + c.budget, 0), 0);
+      if (unallocated > 0) setBudgetAmount((prev) => prev || String(unallocated));
+      if (linkedPlan.goal) setSelectedGoal((prev) => prev ?? linkedPlan.goal!);
+    }
     // The plan's advertiser and brand, matched by name into the demo options.
     const adv = db.advertisers.find((a) => a.id === linkedPlan.advertiserId);
     if (adv) {
@@ -767,6 +791,10 @@ const PropositionWizard = ({
       positionIds: b.positionIds,
       creativeStatus: creativeChoice[b.id] ? 'submitted' : 'missing',
     }));
+    // Creatives chosen for bookings that already existed are linked to them.
+    existingBookings.forEach((b) => {
+      if (creativeChoice[b.id]) updateBooking(b.id, { creativeStatus: 'submitted' });
+    });
     queueToast(
       bookingMode
         ? { title: 'Booking created', description: created[0]?.name ?? '' }
@@ -793,7 +821,21 @@ const PropositionWizard = ({
   })();
 
   // Step navigation helpers
-  const goToNextStep = () => setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length - 1));
+  const goToNextStep = () => {
+    // In review mode, leaving the campaign phase IS approving the campaign:
+    // the user has just been through its own steps.
+    if (campaignReview && routeCampaign && isLastCampaignStep) {
+      updateCampaign(routeCampaign.id, {
+        name: campaignName || routeCampaign.name,
+        budget: parseFloat(budgetAmount) || routeCampaign.budget,
+        ...(toIso(dateRange?.from) ? { startDate: toIso(dateRange?.from) as string } : {}),
+        ...(toIso(dateRange?.to) ? { endDate: toIso(dateRange?.to) as string } : {}),
+        buyingType,
+        ...(routeCampaign.status === 'draft' ? { status: 'in-option' as const } : {}),
+      });
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length - 1));
+  };
   const goToPrevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
   const goToStepById = (id: string) => {
     const idx = wizardSteps.findIndex((s) => s.id === id);
@@ -1791,7 +1833,34 @@ const PropositionWizard = ({
                         <CardDescription>Add one or more bookings to your campaign</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {/* Existing bookings */}
+                        {/* What the campaign already has: a proposed booking
+                            still has to be checked, so it says so and offers
+                            the run that approves it. */}
+                        {existingBookings.map((booking) => (
+                          <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg border bg-neutral-50 p-4">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-medium">{booking.name}</div>
+                              <div className="mt-0.5 text-xs text-muted-foreground">
+                                {booking.status === 'draft' ? 'Proposed — not approved yet' : 'Approved'}
+                                {booking.creativeStatus === 'missing' && ' · needs a creative'}
+                              </div>
+                            </div>
+                            {booking.status === 'draft' ? (
+                              <Button
+                                size="sm"
+                                onClick={() => { if (typeof window !== 'undefined') window.location.href = `/create/${propositionType}?bookingId=${booking.id}`; }}
+                              >
+                                Approve
+                              </Button>
+                            ) : (
+                              <Button variant="outline" size="sm" onClick={() => { if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${booking.id}`; }}>
+                                Open
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Bookings staged by this run */}
                         {bookings.map((booking, i) => (
                           <div key={booking.id} className="rounded-lg border bg-neutral-50 p-4 flex items-center justify-between">
                             <div>
@@ -1820,7 +1889,7 @@ const PropositionWizard = ({
                           {currentStep > 0 ? (
                             <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
                           ) : <span />}
-                          <Button size="sm" disabled={bookings.length === 0} onClick={goToNextStep}>
+                          <Button size="sm" disabled={bookings.length === 0 && existingBookings.length === 0} onClick={goToNextStep}>
                             Continue: Creatives
                           </Button>
                         </div>

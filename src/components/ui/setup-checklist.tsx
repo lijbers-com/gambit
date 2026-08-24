@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Check } from 'lucide-react';
+import { Check, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Card, CardContent } from './card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 
 /**
  * The "what is left before this can go live" cards on a media plan.
@@ -34,6 +35,9 @@ export interface SetupChecklistCardData {
   id: string;
   icon?: React.ReactNode;
   title: string;
+  /** The card's own overflow — what can be done to the campaign itself
+   *  (open it, edit it) as opposed to the setup steps listed on the card. */
+  menu?: { label: string; icon?: React.ReactNode; onClick: () => void }[];
   /** The campaign's governing facts — budget, run time — each a labelled
    *  field, in the same order the plan's control bar states them. A string
    *  renders as a read-only box; a node renders as itself, so a caller can
@@ -89,12 +93,29 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                       {card.icon}
                     </span>
                   )}
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{card.title}</span>
                     <span className="block text-xs text-muted-foreground">
                       {complete ? 'All set' : `${card.steps.length - done} step${card.steps.length - done === 1 ? '' : 's'} to complete`}
                     </span>
                   </span>
+                  {card.menu && card.menu.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" iconOnly aria-label={`Options for ${card.title}`} className="-mr-1 -mt-1 h-7 w-7 shrink-0 text-muted-foreground">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {card.menu.map((m) => (
+                          <DropdownMenuItem key={m.label} onClick={m.onClick}>
+                            {m.icon && <span className="mr-2 flex items-center">{m.icon}</span>}
+                            {m.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
 
                 {card.facts && card.facts.length > 0 && (

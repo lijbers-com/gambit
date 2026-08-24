@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
-import { Euro, Lock } from 'lucide-react';
+import { Euro, Lock, Pencil } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -513,6 +513,9 @@ export const MediaPlanDetail: Story = {
       days: planDays,
       engines: byEngine.map((e) => ({ name: e.name, budget: e.budget, color: e.color })),
       stage: plan?.goal ? stageForGoal[plan.goal] : undefined,
+      // The control panel already states the budget, so the row leads with
+      // what has actually been spent against it.
+      spend: planSpend,
     });
 
     // The same cards the media plan card shows, each expanding in place to its
@@ -714,16 +717,6 @@ export const MediaPlanDetail: Story = {
                   />
                 ),
               },
-              {
-                label: 'Campaign type',
-                value: (
-                  <MiniSelect
-                    value={(c.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction'}
-                    options={['Auction', 'Guaranteed']}
-                    onChange={(v: string) => updateCampaign(c.id, { buyingType: v === 'Guaranteed' ? 'guaranteed' : 'auction' })}
-                  />
-                ),
-              },
             ];
             // Each step IS a wizard run — the same booking-and-creatives flow
             // "Add campaign" continues into, entered at the right step. The
@@ -732,8 +725,18 @@ export const MediaPlanDetail: Story = {
             // A booking the plan wizard proposed is still a draft: it exists,
             // but nobody has checked it. Approving one means running the
             // prefilled booking wizard and saving it.
+            const openCampaign = () => { if (typeof window !== 'undefined') window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
             const draftBookings = bookings.filter((b) => b.status === 'draft');
             const steps = [
+              {
+                id: `${c.id}-campaign`,
+                title: 'Approve campaign',
+                description: 'Check what the media plan proposed — name, budget, run time and type.',
+                done: c.status !== 'draft',
+                onClick: () => {
+                  if (typeof window !== 'undefined') window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign`;
+                },
+              },
               {
                 id: `${c.id}-bookings`,
                 title: 'Create bookings',
@@ -770,7 +773,18 @@ export const MediaPlanDetail: Story = {
                     },
                   },
             ];
-            return { id: c.id, icon: <CardIcon />, title: `${meta.label} proposition`, facts, steps };
+            return {
+              id: c.id,
+              icon: <CardIcon />,
+              title: `${meta.label} proposition`,
+              // The campaign itself, as opposed to the setup steps: opening it
+              // is where everything not on this card is edited.
+              menu: [
+                { label: 'Edit campaign', icon: <Pencil className="h-4 w-4" />, onClick: openCampaign },
+              ],
+              facts,
+              steps,
+            };
           })
           .filter((card) => card.steps.some((step) => !step.done))
       : [];
@@ -783,8 +797,10 @@ export const MediaPlanDetail: Story = {
     // Unfiltered, unlike checklistCards — a search must not flip the view.
     const planNeedsSetup = !!plan && db.campaigns.some((c) => {
       if (c.mediaPlanId !== plan.id || c.status === 'completed' || skippedChecklist.includes(c.id)) return false;
+      if (c.status === 'draft') return true;
       const bookings = db.bookings.filter((b) => b.campaignId === c.id);
       if (bookings.length === 0) return true;
+      if (bookings.some((b) => b.status === 'draft')) return true;
       return c.engine === 'sponsored-products'
         ? bookings.some((b) => b.positionIds.length === 0)
         : bookings.some((b) => b.creativeStatus === 'missing');
@@ -1097,7 +1113,7 @@ export const MediaPlanDetail: Story = {
           <div className="mb-1">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
-            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
+            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts removable={false} bleedEdges />
           </div>
 
           <CardWithTabs

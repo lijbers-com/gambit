@@ -766,9 +766,12 @@ export const MediaPlanDetail: Story = {
                     title: 'Link creatives',
                     description: 'The creative step of the setup wizard, for bookings still missing one.',
                     done: bookings.length > 0 && bookings.every((b) => b.creativeStatus !== 'missing'),
+                    // The creative step belongs to the booking's own wizard —
+                    // opened on the booking that still needs one.
                     onClick: () => {
-                      window.location.href = bookings.some((b) => b.creativeStatus === 'missing')
-                        ? `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=creatives`
+                      const missing = bookings.find((b) => b.creativeStatus === 'missing');
+                      window.location.href = missing
+                        ? `/create/${routeSeg[c.engine]}?bookingId=${missing.id}&step=creatives`
                         : `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
                     },
                   },

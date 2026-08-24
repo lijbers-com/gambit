@@ -408,26 +408,6 @@ const MediaPlanSidebar = () => {
   );
 };
 
-// Shared component for the creatives attached to this booking. Every
-// proposition has creatives except sponsored products, where the ad IS the
-// product listing — so that template omits this card.
-const CreativesSidebar = ({ count = 2, actions, className, collapsible }: { count?: number; actions?: SummaryAction[]; className?: string; collapsible?: boolean }) => (
-  <SummaryCard
-    title="Creatives"
-    entity="creative"
-    variant="details"
-    collapsible={collapsible}
-    actions={actions}
-    className={className}
-    items={[
-      { label: 'Attached', value: `${count} creative${count === 1 ? '' : 's'}` },
-      { label: 'Approved', value: String(Math.max(0, count - 1)) },
-      { label: 'Awaiting approval', value: count > 0 ? '1' : '0' },
-      { label: 'Formats', value: 'Banner, Video' },
-    ]}
-  />
-);
-
 // The form's actions, as the Booking summary card's footer buttons — so a long
 // form can be submitted from either column without scrolling back.
 // Save is the everyday action; sending for approval is the same work leaving
@@ -1117,7 +1097,7 @@ export const Display: Story = {
                   sidebar, the active card first and white, the rest muted in
                   hierarchy order. */}
               <HierarchySidebar
-                active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                active="booking"
                 booking={
                   <>
                 <SummaryCard
@@ -1141,14 +1121,6 @@ export const Display: Story = {
                 }
                 mediaPlan={<MediaPlanSidebar />}
                 campaign={<CampaignDetailsSidebar title="Display campaign" />}
-                creative={
-                  <CreativesSidebar
-                    count={selectedCreatives.length}
-                    actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
-                    className={bookingTab === 'creatives' ? 'bg-card' : undefined}
-                    collapsible={bookingTab !== 'creatives'}
-                  />
-                }
               />
               </div>
               {/* end form + summary grid */}
@@ -2493,7 +2465,7 @@ export const DigitalInStore: Story = {
                       sidebar, the active card first and white, the rest muted in
                       hierarchy order. */}
                   <HierarchySidebar
-                    active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                    active="booking"
                     booking={
                       <>
                   <SummaryCard
@@ -2568,14 +2540,6 @@ export const DigitalInStore: Story = {
                     }
                     mediaPlan={<MediaPlanSidebar />}
                     campaign={<CampaignDetailsSidebar title="Digital in-store campaign" />}
-                    creative={
-                      <CreativesSidebar
-                        count={selectedCreatives.length}
-                        actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
-                        className={bookingTab === 'creatives' ? 'bg-card' : undefined}
-                        collapsible={bookingTab !== 'creatives'}
-                      />
-                    }
                   />
                   {/* end summary column */}
                   </div>
@@ -3863,7 +3827,7 @@ export const OfflineInStore: Story = {
                       sidebar, the active card first and white, the rest muted in
                       hierarchy order. */}
                   <HierarchySidebar
-                    active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                    active="booking"
                     booking={
                       <>
                   <SummaryCard
@@ -3921,14 +3885,6 @@ export const OfflineInStore: Story = {
                     }
                     mediaPlan={<MediaPlanSidebar />}
                     campaign={<CampaignDetailsSidebar title="Offline in-store campaign" />}
-                    creative={
-                      <CreativesSidebar
-                        count={selectedCreatives.length}
-                        actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
-                        className={bookingTab === 'creatives' ? 'bg-card' : undefined}
-                        collapsible={bookingTab !== 'creatives'}
-                      />
-                    }
                   />
                   {/* end summary column */}
                   </div>
@@ -5016,7 +4972,7 @@ export const OffsiteDisplay: Story = {
                   sidebar, the active card first and white, the rest muted in
                   hierarchy order. */}
               <HierarchySidebar
-                active={bookingTab === 'creatives' ? 'creative' : 'booking'}
+                active="booking"
                 booking={
                   <>
               <SummaryCard
@@ -5056,14 +5012,6 @@ export const OffsiteDisplay: Story = {
                   { label: 'Runtime', value: '01 Jun, 2024 - 30 Jun, 2024' },
                 ]}
               />
-                }
-                creative={
-                  <CreativesSidebar
-                    count={selectedCreatives.length}
-                    actions={bookingTab === 'creatives' ? summaryActionsFor(bookingTab) : undefined}
-                    className={bookingTab === 'creatives' ? 'bg-card' : undefined}
-                    collapsible={bookingTab !== 'creatives'}
-                  />
                 }
               />
               {/* end summary column */}

@@ -620,9 +620,11 @@ const PropositionWizard = ({
   // campaign's own bookings that still need one — so approving a campaign
   // carries through to dressing the bookings it already had.
   const creativeTargets = creativesOnly
-    ? existingBookings
-        .filter((b) => b.creativeStatus === 'missing' && b.status !== 'completed')
-        .map((b) => ({ id: b.id, name: b.name }))
+    ? (routeBooking
+        ? [{ id: routeBooking.id, name: routeBooking.name }]
+        : existingBookings
+            .filter((b) => b.creativeStatus === 'missing' && b.status !== 'completed')
+            .map((b) => ({ id: b.id, name: b.name })))
     : [
         ...bookings.map((b, i) => ({ id: b.id, name: b.name || `Booking ${i + 1}` })),
         ...existingBookings
@@ -742,7 +744,11 @@ const PropositionWizard = ({
         if (creativeChoice[t.id]) updateBooking(t.id, { creativeStatus: 'submitted' });
       });
       queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]).length} booking(s) updated` });
-      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${campaignId}`;
+      if (typeof window !== 'undefined') {
+        window.location.href = routeBooking
+          ? `${proposition.campaignRoute}/booking/${routeBooking.id}`
+          : `${proposition.campaignRoute}/${linkedCampaignId}`;
+      }
       return;
     }
     // Approval mode: the booking already exists — checking it is what makes

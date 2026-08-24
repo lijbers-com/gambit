@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 import { Label } from './label';
 
 /**
- * An entity's main controls, as one white card: the handful of governing
- * facts — budget, run time, state — that sit between the metric row and the
- * tabs and apply to everything below them. The media plan detail page is the
- * first user; anything else that grows a controls band uses this instead of
- * hand-rolling the row.
+ * An entity's header: its name, the actions that work on it, and the handful
+ * of governing facts — budget, run time, state — that apply to everything
+ * below. It sits ON the page rather than in a card of its own: the fields
+ * already carry their own borders, so a box around them only added a second
+ * frame and stole the room the page could give them.
  *
  * Layout is a wrapping flex row: items sit side by side and fold on narrow
  * screens; a `fullWidth` item (a split bar, a progress strip) takes its own
@@ -26,10 +26,10 @@ export const ControlBar: React.FC<{
   actions?: React.ReactNode;
   className?: string;
 }> = ({ children, title, titleIcon, actions, className }) => (
-  <section className={cn('rounded-xl border border-border bg-card p-4', className)}>
+  <section className={className}>
     {(title || actions) && (
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold leading-tight">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <h1 className="flex min-w-0 items-center gap-3 text-3xl font-semibold leading-tight">
           {titleIcon}
           <span className="min-w-0 truncate" title={title}>{title}</span>
         </h1>

@@ -6,10 +6,13 @@ import { Label } from './label';
 
 /**
  * An entity's main controls: the handful of governing facts — budget, run
- * time, state — that sit under the page header and apply to everything below
- * them. It sits ON the page rather than in a card of its own: the fields
- * already carry their own borders, so a box around them only added a second
- * frame and stole the room the page could give them.
+ * time, state — and the actions on the entity itself, sitting under the page
+ * header and applying to everything below them. They live HERE rather than in
+ * the header, because the header is the same on every page and carries the
+ * session's own controls (the date range, the advertiser).
+ *
+ * Outlined but unfilled: the border says where the panel ends without the
+ * white card that made it a second surface on top of the page.
  *
  * Layout is a wrapping flex row: items sit side by side and fold on narrow
  * screens; a `fullWidth` item (a split bar, a progress strip) takes its own
@@ -21,7 +24,7 @@ export const ControlBar: React.FC<{ children: React.ReactNode; className?: strin
 }) => (
   // gap-x-4, not 6 — the bar holds several things and the tighter gap is what
   // lets them share one row on a laptop; wrapping stays the fallback.
-  <section className={cn('flex flex-wrap items-end gap-x-4 gap-y-3', className)}>
+  <section className={cn('flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-border p-4', className)}>
     {children}
   </section>
 );

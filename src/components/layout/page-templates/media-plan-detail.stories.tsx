@@ -1004,24 +1004,9 @@ export const MediaPlanDetail: Story = {
             onExport: () => {},
             onSettings: () => {},
             onDelete: () => setConfirmingDelete(true),
-            // Run state and Add campaign act on the plan as a whole, so they
-            // sit in its header — next to the overflow menu, which is the
-            // rest of what can be done to it.
-            headerRight: (
-              <>
-                {plan && (
-                  <LifecycleActions
-                    level="media-plan"
-                    entityId={plan.id}
-                    status={plan.status}
-                    name={plan.name}
-                    playDisabled={!canLaunch}
-                    playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-                  />
-                )}
-                <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
-              </>
-            ),
+            // No plan-specific actions here: the header is the same on every
+            // page and carries the session's own controls. What acts on the
+            // plan lives in the control panel below it.
           }}
         >
           {/* The plan's main controls: what it may spend and when it runs,
@@ -1091,6 +1076,20 @@ export const MediaPlanDetail: Story = {
                 />
               </div>
             </ControlBarItem>
+            {/* Launch, pause, resume, stop — the plan's run state, with the
+                facts that govern it. */}
+            <div className="ml-auto flex items-center gap-2">
+              {plan && (
+                <LifecycleActions
+                  level="media-plan"
+                  entityId={plan.id}
+                  status={plan.status}
+                  name={plan.name}
+                  playDisabled={!canLaunch}
+                  playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+                />
+              )}
+            </div>
           </ControlBar>
 
           {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
@@ -1299,6 +1298,18 @@ export const MediaPlanDetail: Story = {
                           cards={checklistCards}
                           onDismiss={(id) => skipChecklistCards([id])}
                           onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
+                          addCard={
+                            <AddCampaignMenu
+                              onSelect={addCampaign}
+                              onAddExisting={() => setLinkExistingOpen(true)}
+                              trigger={
+                                <button type="button" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+                                  <Plus className="h-3.5 w-3.5" />
+                                  Add campaign
+                                </button>
+                              }
+                            />
+                          }
                         />
                       ) : planCampaignRows.length === 0 ? (
                         // No campaigns at all — the same empty state the table

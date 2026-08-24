@@ -48,6 +48,9 @@ export interface SetupChecklistProps {
   cards: SetupChecklistCardData[];
   /** Skip / Done both dismiss the card; the parent persists which ids are hidden. */
   onDismiss: (id: string) => void;
+  /** A trailing dashed tile for adding another campaign — the same affordance
+   *  the table keeps as its last row, so both views can grow the plan. */
+  addCard?: React.ReactNode;
   onSkipAll?: () => void;
   className?: string;
 }
@@ -58,9 +61,10 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
   cards,
   onDismiss,
   onSkipAll,
+  addCard,
   className,
 }) => {
-  if (cards.length === 0) return null;
+  if (cards.length === 0 && !addCard) return null;
 
   return (
     <section className={cn('space-y-4', className)}>
@@ -177,6 +181,11 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
             </Card>
           );
         })}
+        {addCard && (
+          <div className="flex min-h-[120px] items-center justify-center rounded-xl border border-dashed border-muted-foreground/30 p-5 transition-colors hover:border-primary/50">
+            {addCard}
+          </div>
+        )}
       </div>
 
       {onSkipAll && cards.length > 1 && (

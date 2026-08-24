@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { GoalCard } from '@/components/ui/goal-card';
-import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
+import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
+import { LevelMeter } from '@/components/ui/level-meter';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
@@ -26,6 +27,7 @@ import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
+import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -350,45 +352,16 @@ const BidRow = ({
       />
     </div>
     {value !== suggestedBid(id) && (
-      <button
+      <Button
         type="button"
-        className="text-xs font-medium text-primary hover:underline"
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
         onClick={() => onChange(suggestedBid(id))}
       >
         Use suggested €{suggestedBid(id)}
-      </button>
+      </Button>
     )}
-  </div>
-);
-
-/** Auction vs guaranteed — the campaign-setup question that decides whether
- *  placements carry bids. The same GoalCard the media plan's goal step uses,
- *  in the same grid, so a campaign type reads as the same kind of choice as
- *  a goal. */
-const BuyingTypePicker = ({
-  value,
-  onChange,
-}: {
-  value: 'auction' | 'guaranteed';
-  onChange: (v: 'auction' | 'guaranteed') => void;
-}) => (
-  <div className="space-y-2">
-    <Label>Campaign type</Label>
-    <div className="grid grid-cols-1 gap-2 sm:auto-rows-fr sm:grid-cols-2">
-      {([
-        { id: 'auction' as const, icon: <Gavel />, title: 'Auction', text: 'Bid per placement — each selected placement carries its own CPC.' },
-        { id: 'guaranteed' as const, icon: <ShieldCheck />, title: 'Guaranteed', text: 'Fixed price, reserved delivery — no bidding.' },
-      ]).map((opt) => (
-        <GoalCard
-          key={opt.id}
-          icon={opt.icon}
-          title={opt.title}
-          description={opt.text}
-          selected={value === opt.id}
-          onClick={() => onChange(opt.id)}
-        />
-      ))}
-    </div>
   </div>
 );
 
@@ -583,6 +556,10 @@ const PropositionWizard = ({
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
     setInclTargets({}); setExclTargets({});
     setDeliveryBehavior(defaultDeliveryBehavior); setObjectivesEnabled(false); setDeliveryObjectives(defaultDeliveryObjectives);
+    // A booking is not finished until it has a creative, so the wizard
+    // continues there by itself — except on sponsored products, where the
+    // product listing IS the ad and there is no creative step to go to.
+    if (wizardSteps.some((st) => st.id === 'creatives')) goToStepById('creatives');
   };
   const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
 
@@ -772,6 +749,7 @@ const PropositionWizard = ({
       name: campaignName || 'New campaign',
       engine: propositionType as EngineId,
       buyingType,
+      retailProductIds: selectedRetailProducts,
       status: 'draft',
       budget: parseFloat(budgetAmount) || 0,
       spend: 0,
@@ -1388,9 +1366,15 @@ const PropositionWizard = ({
                     )}
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={goToPrevStep}>Back</Button>
-                      {!isDisplay && (
-                        <Button disabled={!isBudgetComplete} onClick={goToNextStep}>Continue</Button>
-                      )}
+                      {/* Every step ends with its own primary action, the last
+                          one included — the sidebar card echoes it, it does not
+                          replace it. */}
+                      <Button
+                        disabled={hasBookingsPhase ? !isBudgetComplete : false}
+                        onClick={hasBookingsPhase ? goToNextStep : () => { const name = campaignName || 'New Campaign'; window.location.href = `${proposition.campaignRoute}?new=${encodeURIComponent(name)}`; }}
+                      >
+                        {hasBookingsPhase ? 'Continue: Bookings' : 'Launch campaign'}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -1989,10 +1973,9 @@ const PropositionWizard = ({
                                 <DeliveryObjectivesFields value={deliveryObjectives} onChange={setDeliveryObjectives} />
                               </ToggleSection>
                             )}
-                            {/* Last step — the sidebar's Create booking is the
-                                way forward from here. */}
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
+                              <Button onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -2690,6 +2673,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
+  // The campaign already said which retail products it advertises (or the
+  // user picked them a step ago), so a booking under it starts from those
+  // instead of an empty list.
+  React.useEffect(() => {
+    const inherited = routeCampaign?.retailProductIds?.length ? routeCampaign.retailProductIds : spRetailProducts;
+    if (inherited.length === 0) return;
+    setSelectedProducts((prev) => (prev.length ? prev : inherited));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeCampaign?.id, spRetailProducts.join(',')]);
+
   // Approval mode: the booking arrives answered — the user is checking it.
   React.useEffect(() => {
     if (!routeBooking) return;
@@ -2843,6 +2836,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       name: campaignName || 'New campaign',
       engine: 'sponsored-products',
       buyingType: spBuyingType,
+      retailProductIds: spRetailProducts,
       status: 'draft',
       budget: parseFloat(budget) || 0,
       spend: 0,
@@ -3067,10 +3061,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         </p>
                       </div>
                     )}
-                    {/* Last card — the campaign card's Create campaign is the
-                        way forward from here. */}
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCampaignSubStep(1)}>Back</Button>
+                      <Button disabled={!isCampaignDetailsComplete} onClick={createCampaignAndContinue}>Create campaign</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -3174,10 +3167,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   {/* Products — the selection component, so searching for a
                       product works the same as searching for anything else. */}
-                  <FormSection title={`Add products (${selectedProducts.length}/500)`}>
+                  <FormSection title="Add retail products">
                     <SearchSelectList
                       label={null}
-                      placeholder="Search for products…"
+                      placeholder="Search for retail products…"
                       icon={<ScanBarcode className="w-4 h-4" />}
                       maxVisibleSelected={5}
                       options={spProductOptions}
@@ -3186,7 +3179,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     />
                   </FormSection>
 
-                  <FormSection title={`Add keywords (${keywords.length}/1000)`}>
+                  <FormSection title="Add keywords">
                     <div className="space-y-3">
                       <p className="-mt-2 text-xs text-muted-foreground">
                         Add keywords to target shoppers searching for relevant products.
@@ -3208,15 +3201,29 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         }))}
                         value={keywords}
                         onChange={setKeywords}
-                        // Auction: the bid lives on the keyword card itself,
-                        // with the suggestion to accept — like every placement.
-                        renderSelectedExtra={spIsAuction ? (opt) => (
-                          <BidRow
-                            id={opt.value}
-                            value={spBids[opt.value] ?? ''}
-                            onChange={(v) => setSpBids(prev => ({ ...prev, [opt.value]: v }))}
-                          />
-                        ) : undefined}
+                        // The card carries what the keyword is worth: its bid
+                        // first (auction only), then volume and competition on
+                        // the same meters the media plan wizard uses.
+                        hideSelectedDescription
+                        renderSelectedExtra={(opt) => {
+                          const detail = spKeywordDetail(opt.value);
+                          return (
+                            <div className="space-y-2">
+                              {spIsAuction && (
+                                <BidRow
+                                  id={opt.value}
+                                  className="mt-1"
+                                  value={spBids[opt.value] ?? ''}
+                                  onChange={(v) => setSpBids(prev => ({ ...prev, [opt.value]: v }))}
+                                />
+                              )}
+                              <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
+                                <LevelMeter label="Volume" tone="supply" level={detail.volume} />
+                                <LevelMeter label="Competition" tone="risk" level={detail.competition} />
+                              </div>
+                            </div>
+                          );
+                        }}
                       />
                       {/* Offered, not chosen: dashed pills in their own tray,
                           inside the section they feed. */}
@@ -3371,10 +3378,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   </FormSection>
 
                   {/* Navigation */}
-                  {/* Last step — the booking card's Save & finish is the way
-                      forward from here. */}
                   <div className="flex justify-end gap-3 pt-1">
                     <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
+                    <Button onClick={finishSPWizard}>{routeBooking ? 'Approve booking' : 'Save & finish'}</Button>
                   </div>
                   </CardContent>
                 </Card>

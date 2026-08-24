@@ -41,6 +41,7 @@ import { retailMoments } from '@/lib/retail-moments';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { stageForGoal } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
+import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { BudgetSelect } from '@/components/ui/budget-select';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
@@ -147,6 +148,8 @@ type Row = {
   _id: string;
   name: string;
   engine?: EngineId;
+  /** How the campaign buys — auction or guaranteed. */
+  buyingType?: 'auction' | 'guaranteed';
   state?: PlanStatus;
   status?: PlanStatus;
   budget: string;
@@ -175,7 +178,7 @@ type Row = {
  * the table still scans as a table — the point is to tweak an allocation
  * without leaving the plan, not to turn every row into a form.
  */
-const BudgetCell = ({ value, onSave, className }: { value: number; onSave: (next: number) => void; className?: string }) => {
+const BudgetCell = ({ value, onSave, className, fullWidth }: { value: number; onSave: (next: number) => void; className?: string; fullWidth?: boolean }) => {
   const [draft, setDraft] = React.useState(String(value));
   const [editing, setEditing] = React.useState(false);
   React.useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
@@ -193,7 +196,7 @@ const BudgetCell = ({ value, onSave, className }: { value: number; onSave: (next
   const cancel = () => { setDraft(String(value)); setEditing(false); };
 
   return (
-    <span className={cn('relative inline-flex items-center', dirty && '[&>input]:pr-8')} onClick={(e) => e.stopPropagation()}>
+    <span className={cn('relative inline-flex items-center', fullWidth && 'flex w-full', dirty && '[&>input]:pr-8')} onClick={(e) => e.stopPropagation()}>
       <input
         value={editing ? draft : fmtEuro(value)}
         onChange={(e) => setDraft(e.target.value)}
@@ -208,6 +211,9 @@ const BudgetCell = ({ value, onSave, className }: { value: number; onSave: (next
         // corners and read as dirt rather than depth.
         className={cn(
           'w-28 rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
+          // Standalone (a checklist card, not a table cell) it matches the
+          // date field beside it: same height, same full-row width.
+          fullWidth && 'h-9 w-full px-3',
           className,
         )}
       />
@@ -682,12 +688,42 @@ export const MediaPlanDetail: Story = {
             const bookings = db.bookings.filter((b) => b.campaignId === c.id);
             const meta = propositionMeta[c.engine];
             const CardIcon = meta.icon;
-            const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
             // Budget first, then run time — the same order and labels the
-            // plan's control bar states them in.
+            // plan's control bar states them in, and the SAME editors the
+            // table rows use: a campaign's money and dates are changed where
+            // they are read, without opening the campaign.
             const facts = [
-              { label: 'Budget', value: c.budget > 0 ? `€${c.budget.toLocaleString()}` : 'No budget set' },
-              { label: 'Run time', value: `${fmtD(c.startDate)} → ${fmtD(c.endDate)} ${new Date(c.endDate).getFullYear()}` },
+              {
+                label: 'Budget',
+                value: (
+                  <BudgetCell
+                    fullWidth
+                    value={c.budget}
+                    onSave={(next) => updateCampaign(c.id, { budget: next })}
+                  />
+                ),
+              },
+              {
+                label: 'Run time',
+                value: (
+                  <DatesCell
+                    className="h-9 w-full text-sm font-normal"
+                    start={c.startDate}
+                    end={c.endDate}
+                    onSave={(startDate, endDate) => updateCampaign(c.id, { startDate, endDate })}
+                  />
+                ),
+              },
+              {
+                label: 'Campaign type',
+                value: (
+                  <MiniSelect
+                    value={(c.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction'}
+                    options={['Auction', 'Guaranteed']}
+                    onChange={(v: string) => updateCampaign(c.id, { buyingType: v === 'Guaranteed' ? 'guaranteed' : 'auction' })}
+                  />
+                ),
+              },
             ];
             // Each step IS a wizard run — the same booking-and-creatives flow
             // "Add campaign" continues into, entered at the right step. The
@@ -821,7 +857,7 @@ export const MediaPlanDetail: Story = {
 
     const rows: Row[] = filteredCampaigns.flatMap(({ campaign: c, bookings }) => [
       {
-        _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, state: c.status,
+        _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, buyingType: c.buyingType, state: c.status,
         budget: fmtEuro(c.budget), budgetValue: c.budget, startDate: c.startDate, endDate: c.endDate,
         dates: fmtRange(c.startDate, c.endDate),
         objectiveKpi: objectiveKpiLabel, bookingsCount: bookings.length,
@@ -885,6 +921,17 @@ export const MediaPlanDetail: Story = {
             </span>
           );
         },
+      },
+      {
+        // How the campaign buys — auction bids per placement, guaranteed
+        // reserves it. Beside the proposition, because it is what KIND of
+        // campaign this is rather than how it is doing.
+        key: 'buyingType', header: 'Type', width: 130,
+        render: (r) => r._type !== 'campaign' ? null : (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {(r.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction'}
+          </span>
+        ),
       },
       {
         // Right after budget & run time: what still needs doing. Health sits

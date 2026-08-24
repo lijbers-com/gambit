@@ -35,8 +35,10 @@ export interface SetupChecklistCardData {
   icon?: React.ReactNode;
   title: string;
   /** The campaign's governing facts — budget, run time — each a labelled
-   *  field, in the same order the plan's control bar states them. */
-  facts?: Array<{ label: string; value: string }>;
+   *  field, in the same order the plan's control bar states them. A string
+   *  renders as a read-only box; a node renders as itself, so a caller can
+   *  hand over the same editors the table rows use. */
+  facts?: Array<{ label: string; value: React.ReactNode }>;
   steps: SetupChecklistStep[];
 }
 
@@ -94,11 +96,15 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                 {card.facts && card.facts.length > 0 && (
                   <div className="grid grid-cols-2 gap-3">
                     {card.facts.map((f) => (
-                      <div key={f.label} className="space-y-1">
+                      <div key={f.label} className="min-w-0 space-y-1">
                         <span className="block text-xs font-medium text-muted-foreground">{f.label}</span>
-                        <div className="truncate rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
-                          {f.value}
-                        </div>
+                        {typeof f.value === 'string' ? (
+                          <div className="truncate rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
+                            {f.value}
+                          </div>
+                        ) : (
+                          f.value
+                        )}
                       </div>
                     ))}
                   </div>

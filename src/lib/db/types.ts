@@ -129,6 +129,9 @@ export interface Campaign {
    *  a fixed price and show no bids. Only sponsored products, display and
    *  digital in-store ask this; absent reads as auction. */
   buyingType?: 'auction' | 'guaranteed';
+  /** Retail products this campaign advertises — a booking made under it
+   *  starts from these rather than from an empty list. */
+  retailProductIds?: string[];
   status: PlanStatus;
   budget: number;
   spend: number;

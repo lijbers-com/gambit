@@ -3,6 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { SummaryCard } from '@/components/ui/summary-card';
+import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { MetricRow } from '@/components/ui/metric-row';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Button } from '@/components/ui/button';
@@ -476,6 +477,8 @@ export const GoalSelection: Story = {
       externalId: string;
       budget: string;
       dateRange: DateRange | undefined;
+      /** How the campaign buys — assisted rows take the preset's auction. */
+      buyingType: 'auction' | 'guaranteed';
     };
     const rowSeq = React.useRef(0);
     const nextRowId = () => `row-${(rowSeq.current += 1)}`;
@@ -487,6 +490,7 @@ export const GoalSelection: Story = {
       externalId: '',
       budget: '',
       dateRange: undefined,
+      buyingType: 'auction',
     });
     // Default: one assisted campaign per proposition.
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
@@ -498,6 +502,7 @@ export const GoalSelection: Story = {
         externalId: '',
         budget: '',
         dateRange: undefined,
+        buyingType: 'auction' as const,
       })),
     );
     const updateRow = (id: string, patch: Partial<CampaignRow>) =>
@@ -800,6 +805,7 @@ export const GoalSelection: Story = {
           // Persisted so the follow-up booking/creative wizards know whether
           // to open fully prefilled (assisted) or only with the shared facts.
           mode: row.mode === 'preset' ? 'assisted' : 'expert',
+          buyingType: row.buyingType,
           status: 'in-option',
           budget: rowBudget,
           spend: 0,
@@ -1592,6 +1598,15 @@ export const GoalSelection: Story = {
                                     showPresets
                                     presets={futureDateRangePresets}
                                     className="w-full"
+                                  />
+                                </div>
+                                {/* How this campaign buys — the same choice,
+                                    the same control, as the campaign wizard's
+                                    own setup step. */}
+                                <div className="sm:col-span-2">
+                                  <BuyingTypePicker
+                                    value={row.buyingType}
+                                    onChange={(v) => updateRow(row.id, { buyingType: v })}
                                   />
                                 </div>
                               </div>

@@ -1045,7 +1045,7 @@ export const MediaPlanDetail: Story = {
                 }}
               />
             </ControlBarItem>
-            <ControlBarItem label="Media plan run time">
+            <ControlBarItem label="Media plan run time" dropOrder={3}>
               <DatesCell
                 className="h-9 w-64 text-sm font-normal"
                 start={plan?.startDate}
@@ -1055,7 +1055,7 @@ export const MediaPlanDetail: Story = {
             </ControlBarItem>
             {/* The split lives inside the budget picker now — repeating it as
                 a bar here said the same thing twice on one card. */}
-            <ControlBarItem label="Health">
+            <ControlBarItem label="Health" dropOrder={2}>
               <div className="flex h-9 items-center">
                 <button
                   type="button"
@@ -1066,7 +1066,7 @@ export const MediaPlanDetail: Story = {
                 </button>
               </div>
             </ControlBarItem>
-            <ControlBarItem label="Notifications">
+            <ControlBarItem label="Notifications" dropOrder={1}>
               <div className="flex h-9 items-center">
                 <NotificationsCell
                   actions={planOwnCounts.actions}

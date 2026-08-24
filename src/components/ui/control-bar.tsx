@@ -15,14 +15,32 @@ import { Label } from './label';
  * screens; a `fullWidth` item (a split bar, a progress strip) takes its own
  * row at the end.
  */
-export const ControlBar: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className,
-}) => (
-  // gap-x-4, not 6 — the bar holds five things and the tighter gap is what
-  // lets them share one row on a laptop; wrapping stays the fallback.
-  <section className={cn('flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-border bg-card p-4', className)}>
-    {children}
+export const ControlBar: React.FC<{
+  children: React.ReactNode;
+  /** The entity's name. Given one, the card carries the page's title itself —
+   *  the standard page header stands down, so the thing and the controls that
+   *  govern it are one card instead of two stacked bands. */
+  title?: string;
+  titleIcon?: React.ReactNode;
+  /** Everything that acts on the entity — run state, add, the overflow menu. */
+  actions?: React.ReactNode;
+  className?: string;
+}> = ({ children, title, titleIcon, actions, className }) => (
+  <section className={cn('rounded-xl border border-border bg-card p-4', className)}>
+    {(title || actions) && (
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold leading-tight">
+          {titleIcon}
+          <span className="min-w-0 truncate" title={title}>{title}</span>
+        </h1>
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      </div>
+    )}
+    {/* gap-x-4, not 6 — the bar holds several things and the tighter gap is
+        what lets them share one row on a laptop; wrapping stays the fallback. */}
+    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+      {children}
+    </div>
   </section>
 );
 

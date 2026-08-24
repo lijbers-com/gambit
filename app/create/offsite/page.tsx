@@ -10,7 +10,7 @@ import { CreateOffsite } from '@/components/layout/page-templates/create-proposi
 // &step=creatives runs only the creative step.
 function CreateOffsiteContent() {
   const searchParams = useSearchParams();
-  const Component = CreateOffsite.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string }) => React.JSX.Element;
+  const Component = CreateOffsite.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string; returnTo?: string }) => React.JSX.Element;
 
   if (!Component) {
     return <div>Offsite Campaign</div>;
@@ -22,6 +22,7 @@ function CreateOffsiteContent() {
       campaignId={searchParams?.get('campaignId') ?? undefined}
       bookingId={searchParams?.get('bookingId') ?? undefined}
       step={searchParams?.get('step') ?? undefined}
+      returnTo={searchParams?.get('returnTo') ?? undefined}
     />
   );
 }

@@ -644,10 +644,13 @@ export const MediaPlanDetail: Story = {
     /** Open the booking wizard for this campaign — the campaign wizard
      *  entered at its booking step, ending in the creative step. The booking
      *  detail page is the RESULT of that flow, not the starting point. */
+    /** Runs started here come back here when they are done. */
+    const backToPlan = plan ? `&returnTo=${encodeURIComponent(`/campaigns/plan/${plan.id}`)}` : '';
+
     const addBookingTo = (campaignId: string) => {
       const c = db.campaigns.find((x) => x.id === campaignId);
       if (!c || typeof window === 'undefined') return;
-      window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
+      window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
     };
 
     /** Open a prefilled booking in its wizard, where saving approves it. */
@@ -655,8 +658,8 @@ export const MediaPlanDetail: Story = {
       const c = db.campaigns.find((x) => x.id === campaignId);
       if (!c || typeof window === 'undefined') return;
       window.location.href = bookingId
-        ? `/create/${routeSeg[c.engine]}?bookingId=${bookingId}`
-        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
+        ? `/create/${routeSeg[c.engine]}?bookingId=${bookingId}${backToPlan}`
+        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
     };
 
     // The control bar summarises the whole plan, so its Notifications cell
@@ -734,7 +737,7 @@ export const MediaPlanDetail: Story = {
                 description: 'Check what the media plan proposed — name, budget, run time and type.',
                 done: c.status !== 'draft',
                 onClick: () => {
-                  if (typeof window !== 'undefined') window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign`;
+                  if (typeof window !== 'undefined') window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign${backToPlan}`;
                 },
               },
               {
@@ -771,8 +774,8 @@ export const MediaPlanDetail: Story = {
                     onClick: () => {
                       const missing = bookings.find((b) => b.creativeStatus === 'missing');
                       window.location.href = missing
-                        ? `/create/${routeSeg[c.engine]}?bookingId=${missing.id}&step=creatives`
-                        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
+                        ? `/create/${routeSeg[c.engine]}?bookingId=${missing.id}&step=creatives${backToPlan}`
+                        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
                     },
                   },
             ];

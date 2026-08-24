@@ -10,7 +10,7 @@ import { CreateOfflineInstore } from '@/components/layout/page-templates/create-
 // &step=creatives runs only the creative step.
 function CreateOfflineInstoreContent() {
   const searchParams = useSearchParams();
-  const Component = CreateOfflineInstore.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string }) => React.JSX.Element;
+  const Component = CreateOfflineInstore.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string; returnTo?: string }) => React.JSX.Element;
 
   if (!Component) {
     return <div>Offline In-Store Campaign</div>;
@@ -22,6 +22,7 @@ function CreateOfflineInstoreContent() {
       campaignId={searchParams?.get('campaignId') ?? undefined}
       bookingId={searchParams?.get('bookingId') ?? undefined}
       step={searchParams?.get('step') ?? undefined}
+      returnTo={searchParams?.get('returnTo') ?? undefined}
     />
   );
 }

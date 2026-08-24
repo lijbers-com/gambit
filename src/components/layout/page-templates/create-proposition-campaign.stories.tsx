@@ -34,7 +34,7 @@ import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaul
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
-import { useDb, createCampaign, createBooking, updateBooking, updateCampaign, type EngineId } from '@/lib/db';
+import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, type EngineId } from '@/lib/db';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -375,6 +375,7 @@ const PropositionWizard = ({
   campaignId,
   bookingId,
   step: entryStep,
+  returnTo,
 }: {
   propositionType: string;
   /** Create the campaign inside this media plan (run time prefills from it). */
@@ -389,6 +390,9 @@ const PropositionWizard = ({
   /** With campaignId: 'creatives' runs only the creative step, against the
    *  campaign's existing bookings that still miss one. */
   step?: string;
+  /** Where the run was started from — the media plan or the campaign — so
+   *  finishing hands the user back to it instead of somewhere plausible. */
+  returnTo?: string;
 }) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -568,7 +572,7 @@ const PropositionWizard = ({
         ...(bookingCreativeId ? { creativeStatus: 'submitted' as const } : {}),
       });
       queueToast({ title: 'Booking approved', description: bookingName || routeBooking.name });
-      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${routeBooking.id}`;
+      if (typeof window !== 'undefined') window.location.href = afterBooking(routeBooking.campaignId, routeBooking.id);
       return;
     }
     setBookings(prev => [...prev, {
@@ -665,6 +669,30 @@ const PropositionWizard = ({
   ];
 
   const toIso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+
+  /**
+   * Where to go when a booking is finished. A campaign is rarely one booking:
+   * if others are still proposed, or still without a creative, the run
+   * continues into the next one rather than dropping the user out and asking
+   * them to find it. Only when nothing is left does it hand back to whatever
+   * started the run — the media plan or the campaign.
+   */
+  const backLink = returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : '';
+  const afterBooking = (campaignOfBooking: string | undefined, justDoneId?: string) => {
+    const fresh = getDb();
+    const siblings = campaignOfBooking
+      ? fresh.bookings.filter((b) => b.campaignId === campaignOfBooking && b.status !== 'completed')
+      : [];
+    const nextDraft = siblings.find((b) => b.id !== justDoneId && b.status === 'draft');
+    if (nextDraft) return `/create/${propositionType}?bookingId=${nextDraft.id}${backLink}`;
+    // A creative the user deliberately skipped is not a reason to send them
+    // straight back into it, so the booking just handled is left out.
+    const needsCreative = hasCreativeStep
+      ? siblings.find((b) => b.id !== justDoneId && b.creativeStatus === 'missing')
+      : undefined;
+    if (needsCreative) return `/create/${propositionType}?bookingId=${needsCreative.id}&step=creatives${backLink}`;
+    return returnTo ?? (campaignOfBooking ? `${proposition.campaignRoute}/${campaignOfBooking}` : proposition.campaignRoute);
+  };
 
   // ── Prefill — the questions the media plan already answered are not asked
   //    again. All seeded after mount (never during render) so server and
@@ -770,9 +798,7 @@ const PropositionWizard = ({
       });
       queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]).length} booking(s) updated` });
       if (typeof window !== 'undefined') {
-        window.location.href = routeBooking
-          ? `${proposition.campaignRoute}/booking/${routeBooking.id}`
-          : `${proposition.campaignRoute}/${linkedCampaignId}`;
+        window.location.href = afterBooking(routeBooking?.campaignId ?? linkedCampaignId, routeBooking?.id);
       }
       return;
     }
@@ -794,7 +820,7 @@ const PropositionWizard = ({
           : {}),
       });
       queueToast({ title: 'Booking approved', description: b?.name || routeBooking.name });
-      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${routeBooking.id}`;
+      if (typeof window !== 'undefined') window.location.href = afterBooking(routeBooking.campaignId, routeBooking.id);
       return;
     }
     const fallbackStart = toIso(dateRange?.from) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
@@ -832,10 +858,10 @@ const PropositionWizard = ({
         : { title: 'Campaign created', description: campaignRecord.name },
     );
     if (typeof window === 'undefined') return;
-    // Booking mode lands on the booking it made; campaign mode on the campaign.
-    window.location.href = bookingMode && created[0]
-      ? `${proposition.campaignRoute}/booking/${created[0].id}`
-      : `${proposition.campaignRoute}/${campaignRecord.id}`;
+    // Where the run came from wins; otherwise the campaign it just filled in.
+    window.location.href = bookingMode
+      ? afterBooking(campaignRecord.id, created[0]?.id)
+      : returnTo ?? `${proposition.campaignRoute}/${campaignRecord.id}`;
   };
 
   const isCurrentStepComplete = (() => {
@@ -1879,7 +1905,7 @@ const PropositionWizard = ({
                             {booking.status === 'draft' ? (
                               <Button
                                 size="sm"
-                                onClick={() => { if (typeof window !== 'undefined') window.location.href = `/create/${propositionType}?bookingId=${booking.id}`; }}
+                                onClick={() => { if (typeof window !== 'undefined') window.location.href = `/create/${propositionType}?bookingId=${booking.id}${backLink}`; }}
                               >
                                 Approve
                               </Button>
@@ -2625,6 +2651,8 @@ export interface SPWizardInitialValues {
   campaignId?: string;
   /** Approval mode: an existing, prefilled booking to check and approve. */
   bookingId?: string;
+  /** Where the run started — the media plan or the campaign — to hand back to. */
+  returnTo?: string;
   /** Create the campaign inside this media plan. */
   planId?: string;
 }
@@ -2997,7 +3025,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         positionIds: [...selectedProducts, ...keywords, ...selectedCategories, ...spaLocations],
       });
       queueToast({ title: 'Booking approved', description: bookingCampaignName || routeBooking.name });
-      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${routeBooking.campaignId}`;
+      if (typeof window !== 'undefined') {
+        // Another proposed booking on the same campaign continues the run.
+        const fresh = getDb();
+        const nextDraft = fresh.bookings.find((b) => b.campaignId === routeBooking.campaignId && b.id !== routeBooking.id && b.status === 'draft');
+        window.location.href = nextDraft
+          ? `/create/sponsored-products?bookingId=${nextDraft.id}${initialValues?.returnTo ? `&returnTo=${encodeURIComponent(initialValues.returnTo)}` : ''}`
+          : initialValues?.returnTo ?? `${proposition.campaignRoute}/${routeBooking.campaignId}`;
+      }
       return;
     }
     const fallbackStart = iso(startDate) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
@@ -3031,7 +3066,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         ? { title: 'Booking created', description: bookingCampaignName || campaignRecord.name }
         : { title: 'Campaign created', description: campaignRecord.name },
     );
-    if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${campaignRecord.id}`;
+    if (typeof window !== 'undefined') {
+      window.location.href = initialValues?.returnTo ?? `${proposition.campaignRoute}/${campaignRecord.id}`;
+    }
   };
 
   const getStepStatus = (stepIndex: number): 'completed' | 'active' | 'pending' => {
@@ -3749,12 +3786,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 /** The route args every create page passes through: `planId` links the new
  *  campaign into a media plan; `campaignId` enters at the booking step for an
  *  existing campaign; `step=creatives` runs only the creative step. */
-type CreateArgs = { planId?: string; campaignId?: string; bookingId?: string; step?: string };
+type CreateArgs = { planId?: string; campaignId?: string; bookingId?: string; step?: string; returnTo?: string };
 
 export const CreateDisplay: Story = {
   render: (args) => {
-    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="display" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
+    const { planId, campaignId, bookingId, step, returnTo } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="display" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} returnTo={returnTo} />;
   },
   parameters: {
     docs: {
@@ -3767,8 +3804,8 @@ export const CreateDisplay: Story = {
 
 export const CreateOffsite: Story = {
   render: (args) => {
-    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="offsite" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
+    const { planId, campaignId, bookingId, step, returnTo } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offsite" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} returnTo={returnTo} />;
   },
   parameters: {
     docs: {
@@ -3803,8 +3840,8 @@ export const CreateSponsoredProductsV2: Story = {
 
 export const CreateOfflineInstore: Story = {
   render: (args) => {
-    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="offline-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
+    const { planId, campaignId, bookingId, step, returnTo } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offline-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} returnTo={returnTo} />;
   },
   parameters: {
     docs: {
@@ -3817,8 +3854,8 @@ export const CreateOfflineInstore: Story = {
 
 export const CreateDigitalInstore: Story = {
   render: (args) => {
-    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="digital-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
+    const { planId, campaignId, bookingId, step, returnTo } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="digital-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} returnTo={returnTo} />;
   },
   parameters: {
     docs: {

@@ -10,7 +10,7 @@ import { CreateDisplay } from '@/components/layout/page-templates/create-proposi
 // &step=creatives runs only the creative step.
 function CreateDisplayContent() {
   const searchParams = useSearchParams();
-  const Component = CreateDisplay.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string }) => React.JSX.Element;
+  const Component = CreateDisplay.render as (args: { planId?: string; campaignId?: string; bookingId?: string; step?: string; returnTo?: string }) => React.JSX.Element;
 
   if (!Component) {
     return <div>Display Campaign</div>;
@@ -22,6 +22,7 @@ function CreateDisplayContent() {
       campaignId={searchParams?.get('campaignId') ?? undefined}
       bookingId={searchParams?.get('bookingId') ?? undefined}
       step={searchParams?.get('step') ?? undefined}
+      returnTo={searchParams?.get('returnTo') ?? undefined}
     />
   );
 }

@@ -24,9 +24,6 @@ export interface AppLayoutProps {
   onLogout?: () => void;
   breadcrumbProps?: React.ComponentProps<typeof SmartBreadcrumbs>;
   pageHeaderProps?: React.ComponentProps<typeof PageHeader>;
-  /** Pages whose title lives inside their own controls card (the media plan)
-   *  stand the standard header down rather than showing two titles. */
-  hidePageHeader?: boolean;
 }
 
 export function AppLayout({
@@ -37,7 +34,6 @@ export function AppLayout({
   onLogout,
   breadcrumbProps,
   pageHeaderProps,
-  hidePageHeader,
 }: AppLayoutProps) {
   const { collapsed } = useMenu();
   
@@ -93,7 +89,6 @@ export function AppLayout({
         {/* Scrollable Page Panel — border follows the rounded-tl curve */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border" style={{ background: 'var(--brand-page-bg-hex, #fafafa)' }}>
           {/* Page Header */}
-          {!hidePageHeader && (
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}
             subtitle={pageHeaderProps?.subtitle}
@@ -106,7 +101,6 @@ export function AppLayout({
             }
             {...pageHeaderProps}
           />
-          )}
           {/* Page Content Area */}
           <div className="w-full p-6 pb-24 min-h-screen overflow-x-hidden">
               <div className="max-w-full">

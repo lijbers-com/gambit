@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
-import { Euro, Lock, MoreHorizontal, Edit, Download, Upload, Settings, Trash2 } from 'lucide-react';
+import { Euro, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -42,7 +42,6 @@ import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { stageForGoal } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { BudgetSelect } from '@/components/ui/budget-select';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
@@ -998,21 +997,17 @@ export const MediaPlanDetail: Story = {
           user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
           onLogout={() => {}}
           breadcrumbProps={{ namespace: '' }}
-          // The plan's name lives on its controls card, with the actions that
-          // work on it — one card instead of a title band above a controls band.
-          hidePageHeader
-        >
-          {/* The plan's main controls: what it may spend and when it runs,
-              with the health and notification state that follows from them.
-              They govern every campaign in the plan, so they sit with the
-              metrics above the tabs rather than inside one of them. */}
-          {/* mb-1 + the tab card's built-in 12px above its strip = the same
-              16px gap the metric cards keep. */}
-          <ControlBar
-            className="mb-4"
-            title={plan?.name ?? 'Media plan'}
-            titleIcon={<HierarchyBadge level="media-plan" />}
-            actions={
+          pageHeaderProps={{
+            title: plan?.name ?? 'Media plan',
+            titleIcon: <HierarchyBadge level="media-plan" />,
+            onEdit: () => {},
+            onExport: () => {},
+            onSettings: () => {},
+            onDelete: () => setConfirmingDelete(true),
+            // Run state and Add campaign act on the plan as a whole, so they
+            // sit in its header — next to the overflow menu, which is the
+            // rest of what can be done to it.
+            headerRight: (
               <>
                 {plan && (
                   <LifecycleActions
@@ -1025,26 +1020,17 @@ export const MediaPlanDetail: Story = {
                   />
                 )}
                 <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
-                {/* The page's own overflow, beside the actions it belongs with. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline" aria-label="More options">
-                      <MoreHorizontal className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                    <DropdownMenuItem><Download className="mr-2 h-4 w-4" />Export</DropdownMenuItem>
-                    <DropdownMenuItem><Upload className="mr-2 h-4 w-4" />Import</DropdownMenuItem>
-                    <DropdownMenuItem><Settings className="mr-2 h-4 w-4" />Settings</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setConfirmingDelete(true)} className="text-destructive focus:text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </>
-            }
-          >
+            ),
+          }}
+        >
+          {/* The plan's main controls: what it may spend and when it runs,
+              with the health and notification state that follows from them.
+              They govern every campaign in the plan, so they sit with the
+              metrics above the tabs rather than inside one of them. */}
+          {/* mb-1 + the tab card's built-in 12px above its strip = the same
+              16px gap the metric cards keep. */}
+          <ControlBar className="mb-4">
             <ControlBarItem label="Media plan budget">
               {/* The budget opens like the date field beside it: click, see
                   the split per campaign, edit either the total (rows rescale)

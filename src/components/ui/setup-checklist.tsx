@@ -73,6 +73,7 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
         {cards.map((card) => {
           const done = card.steps.filter((s) => s.done).length;
           const complete = done === card.steps.length;
+          const nextStep = card.steps.find((s) => !s.done);
           return (
             <Card key={card.id} className="flex flex-col">
               <CardContent className="flex flex-1 flex-col gap-4 p-5">
@@ -159,9 +160,11 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                   <Button variant="outline" onClick={() => onDismiss(card.id)}>
                     Skip
                   </Button>
-                  {/* Done only means something once it is true. */}
-                  <Button disabled={!complete} onClick={() => onDismiss(card.id)}>
-                    Done
+                  {/* The card exists because work is open, so its action is to
+                      START that work — the next unfinished step's own wizard.
+                      A card with nothing left removes itself. */}
+                  <Button disabled={!nextStep} onClick={() => nextStep?.onClick?.()}>
+                    Start
                   </Button>
                 </div>
               </CardContent>

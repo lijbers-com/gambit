@@ -398,6 +398,7 @@ const PropositionWizard = ({
   propositionType,
   planId,
   campaignId,
+  bookingId,
   step: entryStep,
 }: {
   propositionType: string;
@@ -406,6 +407,10 @@ const PropositionWizard = ({
   /** Booking mode: the campaign exists — run only the booking and creative
    *  steps against it, and land on the created booking. */
   campaignId?: string;
+  /** Approval mode: this booking exists but was PREFILLED by the media plan
+   *  wizard, so it is still a draft. The same booking steps run against it,
+   *  already answered, and saving approves it instead of making a second. */
+  bookingId?: string;
   /** With campaignId: 'creatives' runs only the creative step, against the
    *  campaign's existing bookings that still miss one. */
   step?: string;
@@ -421,11 +426,18 @@ const PropositionWizard = ({
   // positions) from it and WRITES its result into it: finishing is what
   // creates the campaign and bookings the detail pages then show.
   const db = useDb();
+  // Approval mode reads the booking it is approving; its campaign is the one
+  // that booking already belongs to.
+  const routeBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
   // The campaign the booking hangs under: seeded from the route, and the
   // campaign card's link action can point the booking at another one — even
   // right after creating a campaign here.
-  const [linkedCampaignId, setLinkedCampaignId] = React.useState<string | undefined>(campaignId);
+  const [linkedCampaignId, setLinkedCampaignId] = React.useState<string | undefined>(campaignId ?? routeBooking?.campaignId);
   const [linkingCampaign, setLinkingCampaign] = React.useState(false);
+  // The client store resolves the booking after hydration; adopt its campaign.
+  React.useEffect(() => {
+    if (routeBooking && !linkedCampaignId) setLinkedCampaignId(routeBooking.campaignId);
+  }, [routeBooking, linkedCampaignId]);
   const routeCampaign = linkedCampaignId ? db.campaigns.find((c) => c.id === linkedCampaignId) : undefined;
   // Seeded from the route (`?planId=`, or the campaign's own plan in booking
   // mode); the Media plan card's link action can change it.
@@ -434,7 +446,7 @@ const PropositionWizard = ({
   );
   const [linkingMediaPlan, setLinkingMediaPlan] = React.useState(false);
   const linkedPlan = linkedPlanId ? db.mediaPlans.find((p) => p.id === linkedPlanId) : undefined;
-  const bookingMode = !!campaignId;
+  const bookingMode = !!campaignId || !!bookingId;
   const creativesOnly = bookingMode && entryStep === 'creatives';
 
   // Booking mode skips the campaign phase — those steps are already answered
@@ -688,6 +700,23 @@ const PropositionWizard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeCampaign?.id, routeCampaign?.mode]);
 
+  // Approval mode: the booking's own record fills the form. The user is
+  // checking a proposal, so every field arrives answered, and the placement
+  // opens on the channel the proposed positions belong to.
+  React.useEffect(() => {
+    if (!routeBooking) return;
+    setBookingName(routeBooking.name);
+    if (routeBooking.budget > 0) setBookingBudget(String(routeBooking.budget));
+    setBookingDateRange({ from: new Date(routeBooking.startDate), to: new Date(routeBooking.endDate) });
+    if (routeBooking.positionIds.length > 0) {
+      setBookingPositionIds(routeBooking.positionIds);
+      const channel = engineChannels.find((ch) => ch.positions.some((p) => routeBooking.positionIds.includes(p.id)));
+      if (channel) setSelectedChannelIds([channel.id]);
+    }
+    setBookingSubStep((prev) => (prev === null ? 0 : prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeBooking?.id, engineChannels.length]);
+
   // Assisted creatives: arrive chosen, not empty — the first creative is
   // staged per booking and the user swaps or clears it.
   React.useEffect(() => {
@@ -713,6 +742,27 @@ const PropositionWizard = ({
       });
       queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]).length} booking(s) updated` });
       if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${campaignId}`;
+      return;
+    }
+    // Approval mode: the booking already exists — checking it is what makes
+    // it real, so saving updates that record and lifts it out of draft.
+    if (routeBooking) {
+      const b = bookings[0];
+      updateBooking(routeBooking.id, {
+        status: 'in-option',
+        ...(b
+          ? {
+              name: b.name || routeBooking.name,
+              budget: b.budget > 0 ? b.budget : routeBooking.budget,
+              startDate: toIso(b.startDate) ?? routeBooking.startDate,
+              endDate: toIso(b.endDate) ?? routeBooking.endDate,
+              positionIds: b.positionIds.length > 0 ? b.positionIds : routeBooking.positionIds,
+              ...(creativeChoice[b.id] ? { creativeStatus: 'submitted' as const } : {}),
+            }
+          : {}),
+      });
+      queueToast({ title: 'Booking approved', description: b?.name || routeBooking.name });
+      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${routeBooking.id}`;
       return;
     }
     const fallbackStart = toIso(dateRange?.from) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
@@ -2006,7 +2056,7 @@ const PropositionWizard = ({
                         <Button variant="outline" onClick={goToPrevStep}>Back</Button>
                       ) : <span />}
                       <Button onClick={finishWizard}>
-                        {creativesOnly ? 'Save creatives' : bookingMode ? 'Save booking' : 'Save campaign'}
+                        {creativesOnly ? 'Save creatives' : routeBooking ? 'Approve booking' : bookingMode ? 'Save booking' : 'Save campaign'}
                       </Button>
                     </div>
                   </CardContent>
@@ -2055,7 +2105,7 @@ const PropositionWizard = ({
                 return (
                   <CardSummary>
                     <CardHeader>
-                      <CardSummaryTitle>New booking</CardSummaryTitle>
+                      <CardSummaryTitle>{routeBooking ? 'Booking' : 'New booking'}</CardSummaryTitle>
                     </CardHeader>
                     <CardSummaryContent>
                       <div className="relative pl-12">
@@ -2087,7 +2137,9 @@ const PropositionWizard = ({
                     </CardSummaryContent>
                     {bookingSubStep === bookingSubStepLabels.length - 1 && (
                       <div className="px-4 pb-4">
-                        <Button className="w-full" onClick={saveBooking}>Create booking</Button>
+                        {/* Staging, not committing — approval mode commits on
+                            the wizard's own save, one step further. */}
+                        <Button className="w-full" onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
                       </div>
                     )}
                   </CardSummary>
@@ -2417,6 +2469,8 @@ export interface SPWizardInitialValues {
   /** The existing campaign's id, so the booking links to it rather than to a
    *  slug derived from its name. A real db id implies startAtBooking. */
   campaignId?: string;
+  /** Approval mode: an existing, prefilled booking to check and approve. */
+  bookingId?: string;
   /** Create the campaign inside this media plan. */
   planId?: string;
 }
@@ -2430,8 +2484,13 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // The prototype database: campaign/plan context is read from it, and
   // finishing the wizard writes the campaign and booking into it.
   const spDb = useDb();
-  const routeCampaign = initialValues?.campaignId
-    ? spDb.campaigns.find((c) => c.id === initialValues.campaignId)
+  // Approval mode: the prefilled booking, and the campaign it belongs to.
+  const routeBooking = initialValues?.bookingId
+    ? spDb.bookings.find((b) => b.id === initialValues.bookingId)
+    : undefined;
+  const campaignIdForBooking = initialValues?.campaignId ?? routeBooking?.campaignId;
+  const routeCampaign = campaignIdForBooking
+    ? spDb.campaigns.find((c) => c.id === campaignIdForBooking)
     : undefined;
   const linkedPlan = initialValues?.planId
     ? spDb.mediaPlans.find((p) => p.id === initialValues.planId)
@@ -2447,7 +2506,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // "Add booking" on an existing campaign lands here mid-flow: the campaign
   // step is already done by definition, so the wizard opens on the booking.
   const startAtBooking = Boolean(
-    routeCampaign || (initialValues?.startAtBooking && initialValues?.campaignName),
+    routeCampaign || routeBooking || (initialValues?.startAtBooking && initialValues?.campaignName),
   );
   const [currentStep, setCurrentStep] = React.useState(startAtBooking ? 1 : 0);
   // The campaign's three questions, one card each: what it is (name and how
@@ -2631,6 +2690,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
+  // Approval mode: the booking arrives answered — the user is checking it.
+  React.useEffect(() => {
+    if (!routeBooking) return;
+    setBookingCampaignName(routeBooking.name);
+    if (routeBooking.budget > 0) setTotalBudget(String(routeBooking.budget));
+    setBookingStartDate(new Date(routeBooking.startDate));
+    setBookingEndDate(new Date(routeBooking.endDate));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeBooking?.id]);
+
   const campaignMissing = [
     !campaignName.trim() && 'campaign name',
     !selectedAdvertiser && 'advertiser',
@@ -2752,6 +2821,21 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
    */
   const finishSPWizard = () => {
     const iso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+    // Approval mode: the prefilled booking is updated and lifted out of
+    // draft, not duplicated.
+    if (routeBooking) {
+      updateBooking(routeBooking.id, {
+        status: 'in-option',
+        name: bookingCampaignName || routeBooking.name,
+        budget: parseFloat(totalBudget) || routeBooking.budget,
+        startDate: iso(bookingStartDate) ?? routeBooking.startDate,
+        endDate: iso(bookingEndDate) ?? routeBooking.endDate,
+        positionIds: [...selectedProducts, ...keywords, ...selectedCategories, ...spaLocations],
+      });
+      queueToast({ title: 'Booking approved', description: bookingCampaignName || routeBooking.name });
+      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/${routeBooking.campaignId}`;
+      return;
+    }
     const fallbackStart = iso(startDate) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
     const fallbackEnd = iso(endDate) ?? linkedPlan?.endDate ?? fallbackStart;
     const campaignRecord = routeCampaign ?? createCampaign({
@@ -3346,7 +3430,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 i < bookingSubStep ? 'completed' as const : i === bookingSubStep ? 'active' as const : 'pending' as const;
               const bookingTimeline = (
                 <SummaryCard
-                  title="Booking"
+                  title={routeBooking ? 'Booking' : 'New booking'}
                   entity="booking"
                   variant="process"
                   steps={[
@@ -3391,7 +3475,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   ]}
                   // Only the last step carries the call to action — the same
                   // rule every wizard's cards follow.
-                  actions={bookingSubStep === 3 ? [{ label: 'Save & finish', onClick: finishSPWizard }] : undefined}
+                  actions={bookingSubStep === 3 ? [{ label: routeBooking ? 'Approve booking' : 'Save & finish', onClick: finishSPWizard }] : undefined}
                 />
               );
               return (
@@ -3488,12 +3572,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 /** The route args every create page passes through: `planId` links the new
  *  campaign into a media plan; `campaignId` enters at the booking step for an
  *  existing campaign; `step=creatives` runs only the creative step. */
-type CreateArgs = { planId?: string; campaignId?: string; step?: string };
+type CreateArgs = { planId?: string; campaignId?: string; bookingId?: string; step?: string };
 
 export const CreateDisplay: Story = {
   render: (args) => {
-    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="display" planId={planId} campaignId={campaignId} step={step} />;
+    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="display" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
   },
   parameters: {
     docs: {
@@ -3506,8 +3590,8 @@ export const CreateDisplay: Story = {
 
 export const CreateOffsite: Story = {
   render: (args) => {
-    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="offsite" planId={planId} campaignId={campaignId} step={step} />;
+    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offsite" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
   },
   parameters: {
     docs: {
@@ -3542,8 +3626,8 @@ export const CreateSponsoredProductsV2: Story = {
 
 export const CreateOfflineInstore: Story = {
   render: (args) => {
-    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="offline-instore" planId={planId} campaignId={campaignId} step={step} />;
+    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="offline-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
   },
   parameters: {
     docs: {
@@ -3556,8 +3640,8 @@ export const CreateOfflineInstore: Story = {
 
 export const CreateDigitalInstore: Story = {
   render: (args) => {
-    const { planId, campaignId, step } = (args ?? {}) as CreateArgs;
-    return <PropositionWizard propositionType="digital-instore" planId={planId} campaignId={campaignId} step={step} />;
+    const { planId, campaignId, bookingId, step } = (args ?? {}) as CreateArgs;
+    return <PropositionWizard propositionType="digital-instore" planId={planId} campaignId={campaignId} bookingId={bookingId} step={step} />;
   },
   parameters: {
     docs: {

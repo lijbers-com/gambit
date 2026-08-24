@@ -49,7 +49,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
   );
 
   /**
-   * Three rows of badges, then the rest on request. Clamped by height rather
+   * Two rows of badges, then the rest on request. Clamped by height rather
    * than by count: the names run from "CLV" to "Unaided brand/product
    * awareness", so any fixed number of badges is three lines on one card and
    * one line on another.
@@ -57,14 +57,14 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
   const [kpisExpanded, setKpisExpanded] = React.useState(false);
   const kpiListRef = React.useRef<HTMLSpanElement>(null);
   /**
-   * Three rows, fixed from the first paint. Measuring a rendered badge meant
+   * Two rows, fixed from the first paint. Measuring a rendered badge meant
    * the list drew at full height for one frame before the clamp landed, and
    * anything sizing itself off this card caught that taller frame. A badge is
    * a known height instead — `leading-4` (16px) + py-0.5 + the border = 22px —
-   * so three of them plus two 4px gaps is 74px, and the clamp is right
+   * so two of them plus one 4px gap is 48px, and the clamp is right
    * immediately.
    */
-  const KPI_CLAMP_HEIGHT = 74;
+  const KPI_CLAMP_HEIGHT = 48;
   const [hiddenCount, setHiddenCount] = React.useState(0);
   React.useEffect(() => {
     const el = kpiListRef.current;

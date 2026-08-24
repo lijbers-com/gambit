@@ -641,6 +641,15 @@ export const MediaPlanDetail: Story = {
       window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
     };
 
+    /** Open a prefilled booking in its wizard, where saving approves it. */
+    const approveBooking = (bookingId: string | undefined, campaignId: string) => {
+      const c = db.campaigns.find((x) => x.id === campaignId);
+      if (!c || typeof window === 'undefined') return;
+      window.location.href = bookingId
+        ? `/create/${routeSeg[c.engine]}?bookingId=${bookingId}`
+        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}`;
+    };
+
     // The control bar summarises the whole plan, so its Notifications cell
     // counts every message under it — plan, campaigns and bookings — the same
     // population the Notifications tab badges. Counting only the plan-level
@@ -684,6 +693,10 @@ export const MediaPlanDetail: Story = {
             // "Add campaign" continues into, entered at the right step. The
             // media plan wizard stopped at campaigns; these cards carry what
             // it deliberately left open.
+            // A booking the plan wizard proposed is still a draft: it exists,
+            // but nobody has checked it. Approving one means running the
+            // prefilled booking wizard and saving it.
+            const draftBookings = bookings.filter((b) => b.status === 'draft');
             const steps = [
               {
                 id: `${c.id}-bookings`,
@@ -691,6 +704,15 @@ export const MediaPlanDetail: Story = {
                 description: 'The guided setup walks through schedule, placement and delivery.',
                 done: bookings.length > 0,
                 onClick: () => addBookingTo(c.id),
+              },
+              {
+                id: `${c.id}-approve`,
+                title: 'Approve bookings',
+                description: draftBookings.length > 0
+                  ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to approve.`
+                  : 'Check the prefilled bookings and approve them.',
+                done: bookings.length > 0 && draftBookings.length === 0,
+                onClick: () => approveBooking(draftBookings[0]?.id ?? bookings[0]?.id, c.id),
               },
               c.engine === 'sponsored-products'
                 ? {

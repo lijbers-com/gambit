@@ -808,8 +808,10 @@ export const GoalSelection: Story = {
         });
 
         // An assisted campaign also creates the bookings it previewed, on the
-        // real positions. Expert campaigns start empty — the user adds their
-        // own bookings, and the to-do engine flags that until they do.
+        // real positions. They are PROPOSALS: created as drafts, so the plan's
+        // setup checklist asks the user to run the prefilled booking wizard
+        // and approve each one. Expert campaigns start empty — the user adds
+        // their own bookings, and the to-do engine flags that until they do.
         if (row.mode === 'preset') {
           const bookings = assistedBookings[row.engine] ?? [];
           const perBooking = bookings.length > 0 ? Math.floor(rowBudget / bookings.length) : 0;
@@ -817,7 +819,9 @@ export const GoalSelection: Story = {
             createBooking({
               campaignId: campaign.id,
               name: b.name,
-              status: 'in-option',
+              // Prefilled, not yet checked by anyone — approving it in the
+              // booking wizard is what puts it in option.
+              status: 'draft',
               budget: perBooking,
               spend: 0,
               startDate: campaignStart,

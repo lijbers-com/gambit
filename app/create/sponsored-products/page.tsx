@@ -23,10 +23,13 @@ function CreateSponsoredProductsContent() {
   // plan; campaignId enters at the booking step for an existing campaign.
   const planId = searchParams.get('planId') ?? undefined;
   const campaignId = searchParams.get('campaignId') ?? undefined;
+  // Approval mode: an existing prefilled booking to check and approve.
+  const bookingId = searchParams.get('bookingId') ?? undefined;
 
   const initialValues = {
     planId,
     campaignId,
+    bookingId,
     campaignName,
     externalId,
     budget,

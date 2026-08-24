@@ -23,6 +23,8 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
+import { creativesForEngine } from '@/lib/creatives';
+import { Table } from '@/components/ui/table';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
@@ -431,9 +433,10 @@ const PropositionWizard = ({
   const wizardSteps = React.useMemo(() => {
     const all = getWizardSteps(propositionType);
     if (creativesOnly) return all.filter((s) => s.id === 'creatives');
-    if (campaignReview) return all;
-    if (bookingMode) return all.filter((s) => s.id === 'bookings' || s.id === 'creatives');
-    return all;
+    const withoutCreatives = all.filter((s) => s.id !== 'creatives');
+    if (campaignReview) return withoutCreatives;
+    if (bookingMode) return withoutCreatives.filter((s) => s.id === 'bookings');
+    return withoutCreatives;
   }, [propositionType, bookingMode, creativesOnly, campaignReview]);
 
   // Wizard state
@@ -497,15 +500,23 @@ const PropositionWizard = ({
     /** Per-position CPC on auction campaigns — the bid lives on the placement. */
     bids: Record<string, string>;
     inclTargets: Record<string, string[]>; exclTargets: Record<string, string[]>;
+    /** The creative it runs, chosen on the booking's own last step. */
+    creativeId: string;
     deliveryBehavior: DeliveryBehaviorValue; objectivesEnabled: boolean; deliveryObjectives: DeliveryObjectivesValue;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
-  // The booking's four questions, in order: what it is, when it runs and
-  // what it may spend (with active days), where it runs, and who it targets.
-  // No Pricing step — the price sits on each selected placement (auction
-  // campaigns). For display, delivery behaviour and objectives are part of
-  // Targeting.
-  const bookingSubStepLabels = ['Setup', 'Run time & budget', 'Placement', 'Targeting'];
+  // The booking's questions, in order: what it is, when it runs and what it
+  // may spend (with active days), where it runs, who it targets — and last
+  // the creative it runs, for the propositions that have one. (Sponsored
+  // products does not: the product listing IS the ad.) No Pricing step — the
+  // price sits on each selected placement on auction campaigns; for display,
+  // delivery behaviour and objectives are part of Targeting.
+  const hasCreativeStep = propositionType !== 'sponsored-products';
+  const bookingSubStepLabels = hasCreativeStep
+    ? ['Setup', 'Run time & budget', 'Placement', 'Targeting', 'Creative']
+    : ['Setup', 'Run time & budget', 'Placement', 'Targeting'];
+  /** The creative chosen for the booking being built or approved. */
+  const [bookingCreativeId, setBookingCreativeId] = React.useState('');
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -543,6 +554,23 @@ const PropositionWizard = ({
   const toggleDay = (id: string) => setActiveDays(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
 
   const saveBooking = () => {
+    // Approving an existing booking commits on the spot: the wizard was run
+    // FOR that booking, so its last step is the end of the job, not a
+    // staging post on the way to a list.
+    if (routeBooking) {
+      updateBooking(routeBooking.id, {
+        status: 'in-option',
+        name: bookingName || routeBooking.name,
+        budget: parseFloat(bookingBudget) || routeBooking.budget,
+        startDate: toIso(bookingDateRange?.from) ?? routeBooking.startDate,
+        endDate: toIso(bookingDateRange?.to) ?? routeBooking.endDate,
+        positionIds: bookingPositionIds.length > 0 ? bookingPositionIds : routeBooking.positionIds,
+        ...(bookingCreativeId ? { creativeStatus: 'submitted' as const } : {}),
+      });
+      queueToast({ title: 'Booking approved', description: bookingName || routeBooking.name });
+      if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${routeBooking.id}`;
+      return;
+    }
     setBookings(prev => [...prev, {
       id: String(Date.now()),
       name: bookingName, budget: parseFloat(bookingBudget) || 0,
@@ -551,6 +579,7 @@ const PropositionWizard = ({
       positionIds: [...bookingPositionIds],
       bids: { ...positionBids },
       inclTargets: { ...inclTargets }, exclTargets: { ...exclTargets },
+      creativeId: bookingCreativeId,
       deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
     }]);
     // Reset form for next booking
@@ -559,12 +588,8 @@ const PropositionWizard = ({
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
-    setInclTargets({}); setExclTargets({});
+    setInclTargets({}); setExclTargets({}); setBookingCreativeId('');
     setDeliveryBehavior(defaultDeliveryBehavior); setObjectivesEnabled(false); setDeliveryObjectives(defaultDeliveryObjectives);
-    // A booking is not finished until it has a creative, so the wizard
-    // continues there by itself — except on sponsored products, where the
-    // product listing IS the ad and there is no creative step to go to.
-    if (wizardSteps.some((st) => st.id === 'creatives')) goToStepById('creatives');
   };
   const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
 
@@ -764,7 +789,7 @@ const PropositionWizard = ({
               startDate: toIso(b.startDate) ?? routeBooking.startDate,
               endDate: toIso(b.endDate) ?? routeBooking.endDate,
               positionIds: b.positionIds.length > 0 ? b.positionIds : routeBooking.positionIds,
-              ...(creativeChoice[b.id] ? { creativeStatus: 'submitted' as const } : {}),
+              ...(b.creativeId ? { creativeStatus: 'submitted' as const } : {}),
             }
           : {}),
       });
@@ -795,7 +820,7 @@ const PropositionWizard = ({
       startDate: toIso(b.startDate) ?? campaignRecord.startDate,
       endDate: toIso(b.endDate) ?? campaignRecord.endDate,
       positionIds: b.positionIds,
-      creativeStatus: creativeChoice[b.id] ? 'submitted' : 'missing',
+      creativeStatus: b.creativeId ? 'submitted' : 'missing',
     }));
     // Creatives chosen for bookings that already existed are linked to them.
     existingBookings.forEach((b) => {
@@ -1895,8 +1920,12 @@ const PropositionWizard = ({
                           {currentStep > 0 ? (
                             <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
                           ) : <span />}
-                          <Button size="sm" disabled={bookings.length === 0 && existingBookings.length === 0} onClick={goToNextStep}>
-                            Continue: Creatives
+                          <Button
+                            size="sm"
+                            disabled={bookings.length === 0 && existingBookings.length === 0}
+                            onClick={finishWizard}
+                          >
+                            {bookingMode ? 'Save booking' : 'Save campaign'}
                           </Button>
                         </div>
                       </CardContent>
@@ -2000,6 +2029,61 @@ const PropositionWizard = ({
                         </Card>
                       )}
 
+                      {/* Step 5: Creative — the booking's own last question,
+                          answered from the advertiser's library. A table,
+                          because a creative is chosen on its details: the
+                          format the placement expects, its size, and whether
+                          it has cleared approval. */}
+                      {hasCreativeStep && bookingSubStep === 4 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Creative</CardTitle>
+                            <CardDescription>Pick the creative this booking runs — or leave it, and the setup checklist keeps it open.</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <Table
+                              columns={[
+                                {
+                                  key: 'pick',
+                                  header: '',
+                                  className: 'w-10',
+                                  render: (row) => (
+                                    <Checkbox
+                                      checked={bookingCreativeId === row.id}
+                                      onCheckedChange={() => setBookingCreativeId((prev) => (prev === row.id ? '' : row.id))}
+                                      aria-label={`Use ${row.name}`}
+                                    />
+                                  ),
+                                },
+                                { key: 'name', header: 'Creative' },
+                                { key: 'format', header: 'Format' },
+                                { key: 'size', header: 'Size', render: (row) => <span className="tabular-nums text-muted-foreground">{row.size}</span> },
+                                {
+                                  key: 'status',
+                                  header: 'Status',
+                                  render: (row) => <Badge variant={row.status === 'Approved' ? 'secondary' : 'outline'}>{row.status}</Badge>,
+                                },
+                                { key: 'updated', header: 'Updated', render: (row) => <span className="text-muted-foreground">{row.updated}</span> },
+                              ]}
+                              data={creativesForEngine(propositionType)}
+                              rowKey={(row) => row.id}
+                              hideActions
+                              onRowClick={(row) => setBookingCreativeId((prev) => (prev === row.id ? '' : row.id))}
+                              emptyState={<span className="text-sm text-muted-foreground">No creatives in the library for this proposition yet.</span>}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              {bookingCreativeId
+                                ? 'Submitted for approval when the booking is saved.'
+                                : 'No creative yet — the booking cannot go live without one.'}
+                            </p>
+                            <div className="flex justify-end gap-3">
+                              <Button variant="outline" onClick={() => setBookingSubStep(3)}>Back</Button>
+                              <Button onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
                       {/* Step 4: Targeting — who this booking reaches. For
                           display, delivery behaviour and delivery objectives
                           are part of targeting too. */}
@@ -2050,7 +2134,11 @@ const PropositionWizard = ({
                             )}
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(2)}>Back</Button>
-                              <Button onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
+                              {hasCreativeStep ? (
+                                <Button onClick={() => setBookingSubStep(4)}>Continue</Button>
+                              ) : (
+                                <Button onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -2157,6 +2245,10 @@ const PropositionWizard = ({
                       if (objectivesEnabled) vals.push('Delivery objectives set');
                       return vals.length > 0 ? vals : null;
                     }
+                    case 4: { // Creative
+                      const c = creativesForEngine(propositionType).find((x) => x.id === bookingCreativeId);
+                      return c ? [c.name] : null;
+                    }
                     default: return null;
                   }
                 };
@@ -2235,6 +2327,10 @@ const PropositionWizard = ({
                       if (booking.deliveryBehavior.exclusivity) vals.push('Exclusivity on');
                       if (booking.objectivesEnabled) vals.push('Delivery objectives set');
                       return vals.length > 0 ? vals : null;
+                    }
+                    case 4: { // Creative
+                      const c = creativesForEngine(propositionType).find((x) => x.id === booking.creativeId);
+                      return c ? [c.name] : null;
                     }
                     default: return null;
                   }

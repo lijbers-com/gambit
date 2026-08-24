@@ -1002,14 +1002,6 @@ export const MediaPlanDetail: Story = {
           // work on it — one card instead of a title band above a controls band.
           hidePageHeader
         >
-          {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
-              keep between themselves — the whole column shares one gap. */}
-          <div className="mb-1">
-            {/* showCharts turns each card into its chart and lets it expand in place to
-                the per-proposition breakdown below the row. */}
-            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
-          </div>
-
           {/* The plan's main controls: what it may spend and when it runs,
               with the health and notification state that follows from them.
               They govern every campaign in the plan, so they sit with the
@@ -1017,7 +1009,7 @@ export const MediaPlanDetail: Story = {
           {/* mb-1 + the tab card's built-in 12px above its strip = the same
               16px gap the metric cards keep. */}
           <ControlBar
-            className="mb-1"
+            className="mb-4"
             title={plan?.name ?? 'Media plan'}
             titleIcon={<HierarchyBadge level="media-plan" />}
             actions={
@@ -1114,6 +1106,14 @@ export const MediaPlanDetail: Story = {
               </div>
             </ControlBarItem>
           </ControlBar>
+
+          {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
+              keep between themselves — the whole column shares one gap. */}
+          <div className="mb-1">
+            {/* showCharts turns each card into its chart and lets it expand in place to
+                the per-proposition breakdown below the row. */}
+            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts={!preLive} removable={false} bleedEdges />
+          </div>
 
           <CardWithTabs
             // A plan arrived at straight from the wizard opens on its Inbox, so

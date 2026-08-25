@@ -1476,19 +1476,6 @@ const PropositionWizard = ({
                             The maximum total amount for the entire campaign duration
                           </div>
                         </div>
-                        {budgetAmount && dateRange?.from && dateRange?.to && (
-                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">Daily average</span>
-                              <span className="text-sm font-semibold text-primary">
-                                €{(parseFloat(budgetAmount) / (Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              €{budgetAmount} over {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
-                            </p>
-                          </div>
-                        )}
                       </div>
                     )}
                     <div className="flex justify-end gap-3 mt-8">
@@ -1979,7 +1966,7 @@ const PropositionWizard = ({
                             disabled={bookings.length === 0 && existingBookings.length === 0}
                             onClick={finishWizard}
                           >
-                            {bookingMode ? 'Save booking' : 'Save campaign'}
+                            {bookings.length === 0 ? 'Done' : bookingMode ? 'Save booking' : 'Save campaign'}
                           </Button>
                         </div>
                       </CardContent>
@@ -2453,7 +2440,7 @@ const PropositionWizard = ({
                     title={`${proposition.name} campaign`}
                     entity="campaign"
                     variant="details"
-                    collapsible
+                    collapsible={bookingSubStep !== null}
                     className="bg-page"
                     headerAction={{
                       icon: LinkActionIcon,
@@ -3285,19 +3272,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       </div>
                       <div className="text-xs text-muted-foreground">The maximum total amount for the entire campaign duration</div>
                     </div>
-                    {budget && startDate && endDate && (
-                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Daily average</span>
-                          <span className="text-sm font-semibold text-primary">
-                            €{(parseFloat(budget) / (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)).toFixed(2)}/day
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          €{budget} over {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
-                        </p>
-                      </div>
-                    )}
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCampaignSubStep(1)}>Back</Button>
                       <Button disabled={!isCampaignDetailsComplete} onClick={createCampaignAndContinue}>Create campaign</Button>

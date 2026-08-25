@@ -740,13 +740,17 @@ export const MediaPlanDetail: Story = {
                   if (typeof window !== 'undefined') window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign${backToPlan}`;
                 },
               },
-              {
+              // An assisted campaign arrives with its bookings proposed, so
+              // creating them is not work the user has left — approving them
+              // is. An expert campaign starts empty and still has to make
+              // them, so only it carries this step.
+              ...(c.mode === 'assisted' && bookings.length > 0 ? [] : [{
                 id: `${c.id}-bookings`,
                 title: 'Create bookings',
                 description: 'The guided setup walks through schedule, placement and delivery.',
                 done: bookings.length > 0,
                 onClick: () => addBookingTo(c.id),
-              },
+              }]),
               {
                 id: `${c.id}-approve`,
                 title: 'Approve bookings',

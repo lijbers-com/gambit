@@ -479,6 +479,9 @@ export const GoalSelection: Story = {
       dateRange: DateRange | undefined;
       /** How the campaign buys — assisted rows take the preset's auction. */
       buyingType: 'auction' | 'guaranteed';
+      /** Set when the row IS a campaign that already exists: the plan absorbs
+       *  it on save rather than creating it. */
+      existingId?: string;
     };
     const rowSeq = React.useRef(0);
     const nextRowId = () => `row-${(rowSeq.current += 1)}`;
@@ -723,9 +726,9 @@ export const GoalSelection: Story = {
     // Existing campaigns picked up into this plan: chosen in the same table
     // dialog every link change uses, relinked once the plan is created.
     const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
-    const [linkedExistingIds, setLinkedExistingIds] = React.useState<string[]>([]);
+    // Campaigns already linked as rows are not offered again.
     const existingCampaignOptions = getDb().campaigns
-      .filter((c) => !linkedExistingIds.includes(c.id))
+      .filter((c) => !campaignRows.some((r) => r.existingId === c.id))
       .map((c) => ({
         value: c.id,
         label: c.name,
@@ -796,6 +799,17 @@ export const GoalSelection: Story = {
         const rowBudget = parseFloat(row.budget) || perRow;
         const campaignStart = iso(row.dateRange?.from ?? start);
         const campaignEnd = iso(row.dateRange?.to ?? end);
+        // A row that IS an existing campaign joins the plan with whatever the
+        // form last showed; it is not created, and its bookings are its own.
+        if (row.existingId) {
+          updateCampaign(row.existingId, {
+            mediaPlanId: plan.id,
+            budget: rowBudget,
+            startDate: campaignStart,
+            endDate: campaignEnd,
+          });
+          return;
+        }
         const campaign = createCampaign({
           mediaPlanId: plan.id,
           // The proposition frames the campaign (cards, tables, columns) —
@@ -842,8 +856,6 @@ export const GoalSelection: Story = {
         }
       });
 
-      // Existing campaigns chosen on the last step move under the new plan.
-      linkedExistingIds.forEach((id) => updateCampaign(id, { mediaPlanId: plan.id }));
       if (typeof window !== 'undefined') {
         queueToast({ title: 'Media plan created', description: plan.name });
         // Land on the plan's Campaigns & bookings tab (the default): the
@@ -1492,6 +1504,24 @@ export const GoalSelection: Story = {
                         const claimed = campaignRows.reduce((s, r) => s + (parseFloat(r.budget) || 0), 0);
                         const unbudgeted = campaignRows.filter((r) => !(parseFloat(r.budget) > 0)).length;
                         const share = parseFloat(row.budget) || (unbudgeted > 0 ? Math.max(Math.floor((planBudget - claimed) / unbudgeted), 0) : 0);
+                        // An existing campaign brings its own budget and
+                        // flight. Where they do not fit the plan, the plan is
+                        // what has to give — but only with the user's say-so.
+                        const rowFrom = row.dateRange?.from;
+                        const rowTo = row.dateRange?.to;
+                        const overBudget = !!row.existingId && planBudget > 0 && claimed > planBudget;
+                        const outsideDates = !!row.existingId && !!dateRange?.from && !!dateRange?.to && !!rowFrom && !!rowTo
+                          && (rowFrom.getTime() < dateRange.from.getTime() || rowTo.getTime() > dateRange.to.getTime());
+                        const fmtDay = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const approveFit = () => {
+                          if (overBudget) setBudgetAmount(String(claimed));
+                          if (outsideDates && dateRange?.from && dateRange?.to && rowFrom && rowTo) {
+                            setDateRange({
+                              from: rowFrom.getTime() < dateRange.from.getTime() ? rowFrom : dateRange.from,
+                              to: rowTo.getTime() > dateRange.to.getTime() ? rowTo : dateRange.to,
+                            });
+                          }
+                        };
                         const runTime = row.dateRange?.from && row.dateRange?.to
                           ? `${row.dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${row.dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
                           : dateRange?.from && dateRange?.to
@@ -1503,10 +1533,17 @@ export const GoalSelection: Story = {
                               <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary text-primary-foreground flex-shrink-0">
                                 <IconComponent size={14} />
                               </div>
-                              <span className="text-sm font-medium">{prop.name} campaign</span>
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium">{prop.name} campaign</span>
+                                {row.existingId && (
+                                  <span className="block text-xs text-muted-foreground">Existing campaign · joins this plan on save</span>
+                                )}
+                              </span>
                               {/* Mode toggle — it both shows and sets the mode, so
-                                  the header needs no extra badge. */}
-                              <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2">
+                                  the header needs no extra badge. An existing
+                                  campaign has its answers already; there is
+                                  nothing for the presets to fill in. */}
+                              <label className={cn('ml-auto flex shrink-0 cursor-pointer items-center gap-2', row.existingId && 'hidden')}>
                                 <Switch
                                   checked={isAssisted}
                                   onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
@@ -1522,7 +1559,7 @@ export const GoalSelection: Story = {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                                className={cn('h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground', row.existingId && 'ml-auto')}
                                 aria-label={`Remove ${prop.name} campaign`}
                                 onClick={() => removeRow(row.id)}
                               >
@@ -1530,6 +1567,25 @@ export const GoalSelection: Story = {
                               </Button>
                             </div>
 
+                            {(overBudget || outsideDates) && (
+                              <div className="space-y-2 rounded-md border border-warning-200 bg-warning-50 p-3 text-warning-700">
+                                <p className="text-xs font-medium">This campaign does not fit the plan as it stands</p>
+                                <ul className="space-y-0.5 text-xs">
+                                  {overBudget && (
+                                    <li>
+                                      Budget: the campaigns now claim €{claimed.toLocaleString()}, the plan holds €{planBudget.toLocaleString()}.
+                                    </li>
+                                  )}
+                                  {outsideDates && dateRange?.from && dateRange?.to && rowFrom && rowTo && (
+                                    <li>
+                                      Run time: {fmtDay(rowFrom)} – {fmtDay(rowTo)}, the plan runs {fmtDay(dateRange.from)} – {fmtDay(dateRange.to)}.
+                                    </li>
+                                  )}
+                                </ul>
+                                <p className="text-xs">Approving widens the media plan to cover it — the campaign itself is left as it is.</p>
+                                <Button size="sm" onClick={approveFit}>Approve and adjust plan</Button>
+                              </div>
+                            )}
                             {isAssisted ? (
                               /* Assisted keeps the decisions and drops the
                                  detail: name it, see when it runs, what it
@@ -1666,44 +1722,28 @@ export const GoalSelection: Story = {
                         </DropdownMenuContent>
                       </DropdownMenu>
 
-                      {/* The existing campaigns this plan will absorb on save. */}
-                      {linkedExistingIds.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {linkedExistingIds.map((id) => {
-                            const c = getDb().campaigns.find((x) => x.id === id);
-                            if (!c) return null;
-                            return (
-                              <div key={id} className="flex items-center justify-between gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                                <span className="min-w-0">
-                                  <span className="flex items-center gap-1.5 text-sm font-medium">
-                                    <Link2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                    <span className="truncate">{c.name}</span>
-                                  </span>
-                                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                                    Existing campaign · joins this plan on save
-                                  </span>
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  iconOnly
-                                  aria-label={`Remove ${c.name}`}
-                                  onClick={() => setLinkedExistingIds((prev) => prev.filter((x) => x !== id))}
-                                >
-                                  <X size={14} />
-                                </Button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
                       <LinkPickerDialog
                         open={linkExistingOpen}
                         onOpenChange={setLinkExistingOpen}
                         entityLabel="campaign"
                         options={existingCampaignOptions}
-                        onChange={(id) => { if (id) setLinkedExistingIds((prev) => [...prev, id]); }}
+                        onChange={(id) => {
+                          const c = id ? getDb().campaigns.find((x) => x.id === id) : undefined;
+                          if (!c) return;
+                          setCampaignRows((prev) => [...prev, {
+                            id: nextRowId(),
+                            engine: c.engine,
+                            // Its answers exist already, so the row opens on
+                            // the form that shows them.
+                            mode: 'expert' as const,
+                            name: c.name,
+                            externalId: '',
+                            budget: c.budget > 0 ? String(c.budget) : '',
+                            dateRange: { from: new Date(c.startDate), to: new Date(c.endDate) },
+                            buyingType: (c.buyingType ?? 'auction') as 'auction' | 'guaranteed',
+                            existingId: c.id,
+                          }]);
+                        }}
                       />
                     </div>
                     {/* One recommendation when the mix leaves reach on the

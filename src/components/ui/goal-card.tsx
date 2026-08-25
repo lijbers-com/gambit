@@ -96,35 +96,35 @@ export const GoalCard: React.FC<GoalCardProps> = ({ icon, title, description, se
         className,
       )}
     >
-      {/* Title line — icon and title centred together, description beneath. */}
+      {/* Title line — icon and title centred together, description beneath.
+          The info sits here, on the choice itself: what picking a goal (and
+          then an objective and a KPI) actually commits the plan to. */}
       <div className="flex items-center gap-2">
         <span className={cn('shrink-0', selected ? 'text-foreground' : 'text-muted-foreground')}>{icon}</span>
         <span className="min-w-0 truncate text-sm font-medium">{title}</span>
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                role="img"
+                aria-label="What does choosing this mean?"
+                className="inline-flex shrink-0 cursor-help text-muted-foreground"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="h-3.5 w-3.5" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[280px]">
+              The goal, objective and KPI you choose are what the plan is steered and judged on. Everything else is still measured and reported, but the plan optimises for this choice — not for the goals, objectives and KPIs you did not pick.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p>
       {kpis && kpis.length > 0 && (
         <div className="mt-2">
           <span className="mb-1.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
             Focus KPIs:
-            {/* What "focus" means has to be said, or the list reads as
-                everything that will be reported. */}
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    role="img"
-                    aria-label="What are focus KPIs?"
-                    className="inline-flex cursor-help"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Info className="h-3 w-3" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[260px]">
-                  These are the KPIs this goal is steered and judged on. Other metrics are still measured and reported, but the plan optimises for these — not for them.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </span>
           {/* Own row, so the label reads as a heading rather than the first
               item in the list. Long frameworks are capped — the card names

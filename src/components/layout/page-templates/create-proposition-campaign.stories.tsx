@@ -615,8 +615,22 @@ const PropositionWizard = ({
   // Phase helpers. The campaign phase is everything before 'bookings'; the
   // booking/creative phase continues the same wizard — one flow, two entities.
   const hasBookingsPhase = wizardSteps.some(s => s.id === 'bookings') || creativesOnly;
-  const displayCampaignSteps = wizardSteps.filter(s => s.id !== 'bookings' && s.id !== 'creatives');
+  // Bookings is a step OF the campaign — the timeline carries it, with how
+  // many the campaign has once it is set up.
+  const displayCampaignSteps = wizardSteps.filter(s => s.id !== 'creatives');
   const isInBookingsPhase = currentStepId === 'bookings' || currentStepId === 'creatives';
+  /**
+   * The campaign card is a TIMELINE while the campaign's own steps are being
+   * walked — creating one, or checking the one the media plan proposed — so
+   * the same guidance the booking gets applies to the campaign. It steps back
+   * to its collapsed card the moment a booking takes over as the active card.
+   */
+  const campaignStepsActive =
+    !creativesOnly
+    && (!bookingMode || campaignReview)
+    && bookingSubStep === null
+    && currentStepId !== 'creatives';
+
   const isLastCampaignStep = hasBookingsPhase
     ? wizardSteps[currentStep + 1]?.id === 'bookings'
     : currentStep === wizardSteps.length - 1;
@@ -644,6 +658,10 @@ const PropositionWizard = ({
     () => (linkedCampaignId ? db.bookings.filter((b) => b.campaignId === linkedCampaignId) : []),
     [db, linkedCampaignId],
   );
+
+  /** How many bookings this campaign has: the ones it already carries, plus
+   *  any this run has added. */
+  const campaignBookingCount = (routeCampaign ? existingBookings.length : 0) + bookings.length;
 
   // What the creative step works on: the bookings this run made, plus the
   // campaign's own bookings that still need one — so approving a campaign
@@ -683,14 +701,13 @@ const PropositionWizard = ({
     const siblings = campaignOfBooking
       ? fresh.bookings.filter((b) => b.campaignId === campaignOfBooking && b.status !== 'completed')
       : [];
-    const nextDraft = siblings.find((b) => b.id !== justDoneId && b.status === 'draft');
-    if (nextDraft) return `/create/${propositionType}?bookingId=${nextDraft.id}${backLink}`;
     // A creative the user deliberately skipped is not a reason to send them
     // straight back into it, so the booking just handled is left out.
-    const needsCreative = hasCreativeStep
-      ? siblings.find((b) => b.id !== justDoneId && b.creativeStatus === 'missing')
-      : undefined;
-    if (needsCreative) return `/create/${propositionType}?bookingId=${needsCreative.id}&step=creatives${backLink}`;
+    const stillOpen = siblings.some((b) => b.status === 'draft')
+      || (hasCreativeStep && siblings.some((b) => b.id !== justDoneId && b.creativeStatus === 'missing'));
+    // Back to the campaign's bookings list — the user picks the next one to
+    // approve from the overview rather than being dropped into it.
+    if (stillOpen) return `/create/${propositionType}?campaignId=${campaignOfBooking}${backLink}`;
     return returnTo ?? (campaignOfBooking ? `${proposition.campaignRoute}/${campaignOfBooking}` : proposition.campaignRoute);
   };
 
@@ -742,7 +759,10 @@ const PropositionWizard = ({
     setBookingDateRange({ from: new Date(routeCampaign.startDate), to: new Date(routeCampaign.endDate) });
     const existing = db.bookings.filter((b) => b.campaignId === routeCampaign.id).length;
     setBookingName((prev) => prev || `${stripPropositionSuffix(routeCampaign.name)} — Booking ${existing + 1}`);
-    if (routeCampaign.mode === 'assisted' && !creativesOnly) {
+    // Only a campaign with nothing booked yet opens straight into a new
+    // booking form. Once it HAS bookings, the overview is the point: the
+    // user picks which proposed booking to check.
+    if (routeCampaign.mode === 'assisted' && !creativesOnly && existingBookings.length === 0) {
       const firstChannel = engineChannels[0];
       if (firstChannel) {
         setSelectedChannelIds((prev) => (prev.length ? prev : [firstChannel.id]));
@@ -1098,6 +1118,14 @@ const PropositionWizard = ({
           if (a) vals.push(a.label);
         });
         return vals.length > 0 ? vals : null;
+      }
+      case 'bookings': {
+        if (campaignBookingCount === 0) return null;
+        const proposed = existingBookings.filter((b) => b.status === 'draft').length;
+        return [
+          `${campaignBookingCount} booking${campaignBookingCount === 1 ? '' : 's'}`,
+          ...(proposed > 0 ? [`${proposed} still to approve`] : []),
+        ];
       }
       case 'keywords': {
         const vals: string[] = [];
@@ -2403,7 +2431,7 @@ const PropositionWizard = ({
                   bookings — is no longer the active card: it steps back into
                   the collapsed context card on the page background, so only
                   one timeline (the booking's) is ever active. */}
-              {(bookingMode && routeCampaign) || isInBookingsPhase ? (() => {
+              {!campaignStepsActive ? (() => {
                 const facts = routeCampaign
                   ? {
                       name: stripPropositionSuffix(routeCampaign.name),
@@ -2437,6 +2465,7 @@ const PropositionWizard = ({
                       { label: 'Budget', value: facts.budget > 0 ? `€${facts.budget.toLocaleString()}` : '—' },
                       { label: 'Run time', value: facts.start && facts.end ? `${formatDate(facts.start)} – ${formatDate(facts.end)}` : '—' },
                       { label: 'Campaign type', value: facts.type === 'guaranteed' ? 'Guaranteed' : 'Auction' },
+                      { label: 'Bookings', value: campaignBookingCount === 0 ? 'None yet' : `${campaignBookingCount} booking${campaignBookingCount === 1 ? '' : 's'}` },
                     ]}
                   />
                   <LinkPickerDialog

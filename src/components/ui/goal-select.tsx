@@ -71,12 +71,8 @@ export const GoalSelect: React.FC<{
   onChange: (id: string) => void;
   /** The KPI the plan is judged on, marked wherever it appears. */
   highlightKpis?: string[];
-  /** Rendered inside the open goal, under its framework — the choices the
-   *  goal itself asks for (its objective, its KPI) belong to the goal, not to
-   *  the page below it. */
-  openContent?: React.ReactNode;
   className?: string;
-}> = ({ goals, value, onChange, highlightKpis, openContent, className }) => {
+}> = ({ goals, value, onChange, highlightKpis, className }) => {
   const highlight = new Set(highlightKpis ?? []);
   return (
     <div className={cn('space-y-2', className)}>
@@ -113,11 +109,6 @@ export const GoalSelect: React.FC<{
 
             {open && (
               <div className="space-y-4 border-t border-surface-selected-border px-3 pb-3 pt-3">
-                {/* The goal's own questions lead; the framework under them is
-                    what the answers narrow. */}
-                {openContent && (
-                  <div className="space-y-6 border-b border-surface-selected-border pb-4">{openContent}</div>
-                )}
                 {/* What the goal is judged on — the whole framework, in the
                     three families it is written in. */}
                 <div className="grid gap-4 sm:grid-cols-3">

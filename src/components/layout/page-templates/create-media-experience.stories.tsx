@@ -1161,7 +1161,6 @@ export const GoalSelection: Story = {
                         </div>
                       )}
                       {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
-                        const stage = goalObjectives[selectedGoal].stage;
                         /**
                          * Every objective is judged on a KPI, so every objective
                          * offers one. Brand objectives pick from their own
@@ -1171,8 +1170,6 @@ export const GoalSelection: Story = {
                          * can carry a brand-lift study, which is what the
                          * add-on below keys off.
                          */
-                        const brandOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
-                          .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
                         const kpiOptions = kpiPoolFor(selectedGoal, selectedObjective);
                         const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
                         const budgetNum = parseFloat(budgetAmount) || 0;
@@ -1229,12 +1226,6 @@ export const GoalSelection: Story = {
                                 );
                               }}
                             />
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Pick the KPI {selectedObjective} is judged on.{' '}
-                              {brandOptions.length > 0
-                                ? 'It can be measured with a matching brand-lift study.'
-                                : 'Conversion KPIs are attributed from sales data — no study needed.'}
-                            </div>
                           </div>
                         );
                       })()}

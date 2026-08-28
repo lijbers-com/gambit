@@ -10,10 +10,10 @@ import { cn } from '@/lib/utils';
  * The goals stack rather than sit in a grid, and only the chosen one is open:
  * an unpicked goal is a single line — its name and what it is for — and the
  * picked one unfolds into the whole framework it commits the plan to. That is
- * the point of the step: the KPIs a goal is judged on (brand, media and
- * sales), the strategies it is steered by, and the propositions that can carry
- * it are what make a goal a choice rather than a word. Folding the others away
- * is what makes room to show all of it.
+ * the point of the step: the KPIs a goal is judged on — brand, media and
+ * sales — are what make a goal a choice rather than a word, and the questions
+ * the goal asks (its objective, its KPI) are asked underneath them. Folding
+ * the other goals away is what makes room for all of it.
  */
 
 export interface GoalSelectOption {
@@ -24,8 +24,6 @@ export interface GoalSelectOption {
   brandKpis: string[];
   mediaKpis: string[];
   salesKpis: string[];
-  strategies: string[];
-  propositions: { id: string; name: string; icon?: React.ReactNode }[];
 }
 
 /** One column of the opened goal — a plain list, so every entry fits. */
@@ -71,8 +69,11 @@ export const GoalSelect: React.FC<{
   onChange: (id: string) => void;
   /** The KPI the plan is judged on, marked wherever it appears. */
   highlightKpis?: string[];
+  /** Rendered inside the open goal, under its KPIs — the choices the goal
+   *  itself asks for (its objective, its KPI) belong to the goal. */
+  openContent?: React.ReactNode;
   className?: string;
-}> = ({ goals, value, onChange, highlightKpis, className }) => {
+}> = ({ goals, value, onChange, highlightKpis, openContent, className }) => {
   const highlight = new Set(highlightKpis ?? []);
   return (
     <div className={cn('space-y-2', className)}>
@@ -122,21 +123,11 @@ export const GoalSelect: React.FC<{
                     <KpiList items={goal.salesKpis} highlight={highlight} empty="None at this stage" />
                   </Column>
                 </div>
-                <div className="grid gap-4 border-t border-surface-selected-border pt-3 sm:grid-cols-2">
-                  <Column title="Strategies">
-                    {goal.strategies.map((s) => (
-                      <div key={s} className="text-xs leading-relaxed text-muted-foreground">{s}</div>
-                    ))}
-                  </Column>
-                  <Column title="Propositions">
-                    {goal.propositions.map((p) => (
-                      <div key={p.id} className="flex items-center gap-1.5 text-xs leading-relaxed text-muted-foreground [&_svg]:h-3.5 [&_svg]:w-3.5">
-                        {p.icon}
-                        <span className="min-w-0 truncate">{p.name}</span>
-                      </div>
-                    ))}
-                  </Column>
-                </div>
+                {/* The goal's own questions — which objective, and the KPI
+                    it is judged on — asked under the KPIs they narrow. */}
+                {openContent && (
+                  <div className="space-y-6 border-t border-surface-selected-border pt-4">{openContent}</div>
+                )}
               </div>
             )}
           </div>

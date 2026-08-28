@@ -69,8 +69,12 @@ export const GoalSelect: React.FC<{
   onChange: (id: string) => void;
   /** The KPI the plan is judged on, marked wherever it appears. */
   highlightKpis?: string[];
+  /** Rendered inside the open goal, under its framework — the choices the
+   *  goal itself asks for (its objective, its KPI) belong to the goal, not to
+   *  the page below it. */
+  openContent?: React.ReactNode;
   className?: string;
-}> = ({ goals, value, onChange, highlightKpis, className }) => {
+}> = ({ goals, value, onChange, highlightKpis, openContent, className }) => {
   const highlight = new Set(highlightKpis ?? []);
   return (
     <div className={cn('space-y-2', className)}>
@@ -98,7 +102,7 @@ export const GoalSelect: React.FC<{
               </span>
               {open && (
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check className="h-2.5 w-2.5" />
+                  <Check className="h-2 w-2" strokeWidth={3} />
                 </span>
               )}
             </button>
@@ -133,6 +137,9 @@ export const GoalSelect: React.FC<{
                     ))}
                   </Column>
                 </div>
+                {openContent && (
+                  <div className="space-y-6 border-t border-surface-selected-border pt-4">{openContent}</div>
+                )}
               </div>
             )}
           </div>

@@ -1146,101 +1146,107 @@ export const GoalSelection: Story = {
                           value={selectedGoal}
                           onChange={(id) => { setSelectedGoal(id); setSelectedObjective(null); setSelectedStudies([]); }}
                           highlightKpis={selectedKpis}
-                        />
-                      </div>
-                      {selectedGoal && goalObjectives[selectedGoal] && (
-                        <div>
-                          <SearchSelectList
-                            label="Objective"
-                            placeholder="Search objective…"
-                            options={goalObjectives[selectedGoal].objectives.map((o) => ({ value: o, label: o, description: describeObjective(o) }))}
-                            value={selectedObjective ? [selectedObjective] : []}
-                            onChange={(vals) => { setSelectedObjective(vals[0] ?? null); setSelectedStudies([]); }}
-                            multiple={false}
-                          />
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {goalObjectives[selectedGoal].stage} stage — pick the one objective the plan is judged on.
-                          </div>
-                        </div>
-                      )}
-                      {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
-                        const stage = goalObjectives[selectedGoal].stage;
-                        /**
-                         * Every objective is judged on a KPI, so every objective
-                         * offers one. Brand objectives pick from their own
-                         * brand-lift KPIs; a Conversion objective has none of
-                         * those, so it picks from the goal's outcome KPIs —
-                         * the same list its goal card shows. Only brand KPIs
-                         * can carry a brand-lift study, which is what the
-                         * add-on below keys off.
-                         */
-                        const brandOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
-                          .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
-                        const kpiOptions = kpiPoolFor(selectedGoal, selectedObjective);
-                        const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
-                        const budgetNum = parseFloat(budgetAmount) || 0;
-                        if (kpiOptions.length === 0) return null;
-                        return (
-                          <div className="space-y-2">
+                          // The objective and the KPI are the goal's own
+                          // questions, so they are asked inside it.
+                          openContent={(
+                            <>
+                        {selectedGoal && goalObjectives[selectedGoal] && (
+                          <div>
                             <SearchSelectList
-                              label="KPI"
-                              placeholder="Search KPI…"
+                              label="Objective"
+                              placeholder="Search objective…"
+                              options={goalObjectives[selectedGoal].objectives.map((o) => ({ value: o, label: o, description: describeObjective(o) }))}
+                              value={selectedObjective ? [selectedObjective] : []}
+                              onChange={(vals) => { setSelectedObjective(vals[0] ?? null); setSelectedStudies([]); }}
                               multiple={false}
-                              options={kpiOptions.map((k) => ({ value: k, label: k, description: describeKpi(k) }))}
-                              value={activeKpis}
-                              onChange={(vals) => {
-                                setSelectedKpis(vals);
-                                setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
-                              }}
-                              renderSelectedExtra={(opt) => {
-                                const kpi = opt.value;
-                                const pricing = studyPricing[kpi];
-                                const isSelected = selectedStudies.includes(kpi);
-                                const isFree = pricing ? budgetNum >= pricing.freeThreshold : false;
-                                return (
-                                  <div className="space-y-3">
-                                    {/* What choosing this KPI commits the plan to.
-                                        It is a property of the KPI, so it sits in
-                                        the KPI's own card; the study below is an
-                                        optional paid extra and keeps its own box. */}
-                                    <p className="text-xs text-muted-foreground">
-                                      The plan is optimised for {kpi} alone. Everything else stays measured and
-                                      reported, but delivery is never steered towards it.
-                                    </p>
-                                    {/* Sales KPIs are attributed from the data
-                                        rather than surveyed — no study to sell. */}
-                                    {pricing && (
-                                      <div className="space-y-1 rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                                        <label className="flex cursor-pointer items-center gap-2.5">
-                                          <Checkbox
-                                            checked={isSelected}
-                                            onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
-                                          />
-                                          <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                                            <FlaskConical className="h-3.5 w-3.5 shrink-0" />
-                                            Add a brand-lift study
-                                            <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
-                                          </span>
-                                        </label>
-                                        <p className="text-xs text-muted-foreground">
-                                          Measures the uplift this KPI drives against a control group.{' '}
-                                          {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              }}
                             />
                             <div className="text-xs text-muted-foreground mt-1">
-                              Pick the KPI {selectedObjective} is judged on.{' '}
-                              {brandOptions.length > 0
-                                ? 'It can be measured with a matching brand-lift study.'
-                                : 'Conversion KPIs are attributed from sales data — no study needed.'}
+                              {goalObjectives[selectedGoal].stage} stage — pick the one objective the plan is judged on.
                             </div>
                           </div>
-                        );
-                      })()}
+                        )}
+                        {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {
+                          const stage = goalObjectives[selectedGoal].stage;
+                          /**
+                           * Every objective is judged on a KPI, so every objective
+                           * offers one. Brand objectives pick from their own
+                           * brand-lift KPIs; a Conversion objective has none of
+                           * those, so it picks from the goal's outcome KPIs —
+                           * the same list its goal card shows. Only brand KPIs
+                           * can carry a brand-lift study, which is what the
+                           * add-on below keys off.
+                           */
+                          const brandOptions = (objectiveBrandKpis[selectedObjective] ?? funnelKpis[stage]?.brand ?? [])
+                            .filter((k) => (funnelKpis[stage]?.brand ?? []).includes(k));
+                          const kpiOptions = kpiPoolFor(selectedGoal, selectedObjective);
+                          const activeKpis = selectedKpis.filter((k) => kpiOptions.includes(k));
+                          const budgetNum = parseFloat(budgetAmount) || 0;
+                          if (kpiOptions.length === 0) return null;
+                          return (
+                            <div className="space-y-2">
+                              <SearchSelectList
+                                label="KPI"
+                                placeholder="Search KPI…"
+                                multiple={false}
+                                options={kpiOptions.map((k) => ({ value: k, label: k, description: describeKpi(k) }))}
+                                value={activeKpis}
+                                onChange={(vals) => {
+                                  setSelectedKpis(vals);
+                                  setSelectedStudies(selectedStudies.filter((n) => vals.includes(n)));
+                                }}
+                                renderSelectedExtra={(opt) => {
+                                  const kpi = opt.value;
+                                  const pricing = studyPricing[kpi];
+                                  const isSelected = selectedStudies.includes(kpi);
+                                  const isFree = pricing ? budgetNum >= pricing.freeThreshold : false;
+                                  return (
+                                    <div className="space-y-3">
+                                      {/* What choosing this KPI commits the plan to.
+                                          It is a property of the KPI, so it sits in
+                                          the KPI's own card; the study below is an
+                                          optional paid extra and keeps its own box. */}
+                                      <p className="text-xs text-muted-foreground">
+                                        The plan is optimised for {kpi} alone. Everything else stays measured and
+                                        reported, but delivery is never steered towards it.
+                                      </p>
+                                      {/* Sales KPIs are attributed from the data
+                                          rather than surveyed — no study to sell. */}
+                                      {pricing && (
+                                        <div className="space-y-1 rounded-md border border-surface-selected-border bg-surface-selected p-3">
+                                          <label className="flex cursor-pointer items-center gap-2.5">
+                                            <Checkbox
+                                              checked={isSelected}
+                                              onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                            />
+                                            <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                                              <FlaskConical className="h-3.5 w-3.5 shrink-0" />
+                                              Add a brand-lift study
+                                              <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
+                                            </span>
+                                          </label>
+                                          <p className="text-xs text-muted-foreground">
+                                            Measures the uplift this KPI drives against a control group.{' '}
+                                            {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }}
+                              />
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Pick the KPI {selectedObjective} is judged on.{' '}
+                                {brandOptions.length > 0
+                                  ? 'It can be measured with a matching brand-lift study.'
+                                  : 'Conversion KPIs are attributed from sales data — no study needed.'}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                            </>
+                          )}
+                        />
+                      </div>
                       {/* Audience comes after the KPI, because the goal and its
                           KPI decide who is worth reaching. A conversion-stage
                           objective has no brand KPI to pick, so for those the

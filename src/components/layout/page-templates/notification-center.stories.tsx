@@ -4,6 +4,8 @@ import { CardWithTabs } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import { MessageAdvertiser } from '@/components/ui/message-advertiser';
+import { useSession, canManageFaq } from '@/lib/db';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
@@ -81,6 +83,7 @@ const SettingRow = ({
 );
 
 const InboxContent = () => {
+  const user = useSession();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(false);
   const [campaignApprovals, setCampaignApprovals] = useState(true);
@@ -155,6 +158,11 @@ const InboxContent = () => {
           value: 'settings',
           content: settingsContent,
         },
+        // What the retailer SENDS belongs with what it receives; advertisers
+        // have nobody to message from here, so they do not get the tab.
+        ...(canManageFaq(user)
+          ? [{ label: 'Message advertisers', value: 'message', content: <MessageAdvertiser className="mt-6" /> }]
+          : []),
       ]}
     />
   );

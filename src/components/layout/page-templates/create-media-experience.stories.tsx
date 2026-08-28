@@ -755,7 +755,9 @@ export const GoalSelection: Story = {
         poNumber: poNumber || undefined,
         advertiserId: advertiser.id,
         brandIds,
-        status: 'in-option',
+        // Still being set up: its campaigns and bookings are proposals until
+        // the user has checked them. The plan leaves draft when they do.
+        status: 'draft',
         autoBudget,
         goal: selectedGoal ?? undefined,
         objective: selectedObjective ?? undefined,

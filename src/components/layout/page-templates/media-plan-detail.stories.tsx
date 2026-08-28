@@ -771,6 +771,23 @@ export const MediaPlanDetail: Story = {
           .filter((card) => card.steps.some((step) => !step.done))
       : [];
 
+    /**
+     * A plan fresh out of the wizard is still being set up: its campaigns and
+     * bookings are proposals nobody has checked. Until they are approved the
+     * page is about that work — the setup cards — and not about numbers a
+     * plan that has never run cannot have. It leaves the state on its own,
+     * the moment nothing is waiting.
+     */
+    const awaitingApproval = !!plan && db.campaigns
+      .filter((c) => c.mediaPlanId === plan.id)
+      .some((c) => c.status === 'draft' || db.bookings.some((b) => b.campaignId === c.id && b.status === 'draft'));
+    const inSetup = !!plan && plan.status === 'draft';
+    React.useEffect(() => {
+      if (plan && plan.status === 'draft' && !awaitingApproval) {
+        updateMediaPlan(plan.id, { status: 'in-option' });
+      }
+    }, [plan, awaitingApproval]);
+
     // Cards are for setup that is still open; anything that has ever run —
     // running, paused, completed — opens on the table it is judged in, and so
     // does a pre-live plan whose campaigns are all set up (or skipped): a
@@ -1013,6 +1030,10 @@ export const MediaPlanDetail: Story = {
               metrics above the tabs rather than inside one of them. */}
           {/* mb-1 + the tab card's built-in 12px above its strip = the same
               16px gap the metric cards keep. */}
+          {/* In setup the controls step aside: what the plan may spend and
+              when it runs were just answered in the wizard, and the page is
+              about approving what it proposed. */}
+          {!inSetup && (
           <ControlBar className="mb-4">
             <ControlBarItem label="Media plan budget">
               {/* The budget opens like the date field beside it: click, see
@@ -1089,6 +1110,7 @@ export const MediaPlanDetail: Story = {
               )}
             </div>
           </ControlBar>
+          )}
 
           {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
               keep between themselves — the whole column shares one gap. */}
@@ -1421,14 +1443,14 @@ export const MediaPlanDetail: Story = {
                   </div>
                 ),
               },
-              {
-                // Performance across the whole plan — the same chart row the
-                // campaign pages use, scoped to this plan's mix of engines.
+              // Insights and Logs have nothing to say about a plan that has
+              // not run yet, so a plan in setup does not carry them.
+              ...(inSetup ? [] : [{
                 label: 'Insights',
                 value: 'insights',
                 content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
-              },
-              {
+              }]),
+              ...(inSetup ? [] : [{
                 label: 'Logs',
                 value: 'logs',
                 content: (
@@ -1483,7 +1505,7 @@ export const MediaPlanDetail: Story = {
                     />
                   </div>
                 ),
-              },
+              }]),
             ], 'campaigns')}
           />
 

@@ -418,9 +418,6 @@ export const HelpCentre = {
             },
             { label: 'Metric terms', value: 'terms', content: <div className="mt-6"><TermsTab mayEdit={editing} /></div> },
             { label: "What's new", value: 'news', content: <div className="mt-6"><NewsTab mayEdit={editing} /></div> },
-            ...(mayManage
-              ? [{ label: 'Message advertisers', value: 'message', content: <div className="mt-6"><MessageAdvertiserTab /></div> }]
-              : []),
           ]}
         />
 
@@ -599,52 +596,6 @@ const FaqEditAll: React.FC<{ onNew: (sid: FaqSurfaceId) => void; onEdit: (e: Faq
   );
 };
 
-
-/** Compose a message to an advertiser — the retailer's outbound channel,
- *  next to the content they publish. Prototype: sending confirms locally. */
-const MessageAdvertiserTab: React.FC = () => {
-  const db = useDb();
-  const [advertiser, setAdvertiser] = useState('');
-  const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
-  const [sentTo, setSentTo] = useState<string | null>(null);
-  const send = () => {
-    const name = db.advertisers.find((a) => a.id === advertiser)?.name ?? 'the advertiser';
-    setSentTo(name);
-    setSubject('');
-    setBody('');
-  };
-  return (
-    <FormSection title="Message an advertiser" headerClassName="mb-4">
-      <p className="-mt-2 mb-4 text-sm text-muted-foreground">
-        Lands in their notifications and by email, from your team.
-      </p>
-      <div className="max-w-xl space-y-4">
-        <div>
-          <Label className="mb-2 block">Advertiser</Label>
-          <SearchableSelect
-            value={advertiser}
-            onChange={setAdvertiser}
-            placeholder="Choose an advertiser…"
-            options={db.advertisers.map((a) => ({ label: a.name, value: a.id }))}
-          />
-        </div>
-        <div>
-          <Label className="mb-2 block">Subject</Label>
-          <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. New offsite positions available" />
-        </div>
-        <div>
-          <Label className="mb-2 block">Message</Label>
-          <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={6} placeholder="Write the message…" />
-        </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={send} disabled={!advertiser || !subject.trim() || !body.trim()}>Send message</Button>
-          {sentTo && <span className="text-sm text-muted-foreground">Sent to {sentTo}.</span>}
-        </div>
-      </div>
-    </FormSection>
-  );
-};
 
 /** The old configuration route renders the same page now. */
 export const Overview = HelpCentre;

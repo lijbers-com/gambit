@@ -38,11 +38,6 @@ export interface SetupChecklistCardData {
   /** The card's own overflow — what can be done to the campaign itself
    *  (open it, edit it) as opposed to the setup steps listed on the card. */
   menu?: { label: string; icon?: React.ReactNode; onClick: () => void }[];
-  /** The campaign's governing facts — budget, run time — each a labelled
-   *  field, in the same order the plan's control bar states them. A string
-   *  renders as a read-only box; a node renders as itself, so a caller can
-   *  hand over the same editors the table rows use. */
-  facts?: Array<{ label: string; value: React.ReactNode }>;
   steps: SetupChecklistStep[];
 }
 
@@ -117,23 +112,6 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                     </DropdownMenu>
                   )}
                 </div>
-
-                {card.facts && card.facts.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {card.facts.map((f) => (
-                      <div key={f.label} className="min-w-0 space-y-1">
-                        <span className="block text-xs font-medium text-muted-foreground">{f.label}</span>
-                        {typeof f.value === 'string' ? (
-                          <div className="truncate rounded-md border border-border px-3 py-2 text-xs tabular-nums text-muted-foreground">
-                            {f.value}
-                          </div>
-                        ) : (
-                          f.value
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">

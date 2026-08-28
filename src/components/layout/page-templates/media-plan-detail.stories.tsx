@@ -694,33 +694,6 @@ export const MediaPlanDetail: Story = {
             const bookings = db.bookings.filter((b) => b.campaignId === c.id);
             const meta = propositionMeta[c.engine];
             const CardIcon = meta.icon;
-            // Budget first, then run time — the same order and labels the
-            // plan's control bar states them in, and the SAME editors the
-            // table rows use: a campaign's money and dates are changed where
-            // they are read, without opening the campaign.
-            const facts = [
-              {
-                label: 'Budget',
-                value: (
-                  <BudgetCell
-                    fullWidth
-                    value={c.budget}
-                    onSave={(next) => updateCampaign(c.id, { budget: next })}
-                  />
-                ),
-              },
-              {
-                label: 'Run time',
-                value: (
-                  <DatesCell
-                    className="h-9 w-full text-sm font-normal"
-                    start={c.startDate}
-                    end={c.endDate}
-                    onSave={(startDate, endDate) => updateCampaign(c.id, { startDate, endDate })}
-                  />
-                ),
-              },
-            ];
             // Each step IS a wizard run — the same booking-and-creatives flow
             // "Add campaign" continues into, entered at the right step. The
             // media plan wizard stopped at campaigns; these cards carry what
@@ -792,7 +765,6 @@ export const MediaPlanDetail: Story = {
               menu: [
                 { label: 'Edit campaign', icon: <Pencil className="h-4 w-4" />, onClick: openCampaign },
               ],
-              facts,
               steps,
             };
           })

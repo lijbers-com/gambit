@@ -1160,9 +1160,6 @@ export const GoalSelection: Story = {
                               onChange={(vals) => { setSelectedObjective(vals[0] ?? null); setSelectedStudies([]); }}
                               multiple={false}
                             />
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {goalObjectives[selectedGoal].stage} stage — pick the one objective the plan is judged on.
-                            </div>
                           </div>
                         )}
                         {selectedGoal && selectedObjective && goalObjectives[selectedGoal] && (() => {

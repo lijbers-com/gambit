@@ -113,6 +113,11 @@ export const GoalSelect: React.FC<{
 
             {open && (
               <div className="space-y-4 border-t border-surface-selected-border px-3 pb-3 pt-3">
+                {/* The goal's own questions lead; the framework under them is
+                    what the answers narrow. */}
+                {openContent && (
+                  <div className="space-y-6 border-b border-surface-selected-border pb-4">{openContent}</div>
+                )}
                 {/* What the goal is judged on — the whole framework, in the
                     three families it is written in. */}
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -141,9 +146,6 @@ export const GoalSelect: React.FC<{
                     ))}
                   </Column>
                 </div>
-                {openContent && (
-                  <div className="space-y-6 border-t border-surface-selected-border pt-4">{openContent}</div>
-                )}
               </div>
             )}
           </div>

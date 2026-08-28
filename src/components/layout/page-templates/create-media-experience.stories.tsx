@@ -14,7 +14,7 @@ import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
-import { GoalCard } from '@/components/ui/goal-card';
+import { GoalSelect } from '@/components/ui/goal-select';
 import { LevelMeter } from '@/components/ui/level-meter';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -22,7 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { planForecast, fmtForecastRange } from '@/lib/forecast';
-import { funnelKpis, kpiEstimates, stageForGoal, stageEstimateKpis } from '@/lib/funnel';
+import { funnelKpis, kpiEstimates, stageForGoal, stageEstimateKpis, goalStrategies, goalPropositions } from '@/lib/funnel';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { propositionColor } from '@/lib/proposition-colors';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -440,29 +440,7 @@ export const GoalSelection: Story = {
     // KPIs the user picks for the chosen objective — each can reveal a matching
     // brand-lift study (research) below.
     const [selectedKpis, setSelectedKpis] = React.useState<string[]>([]);
-    /**
-     * Picking a goal empties the other cards' KPI lists, which would shrink
-     * the grid and jump everything below it up the page. The grid keeps the
-     * height it had while all four were still listing their KPIs — measured
-     * whenever nothing is picked yet, then held.
-     */
-    const goalGridRef = React.useRef<HTMLDivElement>(null);
-    const [goalGridHeight, setGoalGridHeight] = React.useState<number | null>(null);
     const [selectedAudiences, setSelectedAudiences] = React.useState<string[]>([]);
-    React.useEffect(() => {
-      const el = goalGridRef.current;
-      // Only measure while the full lists are on screen; afterwards the last
-      // measurement is the reserved height.
-      if (!el || selectedGoal !== null) return;
-      const measure = () => setGoalGridHeight(el.getBoundingClientRect().height);
-      measure();
-      if (typeof ResizeObserver === 'undefined') return;
-      const ro = new ResizeObserver(measure);
-      ro.observe(el);
-      return () => ro.disconnect();
-      // currentStep matters: the grid only exists on the goal step, so without
-      // it the effect ran once on mount against nothing and never again.
-    }, [selectedGoal, currentStep]);
     const [tags, setTags] = React.useState<string[]>([]);
     const [tagInput, setTagInput] = React.useState('');
 
@@ -1141,41 +1119,34 @@ export const GoalSelection: Story = {
                     <div className="space-y-6">
                       <div>
                         <Label className="mb-3 block">Media plan goal</Label>
-                        <div
-                          ref={goalGridRef}
-                          // auto-rows-fr so the reserved height is shared by the
-                          // rows rather than pooling as dead space underneath.
-                          className="grid grid-cols-1 gap-2 sm:auto-rows-fr sm:grid-cols-2"
-                          style={{ minHeight: goalGridHeight ?? undefined }}
-                        >
-                          {goals.map((goal) => (
-                            <GoalCard
-                              key={goal.id}
-                              icon={goal.icon}
-                              title={goal.title}
-                              description={goal.description}
-                              /**
-                               * The KPI list narrows as the choice is made. With
-                               * no goal picked the cards list their KPIs so the
-                               * goals can be compared on them; once one is
-                               * picked the others drop theirs, because none of
-                               * those KPIs is available any more. The chosen
-                               * card then narrows again to what its objective
-                               * allows.
-                               */
-                              kpis={selectedGoal === null
-                                ? goalKpis[goal.id]
-                                : selectedGoal !== goal.id
-                                  ? undefined
-                                  : selectedObjective
-                                    ? kpiPoolFor(goal.id, selectedObjective)
-                                    : goalKpis[goal.id]}
-                              highlightKpis={selectedGoal === goal.id ? selectedKpis : []}
-                              selected={selectedGoal === goal.id}
-                              onClick={() => { setSelectedGoal(goal.id); setSelectedObjective(null); setSelectedStudies([]); }}
-                            />
-                          ))}
-                        </div>
+                        {/* Stacked, and only the chosen goal is open: the
+                            others fold to a line so the whole framework —
+                            every KPI, the strategies, the propositions — has
+                            the room to be read. */}
+                        <GoalSelect
+                          goals={goals.map((goal) => {
+                            const stage = goalObjectives[goal.id]?.stage;
+                            const k = stage ? funnelKpis[stage] : undefined;
+                            return {
+                              id: goal.id,
+                              icon: goal.icon,
+                              title: goal.title,
+                              description: goal.description,
+                              brandKpis: k?.brand ?? [],
+                              mediaKpis: k?.media ?? [],
+                              salesKpis: k?.sales ?? [],
+                              strategies: goalStrategies[goal.id] ?? [],
+                              propositions: (goalPropositions[goal.id] ?? []).map((id) => {
+                                const prop = propositions.find((p) => p.id === id);
+                                const Icon = prop?.icon;
+                                return { id, name: prop?.name ?? id, icon: Icon ? <Icon /> : undefined };
+                              }),
+                            };
+                          })}
+                          value={selectedGoal}
+                          onChange={(id) => { setSelectedGoal(id); setSelectedObjective(null); setSelectedStudies([]); }}
+                          highlightKpis={selectedKpis}
+                        />
                       </div>
                       {selectedGoal && goalObjectives[selectedGoal] && (
                         <div>

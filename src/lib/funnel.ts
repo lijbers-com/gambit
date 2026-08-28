@@ -60,3 +60,24 @@ export function stageEstimateKpis(stage: string | undefined): string[] {
   if (!k) return [];
   return [...k.media, ...k.sales].filter((name) => kpiEstimates[name]).slice(0, 4);
 }
+
+/**
+ * What a goal actually buys with, beyond its KPIs: the delivery strategies it
+ * is steered by, and the propositions that can serve it. Keyed by GOAL rather
+ * than by stage — Purchase and Loyalty are both Conversion-stage, but they buy
+ * differently.
+ */
+export const goalStrategies: Record<string, string[]> = {
+  awareness: ['Maximise reach', 'Maximise viewable impressions', 'Target CPM', 'Frequency capping', 'Share of voice'],
+  consideration: ['Maximise clicks', 'Target CPC', 'Maximise engagement', 'Video completion', 'Audience expansion'],
+  purchase: ['Maximise conversions', 'Target ROAS', 'Target CPA', 'Keyword bidding', 'Basket-based retargeting'],
+  loyalty: ['Retention audiences', 'Repeat-purchase optimisation', 'Win-back targeting', 'Loyalty-segment bidding'],
+};
+
+/** Propositions that can carry a goal, as engine ids. */
+export const goalPropositions: Record<string, string[]> = {
+  awareness: ['display', 'offsite', 'digital-instore', 'offline-instore'],
+  consideration: ['display', 'offsite', 'digital-instore', 'sponsored-products'],
+  purchase: ['sponsored-products', 'display', 'digital-instore', 'offline-instore'],
+  loyalty: ['sponsored-products', 'offsite', 'offline-instore'],
+};

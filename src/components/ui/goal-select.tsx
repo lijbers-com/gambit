@@ -36,8 +36,10 @@ const Column: React.FC<{ title: string; empty?: string; children: React.ReactNod
 }) => (
   <div className="min-w-0">
     <div className="mb-1.5 flex items-baseline gap-1.5">
-      <span className="text-[11px] font-semibold text-muted-foreground">{title}</span>
-      {count !== undefined && count > 0 && <span className="text-[11px] text-muted-foreground/70">{count}</span>}
+      {/* The heading reads as one: same size as its list, but darker and
+          heavier — smaller than the items it introduces read as a footnote. */}
+      <span className="text-xs font-semibold text-foreground">{title}</span>
+      {count !== undefined && count > 0 && <span className="text-xs text-muted-foreground/70">{count}</span>}
     </div>
     <div className="space-y-1">{children}</div>
   </div>

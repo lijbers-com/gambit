@@ -36,7 +36,7 @@ const Column: React.FC<{ title: string; empty?: string; children: React.ReactNod
 }) => (
   <div className="min-w-0">
     <div className="mb-1.5 flex items-baseline gap-1.5">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</span>
+      <span className="text-[11px] font-semibold text-muted-foreground">{title}</span>
       {count !== undefined && count > 0 && <span className="text-[11px] text-muted-foreground/70">{count}</span>}
     </div>
     <div className="space-y-1">{children}</div>
@@ -101,8 +101,10 @@ export const GoalSelect: React.FC<{
                 <span className={cn('block text-xs text-muted-foreground', !open && 'truncate')}>{goal.description}</span>
               </span>
               {open && (
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check className="h-2 w-2" strokeWidth={3} />
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  {/* Half the dot's width, so the tick sits in it rather than
+                      filling it to the edges. */}
+                  <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
                 </span>
               )}
             </button>

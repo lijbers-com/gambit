@@ -428,9 +428,7 @@ const PropositionWizard = ({
   const [budgetAmount, setBudgetAmount] = React.useState('');
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [biddingCPC, setBiddingCPC] = React.useState('');
-  // Auto pacing is on by default — it is what every other platform does, and
-  // the manual daily cap is the choice that needs making.
-  const [autoPacing, setAutoPacing] = React.useState(true);
+  const [autoPacing, setAutoPacing] = React.useState(false);
   const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
   const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
@@ -2807,7 +2805,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // keyword, category and placement carries its own bid on its card.
   const [totalBudget, setTotalBudget] = React.useState(startAtBooking ? (initialValues?.budget ?? '') : '');
   const [dailyBudget, setDailyBudget] = React.useState('');
-  const [autoPacing, setAutoPacing] = React.useState(true);
+  const [autoPacing, setAutoPacing] = React.useState(false);
   const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
   const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
   const [spBids, setSpBids] = React.useState<Record<string, string>>({});

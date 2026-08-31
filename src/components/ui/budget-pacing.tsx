@@ -22,8 +22,10 @@ import { retailMoments } from '@/lib/retail-moments';
  * afterwards.
  *
  * Rules it implements:
- *  - On by default. It is the behaviour advertisers expect from every other
- *    platform, and the manual alternative is the one that needs a decision.
+ *  - OFF by default. It changes how a budget is spent, and a change that size
+ *    should be one the advertiser turned on rather than one they inherited
+ *    without noticing. (The ADUSA story asked for on-by-default; this is a
+ *    deliberate departure from it.)
  *  - The daily budget field is DISABLED while it is on — the number is derived,
  *    and an editable field showing a derived number invites a fight over which
  *    one is true. The value still shows, so it is never a mystery.

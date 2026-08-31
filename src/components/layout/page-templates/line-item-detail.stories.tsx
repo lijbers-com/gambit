@@ -613,7 +613,7 @@ export const Display: Story = {
     const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
     // Pacing lives with the budget it spreads, not in delivery behaviour —
     // and only auction campaigns have a pacing decision to make.
-    const [autoPacing, setAutoPacing] = React.useState(true);
+    const [autoPacing, setAutoPacing] = React.useState(false);
     const [pacingShape, setPacingShape] = React.useState<PacingShape>('account');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [dailyBudget, setDailyBudget] = React.useState('');
@@ -3996,9 +3996,7 @@ export const SponsoredProducts: Story = {
     // Bids belong to the placements, not to the booking — the same shape the
     // wizard keeps them in.
     const [spBids, setSpBids] = React.useState<Record<string, string>>({});
-    // Auto pacing is on by default — the same default the wizard sets, so a
-    // booking does not change behaviour just by being opened for editing.
-    const [autoPacing, setAutoPacing] = React.useState(true);
+    const [autoPacing, setAutoPacing] = React.useState(false);
     const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);

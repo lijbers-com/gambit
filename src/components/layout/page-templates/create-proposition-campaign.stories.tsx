@@ -31,6 +31,7 @@ import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
+import { BidRow, suggestedBid } from '@/components/ui/bid-row';
 import { ToggleCard } from '@/components/ui/toggle-card';
 import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
@@ -321,53 +322,6 @@ const otherPlacements = [
 // selected placement card carries its own CPC with a suggested bid to accept.
 // Guaranteed campaigns buy at fixed price and show no bids at all — the
 // choice is made once, in campaign setup.
-
-/** Deterministic demo bid suggestion per placement/keyword — €0.30–€0.79. */
-const suggestedBid = (id: string) => {
-  const seed = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return (0.3 + (seed % 50) / 100).toFixed(2);
-};
-
-/** The CPC row on a selected placement card: bid input + suggestion. */
-const BidRow = ({
-  id,
-  value,
-  onChange,
-  className,
-}: {
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-  className?: string;
-}) => (
-  <div className={cn('flex flex-wrap items-center gap-2', className ?? 'mt-2')} onClick={(e) => e.stopPropagation()}>
-    <span className="text-xs text-muted-foreground">Bid (CPC)</span>
-    <div className="relative w-24">
-      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
-      <Input
-        type="number"
-        min="0"
-        step="0.05"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-7 pl-6 text-sm tabular-nums"
-        placeholder={suggestedBid(id)}
-        aria-label={`Bid for ${id}`}
-      />
-    </div>
-    {value !== suggestedBid(id) && (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-7 text-xs"
-        onClick={() => onChange(suggestedBid(id))}
-      >
-        Use suggested €{suggestedBid(id)}
-      </Button>
-    )}
-  </div>
-);
 
 // --- Proposition Wizard Component ---
 

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
+import { BidRow } from '@/components/ui/bid-row';
+import { LevelMeter } from '@/components/ui/level-meter';
 import { ToggleCard } from '@/components/ui/toggle-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
@@ -36,7 +38,7 @@ import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { NotificationDot } from '@/components/ui/notification-dot';
-import { spKeywordSuggestions, spKeywordDescription, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
+import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
@@ -3991,13 +3993,16 @@ export const SponsoredProducts: Story = {
     const [selectedCategories, setSelectedCategories] = React.useState<string[]>(['cat-primary']);
     const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>(localBrands.slice(0, 3).map(b => b.id));
     const [dailyBudget, setDailyBudget] = React.useState('50');
-    const [biddingCPC, setBiddingCPC] = React.useState('0.60');
+    // Bids belong to the placements, not to the booking — the same shape the
+    // wizard keeps them in.
+    const [spBids, setSpBids] = React.useState<Record<string, string>>({});
     // Auto pacing is on by default — the same default the wizard sets, so a
     // booking does not change behaviour just by being opened for editing.
     const [autoPacing, setAutoPacing] = React.useState(true);
     const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
+    const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
     const [selectedStoreTypes, setSelectedStoreTypes] = React.useState<string[]>([]);
@@ -4232,29 +4237,11 @@ export const SponsoredProducts: Story = {
                         onEndTimeChange={setBookingEndTime}
                         campaignBudget="€10,000"
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
-                      />
-
-                      <FormSection bordered title="Bidding" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4">
-                          {/* The daily budget lives inside the pacing block: it
-                              is derived from it whenever auto pacing is on, and
-                              two fields that can disagree is the bug this
-                              replaces. The bid rides along on the same line —
-                              what a click costs and what a day costs are the
-                              two numbers this section is for. */}
+                        activeDays={activeDays}
+                        onActiveDaysChange={setActiveDays}
+                        pacing={(budgetField) => (
                           <BudgetPacing
-                            budgetField={
-                              <div className="space-y-1.5">
-                                <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
-                                <Input
-                                  id="sp-cpc"
-                                  type="number"
-                                  placeholder="0.50"
-                                  value={biddingCPC}
-                                  onChange={(e) => setBiddingCPC(e.target.value)}
-                                />
-                              </div>
-                            }
+                            budgetField={budgetField}
                             totalBudget={Number(bookingBudget) || undefined}
                             startDate={startDate}
                             endDate={endDate}
@@ -4267,14 +4254,15 @@ export const SponsoredProducts: Story = {
                             overrides={pacingOverrides}
                             onOverridesChange={setPacingOverrides}
                           />
-                          <ToggleCard
-                            title="Email budget notifications"
-                            description="Tells you when a booking caps out early or ends the flight with budget unspent."
-                            checked={sendBudgetNotification}
-                            onCheckedChange={setSendBudgetNotification}
-                          />
-                        </div>
-                      </FormSection>
+                        )}
+                      >
+                        <ToggleCard
+                          title="Email budget notifications"
+                          description="Tells you when a booking caps out early or ends the flight with budget unspent."
+                          checked={sendBudgetNotification}
+                          onCheckedChange={setSendBudgetNotification}
+                        />
+                      </BookingBudgetRuntime>
 
                       {/* Targeting is products, keywords and categories — the
                           same three blocks the create flow builds, in the same
@@ -4303,6 +4291,27 @@ export const SponsoredProducts: Story = {
                             }))}
                             value={keywords}
                             onChange={setKeywords}
+                            // The card carries what the keyword is worth: its
+                            // bid first, then volume and competition — the same
+                            // card the wizard builds.
+                            hideSelectedDescription
+                            renderSelectedExtra={(opt) => {
+                              const detail = spKeywordDetail(opt.value);
+                              return (
+                                <div className="space-y-2">
+                                  <BidRow
+                                    id={opt.value}
+                                    className="mt-1"
+                                    value={spBids[opt.value] ?? ''}
+                                    onChange={(v) => setSpBids((prev) => ({ ...prev, [opt.value]: v }))}
+                                  />
+                                  <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
+                                    <LevelMeter label="Volume" tone="supply" level={detail.volume} />
+                                    <LevelMeter label="Competition" tone="risk" level={detail.competition} />
+                                  </div>
+                                </div>
+                              );
+                            }}
                           />
                           <SuggestionList
                             items={spKeywordSuggestions
@@ -4339,24 +4348,33 @@ export const SponsoredProducts: Story = {
                           {spCategoryOptions.map((cat) => {
                             const isSelected = selectedCategories.includes(cat.value);
                             return (
-                              <label
+                              <div
                                 key={cat.value}
                                 className={cn(
-                                  'flex w-full cursor-pointer items-center gap-3 rounded-md border p-3 text-left transition-colors',
+                                  'rounded-md border p-3 transition-colors',
                                   isSelected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
                                 )}
                               >
-                                <Checkbox
-                                  checked={isSelected}
-                                  onCheckedChange={() => setSelectedCategories(prev =>
-                                    prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
-                                  )}
-                                />
-                                <span className="min-w-0">
-                                  <span className="block truncate text-sm font-medium">{cat.label}</span>
-                                  {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
-                                </span>
-                              </label>
+                                <label className="flex w-full cursor-pointer items-center gap-3 text-left">
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={() => setSelectedCategories(prev =>
+                                      prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
+                                    )}
+                                  />
+                                  <span className="min-w-0">
+                                    <span className="block truncate text-sm font-medium">{cat.label}</span>
+                                    {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
+                                  </span>
+                                </label>
+                                {isSelected && (
+                                  <BidRow
+                                    id={cat.value}
+                                    value={spBids[cat.value] ?? ''}
+                                    onChange={(v) => setSpBids((prev) => ({ ...prev, [cat.value]: v }))}
+                                  />
+                                )}
+                              </div>
                             );
                           })}
                         </div>
@@ -4499,7 +4517,9 @@ export const SponsoredProducts: Story = {
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
                       ...(bookingBudget ? [{ label: 'Total budget', value: `€${bookingBudget}` }] : []),
                       ...(dailyBudget ? [{ label: 'Daily budget', value: `€${dailyBudget}` }] : []),
-                      ...(biddingCPC ? [{ label: 'CPC bid', value: `€${biddingCPC}` }] : []),
+                      ...(Object.values(spBids).filter(Boolean).length > 0
+                        ? [{ label: 'Bids', value: `${Object.values(spBids).filter(Boolean).length} set` }]
+                        : []),
                       ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
                       ...(keywords.length > 0 ? [{ label: 'Keywords', value: `${keywords.length} keywords` }] : []),
                       ...(selectedCategories.length > 0 ? [{ label: 'Categories', value: `${selectedCategories.length} selected` }] : []),

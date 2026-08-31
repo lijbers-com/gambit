@@ -45,6 +45,19 @@ import { BarChartComponent } from './ui/bar-chart';
 import { LineChartComponent } from './ui/line-chart';
 import { PieChartComponent } from './ui/pie-chart';
 import { onlineTargetGroups } from '@/lib/target-groups';
+import { TablePagination } from './ui/table-pagination';
+import { FormSection } from './ui/form-section';
+import { NotificationDot } from './ui/notification-dot';
+import { BuyingTypePicker } from './ui/buying-type-picker';
+import { RetailProductSelect } from './ui/retail-product-select';
+import { ObjectiveKpiSelect, type ObjectiveKpiValue } from './ui/objective-kpi-select';
+import { ConversionFunnelComponent } from './ui/conversion-funnel';
+import { RadarChartComponent } from './ui/radar-chart';
+import { useToast } from './ui/toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
@@ -76,11 +89,15 @@ export interface PreviewEntry {
     | 'Containment'
     | 'Communication'
     | 'Navigation'
+    | 'Overlays'
     | 'Data display'
     | 'Product surfaces';
   render: () => React.ReactNode;
   /** Widen the stage for entries that are full page sections. */
   wide?: boolean;
+  /** Overlay components render through portals — the index links to them
+   *  instead of inlining dozens of open layers on one page. */
+  portal?: boolean;
 }
 
 /* ── Stateful wrappers — a preview is live, not a screenshot ────────── */
@@ -283,10 +300,8 @@ const TableActions: React.FC = () => (
     ]}
     data={previewRows}
     rowActions={() => (
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" iconOnly aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-        <Button variant="ghost" size="sm" iconOnly aria-label="More"><MoreHorizontal className="h-4 w-4" /></Button>
-      </div>
+      // Explicit actions REPLACE the overflow column — never both.
+      <Button variant="ghost" size="sm" iconOnly aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
     )}
   />
 );
@@ -433,6 +448,126 @@ const PreviewTable: React.FC = () => (
   />
 );
 
+/* ── Pagination, pickers, overlays ───────────────────────────────────── */
+
+const TableWithPagination: React.FC = () => {
+  const [page, setPage] = React.useState(2);
+  const [sort, setSort] = React.useState('name');
+  return (
+    <div className="space-y-3">
+      <PreviewTable />
+      <TablePagination
+        currentPage={page}
+        totalPages={8}
+        onPageChange={setPage}
+        sortOptions={[{ value: 'name', label: 'Name' }, { value: 'budget', label: 'Budget' }, { value: 'spend', label: 'Spend' }]}
+        selectedSort={sort}
+        onSortChange={setSort}
+      />
+    </div>
+  );
+};
+
+const StatefulBuyingType: React.FC = () => {
+  const [v, setV] = React.useState<'auction' | 'guaranteed'>('auction');
+  return <BuyingTypePicker value={v} onChange={setV} />;
+};
+
+const StatefulRetailProducts: React.FC = () => {
+  const [v, setV] = React.useState<string[]>(['rp-1']);
+  return <RetailProductSelect value={v} onChange={setV} showCount />;
+};
+
+const StatefulObjectiveKpi: React.FC = () => {
+  const [v, setV] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
+  return <ObjectiveKpiSelect value={v} onChange={setV} />;
+};
+
+const ToastDemo: React.FC = () => {
+  const toast = useToast();
+  return (
+    <Button variant="outline" onClick={() => toast({ title: 'Booking saved', description: 'Homepage Takeover was updated.' })}>
+      Show toast
+    </Button>
+  );
+};
+
+const DialogDemo: React.FC = () => {
+  const [open, setOpen] = React.useState(true);
+  return (
+    <div>
+      <Button variant="outline" onClick={() => setOpen(true)}>Open dialog</Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete booking?</DialogTitle>
+            <DialogDescription>
+              "Homepage Takeover" will be removed from Summer Launch — Display. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => setOpen(false)}>Delete booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+const PopoverDemo: React.FC = () => (
+  <Popover defaultOpen>
+    <PopoverTrigger asChild>
+      <Button variant="outline">Filter: Status</Button>
+    </PopoverTrigger>
+    <PopoverContent align="start" className="w-56 space-y-2">
+      {['Running', 'In option', 'Paused', 'Draft'].map((o) => (
+        <label key={o} className="flex items-center gap-2 text-sm"><Checkbox defaultChecked={o === 'Running'} /> {o}</label>
+      ))}
+    </PopoverContent>
+  </Popover>
+);
+
+const DropdownDemo: React.FC = () => (
+  <DropdownMenu defaultOpen>
+    <DropdownMenuTrigger asChild>
+      <Button variant="ghost" size="sm" iconOnly aria-label="Options"><MoreHorizontal className="h-4 w-4" /></Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem><Pencil className="mr-2 h-4 w-4" /> Edit campaign</DropdownMenuItem>
+      <DropdownMenuItem>Duplicate</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const TooltipDemo: React.FC = () => (
+  <TooltipProvider delayDuration={0}>
+    <Tooltip defaultOpen>
+      <TooltipTrigger asChild>
+        <Button variant="outline">Incremental ROAS</Button>
+      </TooltipTrigger>
+      <TooltipContent side="top">Return attributable to the campaign, measured against matched control stores.</TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
+const funnelStages = [
+  { key: 'impressions', label: 'Impressions', value: 640000 },
+  { key: 'clicks', label: 'Clicks', value: 39000 },
+  { key: 'add-to-cart', label: 'Add to cart', value: 8200 },
+  { key: 'purchase', label: 'Purchase', value: 3100 },
+];
+
+const radarData = [
+  { month: 'Reach', display: 80, sp: 45 },
+  { month: 'CTR', display: 55, sp: 85 },
+  { month: 'Conversion', display: 40, sp: 90 },
+  { month: 'New to brand', display: 70, sp: 50 },
+  { month: 'Frequency', display: 75, sp: 40 },
+];
+
 /* ── The registry ───────────────────────────────────────────────────── */
 
 export const previewRegistry: Record<string, PreviewEntry> = {
@@ -531,13 +666,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
     ),
   },
   'goal-card': {
-    title: 'Goal card', group: 'Product surfaces',
-    render: () => (
-      <div className="grid max-w-xl grid-cols-2 gap-2">
-        <GoalCard icon={<Gavel />} title="Auction" description="Bid per placement — each selected placement carries its own CPC." selected onClick={() => {}} />
-        <GoalCard icon={<ShieldCheck />} title="Guaranteed" description="Fixed price, reserved delivery — no bidding." onClick={() => {}} />
-      </div>
-    ),
+    title: 'Goal card (campaign type)', group: 'Product surfaces',
+    render: () => <div className="max-w-xl"><StatefulBuyingType /></div>,
   },
   'goal-select': { title: 'Goal select', group: 'Product surfaces', render: () => <StatefulGoalSelect />, wide: true },
   'setup-checklist': {
@@ -688,6 +818,29 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   'line-chart': { title: 'Line chart', group: 'Data display', wide: true, render: () => <div className="h-64"><LineChartComponent data={chartData} config={chartConfig} /></div> },
   'bar-chart': { title: 'Bar chart', group: 'Data display', wide: true, render: () => <div className="h-64"><BarChartComponent data={chartData} config={chartConfig} /></div> },
   'pie-chart': { title: 'Pie chart', group: 'Data display', render: () => <div className="h-72 w-72"><PieChartComponent data={pieData} config={pieConfig} innerRadius={45} /></div> },
+
+  /* Containment — pagination */
+  'table--pagination': { title: 'Table / With pagination', group: 'Containment', wide: true, render: () => <TableWithPagination /> },
+  'pagination': { title: 'Table pagination', group: 'Navigation', wide: true, render: () => <TablePagination currentPage={3} totalPages={12} onPageChange={() => {}} showSort={false} /> },
+
+  /* Inputs & controls — domain selects */
+  'retail-product-select': { title: 'Retail product select', group: 'Inputs & controls', wide: true, render: () => <StatefulRetailProducts /> },
+  'objective-kpi-select': { title: 'Objective and KPI select', group: 'Inputs & controls', wide: true, render: () => <StatefulObjectiveKpi /> },
+  'form-section': { title: 'Form section', group: 'Containment', wide: true, render: () => <FormSection bordered title="Run time & budget"><p className="text-sm text-muted-foreground">Every form block on a detail page sits in this bordered section; inside a wizard card the border is the card's (bordered=false).</p></FormSection> },
+
+  /* Communication */
+  'notification-dot': { title: 'Notification dot', group: 'Communication', render: () => <div className="flex items-center gap-6"><span className="relative inline-flex"><Button variant="outline" iconOnly aria-label="Notifications" size="sm">🔔</Button><NotificationDot count={9} className="absolute -right-1 -top-1" /></span><NotificationDot count={128} /></div> },
+  'toast': { title: 'Toast', group: 'Communication', render: () => <ToastDemo /> },
+
+  /* Overlays — framed live; the index links rather than opening them all */
+  'dialog': { title: 'Dialog', group: 'Overlays', portal: true, render: () => <DialogDemo /> },
+  'popover': { title: 'Popover', group: 'Overlays', portal: true, render: () => <PopoverDemo /> },
+  'dropdown-menu': { title: 'Dropdown menu', group: 'Overlays', portal: true, render: () => <DropdownDemo /> },
+  'tooltip': { title: 'Tooltip', group: 'Overlays', portal: true, render: () => <TooltipDemo /> },
+
+  /* Data display — specialty charts */
+  'conversion-funnel': { title: 'Conversion funnel', group: 'Data display', wide: true, render: () => <ConversionFunnelComponent stages={funnelStages} valueFormatter={(v) => v.toLocaleString()} /> },
+  'radar-chart': { title: 'Radar chart', group: 'Data display', render: () => <div className="h-72 w-72"><RadarChartComponent data={radarData} config={{ display: { label: 'Display', color: 'hsl(var(--chart-1))' }, sp: { label: 'Sponsored products', color: 'hsl(var(--chart-3))' } }} /></div> },
 };
 
 export const previewGroups = [
@@ -696,6 +849,7 @@ export const previewGroups = [
   'Containment',
   'Communication',
   'Navigation',
+  'Overlays',
   'Data display',
   'Product surfaces',
 ] as const;

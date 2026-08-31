@@ -159,6 +159,21 @@ function ColumnItem({
 }
 
 export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState, hideRefreshedAt }: TableProps<T>) {
+  /**
+   * The leading overflow column earns its place only when it has something to
+   * do. A row that already carries a checkbox, an expand chevron, or explicit
+   * rowActions must not ALSO get the default ellipsis — two controls for one
+   * row read as double chrome (and the default menu's Edit/Delete are dummies).
+   * With the column suppressed, the column-settings control relocates to the
+   * leading structural column's header so it is never lost.
+   */
+  // Expandable tables drop the column: the chevron column leads, and hosts the
+  // settings control in its header. Selection tables keep the column for its
+  // header settings but leave the row cells empty — the checkbox is the row's
+  // control. Plain tables keep the default overflow menu.
+  const dropActionsCol = !hideActions && !rowActions && !!expandable;
+  const emptyActionRows = !hideActions && !rowActions && !!rowSelection && !expandable;
+  const showActionsCol = !hideActions && !dropActionsCol;
   // Default rowKey function if not provided
   const getRowKey = rowKey || ((row: T, index: number) => {
     if (row && typeof row === 'object' && 'id' in row) {
@@ -170,13 +185,13 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   // Column visibility state (includes __actions as a virtual column)
   const [visibleColumns, setVisibleColumns] = React.useState(() => [
     ...columns.map((col) => ({ key: col.key, visible: true, hideable: col.hideable !== false })),
-    ...(!hideActions ? [{ key: '__actions', visible: true, hideable: true }] : []),
+    ...(showActionsCol ? [{ key: '__actions', visible: true, hideable: true }] : []),
   ]);
 
   // Fixed columns state - ordered list of fixed column keys (__actions is fixed by default)
   const [fixedColumnKeys, setFixedColumnKeys] = React.useState<string[]>(() => {
     const defaults = defaultFixedColumns || [];
-    if (!hideActions && !defaults.includes('__actions')) {
+    if (showActionsCol && !defaults.includes('__actions')) {
       return ['__actions', ...defaults];
     }
     return defaults;
@@ -185,10 +200,10 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   // Column order state - tracks the order of non-fixed columns
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() => {
     const keys = columns.filter(c => c.hideable !== false).map(c => c.key);
-    if (!hideActions) keys.unshift('__actions');
+    if (showActionsCol) keys.unshift('__actions');
     // Remove any default fixed columns from the order
     const defaults = defaultFixedColumns || [];
-    const fixedDefaults = !hideActions && !defaults.includes('__actions')
+    const fixedDefaults = showActionsCol && !defaults.includes('__actions')
       ? ['__actions', ...defaults]
       : defaults;
     return keys.filter(k => !fixedDefaults.includes(k));
@@ -399,13 +414,13 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   );
 
   // Actions column visibility
-  const isActionsVisible = !hideActions && visibleColumnSet.has('__actions');
+  const isActionsVisible = showActionsCol && visibleColumnSet.has('__actions');
   const isActionsFixed = fixedColumnKeys.includes('__actions');
 
   // Map of key -> header label for dropdown display
   const allColumnMap: Record<string, React.ReactNode> = {};
   columns.forEach((col) => { allColumnMap[col.key] = col.header; });
-  if (!hideActions) allColumnMap['__actions'] = 'Actions';
+  if (showActionsCol) allColumnMap['__actions'] = 'Actions';
 
   // Get fixed columns in their order (excluding __actions which gets special handling)
   const fixedCols = fixedColumnKeys
@@ -543,14 +558,14 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
 
   // Actions column is always present (header dropdown stays for column settings),
   // but row content is only shown when Actions is checked/visible
-  const actionsCol = !hideActions ? [{
+  const actionsCol = showActionsCol ? [{
     key: '__actions',
     header: columnSettingsDropdown,
     render: (row: T) =>
       isActionsVisible ? (
         rowActions ? (
           rowActions(row)
-        ) : (
+        ) : emptyActionRows ? null : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center justify-center w-8 h-8 rounded hover:bg-neutral-100 focus:outline-none">
@@ -572,7 +587,9 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   // reorderable or resizable and never appears in the column settings.
   const expandCol: TableColumn<T>[] = expandable ? [{
     key: '__expand',
-    header: '',
+    // With the overflow column suppressed, the column-settings control lives
+    // here — the leading header cell, where it always was.
+    header: dropActionsCol ? columnSettingsDropdown : '',
     render: (row: T) => {
       const canExpand = expandable.isExpandable ? expandable.isExpandable(row) : true;
       // Rows without sub-rows still occupy the column so the ones that do have
@@ -660,7 +677,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   // Use !hideActions instead of isActionsVisible — the actions column always renders when !hideActions
   const lastFixedColKey = (() => {
     const fixedKeys: string[] = [];
-    if (!hideActions && isActionsFixed) fixedKeys.push('__actions');
+    if (showActionsCol && isActionsFixed) fixedKeys.push('__actions');
     if (selectionCol) fixedKeys.push('__select');
     fixedKeys.push(...fixedCols.map((c) => c.key));
     return fixedKeys.length > 0 ? fixedKeys[fixedKeys.length - 1] : null;

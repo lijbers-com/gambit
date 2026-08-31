@@ -70,8 +70,16 @@ function PreviewInner() {
                     <code className="text-xs text-muted-foreground">{k}</code>
                   </span>
                   {/* The index shows the entry itself, small — a thumbnail
-                      grid finds a component by shape faster than by name. */}
-                  <span className="pointer-events-none block origin-top-left scale-90">{e.render()}</span>
+                      grid finds a component by shape faster than by name.
+                      Overlays are the exception: dozens of open portals on one
+                      page is chaos, so their tiles link to the framed view. */}
+                  {e.portal ? (
+                    <span className="block rounded-md border border-dashed border-muted-foreground/30 p-4 text-center text-sm text-muted-foreground">
+                      Overlay — open to view
+                    </span>
+                  ) : (
+                    <span className="pointer-events-none block origin-top-left scale-90">{e.render()}</span>
+                  )}
                 </a>
               ))}
             </div>

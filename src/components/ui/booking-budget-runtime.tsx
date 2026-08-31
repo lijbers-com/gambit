@@ -122,9 +122,12 @@ const ActiveDays: React.FC<{ value: string[]; onChange: (days: string[]) => void
                   value.includes(day.id) ? value.filter((d) => d !== day.id) : [...value, day.id],
                 )
               }
+              // A chosen day wears the app's one selected surface, the same
+              // one a switched-on setting does — so "on" looks like "on"
+              // wherever it appears in the form.
               className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
                 value.includes(day.id)
-                  ? 'bg-background border-primary text-foreground'
+                  ? 'bg-surface-selected border-surface-selected-border text-foreground'
                   : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
               }`}
             >

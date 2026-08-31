@@ -30,6 +30,7 @@ import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
+import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
 import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -472,6 +473,11 @@ const PropositionWizard = ({
   const [budgetAmount, setBudgetAmount] = React.useState('');
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [biddingCPC, setBiddingCPC] = React.useState('');
+  // Auto pacing is on by default — it is what every other platform does, and
+  // the manual daily cap is the choice that needs making.
+  const [autoPacing, setAutoPacing] = React.useState(true);
+  const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
+  const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
 
@@ -1390,7 +1396,7 @@ const PropositionWizard = ({
                             Your campaign will automatically start and stop on the selected dates
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="budget-amount">Total budget <span className="text-foreground">*</span></Label>
                             <div className="relative">
@@ -1401,20 +1407,6 @@ const PropositionWizard = ({
                                 placeholder="e.g. 5000"
                                 value={budgetAmount}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="daily-budget">Daily budget <span className="text-foreground">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="daily-budget"
-                                type="number"
-                                placeholder="e.g. 200"
-                                value={dailyBudget}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
                                 className="pl-7"
                               />
                             </div>
@@ -1434,6 +1426,22 @@ const PropositionWizard = ({
                             </div>
                           </div>
                         </div>
+                        {/* Pacing sits with the money it spreads: the daily
+                            budget is derived from it, so the two belong to one
+                            block rather than two fields that can disagree. */}
+                        <BudgetPacing
+                          totalBudget={Number(budgetAmount) || undefined}
+                          startDate={dateRange?.from}
+                          endDate={dateRange?.to}
+                          auto={autoPacing}
+                          onAutoChange={setAutoPacing}
+                          shape={pacingShape}
+                          onShapeChange={setPacingShape}
+                          dailyBudget={dailyBudget}
+                          onDailyBudgetChange={setDailyBudget}
+                          overrides={pacingOverrides}
+                          onOverridesChange={setPacingOverrides}
+                        />
                         <div className="flex items-center justify-between p-4 rounded-lg border">
                           <span className="text-sm">Send me an email with budget notifications</span>
                           <Switch
@@ -2826,6 +2834,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // keyword, category and placement carries its own bid on its card.
   const [totalBudget, setTotalBudget] = React.useState(startAtBooking ? (initialValues?.budget ?? '') : '');
   const [dailyBudget, setDailyBudget] = React.useState('');
+  const [autoPacing, setAutoPacing] = React.useState(true);
+  const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
+  const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
   const [spBids, setSpBids] = React.useState<Record<string, string>>({});
   const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
   // Targeting — the same target-group control as everywhere, but sponsored
@@ -3343,17 +3354,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
                           />
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="bk-daily">Daily budget <span className="text-foreground">*</span></Label>
-                          <Input
-                            id="bk-daily"
-                            type="number"
-                            placeholder="1.00"
-                            value={dailyBudget}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyBudget(e.target.value)}
-                          />
-                        </div>
                       </div>
+                      <BudgetPacing
+                        totalBudget={Number(totalBudget) || undefined}
+                        startDate={bookingStartDate}
+                        endDate={bookingEndDate}
+                        auto={autoPacing}
+                        onAutoChange={setAutoPacing}
+                        shape={pacingShape}
+                        onShapeChange={setPacingShape}
+                        dailyBudget={dailyBudget}
+                        onDailyBudgetChange={setDailyBudget}
+                        overrides={pacingOverrides}
+                        onOverridesChange={setPacingOverrides}
+                      />
                       {/* No CPC field here — on auction campaigns each
                           selected placement carries its own bid, on the next
                           step's cards. */}

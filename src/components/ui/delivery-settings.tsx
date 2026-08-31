@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { ChevronDown, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PacingShapeSelect, type PacingShape } from './budget-pacing';
 import { Button } from './button';
 import { Input } from './input';
 import { Label } from './label';
@@ -113,6 +114,23 @@ export const defaultDeliveryBehavior: DeliveryBehaviorValue = {
 
 export const DELIVERY_METHODS = ['Account setting', 'Frontloaded', 'Even', 'ASAP'];
 
+/** Delivery method is stored as its label; pacing is chosen as a shape. One
+ *  map both ways, so the stored value never drifts from the control. */
+const SHAPE_BY_METHOD: Record<string, PacingShape> = {
+  'Account setting': 'account',
+  Frontloaded: 'frontloaded',
+  Even: 'even',
+  ASAP: 'asap',
+};
+const METHOD_BY_SHAPE: Record<PacingShape, string> = {
+  account: 'Account setting',
+  frontloaded: 'Frontloaded',
+  even: 'Even',
+  asap: 'ASAP',
+};
+export const deliveryMethodToShape = (m: string): PacingShape => SHAPE_BY_METHOD[m] ?? 'account';
+export const shapeToDeliveryMethod = (s: PacingShape): string => METHOD_BY_SHAPE[s];
+
 export const DeliveryBehaviorFields: React.FC<{
   value: DeliveryBehaviorValue;
   onChange: (next: DeliveryBehaviorValue) => void;
@@ -148,11 +166,17 @@ export const DeliveryBehaviorFields: React.FC<{
       )}
       <div className="space-y-3 py-2">
         <span className="flex items-center gap-1.5 font-medium text-sm">
-          Delivery method
+          Pacing
           <InfoTip text="How the budget spreads over the flight: frontloaded spends faster early, even paces it flat, ASAP delivers as fast as inventory allows." />
         </span>
-        <MiniSelect value={value.deliveryMethod} options={DELIVERY_METHODS} onChange={(v) => set('deliveryMethod', v)} />
-        <p className="text-xs text-muted-foreground">Follows the default configured for your account (Frontloaded).</p>
+        {/* The same pacing cards a sponsored-products booking gets. Pacing is
+            one decision with one shape, so it is one control — an auction
+            campaign should not meet it as a dropdown here and as cards there. */}
+        <PacingShapeSelect
+          value={deliveryMethodToShape(value.deliveryMethod)}
+          onChange={(shape) => set('deliveryMethod', shapeToDeliveryMethod(shape))}
+          shapes={['account', 'even', 'frontloaded', 'asap']}
+        />
       </div>
       <ToggleRow
         label="Exclusivity"

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
+import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
@@ -3921,6 +3922,16 @@ export const SponsoredProducts: Story = {
     const routeEntityId = useRouteEntityId();
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
+    // The booking's own budget and run time, once the route has resolved them.
+    // A form that opens empty on a booking that HAS a budget shows the wrong
+    // thing — and auto pacing has nothing to divide.
+    React.useEffect(() => {
+      if (!routeBooking) return;
+      setBookingBudget(String(routeBooking.budget));
+      setStartDate(new Date(routeBooking.startDate));
+      setEndDate(new Date(routeBooking.endDate));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [routeBooking?.id]);
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
@@ -3952,6 +3963,11 @@ export const SponsoredProducts: Story = {
     const [selectedLocalBrands, setSelectedLocalBrands] = React.useState<string[]>(localBrands.slice(0, 3).map(b => b.id));
     const [dailyBudget, setDailyBudget] = React.useState('50');
     const [biddingCPC, setBiddingCPC] = React.useState('0.60');
+    // Auto pacing is on by default — the same default the wizard sets, so a
+    // booking does not change behaviour just by being opened for editing.
+    const [autoPacing, setAutoPacing] = React.useState(true);
+    const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
+    const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
     const [showRetailProductResults, setShowRetailProductResults] = React.useState(false);
@@ -4190,18 +4206,8 @@ export const SponsoredProducts: Story = {
                       />
 
                       <FormSection bordered title="Bidding" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label htmlFor="sp-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
-                              <Input
-                                id="sp-daily-budget"
-                                type="number"
-                                placeholder="1.00"
-                                value={dailyBudget}
-                                onChange={(e) => setDailyBudget(e.target.value)}
-                              />
-                            </div>
                             <div className="space-y-1.5">
                               <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
                               <Input
@@ -4213,6 +4219,23 @@ export const SponsoredProducts: Story = {
                               />
                             </div>
                           </div>
+                          {/* The daily budget lives inside the pacing block: it
+                              is derived from it whenever auto pacing is on, and
+                              two fields that can disagree is the bug this
+                              replaces. */}
+                          <BudgetPacing
+                            totalBudget={Number(bookingBudget) || undefined}
+                            startDate={startDate}
+                            endDate={endDate}
+                            auto={autoPacing}
+                            onAutoChange={setAutoPacing}
+                            shape={pacingShape}
+                            onShapeChange={setPacingShape}
+                            dailyBudget={dailyBudget}
+                            onDailyBudgetChange={setDailyBudget}
+                            overrides={pacingOverrides}
+                            onOverridesChange={setPacingOverrides}
+                          />
                           <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
                             <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
                             <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>

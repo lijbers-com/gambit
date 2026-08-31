@@ -1,4 +1,5 @@
 import type { DbData, EngineId, MediaPlan, UserSide } from './types';
+import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../recommendations';
 
 /**
  * Derived to-dos — the alignment layer between statuses, tasks, health,
@@ -42,6 +43,10 @@ export interface DerivedTask {
     stats?: { label: string; value: string; sub?: string; tone?: string }[];
     insights?: { title: string; text: string }[];
   };
+  /** What accepting a recommendation does, in the user's words ("Raise daily
+   *  budget to €90"). Recommendations are proposals: they are always answered
+   *  with accept or decline, and this labels the accept. */
+  acceptLabel?: string;
   /** Acting on this opens the guided setup wizard rather than a detail page —
    *  set on the per-campaign setup-help message. */
   opensWizard?: boolean;
@@ -134,6 +139,7 @@ export function deriveTasks(db: DbData): DerivedTask[] {
   }
 
   tasks.push(...deriveGuidance(db));
+  tasks.push(...deriveKeywordRecommendations(db));
 
   const order: Record<TaskSeverity, number> = { blocking: 0, attention: 1, info: 2 };
   return tasks.sort((a, b) => order[a.severity] - order[b.severity]);
@@ -302,6 +308,72 @@ function deriveGuidance(db: DbData): DerivedTask[] {
     }
   }
 
+  return tasks;
+}
+
+/**
+ * The keywords a sponsored-products booking buys, read off its name
+ * ("Keywords — coffee & pads"). The prototype has no keyword table yet, so the
+ * name is where they live; when one arrives this is the only line that changes.
+ */
+function keywordsOf(bookingName: string): string[] {
+  const m = /keywords\s*[—–-]\s*(.+)$/i.exec(bookingName);
+  if (!m) return [];
+  return m[1].split(/\s*&\s*/).map((k) => k.trim()).filter(Boolean);
+}
+
+/** A finished recommendation, as a to-do the inbox can carry. */
+function taskFromRecommendation(
+  rec: Recommendation,
+  ctx: { bookingId: string; mediaPlanId: string },
+): DerivedTask {
+  return {
+    id: `${ctx.bookingId}-${rec.type}-${rec.about.replace(/\s+/g, '-')}`,
+    kind: 'recommendation',
+    severity: rec.severity,
+    level: 'booking',
+    entityId: ctx.bookingId,
+    mediaPlanId: ctx.mediaPlanId,
+    engine: 'sponsored-products',
+    title: rec.title,
+    detail: rec.detail,
+    side: 'both',
+    personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser', 'campaign-builder'],
+    acceptLabel: rec.acceptLabel,
+    evidence: rec.evidence,
+  };
+}
+
+/**
+ * Keyword-level recommendations — the auction half of the advice.
+ *
+ * The rules for what a keyword's week MEANS live in lib/recommendations.ts, one
+ * template per kind. This function's only job is choosing which keywords to
+ * look at and handing each finished recommendation to the inbox: the
+ * intelligence is not the delivery, and neither knows how the other works.
+ */
+function deriveKeywordRecommendations(db: DbData): DerivedTask[] {
+  const tasks: DerivedTask[] = [];
+  for (const campaign of db.campaigns) {
+    if (campaign.engine !== 'sponsored-products' || campaign.status !== 'running') continue;
+    for (const booking of db.bookings.filter((b) => b.campaignId === campaign.id && b.status === 'running')) {
+      const weeks = keywordsOf(booking.name).map((k) => keywordWeek(k, booking.id));
+      if (weeks.length === 0) continue;
+      // The booking's own best keyword is the comparison a wasted-spend
+      // recommendation makes — "the same money buys a return there".
+      const best = weeks.reduce((a, b) => (a.addToCart >= b.addToCart ? a : b));
+      const comparison = best.addToCart > 0
+        ? { keyword: best.keyword, roas: 4, addToCart: best.addToCart }
+        : undefined;
+      for (const week of weeks) {
+        // Two per keyword at most: an inbox that reports everything it noticed
+        // is a list nobody finishes.
+        for (const rec of recommendationsForKeyword(week, comparison).slice(0, 2)) {
+          tasks.push(taskFromRecommendation(rec, { bookingId: booking.id, mediaPlanId: campaign.mediaPlanId }));
+        }
+      }
+    }
+  }
   return tasks;
 }
 

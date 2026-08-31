@@ -176,7 +176,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
                   onClick={() => { markDone(active.id); setOpenId(null); }}
                 >
                   <Check className="h-4 w-4" />
-                  Accept
+                  {active.acceptLabel ?? 'Accept'}
                 </Button>
               </>
             ) : (

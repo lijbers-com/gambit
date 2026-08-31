@@ -42,6 +42,9 @@ export interface InboxMessage {
   /** Figures and key points behind a recommendation or insight, shown in the
    *  message panel as its business case. Absent for plain to-dos. */
   evidence?: DerivedTask['evidence'];
+  /** What accepting a recommendation does, in the user's words. The panel puts
+   *  it on the Accept button so the answer names the change it makes. */
+  acceptLabel?: string;
 }
 
 /** Engine → route segment. They match today, but the map keeps it explicit. */
@@ -98,6 +101,7 @@ function taskMessages(db: DbData): InboxMessage[] {
     side: task.side,
     personaKeys: task.personaKeys,
     evidence: task.evidence,
+    acceptLabel: task.acceptLabel,
   }));
 }
 

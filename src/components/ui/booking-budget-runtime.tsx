@@ -38,6 +38,11 @@ export interface BookingBudgetRuntimeProps {
   /** Weekday scheduling, for the propositions that support it. */
   activeDays?: string[];
   onActiveDaysChange?: (days: string[]) => void;
+  /** Pacing, for the propositions that bid. It is handed the budget field so
+   *  the two can share a line — what you are spending, and what that comes to
+   *  a day, belong side by side rather than in different blocks. Given no
+   *  pacing, the budget field renders on its own as before. */
+  pacing?: (budgetField: React.ReactNode) => React.ReactNode;
   /** The detail pages render this as a standalone bordered section; inside a
    *  wizard's step card the border is the card's, so pass false. */
   bordered?: boolean;
@@ -111,6 +116,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   campaignRuntime,
   activeDays,
   onActiveDaysChange,
+  pacing,
   bordered = true,
   children,
   className,
@@ -152,18 +158,23 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
         </div>
         {campaignRuntime && <FieldHint>Campaign runtime: {campaignRuntime}</FieldHint>}
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-2">Booking budget*</label>
-        <Input
-          type="number"
-          value={budget}
-          onChange={(e) => onBudgetChange(e.target.value)}
-          placeholder="Enter budget"
-          className="w-full"
-          min="0"
-        />
-        {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
-      </div>
+      {(() => {
+        const budgetField = (
+          <div>
+            <label className="block text-sm font-medium mb-2">Booking budget*</label>
+            <Input
+              type="number"
+              value={budget}
+              onChange={(e) => onBudgetChange(e.target.value)}
+              placeholder="Enter budget"
+              className="w-full"
+              min="0"
+            />
+            {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
+          </div>
+        );
+        return pacing ? pacing(budgetField) : budgetField;
+      })()}
       {activeDays && onActiveDaysChange && (
         <ActiveDays value={activeDays} onChange={onActiveDaysChange} />
       )}

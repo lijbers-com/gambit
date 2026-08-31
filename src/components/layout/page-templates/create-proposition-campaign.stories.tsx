@@ -2025,6 +2025,27 @@ const PropositionWizard = ({
                               campaignBudget={budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : undefined}
                               activeDays={canScheduleDays ? activeDays : undefined}
                               onActiveDaysChange={canScheduleDays ? setActiveDays : undefined}
+                              // Pacing belongs with the budget it spreads, in
+                              // the same place sponsored products puts it. Only
+                              // auction campaigns have a pacing decision to
+                              // make — guaranteed buys a fixed delivery.
+                              pacing={isAuction ? (budgetField) => (
+                                <BudgetPacing
+                                  budgetField={budgetField}
+                                  totalBudget={Number(bookingBudget) || undefined}
+                                  startDate={bookingDateRange?.from}
+                                  endDate={bookingDateRange?.to}
+                                  auto={autoPacing}
+                                  onAutoChange={setAutoPacing}
+                                  shape={pacingShape}
+                                  onShapeChange={setPacingShape}
+                                  shapes={['account', 'even', 'frontloaded', 'asap']}
+                                  dailyBudget={dailyBudget}
+                                  onDailyBudgetChange={setDailyBudget}
+                                  overrides={pacingOverrides}
+                                  onOverridesChange={setPacingOverrides}
+                                />
+                              ) : undefined}
                             />
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
@@ -2287,7 +2308,6 @@ const PropositionWizard = ({
                       const vals: string[] = [];
                       if (countTargets(inclTargets) > 0) vals.push(`${countTargets(inclTargets)} included`);
                       if (countTargets(exclTargets) > 0) vals.push(`${countTargets(exclTargets)} excluded`);
-                      if (deliveryBehavior.deliveryMethod !== 'Account setting') vals.push(deliveryBehavior.deliveryMethod);
                       if (deliveryBehavior.optimizeForCPC) vals.push('Optimise for CPC');
                       if (deliveryBehavior.userFrequencyCap) vals.push('Frequency cap on');
                       if (deliveryBehavior.exclusivity) vals.push('Exclusivity on');
@@ -2370,7 +2390,6 @@ const PropositionWizard = ({
                       const vals: string[] = [];
                       if (countTargets(booking.inclTargets) > 0) vals.push(`${countTargets(booking.inclTargets)} included`);
                       if (countTargets(booking.exclTargets) > 0) vals.push(`${countTargets(booking.exclTargets)} excluded`);
-                      if (booking.deliveryBehavior.deliveryMethod !== 'Account setting') vals.push(booking.deliveryBehavior.deliveryMethod);
                       if (booking.deliveryBehavior.optimizeForCPC) vals.push('Optimise for CPC');
                       if (booking.deliveryBehavior.userFrequencyCap) vals.push('Frequency cap on');
                       if (booking.deliveryBehavior.exclusivity) vals.push('Exclusivity on');

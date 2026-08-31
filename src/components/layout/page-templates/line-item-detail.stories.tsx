@@ -580,6 +580,10 @@ export const Display: Story = {
     // Channels + positions come from the prototype database (channel = media
     // product; a position is the smallest bookable unit).
     const dbDisplay = useDb();
+    // Guaranteed campaigns buy a fixed delivery, so there is no pacing to set.
+    // An unset buying type is an auction — the same default the wizard uses.
+    const displayIsAuction =
+      (dbDisplay.campaigns.find((c) => c.id === routeBooking?.campaignId)?.buyingType ?? 'auction') !== 'guaranteed';
     const displayMediaProducts = dbDisplay.mediaProducts
       .filter((m) => m.engine === 'display')
       .map((m) => ({ value: m.id, label: m.name, description: m.description ?? '' }));
@@ -605,7 +609,12 @@ export const Display: Story = {
     // Delivery behavior
     const [optimizeForCPC, setOptimizeForCPC] = React.useState(false);
     const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
-    const [deliveryMethod, setDeliveryMethod] = React.useState('Account setting');
+    // Pacing lives with the budget it spreads, not in delivery behaviour —
+    // and only auction campaigns have a pacing decision to make.
+    const [autoPacing, setAutoPacing] = React.useState(true);
+    const [pacingShape, setPacingShape] = React.useState<PacingShape>('account');
+    const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
+    const [dailyBudget, setDailyBudget] = React.useState('');
     const [exclusivity, setExclusivity] = React.useState(false);
 
     // Delivery objectives
@@ -811,6 +820,23 @@ export const Display: Story = {
                 campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
                 activeDays={activeDays}
                 onActiveDaysChange={setActiveDays}
+                pacing={displayIsAuction ? (budgetField) => (
+                  <BudgetPacing
+                    budgetField={budgetField}
+                    totalBudget={Number(bookingBudget) || undefined}
+                    startDate={startDate}
+                    endDate={endDate}
+                    auto={autoPacing}
+                    onAutoChange={setAutoPacing}
+                    shape={pacingShape}
+                    onShapeChange={setPacingShape}
+                    shapes={['account', 'even', 'frontloaded', 'asap']}
+                    dailyBudget={dailyBudget}
+                    onDailyBudgetChange={setDailyBudget}
+                    overrides={pacingOverrides}
+                    onOverridesChange={setPacingOverrides}
+                  />
+                ) : undefined}
               />
 
               {/* 2. Targeting — Targeting tab */}
@@ -869,11 +895,11 @@ export const Display: Story = {
                 <SectionHeader number={3} title="Delivery behavior" open={section3Open} onToggle={() => setSection3Open(v => !v)} />
                 {section3Open && (
                   <DeliveryBehaviorFields
-                    value={{ optimizeForCPC, userFrequencyCap, freqCapImpressions, freqCapExpiry, deliveryMethod, exclusivity, exclusivityMode }}
+                    value={{ optimizeForCPC, userFrequencyCap, freqCapImpressions, freqCapExpiry, exclusivity, exclusivityMode }}
                     onChange={(v) => {
                       setOptimizeForCPC(v.optimizeForCPC); setUserFrequencyCap(v.userFrequencyCap);
                       setFreqCapImpressions(v.freqCapImpressions); setFreqCapExpiry(v.freqCapExpiry);
-                      setDeliveryMethod(v.deliveryMethod); setExclusivity(v.exclusivity); setExclusivityMode(v.exclusivityMode);
+                      setExclusivity(v.exclusivity); setExclusivityMode(v.exclusivityMode);
                     }}
                   />
                 )}
@@ -1116,7 +1142,9 @@ export const Display: Story = {
                     ...((Object.values(inclTargets).flat().length + Object.values(exclTargets).flat().length) > 0
                       ? [{ label: 'Targets', value: [Object.values(inclTargets).flat().length > 0 && `Include ${Object.values(inclTargets).flat().length}`, Object.values(exclTargets).flat().length > 0 && `Exclude ${Object.values(exclTargets).flat().length}`].filter(Boolean).join(' · ') }]
                       : []),
-                    ...(deliveryMethod !== 'Account setting' ? [{ label: 'Delivery', value: deliveryMethod }] : []),
+                    ...(displayIsAuction && autoPacing && pacingShape !== 'account'
+                      ? [{ label: 'Pacing', value: pacingShape.charAt(0).toUpperCase() + pacingShape.slice(1) }]
+                      : []),
                   ]}
                 />
                   </>

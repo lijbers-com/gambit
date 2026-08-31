@@ -127,7 +127,7 @@ const ActiveDays: React.FC<{ value: string[]; onChange: (days: string[]) => void
               // wherever it appears in the form.
               className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
                 value.includes(day.id)
-                  ? 'bg-surface-selected border-surface-selected-border text-foreground'
+                  ? 'bg-surface-selected border-neutral-600 text-foreground'
                   : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
               }`}
             >

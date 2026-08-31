@@ -147,7 +147,7 @@ export const PacingShapeSelect: React.FC<{
   disabled?: boolean;
   className?: string;
 }> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabled, className }) => (
-  <div className={cn('space-y-2', className)}>
+  <div className={cn('grid gap-2 sm:grid-cols-2', className)}>
     {shapes.map((shape) => {
       const selected = value === shape;
       return (
@@ -213,6 +213,10 @@ export interface BudgetPacingProps {
   shape: PacingShape;
   onShapeChange: (v: PacingShape) => void;
   shapes?: PacingShape[];
+  /** The caller's total-budget field, rendered beside the daily budget. The
+   *  two are one fact — what you are spending, and what that comes to a day —
+   *  so they share a line rather than sitting in different sections. */
+  budgetField?: React.ReactNode;
   /** The typed daily cap, used when auto pacing is off. */
   dailyBudget: string;
   onDailyBudgetChange: (v: string) => void;
@@ -230,6 +234,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   shape,
   onShapeChange,
   shapes,
+  budgetField,
   dailyBudget,
   onDailyBudgetChange,
   overrides,
@@ -264,8 +269,10 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
 
   return (
     <div className={cn('space-y-4', className)}>
+      {/* Total and daily budget on one line: they are one fact read two ways —
+          what you are spending, and what that comes to a day. */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="space-y-3">
+        {budgetField}
         <div className="space-y-1.5">
           <Label htmlFor="pacing-daily-budget">
             Daily budget {!on && <span className="text-foreground">*</span>}
@@ -293,86 +300,88 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
             </FieldHint>
           )}
         </div>
+      </div>
 
-        <div
-          className={cn(
-            'flex items-start justify-between gap-4 rounded-md border p-3',
-            on ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
-          )}
-        >
-          <span className="min-w-0">
-            <span className="block text-sm font-medium">Auto pacing</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">
-              Spreads the remaining budget over the days remaining, and corrects itself daily.
-            </span>
-          </span>
+      {/* One card: the switch, and everything the switch turns on. The pacing
+          shape and the date overrides only exist because auto pacing is on, so
+          they live inside it rather than beside it. */}
+      <div
+        className={cn(
+          'rounded-md border p-3',
+          on ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
+        )}
+      >
+        <div className="flex items-center gap-3">
           <Switch
             checked={on}
             disabled={!canAuto}
             onCheckedChange={onAutoChange}
             aria-label="Auto pacing"
           />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium">Auto pacing</span>
+            <span className="block text-xs text-muted-foreground">
+              Spreads the remaining budget over the days remaining, and corrects itself daily.
+            </span>
+          </span>
         </div>
 
-      </div>
-
-      <div className="space-y-2">
-        <Label className="block">Pacing</Label>
-        <PacingShapeSelect value={shape} onChange={onShapeChange} shapes={shapes} disabled={!on} />
-      </div>
-      </div>
-
-      {/* Overrides run the full width: a date range and a multiplier squeezed
-          into a half-column truncates the dates, which are the part you need
-          to read. */}
         {on && (
-          <div className="space-y-2">
-            {overrides.map((o) => (
-              <div key={o.id} className="space-y-1.5">
-                <div className="flex items-end gap-2">
-                  <div className="min-w-0 flex-1">
-                    <DateRangePicker
-                      dateRange={o.from ? { from: o.from, to: o.to } : undefined}
-                      onDateRangeChange={(range) => setOverride(o.id, { from: range?.from, to: range?.to })}
-                      placeholder="Dates to override"
-                      showWeekNumbers
-                      events={retailMoments}
-                      className="w-full min-w-0"
-                    />
+          <div className="mt-3 space-y-4 border-t border-surface-selected-border pt-3">
+            <div className="space-y-2">
+              <Label className="block">Pacing</Label>
+              <PacingShapeSelect value={shape} onChange={onShapeChange} shapes={shapes} />
+            </div>
+
+            <div className="space-y-2">
+              {overrides.map((o) => (
+                <div key={o.id} className="space-y-1.5">
+                  <div className="flex items-end gap-2">
+                    <div className="min-w-0 flex-1">
+                      <DateRangePicker
+                        dateRange={o.from ? { from: o.from, to: o.to } : undefined}
+                        onDateRangeChange={(range) => setOverride(o.id, { from: range?.from, to: range?.to })}
+                        placeholder="Dates to override"
+                        showWeekNumbers
+                        events={retailMoments}
+                        className="w-full min-w-0"
+                      />
+                    </div>
+                    <div className="w-24 shrink-0">
+                      <MultiplierSelect
+                        value={o.multiplier}
+                        onChange={(v) => setOverride(o.id, { multiplier: v })}
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      aria-label="Remove override"
+                      className="shrink-0 text-muted-foreground"
+                      onClick={() => removeOverride(o.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="w-24 shrink-0">
-                    <MultiplierSelect
-                      value={o.multiplier}
-                      onChange={(v) => setOverride(o.id, { multiplier: v })}
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconOnly
-                    aria-label="Remove override"
-                    className="shrink-0 text-muted-foreground"
-                    onClick={() => removeOverride(o.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {clashing.has(o.id) && (
+                    <p className="text-xs text-destructive">
+                      These dates overlap another override. One day can only have one cap.
+                    </p>
+                  )}
                 </div>
-                {clashing.has(o.id) && (
-                  <p className="text-xs text-destructive">
-                    These dates overlap another override. One day can only have one cap.
-                  </p>
-                )}
-              </div>
-            ))}
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={addOverride}>
-              <Plus className="h-4 w-4" />
-              Add date override
-            </Button>
-            <FieldHint>
-              Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch.
-            </FieldHint>
+              ))}
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={addOverride}>
+                <Plus className="h-4 w-4" />
+                Add date override
+              </Button>
+              <FieldHint>
+                Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch.
+              </FieldHint>
+            </div>
           </div>
         )}
+      </div>
     </div>
   );
 };

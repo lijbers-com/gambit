@@ -1396,40 +1396,40 @@ const PropositionWizard = ({
                             Your campaign will automatically start and stop on the selected dates
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="budget-amount">Total budget <span className="text-foreground">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="budget-amount"
-                                type="number"
-                                placeholder="e.g. 5000"
-                                value={budgetAmount}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="bidding-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
-                              <Input
-                                id="bidding-cpc"
-                                type="number"
-                                placeholder="e.g. 0.50"
-                                value={biddingCPC}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
-                                className="pl-7"
-                              />
-                            </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="bidding-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                            <Input
+                              id="bidding-cpc"
+                              type="number"
+                              placeholder="e.g. 0.50"
+                              value={biddingCPC}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBiddingCPC(e.target.value)}
+                              className="pl-7"
+                            />
                           </div>
                         </div>
                         {/* Pacing sits with the money it spreads: the daily
                             budget is derived from it, so the two belong to one
                             block rather than two fields that can disagree. */}
                         <BudgetPacing
+                          budgetField={
+                            <div className="space-y-2">
+                              <Label htmlFor="budget-amount">Total budget <span className="text-foreground">*</span></Label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                                <Input
+                                  id="budget-amount"
+                                  type="number"
+                                  placeholder="e.g. 5000"
+                                  value={budgetAmount}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBudgetAmount(e.target.value)}
+                                  className="pl-7"
+                                />
+                              </div>
+                            </div>
+                          }
                           totalBudget={Number(budgetAmount) || undefined}
                           startDate={dateRange?.from}
                           endDate={dateRange?.to}
@@ -3343,19 +3343,19 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                           presets={futureDateRangePresets}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>
-                          <Input
-                            id="bk-total"
-                            type="number"
-                            placeholder="10.00"
-                            value={totalBudget}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
-                          />
-                        </div>
-                      </div>
                       <BudgetPacing
+                        budgetField={
+                          <div className="space-y-1.5">
+                            <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>
+                            <Input
+                              id="bk-total"
+                              type="number"
+                              placeholder="10.00"
+                              value={totalBudget}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
+                            />
+                          </div>
+                        }
                         totalBudget={Number(totalBudget) || undefined}
                         startDate={bookingStartDate}
                         endDate={bookingEndDate}

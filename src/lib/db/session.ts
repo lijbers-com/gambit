@@ -47,14 +47,22 @@ export function getCurrentUser(): DbUser | null {
 export function login(userId: string, theme?: string): DbUser | null {
   const user = getDb().users.find((u) => u.id === userId) ?? null;
   if (!user || typeof window === 'undefined') return null;
-  window.localStorage.setItem(SESSION_KEY, user.id);
-  window.localStorage.setItem(THEME_KEY, theme ?? user.theme);
+  try {
+    window.localStorage.setItem(SESSION_KEY, user.id);
+    window.localStorage.setItem(THEME_KEY, theme ?? user.theme);
+  } catch {
+    /* storage unavailable (e.g. sandboxed iframe) */
+  }
   notify();
   return user;
 }
 
 export function logout() {
   if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(SESSION_KEY);
+  try {
+    window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* storage unavailable */
+  }
   notify();
 }

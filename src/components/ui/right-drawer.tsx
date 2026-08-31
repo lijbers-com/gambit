@@ -60,8 +60,10 @@ const RightDrawerContent = React.forwardRef<
   // side, but reading localStorage during render would still be a hydration
   // hazard for any drawer that starts open.
   React.useEffect(() => {
-    const stored = Number(window.localStorage.getItem(DRAWER_WIDTH_KEY))
-    if (stored > 0) setWidth(clampDrawerWidth(stored))
+    try {
+      const stored = Number(window.localStorage.getItem(DRAWER_WIDTH_KEY))
+      if (stored > 0) setWidth(clampDrawerWidth(stored))
+    } catch { /* storage unavailable (e.g. sandboxed iframe) */ }
   }, [])
 
   const startResize = (e: React.PointerEvent) => {
@@ -73,7 +75,7 @@ const RightDrawerContent = React.forwardRef<
     document.body.style.cursor = "ew-resize"
     const onMove = (ev: PointerEvent) => setWidth(clampDrawerWidth(window.innerWidth - ev.clientX))
     const onUp = (ev: PointerEvent) => {
-      window.localStorage.setItem(DRAWER_WIDTH_KEY, String(clampDrawerWidth(window.innerWidth - ev.clientX)))
+      try { window.localStorage.setItem(DRAWER_WIDTH_KEY, String(clampDrawerWidth(window.innerWidth - ev.clientX))) } catch { /* storage unavailable */ }
       document.body.style.userSelect = ""
       document.body.style.cursor = ""
       window.removeEventListener("pointermove", onMove)

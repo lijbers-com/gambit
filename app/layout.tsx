@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import '@/styles/globals.css';
 // PostHog is disabled for now — will be re-enabled later
 // import { PostHogProvider } from '@/contexts/posthog-context';
@@ -8,6 +7,7 @@ import { ThemeProvider } from '@/contexts/theme-context';
 import { ToastProvider } from '@/components/ui/toast';
 import { NavigationWrapper } from './components/navigation-wrapper';
 import { AppLayoutWrapper } from './components/app-layout-wrapper';
+import { EpicContextWidget } from './components/epiccontext-widget';
 
 export const metadata: Metadata = {
   title: 'Gambit - Retail Media Platform',
@@ -44,14 +44,9 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {/* EpicContext Widget — beforeInteractive places these in <head> */}
-        <Script id="epiccontext-config" strategy="beforeInteractive">
-          {`window.epicContext = { "token": "ecw_RWg43dMouUdLBPcpKLbPsPLR11RbG_22" };`}
-        </Script>
-        <Script
-          src="https://epiccontext.com/widget.js"
-          strategy="beforeInteractive"
-        />
+        {/* EpicContext Widget — path-aware, so it never floats over the
+            component preview route the design-system chapter frames. */}
+        <EpicContextWidget />
 
         {/* PostHog disabled for now — re-enable by uncommenting below and the import above */}
         {/* <PostHogProvider> */}

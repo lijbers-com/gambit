@@ -18,18 +18,22 @@ export function VersionProvider({ children }: { children: ReactNode }) {
 
   // Load version from localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    try {
       const savedVersion = localStorage.getItem('gambit-version') as Version;
       if (savedVersion && availableVersions.includes(savedVersion)) {
         setVersion(savedVersion);
       }
+    } catch {
+      /* storage unavailable (e.g. sandboxed iframe) */
     }
   }, []);
 
   // Save version to localStorage when it changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    try {
       localStorage.setItem('gambit-version', version);
+    } catch {
+      /* storage unavailable */
     }
   }, [version]);
 

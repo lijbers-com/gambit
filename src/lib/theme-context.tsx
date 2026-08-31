@@ -19,14 +19,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get theme from localStorage on mount
-    const savedTheme = localStorage.getItem('app-theme') || 'gambit';
+    let savedTheme = 'gambit';
+    try { savedTheme = localStorage.getItem('app-theme') || 'gambit'; } catch { /* storage unavailable */ }
     setTheme(savedTheme);
     document.body.className = `theme-${savedTheme}`;
   }, []);
 
   const updateTheme = (newTheme: string) => {
     setTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
+    try { localStorage.setItem('app-theme', newTheme); } catch { /* storage unavailable */ }
     document.body.className = `theme-${newTheme}`;
   };
 

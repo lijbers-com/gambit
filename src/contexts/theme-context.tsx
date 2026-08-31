@@ -16,18 +16,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Load theme from localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // try/catch, not just a window check: in a sandboxed iframe (the
+    // EpicContext design-system chapter frames the preview route) touching
+    // localStorage THROWS a SecurityError, and an uncaught throw in an effect
+    // is Next's whole-page "Application error".
+    try {
       const savedTheme = localStorage.getItem('gambit-theme') as Theme;
       if (savedTheme && (savedTheme === 'gambit' || savedTheme === 'albert-heijn' || savedTheme === 'adusa' || savedTheme === 'delhaize' || savedTheme === 'alfa-beta')) {
         setTheme(savedTheme);
       }
+    } catch {
+      /* storage unavailable — keep the default theme */
     }
   }, []);
 
   // Save theme to localStorage when it changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    try {
       localStorage.setItem('gambit-theme', theme);
+    } catch {
+      /* storage unavailable */
     }
   }, [theme]);
 

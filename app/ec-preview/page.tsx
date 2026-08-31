@@ -60,13 +60,21 @@ function PreviewInner() {
             <h2 className="text-lg font-semibold">{group}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {entries.map(([k, e]) => (
-                <a
+                // A div, not an anchor: previews render real components, and a
+                // real breadcrumb or marketing button contains links — an <a>
+                // inside an <a> is invalid HTML and killed hydration for the
+                // whole index. Only the title is the link.
+                <div
                   key={k}
-                  href={`/ec-preview?key=${encodeURIComponent(k)}`}
-                  className="block rounded-xl border border-border p-4 transition-colors hover:bg-surface-hover"
+                  className="rounded-xl border border-border p-4 transition-colors hover:bg-surface-hover"
                 >
                   <span className="mb-3 flex items-baseline justify-between gap-2">
-                    <span className="text-sm font-medium">{e.title}</span>
+                    <a
+                      href={`/ec-preview?key=${encodeURIComponent(k)}`}
+                      className="text-sm font-medium hover:underline"
+                    >
+                      {e.title}
+                    </a>
                     <code className="text-xs text-muted-foreground">{k}</code>
                   </span>
                   {/* The index shows the entry itself, small — a thumbnail
@@ -74,13 +82,16 @@ function PreviewInner() {
                       Overlays are the exception: dozens of open portals on one
                       page is chaos, so their tiles link to the framed view. */}
                   {e.portal ? (
-                    <span className="block rounded-md border border-dashed border-muted-foreground/30 p-4 text-center text-sm text-muted-foreground">
+                    <a
+                      href={`/ec-preview?key=${encodeURIComponent(k)}`}
+                      className="block rounded-md border border-dashed border-muted-foreground/30 p-4 text-center text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                    >
                       Overlay — open to view
-                    </span>
+                    </a>
                   ) : (
                     <span className="pointer-events-none block origin-top-left scale-90">{e.render()}</span>
                   )}
-                </a>
+                </div>
               ))}
             </div>
           </section>

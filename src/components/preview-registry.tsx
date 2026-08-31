@@ -599,11 +599,11 @@ const funnelStages = [
 ];
 
 const radarData = [
-  { month: 'Reach', display: 80, sp: 45 },
-  { month: 'CTR', display: 55, sp: 85 },
-  { month: 'Conversion', display: 40, sp: 90 },
-  { month: 'New to brand', display: 70, sp: 50 },
-  { month: 'Frequency', display: 75, sp: 40 },
+  { subject: 'Reach', display: 80, sp: 45 },
+  { subject: 'CTR', display: 55, sp: 85 },
+  { subject: 'Conversion', display: 40, sp: 90 },
+  { subject: 'New to brand', display: 70, sp: 50 },
+  { subject: 'Frequency', display: 75, sp: 40 },
 ];
 
 /* ── The long tail: chrome, panels, domain pickers ──────────────────── */

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Gavel, ListStart, MonitorSpeaker, Pencil, ShieldCheck, Eye, Brain, ShoppingCart, Heart } from 'lucide-react';
+import { Gavel, ListStart, MonitorSpeaker, MoreHorizontal, Pencil, ShieldCheck, Eye, Brain, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { AddButton } from './ui/add-button';
 import { Input, FieldHint } from './ui/input';
@@ -23,6 +23,28 @@ import { ControlBar, ControlBarItem } from './ui/control-bar';
 import { PropositionIcon } from './ui/proposition-icon';
 import { LevelMeter } from './ui/level-meter';
 import { CreatePlacement } from './ui/create-placement';
+import { MetricRow } from './ui/metric-row';
+import { MetricCard } from './ui/card';
+import { CampaignSummary } from './ui/campaign-summary';
+import { FillRateBar } from './ui/fill-rate-bar';
+import { AvailableTimeBar } from './ui/available-time-bar';
+import { HierarchyBadge } from './ui/hierarchy-badge';
+import { Inbox, type InboxItem } from './ui/inbox';
+import { FilterBar } from './ui/filter-bar';
+import { SearchableSelect } from './ui/searchable-select';
+import { SearchSelectList } from './ui/search-select-list';
+import { SearchInput } from './ui/search-input';
+import { SplitButton } from './ui/split-button';
+import { ReadOnlyField } from './ui/read-only-field';
+import { Slider } from './ui/slider';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
+import { TargetSelect } from './ui/target-select';
+import { AreaChartComponent } from './ui/area-chart';
+import { BarChartComponent } from './ui/bar-chart';
+import { LineChartComponent } from './ui/line-chart';
+import { PieChartComponent } from './ui/pie-chart';
+import { onlineTargetGroups } from '@/lib/target-groups';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
@@ -204,6 +226,194 @@ const StatefulPlacement: React.FC = () => {
   );
 };
 
+/* ── Table variants — the table is props, not forks ─────────────────── */
+
+const TableSelectable: React.FC = () => {
+  const [selected, setSelected] = React.useState<React.Key[]>(['C-004']);
+  return (
+    <Table<PreviewRow>
+      rowKey={(r) => r.id}
+      rowSelection={{ selectedKeys: selected, onChange: setSelected }}
+      columns={[
+        { key: 'name', header: 'Campaign', render: (r) => <span className="font-medium">{r.name}</span> },
+        { key: 'budget', header: 'Budget', render: (r) => r.budget },
+        { key: 'spend', header: 'Spend', render: (r) => r.spend },
+      ]}
+      data={previewRows}
+    />
+  );
+};
+
+type PlanRow = { id: string; name: string; kind: 'campaign' | 'booking'; status: string; budget: string; parent?: string };
+const planRows: PlanRow[] = [
+  { id: 'C-004', name: 'Summer Launch — Display', kind: 'campaign', status: 'Running', budget: '€5,000' },
+  { id: 'B-005', name: 'Homepage Takeover', kind: 'booking', status: 'Running', budget: '€2,500', parent: 'C-004' },
+  { id: 'B-006', name: 'Category Banner — Drinks', kind: 'booking', status: 'Running', budget: '€2,500', parent: 'C-004' },
+  { id: 'C-005', name: 'Summer Launch — Sponsored products', kind: 'campaign', status: 'Running', budget: '€4,000' },
+];
+const TableExpandableDemo: React.FC = () => {
+  const [open, setOpen] = React.useState<Set<string>>(() => new Set(['C-004']));
+  const visible = planRows.filter((r) => r.kind === 'campaign' || (r.parent && open.has(r.parent)));
+  return (
+    <Table<PlanRow>
+      rowKey={(r) => r.id}
+      expandable={{
+        isExpandable: (r) => r.kind === 'campaign',
+        isExpanded: (r) => open.has(r.id),
+        onToggle: (r) => setOpen((prev) => { const n = new Set(prev); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; }),
+        isChild: (r) => r.kind === 'booking',
+      }}
+      columns={[
+        { key: 'name', header: 'Name', render: (r) => <span className={r.kind === 'campaign' ? 'font-medium' : ''}>{r.name}</span> },
+        { key: 'status', header: 'Status', render: (r) => <Badge variant="success">{r.status}</Badge> },
+        { key: 'budget', header: 'Budget', render: (r) => r.budget },
+      ]}
+      data={visible}
+    />
+  );
+};
+
+const TableActions: React.FC = () => (
+  <Table<PreviewRow>
+    rowKey={(r) => r.id}
+    columns={[
+      { key: 'name', header: 'Campaign', render: (r) => <span className="font-medium">{r.name}</span> },
+      { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'Running' ? 'success' : 'todo'}>{r.status}</Badge> },
+      { key: 'budget', header: 'Budget', render: (r) => r.budget },
+    ]}
+    data={previewRows}
+    rowActions={() => (
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" iconOnly aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="sm" iconOnly aria-label="More"><MoreHorizontal className="h-4 w-4" /></Button>
+      </div>
+    )}
+  />
+);
+
+const TableEmpty: React.FC = () => (
+  <Table<PreviewRow>
+    rowKey={(r) => r.id}
+    columns={[
+      { key: 'name', header: 'Campaign' },
+      { key: 'status', header: 'Status' },
+      { key: 'budget', header: 'Budget' },
+    ]}
+    data={[]}
+    emptyState={<span>No campaigns yet — add one from the media plan.</span>}
+  />
+);
+
+/* ── Metric cards ────────────────────────────────────────────────────── */
+
+const spark = [4, 6, 5, 8, 7, 9, 11, 10, 12].map((v) => ({ value: v }));
+const MetricRowDemo: React.FC = () => (
+  <MetricRow
+    metrics={[
+      { key: 'spend', label: 'Spend', value: '€2.1K', subMetric: 'of €3.2K budget', badgeValue: '66%', badgeVariant: 'secondary' },
+      { key: 'roas', label: 'ROAS', value: '4.2x', subMetric: 'vs. 3.5x target', badgeValue: '+20%', badgeVariant: 'success' },
+      { key: 'sales', label: 'Sales', value: '€8.8K', subMetric: 'attributed', badgeValue: '+8%', badgeVariant: 'success' },
+      { key: 'clicks', label: 'Clicks', value: '6.2K', subMetric: 'last 30d', variant: 'graph', graphData: spark },
+    ]}
+    hideEditButton
+  />
+);
+
+/* ── Inbox sample ────────────────────────────────────────────────────── */
+
+const inboxItems: InboxItem[] = [
+  { id: 'm1', kind: 'health', severity: 'blocking', subject: 'Holiday Sale Plan is at risk', preview: 'Live with 1 blocking issue — get help setting up this campaign first.', context: 'Holiday Sale Plan', level: 'media-plan' },
+  { id: 'm2', kind: 'action', severity: 'attention', subject: 'Approve creative', preview: 'The creative for "Entrance Screens" awaits approval.', context: 'Summer Launch Plan · Digital in-store', level: 'booking' },
+  { id: 'm3', kind: 'recommendation', severity: 'info', subject: 'Daily budget capped out on 4 of 7 days', preview: '"beer" stopped serving at 12:17 on average — an estimated 44 clicks were missed.', context: 'Summer Launch Plan · Sponsored products', level: 'booking' },
+  { id: 'm4', kind: 'insight', severity: 'info', subject: 'One proposition carries most of the delivery', preview: '58% of spend runs through Display — worth checking the mix still matches the objective.', context: 'Holiday Sale Plan', level: 'media-plan' },
+];
+
+/* ── Filters, selects ────────────────────────────────────────────────── */
+
+const FilterBarDemo: React.FC = () => {
+  const [status, setStatus] = React.useState<string[]>(['running']);
+  const [engine, setEngine] = React.useState<string[]>([]);
+  const [q, setQ] = React.useState('');
+  return (
+    <FilterBar
+      searchValue={q}
+      onSearchChange={setQ}
+      searchPlaceholder="Search campaigns…"
+      filters={[
+        { name: 'Status', options: [{ label: 'Running', value: 'running' }, { label: 'In option', value: 'in-option' }, { label: 'Paused', value: 'paused' }, { label: 'Draft', value: 'draft' }], selectedValues: status, onChange: setStatus },
+        { name: 'Proposition', options: [{ label: 'Display', value: 'display' }, { label: 'Sponsored products', value: 'sp' }, { label: 'Digital in-store', value: 'dis' }], selectedValues: engine, onChange: setEngine },
+      ]}
+    />
+  );
+};
+
+const SearchableSelectDemo: React.FC = () => {
+  const [v, setV] = React.useState('coca-cola');
+  return (
+    <SearchableSelect
+      options={[
+        { value: 'coca-cola', label: 'Coca-Cola' },
+        { value: 'unilever', label: 'Unilever Shopper Marketing' },
+        { value: 'nestle', label: 'Nestlé Trade Marketing' },
+        { value: 'heineken', label: 'Heineken' },
+      ]}
+      value={v}
+      onChange={setV}
+      placeholder="Select an advertiser"
+    />
+  );
+};
+
+const SearchSelectListDemo: React.FC = () => {
+  const [v, setV] = React.useState<string[]>(['homepage']);
+  return (
+    <SearchSelectList
+      label="Find channel"
+      placeholder="Search channels…"
+      options={placementChannels}
+      value={v}
+      onChange={setV}
+    />
+  );
+};
+
+const TargetSelectDemo: React.FC = () => {
+  const [v, setV] = React.useState<Record<string, string[]>>({ 'shopper-profiles': ['Households with kids'] });
+  return <TargetSelect groups={onlineTargetGroups} value={v} onChange={setV} />;
+};
+
+const SliderDemo: React.FC = () => {
+  const [v, setV] = React.useState([60]);
+  return <div className="w-64 pt-2"><Slider value={v} onValueChange={setV} max={100} step={1} /></div>;
+};
+
+/* ── Charts — sample series in the theme's chart ramp ───────────────── */
+
+const chartData = [
+  { month: 'W31', impressions: 420, clicks: 21 },
+  { month: 'W32', impressions: 480, clicks: 26 },
+  { month: 'W33', impressions: 460, clicks: 30 },
+  { month: 'W34', impressions: 560, clicks: 34 },
+  { month: 'W35', impressions: 610, clicks: 33 },
+  { month: 'W36', impressions: 640, clicks: 39 },
+];
+const chartConfig = {
+  impressions: { label: 'Impressions (K)', color: 'hsl(var(--chart-1))' },
+  clicks: { label: 'Clicks (K)', color: 'hsl(var(--chart-3))' },
+};
+const pieData = [
+  { name: 'Display', value: 38 },
+  { name: 'Sponsored products', value: 26 },
+  { name: 'Digital in-store', value: 21 },
+  { name: 'Offsite', value: 15 },
+];
+const pieConfig = {
+  'Display': { label: 'Display', color: 'hsl(var(--chart-1))' },
+  'Sponsored products': { label: 'Sponsored products', color: 'hsl(var(--chart-2))' },
+  'Digital in-store': { label: 'Digital in-store', color: 'hsl(var(--chart-3))' },
+  'Offsite': { label: 'Offsite', color: 'hsl(var(--chart-5))' },
+};
+
 type PreviewRow = { id: string; name: string; status: string; budget: string; spend: string };
 const previewRows: PreviewRow[] = [
   { id: 'C-004', name: 'Summer Launch — Display', status: 'Running', budget: '€5,000', spend: '€3,800' },
@@ -377,6 +587,107 @@ export const previewRegistry: Record<string, PreviewEntry> = {
       </ControlBar>
     ),
   },
+
+  /* Containment — the table's use-case variants */
+  'table--selectable': { title: 'Table / Row selection', group: 'Containment', wide: true, render: () => <TableSelectable /> },
+  'table--expandable': { title: 'Table / Expandable child rows', group: 'Containment', wide: true, render: () => <TableExpandableDemo /> },
+  'table--actions': { title: 'Table / Row actions', group: 'Containment', wide: true, render: () => <TableActions /> },
+  'table--empty': { title: 'Table / Empty state', group: 'Containment', wide: true, render: () => <TableEmpty /> },
+
+  /* Data display — metric cards */
+  'metric-card': { title: 'Metric card', group: 'Data display', render: () => <div className="w-52"><MetricCard label="ROAS" value="4.2x" subMetric="vs. 3.5x target" badgeValue="+20%" badgeVariant="success" /></div> },
+  'metric-card--graph': { title: 'Metric card / Sparkline', group: 'Data display', render: () => <div className="w-52"><MetricCard label="Clicks" value="6.2K" subMetric="last 30d" variant="graph" graphData={spark} /></div> },
+  'metric-card--donut': { title: 'Metric card / Donut legend', group: 'Data display', render: () => <div className="w-64"><MetricCard label="Spend by proposition" variant="donutLegend" donutData={[{ name: 'Display', value: 4200 }, { name: 'Sponsored products', value: 2600 }, { name: 'Digital in-store', value: 1900 }]} valueFormatter={(v) => `€${v.toLocaleString()}`} /></div> },
+  'metric-card--bar': { title: 'Metric card / Top categories', group: 'Data display', render: () => <div className="w-64"><MetricCard label="Top products" variant="barHorizontal" productData={[{ name: 'Coca-Cola Zero 1.5L', value: 3200 }, { name: 'Fanta Orange 1L', value: 2100 }, { name: 'Sprite 1.5L', value: 1400 }]} valueFormatter={(v) => `€${v.toLocaleString()}`} /></div> },
+  'metric-card--budget': { title: 'Metric card / Budget stacked', group: 'Data display', render: () => <div className="w-64"><MetricCard label="Budget by proposition" variant="budgetStacked" budgetData={[{ name: 'Display', spent: 3800, budget: 5000 }, { name: 'Sponsored products', spent: 3600, budget: 4000 }, { name: 'Offline in-store', spent: 0, budget: 5000 }]} valueFormatter={(v) => `€${v.toLocaleString()}`} /></div> },
+  'metric-row': { title: 'Metric row', group: 'Data display', wide: true, render: () => <MetricRowDemo /> },
+
+  /* Data display — bars and badges */
+  'fill-rate-bar': { title: 'Fill rate bar', group: 'Data display', render: () => <div className="w-72"><FillRateBar value={{ booked: 45, reserved: 20, available: 35 }} showLabels hoverTooltip={false} /></div> },
+  'fill-rate-bar--overbooked': { title: 'Fill rate bar / Overbooked', group: 'Data display', render: () => <div className="w-72"><FillRateBar value={{ booked: 80, reserved: 20, overbooked: 12 }} showLabels hoverTooltip={false} /></div> },
+  'available-time-bar': { title: 'Available time bar', group: 'Data display', render: () => <div className="w-72"><AvailableTimeBar value={{ noAvailable: 30, lowAvailable: 25, mediumAvailable: 25, highAvailable: 20 }} showLabels hoverTooltip={false} /></div> },
+  'hierarchy-badge': { title: 'Hierarchy badge', group: 'Data display', render: () => <div className="flex flex-col items-start gap-2"><HierarchyBadge level="media-plan" /><HierarchyBadge level="campaign" /><HierarchyBadge level="booking" /></div> },
+  'avatar': { title: 'Avatar', group: 'Data display', render: () => <Avatar><AvatarFallback>JD</AvatarFallback></Avatar> },
+  'read-only-field': { title: 'Read-only field', group: 'Data display', render: () => <div className="w-72"><ReadOnlyField label="Runtime" value="7 Sep – 4 Oct 2026" hint="Inherited from the campaign" /></div> },
+
+  /* Data display — summary stack */
+  'summary-card--stack': {
+    title: 'Summary cards / Stacked', group: 'Data display',
+    render: () => (
+      <div className="space-y-3">
+        <SummaryCard
+          title="Campaign"
+          entity="campaign"
+          variant="details"
+          collapsible
+          items={[
+            { label: 'Name', value: 'Summer Launch — Display' },
+            { label: 'Advertiser', value: 'Coca-Cola' },
+            { label: 'Budget', value: '€5,000' },
+          ]}
+        />
+        <SummaryCard
+          title="New booking"
+          entity="booking"
+          variant="process"
+          steps={[
+            { id: 's1', label: 'Setup', status: 'completed', value: 'Homepage Takeover' },
+            { id: 's2', label: 'Run time & budget', status: 'active' },
+            { id: 's3', label: 'Placements', status: 'pending' },
+            { id: 's4', label: 'Targeting', status: 'pending' },
+          ]}
+        />
+      </div>
+    ),
+  },
+
+  /* Product surfaces — the media plan card */
+  'campaign-summary': {
+    title: 'Media plan card', group: 'Product surfaces', wide: true,
+    render: () => (
+      <CampaignSummary
+        title="Summer Launch Plan"
+        badge={{ text: 'Running', variant: 'success' }}
+        goal="Purchase"
+        audience="Households with kids"
+        estimatedRoas="3.8x"
+        budget="9000"
+        usedBudget="€3,420"
+        budgetUsagePercentage={38}
+        placements={5}
+        bookings={3}
+        engines={[
+          { id: 'display', name: 'Display', campaignName: 'Summer Launch — Display', status: 'running', enabled: true, budget: 5000, spend: 3800 },
+          { id: 'sponsored-products', name: 'Sponsored products', campaignName: 'Summer Launch — Sponsored products', status: 'running', enabled: true, budget: 4000, spend: 3600 },
+        ]}
+        features={[]}
+        collapsedOnly
+      />
+    ),
+  },
+  'target-select': { title: 'Target select', group: 'Product surfaces', wide: true, render: () => <TargetSelectDemo /> },
+
+  /* Communication */
+  'inbox': { title: 'Inbox', group: 'Communication', wide: true, render: () => <Inbox items={inboxItems} status={{ m4: 'read' }} onOpen={() => {}} /> },
+  'alert': { title: 'Alert', group: 'Communication', render: () => <Alert><AlertTitle>Plan adjusted</AlertTitle><AlertDescription>The campaign budget exceeds the plan by €1,000 — the plan total was raised to match.</AlertDescription></Alert> },
+
+  /* Inputs & controls — search and selects */
+  'search-input': { title: 'Search input', group: 'Inputs & controls', render: () => <SearchInput placeholder="Search campaigns…" /> },
+  'searchable-select': { title: 'Searchable select', group: 'Inputs & controls', render: () => <SearchableSelectDemo /> },
+  'search-select-list': { title: 'Search select list', group: 'Inputs & controls', render: () => <SearchSelectListDemo /> },
+  'slider': { title: 'Slider', group: 'Inputs & controls', render: () => <SliderDemo /> },
+
+  /* Actions */
+  'split-button': { title: 'Split button', group: 'Actions', render: () => <SplitButton label="Save" onClick={() => {}} menu={[{ label: 'Save and approve' }, { label: 'Save as draft' }]} /> },
+
+  /* Navigation / Filters */
+  'filter-bar': { title: 'Filter bar', group: 'Navigation', wide: true, render: () => <FilterBarDemo /> },
+
+  /* Charts */
+  'area-chart': { title: 'Area chart', group: 'Data display', wide: true, render: () => <div className="h-64"><AreaChartComponent data={chartData} config={chartConfig} /></div> },
+  'line-chart': { title: 'Line chart', group: 'Data display', wide: true, render: () => <div className="h-64"><LineChartComponent data={chartData} config={chartConfig} /></div> },
+  'bar-chart': { title: 'Bar chart', group: 'Data display', wide: true, render: () => <div className="h-64"><BarChartComponent data={chartData} config={chartConfig} /></div> },
+  'pie-chart': { title: 'Pie chart', group: 'Data display', render: () => <div className="h-72 w-72"><PieChartComponent data={pieData} config={pieConfig} innerRadius={45} /></div> },
 };
 
 export const previewGroups = [

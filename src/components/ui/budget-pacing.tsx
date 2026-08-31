@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Input, FieldHint } from './input';
@@ -128,7 +128,7 @@ export const PacingShapeSelect: React.FC<{
   disabled?: boolean;
   className?: string;
 }> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabled, className }) => (
-  <div className={cn('grid gap-2 sm:grid-cols-2', className)}>
+  <div className={cn('space-y-2', className)}>
     {shapes.map((shape) => {
       const selected = value === shape;
       return (
@@ -136,39 +136,34 @@ export const PacingShapeSelect: React.FC<{
           key={shape}
           type="button"
           disabled={disabled}
+          aria-pressed={selected}
           onClick={() => onChange(shape)}
           className={cn(
-            'flex w-full flex-col rounded-md border p-3 text-left transition-colors',
-            // The chosen card LIFTS off whatever it sits on; the rest take the
-            // ground and recede. Filling the unchosen ones white made them the
-            // brightest thing inside the cream card — the opposite of what a
-            // selection should read as.
-            selected
-              ? 'border-surface-selected-border bg-background ring-1 ring-surface-selected-border'
-              : 'border-border bg-transparent',
+            // The same row a goal is chosen with: the visual on the left, the
+            // name and what it does beside it, the tick on the right. One
+            // selection language for every "which one of these" in the app.
+            'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
+            // The chosen row lifts off whatever the card is filled with; the
+            // rest take that fill and recede. Inside the cream pacing card
+            // that means white is the choice, not the alternatives.
+            selected ? 'border-surface-selected-border bg-background' : 'border-border bg-transparent',
             disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-surface-hover',
           )}
         >
-          <span className="flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">{SHAPES[shape].title}</span>
-            {/* The radio dot sits top-right, where a chosen card announces
-                itself without the title having to move. */}
-            <span
-              className={cn(
-                'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                selected ? 'border-foreground bg-background' : 'border-border bg-background',
-              )}
-            >
-              {selected && <span className="h-2 w-2 rounded-full bg-foreground" />}
-            </span>
-          </span>
-          {/* The strip is a sketch of the shape, not a chart of it — narrow,
-              with room to breathe, so it reads as an illustration between the
-              name and the explanation. */}
-          <span className="block w-28 py-4">
+          <span className="w-20 shrink-0">
             <PacingStrip shape={shape} selected={selected} />
           </span>
-          <span className="text-xs leading-relaxed text-muted-foreground">{SHAPES[shape].description}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
+            <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
+          </span>
+          {selected && (
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              {/* Half the dot's width, so the tick sits in it rather than
+                  filling it to the edges. */}
+              <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
+            </span>
+          )}
         </button>
       );
     })}
@@ -328,12 +323,12 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                 placeholder="Select dates to override"
                 showWeekNumbers
                 events={retailMoments}
-                className="w-full min-w-0"
+                className="w-full min-w-0 bg-transparent"
               />
             </div>
             <Button
               variant="outline"
-              className="shrink-0"
+              className="shrink-0 bg-transparent"
               disabled={!draft?.from}
               onClick={() => {
                 if (!draft?.from) return;
@@ -351,7 +346,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
           </div>
           {overrides.map((o) => (
             <div key={o.id} className="space-y-1.5">
-              <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-transparent px-3 py-2">
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {fmt(o.from)} – {fmt(o.to)}
                 </span>

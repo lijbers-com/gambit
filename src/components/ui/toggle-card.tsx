@@ -39,12 +39,15 @@ export const ToggleCard: React.FC<ToggleCardProps> = ({
 }) => (
   <div
     className={cn(
-      'rounded-md border p-3',
-      checked ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
+      'overflow-hidden rounded-md border',
+      checked ? 'border-surface-selected-border' : 'border-border',
       className,
     )}
   >
-    <div className="flex items-center gap-3">
+    {/* Padding sits on the header and the body, never on the card, so the rule
+        between them runs the full width — the switch is a heading for what is
+        below it, and an inset line reads as a divider inside one block. */}
+    <div className={cn('flex items-center gap-3 p-3', checked ? 'bg-surface-selected' : 'bg-background')}>
       <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} aria-label={title} />
       <span className="min-w-0">
         <span className="block text-sm font-medium">{title}</span>
@@ -52,7 +55,7 @@ export const ToggleCard: React.FC<ToggleCardProps> = ({
       </span>
     </div>
     {checked && children && (
-      <div className="mt-3 space-y-4 border-t border-surface-selected-border pt-3">{children}</div>
+      <div className="space-y-4 border-t border-surface-selected-border bg-surface-selected p-3">{children}</div>
     )}
   </div>
 );

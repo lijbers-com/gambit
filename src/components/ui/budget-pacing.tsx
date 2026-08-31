@@ -142,7 +142,7 @@ export const PacingShapeSelect: React.FC<{
             // The same row a goal is chosen with: the visual on the left, the
             // name and what it does beside it, the tick on the right. One
             // selection language for every "which one of these" in the app.
-            'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
+            'flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors',
             // The chosen row lifts off whatever the card is filled with; the
             // rest take that fill and recede. Inside the cream pacing card
             // that means white is the choice, not the alternatives.
@@ -150,15 +150,17 @@ export const PacingShapeSelect: React.FC<{
             disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-surface-hover',
           )}
         >
-          <span className="w-20 shrink-0">
-            <PacingStrip shape={shape} selected={selected} />
-          </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
+            {/* The sketch sits under the name it belongs to and above the
+                sentence that explains it — read the shape, then read why. */}
+            <span className="block w-28 py-3">
+              <PacingStrip shape={shape} selected={selected} />
+            </span>
             <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
           </span>
           {selected && (
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
               {/* Half the dot's width, so the tick sits in it rather than
                   filling it to the edges. */}
               <Check className="h-2.5 w-2.5" strokeWidth={2.5} />

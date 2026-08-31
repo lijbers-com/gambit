@@ -132,9 +132,8 @@ const StatefulGoalSelect: React.FC = () => {
   return <GoalSelect goals={goalOptions} value={v} onChange={setV} highlightKpis={['Incremental ROAS']} />;
 };
 
-const StatefulPacing: React.FC<{ on: boolean }> = ({ on: initial }) => {
-  const [auto, setAuto] = React.useState(initial);
-  const [shape, setShape] = React.useState<PacingShape>('even');
+const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {
+  const [shape, setShape] = React.useState<PacingShape>(custom ? 'custom' : 'even');
   const [daily, setDaily] = React.useState('120');
   const [overrides, setOverrides] = React.useState<PacingOverride[]>([]);
   const [total, setTotal] = React.useState('4000');
@@ -149,8 +148,6 @@ const StatefulPacing: React.FC<{ on: boolean }> = ({ on: initial }) => {
       totalBudget={Number(total) || undefined}
       startDate={new Date('2026-09-07')}
       endDate={new Date('2026-10-04')}
-      auto={auto}
-      onAutoChange={setAuto}
       shape={shape}
       onShapeChange={setShape}
       dailyBudget={daily}
@@ -364,8 +361,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
       />
     ),
   },
-  'budget-pacing': { title: 'Budget pacing / Auto on', group: 'Product surfaces', render: () => <StatefulPacing on />, wide: true },
-  'budget-pacing--off': { title: 'Budget pacing / Auto off', group: 'Product surfaces', render: () => <StatefulPacing on={false} />, wide: true },
+  'budget-pacing': { title: 'Budget pacing / Even (default)', group: 'Product surfaces', render: () => <StatefulPacing />, wide: true },
+  'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
   'pacing-shapes': { title: 'Pacing shapes', group: 'Product surfaces', render: () => <StatefulPacingShapes /> },
   'toggle-card': { title: 'Toggle card', group: 'Product surfaces', render: () => <StatefulToggleCard /> },
   'toggle-card--open': { title: 'Toggle card / With settings', group: 'Product surfaces', render: () => <StatefulToggleCard open /> },

@@ -8,48 +8,38 @@ import { Input, FieldHint } from './input';
 import { Label } from './label';
 import { DateRangePicker } from './date-picker';
 import type { DateRange } from 'react-day-picker';
-import { ToggleCard } from './toggle-card';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
- * Auto pacing — how a budget is spread over the days a booking runs.
+ * Pacing — how a budget is spread over the days a booking runs.
  *
- * Without it, a daily cap is a number the advertiser has to keep re-deriving:
- * spend faster than planned and the flight ends early, slower and the budget is
- * left on the table. Auto pacing takes the remaining budget, divides it by the
- * days remaining, and adjusts that target every day as actual delivery comes
- * in — so under- and overspend correct themselves instead of being noticed
- * afterwards.
+ * Pacing is ALWAYS on: every booking spends its budget by some rule, so there
+ * is nothing to toggle — only which rule. The choice is a selection, in the
+ * goal-select language, and **Even is the default**: remaining budget over the
+ * days remaining, re-derived daily, so under- and overspend correct themselves
+ * instead of being noticed at the end of the flight.
  *
- * Rules it implements:
- *  - OFF by default. It changes how a budget is spent, and a change that size
- *    should be one the advertiser turned on rather than one they inherited
- *    without noticing. (The ADUSA story asked for on-by-default; this is a
- *    deliberate departure from it.)
- *  - The daily budget field is DISABLED while it is on — the number is derived,
- *    and an editable field showing a derived number invites a fight over which
- *    one is true. The value still shows, so it is never a mystery.
- *  - It needs an end date. "Spread the rest over the days remaining" has no
- *    meaning without a last day, so with an open-ended flight the toggle is
- *    off and cannot be turned on.
- *  - Date overrides set a different daily cap for a stretch of the flight — a
- *    retail moment, a weekend, a launch. Multiple per booking, and they may
- *    not overlap.
+ * A hand-set daily cap is not the opposite of pacing — it is one more way of
+ * pacing. So **Daily budget (custom) is an option in the same selection**,
+ * with its input inside the open row, rather than a separate field fighting a
+ * toggle for authority.
  *
- * This is the same control for every proposition that bids: sponsored products
- * always, and display, digital in-store and offsite whenever the campaign is an
- * auction campaign. Guaranteed campaigns buy a fixed delivery, so there is no
- * pacing decision to make.
+ * Date overrides are a **percentage** of the paced daily target for a stretch
+ * of the flight — the euro amount shown beside it is an estimate, because the
+ * target itself is re-derived daily. The range is picked and confirmed INSIDE
+ * the calendar (its Add button), and the calendar fences what can be chosen:
+ * days outside the booking's run time are disabled, and once the flight has
+ * started, so are days in the past.
  */
 
-export type PacingShape = 'account' | 'even' | 'frontloaded' | 'asap';
+export type PacingShape = 'account' | 'even' | 'frontloaded' | 'asap' | 'custom';
 
 export interface PacingOverride {
   id: string;
   from: Date;
   to: Date;
-  /** The daily cap for those days, replacing the paced target. */
-  dailyBudget: string;
+  /** Percentage of the paced daily target for those days (100 = unchanged). */
+  percent: string;
 }
 
 const SHAPES: Record<PacingShape, { title: string; description: string }> = {
@@ -69,12 +59,16 @@ const SHAPES: Record<PacingShape, { title: string; description: string }> = {
     title: 'ASAP',
     description: 'Spends as fast as inventory allows. The flight may end before its last day.',
   },
+  custom: {
+    title: 'Daily budget',
+    description: 'You set the cap. Delivery stops for the day once it is reached.',
+  },
 };
 
 /**
- * The little spend-over-time strip on each card. It is the whole point of
- * showing pacing as cards rather than as a dropdown: "frontloaded" is a shape,
- * and a shape is faster to read than a sentence.
+ * The little spend-over-time strip on each row. It is the whole point of
+ * showing pacing as a selection rather than a dropdown: "frontloaded" is a
+ * shape, and a shape is faster to read than a sentence.
  */
 const PacingStrip: React.FC<{ shape: PacingShape; selected?: boolean }> = ({ shape, selected }) => {
   const dot = cn('rounded-full transition-colors', selected ? 'bg-foreground/70' : 'bg-muted-foreground/40');
@@ -107,6 +101,15 @@ const PacingStrip: React.FC<{ shape: PacingShape; selected?: boolean }> = ({ sha
       </div>
     );
   }
+  if (shape === 'custom') {
+    // A hand-set cap: the same level every day, drawn as a flat bar rather
+    // than the even rhythm — a rule you wrote, not one that adapts.
+    return (
+      <div className="flex h-3 items-center">
+        <div className={cn('h-1 w-full rounded-full', selected ? 'bg-foreground/40' : 'bg-muted-foreground/25')} />
+      </div>
+    );
+  }
   return (
     <div className="flex h-3 items-center gap-1">
       {[10, 9, 7].map((size, i) => (
@@ -118,57 +121,73 @@ const PacingStrip: React.FC<{ shape: PacingShape; selected?: boolean }> = ({ sha
 };
 
 /**
- * The pacing shape chooser. Selection styling is the app's one selected-surface
+ * The pacing selection. Selection styling is the app's one selected-surface
  * pair, so choosing a pacing reads as the same kind of choice as choosing a
- * goal or a campaign type.
+ * goal or a campaign type — and like a goal, the chosen row can open to carry
+ * its own settings (`openContent`) or its consequence (`detail`).
  */
 export const PacingShapeSelect: React.FC<{
   value: PacingShape;
   onChange: (v: PacingShape) => void;
   /** Which shapes this proposition offers. */
   shapes?: PacingShape[];
+  /** Shapes that cannot be chosen right now (e.g. paced shapes without an end date). */
+  disabledShapes?: PacingShape[];
+  /** One line rendered inside a shape's row while it is selected — the derived
+   *  daily estimate for the paced shapes. */
+  detail?: Partial<Record<PacingShape, React.ReactNode>>;
+  /** Settings rendered inside a shape's open row — the custom daily budget. */
+  openContent?: Partial<Record<PacingShape, React.ReactNode>>;
   disabled?: boolean;
   className?: string;
-}> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabled, className }) => (
+}> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabledShapes = [], detail, openContent, disabled, className }) => (
   <div className={cn('space-y-2', className)}>
     {shapes.map((shape) => {
       const selected = value === shape;
+      const shapeDisabled = disabled || disabledShapes.includes(shape);
       return (
-        <button
+        <div
           key={shape}
-          type="button"
-          disabled={disabled}
-          aria-pressed={selected}
-          onClick={() => onChange(shape)}
           className={cn(
-            // The same row a goal is chosen with: the visual on the left, the
-            // name and what it does beside it, the tick on the right. One
-            // selection language for every "which one of these" in the app.
-            'flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors',
-            // The chosen row lifts off whatever the card is filled with; the
-            // rest take that fill and recede. Inside the cream pacing card
-            // that means white is the choice, not the alternatives.
-            selected ? 'border-surface-selected-border bg-background' : 'border-border bg-transparent',
-            disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-surface-hover',
+            'rounded-md border transition-colors',
+            selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
           )}
         >
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
-            {/* The sketch sits under the name it belongs to and above the
-                sentence that explains it — read the shape, then read why. */}
-            <span className="block w-28 py-3">
-              <PacingStrip shape={shape} selected={selected} />
+          <button
+            type="button"
+            disabled={shapeDisabled}
+            aria-pressed={selected}
+            onClick={() => onChange(shape)}
+            className={cn(
+              'flex w-full items-start gap-3 p-3 text-left transition-colors',
+              shapeDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+              !selected && !shapeDisabled && 'hover:bg-surface-hover',
+            )}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
+              {/* The sketch sits under the name it belongs to and above the
+                  sentence that explains it — read the shape, then read why. */}
+              <span className="block w-28 py-3">
+                <PacingStrip shape={shape} selected={selected} />
+              </span>
+              <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
+              {selected && detail?.[shape] && (
+                <span className="mt-1 block text-xs text-muted-foreground">{detail[shape]}</span>
+              )}
             </span>
-            <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
-          </span>
-          {selected && (
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              {/* Half the dot's width, so the tick sits in it rather than
-                  filling it to the edges. */}
-              <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
-            </span>
+            {selected && (
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                {/* Half the dot's width, so the tick sits in it rather than
+                    filling it to the edges. */}
+                <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
+              </span>
+            )}
+          </button>
+          {selected && openContent?.[shape] && (
+            <div className="border-t border-surface-selected-border p-3">{openContent[shape]}</div>
           )}
-        </button>
+        </div>
       );
     })}
   </div>
@@ -198,17 +217,13 @@ export interface BudgetPacingProps {
   totalBudget?: number;
   startDate?: Date;
   endDate?: Date;
-  /** Auto pacing on/off. On by default; unavailable without an end date. */
-  auto: boolean;
-  onAutoChange: (v: boolean) => void;
   shape: PacingShape;
   onShapeChange: (v: PacingShape) => void;
+  /** Which shapes this surface offers; 'custom' is appended automatically. */
   shapes?: PacingShape[];
-  /** The caller's total-budget field, rendered beside the daily budget. The
-   *  two are one fact — what you are spending, and what that comes to a day —
-   *  so they share a line rather than sitting in different sections. */
+  /** The caller's total-budget field, rendered above the pacing selection. */
   budgetField?: React.ReactNode;
-  /** The typed daily cap, used when auto pacing is off. */
+  /** The hand-set daily cap, used by the custom shape. */
   dailyBudget: string;
   onDailyBudgetChange: (v: string) => void;
   overrides: PacingOverride[];
@@ -220,11 +235,9 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   totalBudget,
   startDate,
   endDate,
-  auto,
-  onAutoChange,
   shape,
   onShapeChange,
-  shapes,
+  shapes = ['even', 'frontloaded'],
   budgetField,
   dailyBudget,
   onDailyBudgetChange,
@@ -232,13 +245,21 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   onOverridesChange,
   className,
 }) => {
-  const canAuto = !!endDate;
-  const on = auto && canAuto;
   const days = flightDays(startDate, endDate);
   const target = pacedDailyTarget(totalBudget, startDate, endDate);
   // Frontloaded runs 1.2× the even target while it is ahead — the industry's
   // standard head start, and the number the advertiser actually sees early on.
   const shown = target != null && shape === 'frontloaded' ? Math.round(target * 1.2 * 100) / 100 : target;
+
+  // "Spread the rest over the days remaining" has no meaning without a last
+  // day — with an open-ended run time the paced shapes are disabled and the
+  // hand-set cap is the one honest option.
+  const canPace = !!endDate;
+  const allShapes: PacingShape[] = [...shapes.filter((s) => s !== 'custom'), 'custom'];
+  React.useEffect(() => {
+    if (!canPace && shape !== 'custom') onShapeChange('custom');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canPace]);
 
   const setOverride = (id: string, patch: Partial<PacingOverride>) => {
     onOverridesChange(overrides.map((o) => (o.id === id ? { ...o, ...patch } : o)));
@@ -246,7 +267,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   const removeOverride = (id: string) => onOverridesChange(overrides.filter((o) => o.id !== id));
 
   // Overlapping overrides are not allowed: two caps for one day is not a rule,
-  // it is a question. Flagged on the row rather than refused on save, so the
+  // it is a question. Flagged on the line rather than refused on save, so the
   // one to fix is the one you are looking at.
   const clashing = new Set<string>();
   for (const a of overrides) {
@@ -255,116 +276,109 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
     }
   }
 
-  // The range being picked, before it becomes a line.
-  const [draft, setDraft] = React.useState<DateRange | undefined>(undefined);
-
   const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const euro = (n: number) => `€${n.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`;
+
+  // The calendar fences what an override can cover: only days inside the
+  // flight, and — once the flight has started — never the past.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const started = !!startDate && startDate < today;
+  const fenceFrom = started ? today : startDate;
+  const disabledDays: import('react-day-picker').Matcher[] = [
+    ...(fenceFrom ? [{ before: fenceFrom }] : []),
+    ...(endDate ? [{ after: endDate }] : []),
+  ];
+
+  const estimate = (percent: string): string | null => {
+    const p = Number(percent);
+    if (!target || !Number.isFinite(p) || p <= 0) return null;
+    return `≈ ${euro(Math.round(target * (p / 100) * 100) / 100)} a day`;
+  };
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Total and daily budget on one line: they are one fact read two ways —
-          what you are spending, and what that comes to a day. */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {budgetField}
-        <div className="space-y-1.5">
-          <Label htmlFor="pacing-daily-budget">
-            Daily budget {!on && <span className="text-foreground">*</span>}
-          </Label>
-          <Input
-            id="pacing-daily-budget"
-            type="number"
-            min="0"
-            placeholder="0.00"
-            value={on ? (shown != null ? String(shown) : '') : dailyBudget}
-            onChange={(e) => onDailyBudgetChange(e.target.value)}
-            disabled={on}
-          />
-          {/* Only the two hints that say something the field does not: what the
-              paced number IS, and why the switch below cannot be used. Typing
-              your own cap needs no explanation. */}
-          {on && (
-            <FieldHint>
-              {shown != null && days > 0
-                ? `Paced${shape === 'frontloaded' ? ' — 1.2× the even target while ahead' : ''}: €${shown.toLocaleString()} a day over ${days} day${days === 1 ? '' : 's'}. Recalculated daily from what is left.`
-                : 'Set a budget and a run time and the daily target is calculated here.'}
-            </FieldHint>
-          )}
-          {!canAuto && (
-            <FieldHint>
-              Auto pacing needs an end date — with an open-ended run time the cap is yours to set.
-            </FieldHint>
-          )}
-        </div>
+      {budgetField && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{budgetField}</div>}
+
+      <div className="space-y-2">
+        <Label className="block">Pacing</Label>
+        {/* One selection, always on: the paced shapes and the hand-set cap are
+            the same kind of answer to the same question, so they live in the
+            same list — no toggle deciding which of two controls is real. */}
+        <PacingShapeSelect
+          value={shape}
+          onChange={onShapeChange}
+          shapes={allShapes}
+          disabledShapes={canPace ? [] : allShapes.filter((s) => s !== 'custom')}
+          detail={{
+            even:
+              shown != null && days > 0
+                ? `≈ ${euro(shown)} a day over ${days} day${days === 1 ? '' : 's'} — recalculated daily from what is left.`
+                : 'Set a budget and a run time and the daily target is calculated here.',
+            frontloaded:
+              shown != null && days > 0
+                ? `≈ ${euro(shown)} a day while ahead (1.2× the even target), easing off later.`
+                : 'Set a budget and a run time and the daily target is calculated here.',
+          }}
+          openContent={{
+            custom: (
+              <div className="max-w-xs space-y-1.5">
+                <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
+                <Input
+                  id="pacing-daily-budget"
+                  type="number"
+                  min="0"
+                  placeholder="0.00"
+                  value={dailyBudget}
+                  onChange={(e) => onDailyBudgetChange(e.target.value)}
+                />
+                {!canPace && (
+                  <FieldHint>Paced options need an end date — with an open-ended run time the cap is yours to set.</FieldHint>
+                )}
+              </div>
+            ),
+          }}
+        />
       </div>
 
-      {/* One card: the switch, and everything the switch turns on. The pacing
-          shape and the date overrides only exist because auto pacing is on, so
-          they live inside it rather than beside it. */}
-      <ToggleCard
-        title="Auto pacing"
-        description="Spreads the remaining budget over the days remaining, and corrects itself daily."
-        checked={on}
-        disabled={!canAuto}
-        onCheckedChange={onAutoChange}
-      >
-        <div className="space-y-2">
-          <Label className="block">Pacing</Label>
-          <PacingShapeSelect value={shape} onChange={onShapeChange} shapes={shapes} />
-        </div>
-
+      {shape !== 'custom' && (
         <div className="space-y-2">
           <Label className="block">Date overrides</Label>
-          {/* Pick the dates first — the range is what an override IS, so it
-              is the question asked, and adding turns the selection into a
-              line. An empty row waiting to be filled in is a form pretending
-              to be a list. Add is explicit because a range picker cannot tell
-              a single-day override from a range you have only half-picked. */}
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <DateRangePicker
-                dateRange={draft}
-                onDateRangeChange={setDraft}
-                placeholder="Select dates to override"
-                showWeekNumbers
-                events={retailMoments}
-                className="w-full min-w-0 bg-transparent"
-              />
-            </div>
-            <Button
-              variant="outline"
-              className="shrink-0 bg-transparent"
-              disabled={!draft?.from}
-              onClick={() => {
-                if (!draft?.from) return;
-                const from = draft.from;
-                const to = draft.to ?? draft.from;
-                onOverridesChange([
-                  ...overrides,
-                  { id: `ovr-${from.getTime()}-${to.getTime()}`, from, to, dailyBudget: '' },
-                ]);
-                setDraft(undefined);
-              }}
-            >
-              Add
-            </Button>
-          </div>
+          {/* The range is what an override IS, so it is the question asked —
+              picked and confirmed inside the calendar, whose Add button turns
+              the selection into a line. The calendar itself fences the flight:
+              outside days and (once running) the past are disabled. */}
+          <OverridePicker
+            disabledDays={disabledDays}
+            onAdd={(range) => {
+              onOverridesChange([
+                ...overrides,
+                { id: `ovr-${range.from!.getTime()}-${range.to!.getTime()}`, from: range.from!, to: range.to!, percent: '150' },
+              ]);
+            }}
+          />
           {overrides.map((o) => (
             <div key={o.id} className="space-y-1.5">
-              <div className="flex items-center gap-2 rounded-md border border-border bg-transparent px-3 py-2">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {fmt(o.from)} – {fmt(o.to)}
                 </span>
-                <div className="w-32 shrink-0">
+                {/* A percentage of the paced target, because the target moves —
+                    the euro figure beside it is therefore an estimate. */}
+                <div className="relative w-24 shrink-0">
                   <Input
                     type="number"
                     min="0"
-                    value={o.dailyBudget}
-                    onChange={(e) => setOverride(o.id, { dailyBudget: e.target.value })}
-                    placeholder="Daily cap"
-                    aria-label={`Daily cap for ${fmt(o.from)} to ${fmt(o.to)}`}
-                    className="h-8"
+                    value={o.percent}
+                    onChange={(e) => setOverride(o.id, { percent: e.target.value })}
+                    aria-label={`Percentage of the daily target for ${fmt(o.from)} to ${fmt(o.to)}`}
+                    className="h-8 pr-7"
                   />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
                 </div>
+                <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                  {estimate(o.percent) ?? '—'}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -378,16 +392,40 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
               </div>
               {clashing.has(o.id) && (
                 <p className="text-xs text-destructive">
-                  These dates overlap another override. One day can only have one cap.
+                  These dates overlap another override. One day can only have one target.
                 </p>
               )}
             </div>
           ))}
           <FieldHint>
-            Set a different daily cap for a stretch of the flight — a retail moment, a weekend, a launch. The rest of the budget still paces itself around it.
+            Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
           </FieldHint>
         </div>
-      </ToggleCard>
+      )}
     </div>
+  );
+};
+
+/** The override calendar: selection lives here until Add confirms it. */
+const OverridePicker: React.FC<{
+  disabledDays: import('react-day-picker').Matcher[];
+  onAdd: (range: { from?: Date; to?: Date }) => void;
+}> = ({ disabledDays, onAdd }) => {
+  const [draft, setDraft] = React.useState<DateRange | undefined>(undefined);
+  return (
+    <DateRangePicker
+      dateRange={draft}
+      onDateRangeChange={setDraft}
+      placeholder="Select dates to override"
+      showWeekNumbers
+      events={retailMoments}
+      disabledDays={disabledDays}
+      confirmLabel="Add override"
+      onConfirm={(range) => {
+        onAdd(range);
+        setDraft(undefined);
+      }}
+      className="w-full min-w-0"
+    />
   );
 };

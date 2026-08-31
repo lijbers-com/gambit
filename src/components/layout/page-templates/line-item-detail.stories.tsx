@@ -613,7 +613,6 @@ export const Display: Story = {
     const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
     // Pacing lives with the budget it spreads, not in delivery behaviour —
     // and only auction campaigns have a pacing decision to make.
-    const [autoPacing, setAutoPacing] = React.useState(false);
     const [pacingShape, setPacingShape] = React.useState<PacingShape>('account');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [dailyBudget, setDailyBudget] = React.useState('');
@@ -828,8 +827,6 @@ export const Display: Story = {
                     totalBudget={Number(bookingBudget) || undefined}
                     startDate={startDate}
                     endDate={endDate}
-                    auto={autoPacing}
-                    onAutoChange={setAutoPacing}
                     shape={pacingShape}
                     onShapeChange={setPacingShape}
                     shapes={['account', 'even', 'frontloaded', 'asap']}
@@ -1144,7 +1141,7 @@ export const Display: Story = {
                     ...((Object.values(inclTargets).flat().length + Object.values(exclTargets).flat().length) > 0
                       ? [{ label: 'Targets', value: [Object.values(inclTargets).flat().length > 0 && `Include ${Object.values(inclTargets).flat().length}`, Object.values(exclTargets).flat().length > 0 && `Exclude ${Object.values(exclTargets).flat().length}`].filter(Boolean).join(' · ') }]
                       : []),
-                    ...(displayIsAuction && autoPacing && pacingShape !== 'account'
+                    ...(displayIsAuction && pacingShape !== 'account'
                       ? [{ label: 'Pacing', value: pacingShape.charAt(0).toUpperCase() + pacingShape.slice(1) }]
                       : []),
                   ]}
@@ -3996,7 +3993,6 @@ export const SponsoredProducts: Story = {
     // Bids belong to the placements, not to the booking — the same shape the
     // wizard keeps them in.
     const [spBids, setSpBids] = React.useState<Record<string, string>>({});
-    const [autoPacing, setAutoPacing] = React.useState(false);
     const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [sendBudgetNotification, setSendBudgetNotification] = React.useState(false);
@@ -4243,8 +4239,6 @@ export const SponsoredProducts: Story = {
                             totalBudget={Number(bookingBudget) || undefined}
                             startDate={startDate}
                             endDate={endDate}
-                            auto={autoPacing}
-                            onAutoChange={setAutoPacing}
                             shape={pacingShape}
                             onShapeChange={setPacingShape}
                             dailyBudget={dailyBudget}

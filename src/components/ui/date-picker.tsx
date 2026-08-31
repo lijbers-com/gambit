@@ -66,6 +66,15 @@ export interface DateRangePickerProps {
    *  holidays), with a legend underneath — the bookings calendar's marker
    *  language, inside the picker. */
   events?: CalendarEvent[]
+  /** Days that cannot be picked, greyed out - react-day-picker matchers
+   *  (e.g. before/after to fence a booking's flight, and to keep a running
+   *  campaign from selecting the past). */
+  disabledDays?: import('react-day-picker').Matcher | import('react-day-picker').Matcher[]
+  /** A confirm button under the calendar ('Add'), enabled once a range is
+   *  picked - for flows where selecting is a proposal the user completes
+   *  inside the picker rather than a value that applies on click-away. */
+  confirmLabel?: string
+  onConfirm?: (range: DateRange) => void
 }
 
 // Conversion window options
@@ -325,7 +334,11 @@ export function DateRangePicker({
   onConversionWindowChange,
   clearLabel,
   events,
+  disabledDays,
+  confirmLabel,
+  onConfirm,
 }: DateRangePickerProps) {
+  const [open, setOpen] = React.useState(false)
   /**
    * Which months the calendar is showing, so the legend can name only the
    * moments actually on screen — listing all six while none of their dots
@@ -449,7 +462,7 @@ export function DateRangePicker({
   }, [dateRange])
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -541,6 +554,7 @@ export function DateRangePicker({
               showWeekNumber={showWeekNumbers}
               onWeekClick={showWeekNumbers ? handleWeekSelect : undefined}
               events={events}
+              disabled={disabledDays}
             />
           </div>
           {/* The dots decoded: which colour is which moment. */}
@@ -565,6 +579,24 @@ export function DateRangePicker({
                 }}
               >
                 {clearLabel}
+              </Button>
+            </div>
+          )}
+          {confirmLabel && (
+            <div className="border-t p-3 flex-shrink-0">
+              {/* The picker is where the dates are chosen, so the act that
+                  turns the selection into a thing lives here too - pick,
+                  press, done, no second control outside. */}
+              <Button
+                className="w-full"
+                disabled={!dateRange?.from}
+                onClick={() => {
+                  if (!dateRange?.from) return
+                  onConfirm?.({ from: dateRange.from, to: dateRange.to ?? dateRange.from })
+                  setOpen(false)
+                }}
+              >
+                {confirmLabel}
               </Button>
             </div>
           )}

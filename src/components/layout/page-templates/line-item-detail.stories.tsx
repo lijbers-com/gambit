@@ -4208,23 +4208,25 @@ export const SponsoredProducts: Story = {
 
                       <FormSection bordered title="Bidding" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
-                              <Input
-                                id="sp-cpc"
-                                type="number"
-                                placeholder="0.50"
-                                value={biddingCPC}
-                                onChange={(e) => setBiddingCPC(e.target.value)}
-                              />
-                            </div>
-                          </div>
                           {/* The daily budget lives inside the pacing block: it
                               is derived from it whenever auto pacing is on, and
                               two fields that can disagree is the bug this
-                              replaces. */}
+                              replaces. The bid rides along on the same line —
+                              what a click costs and what a day costs are the
+                              two numbers this section is for. */}
                           <BudgetPacing
+                            budgetField={
+                              <div className="space-y-1.5">
+                                <Label htmlFor="sp-cpc">Bidding (CPC) <span className="text-foreground">*</span></Label>
+                                <Input
+                                  id="sp-cpc"
+                                  type="number"
+                                  placeholder="0.50"
+                                  value={biddingCPC}
+                                  onChange={(e) => setBiddingCPC(e.target.value)}
+                                />
+                              </div>
+                            }
                             totalBudget={Number(bookingBudget) || undefined}
                             startDate={startDate}
                             endDate={endDate}

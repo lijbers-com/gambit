@@ -138,8 +138,14 @@ export const PacingShapeSelect: React.FC<{
           disabled={disabled}
           onClick={() => onChange(shape)}
           className={cn(
-            'flex w-full flex-col gap-2 rounded-md border p-3 text-left transition-colors',
-            selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
+            'flex w-full flex-col rounded-md border p-3 text-left transition-colors',
+            // The chosen card LIFTS off whatever it sits on; the rest take the
+            // ground and recede. Filling the unchosen ones white made them the
+            // brightest thing inside the cream card — the opposite of what a
+            // selection should read as.
+            selected
+              ? 'border-surface-selected-border bg-background ring-1 ring-surface-selected-border'
+              : 'border-border bg-transparent',
             disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-surface-hover',
           )}
         >
@@ -156,7 +162,12 @@ export const PacingShapeSelect: React.FC<{
               {selected && <span className="h-2 w-2 rounded-full bg-foreground" />}
             </span>
           </span>
-          <PacingStrip shape={shape} selected={selected} />
+          {/* The strip is a sketch of the shape, not a chart of it — narrow,
+              with room to breathe, so it reads as an illustration between the
+              name and the explanation. */}
+          <span className="block w-28 py-4">
+            <PacingStrip shape={shape} selected={selected} />
+          </span>
           <span className="text-xs leading-relaxed text-muted-foreground">{SHAPES[shape].description}</span>
         </button>
       );

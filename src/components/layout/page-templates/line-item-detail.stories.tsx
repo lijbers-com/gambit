@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useUnreadCount } from '@/components/ui/inbox-panel';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
+import { ToggleCard } from '@/components/ui/toggle-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 import { AddButton } from '@/components/ui/add-button';
@@ -4236,10 +4237,12 @@ export const SponsoredProducts: Story = {
                             overrides={pacingOverrides}
                             onOverridesChange={setPacingOverrides}
                           />
-                          <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                            <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
-                            <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                          </div>
+                          <ToggleCard
+                            title="Email budget notifications"
+                            description="Tells you when a booking caps out early or ends the flight with budget unspent."
+                            checked={sendBudgetNotification}
+                            onCheckedChange={setSendBudgetNotification}
+                          />
                         </div>
                       </FormSection>
 

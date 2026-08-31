@@ -1,14 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
-import { Switch } from './switch';
 import { DateRangePicker } from './date-picker';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
+import type { DateRange } from 'react-day-picker';
+import { ToggleCard } from './toggle-card';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
@@ -30,9 +30,9 @@ import { retailMoments } from '@/lib/retail-moments';
  *  - It needs an end date. "Spread the rest over the days remaining" has no
  *    meaning without a last day, so with an open-ended flight the toggle is
  *    off and cannot be turned on.
- *  - Date overrides raise or lower the cap for a stretch of the flight — a
- *    retail moment, a weekend, a launch — with a multiplier on the paced
- *    target. Multiple per booking, and they may not overlap.
+ *  - Date overrides set a different daily cap for a stretch of the flight — a
+ *    retail moment, a weekend, a launch. Multiple per booking, and they may
+ *    not overlap.
  *
  * This is the same control for every proposition that bids: sponsored products
  * always, and display, digital in-store and offsite whenever the campaign is an
@@ -44,30 +44,11 @@ export type PacingShape = 'account' | 'even' | 'frontloaded' | 'asap';
 
 export interface PacingOverride {
   id: string;
-  from?: Date;
-  to?: Date;
-  /** Multiplier on the paced daily target for those days. */
-  multiplier: number;
+  from: Date;
+  to: Date;
+  /** The daily cap for those days, replacing the paced target. */
+  dailyBudget: string;
 }
-
-export const MULTIPLIERS = [0.5, 0.75, 1.5, 2, 3];
-
-/** The multiplier picker on an override row. */
-const MultiplierSelect: React.FC<{ value: number; onChange: (v: number) => void }> = ({ value, onChange }) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="outline" className="w-full justify-between font-normal">
-        {value}×
-        <ChevronDown className="h-4 w-4" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-      {MULTIPLIERS.map((m) => (
-        <DropdownMenuItem key={m} onClick={() => onChange(m)}>{m}×</DropdownMenuItem>
-      ))}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
 
 const SHAPES: Record<PacingShape, { title: string; description: string }> = {
   account: {
@@ -249,9 +230,6 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   // standard head start, and the number the advertiser actually sees early on.
   const shown = target != null && shape === 'frontloaded' ? Math.round(target * 1.2 * 100) / 100 : target;
 
-  const addOverride = () => {
-    onOverridesChange([...overrides, { id: `ovr-${Date.now()}`, multiplier: 1.5 }]);
-  };
   const setOverride = (id: string, patch: Partial<PacingOverride>) => {
     onOverridesChange(overrides.map((o) => (o.id === id ? { ...o, ...patch } : o)));
   };
@@ -266,6 +244,11 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
       if (a.id !== b.id && overlaps(a, b)) clashing.add(a.id);
     }
   }
+
+  // The range being picked, before it becomes a line.
+  const [draft, setDraft] = React.useState<DateRange | undefined>(undefined);
+
+  const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -286,17 +269,19 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
             onChange={(e) => onDailyBudgetChange(e.target.value)}
             disabled={on}
           />
-          {on ? (
+          {/* Only the two hints that say something the field does not: what the
+              paced number IS, and why the switch below cannot be used. Typing
+              your own cap needs no explanation. */}
+          {on && (
             <FieldHint>
               {shown != null && days > 0
                 ? `Paced${shape === 'frontloaded' ? ' — 1.2× the even target while ahead' : ''}: €${shown.toLocaleString()} a day over ${days} day${days === 1 ? '' : 's'}. Recalculated daily from what is left.`
                 : 'Set a budget and a run time and the daily target is calculated here.'}
             </FieldHint>
-          ) : (
+          )}
+          {!canAuto && (
             <FieldHint>
-              {canAuto
-                ? 'You set the cap. Delivery stops for the day once it is reached.'
-                : 'Auto pacing needs an end date — with an open-ended run time the cap is yours to set.'}
+              Auto pacing needs an end date — with an open-ended run time the cap is yours to set.
             </FieldHint>
           )}
         </div>
@@ -305,83 +290,94 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
       {/* One card: the switch, and everything the switch turns on. The pacing
           shape and the date overrides only exist because auto pacing is on, so
           they live inside it rather than beside it. */}
-      <div
-        className={cn(
-          'rounded-md border p-3',
-          on ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
-        )}
+      <ToggleCard
+        title="Auto pacing"
+        description="Spreads the remaining budget over the days remaining, and corrects itself daily."
+        checked={on}
+        disabled={!canAuto}
+        onCheckedChange={onAutoChange}
       >
-        <div className="flex items-center gap-3">
-          <Switch
-            checked={on}
-            disabled={!canAuto}
-            onCheckedChange={onAutoChange}
-            aria-label="Auto pacing"
-          />
-          <span className="min-w-0">
-            <span className="block text-sm font-medium">Auto pacing</span>
-            <span className="block text-xs text-muted-foreground">
-              Spreads the remaining budget over the days remaining, and corrects itself daily.
-            </span>
-          </span>
+        <div className="space-y-2">
+          <Label className="block">Pacing</Label>
+          <PacingShapeSelect value={shape} onChange={onShapeChange} shapes={shapes} />
         </div>
 
-        {on && (
-          <div className="mt-3 space-y-4 border-t border-surface-selected-border pt-3">
-            <div className="space-y-2">
-              <Label className="block">Pacing</Label>
-              <PacingShapeSelect value={shape} onChange={onShapeChange} shapes={shapes} />
+        <div className="space-y-2">
+          <Label className="block">Date overrides</Label>
+          {/* Pick the dates first — the range is what an override IS, so it
+              is the question asked, and adding turns the selection into a
+              line. An empty row waiting to be filled in is a form pretending
+              to be a list. Add is explicit because a range picker cannot tell
+              a single-day override from a range you have only half-picked. */}
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <DateRangePicker
+                dateRange={draft}
+                onDateRangeChange={setDraft}
+                placeholder="Select dates to override"
+                showWeekNumbers
+                events={retailMoments}
+                className="w-full min-w-0"
+              />
             </div>
-
-            <div className="space-y-2">
-              {overrides.map((o) => (
-                <div key={o.id} className="space-y-1.5">
-                  <div className="flex items-end gap-2">
-                    <div className="min-w-0 flex-1">
-                      <DateRangePicker
-                        dateRange={o.from ? { from: o.from, to: o.to } : undefined}
-                        onDateRangeChange={(range) => setOverride(o.id, { from: range?.from, to: range?.to })}
-                        placeholder="Dates to override"
-                        showWeekNumbers
-                        events={retailMoments}
-                        className="w-full min-w-0"
-                      />
-                    </div>
-                    <div className="w-24 shrink-0">
-                      <MultiplierSelect
-                        value={o.multiplier}
-                        onChange={(v) => setOverride(o.id, { multiplier: v })}
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconOnly
-                      aria-label="Remove override"
-                      className="shrink-0 text-muted-foreground"
-                      onClick={() => removeOverride(o.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {clashing.has(o.id) && (
-                    <p className="text-xs text-destructive">
-                      These dates overlap another override. One day can only have one cap.
-                    </p>
-                  )}
-                </div>
-              ))}
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={addOverride}>
-                <Plus className="h-4 w-4" />
-                Add date override
-              </Button>
-              <FieldHint>
-                Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch.
-              </FieldHint>
-            </div>
+            <Button
+              variant="outline"
+              className="shrink-0"
+              disabled={!draft?.from}
+              onClick={() => {
+                if (!draft?.from) return;
+                const from = draft.from;
+                const to = draft.to ?? draft.from;
+                onOverridesChange([
+                  ...overrides,
+                  { id: `ovr-${from.getTime()}-${to.getTime()}`, from, to, dailyBudget: '' },
+                ]);
+                setDraft(undefined);
+              }}
+            >
+              Add
+            </Button>
           </div>
-        )}
-      </div>
+          {overrides.map((o) => (
+            <div key={o.id} className="space-y-1.5">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+                <span className="min-w-0 flex-1 truncate text-sm">
+                  {fmt(o.from)} – {fmt(o.to)}
+                </span>
+                <div className="w-32 shrink-0">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={o.dailyBudget}
+                    onChange={(e) => setOverride(o.id, { dailyBudget: e.target.value })}
+                    placeholder="Daily cap"
+                    aria-label={`Daily cap for ${fmt(o.from)} to ${fmt(o.to)}`}
+                    className="h-8"
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  aria-label="Remove override"
+                  className="shrink-0 text-muted-foreground"
+                  onClick={() => removeOverride(o.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              {clashing.has(o.id) && (
+                <p className="text-xs text-destructive">
+                  These dates overlap another override. One day can only have one cap.
+                </p>
+              )}
+            </div>
+          ))}
+          <FieldHint>
+            Set a different daily cap for a stretch of the flight — a retail moment, a weekend, a launch. The rest of the budget still paces itself around it.
+          </FieldHint>
+        </div>
+      </ToggleCard>
     </div>
   );
 };

@@ -31,6 +31,7 @@ import { onlineTargetGroups } from '@/lib/target-groups';
 import { CreatePlacement } from '@/components/ui/create-placement';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
+import { ToggleCard } from '@/components/ui/toggle-card';
 import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -1442,13 +1443,12 @@ const PropositionWizard = ({
                           overrides={pacingOverrides}
                           onOverridesChange={setPacingOverrides}
                         />
-                        <div className="flex items-center justify-between p-4 rounded-lg border">
-                          <span className="text-sm">Send me an email with budget notifications</span>
-                          <Switch
-                            checked={sendBudgetNotification}
-                            onCheckedChange={setSendBudgetNotification}
-                          />
-                        </div>
+                        <ToggleCard
+                          title="Email budget notifications"
+                          description="Tells you when a booking caps out early or ends the flight with budget unspent."
+                          checked={sendBudgetNotification}
+                          onCheckedChange={setSendBudgetNotification}
+                        />
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -3371,10 +3371,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {/* No CPC field here — on auction campaigns each
                           selected placement carries its own bid, on the next
                           step's cards. */}
-                      <div className="flex items-center gap-3 rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                        <Switch checked={sendBudgetNotification} onCheckedChange={setSendBudgetNotification} />
-                        <span className="text-sm text-muted-foreground">Send me an email with budget notifications</span>
-                      </div>
+                      <ToggleCard
+                        title="Email budget notifications"
+                        description="Tells you when a booking caps out early or ends the flight with budget unspent."
+                        checked={sendBudgetNotification}
+                        onCheckedChange={setSendBudgetNotification}
+                      />
                     </div>
                   </FormSection>
                   <div className="flex justify-end gap-3">

@@ -58,6 +58,44 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { AdvertiserSelect } from './ui/advertiser-select';
+import { AttributionWindowSelect } from './ui/attribution-window-select';
+import { BudgetSelect } from './ui/budget-select';
+import { LifecycleActions } from './ui/lifecycle-actions';
+import { Viewbar } from './ui/viewbar';
+import { SessionDateRange } from './ui/session-date-range';
+import { SuggestionList } from './ui/suggestion-list';
+import { SelectionList } from './ui/selection-list';
+import { PageHeader } from './ui/page-header';
+import { Logo } from './ui/logo';
+import { ThemeSwitcher } from './ui/theme-switcher';
+import { VersionSwitcher } from './ui/version-switcher';
+import { FaqPanel } from './ui/faq-panel';
+import { NotificationItem } from './ui/notification-item';
+import { DeliveryBehaviorFields, defaultDeliveryBehavior, type DeliveryBehaviorValue } from './ui/delivery-settings';
+import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain } from './ui/optimisation-card';
+import { MapChart } from './ui/map-chart';
+import { FunnelChartComponent } from './ui/funnel-chart';
+import { ChartFrame } from './ui/chart-frame';
+import { MessageDrawer } from './ui/message-drawer';
+import { Separator } from './ui/separator';
+import { HeaderSearch } from './ui/header-search';
+import { AddCampaignMenu } from './ui/add-campaign-menu';
+import { OrganisationsIcon, BrandsIcon, CreateIcon } from './ui/custom-icons';
+import { SideNavigation } from './ui/side-navigation';
+import { buildForecastMetrics } from './ui/forecast-metrics';
+import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { VersionProvider } from '@/contexts/version-context';
+import { BookingBudgetRuntime } from './ui/booking-budget-runtime';
+import { HierarchySidebar } from './ui/hierarchy-sidebar';
+import { HeaderActions } from './ui/header-actions';
+import { SmartBreadcrumbsSimple } from './ui/smart-breadcrumbs-simple';
+import { NotificationSettings } from './ui/notification-settings';
+import { MessageAdvertiser } from './ui/message-advertiser';
+import { InsightsNotifications } from './ui/insights-notifications';
+import { LinkPickerDialog } from './ui/link-picker';
+import { CalendarTable } from './ui/calendar-table';
+import { MarketingSection, MarketingHeading, MarketingButton, MarketingStat } from './ui/marketing';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
@@ -568,6 +606,150 @@ const radarData = [
   { month: 'Frequency', display: 75, sp: 40 },
 ];
 
+/* ── The long tail: chrome, panels, domain pickers ──────────────────── */
+
+const StatefulAdvertiser: React.FC = () => {
+  const [v, setV] = React.useState('coca-cola');
+  return <AdvertiserSelect value={v} onChange={setV} />;
+};
+const StatefulAttribution: React.FC = () => {
+  const [v, setV] = React.useState(14);
+  return <AttributionWindowSelect value={v} onChange={setV} />;
+};
+const StatefulViewbar: React.FC = () => {
+  const [tab, setTab] = React.useState('details');
+  return (
+    <Viewbar
+      labels={[{ label: 'Running', color: 'success' }, { label: 'B-016', color: 'muted' }]}
+      tabs={[{ value: 'details', label: 'Booking details' }, { value: 'targeting', label: 'Targeting' }, { value: 'logs', label: 'Logs' }]}
+      activeTab={tab}
+      onTabChange={setTab}
+    />
+  );
+};
+const StatefulSelectionList: React.FC<{ variant: 'list' | 'switch' }> = ({ variant }) => {
+  const [items, setItems] = React.useState([
+    { id: 'k1', label: 'coffee', meta: 'Volume: High · Competition: Medium' },
+    { id: 'k2', label: 'coffee pads', meta: 'Volume: Medium · Competition: Low' },
+    { id: 'k3', label: 'espresso', meta: 'Volume: Medium · Competition: High' },
+  ]);
+  return (
+    <SelectionList
+      items={items}
+      variant={variant}
+      onRemove={(id) => setItems((xs) => xs.filter((x) => x.id !== id))}
+      onToggle={() => {}}
+    />
+  );
+};
+const StatefulDelivery: React.FC = () => {
+  const [v, setV] = React.useState<DeliveryBehaviorValue>({ ...defaultDeliveryBehavior, userFrequencyCap: true });
+  return <DeliveryBehaviorFields value={v} onChange={setV} />;
+};
+const MessageDrawerInline: React.FC = () => (
+  <MessageDrawer
+    inline
+    open
+    onOpenChange={() => {}}
+    kind="recommendation"
+    severity="attention"
+    subject="Daily budget capped out on 4 of 7 days"
+    context="Summer Launch Plan · Sponsored products"
+    level="booking"
+    message={'"beer" stopped serving at 12:17 on average — an estimated 44 clicks were missed after the budget ran out.'}
+    businessCase={budgetOptimisationExplain()}
+    footer={
+      <>
+        <Button variant="outline">Decline</Button>
+        <Button>Raise daily budget to €160</Button>
+      </>
+    }
+  />
+);
+const mapData = [
+  { name: 'Amsterdam', plays: 4200, x: 52, y: 38 },
+  { name: 'Rotterdam', plays: 3100, x: 44, y: 62 },
+  { name: 'Utrecht', plays: 1900, x: 56, y: 52 },
+  { name: 'Eindhoven', plays: 1400, x: 62, y: 78 },
+];
+const funnelData = [
+  { name: 'Impressions', value: 640 },
+  { name: 'Clicks', value: 210 },
+  { name: 'Add to cart', value: 96 },
+  { name: 'Purchase', value: 41 },
+];
+const funnelConfig = {
+  'Impressions': { label: 'Impressions', color: 'hsl(var(--chart-1))' },
+  'Clicks': { label: 'Clicks', color: 'hsl(var(--chart-2))' },
+  'Add to cart': { label: 'Add to cart', color: 'hsl(var(--chart-3))' },
+  'Purchase': { label: 'Purchase', color: 'hsl(var(--chart-5))' },
+};
+const forecastRow = buildForecastMetrics({
+  budget: 40000,
+  days: 28,
+  stage: 'Conversion',
+  engines: [
+    { name: 'Display', budget: 25000, color: 'hsl(var(--chart-1))' },
+    { name: 'Sponsored products', budget: 15000, color: 'hsl(var(--chart-3))' },
+  ],
+});
+
+/* ── Final coverage: composed booking block, calendar grid, panels ──── */
+
+const StatefulBookingRuntime: React.FC = () => {
+  const [budget, setBudget] = React.useState('4000');
+  const [start, setStart] = React.useState<Date | undefined>(new Date('2026-09-07'));
+  const [end, setEnd] = React.useState<Date | undefined>(new Date('2026-10-04'));
+  const [st, setSt] = React.useState('00:00');
+  const [et, setEt] = React.useState('23:59');
+  const [days, setDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
+  return (
+    <BookingBudgetRuntime
+      budget={budget}
+      onBudgetChange={setBudget}
+      startDate={start}
+      endDate={end}
+      onStartDateChange={setStart}
+      onEndDateChange={setEnd}
+      startTime={st}
+      endTime={et}
+      onStartTimeChange={setSt}
+      onEndTimeChange={setEt}
+      campaignBudget="€10,000"
+      campaignRuntime="1 Sep – 31 Oct 2026"
+      activeDays={days}
+      onActiveDaysChange={setDays}
+    />
+  );
+};
+
+const StatefulLinkPicker: React.FC = () => {
+  const [open, setOpen] = React.useState(true);
+  const [v, setV] = React.useState<string | undefined>('C-004');
+  return (
+    <div>
+      <Button variant="outline" onClick={() => setOpen(true)}>Link campaign</Button>
+      <LinkPickerDialog
+        open={open}
+        onOpenChange={setOpen}
+        entityLabel="campaign"
+        options={[
+          { value: 'C-004', label: 'Summer Launch — Display', details: { Status: 'Running', Budget: '€5,000' } },
+          { value: 'C-005', label: 'Summer Launch — Sponsored products', details: { Status: 'Running', Budget: '€4,000' } },
+          { value: 'C-011', label: 'Back to School — Offline in-store', details: { Status: 'Draft', Budget: '€5,000' } },
+        ]}
+        value={v}
+        onChange={setV}
+        allowNone
+      />
+    </div>
+  );
+};
+
+const calendarProducts = [
+  { id: 'homepage', name: 'Homepage', availability: [{ booked: 60, reserved: 20, available: 20 }, { booked: 85, reserved: 10, available: 5 }, { booked: 40, available: 60 }, { booked: 95, overbooked: 8 }, { booked: 30, available: 70 }, { booked: 55, reserved: 25, available: 20 }] },
+  { id: 'category', name: 'Category pages', availability: [{ booked: 30, available: 70 }, { booked: 45, reserved: 15, available: 40 }, { booked: 70, available: 30 }, { booked: 50, available: 50 }, { booked: 20, available: 80 }, { booked: 35, available: 65 }] },
+];
 /* ── The registry ───────────────────────────────────────────────────── */
 
 export const previewRegistry: Record<string, PreviewEntry> = {
@@ -841,6 +1023,86 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   /* Data display — specialty charts */
   'conversion-funnel': { title: 'Conversion funnel', group: 'Data display', wide: true, render: () => <ConversionFunnelComponent stages={funnelStages} valueFormatter={(v) => v.toLocaleString()} /> },
   'radar-chart': { title: 'Radar chart', group: 'Data display', render: () => <div className="h-72 w-72"><RadarChartComponent data={radarData} config={{ display: { label: 'Display', color: 'hsl(var(--chart-1))' }, sp: { label: 'Sponsored products', color: 'hsl(var(--chart-3))' } }} /></div> },
+
+  /* Navigation chrome */
+  'page-header': { title: 'Page header', group: 'Navigation', wide: true, render: () => <PageHeader title="Summer Launch Plan" subtitle="Coca-Cola · Purchase" showOptionsMenu={false} headerRight={null} /> },
+  'viewbar': { title: 'Viewbar', group: 'Navigation', wide: true, render: () => <StatefulViewbar /> },
+  'session-date-range': { title: 'Session date range', group: 'Navigation', render: () => <SessionDateRange /> },
+  'logo': { title: 'Logo (theme-aware)', group: 'Navigation', render: () => <Logo /> },
+  'theme-switcher': { title: 'Theme switcher', group: 'Navigation', render: () => <ThemeSwitcher /> },
+  'version-switcher': { title: 'Version switcher', group: 'Navigation', render: () => <VersionProvider><VersionSwitcher /></VersionProvider> },
+  'header-search': { title: 'Header search', group: 'Navigation', render: () => <div className="w-80"><HeaderSearch /></div> },
+  'side-navigation': { title: 'Side navigation', group: 'Navigation', portal: true, render: () => <div className="h-[560px] w-64 overflow-hidden rounded-xl border border-border"><SideNavigation routes={getRoutesForTheme('retailMedia')} logo={{ src: '/edge-icon.svg', alt: 'Edge', width: 32, height: 32 }} /></div> },
+  'separator': { title: 'Separator', group: 'Containment', render: () => <div className="w-64 space-y-3"><p className="text-sm">Run time &amp; budget</p><Separator /><p className="text-sm text-muted-foreground">Targeting</p></div> },
+
+  /* Actions */
+  'add-campaign-menu': { title: 'Add campaign menu', group: 'Actions', portal: true, render: () => <AddCampaignMenu onSelect={() => {}} onAddExisting={() => {}} /> },
+  'lifecycle-actions': { title: 'Lifecycle actions', group: 'Actions', render: () => <LifecycleActions level="campaign" entityId="C-004" status="running" name="Summer Launch — Display" /> },
+
+  /* Inputs & controls — domain pickers */
+  'advertiser-select': { title: 'Advertiser select', group: 'Inputs & controls', render: () => <StatefulAdvertiser /> },
+  'attribution-window-select': { title: 'Attribution window', group: 'Inputs & controls', render: () => <StatefulAttribution /> },
+  'suggestion-list': { title: 'Suggestion list', group: 'Inputs & controls', render: () => <SuggestionList items={[{ value: 'coffee', meta: '22K searches' }, { value: 'espresso', meta: '9K searches' }, { value: 'coffee pads', meta: '6K searches' }, { value: 'cold brew', meta: '4K searches' }]} onAdd={() => {}} onAddAll={() => {}} /> },
+  'selection-list': { title: 'Selection list', group: 'Inputs & controls', render: () => <StatefulSelectionList variant="list" /> },
+  'selection-list--switch': { title: 'Selection list / Switch rows', group: 'Inputs & controls', render: () => <StatefulSelectionList variant="switch" /> },
+
+  /* Product surfaces */
+  'budget-select': { title: 'Budget select', group: 'Product surfaces', portal: true, render: () => <BudgetSelect total={40000} rows={[{ id: 'display', label: 'Display', color: 'hsl(var(--chart-1))', budget: 25000 }, { id: 'sp', label: 'Sponsored products', color: 'hsl(var(--chart-3))', budget: 15000 }]} onApply={() => {}} /> },
+  'delivery-settings': { title: 'Delivery behaviour', group: 'Product surfaces', wide: true, render: () => <StatefulDelivery /> },
+  'optimisation-card': { title: 'Recommendations card', group: 'Product surfaces', wide: true, render: () => <OptimisationCard items={[{ badge: 'Suggestion', tone: 'insight', title: 'Set budget to automatic', message: 'Plans using automatic budget see ~18% higher ROAS.', explain: budgetOptimisationExplain() }, { badge: 'Suggestion', tone: 'tip', title: 'Improve CTR with optimised targeting', message: 'Retargeting and in-market shoppers gain most.', explain: ctrTargetingExplain() }]} /> },
+  'hierarchy-badge--icons': { title: 'Custom icons', group: 'Product surfaces', render: () => <div className="flex items-center gap-6 text-foreground"><span className="flex flex-col items-center gap-1 text-xs text-muted-foreground"><OrganisationsIcon className="h-5 w-5" /> Organisations</span><span className="flex flex-col items-center gap-1 text-xs text-muted-foreground"><BrandsIcon className="h-5 w-5" /> Brands</span><span className="flex flex-col items-center gap-1 text-xs text-muted-foreground"><CreateIcon className="h-5 w-5" /> Create</span></div> },
+
+  /* Communication */
+  'faq-panel': { title: 'FAQ panel', group: 'Communication', wide: true, render: () => <FaqPanel surface="create-media-plan" heading="Questions about this step" /> },
+  'notification-item': { title: 'Notification item (legacy card)', group: 'Communication', wide: true, render: () => <NotificationItem type="budget-alert" message="Your Display campaign has spent 82% of its budget with 6 days remaining." linkText="Review pacing" onLinkClick={() => {}} /> },
+
+  /* Overlays / panels */
+  'message-drawer': { title: 'Message drawer (inline)', group: 'Overlays', wide: true, render: () => <MessageDrawerInline /> },
+
+  /* Data display */
+  'forecast-metrics': { title: 'Forecast metrics', group: 'Data display', wide: true, render: () => <MetricRow metrics={forecastRow} hideEditButton /> },
+  'chart-frame': { title: 'Chart frame', group: 'Data display', wide: true, render: () => <ChartFrame title="Impressions vs clicks" subtitle="Weekly, last 6 weeks"><div className="h-56"><AreaChartComponent data={chartData} config={chartConfig} /></div></ChartFrame> },
+  'funnel-chart': { title: 'Funnel chart', group: 'Data display', wide: true, render: () => <div className="h-64"><FunnelChartComponent data={funnelData} config={funnelConfig} /></div> },
+  'map-chart': { title: 'Map chart', group: 'Data display', render: () => <div className="h-72 w-72"><MapChart data={mapData} title="Plays by city" /></div> },
+
+  /* Product surfaces — the composed booking block itself + the calendar grid */
+  'booking-budget-runtime': { title: 'Booking budget & runtime', group: 'Product surfaces', wide: true, render: () => <StatefulBookingRuntime /> },
+  'calendar-table': { title: 'Calendar table (availability grid)', group: 'Product surfaces', wide: true, render: () => <CalendarTable mediaProducts={calendarProducts} weeks={6} startWeek={37} displayType="fillRateBar" /> },
+  'hierarchy-sidebar': {
+    title: 'Hierarchy sidebar', group: 'Product surfaces',
+    render: () => (
+      <HierarchySidebar
+        active="booking"
+        mediaPlan={<SummaryCard title="Media plan" entity="media-plan" variant="details" collapsible items={[{ label: 'Name', value: 'Summer Launch Plan' }]} />}
+        campaign={<SummaryCard title="Campaign" entity="campaign" variant="details" collapsible items={[{ label: 'Name', value: 'Summer Launch — Display' }]} />}
+        booking={<SummaryCard title="Booking" entity="booking" variant="details" items={[{ label: 'Name', value: 'Homepage Takeover' }, { label: 'Budget', value: '€2,500' }]} />}
+      />
+    ),
+  },
+
+  /* Navigation chrome */
+  'header-actions': { title: 'Header actions', group: 'Navigation', render: () => <HeaderActions hasUnreadNotifications /> },
+  'breadcrumbs': { title: 'Breadcrumbs', group: 'Navigation', wide: true, render: () => <SmartBreadcrumbsSimple namespace="Media plans" /> },
+
+  /* Communication / settings panels */
+  'notification-settings': { title: 'Notification settings', group: 'Communication', wide: true, render: () => <NotificationSettings /> },
+  'message-advertiser': { title: 'Message advertisers', group: 'Communication', wide: true, render: () => <MessageAdvertiser /> },
+  'insights-notifications': { title: 'Insights notifications', group: 'Communication', wide: true, render: () => <InsightsNotifications /> },
+
+  /* Overlays */
+  'link-picker': { title: 'Link picker', group: 'Overlays', portal: true, render: () => <StatefulLinkPicker /> },
+
+  /* Marketing (edge.os) */
+  'marketing': {
+    title: 'Marketing primitives (edge.os)', group: 'Data display', wide: true,
+    render: () => (
+      <MarketingSection tone="dark" className="rounded-xl p-8">
+        <MarketingHeading tone="dark" align="left" label="edge.os" title="One platform, five retail brands" body="The same component library, co-branded per banner." className="mb-6" />
+        <div className="mb-6 flex gap-8"><MarketingStat value="5" label="Retailer themes" /><MarketingStat value="108" label="Components" /><MarketingStat value="34" label="Page templates" /></div>
+        <MarketingButton href="#" tone="primary">Explore edge.os</MarketingButton>
+      </MarketingSection>
+    ),
+  },
 };
 
 export const previewGroups = [

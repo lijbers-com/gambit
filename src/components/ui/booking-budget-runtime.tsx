@@ -5,6 +5,7 @@ import { Clock } from 'lucide-react';
 import { FormSection } from './form-section';
 import { Input, FieldHint } from './input';
 import { DateRangePicker, futureDateRangePresets } from './date-picker';
+import { Tabs, TabsList, TabsTrigger } from './tabs';
 import { retailMoments } from '@/lib/retail-moments';
 
 /**
@@ -62,44 +63,76 @@ const DAYS = [
 const WEEKDAYS = ['mo', 'tu', 'we', 'th', 'fr'];
 const WEEKEND = ['sa', 'su'];
 
+/**
+ * Which weekdays a booking is allowed to deliver on.
+ *
+ * The presets used to be three text links under the circles — a shortcut you
+ * could press, but never a state you could read. They are tabs now, so the row
+ * SAYS what is selected: every day on reads as "All", Mo–Fr as "Weekdays".
+ * Pick your own combination and a Custom tab appears and takes the selection,
+ * because a set of days that matches no preset is still an answer and the row
+ * should not sit there showing none.
+ */
+const DAY_PRESETS = [
+  { id: 'weekend', label: 'Weekend', days: WEEKEND },
+  { id: 'weekdays', label: 'Weekdays', days: WEEKDAYS },
+  { id: 'all', label: 'All', days: [...WEEKDAYS, ...WEEKEND] },
+];
+
+const sameDays = (a: string[], b: string[]) =>
+  a.length === b.length && [...a].sort().join() === [...b].sort().join();
+
 const ActiveDays: React.FC<{ value: string[]; onChange: (days: string[]) => void }> = ({
   value,
   onChange,
-}) => (
-  <div className="min-w-0">
-    <label className="block text-sm font-medium mb-2">Active days</label>
-    <div className="space-y-3">
-      <div className="flex gap-2 flex-wrap">
-        {DAYS.map((day) => (
-          <button
-            key={day.id}
-            type="button"
-            onClick={() =>
-              onChange(
-                value.includes(day.id) ? value.filter((d) => d !== day.id) : [...value, day.id],
-              )
-            }
-            className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
-              value.includes(day.id)
-                ? 'bg-background border-primary text-foreground'
-                : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
-            }`}
-          >
-            {day.label}
-          </button>
-        ))}
-      </div>
-      {/* Shortcut row sits under the days at hint size, like every sub-line. */}
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <button type="button" className="text-primary hover:underline" onClick={() => onChange(WEEKEND)}>Weekend</button>
-        <span>·</span>
-        <button type="button" className="text-primary hover:underline" onClick={() => onChange(WEEKDAYS)}>Weekdays</button>
-        <span>·</span>
-        <button type="button" className="text-primary hover:underline" onClick={() => onChange([...WEEKDAYS, ...WEEKEND])}>All</button>
+}) => {
+  const preset = DAY_PRESETS.find((p) => sameDays(value, p.days))?.id ?? 'custom';
+  return (
+    <div className="min-w-0">
+      <label className="block text-sm font-medium mb-2">Active days</label>
+      <div className="space-y-3">
+        <Tabs
+          value={preset}
+          onValueChange={(v) => {
+            // Custom is a readout, not a command — there is nothing to switch
+            // TO, only days to pick.
+            const chosen = DAY_PRESETS.find((p) => p.id === v);
+            if (chosen) onChange(chosen.days);
+          }}
+        >
+          <TabsList>
+            {DAY_PRESETS.map((p) => (
+              <TabsTrigger key={p.id} value={p.id}>{p.label}</TabsTrigger>
+            ))}
+            {/* Only there once it is the answer: a Custom tab you can press
+                would have nothing to do. */}
+            {preset === 'custom' && <TabsTrigger value="custom">Custom</TabsTrigger>}
+          </TabsList>
+        </Tabs>
+        <div className="flex gap-2 flex-wrap">
+          {DAYS.map((day) => (
+            <button
+              key={day.id}
+              type="button"
+              onClick={() =>
+                onChange(
+                  value.includes(day.id) ? value.filter((d) => d !== day.id) : [...value, day.id],
+                )
+              }
+              className={`w-10 h-10 rounded-full text-sm font-medium transition-colors border ${
+                value.includes(day.id)
+                  ? 'bg-background border-primary text-foreground'
+                  : 'bg-background border-input text-muted-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              {day.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   budget,

@@ -47,6 +47,7 @@ export interface BookingBudgetRuntimeProps {
   /** The detail pages render this as a standalone bordered section; inside a
    *  wizard's step card the border is the card's, so pass false. */
   bordered?: boolean;
+  /** Extra budget settings, rendered under pacing and above active days. */
   children?: React.ReactNode;
   className?: string;
 }
@@ -73,10 +74,12 @@ const WEEKEND = ['sa', 'su'];
  * because a set of days that matches no preset is still an answer and the row
  * should not sit there showing none.
  */
+// All first: it is the default a booking starts on, so the row opens with the
+// tab that is already selected rather than making you find it.
 const DAY_PRESETS = [
+  { id: 'all', label: 'All', days: [...WEEKDAYS, ...WEEKEND] },
   { id: 'weekend', label: 'Weekend', days: WEEKEND },
   { id: 'weekdays', label: 'Weekdays', days: WEEKDAYS },
-  { id: 'all', label: 'All', days: [...WEEKDAYS, ...WEEKEND] },
 ];
 
 const sameDays = (a: string[], b: string[]) =>
@@ -208,10 +211,13 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
         );
         return pacing ? pacing(budgetField) : budgetField;
       })()}
+      {/* Extras belong with the money they are about — a budget notification
+          is a budget setting, so it sits under pacing rather than after the
+          weekday schedule, which is a different question. */}
+      {children}
       {activeDays && onActiveDaysChange && (
         <ActiveDays value={activeDays} onChange={onActiveDaysChange} />
       )}
-      {children}
     </div>
   </FormSection>
 );

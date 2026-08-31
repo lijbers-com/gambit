@@ -24,6 +24,13 @@
 
 ## Still to write
 
+> 2026-08-31 (registry migration session): most of section 1 landed via the
+> content_page updates (media-plan-detail, create-proposition-campaign,
+> notification-center) and the to-be journey rewrites. Still open: the
+> feature/media-plans + feature/campaigns + constraint/status-and-task-model
+> body updates themselves, and the section-2 audit report. The design system
+> now lives in the EpicContext registry (see decision/adr-design-system-registry).
+
 ### 1. UPDATE — the blocks the wizard/approval work invalidated
 
 Read first with `get_context_for_task`, then update.

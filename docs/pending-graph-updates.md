@@ -30,6 +30,21 @@
 > hierarchy-badge, split-button, read-only-field, alert, avatar, slider, and the
 > overview refresh — 26 specs total). Only the two items below remain.
 
+### 0. Page components — 27 remaining (mechanical)
+
+2026-09-01: the uses/route chain is live. 16 atom specs created (checkbox, switch,
+textarea, tabs, dialog, popover, dropdown-menu, tooltip, toast, search-input,
+searchable-select, target-select, notification-dot, objective-kpi-select,
+retail-product-select, level-meter), 15 composed specs carry `uses`, and 7 page
+components exist (media-plan-detail, campaign-overview, create-media-experience,
+create-proposition-campaign, line-item-detail, bookings-calendar, notification-center
+— key pattern `<template>-page`, `layer: page`, `route` = the content_page's slug,
+`uses` naming the parts). The remaining ~27 content pages (accounts & hierarchy,
+creatives, insights dashboards, engine configuration, login, edge-os-landing, home,
+faq-configuration, bookings-overview, campaign-details, …) each owe one page spec on
+the same pattern: get_block the content_page in `product` for its slug, then
+create_block with route + uses.
+
 ### 1. UPDATE — the blocks the wizard/approval work invalidated
 
 Read first with `get_context_for_task`, then update.

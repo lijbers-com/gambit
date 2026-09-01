@@ -48,6 +48,8 @@ import { onlineTargetGroups } from '@/lib/target-groups';
 import { TablePagination } from './ui/table-pagination';
 import { FormSection } from './ui/form-section';
 import { NotificationDot } from './ui/notification-dot';
+import { CheckboxCard } from './ui/checkbox-card';
+import { FlaskConical } from 'lucide-react';
 import { BuyingTypePicker } from './ui/buying-type-picker';
 import { RetailProductSelect } from './ui/retail-product-select';
 import { ObjectiveKpiSelect, type ObjectiveKpiValue } from './ui/objective-kpi-select';
@@ -238,6 +240,20 @@ const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {
 const StatefulPacingShapes: React.FC = () => {
   const [v, setV] = React.useState<PacingShape>('frontloaded');
   return <PacingShapeSelect value={v} onChange={setV} shapes={['account', 'even', 'frontloaded', 'asap']} alwaysOpen />;
+};
+
+const StatefulCheckboxCard: React.FC<{ checked?: boolean }> = ({ checked }) => {
+  const [on, setOn] = React.useState(!!checked);
+  return (
+    <CheckboxCard
+      icon={<FlaskConical />}
+      title="Add a brand-lift study"
+      meta={on ? '· included' : '· +€1,500'}
+      description="Measures the uplift this KPI drives against a control group. Free above €25k of spend."
+      checked={on}
+      onCheckedChange={setOn}
+    />
+  );
 };
 
 const StatefulToggleCard: React.FC<{ open?: boolean }> = ({ open }) => {
@@ -887,6 +903,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
   'pacing-shapes': { title: 'Pacing shapes', group: 'Product surfaces', render: () => <StatefulPacingShapes /> },
   'toggle-card': { title: 'Toggle card', group: 'Product surfaces', render: () => <StatefulToggleCard /> },
+  'checkbox-card': { title: 'Checkbox card', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard /> },
+  'checkbox-card--checked': { title: 'Checkbox card / Included', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard checked /> },
   'toggle-card--open': { title: 'Toggle card / With settings', group: 'Product surfaces', render: () => <StatefulToggleCard open /> },
   'create-placement': { title: 'Create placement', group: 'Product surfaces', render: () => <StatefulPlacement />, wide: true },
   'control-bar': {

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
+import { CheckboxCard } from '@/components/ui/checkbox-card';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { MetricRow } from '@/components/ui/metric-row';
@@ -1202,23 +1203,14 @@ export const GoalSelection: Story = {
                                       {/* Sales KPIs are attributed from the data
                                           rather than surveyed — no study to sell. */}
                                       {pricing && (
-                                        <div className="space-y-1 rounded-md border border-surface-selected-border bg-surface-selected p-3">
-                                          <label className="flex cursor-pointer items-center gap-2.5">
-                                            <Checkbox
-                                              checked={isSelected}
-                                              onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
-                                            />
-                                            <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                                              <FlaskConical className="h-3.5 w-3.5 shrink-0" />
-                                              Add a brand-lift study
-                                              <span className="font-normal text-muted-foreground">{isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}</span>
-                                            </span>
-                                          </label>
-                                          <p className="text-xs text-muted-foreground">
-                                            Measures the uplift this KPI drives against a control group.{' '}
-                                            {isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}
-                                          </p>
-                                        </div>
+                                        <CheckboxCard
+                                          icon={<FlaskConical />}
+                                          title="Add a brand-lift study"
+                                          meta={isFree ? '· included' : `· +€${pricing.fee.toLocaleString()}`}
+                                          description={`Measures the uplift this KPI drives against a control group. ${isFree ? 'Included at your current budget.' : `Free above €${(pricing.freeThreshold / 1000).toFixed(0)}k of spend.`}`}
+                                          checked={isSelected}
+                                          onCheckedChange={(c) => setSelectedStudies(c ? [...selectedStudies, kpi] : selectedStudies.filter((n) => n !== kpi))}
+                                        />
                                       )}
                                     </div>
                                   );

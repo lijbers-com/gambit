@@ -138,60 +138,84 @@ export const PacingShapeSelect: React.FC<{
   detail?: Partial<Record<PacingShape, React.ReactNode>>;
   /** Settings rendered inside a shape's open row — the custom daily budget. */
   openContent?: Partial<Record<PacingShape, React.ReactNode>>;
+  /** Keep every option on screen (documentation stages). Forms stay folded. */
+  alwaysOpen?: boolean;
   disabled?: boolean;
   className?: string;
-}> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabledShapes = [], detail, openContent, disabled, className }) => (
-  <div className={cn('space-y-2', className)}>
-    {shapes.map((shape) => {
-      const selected = value === shape;
-      const shapeDisabled = disabled || disabledShapes.includes(shape);
-      return (
-        <div
-          key={shape}
-          className={cn(
-            'rounded-md border transition-colors',
-            selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
-          )}
-        >
+}> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabledShapes = [], detail, openContent, alwaysOpen, disabled, className }) => {
+  /**
+   * FOLDED BY DEFAULT: a form states the pacing it has; it does not exhibit
+   * the catalogue. Five open cards made this the loudest block on the page
+   * for a question most users never change — so only the chosen shape shows,
+   * and Change unfolds the alternatives just long enough to pick one.
+   */
+  const [choosing, setChoosing] = React.useState(false);
+  const open = alwaysOpen || choosing;
+
+  const row = (shape: PacingShape) => {
+    const selected = value === shape;
+    const shapeDisabled = disabled || disabledShapes.includes(shape);
+    return (
+      <div
+        key={shape}
+        className={cn(
+          'rounded-md border transition-colors',
+          selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
+        )}
+      >
+        <div className="flex items-start gap-3 p-3">
           <button
             type="button"
             disabled={shapeDisabled}
             aria-pressed={selected}
-            onClick={() => onChange(shape)}
+            onClick={() => {
+              onChange(shape);
+              setChoosing(false);
+            }}
             className={cn(
-              'flex w-full items-start gap-3 p-3 text-left transition-colors',
+              'min-w-0 flex-1 text-left',
               shapeDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-              !selected && !shapeDisabled && 'hover:bg-surface-hover',
             )}
           >
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
-              {/* The sketch sits under the name it belongs to and above the
-                  sentence that explains it — read the shape, then read why. */}
-              <span className="block w-28 py-3">
-                <PacingStrip shape={shape} selected={selected} />
-              </span>
-              <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
-              {selected && detail?.[shape] && (
-                <span className="mt-1 block text-xs text-muted-foreground">{detail[shape]}</span>
-              )}
+            <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
+            {/* The sketch sits under the name it belongs to and above the
+                sentence that explains it — read the shape, then read why. */}
+            <span className="block w-28 py-3">
+              <PacingStrip shape={shape} selected={selected} />
             </span>
-            {selected && (
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                {/* Half the dot's width, so the tick sits in it rather than
-                    filling it to the edges. */}
-                <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
-              </span>
+            <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
+            {selected && detail?.[shape] && (
+              <span className="mt-1 block text-xs text-muted-foreground">{detail[shape]}</span>
             )}
           </button>
-          {selected && openContent?.[shape] && (
-            <div className="border-t border-surface-selected-border p-3">{openContent[shape]}</div>
+          {selected && !open && !disabled && (
+            // Folded, the tick would restate the obvious — the one visible
+            // card IS the choice. Its place goes to the way out.
+            <Button variant="ghost" size="sm" className="shrink-0 text-muted-foreground" onClick={() => setChoosing(true)}>
+              Change
+            </Button>
+          )}
+          {selected && open && (
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              {/* Half the dot's width, so the tick sits in it rather than
+                  filling it to the edges. */}
+              <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
+            </span>
           )}
         </div>
-      );
-    })}
-  </div>
-);
+        {selected && openContent?.[shape] && (
+          <div className="border-t border-surface-selected-border p-3">{openContent[shape]}</div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={cn('space-y-2', className)}>
+      {(open ? shapes : shapes.filter((shape) => shape === value)).map(row)}
+    </div>
+  );
+};
 
 /** Whole days a flight covers, both ends included. */
 export function flightDays(start?: Date, end?: Date): number {

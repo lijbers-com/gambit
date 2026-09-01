@@ -237,7 +237,7 @@ const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {
 
 const StatefulPacingShapes: React.FC = () => {
   const [v, setV] = React.useState<PacingShape>('frontloaded');
-  return <PacingShapeSelect value={v} onChange={setV} shapes={['account', 'even', 'frontloaded', 'asap']} />;
+  return <PacingShapeSelect value={v} onChange={setV} shapes={['account', 'even', 'frontloaded', 'asap']} alwaysOpen />;
 };
 
 const StatefulToggleCard: React.FC<{ open?: boolean }> = ({ open }) => {

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Check } from 'lucide-react';
 import { OptionCard, OptionCardSection, OptionCardTick } from './option-card';
 import { cn } from '@/lib/utils';
 
@@ -44,19 +43,12 @@ const Column: React.FC<{ title: string; empty?: string; children: React.ReactNod
   </div>
 );
 
-const KpiList: React.FC<{ items: string[]; highlight: Set<string>; empty: string }> = ({ items, highlight, empty }) => {
+const KpiList: React.FC<{ items: string[]; empty: string }> = ({ items, empty }) => {
   if (items.length === 0) return <p className="text-xs italic text-muted-foreground/70">{empty}</p>;
   return (
     <>
       {items.map((k) => (
-        <div
-          key={k}
-          className={cn(
-            'flex items-start gap-1.5 text-xs leading-relaxed',
-            highlight.has(k) ? 'font-medium text-primary' : 'text-muted-foreground',
-          )}
-        >
-          {highlight.has(k) && <Check className="mt-0.5 h-3 w-3 shrink-0" />}
+        <div key={k} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
           <span className="min-w-0">{k}</span>
         </div>
       ))}
@@ -68,14 +60,11 @@ export const GoalSelect: React.FC<{
   goals: GoalSelectOption[];
   value: string | null;
   onChange: (id: string) => void;
-  /** The KPI the plan is judged on, marked wherever it appears. */
-  highlightKpis?: string[];
   /** Rendered inside the open goal, under its KPIs — the choices the goal
    *  itself asks for (its objective, its KPI) belong to the goal. */
   openContent?: React.ReactNode;
   className?: string;
-}> = ({ goals, value, onChange, highlightKpis, openContent, className }) => {
-  const highlight = new Set(highlightKpis ?? []);
+}> = ({ goals, value, onChange, openContent, className }) => {
   return (
     <div className={cn('space-y-2', className)}>
       {goals.map((goal) => {
@@ -101,13 +90,13 @@ export const GoalSelect: React.FC<{
                     three families it is written in. */}
                 <div className="grid gap-4 sm:grid-cols-3">
                   <Column title="Brand KPIs" count={goal.brandKpis.length}>
-                    <KpiList items={goal.brandKpis} highlight={highlight} empty="None at this stage" />
+                    <KpiList items={goal.brandKpis} empty="None at this stage" />
                   </Column>
                   <Column title="Media KPIs" count={goal.mediaKpis.length}>
-                    <KpiList items={goal.mediaKpis} highlight={highlight} empty="None at this stage" />
+                    <KpiList items={goal.mediaKpis} empty="None at this stage" />
                   </Column>
                   <Column title="Sales KPIs" count={goal.salesKpis.length}>
-                    <KpiList items={goal.salesKpis} highlight={highlight} empty="None at this stage" />
+                    <KpiList items={goal.salesKpis} empty="None at this stage" />
                   </Column>
                 </div>
                 {/* The goal's own questions — which objective, and the KPI

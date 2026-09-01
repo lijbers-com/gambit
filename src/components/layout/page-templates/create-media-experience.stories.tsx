@@ -1142,7 +1142,6 @@ export const GoalSelection: Story = {
                           })}
                           value={selectedGoal}
                           onChange={(id) => { setSelectedGoal(id); setSelectedObjective(null); setSelectedStudies([]); }}
-                          highlightKpis={selectedKpis}
                           // The objective and the KPI are the goal's own
                           // questions, so the goal's card is where they are put.
                           openContent={(

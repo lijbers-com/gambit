@@ -210,7 +210,7 @@ const goalOptions = [
 
 const StatefulGoalSelect: React.FC = () => {
   const [v, setV] = React.useState<string | null>('purchase');
-  return <GoalSelect goals={goalOptions} value={v} onChange={setV} highlightKpis={['Incremental ROAS']} />;
+  return <GoalSelect goals={goalOptions} value={v} onChange={setV} />;
 };
 
 const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {

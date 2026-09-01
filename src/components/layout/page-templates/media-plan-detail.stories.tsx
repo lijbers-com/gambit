@@ -781,13 +781,6 @@ export const MediaPlanDetail: Story = {
     const awaitingApproval = !!plan && db.campaigns
       .filter((c) => c.mediaPlanId === plan.id)
       .some((c) => c.status === 'draft' || db.bookings.some((b) => b.campaignId === c.id && b.status === 'draft'));
-    // The gate is the WORK, not the status field: any plan that has never
-    // run and still has proposals awaiting approval gets the focused view —
-    // however its status was spelled on the way in.
-    const inSetup =
-      !!plan &&
-      !['running', 'paused', 'completed'].includes(plan.status) &&
-      (plan.status === 'draft' || awaitingApproval);
     React.useEffect(() => {
       if (plan && plan.status === 'draft' && !awaitingApproval) {
         updateMediaPlan(plan.id, { status: 'in-option' });
@@ -810,6 +803,12 @@ export const MediaPlanDetail: Story = {
         ? bookings.some((b) => b.positionIds.length === 0)
         : bookings.some((b) => b.creativeStatus === 'missing');
     });
+    // The gate is the WORK, not the status field: any plan that has never run
+    // and still has setup to finish — proposals awaiting approval, or approved
+    // campaigns missing bookings, placements or creatives — gets the focused
+    // view, however its status was spelled on the way in. Skipping the cards
+    // releases it.
+    const inSetup = !!plan && !planHasRun && (plan.status === 'draft' || awaitingApproval || planNeedsSetup);
     const campaignsView = campaignViewOverride ?? (planHasRun || !planNeedsSetup ? 'table' : 'cards');
 
     const planBlockers = plan
@@ -1123,7 +1122,24 @@ export const MediaPlanDetail: Story = {
           <div className="mb-1">
             {/* showCharts turns each card into its chart and lets it expand in place to
                 the per-proposition breakdown below the row. */}
-            <MetricRow metrics={preLive ? forecastMetrics : liveMetrics} maxVisible={preLive ? 6 : 4} defaultVariant="graph" showCharts removable={false} bleedEdges />
+            <MetricRow
+              // In setup the row reads like the wizard's estimate row: the
+              // promised numbers, plainly — no donuts, no expand-on-click.
+              // Charts are for a plan being watched, not one being built.
+              metrics={
+                inSetup
+                  ? (preLive ? forecastMetrics : liveMetrics).map(({ key, label, value, subMetric, badgeValue, badgeVariant }) => ({ key, label, value, subMetric, badgeValue, badgeVariant }))
+                  : preLive
+                    ? forecastMetrics
+                    : liveMetrics
+              }
+              maxVisible={preLive ? 6 : 4}
+              defaultVariant={inSetup ? 'default' : 'graph'}
+              showCharts={!inSetup}
+              hideEditButton={inSetup}
+              removable={false}
+              bleedEdges
+            />
           </div>
 
           <CardWithTabs

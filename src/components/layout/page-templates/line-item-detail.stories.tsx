@@ -613,7 +613,7 @@ export const Display: Story = {
     const [userFrequencyCap, setUserFrequencyCap] = React.useState(false);
     // Pacing lives with the budget it spreads, not in delivery behaviour —
     // and only auction campaigns have a pacing decision to make.
-    const [pacingShape, setPacingShape] = React.useState<PacingShape>('account');
+    const [pacingShape, setPacingShape] = React.useState<PacingShape>('even');
     const [pacingOverrides, setPacingOverrides] = React.useState<PacingOverride[]>([]);
     const [dailyBudget, setDailyBudget] = React.useState('');
     const [exclusivity, setExclusivity] = React.useState(false);

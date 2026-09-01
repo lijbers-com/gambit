@@ -9,6 +9,7 @@ import { Label } from './label';
 import { DateRangePicker } from './date-picker';
 import type { DateRange } from 'react-day-picker';
 import { retailMoments } from '@/lib/retail-moments';
+import { SearchSelectList } from './search-select-list';
 
 /**
  * Pacing — how a budget is spread over the days a booking runs.
@@ -326,41 +327,59 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
 
       <div className="space-y-2">
         <Label className="block">Pacing</Label>
-        {/* One selection, always on: the paced shapes and the hand-set cap are
-            the same kind of answer to the same question, so they live in the
-            same list — no toggle deciding which of two controls is real. */}
-        <PacingShapeSelect
-          value={shape}
-          onChange={onShapeChange}
-          shapes={allShapes}
-          disabledShapes={canPace ? [] : allShapes.filter((s) => s !== 'custom')}
-          detail={{
-            even:
-              shown != null && days > 0
-                ? `≈ ${euro(shown)} a day over ${days} day${days === 1 ? '' : 's'} — recalculated daily from what is left.`
-                : 'Set a budget and a run time and the daily target is calculated here.',
-            frontloaded:
-              shown != null && days > 0
-                ? `≈ ${euro(shown)} a day while ahead (1.2× the even target), easing off later.`
-                : 'Set a budget and a run time and the daily target is calculated here.',
+        {/* The same selection component targeting and channels use: search
+            field, chosen rule as a selected card beneath, its settings inside.
+            One "choose from a catalogue" language for the whole form — pacing
+            is not a special kind of choosing. Removing the card falls back to
+            the default rather than leaving a booking with no spending rule. */}
+        <SearchSelectList
+          label={null}
+          multiple={false}
+          placeholder="Search pacing…"
+          options={(canPace ? allShapes : (['custom'] as PacingShape[])).map((sh) => ({
+            value: sh,
+            label: SHAPES[sh].title,
+            description: SHAPES[sh].description,
+          }))}
+          value={[shape]}
+          onChange={(vals) => {
+            const next = vals[vals.length - 1] as PacingShape | undefined;
+            onShapeChange(next ?? (canPace ? 'even' : 'custom'));
           }}
-          openContent={{
-            custom: (
-              <div className="max-w-xs space-y-1.5">
-                <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
-                <Input
-                  id="pacing-daily-budget"
-                  type="number"
-                  min="0"
-                  placeholder="0.00"
-                  value={dailyBudget}
-                  onChange={(e) => onDailyBudgetChange(e.target.value)}
-                />
-                {!canPace && (
-                  <FieldHint>Paced options need an end date — with an open-ended run time the cap is yours to set.</FieldHint>
+          renderSelectedExtra={(opt) => {
+            const sh = opt.value as PacingShape;
+            return (
+              <div className="space-y-2">
+                <span className="block w-28 pt-1">
+                  <PacingStrip shape={sh} selected />
+                </span>
+                {(sh === 'even' || sh === 'frontloaded') && (
+                  <p className="text-xs text-muted-foreground">
+                    {shown != null && days > 0
+                      ? sh === 'even'
+                        ? `≈ ${euro(shown)} a day over ${days} day${days === 1 ? '' : 's'} — recalculated daily from what is left.`
+                        : `≈ ${euro(shown)} a day while ahead (1.2× the even target), easing off later.`
+                      : 'Set a budget and a run time and the daily target is calculated here.'}
+                  </p>
+                )}
+                {sh === 'custom' && (
+                  <div className="max-w-xs space-y-1.5">
+                    <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
+                    <Input
+                      id="pacing-daily-budget"
+                      type="number"
+                      min="0"
+                      placeholder="0.00"
+                      value={dailyBudget}
+                      onChange={(e) => onDailyBudgetChange(e.target.value)}
+                    />
+                    {!canPace && (
+                      <FieldHint>Paced options need an end date — with an open-ended run time the cap is yours to set.</FieldHint>
+                    )}
+                  </div>
                 )}
               </div>
-            ),
+            );
           }}
         />
       </div>

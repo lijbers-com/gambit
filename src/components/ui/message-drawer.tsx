@@ -78,7 +78,9 @@ export interface MessageDrawerProps {
   message: React.ReactNode;
   /** Figures, chart and key points behind a recommendation or insight. */
   businessCase?: MessageBusinessCase;
-  /** Opens the Campaign Agent with this message as the starting question. */
+  /** Opens the Campaign Agent with this message as the starting question.
+   *  Every insight and recommendation offers this — omitting the prop gets
+   *  the house behaviour (hand the subject to /chat), not no button. */
   onAskAgent?: () => void;
   /** The actions for this message — they differ per surface. */
   footer?: React.ReactNode;
@@ -172,15 +174,21 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       )}
 
       {/* Going deeper is a deliberate step, not the default reading mode. */}
-      {onAskAgent && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
-          <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
-          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={onAskAgent}>
-            <MessageSquare className="h-4 w-4" />
-            Ask the agent
-          </Button>
-        </div>
-      )}
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
+        <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+          onClick={onAskAgent ?? (() => {
+            const q = `Tell me more: ${subject}`;
+            if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
+          })}
+        >
+          <MessageSquare className="h-4 w-4" />
+          Ask the agent
+        </Button>
+      </div>
     </RightDrawerBody>
   );
   const footerEl = footer ? <RightDrawerFooter className="justify-between">{footer}</RightDrawerFooter> : null;

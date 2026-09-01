@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { OptimisationCard, budgetOptimisationExplain, budgetPacingExplain, brandReachExplain, budgetStarterExplain, funnelKpiExplain, type Advice } from '@/components/ui/optimisation-card';
 import { Filter } from '@/components/ui/filter';
 import { GoalSelect } from '@/components/ui/goal-select';
-import { LevelMeter } from '@/components/ui/level-meter';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -1477,11 +1476,6 @@ export const GoalSelection: Story = {
                             });
                           }
                         };
-                        const runTime = row.dateRange?.from && row.dateRange?.to
-                          ? `${row.dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${row.dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                          : dateRange?.from && dateRange?.to
-                            ? `${dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                            : 'Inherits the plan run time';
                         return (
                           /* The campaign-as-a-card anatomy — the same
                              OptionCard the setup cards on the plan page wear,
@@ -1495,7 +1489,18 @@ export const GoalSelection: Story = {
                               </span>
                             }
                             title={`${prop.name} campaign`}
-                            description={row.existingId ? 'Existing campaign · joins this plan on save' : undefined}
+                            description={
+                              row.existingId
+                                ? 'Existing campaign · joins this plan on save'
+                                : isAssisted
+                                  /* What the preset delivers, as the card's own
+                                     sub line — run time and budget are NOT
+                                     repeated here, they are the fields below. */
+                                  ? `~${prop.aiPreset.estImpressions} est. impressions${
+                                      worstAvailability === 'available' ? '' : worstAvailability === 'limited' ? ' · Low volume — book early' : ' · Nearly booked out'
+                                    }`
+                                  : undefined
+                            }
                             control={
                               <>
                                 {/* Mode toggle — it both shows and sets the
@@ -1554,40 +1559,6 @@ export const GoalSelection: Story = {
                                  preset creates are the platform's business —
                                  they appear on the campaign once it exists. */
                               <div className="space-y-3">
-                                {/* What the preset amounts to, read before the
-                                    fields that shape it — small metric tiles,
-                                    the same label-over-value language as the
-                                    page's metric row, at card scale. */}
-                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                  <div className="rounded-md border border-border px-3 py-2">
-                                    <span className="block text-xs text-muted-foreground">Run time</span>
-                                    <span className="block truncate text-sm font-medium tabular-nums">{runTime}</span>
-                                  </div>
-                                  <div className="rounded-md border border-border px-3 py-2">
-                                    <span className="block text-xs text-muted-foreground">Budget</span>
-                                    <span className="block truncate text-sm font-medium tabular-nums">{share > 0 ? `€${share.toLocaleString()}` : '—'}</span>
-                                  </div>
-                                  <div className="rounded-md border border-border px-3 py-2">
-                                    <span className="block text-xs text-muted-foreground">Est. impressions</span>
-                                    <span className="block truncate text-sm font-medium tabular-nums">~{prop.aiPreset.estImpressions}</span>
-                                  </div>
-                                  <div className="rounded-md border border-border px-3 py-2">
-                                    <span className="block text-xs text-muted-foreground">Volume</span>
-                                    <span className="flex items-center gap-2">
-                                      <LevelMeter
-                                        className="shrink-0"
-                                        label={null}
-                                        tone="supply"
-                                        level={worstAvailability === 'available' ? 4 : worstAvailability === 'limited' ? 2 : 1}
-                                      />
-                                      {worstAvailability !== 'available' && (
-                                        <span className="truncate text-[11px] text-muted-foreground">
-                                          {worstAvailability === 'limited' ? 'Book early' : 'Nearly booked out'}
-                                        </span>
-                                      )}
-                                    </span>
-                                  </div>
-                                </div>
                                 <div className="space-y-2">
                                   <Label>Campaign name</Label>
                                   <Input

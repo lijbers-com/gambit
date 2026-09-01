@@ -1849,59 +1849,22 @@ const PropositionWizard = ({
               )}
 
               {/* Step: Bookings (Display only) */}
-              {/* The approval screen — an assisted campaign arrives fully
-                  prefilled, so the user is not sent through the wizard steps
-                  again: one summary of what the plan proposed, one Approve.
-                  The proposed bookings follow the moment it is approved. */}
-              {needsCampaignApproval && routeCampaign && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Approve campaign</CardTitle>
-                    <CardDescription>
-                      The media plan filled in every detail. Check the summary and approve — the proposed bookings come right after.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-                      {[
-                        { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
-                        { label: 'Proposition', value: proposition.name },
-                        { label: 'Campaign type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
-                        { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
-                        { label: 'Run time', value: `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}` },
-                        { label: 'Media plan', value: linkedPlan?.name ?? db.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)?.name ?? '—' },
-                      ].map((fact) => (
-                        <div key={fact.label}>
-                          <div className="text-xs text-muted-foreground">{fact.label}</div>
-                          <div className="mt-0.5 text-sm font-medium">{fact.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                    {existingBookings.length > 0 && (
-                      <div className="rounded-md border bg-neutral-50 p-3 text-xs text-muted-foreground">
-                        Comes with {existingBookings.length === 1 ? 'one proposed booking' : `${existingBookings.length} proposed bookings`} — you check and approve {existingBookings.length === 1 ? 'it' : 'each one'} next.
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-2 border-t pt-4">
-                      {returnTo && (
-                        <Button variant="ghost" onClick={() => { window.location.href = returnTo; }}>
-                          Back to plan
-                        </Button>
-                      )}
-                      <Button onClick={approveCampaign}>Approve campaign</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {currentStepId === 'bookings' && !needsCampaignApproval && (
+              {currentStepId === 'bookings' && (
                 <div className="space-y-4">
                   {/* Booking list view */}
                   {bookingSubStep === null && (
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Bookings</CardTitle>
-                        <CardDescription>Add one or more bookings to your campaign</CardDescription>
+                        {/* In review mode this ONE card is the approval: the
+                            campaign's details sit in the summary card on the
+                            right, its proposed bookings are the rows below,
+                            and the footer carries Approve. */}
+                        <CardTitle className="text-lg">{needsCampaignApproval ? 'Approve campaign' : 'Bookings'}</CardTitle>
+                        <CardDescription>
+                          {needsCampaignApproval
+                            ? 'The media plan filled in every detail — the summary is on the right. Approve the campaign, then each proposed booking.'
+                            : 'Add one or more bookings to your campaign'}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {/* What the campaign already has: a proposed booking
@@ -1956,6 +1919,16 @@ const PropositionWizard = ({
                         </button>
                         {/* The step's own progression — the sidebar cards stay
                             CTA-free unless they are the active card. */}
+                        {needsCampaignApproval ? (
+                          <div className="flex items-center justify-end gap-2 mt-2">
+                            {returnTo && (
+                              <Button variant="ghost" size="sm" onClick={() => { window.location.href = returnTo; }}>
+                                Back to plan
+                              </Button>
+                            )}
+                            <Button size="sm" onClick={approveCampaign}>Approve campaign</Button>
+                          </div>
+                        ) : (
                         <div className="flex items-center justify-between gap-3 mt-2">
                           {currentStep > 0 ? (
                             <Button variant="outline" size="sm" onClick={goToPrevStep}>Back</Button>
@@ -1968,6 +1941,7 @@ const PropositionWizard = ({
                             {bookings.length === 0 ? 'Done' : bookingMode ? 'Save booking' : 'Save campaign'}
                           </Button>
                         </div>
+                        )}
                       </CardContent>
                     </Card>
                   )}
@@ -3322,47 +3296,36 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               )}
 
               {/* The approval screen — the plan prefilled this campaign, so
-                  the user is not sent through the steps: one summary, one
-                  Approve, then straight on to the proposed bookings. */}
+                  the user is not sent through the steps: ONE card. The
+                  campaign's details sit in the summary card on the right;
+                  this card lists the proposed bookings and carries Approve,
+                  which hands straight on to the first booking's own run. */}
               {spNeedsCampaignApproval && routeCampaign && (() => {
-                const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                const draftCount = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id && b.status === 'draft').length;
+                const draftBookings = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id && b.status === 'draft');
                 return (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Approve campaign</CardTitle>
                       <CardDescription>
-                        The media plan filled in every detail. Check the summary and approve — the proposed bookings come right after.
+                        The media plan filled in every detail — the summary is on the right. Approve the campaign, then each proposed booking.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-                        {[
-                          { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
-                          { label: 'Proposition', value: proposition.name },
-                          { label: 'Campaign type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
-                          { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
-                          { label: 'Run time', value: `${fmtD(routeCampaign.startDate)} – ${fmtD(routeCampaign.endDate)}` },
-                          { label: 'Media plan', value: linkedPlan?.name ?? '—' },
-                        ].map((fact) => (
-                          <div key={fact.label}>
-                            <div className="text-xs text-muted-foreground">{fact.label}</div>
-                            <div className="mt-0.5 text-sm font-medium">{fact.value}</div>
+                    <CardContent className="space-y-3">
+                      {draftBookings.map((booking) => (
+                        <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg border bg-neutral-50 p-4">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium">{booking.name}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">Proposed — not approved yet</div>
                           </div>
-                        ))}
-                      </div>
-                      {draftCount > 0 && (
-                        <div className="rounded-md border bg-neutral-50 p-3 text-xs text-muted-foreground">
-                          Comes with {draftCount === 1 ? 'one proposed booking' : `${draftCount} proposed bookings`} — you check and approve {draftCount === 1 ? 'it' : 'each one'} next.
                         </div>
-                      )}
-                      <div className="flex justify-end gap-2 border-t pt-4">
+                      ))}
+                      <div className="flex items-center justify-end gap-2 mt-2">
                         {initialValues?.returnTo && (
-                          <Button variant="ghost" onClick={() => { window.location.href = initialValues.returnTo as string; }}>
+                          <Button variant="ghost" size="sm" onClick={() => { window.location.href = initialValues.returnTo as string; }}>
                             Back to plan
                           </Button>
                         )}
-                        <Button onClick={approveSpCampaign}>Approve campaign</Button>
+                        <Button size="sm" onClick={approveSpCampaign}>Approve campaign</Button>
                       </div>
                     </CardContent>
                   </Card>

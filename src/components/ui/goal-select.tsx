@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Check } from 'lucide-react';
+import { OptionCard, OptionCardSection, OptionCardTick } from './option-card';
 import { cn } from '@/lib/utils';
 
 /**
@@ -80,36 +81,22 @@ export const GoalSelect: React.FC<{
       {goals.map((goal) => {
         const open = value === goal.id;
         return (
-          <div
+          /* The shared card anatomy: header is the whole click target, the
+             tick is the control, the framework sits under the full-width
+             rule, and the goal's own questions are a further section. */
+          <OptionCard
             key={goal.id}
-            className={cn(
-              'rounded-md border transition-colors',
-              open ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background hover:bg-surface-hover',
-            )}
+            selected={open}
+            icon={goal.icon}
+            title={goal.title}
+            description={goal.description}
+            onHeaderClick={() => onChange(goal.id)}
+            headerAriaPressed={open}
+            control={open ? <OptionCardTick /> : undefined}
+            className={cn(!open && 'hover:bg-surface-hover')}
           >
-            {/* The whole header is the control — a closed goal is one line. */}
-            <button
-              type="button"
-              onClick={() => onChange(goal.id)}
-              aria-pressed={open}
-              className="flex w-full items-center gap-3 p-3 text-left [&_svg]:h-4 [&_svg]:w-4"
-            >
-              <span className={cn('shrink-0', open ? 'text-foreground' : 'text-muted-foreground')}>{goal.icon}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{goal.title}</span>
-                <span className={cn('block text-xs text-muted-foreground', !open && 'truncate')}>{goal.description}</span>
-              </span>
-              {open && (
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  {/* Half the dot's width, so the tick sits in it rather than
-                      filling it to the edges. */}
-                  <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
-                </span>
-              )}
-            </button>
-
-            {open && (
-              <div className="space-y-4 border-t border-surface-selected-border px-3 pb-3 pt-3">
+            {open ? (
+              <>
                 {/* What the goal is judged on — the whole framework, in the
                     three families it is written in. */}
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -125,12 +112,10 @@ export const GoalSelect: React.FC<{
                 </div>
                 {/* The goal's own questions — which objective, and the KPI
                     it is judged on — asked under the KPIs they narrow. */}
-                {openContent && (
-                  <div className="space-y-6 border-t border-surface-selected-border pt-4">{openContent}</div>
-                )}
-              </div>
-            )}
-          </div>
+                {openContent && <OptionCardSection selected className="space-y-6 pt-4">{openContent}</OptionCardSection>}
+              </>
+            ) : undefined}
+          </OptionCard>
         );
       })}
     </div>

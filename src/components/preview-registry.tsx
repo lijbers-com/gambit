@@ -49,6 +49,8 @@ import { TablePagination } from './ui/table-pagination';
 import { FormSection } from './ui/form-section';
 import { NotificationDot } from './ui/notification-dot';
 import { CheckboxCard } from './ui/checkbox-card';
+import { OptionCard, OptionCardSection, OptionCardItems, OptionCardTick } from './ui/option-card';
+import { Store, Users } from 'lucide-react';
 import { FlaskConical } from 'lucide-react';
 import { BuyingTypePicker } from './ui/buying-type-picker';
 import { RetailProductSelect } from './ui/retail-product-select';
@@ -903,6 +905,23 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
   'pacing-shapes': { title: 'Pacing shapes', group: 'Product surfaces', render: () => <StatefulPacingShapes /> },
   'toggle-card': { title: 'Toggle card', group: 'Product surfaces', render: () => <StatefulToggleCard /> },
+  'option-card': {
+    title: 'Option card', group: 'Containment', wide: true,
+    render: () => (
+      <OptionCard
+        selected
+        icon={<Store />}
+        title="All stores"
+        description="Every store in the banner's network"
+        control={<OptionCardTick />}
+      >
+        <OptionCardItems items={[{ icon: <Users />, label: '48,750 reach' }, { icon: <Store />, label: '750 stores' }]} />
+        <OptionCardSection selected>
+          <p className="text-xs text-muted-foreground">Nested settings section — dates, objects, a picker — behind its own full-width rule.</p>
+        </OptionCardSection>
+      </OptionCard>
+    ),
+  },
   'checkbox-card': { title: 'Checkbox card', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard /> },
   'checkbox-card--checked': { title: 'Checkbox card / Included', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard checked /> },
   'toggle-card--open': { title: 'Toggle card / With settings', group: 'Product surfaces', render: () => <StatefulToggleCard open /> },

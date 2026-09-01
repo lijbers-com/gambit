@@ -1555,6 +1555,34 @@ export const GoalSelection: Story = {
                                     onChange={(e) => updateRow(row.id, { name: e.target.value })}
                                   />
                                 </div>
+                                {/* Assisted prefills the HOW, not the frame:
+                                    budget and run time stay the user's call
+                                    here too. Left empty they inherit the plan
+                                    split and the plan run time — which is what
+                                    the placeholders say. */}
+                                <div className="grid grid-cols-1 gap-x-2 gap-y-3 sm:grid-cols-2">
+                                  <div className="space-y-2">
+                                    <Label>Campaign budget</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={row.budget}
+                                      placeholder={share > 0 ? String(share) : 'Enter budget amount'}
+                                      onChange={(e) => updateRow(row.id, { budget: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Campaign run time</Label>
+                                    <DateRangePicker
+                                      dateRange={row.dateRange}
+                                      onDateRangeChange={(r) => updateRow(row.id, { dateRange: r })}
+                                      placeholder="Inherits the plan run time"
+                                      showPresets
+                                      presets={futureDateRangePresets}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </div>
                                 <div className="space-y-2">
                                 <Label>Campaign summary</Label>
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border border-border px-3 py-2">

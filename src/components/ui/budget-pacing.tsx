@@ -10,6 +10,7 @@ import { DateRangePicker } from './date-picker';
 import type { DateRange } from 'react-day-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { SearchSelectList } from './search-select-list';
+import { OptionCardSection } from './option-card';
 
 /**
  * Pacing — how a budget is spread over the days a booking runs.
@@ -367,8 +368,8 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                 {sh !== 'custom' && (
                   /* Overrides belong to the paced rule they modify — a
                      property of the chosen pacing, so they live inside its
-                     card, the way the custom cap's input lives inside its. */
-                  <div className="space-y-2 border-t border-surface-selected-border pt-3">
+                     card as a rule-separated section. */
+                  <OptionCardSection selected>
                     <Label className="block">Date overrides</Label>
                     <OverridePicker
                       disabledDays={disabledDays}
@@ -422,7 +423,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                     <FieldHint>
                       Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
                     </FieldHint>
-                  </div>
+                  </OptionCardSection>
                 )}
                 {sh === 'custom' && (
                   <div className="max-w-xs space-y-1.5">

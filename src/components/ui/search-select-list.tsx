@@ -3,6 +3,7 @@ import { Search, X, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { SearchInput } from './search-input';
+import { OptionCard } from './option-card';
 
 /** Below this many options the control drops the search field and acts as a
  *  plain select — searching a handful of items is friction, not help. */
@@ -219,35 +220,38 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
           className={cn('space-y-2', scrolls && 'overflow-y-auto pr-1')}
           style={maxListHeight ? { maxHeight: maxListHeight } : undefined}
         >
-          {selected.map((option) => (
-            <div key={option.value} className="rounded-md border border-surface-selected-border bg-surface-selected p-3">
-              {/* Title line — vertically centred with the remove button. */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0 truncate text-sm font-medium">{option.label}</div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => remove(option.value)}
-                  className="h-8 w-8 shrink-0 p-0"
-                  aria-label={`Remove ${option.label}`}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              {/* Everything else sits underneath, full width. */}
-              {option.description && !hideSelectedDescription && (
-                <div className="mt-1 text-xs text-muted-foreground">{option.description}</div>
-              )}
-              {/* The extra is a separate decision about this option (add a
-                  brand-lift study), so it gets its own box rather than running
-                  on from the description above it. */}
-              {renderSelectedExtra && (
-                <div className={cn('mt-3', selectedExtraBoxed && 'rounded-md border border-surface-selected-border bg-surface-selected p-3')}>
-                  {renderSelectedExtra(option)}
-                </div>
-              )}
-            </div>
-          ))}
+          {selected.map((option) => {
+            /* One anatomy for every chosen card: header, full-width rule,
+               content — the extra renders in the card's body section, never
+               ad-hoc under the title. An extra that returns nothing draws no
+               rule. */
+            const extra = renderSelectedExtra?.(option);
+            return (
+              <OptionCard
+                key={option.value}
+                selected
+                title={option.label}
+                description={hideSelectedDescription ? undefined : option.description}
+                control={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => remove(option.value)}
+                    className="h-8 w-8 shrink-0 p-0"
+                    aria-label={`Remove ${option.label}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                }
+              >
+                {extra ? (
+                  <div className={cn(selectedExtraBoxed && 'rounded-md border border-surface-selected-border bg-surface-selected p-3')}>
+                    {extra}
+                  </div>
+                ) : undefined}
+              </OptionCard>
+            );
+          })}
         </div>
       )}
     </div>

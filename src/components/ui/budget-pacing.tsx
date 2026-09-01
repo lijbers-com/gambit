@@ -364,6 +364,66 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                       : 'Set a budget and a run time and the daily target is calculated here.'}
                   </p>
                 )}
+                {sh !== 'custom' && (
+                  /* Overrides belong to the paced rule they modify — a
+                     property of the chosen pacing, so they live inside its
+                     card, the way the custom cap's input lives inside its. */
+                  <div className="space-y-2 border-t border-surface-selected-border pt-3">
+                    <Label className="block">Date overrides</Label>
+                    <OverridePicker
+                      disabledDays={disabledDays}
+                      onAdd={(range) => {
+                        onOverridesChange([
+                          ...overrides,
+                          { id: `ovr-${range.from!.getTime()}-${range.to!.getTime()}`, from: range.from!, to: range.to!, percent: '150' },
+                        ]);
+                      }}
+                    />
+                    {overrides.map((o) => (
+                      <div key={o.id} className="space-y-1.5">
+                        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+                          <span className="min-w-0 flex-1 truncate text-sm">
+                            {fmt(o.from)} – {fmt(o.to)}
+                          </span>
+                          {/* A percentage of the paced target, because the
+                              target moves — the euro figure is an estimate. */}
+                          <div className="relative w-24 shrink-0">
+                            <Input
+                              type="number"
+                              min="0"
+                              value={o.percent}
+                              onChange={(e) => setOverride(o.id, { percent: e.target.value })}
+                              aria-label={`Percentage of the daily target for ${fmt(o.from)} to ${fmt(o.to)}`}
+                              className="h-8 pr-7"
+                            />
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                          </div>
+                          <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                            {estimate(o.percent) ?? '—'}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
+                            aria-label="Remove override"
+                            className="shrink-0 text-muted-foreground"
+                            onClick={() => removeOverride(o.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {clashing.has(o.id) && (
+                          <p className="text-xs text-destructive">
+                            These dates overlap another override. One day can only have one target.
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                    <FieldHint>
+                      Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
+                    </FieldHint>
+                  </div>
+                )}
                 {sh === 'custom' && (
                   <div className="max-w-xs space-y-1.5">
                     <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
@@ -386,67 +446,6 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
         />
       </div>
 
-      {shape !== 'custom' && (
-        <div className="space-y-2">
-          <Label className="block">Date overrides</Label>
-          {/* The range is what an override IS, so it is the question asked —
-              picked and confirmed inside the calendar, whose Add button turns
-              the selection into a line. The calendar itself fences the flight:
-              outside days and (once running) the past are disabled. */}
-          <OverridePicker
-            disabledDays={disabledDays}
-            onAdd={(range) => {
-              onOverridesChange([
-                ...overrides,
-                { id: `ovr-${range.from!.getTime()}-${range.to!.getTime()}`, from: range.from!, to: range.to!, percent: '150' },
-              ]);
-            }}
-          />
-          {overrides.map((o) => (
-            <div key={o.id} className="space-y-1.5">
-              <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-                <span className="min-w-0 flex-1 truncate text-sm">
-                  {fmt(o.from)} – {fmt(o.to)}
-                </span>
-                {/* A percentage of the paced target, because the target moves —
-                    the euro figure beside it is therefore an estimate. */}
-                <div className="relative w-24 shrink-0">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={o.percent}
-                    onChange={(e) => setOverride(o.id, { percent: e.target.value })}
-                    aria-label={`Percentage of the daily target for ${fmt(o.from)} to ${fmt(o.to)}`}
-                    className="h-8 pr-7"
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                </div>
-                <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                  {estimate(o.percent) ?? '—'}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  aria-label="Remove override"
-                  className="shrink-0 text-muted-foreground"
-                  onClick={() => removeOverride(o.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              {clashing.has(o.id) && (
-                <p className="text-xs text-destructive">
-                  These dates overlap another override. One day can only have one target.
-                </p>
-              )}
-            </div>
-          ))}
-          <FieldHint>
-            Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
-          </FieldHint>
-        </div>
-      )}
     </div>
   );
 };

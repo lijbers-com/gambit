@@ -3,6 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardSummary, CardSummaryContent, CardSummaryTitle } from '@/components/ui/card';
 import { CheckboxCard } from '@/components/ui/checkbox-card';
+import { OptionCard } from '@/components/ui/option-card';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { MetricRow } from '@/components/ui/metric-row';
@@ -1480,44 +1481,49 @@ export const GoalSelection: Story = {
                             ? `${dateRange.from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} → ${dateRange.to.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
                             : 'Inherits the plan run time';
                         return (
-                          <div key={row.id} className="rounded-lg border border-border p-4 space-y-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary text-primary-foreground flex-shrink-0">
+                          /* The campaign-as-a-card anatomy — the same
+                             OptionCard the setup cards on the plan page wear,
+                             so a campaign looks like a campaign at every
+                             moment of its life. */
+                          <OptionCard
+                            key={row.id}
+                            icon={
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
                                 <IconComponent size={14} />
-                              </div>
-                              <span className="min-w-0">
-                                <span className="block truncate text-sm font-medium">{prop.name} campaign</span>
-                                {row.existingId && (
-                                  <span className="block text-xs text-muted-foreground">Existing campaign · joins this plan on save</span>
-                                )}
                               </span>
-                              {/* Mode toggle — it both shows and sets the mode, so
-                                  the header needs no extra badge. An existing
-                                  campaign has its answers already; there is
-                                  nothing for the presets to fill in. */}
-                              <label className={cn('ml-auto flex shrink-0 cursor-pointer items-center gap-2', row.existingId && 'hidden')}>
-                                <Switch
-                                  checked={isAssisted}
-                                  onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
-                                  aria-label={`${prop.name} campaign mode`}
-                                />
-                                {/* Fixed width: "Assisted" and "Expert" differ,
-                                    and the word deciding where the toggle sits
-                                    made the whole header twitch on flip. */}
-                                <span className={cn('w-14 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
-                                  {isAssisted ? 'Assisted' : 'Expert'}
-                                </span>
-                              </label>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn('h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground', row.existingId && 'ml-auto')}
-                                aria-label={`Remove ${prop.name} campaign`}
-                                onClick={() => removeRow(row.id)}
-                              >
-                                <X size={14} />
-                              </Button>
-                            </div>
+                            }
+                            title={`${prop.name} campaign`}
+                            description={row.existingId ? 'Existing campaign · joins this plan on save' : undefined}
+                            control={
+                              <>
+                                {/* Mode toggle — it both shows and sets the
+                                    mode. Fixed-width word so the header does
+                                    not twitch on flip. An existing campaign
+                                    has its answers already. */}
+                                {!row.existingId && (
+                                  <label className="flex shrink-0 cursor-pointer items-center gap-2">
+                                    <Switch
+                                      checked={isAssisted}
+                                      onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
+                                      aria-label={`${prop.name} campaign mode`}
+                                    />
+                                    <span className={cn('w-14 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
+                                      {isAssisted ? 'Assisted' : 'Expert'}
+                                    </span>
+                                  </label>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                                  aria-label={`Remove ${prop.name} campaign`}
+                                  onClick={() => removeRow(row.id)}
+                                >
+                                  <X size={14} />
+                                </Button>
+                              </>
+                            }
+                          >
 
                             {(overBudget || outsideDates) && (
                               <div className="space-y-2 rounded-md border border-warning-200 bg-warning-50 p-3 text-warning-700">
@@ -1649,7 +1655,7 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                             )}
-                          </div>
+                          </OptionCard>
                         );
                       })}
 

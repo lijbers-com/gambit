@@ -329,15 +329,14 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
       {budgetField}
 
       <div className="space-y-2">
-        <Label className="block">Pacing</Label>
-        {/* The same selection component targeting and channels use: search
-            field, chosen rule as a selected card beneath, its settings inside.
-            One "choose from a catalogue" language for the whole form — pacing
-            is not a special kind of choosing. Removing the card falls back to
-            the default rather than leaving a booking with no spending rule. */}
+        {/* The one selection component, in its settings-picker variant: a
+            required choice shows only its card — the trailing control opens
+            the chooser to change it, because remove makes no sense where a
+            spending rule must always exist. */}
         <SearchSelectList
-          label={null}
+          label="Pacing"
           multiple={false}
+          settingsPicker
           placeholder="Search pacing…"
           options={(canPace ? allShapes : (['custom'] as PacingShape[])).map((sh) => ({
             value: sh,

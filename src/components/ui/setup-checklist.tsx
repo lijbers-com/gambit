@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Check, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { Card, CardContent } from './card';
+import { OptionCard, OptionCardSection } from './option-card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 
 /**
@@ -80,39 +80,41 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
           const complete = done === card.steps.length;
           const nextStep = card.steps.find((s) => !s.done);
           return (
-            <Card key={card.id} className="flex flex-col">
-              <CardContent className="flex flex-1 flex-col gap-4 p-5">
-                <div className="flex items-center gap-3">
-                  {card.icon && (
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-foreground [&_svg]:h-4 [&_svg]:w-4">
-                      {card.icon}
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{card.title}</span>
-                    <span className="block text-xs text-muted-foreground">
-                      {complete ? 'All set' : `${card.steps.length - done} step${card.steps.length - done === 1 ? '' : 's'} to complete`}
-                    </span>
+            /* The campaign-as-a-card anatomy — the same OptionCard the plan
+               wizard's campaign rows wear, at a later moment of the same
+               campaign's life. */
+            <OptionCard
+              key={card.id}
+              className="flex flex-col"
+              icon={
+                card.icon ? (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-foreground [&_svg]:h-4 [&_svg]:w-4">
+                    {card.icon}
                   </span>
-                  {card.menu && card.menu.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" iconOnly aria-label={`Options for ${card.title}`} className="-mr-1 -mt-1 h-7 w-7 shrink-0 text-muted-foreground">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {card.menu.map((m) => (
-                          <DropdownMenuItem key={m.label} onClick={m.onClick}>
-                            {m.icon && <span className="mr-2 flex items-center">{m.icon}</span>}
-                            {m.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-
+                ) : undefined
+              }
+              title={card.title}
+              description={complete ? 'All set' : `${card.steps.length - done} step${card.steps.length - done === 1 ? '' : 's'} to complete`}
+              control={
+                card.menu && card.menu.length > 0 ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" iconOnly aria-label={`Options for ${card.title}`} className="h-7 w-7 shrink-0 text-muted-foreground">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {card.menu.map((m) => (
+                        <DropdownMenuItem key={m.label} onClick={m.onClick}>
+                          {m.icon && <span className="mr-2 flex items-center">{m.icon}</span>}
+                          {m.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : undefined
+              }
+            >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Progress</span>
@@ -165,19 +167,18 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                   ))}
                 </ul>
 
-                <div className="flex items-center justify-between border-t pt-4">
+                {/* The card exists because work is open, so its action is to
+                    START that work — the next unfinished step's own wizard.
+                    A card with nothing left removes itself. */}
+                <OptionCardSection className="flex items-center justify-between pt-3">
                   <Button variant="outline" onClick={() => onDismiss(card.id)}>
                     Skip
                   </Button>
-                  {/* The card exists because work is open, so its action is to
-                      START that work — the next unfinished step's own wizard.
-                      A card with nothing left removes itself. */}
                   <Button disabled={!nextStep} onClick={() => nextStep?.onClick?.()}>
                     Start
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </OptionCardSection>
+            </OptionCard>
           );
         })}
         {addCard && (

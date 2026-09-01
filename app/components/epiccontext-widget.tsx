@@ -7,13 +7,14 @@ import { usePathname } from 'next/navigation';
 /**
  * The EpicContext feedback widget — only when the app is the top-level page.
  *
- * Not on the component preview route, and not when the app runs inside ANY
- * iframe: the EpicContext book frames whole pages as live previews, and there
- * the floating button reads as part of the page being documented — while the
- * widget's call home fails inside the sandboxed frame and spills
- * "Failed to fetch" errors into the console. Framing is detected after mount
- * (window.top is a client fact), so the scripts simply load one tick later on
- * the real site.
+ * Not on the component preview route, not when the app runs inside ANY
+ * iframe (the EpicContext book frames whole pages as live previews, and there
+ * the floating button reads as part of the page being documented), and not in
+ * local development: the widget exists so stakeholders can annotate the
+ * DEPLOYED prototype, while in dev its call home to epiccontext.com just
+ * fails and fills the overlay with "Failed to fetch". Framing is detected
+ * after mount (window.top is a client fact), so on the real site the scripts
+ * simply load one tick later.
  */
 export function EpicContextWidget() {
   const pathname = usePathname();
@@ -27,6 +28,7 @@ export function EpicContextWidget() {
     }
   }, []);
 
+  if (process.env.NODE_ENV !== 'production') return null;
   if (!topLevel) return null;
   if (pathname?.startsWith('/ec-preview') || pathname?.startsWith('/__ec')) return null;
   return (

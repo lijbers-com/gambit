@@ -383,10 +383,14 @@ const PropositionWizard = ({
   const linkedPlan = linkedPlanId ? db.mediaPlans.find((p) => p.id === linkedPlanId) : undefined;
   const bookingMode = !!campaignId || !!bookingId;
   const creativesOnly = bookingMode && entryStep === 'creatives';
-  /** Approving a campaign the media plan wizard proposed: its own steps run
-   *  against the existing record, and the flow continues into the bookings
-   *  and creatives that make it deliverable. */
+  /** Approving a campaign the media plan wizard proposed. Everything is
+   *  prefilled and already checked, so the user is NOT walked through the
+   *  steps again: one summary screen with Approve, then the flow continues
+   *  into the bookings and creatives that make it deliverable. */
   const campaignReview = bookingMode && entryStep === 'campaign';
+  const [campaignJustApproved, setCampaignJustApproved] = React.useState(false);
+  const needsCampaignApproval =
+    campaignReview && !!routeCampaign && routeCampaign.status === 'draft' && !campaignJustApproved;
 
   // Booking mode skips the campaign phase — those steps are already answered
   // by the existing campaign; creatives-only mode is just the last step.
@@ -394,10 +398,11 @@ const PropositionWizard = ({
     const all = getWizardSteps(propositionType);
     if (creativesOnly) return all.filter((s) => s.id === 'creatives');
     const withoutCreatives = all.filter((s) => s.id !== 'creatives');
-    if (campaignReview) return withoutCreatives;
+    // Review mode is bookings-only too: the campaign's own steps are already
+    // answered by the plan, and approval is one summary screen, not a walk.
     if (bookingMode) return withoutCreatives.filter((s) => s.id === 'bookings');
     return withoutCreatives;
-  }, [propositionType, bookingMode, creativesOnly, campaignReview]);
+  }, [propositionType, bookingMode, creativesOnly]);
 
   // Wizard state
   const [currentStep, setCurrentStep] = React.useState(0);
@@ -585,7 +590,7 @@ const PropositionWizard = ({
    */
   const campaignStepsActive =
     !creativesOnly
-    && (!bookingMode || campaignReview)
+    && !bookingMode
     && bookingSubStep === null
     && currentStepId !== 'creatives';
 
@@ -857,19 +862,15 @@ const PropositionWizard = ({
 
   // Step navigation helpers
   const goToNextStep = () => {
-    // In review mode, leaving the campaign phase IS approving the campaign:
-    // the user has just been through its own steps.
-    if (campaignReview && routeCampaign && isLastCampaignStep) {
-      updateCampaign(routeCampaign.id, {
-        name: campaignName || routeCampaign.name,
-        budget: parseFloat(budgetAmount) || routeCampaign.budget,
-        ...(toIso(dateRange?.from) ? { startDate: toIso(dateRange?.from) as string } : {}),
-        ...(toIso(dateRange?.to) ? { endDate: toIso(dateRange?.to) as string } : {}),
-        buyingType,
-        ...(routeCampaign.status === 'draft' ? { status: 'in-option' as const } : {}),
-      });
-    }
     setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length - 1));
+  };
+  // Approving takes the record as the plan proposed it — the summary screen
+  // is a check, not an editor. Any change belongs on the campaign itself.
+  const approveCampaign = () => {
+    if (routeCampaign && routeCampaign.status === 'draft') {
+      updateCampaign(routeCampaign.id, { status: 'in-option' });
+    }
+    setCampaignJustApproved(true);
   };
   const goToPrevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
   const goToStepById = (id: string) => {
@@ -1097,10 +1098,6 @@ const PropositionWizard = ({
           if (p) vals.push(p.name);
         });
         return vals.length > 0 ? vals : null;
-      }
-      case 'bookings': {
-        if (bookings.length === 0) return null;
-        return bookings.map((b, i) => b.name || `Booking ${i + 1}`);
       }
       case 'creatives': {
         const linked = creativeTargets.filter((t) => creativeChoice[t.id]).length;
@@ -1852,7 +1849,52 @@ const PropositionWizard = ({
               )}
 
               {/* Step: Bookings (Display only) */}
-              {currentStepId === 'bookings' && (
+              {/* The approval screen — an assisted campaign arrives fully
+                  prefilled, so the user is not sent through the wizard steps
+                  again: one summary of what the plan proposed, one Approve.
+                  The proposed bookings follow the moment it is approved. */}
+              {needsCampaignApproval && routeCampaign && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Approve campaign</CardTitle>
+                    <CardDescription>
+                      The media plan filled in every detail. Check the summary and approve — the proposed bookings come right after.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                      {[
+                        { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
+                        { label: 'Proposition', value: proposition.name },
+                        { label: 'Campaign type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
+                        { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
+                        { label: 'Run time', value: `${formatDate(new Date(routeCampaign.startDate))} – ${formatDate(new Date(routeCampaign.endDate))}` },
+                        { label: 'Media plan', value: linkedPlan?.name ?? db.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)?.name ?? '—' },
+                      ].map((fact) => (
+                        <div key={fact.label}>
+                          <div className="text-xs text-muted-foreground">{fact.label}</div>
+                          <div className="mt-0.5 text-sm font-medium">{fact.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {existingBookings.length > 0 && (
+                      <div className="rounded-md border bg-neutral-50 p-3 text-xs text-muted-foreground">
+                        Comes with {existingBookings.length === 1 ? 'one proposed booking' : `${existingBookings.length} proposed bookings`} — you check and approve {existingBookings.length === 1 ? 'it' : 'each one'} next.
+                      </div>
+                    )}
+                    <div className="flex justify-end gap-2 border-t pt-4">
+                      {returnTo && (
+                        <Button variant="ghost" onClick={() => { window.location.href = returnTo; }}>
+                          Back to plan
+                        </Button>
+                      )}
+                      <Button onClick={approveCampaign}>Approve campaign</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {currentStepId === 'bookings' && !needsCampaignApproval && (
                 <div className="space-y-4">
                   {/* Booking list view */}
                   {bookingSubStep === null && (
@@ -2641,6 +2683,9 @@ export interface SPWizardInitialValues {
   campaignId?: string;
   /** Approval mode: an existing, prefilled booking to check and approve. */
   bookingId?: string;
+  /** 'campaign' = the plan proposed this campaign and it still needs its
+   *  approval: one summary screen with Approve, then on to the bookings. */
+  step?: string;
   /** Where the run started — the media plan or the campaign — to hand back to. */
   returnTo?: string;
   /** Create the campaign inside this media plan. */
@@ -2669,6 +2714,24 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     : routeCampaign
       ? spDb.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)
       : undefined;
+  // Approval mode for the CAMPAIGN itself: the plan prefilled every answer,
+  // so approving is one summary screen — not a walk through the steps — and
+  // hands straight on to the first proposed booking.
+  const [spCampaignJustApproved, setSpCampaignJustApproved] = React.useState(false);
+  const spNeedsCampaignApproval =
+    !!routeCampaign && initialValues?.step === 'campaign'
+    && routeCampaign.status === 'draft' && !spCampaignJustApproved;
+  const approveSpCampaign = () => {
+    if (!routeCampaign) return;
+    updateCampaign(routeCampaign.id, { status: 'in-option' });
+    setSpCampaignJustApproved(true);
+    const nextDraft = spDb.bookings.find((b) => b.campaignId === routeCampaign.id && b.status === 'draft');
+    if (nextDraft) {
+      window.location.href = `/create/sponsored-products?bookingId=${nextDraft.id}${initialValues?.returnTo ? `&returnTo=${encodeURIComponent(initialValues.returnTo)}` : ''}`;
+    } else if (initialValues?.returnTo) {
+      window.location.href = initialValues.returnTo;
+    }
+  };
 
   const wizardSteps = [
     { id: 'campaign-details', label: 'Campaign details' },
@@ -3099,9 +3162,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: currentStepId === 'booking'
-            ? bookingCampaignName || 'Untitled'
-            : campaignName || 'Create sponsored products campaign',
+          title: spNeedsCampaignApproval && routeCampaign
+            ? stripPropositionSuffix(routeCampaign.name)
+            : currentStepId === 'booking'
+              ? bookingCampaignName || 'Untitled'
+              : campaignName || 'Create sponsored products campaign',
           // Where you are in the flow is the timeline's job, in the sidebar.
           subtitle: '',
           headerRight: null,
@@ -3256,11 +3321,59 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 </Card>
               )}
 
+              {/* The approval screen — the plan prefilled this campaign, so
+                  the user is not sent through the steps: one summary, one
+                  Approve, then straight on to the proposed bookings. */}
+              {spNeedsCampaignApproval && routeCampaign && (() => {
+                const fmtD = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                const draftCount = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id && b.status === 'draft').length;
+                return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Approve campaign</CardTitle>
+                      <CardDescription>
+                        The media plan filled in every detail. Check the summary and approve — the proposed bookings come right after.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                        {[
+                          { label: 'Campaign name', value: stripPropositionSuffix(routeCampaign.name) },
+                          { label: 'Proposition', value: proposition.name },
+                          { label: 'Campaign type', value: (routeCampaign.buyingType ?? 'auction') === 'guaranteed' ? 'Guaranteed' : 'Auction' },
+                          { label: 'Budget', value: routeCampaign.budget > 0 ? `€${routeCampaign.budget.toLocaleString()}` : '—' },
+                          { label: 'Run time', value: `${fmtD(routeCampaign.startDate)} – ${fmtD(routeCampaign.endDate)}` },
+                          { label: 'Media plan', value: linkedPlan?.name ?? '—' },
+                        ].map((fact) => (
+                          <div key={fact.label}>
+                            <div className="text-xs text-muted-foreground">{fact.label}</div>
+                            <div className="mt-0.5 text-sm font-medium">{fact.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                      {draftCount > 0 && (
+                        <div className="rounded-md border bg-neutral-50 p-3 text-xs text-muted-foreground">
+                          Comes with {draftCount === 1 ? 'one proposed booking' : `${draftCount} proposed bookings`} — you check and approve {draftCount === 1 ? 'it' : 'each one'} next.
+                        </div>
+                      )}
+                      <div className="flex justify-end gap-2 border-t pt-4">
+                        {initialValues?.returnTo && (
+                          <Button variant="ghost" onClick={() => { window.location.href = initialValues.returnTo as string; }}>
+                            Back to plan
+                          </Button>
+                        )}
+                        <Button onClick={approveSpCampaign}>Approve campaign</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
               {/* ── Step 2: Booking – Sub-step 1: Setup ── */}
               {/* One card holding bordered sections — the same shape every
                   booking detail form uses, so creating and editing a booking
                   look like the same job. */}
-              {currentStepId === 'booking' && bookingSubStep === 0 && (
+              {!spNeedsCampaignApproval && currentStepId === 'booking' && bookingSubStep === 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Setup</CardTitle>
@@ -3676,8 +3789,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               );
               return (
                 <HierarchySidebar
-                  active={pending ? 'campaign' : 'booking'}
-                  booking={pending ? undefined : bookingTimeline}
+                  active={pending || spNeedsCampaignApproval ? 'campaign' : 'booking'}
+                  booking={pending || spNeedsCampaignApproval ? undefined : bookingTimeline}
                   mediaPlan={
                     <>
                       <SummaryCard

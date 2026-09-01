@@ -23,6 +23,11 @@ const config: StorybookConfig = {
   async viteFinal(config) {
     // Merge custom configuration into the default config
     return mergeConfig(config, {
+      // Storybook already copies staticDirs (../public) into the output.
+      // Vite's own publicDir copy of the same folder runs in parallel with
+      // it during `storybook build`, and the two racing mkdir calls fail
+      // with EEXIST on slow machines (the Vercel build). One copier only.
+      publicDir: false,
       // Add dependencies to pre-optimization
       optimizeDeps: {
         include: ['@radix-ui/react-dialog', '@radix-ui/react-slot'],

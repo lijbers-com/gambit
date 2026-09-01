@@ -25,6 +25,9 @@ function CreateSponsoredProductsContent() {
   const campaignId = searchParams.get('campaignId') ?? undefined;
   // Approval mode: an existing prefilled booking to check and approve.
   const bookingId = searchParams.get('bookingId') ?? undefined;
+  // step=campaign: the plan proposed the campaign — approve it on one
+  // summary screen before its bookings.
+  const step = searchParams.get('step') ?? undefined;
   // Where the run started, to hand back to when it finishes.
   const returnTo = searchParams.get('returnTo') ?? undefined;
 
@@ -32,6 +35,7 @@ function CreateSponsoredProductsContent() {
     planId,
     campaignId,
     bookingId,
+    step,
     returnTo,
     campaignName,
     externalId,

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Search, X, ChevronDown, Plus, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { SearchInput } from './search-input';
 import { OptionCard } from './option-card';
 
@@ -241,16 +242,33 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                 control={
                   settingsPicker ? (
                     /* A required choice cannot be removed, only changed — so
-                       the control is the way into the chooser, not an ×. */
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowResults((v) => !v)}
-                      className="h-8 w-8 shrink-0 p-0"
-                      aria-label={typeof label === 'string' ? `Change ${label}` : `Change ${option.label}`}
-                    >
-                      <Settings2 className="h-4 w-4" />
-                    </Button>
+                       the control is the way into the chooser, and the
+                       chooser hangs off the button itself: a menu of the
+                       alternatives, not a field with a dropdown. */
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 shrink-0 p-0"
+                          aria-label={typeof label === 'string' ? `Change ${label}` : `Change ${option.label}`}
+                        >
+                          <Settings2 className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-80 p-0">
+                        {results.map((alt) => (
+                          <DropdownMenuItem
+                            key={alt.value}
+                            onClick={() => add(alt.value)}
+                            className="cursor-pointer flex-col items-start gap-0.5 rounded-none border-b p-3 last:border-b-0"
+                          >
+                            <span className="text-sm font-medium">{alt.label}</span>
+                            {alt.description && <span className="text-xs text-muted-foreground">{alt.description}</span>}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : (
                     <Button
                       variant="outline"
@@ -272,26 +290,6 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               </OptionCard>
             );
           })}
-        </div>
-      )}
-      {settingsPicker && showResults && (
-        <div className="relative">
-          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-card shadow-lg">
-            {results.length > 0 ? (
-              results.map((option) => (
-                <div
-                  key={option.value}
-                  className="cursor-pointer border-b p-3 last:border-b-0 hover:bg-neutral-50"
-                  onClick={() => add(option.value)}
-                >
-                  <div className="text-sm font-medium">{option.label}</div>
-                  {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
-                </div>
-              ))
-            ) : (
-              <div className="p-3 text-center text-sm text-muted-foreground">No other options</div>
-            )}
-          </div>
         </div>
       )}
     </div>

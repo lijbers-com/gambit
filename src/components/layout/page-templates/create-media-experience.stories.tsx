@@ -742,7 +742,9 @@ export const GoalSelection: Story = {
             poNumber: poNumber || undefined,
             advertiserId: advertiser.id,
             brandIds,
-            status: 'in-option',
+            // Same semantics as a fresh plan: its campaigns are proposals
+            // until approved, so it re-enters draft and leaves on its own.
+            status: 'draft',
             autoBudget,
             goal: selectedGoal ?? undefined,
             objective: selectedObjective ?? undefined,
@@ -1552,6 +1554,40 @@ export const GoalSelection: Story = {
                                  preset creates are the platform's business —
                                  they appear on the campaign once it exists. */
                               <div className="space-y-3">
+                                {/* What the preset amounts to, read before the
+                                    fields that shape it — small metric tiles,
+                                    the same label-over-value language as the
+                                    page's metric row, at card scale. */}
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                  <div className="rounded-md border border-border px-3 py-2">
+                                    <span className="block text-xs text-muted-foreground">Run time</span>
+                                    <span className="block truncate text-sm font-medium tabular-nums">{runTime}</span>
+                                  </div>
+                                  <div className="rounded-md border border-border px-3 py-2">
+                                    <span className="block text-xs text-muted-foreground">Budget</span>
+                                    <span className="block truncate text-sm font-medium tabular-nums">{share > 0 ? `€${share.toLocaleString()}` : '—'}</span>
+                                  </div>
+                                  <div className="rounded-md border border-border px-3 py-2">
+                                    <span className="block text-xs text-muted-foreground">Est. impressions</span>
+                                    <span className="block truncate text-sm font-medium tabular-nums">~{prop.aiPreset.estImpressions}</span>
+                                  </div>
+                                  <div className="rounded-md border border-border px-3 py-2">
+                                    <span className="block text-xs text-muted-foreground">Volume</span>
+                                    <span className="flex items-center gap-2">
+                                      <LevelMeter
+                                        className="shrink-0"
+                                        label={null}
+                                        tone="supply"
+                                        level={worstAvailability === 'available' ? 4 : worstAvailability === 'limited' ? 2 : 1}
+                                      />
+                                      {worstAvailability !== 'available' && (
+                                        <span className="truncate text-[11px] text-muted-foreground">
+                                          {worstAvailability === 'limited' ? 'Book early' : 'Nearly booked out'}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
                                 <div className="space-y-2">
                                   <Label>Campaign name</Label>
                                   <Input
@@ -1587,27 +1623,6 @@ export const GoalSelection: Story = {
                                       className="w-full"
                                     />
                                   </div>
-                                </div>
-                                <div className="space-y-2">
-                                <Label>Campaign summary</Label>
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-md border border-border px-3 py-2">
-                                  <span className="text-xs tabular-nums text-muted-foreground">
-                                    {runTime} · {share > 0 ? `€${share.toLocaleString()}` : 'no budget set'} · ~{prop.aiPreset.estImpressions} impressions
-                                  </span>
-                                  <span className="ml-auto flex items-center gap-2">
-                                    <LevelMeter
-                                      className="shrink-0"
-                                      label="Volume"
-                                      tone="supply"
-                                      level={worstAvailability === 'available' ? 4 : worstAvailability === 'limited' ? 2 : 1}
-                                    />
-                                    {worstAvailability !== 'available' && (
-                                      <span className="text-[11px] text-muted-foreground">
-                                        {worstAvailability === 'limited' ? 'Book early to secure' : 'Nearly booked out'}
-                                      </span>
-                                    )}
-                                  </span>
-                                </div>
                                 </div>
                               </div>
                             ) : (

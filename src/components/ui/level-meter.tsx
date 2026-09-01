@@ -41,7 +41,8 @@ const SUPPLY_COLOURS: Record<Level, string> = {
 };
 
 export interface LevelMeterProps {
-  label: string;
+  /** Pass null where the surrounding tile already names the metric. */
+  label: string | null;
   level: Level;
   /** 'scale' fills in one colour (more is better); 'risk' runs green→red;
    *  'supply' is stock level — red when it is nearly gone. */
@@ -59,7 +60,7 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({
   className,
 }) => (
   <div className={cn('flex items-center gap-2', className)}>
-    <span className="text-xs text-muted-foreground">{label}:</span>
+    {label !== null && <span className="text-xs text-muted-foreground">{label}:</span>}
     <span className="flex items-center gap-0.5" aria-hidden>
       {([1, 2, 3, 4, 5] as Level[]).map((step) => (
         <span

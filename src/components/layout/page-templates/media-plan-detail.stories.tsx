@@ -781,7 +781,13 @@ export const MediaPlanDetail: Story = {
     const awaitingApproval = !!plan && db.campaigns
       .filter((c) => c.mediaPlanId === plan.id)
       .some((c) => c.status === 'draft' || db.bookings.some((b) => b.campaignId === c.id && b.status === 'draft'));
-    const inSetup = !!plan && plan.status === 'draft';
+    // The gate is the WORK, not the status field: any plan that has never
+    // run and still has proposals awaiting approval gets the focused view —
+    // however its status was spelled on the way in.
+    const inSetup =
+      !!plan &&
+      !['running', 'paused', 'completed'].includes(plan.status) &&
+      (plan.status === 'draft' || awaitingApproval);
     React.useEffect(() => {
       if (plan && plan.status === 'draft' && !awaitingApproval) {
         updateMediaPlan(plan.id, { status: 'in-option' });

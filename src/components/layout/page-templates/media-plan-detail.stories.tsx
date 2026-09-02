@@ -839,17 +839,52 @@ export const MediaPlanDetail: Story = {
           'Current plan': db.mediaPlans.find((mp) => mp.id === c.mediaPlanId)?.name ?? '—',
         },
       }));
-    const addExistingCampaign = (id?: string) => {
-      if (!id || !plan) return;
-      const c = db.campaigns.find((x) => x.id === id);
-      if (!c) return;
-      const prevPlanId = c.mediaPlanId;
-      updateCampaign(id, { mediaPlanId: plan.id });
+    /**
+     * Linking is approved, not just done: the picked campaign first shows a
+     * confirm dialog stating what taking it in DOES to the plan — a campaign
+     * that does not fit widens the plan (bigger budget, longer run time),
+     * and that consequence has to be seen and approved before it happens.
+     */
+    const [pendingExistingId, setPendingExistingId] = React.useState<string | undefined>(undefined);
+    const pendingExisting = pendingExistingId ? db.campaigns.find((x) => x.id === pendingExistingId) : undefined;
+    const pendingImplications = React.useMemo(() => {
+      if (!plan || !pendingExisting) return undefined;
+      const claimed =
+        db.campaigns.filter((c) => c.mediaPlanId === plan.id).reduce((sum, c) => sum + c.budget, 0)
+        + pendingExisting.budget;
+      const newBudget = Math.max(plan.budget, claimed);
+      const newStart = pendingExisting.startDate < plan.startDate ? pendingExisting.startDate : plan.startDate;
+      const newEnd = pendingExisting.endDate > plan.endDate ? pendingExisting.endDate : plan.endDate;
+      return {
+        budgetChanges: newBudget !== plan.budget,
+        datesChange: newStart !== plan.startDate || newEnd !== plan.endDate,
+        newBudget,
+        newStart,
+        newEnd,
+      };
+    }, [plan, pendingExisting, db.campaigns]);
+
+    const approveExistingCampaign = () => {
+      if (!plan || !pendingExisting || !pendingImplications) return;
+      const prevPlanId = pendingExisting.mediaPlanId;
+      const prev = { budget: plan.budget, startDate: plan.startDate, endDate: plan.endDate };
+      updateCampaign(pendingExisting.id, { mediaPlanId: plan.id });
+      if (pendingImplications.budgetChanges || pendingImplications.datesChange) {
+        updateMediaPlan(plan.id, {
+          budget: pendingImplications.newBudget,
+          startDate: pendingImplications.newStart,
+          endDate: pendingImplications.newEnd,
+        });
+      }
       toast({
         title: 'Campaign added to this plan',
-        description: c.name,
-        undo: () => updateCampaign(id, { mediaPlanId: prevPlanId }),
+        description: pendingExisting.name,
+        undo: () => {
+          updateCampaign(pendingExisting.id, { mediaPlanId: prevPlanId });
+          updateMediaPlan(plan.id, prev);
+        },
       });
+      setPendingExistingId(undefined);
     };
 
     /** Open the campaign wizard for the chosen proposition, inside this plan.
@@ -1581,8 +1616,53 @@ export const MediaPlanDetail: Story = {
         onOpenChange={setLinkExistingOpen}
         entityLabel="campaign"
         options={existingCampaignOptions}
-        onChange={addExistingCampaign}
+        onChange={(id) => setPendingExistingId(id || undefined)}
       />
+      {/* The approval between picking and linking: what taking this campaign
+          in does to the plan, shown before it happens. */}
+      <Dialog open={!!pendingExisting} onOpenChange={(o) => { if (!o) setPendingExistingId(undefined); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add {pendingExisting?.name} to this plan?</DialogTitle>
+            <DialogDescription>
+              {pendingImplications?.budgetChanges || pendingImplications?.datesChange
+                ? 'The campaign does not fit the plan as it stands — approving widens the plan to cover it. The campaign itself is left as it is.'
+                : 'It fits inside the plan’s budget and run time — nothing on the plan changes.'}
+            </DialogDescription>
+          </DialogHeader>
+          {plan && pendingExisting && pendingImplications && (pendingImplications.budgetChanges || pendingImplications.datesChange) && (
+            <div className="space-y-2 rounded-md border border-warning-200 bg-warning-50 p-3 text-warning-700">
+              <p className="text-xs font-medium">What changes on the plan</p>
+              <ul className="space-y-1 text-xs">
+                {pendingImplications.budgetChanges && (
+                  <li>
+                    Budget: {fmtEuro(plan.budget)} → <span className="font-medium">{fmtEuro(pendingImplications.newBudget)}</span>
+                    {' '}(+{fmtEuro(pendingImplications.newBudget - plan.budget)} to cover the campaign’s {fmtEuro(pendingExisting.budget)})
+                  </li>
+                )}
+                {pendingImplications.datesChange && (() => {
+                  /* Ranges get en-dashes here so the one arrow reads as
+                     old → new, not a chain of four dates. */
+                  const range = (a: string, b: string) => `${fmtDate(a)} – ${fmtDate(b)}`;
+                  return (
+                    <li>
+                      Run time: {range(plan.startDate, plan.endDate)} →{' '}
+                      <span className="font-medium">{range(pendingImplications.newStart, pendingImplications.newEnd)}</span>
+                      {' '}to cover the campaign’s {range(pendingExisting.startDate, pendingExisting.endDate)}
+                    </li>
+                  );
+                })()}
+              </ul>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingExistingId(undefined)}>Cancel</Button>
+            <Button onClick={approveExistingCampaign}>
+              {pendingImplications?.budgetChanges || pendingImplications?.datesChange ? 'Approve and adjust plan' : 'Add campaign'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </AppLayout>
       </MenuContextProvider>
     );

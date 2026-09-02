@@ -17,7 +17,8 @@ import { SummaryCard } from './ui/summary-card';
 import { GoalSelect } from './ui/goal-select';
 import { GoalCard } from './ui/goal-card';
 import { SetupChecklist } from './ui/setup-checklist';
-import { BudgetPacing, PacingShapeSelect, type PacingShape, type PacingOverride } from './ui/budget-pacing';
+import { BudgetPacing, type PacingShape, type PacingOverride } from './ui/budget-pacing';
+import { SettingsCard } from './ui/settings-card';
 import { ToggleCard } from './ui/toggle-card';
 import { ControlBar, ControlBarItem } from './ui/control-bar';
 import { PropositionIcon } from './ui/proposition-icon';
@@ -239,9 +240,29 @@ const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {
   );
 };
 
-const StatefulPacingShapes: React.FC = () => {
-  const [v, setV] = React.useState<PacingShape>('frontloaded');
-  return <PacingShapeSelect value={v} onChange={setV} shapes={['account', 'even', 'frontloaded', 'asap']} alwaysOpen />;
+const PACING_DEMO_OPTIONS = [
+  { value: 'even', label: 'Even', description: 'The same target every day, so the budget lasts exactly as long as the flight.' },
+  { value: 'frontloaded', label: 'Frontloaded', description: 'Spends faster in the first days, then eases off — buys reach early.' },
+  { value: 'custom', label: 'Daily budget', description: 'You set the cap. Delivery stops for the day once it is reached.' },
+];
+
+const StatefulSettingsCard: React.FC<{ open?: boolean }> = ({ open }) => {
+  const [v, setV] = React.useState('even');
+  return (
+    <SettingsCard
+      label="Budget pacing"
+      options={PACING_DEMO_OPTIONS}
+      value={v}
+      onChange={setV}
+      defaultOpen={open}
+      renderOpenExtra={(opt) => (
+        <p className="text-xs text-muted-foreground">
+          The chosen option's own settings render here — an estimate, a date override, a cap.
+          (This demo shows the anatomy; Budget pacing is the real tenant.)
+        </p>
+      )}
+    />
+  );
 };
 
 const StatefulCheckboxCard: React.FC<{ checked?: boolean }> = ({ checked }) => {
@@ -869,7 +890,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
     title: 'Goal card (campaign type)', group: 'Product surfaces',
     render: () => <div className="max-w-xl"><StatefulBuyingType /></div>,
   },
-  'goal-select': { title: 'Goal select', group: 'Product surfaces', render: () => <StatefulGoalSelect />, wide: true },
+  'goal-select': { title: 'Goal select', group: 'Inputs & controls', render: () => <StatefulGoalSelect />, wide: true },
   'setup-checklist': {
     title: 'Setup checklist', group: 'Product surfaces', wide: true,
     render: () => (
@@ -903,10 +924,11 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   },
   'budget-pacing': { title: 'Budget pacing / Even (default)', group: 'Product surfaces', render: () => <StatefulPacing />, wide: true },
   'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
-  'pacing-shapes': { title: 'Pacing shapes', group: 'Product surfaces', render: () => <StatefulPacingShapes /> },
-  'toggle-card': { title: 'Toggle card', group: 'Product surfaces', render: () => <StatefulToggleCard /> },
+  'settings-card': { title: 'Settings card / Folded', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard /> },
+  'settings-card--open': { title: 'Settings card / Choosing', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard open /> },
+  'toggle-card': { title: 'Toggle card', group: 'Inputs & controls', render: () => <StatefulToggleCard /> },
   'option-card': {
-    title: 'Option card', group: 'Containment', wide: true,
+    title: 'Option card', group: 'Inputs & controls', wide: true,
     render: () => (
       <OptionCard
         selected
@@ -924,7 +946,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   },
   'checkbox-card': { title: 'Checkbox card', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard /> },
   'checkbox-card--checked': { title: 'Checkbox card / Included', group: 'Inputs & controls', wide: true, render: () => <StatefulCheckboxCard checked /> },
-  'toggle-card--open': { title: 'Toggle card / With settings', group: 'Product surfaces', render: () => <StatefulToggleCard open /> },
+  'toggle-card--open': { title: 'Toggle card / With settings', group: 'Inputs & controls', render: () => <StatefulToggleCard open /> },
   'create-placement': { title: 'Create placement', group: 'Product surfaces', render: () => <StatefulPlacement />, wide: true },
   'control-bar': {
     title: 'Control bar', group: 'Product surfaces', wide: true,

@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Search, X, ChevronDown, Plus, Settings2 } from 'lucide-react';
+import { Search, X, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { SearchInput } from './search-input';
 import { OptionCard } from './option-card';
 
@@ -51,11 +50,6 @@ export interface SearchSelectListProps {
    *  selection otherwise pushes the rest of the form off the screen. The last
    *  card is cut in half so the list reads as continuing rather than ending. */
   maxVisibleSelected?: number;
-  /** Required single choices (pacing): no picker field on top — the selected
-   *  card is the whole control, its trailing button a settings glyph that
-   *  opens the chooser in place. Remove makes no sense where a value must
-   *  always exist, so there is no ×. Implies single-select. */
-  settingsPicker?: boolean;
   className?: string;
 }
 
@@ -79,7 +73,6 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
   hideSelectedDescription,
   allowCreate,
   maxVisibleSelected,
-  settingsPicker,
   className,
 }) => {
   const [search, setSearch] = React.useState('');
@@ -149,7 +142,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
     <div className={cn('min-w-0 space-y-2', className)}>
       <div className="relative" ref={containerRef}>
         {label !== null && <label className="block text-sm font-medium mb-2">{label}</label>}
-        {settingsPicker ? null : disabledHint ? (
+        {disabledHint ? (
           <div className="flex h-9 w-full items-center rounded-md border border-dashed border-input bg-surface-selected px-3 text-sm text-muted-foreground">
             {disabledHint}
           </div>
@@ -240,46 +233,15 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                 title={option.label}
                 description={hideSelectedDescription ? undefined : option.description}
                 control={
-                  settingsPicker ? (
-                    /* A required choice cannot be removed, only changed — so
-                       the control is the way into the chooser, and the
-                       chooser hangs off the button itself: a menu of the
-                       alternatives, not a field with a dropdown. */
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 shrink-0 p-0"
-                          aria-label={typeof label === 'string' ? `Change ${label}` : `Change ${option.label}`}
-                        >
-                          <Settings2 className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-80 p-0">
-                        {results.map((alt) => (
-                          <DropdownMenuItem
-                            key={alt.value}
-                            onClick={() => add(alt.value)}
-                            className="cursor-pointer flex-col items-start gap-0.5 rounded-none border-b p-3 last:border-b-0"
-                          >
-                            <span className="text-sm font-medium">{alt.label}</span>
-                            {alt.description && <span className="text-xs text-muted-foreground">{alt.description}</span>}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => remove(option.value)}
-                      className="h-8 w-8 shrink-0 p-0"
-                      aria-label={`Remove ${option.label}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => remove(option.value)}
+                    className="h-8 w-8 shrink-0 p-0"
+                    aria-label={`Remove ${option.label}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 }
               >
                 {extra ? (

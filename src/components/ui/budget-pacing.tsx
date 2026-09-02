@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Input, FieldHint } from './input';
@@ -9,7 +9,7 @@ import { Label } from './label';
 import { DateRangePicker } from './date-picker';
 import type { DateRange } from 'react-day-picker';
 import { retailMoments } from '@/lib/retail-moments';
-import { SearchSelectList } from './search-select-list';
+import { SettingsCard } from './settings-card';
 
 /**
  * Pacing — how a budget is spread over the days a booking runs.
@@ -121,103 +121,6 @@ const PacingStrip: React.FC<{ shape: PacingShape; selected?: boolean }> = ({ sha
   );
 };
 
-/**
- * The pacing selection. Selection styling is the app's one selected-surface
- * pair, so choosing a pacing reads as the same kind of choice as choosing a
- * goal or a campaign type — and like a goal, the chosen row can open to carry
- * its own settings (`openContent`) or its consequence (`detail`).
- */
-export const PacingShapeSelect: React.FC<{
-  value: PacingShape;
-  onChange: (v: PacingShape) => void;
-  /** Which shapes this proposition offers. */
-  shapes?: PacingShape[];
-  /** Shapes that cannot be chosen right now (e.g. paced shapes without an end date). */
-  disabledShapes?: PacingShape[];
-  /** One line rendered inside a shape's row while it is selected — the derived
-   *  daily estimate for the paced shapes. */
-  detail?: Partial<Record<PacingShape, React.ReactNode>>;
-  /** Settings rendered inside a shape's open row — the custom daily budget. */
-  openContent?: Partial<Record<PacingShape, React.ReactNode>>;
-  /** Keep every option on screen (documentation stages). Forms stay folded. */
-  alwaysOpen?: boolean;
-  disabled?: boolean;
-  className?: string;
-}> = ({ value, onChange, shapes = ['even', 'frontloaded'], disabledShapes = [], detail, openContent, alwaysOpen, disabled, className }) => {
-  /**
-   * FOLDED BY DEFAULT: a form states the pacing it has; it does not exhibit
-   * the catalogue. Five open cards made this the loudest block on the page
-   * for a question most users never change — so only the chosen shape shows,
-   * and Change unfolds the alternatives just long enough to pick one.
-   */
-  const [choosing, setChoosing] = React.useState(false);
-  const open = alwaysOpen || choosing;
-
-  const row = (shape: PacingShape) => {
-    const selected = value === shape;
-    const shapeDisabled = disabled || disabledShapes.includes(shape);
-    return (
-      <div
-        key={shape}
-        className={cn(
-          'rounded-md border transition-colors',
-          selected ? 'border-surface-selected-border bg-surface-selected' : 'border-border bg-background',
-        )}
-      >
-        <div className="flex items-start gap-3 p-3">
-          <button
-            type="button"
-            disabled={shapeDisabled}
-            aria-pressed={selected}
-            onClick={() => {
-              onChange(shape);
-              setChoosing(false);
-            }}
-            className={cn(
-              'min-w-0 flex-1 text-left',
-              shapeDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-            )}
-          >
-            <span className="block truncate text-sm font-medium">{SHAPES[shape].title}</span>
-            {/* The sketch sits under the name it belongs to and above the
-                sentence that explains it — read the shape, then read why. */}
-            <span className="block w-28 py-3">
-              <PacingStrip shape={shape} selected={selected} />
-            </span>
-            <span className="block text-xs text-muted-foreground">{SHAPES[shape].description}</span>
-            {selected && detail?.[shape] && (
-              <span className="mt-1 block text-xs text-muted-foreground">{detail[shape]}</span>
-            )}
-          </button>
-          {selected && !open && !disabled && (
-            // Folded, the tick would restate the obvious — the one visible
-            // card IS the choice. Its place goes to the way out.
-            <Button variant="ghost" size="sm" className="shrink-0 text-muted-foreground" onClick={() => setChoosing(true)}>
-              Change
-            </Button>
-          )}
-          {selected && open && (
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              {/* Half the dot's width, so the tick sits in it rather than
-                  filling it to the edges. */}
-              <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
-            </span>
-          )}
-        </div>
-        {selected && openContent?.[shape] && (
-          <div className="border-t border-surface-selected-border p-3">{openContent[shape]}</div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className={cn('space-y-2', className)}>
-      {(open ? shapes : shapes.filter((shape) => shape === value)).map(row)}
-    </div>
-  );
-};
-
 /** Whole days a flight covers, both ends included. */
 export function flightDays(start?: Date, end?: Date): number {
   if (!start || !end) return 0;
@@ -321,6 +224,25 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
     return `≈ ${euro(Math.round(target * (p / 100) * 100) / 100)} a day`;
   };
 
+  // The hand-set cap renders in two places — the open chooser and the folded
+  // card (a required field never hides behind the fold) — so it is one node.
+  const dailyBudgetField = (
+    <div className="max-w-xs space-y-1.5">
+      <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
+      <Input
+        id="pacing-daily-budget"
+        type="number"
+        min="0"
+        placeholder="0.00"
+        value={dailyBudget}
+        onChange={(e) => onDailyBudgetChange(e.target.value)}
+      />
+      {!canPace && (
+        <FieldHint>Paced options need an end date — with an open-ended run time the cap is yours to set.</FieldHint>
+      )}
+    </div>
+  );
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Full width: the daily budget moved inside the pacing card, so the
@@ -328,26 +250,24 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
       {budgetField}
 
       <div className="space-y-2">
-        {/* The one selection component, in its settings-picker variant: a
-            required choice shows only its card — the trailing control opens
-            the chooser to change it, because remove makes no sense where a
-            spending rule must always exist. */}
-        <SearchSelectList
+        {/* The always-on rule, folded to itself: SettingsCard states the
+            chosen pacing and its settings glyph opens the chooser in place —
+            every shape a selectable card, the chosen one carrying its own
+            settings. Remove makes no sense where a spending rule must always
+            exist, so there is nothing but Change. */}
+        <SettingsCard
           label="Budget pacing"
-          multiple={false}
-          settingsPicker
-          placeholder="Search pacing…"
           options={(canPace ? allShapes : (['custom'] as PacingShape[])).map((sh) => ({
             value: sh,
             label: SHAPES[sh].title,
             description: SHAPES[sh].description,
           }))}
-          value={[shape]}
-          onChange={(vals) => {
-            const next = vals[vals.length - 1] as PacingShape | undefined;
-            onShapeChange(next ?? (canPace ? 'even' : 'custom'));
-          }}
-          renderSelectedExtra={(opt) => {
+          value={shape}
+          onChange={(v) => onShapeChange(v as PacingShape)}
+          // Folded is header-only — except the hand-set cap, a required field
+          // that must never hide behind the fold.
+          collapsedExtra={(opt) => (opt.value === 'custom' ? dailyBudgetField : undefined)}
+          renderOpenExtra={(opt) => {
             const sh = opt.value as PacingShape;
             return (
               <div className="space-y-2">
@@ -428,22 +348,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                     </FieldHint>
                   </div>
                 )}
-                {sh === 'custom' && (
-                  <div className="max-w-xs space-y-1.5">
-                    <Label htmlFor="pacing-daily-budget">Daily budget <span className="text-foreground">*</span></Label>
-                    <Input
-                      id="pacing-daily-budget"
-                      type="number"
-                      min="0"
-                      placeholder="0.00"
-                      value={dailyBudget}
-                      onChange={(e) => onDailyBudgetChange(e.target.value)}
-                    />
-                    {!canPace && (
-                      <FieldHint>Paced options need an end date — with an open-ended run time the cap is yours to set.</FieldHint>
-                    )}
-                  </div>
-                )}
+                {sh === 'custom' && dailyBudgetField}
               </div>
             );
           }}

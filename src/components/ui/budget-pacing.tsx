@@ -352,9 +352,13 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
             const sh = opt.value as PacingShape;
             return (
               <div className="space-y-2">
-                <span className="block w-28 pt-1">
-                  <PacingStrip shape={sh} selected />
-                </span>
+                {/* The sketch belongs to the PACED shapes — a flat bar under
+                    a cap the user types says nothing, so custom shows none. */}
+                {sh !== 'custom' && (
+                  <span className="block w-28 pt-1">
+                    <PacingStrip shape={sh} selected />
+                  </span>
+                )}
                 {(sh === 'even' || sh === 'frontloaded') && (
                   <p className="text-xs text-muted-foreground">
                     {shown != null && days > 0

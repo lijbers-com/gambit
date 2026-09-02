@@ -254,7 +254,7 @@ const StatefulSettingsCard: React.FC<{ open?: boolean }> = ({ open }) => {
       options={PACING_DEMO_OPTIONS}
       value={v}
       onChange={setV}
-      defaultOpen={open}
+      defaultSettingsOpen={open}
       renderOpenExtra={(opt) => (
         <p className="text-xs text-muted-foreground">
           The chosen option's own settings render here — an estimate, a date override, a cap.
@@ -924,8 +924,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   },
   'budget-pacing': { title: 'Budget pacing / Even (default)', group: 'Product surfaces', render: () => <StatefulPacing />, wide: true },
   'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
-  'settings-card': { title: 'Settings card / Folded', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard /> },
-  'settings-card--open': { title: 'Settings card / Choosing', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard open /> },
+  'settings-card': { title: 'Settings card / Resting', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard /> },
+  'settings-card--open': { title: 'Settings card / Settings unfolded', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard open /> },
   'toggle-card': { title: 'Toggle card', group: 'Inputs & controls', render: () => <StatefulToggleCard /> },
   'option-card': {
     title: 'Option card', group: 'Inputs & controls', wide: true,

@@ -250,11 +250,10 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
       {budgetField}
 
       <div className="space-y-2">
-        {/* The always-on rule, folded to itself: SettingsCard states the
-            chosen pacing and its settings glyph opens the chooser in place —
-            every shape a selectable card, the chosen one carrying its own
-            settings. Remove makes no sense where a spending rule must always
-            exist, so there is nothing but Change. */}
+        {/* The always-on rule: every shape on show, like the goals — no
+            fold hiding the alternatives. The chosen default sits light
+            (header + tick); its settings unfold the moment the user engages.
+            Remove makes no sense where a spending rule must always exist. */}
         <SettingsCard
           label="Budget pacing"
           options={(canPace ? allShapes : (['custom'] as PacingShape[])).map((sh) => ({
@@ -264,20 +263,19 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
           }))}
           value={shape}
           onChange={(v) => onShapeChange(v as PacingShape)}
-          // Folded is header-only — except the hand-set cap, a required field
-          // that must never hide behind the fold.
-          collapsedExtra={(opt) => (opt.value === 'custom' ? dailyBudgetField : undefined)}
+          // The hand-set cap is a required field — it may never hide, so it
+          // is pinned to the chosen card whether settings are unfolded or not.
+          pinnedExtra={(opt) => (opt.value === 'custom' ? dailyBudgetField : undefined)}
           renderOpenExtra={(opt) => {
             const sh = opt.value as PacingShape;
+            if (sh === 'custom') return undefined; // the cap is pinned; custom has no further settings
             return (
               <div className="space-y-2">
-                {/* The sketch belongs to the PACED shapes — a flat bar under
-                    a cap the user types says nothing, so custom shows none. */}
-                {sh !== 'custom' && (
-                  <span className="block w-28 pt-1">
-                    <PacingStrip shape={sh} selected />
-                  </span>
-                )}
+                {/* The sketch belongs to the PACED shapes — custom returned
+                    early above: a flat bar under a typed cap says nothing. */}
+                <span className="block w-28 pt-1">
+                  <PacingStrip shape={sh} selected />
+                </span>
                 {(sh === 'even' || sh === 'frontloaded') && (
                   <p className="text-xs text-muted-foreground">
                     {shown != null && days > 0
@@ -287,12 +285,11 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                       : 'Set a budget and a run time and the daily target is calculated here.'}
                   </p>
                 )}
-                {sh !== 'custom' && (
-                  /* Overrides belong to the paced rule they modify — a
-                     property of the chosen pacing, inside its card. Only the
-                     header carries a rule; a second line inside the body
-                     made the card read as stacked blocks. */
-                  <div className="space-y-2 pt-1">
+                {/* Overrides belong to the paced rule they modify — a
+                    property of the chosen pacing, inside its card. Only the
+                    header carries a rule; a second line inside the body
+                    made the card read as stacked blocks. */}
+                <div className="space-y-2 pt-1">
                     <Label className="block">Date overrides</Label>
                     <OverridePicker
                       disabledDays={disabledDays}
@@ -347,8 +344,6 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                       Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
                     </FieldHint>
                   </div>
-                )}
-                {sh === 'custom' && dailyBudgetField}
               </div>
             );
           }}

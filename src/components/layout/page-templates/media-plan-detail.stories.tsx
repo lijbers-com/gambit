@@ -25,7 +25,7 @@ import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
-import { Input } from '@/components/ui/input';
+import { Input, FieldHint } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
@@ -44,7 +44,7 @@ import { stageForGoal } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
-import { BudgetSelect } from '@/components/ui/budget-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
@@ -132,6 +132,65 @@ const propositionMeta: Record<EngineId, { icon: LucideIcon; label: string }> = {
   'offsite': { icon: Globe, label: 'Offsite' },
 };
 // Entity status → badge (campaign State + booking status share the treatment).
+/**
+ * The plan budget, without a split. Budgets are given to CAMPAIGNS, not
+ * divided over propositions from here — and a plan deliberately keeps free
+ * room so more campaigns can be added. So this popover edits one number,
+ * the ceiling, and shows what of it is committed vs still free.
+ */
+const PlanBudgetPopover: React.FC<{
+  total: number;
+  committed: number;
+  onApply: (next: number) => void;
+  className?: string;
+}> = ({ total, committed, onApply, className }) => {
+  const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState(String(total));
+  React.useEffect(() => { if (open) setDraft(String(total)); }, [open, total]);
+  const next = parseFloat(draft) || 0;
+  const free = Math.max(next - committed, 0);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn('h-9 justify-start gap-2 font-normal', className)}>
+          <Euro className="h-4 w-4 text-muted-foreground" />
+          <span className="truncate">€{total.toLocaleString()}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-80 space-y-4 p-4">
+        <div className="space-y-2">
+          <Label htmlFor="plan-budget-total">Total budget</Label>
+          <Input id="plan-budget-total" type="number" min="0" value={draft} onChange={(e) => setDraft(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <FillRateBar
+            total={Math.max(next, committed, 1)}
+            value={{ booked: committed, available: free }}
+            hoverTooltip={false}
+            height={10}
+          />
+          <div className="flex gap-4 text-[11px] text-muted-foreground">
+            <span>Committed to campaigns €{committed.toLocaleString()}</span>
+            <span>Free €{free.toLocaleString()}</span>
+          </div>
+          {next < committed && (
+            <p className="text-xs text-warning-700">
+              Below the €{committed.toLocaleString()} the campaigns already claim.
+            </p>
+          )}
+        </div>
+        <FieldHint>
+          Campaign budgets are set on the campaigns themselves — free room stays open for adding more.
+        </FieldHint>
+        <div className="flex justify-end gap-2 border-t pt-3">
+          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button size="sm" onClick={() => { onApply(next); setOpen(false); }}>Apply</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const statusBadge: Record<PlanStatus, { variant: 'success' | 'secondary' | 'warning' | 'outline'; label: string }> = {
   'running': { variant: 'success', label: 'Running' },
   'completed': { variant: 'secondary', label: 'Completed' },
@@ -1130,30 +1189,23 @@ export const MediaPlanDetail: Story = {
           {!inSetup && (
           <ControlBar className="mb-4">
             <ControlBarItem label="Media plan budget">
-              {/* The budget opens like the date field beside it: click, see
-                  the split per campaign, edit either the total (rows rescale)
-                  or a row (the total follows), Apply to commit. */}
-              <BudgetSelect
+              {/* One number: the ceiling. Budgets are given to campaigns,
+                  not split over propositions here — and free room is a
+                  feature, kept open so more campaigns can be added. */}
+              <PlanBudgetPopover
                 className="w-40"
                 total={plan?.budget ?? 0}
-                rows={db.campaigns
+                committed={db.campaigns
                   .filter((c) => c.mediaPlanId === plan?.id)
-                  .map((c) => ({ id: c.id, label: c.name, color: propositionColor(c.engine), budget: c.budget }))}
-                onApply={(nextTotal, budgets) => {
+                  .reduce((sum, c) => sum + c.budget, 0)}
+                onApply={(nextTotal) => {
                   if (!plan) return;
                   const prevBudget = plan.budget;
-                  const prevSplit = db.campaigns
-                    .filter((c) => c.mediaPlanId === plan.id)
-                    .map((c) => ({ id: c.id, budget: c.budget }));
                   updateMediaPlan(plan.id, { budget: nextTotal });
-                  Object.entries(budgets).forEach(([id, budget]) => updateCampaign(id, { budget }));
                   toast({
                     title: 'Media plan budget updated',
-                    description: `€${prevBudget.toLocaleString()} → €${nextTotal.toLocaleString()} across ${prevSplit.length} campaign${prevSplit.length === 1 ? '' : 's'}.`,
-                    undo: () => {
-                      updateMediaPlan(plan.id, { budget: prevBudget });
-                      prevSplit.forEach(({ id, budget }) => updateCampaign(id, { budget }));
-                    },
+                    description: `€${prevBudget.toLocaleString()} → €${nextTotal.toLocaleString()}. Campaign budgets are untouched.`,
+                    undo: () => updateMediaPlan(plan.id, { budget: prevBudget }),
                   });
                 }}
               />

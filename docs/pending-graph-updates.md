@@ -45,6 +45,23 @@ faq-configuration, bookings-overview, campaign-details, …) each owe one page s
 the same pattern: get_block the content_page in `product` for its slug, then
 create_block with route + uses.
 
+### 0b. Design-system standards adoption (2026-09-02)
+
+The updated `epicontext-design/design-system-standards` skill now requires
+WRITTEN fundamentals and Carbon-style spec tables. Landed: `spacing`,
+`colour-roles`, `type-scale` fundamentals (group: Fundamentals) + the
+`spacing-scale` preview registry entry. Still owed:
+
+- **Per-component Structure tables** — `Element | Property | px/rem | Spacing
+  token` rows on every component spec, read off the shipping class strings
+  (option-card and search-select-list already carry partial Specs tables; the
+  other ~35 specs need the pass).
+- **Iconography + motion fundamentals** — two more `group: Fundamentals`
+  specs (lucide 14/16px conventions; transition durations).
+- Health also flags 23 orphans (decisions/ADRs with no edges) and the
+  missing marketing anchor — outside the design system, listed in
+  `check_project_health`.
+
 ### 1. UPDATE — the blocks the wizard/approval work invalidated
 
 Read first with `get_context_for_task`, then update.

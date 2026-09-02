@@ -16,14 +16,14 @@ import {
 import { Table, type TableColumn } from '@/components/ui/table';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { FormSection } from '@/components/ui/form-section';
-import { GoalCard } from '@/components/ui/goal-card';
+import { GoalSelect } from '@/components/ui/goal-select';
+import { CheckboxCard } from '@/components/ui/checkbox-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FillRateBar } from '@/components/ui/fill-rate-bar';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RetailProductSelect } from '@/components/ui/retail-product-select';
 import { Input, FieldHint } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
-import { Euro, Lock, MoreHorizontal, Pencil } from 'lucide-react';
+import { Euro, FlaskConical, Lock, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -40,7 +40,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { retailMoments } from '@/lib/retail-moments';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
-import { stageForGoal } from '@/lib/funnel';
+import { stageForGoal, funnelKpis } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
@@ -1350,9 +1350,12 @@ export const MediaPlanDetail: Story = {
 
                     <FormSection title="Goals & objectives" bordered>
                       <div className="space-y-5">
-                        {/* Only the chosen goal — showing all four invited a
-                            change the plan's KPIs and reporting can't absorb,
-                            and took four cards to say one thing. */}
+                        {/* The wizard's own goal card, one card only: the goal
+                            is fixed once the plan exists (the KPIs and the
+                            reporting hang off it), so the alternatives are not
+                            shown — but what IS shown reads exactly like the
+                            wizard: the goal with its KPI columns, and the
+                            objective and KPIs inside the goal's own card. */}
                         <div className="space-y-2">
                           <Label className="flex items-center gap-1.5 text-muted-foreground">
                             Media plan goal
@@ -1360,40 +1363,103 @@ export const MediaPlanDetail: Story = {
                           </Label>
                           {(() => {
                             const g = goals.find((x) => x.id === goal);
-                            return g ? (
-                              <GoalCard icon={g.icon} title={g.title} description={g.description} kpis={g.kpis} selected readOnly className="w-full" />
-                            ) : (
-                              <div className="flex min-h-9 items-center rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                                No goal set
-                              </div>
+                            if (!g) {
+                              return (
+                                <div className="flex min-h-9 items-center rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                                  No goal set
+                                </div>
+                              );
+                            }
+                            const stage = stageForGoal[g.id];
+                            const k = stage ? funnelKpis[stage] : undefined;
+                            return (
+                              <GoalSelect
+                                goals={[{
+                                  id: g.id,
+                                  icon: g.icon,
+                                  title: g.title,
+                                  description: g.description,
+                                  brandKpis: k?.brand ?? [],
+                                  mediaKpis: k?.media ?? [],
+                                  salesKpis: k?.sales ?? [],
+                                }]}
+                                value={goal}
+                                onChange={() => {}}
+                                openContent={(
+                                  <>
+                                    <ReadOnlyField
+                                      label="Objective"
+                                      value={objectiveOptions.find((o) => o.value === objective)?.label}
+                                      hint={objective ? describeObjective(objective) : 'Set when the media plan was created'}
+                                    />
+                                    <SearchSelectList
+                                      label="KPIs"
+                                      placeholder="Search KPIs…"
+                                      options={kpiFilterOptions}
+                                      value={kpis}
+                                      onChange={(vals) => { setKpis(vals); setKpiStudies((s) => s.filter((v) => vals.includes(v))); }}
+                                      renderSelectedExtra={(opt) => (
+                                        <CheckboxCard
+                                          icon={<FlaskConical />}
+                                          title="Add a brand-lift study"
+                                          description="Measures the uplift this KPI drives against a control group."
+                                          checked={kpiStudies.includes(opt.value)}
+                                          onCheckedChange={(c) => setKpiStudies((s) => (c ? [...s, opt.value] : s.filter((v) => v !== opt.value)))}
+                                        />
+                                      )}
+                                    />
+                                  </>
+                                )}
+                              />
                             );
                           })()}
                           <p className="text-xs text-muted-foreground">
                             The goal sets the objective and the KPIs this plan is judged on
                           </p>
                         </div>
-                        <ReadOnlyField
-                          label="Objective"
-                          value={objectiveOptions.find((o) => o.value === objective)?.label}
-                          hint={objective ? describeObjective(objective) : undefined}
-                        />
-                        <SearchSelectList
-                          label="KPIs"
-                          placeholder="Search KPIs…"
-                          options={kpiFilterOptions}
-                          value={kpis}
-                          onChange={(vals) => { setKpis(vals); setKpiStudies((s) => s.filter((v) => vals.includes(v))); }}
-                          selectedExtraBoxed
-                          renderSelectedExtra={(opt) => (
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                              <Checkbox
-                                checked={kpiStudies.includes(opt.value)}
-                                onCheckedChange={(c) => setKpiStudies((s) => (c ? [...s, opt.value] : s.filter((v) => v !== opt.value)))}
-                              />
-                              Add a brand-lift study to measure this KPI
-                            </label>
-                          )}
-                        />
+                      </div>
+                    </FormSection>
+
+                    {/* What the plan may spend and when it runs — the SAME
+                        live controls the control bar carries, so an edit here
+                        and an edit there can never fight (both write to the
+                        store directly; Save changes below does not touch
+                        them). In setup, where the control bar steps aside,
+                        this is the one place to reach them. */}
+                    <FormSection title="Run time & budget" bordered>
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label>Media plan run time</Label>
+                          <DatesCell
+                            className="h-9 w-full max-w-xs text-sm font-normal"
+                            start={plan?.startDate}
+                            end={plan?.endDate}
+                            onSave={(startDate, endDate) => plan && updateMediaPlan(plan.id, { startDate, endDate })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="block">Media plan budget</Label>
+                          <PlanBudgetPopover
+                            className="w-full max-w-xs"
+                            total={plan?.budget ?? 0}
+                            committed={db.campaigns
+                              .filter((c) => c.mediaPlanId === plan?.id)
+                              .reduce((sum, c) => sum + c.budget, 0)}
+                            onApply={(nextTotal) => {
+                              if (!plan) return;
+                              const prevBudget = plan.budget;
+                              updateMediaPlan(plan.id, { budget: nextTotal });
+                              toast({
+                                title: 'Media plan budget updated',
+                                description: `€${prevBudget.toLocaleString()} → €${nextTotal.toLocaleString()}. Campaign budgets are untouched.`,
+                                undo: () => updateMediaPlan(plan.id, { budget: prevBudget }),
+                              });
+                            }}
+                          />
+                          <FieldHint>
+                            The ceiling, applied immediately. Campaign budgets are set on the campaigns themselves — free room stays open for adding more.
+                          </FieldHint>
+                        </div>
                       </div>
                     </FormSection>
 

@@ -19,6 +19,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FillRateBar } from '@/components/ui/fill-rate-bar';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
@@ -30,7 +31,7 @@ import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { allocateBudget } from '@/lib/budget-allocation';
-import { Euro, Lock, Pencil } from 'lucide-react';
+import { Euro, Lock, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import type { DateRange } from 'react-day-picker';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
@@ -46,7 +47,7 @@ import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { BudgetSelect } from '@/components/ui/budget-select';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -833,6 +834,9 @@ export const MediaPlanDetail: Story = {
      * be picked: the rest stay findable but unselectable, each saying why,
      * with Edit as the way out.
      */
+    /** The row menu's Delete goes through a confirmation that names the
+     *  object — deleting a campaign takes its bookings with it. */
+    const [deleteTarget, setDeleteTarget] = React.useState<{ type: 'campaign' | 'booking'; id: string; name: string } | null>(null);
     const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
     const [pickPropFilter, setPickPropFilter] = React.useState<string[]>([]);
     const [pickStateFilter, setPickStateFilter] = React.useState<string[]>([]);
@@ -1495,7 +1499,38 @@ export const MediaPlanDetail: Story = {
                           </button>
                         );
                       }}
-                      hideActions
+                      // The row menu users asked for: edit opens the record,
+                      // delete confirms first. The CTA rows carry none.
+                      rowActions={(r) => {
+                        if (r._type === 'add') return null;
+                        const seg = routeSeg[r.engine ?? 'display'];
+                        const editHref = r._type === 'campaign'
+                          ? `/campaigns/${seg}/${r._id}`
+                          : r.engine === 'sponsored-products'
+                            ? `/campaigns/${seg}/${db.bookings.find((b) => b.id === r._id)?.campaignId ?? r._id}`
+                            : `/campaigns/${seg}/booking/${r._id}`;
+                        return (
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="flex h-8 w-8 items-center justify-center rounded hover:bg-neutral-100 focus:outline-none" aria-label={`Actions for ${r.name}`}>
+                                  <MoreHorizontal className="h-5 w-5" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => { if (typeof window !== 'undefined') window.location.href = editHref; }}>Edit</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteTarget({ type: r._type as 'campaign' | 'booking', id: r._id, name: r.name })}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </span>
+                        );
+                      }}
                       // A plan without campaigns explains itself and offers
                       // the fix in place — same menu as the header button.
                       emptyState={
@@ -1661,6 +1696,36 @@ export const MediaPlanDetail: Story = {
             </RightDrawerBody>
           </RightDrawerContent>
         </RightDrawer>
+      {/* Delete confirmation — names the object; a campaign takes its
+          bookings with it, and there is no undo for a delete. */}
+      {deleteTarget && (
+      <Dialog open onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete {deleteTarget.type === 'campaign' ? 'campaign' : 'booking'}?</DialogTitle>
+            <DialogDescription>
+              {deleteTarget.name}
+              {deleteTarget.type === 'campaign' ? ' and its bookings will be deleted.' : ' will be deleted.'} This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteTarget.type === 'campaign') deleteCampaign(deleteTarget.id);
+                else deleteBooking(deleteTarget.id);
+                toast({ title: `${deleteTarget.type === 'campaign' ? 'Campaign' : 'Booking'} deleted`, description: deleteTarget.name });
+                setDeleteTarget(null);
+              }}
+            >
+              Delete {deleteTarget.type === 'campaign' ? 'campaign' : 'booking'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
+
       {/* ── Add existing campaign — the picker ─────────────────────────────
           Leads with what is FREE on the plan, then a filterable, sortable
           table of candidates; rows expand into their bookings. Only fitting

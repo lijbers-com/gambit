@@ -19,7 +19,7 @@ import { FormSection } from '@/components/ui/form-section';
 import { GoalCard } from '@/components/ui/goal-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
-import { LinkPickerDialog } from '@/components/ui/link-picker';
+import { FillRateBar } from '@/components/ui/fill-rate-bar';
 import { ReadOnlyField } from '@/components/ui/read-only-field';
 import { SearchSelectList } from '@/components/ui/search-select-list';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -824,67 +824,117 @@ export const MediaPlanDetail: Story = {
      * automatically or typed into the row — asking again here would duplicate
      * both.
      */
-    // "Add existing campaign" — relink a campaign from elsewhere into this
-    // plan, picked from a searchable table like every other link change.
-    const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
-    const existingCampaignOptions = db.campaigns
-      .filter((c) => c.mediaPlanId !== plan?.id)
-      .map((c) => ({
-        value: c.id,
-        label: c.name,
-        details: {
-          Proposition: propositionMeta[c.engine].label,
-          Status: c.status,
-          Budget: fmtEuro(c.budget),
-          'Current plan': db.mediaPlans.find((mp) => mp.id === c.mediaPlanId)?.name ?? '—',
-        },
-      }));
     /**
-     * Linking is approved, not just done: the picked campaign first shows a
-     * confirm dialog stating what taking it in DOES to the plan — a campaign
-     * that does not fit widens the plan (bigger budget, longer run time),
-     * and that consequence has to be seen and approved before it happens.
+     * "Add existing campaign" — a full picker, not a bare list. The dialog
+     * leads with the plan's budget bar (what is FREE is the point), filters
+     * by proposition / status / run time / budget, and lists campaigns as a
+     * sortable table whose rows expand into their bookings. For now only a
+     * campaign that fits INSIDE the free budget and the plan's run time can
+     * be picked: the rest stay findable but unselectable, each saying why,
+     * with Edit as the way out.
+     */
+    const [linkExistingOpen, setLinkExistingOpen] = React.useState(false);
+    const [pickPropFilter, setPickPropFilter] = React.useState<string[]>([]);
+    const [pickStateFilter, setPickStateFilter] = React.useState<string[]>([]);
+    const [pickBudgetFilter, setPickBudgetFilter] = React.useState<string[]>([]);
+    const [pickRange, setPickRange] = React.useState<DateRange | undefined>(undefined);
+    const [pickSearch, setPickSearch] = React.useState('');
+    const [pickExpanded, setPickExpanded] = React.useState<string[]>([]);
+    const [pickSelectedId, setPickSelectedId] = React.useState<string | undefined>(undefined);
+
+    const claimedBudget = plan
+      ? db.campaigns.filter((c) => c.mediaPlanId === plan.id).reduce((sum, c) => sum + c.budget, 0)
+      : 0;
+    const freeBudget = plan ? Math.max(plan.budget - claimedBudget, 0) : 0;
+
+    type PickRow = {
+      _kind: 'campaign' | 'booking';
+      id: string; parentId: string; childIdx: number;
+      name: string; engine: EngineId; budget: number;
+      startDate: string; endDate: string; status: PlanStatus;
+      fits: boolean; fitReason?: string;
+      // Sorting reads the PARENT's values so expanded bookings travel with
+      // their campaign instead of scattering through the list.
+      sortName: string; sortBudget: number; sortStart: string; sortStatus: string;
+    };
+
+    const pickRows: PickRow[] = React.useMemo(() => {
+      if (!plan) return [];
+      const iso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
+      const rFrom = iso(pickRange?.from);
+      const rTo = iso(pickRange?.to);
+      const q = pickSearch.trim().toLowerCase();
+      const candidates = db.campaigns
+        .filter((c) => c.mediaPlanId !== plan.id)
+        .filter((c) => pickPropFilter.length === 0 || pickPropFilter.includes(c.engine))
+        .filter((c) => pickStateFilter.length === 0 || pickStateFilter.includes(c.status))
+        .filter((c) => {
+          if (pickBudgetFilter.length === 0) return true;
+          return pickBudgetFilter.some((b) =>
+            b === 'lt5' ? c.budget < 5000 : b === '5to15' ? c.budget >= 5000 && c.budget <= 15000 : c.budget > 15000,
+          );
+        })
+        // Run time filter = overlap with the picked range.
+        .filter((c) => (!rFrom || c.endDate >= rFrom) && (!rTo || c.startDate <= rTo))
+        .filter((c) => !q || c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
+      return candidates.flatMap((c) => {
+        const overBudget = c.budget > freeBudget;
+        const outsideRuntime = c.startDate < plan.startDate || c.endDate > plan.endDate;
+        const fits = !overBudget && !outsideRuntime;
+        const fitReason = fits
+          ? undefined
+          : overBudget && outsideRuntime
+            ? 'Outside the free budget and the run time'
+            : overBudget
+              ? `Needs ${fmtEuro(c.budget)} — ${fmtEuro(freeBudget)} free`
+              : 'Runs outside the plan run time';
+        const base = {
+          parentId: c.id, engine: c.engine, fits, fitReason,
+          sortName: c.name.toLowerCase(), sortBudget: c.budget, sortStart: c.startDate, sortStatus: c.status,
+        };
+        const bookings = db.bookings.filter((b) => b.campaignId === c.id);
+        return [
+          { ...base, _kind: 'campaign' as const, id: c.id, childIdx: 0, name: c.name, budget: c.budget, startDate: c.startDate, endDate: c.endDate, status: c.status },
+          ...(pickExpanded.includes(c.id)
+            ? bookings.map((b, i) => ({
+                ...base, _kind: 'booking' as const, id: b.id, childIdx: i + 1,
+                name: b.name, budget: b.budget, startDate: b.startDate, endDate: b.endDate, status: b.status,
+              }))
+            : []),
+        ];
+      });
+    }, [plan, db.campaigns, db.bookings, pickPropFilter, pickStateFilter, pickBudgetFilter, pickRange, pickSearch, pickExpanded, freeBudget]);
+
+    /** Child rows sort by their parent's value, then stay in booking order. */
+    const bySortField = (field: 'sortName' | 'sortBudget' | 'sortStart' | 'sortStatus') =>
+      (a: PickRow, b: PickRow) => {
+        const av = a[field]; const bv = b[field];
+        if (av !== bv) return av < bv ? -1 : 1;
+        if (a.parentId !== b.parentId) return a.parentId < b.parentId ? -1 : 1;
+        return a.childIdx - b.childIdx;
+      };
+
+    const pickSelected = pickSelectedId ? db.campaigns.find((c) => c.id === pickSelectedId) : undefined;
+
+    /**
+     * The approval after the pick is SIMPLE by design: only fitting campaigns
+     * are selectable, so nothing on the plan changes — the dialog shows the
+     * addition on the budget bar, the run time inside the plan's, and Approve.
      */
     const [pendingExistingId, setPendingExistingId] = React.useState<string | undefined>(undefined);
     const pendingExisting = pendingExistingId ? db.campaigns.find((x) => x.id === pendingExistingId) : undefined;
-    const pendingImplications = React.useMemo(() => {
-      if (!plan || !pendingExisting) return undefined;
-      const claimed =
-        db.campaigns.filter((c) => c.mediaPlanId === plan.id).reduce((sum, c) => sum + c.budget, 0)
-        + pendingExisting.budget;
-      const newBudget = Math.max(plan.budget, claimed);
-      const newStart = pendingExisting.startDate < plan.startDate ? pendingExisting.startDate : plan.startDate;
-      const newEnd = pendingExisting.endDate > plan.endDate ? pendingExisting.endDate : plan.endDate;
-      return {
-        budgetChanges: newBudget !== plan.budget,
-        datesChange: newStart !== plan.startDate || newEnd !== plan.endDate,
-        newBudget,
-        newStart,
-        newEnd,
-      };
-    }, [plan, pendingExisting, db.campaigns]);
 
     const approveExistingCampaign = () => {
-      if (!plan || !pendingExisting || !pendingImplications) return;
+      if (!plan || !pendingExisting) return;
       const prevPlanId = pendingExisting.mediaPlanId;
-      const prev = { budget: plan.budget, startDate: plan.startDate, endDate: plan.endDate };
       updateCampaign(pendingExisting.id, { mediaPlanId: plan.id });
-      if (pendingImplications.budgetChanges || pendingImplications.datesChange) {
-        updateMediaPlan(plan.id, {
-          budget: pendingImplications.newBudget,
-          startDate: pendingImplications.newStart,
-          endDate: pendingImplications.newEnd,
-        });
-      }
       toast({
         title: 'Campaign added to this plan',
         description: pendingExisting.name,
-        undo: () => {
-          updateCampaign(pendingExisting.id, { mediaPlanId: prevPlanId });
-          updateMediaPlan(plan.id, prev);
-        },
+        undo: () => updateCampaign(pendingExisting.id, { mediaPlanId: prevPlanId }),
       });
       setPendingExistingId(undefined);
+      setPickSelectedId(undefined);
     };
 
     /** Open the campaign wizard for the chosen proposition, inside this plan.
@@ -1611,58 +1661,195 @@ export const MediaPlanDetail: Story = {
             </RightDrawerBody>
           </RightDrawerContent>
         </RightDrawer>
-        <LinkPickerDialog
-        open={linkExistingOpen}
-        onOpenChange={setLinkExistingOpen}
-        entityLabel="campaign"
-        options={existingCampaignOptions}
-        onChange={(id) => setPendingExistingId(id || undefined)}
-      />
-      {/* The approval between picking and linking: what taking this campaign
-          in does to the plan, shown before it happens. */}
-      <Dialog open={!!pendingExisting} onOpenChange={(o) => { if (!o) setPendingExistingId(undefined); }}>
-        <DialogContent className="sm:max-w-md">
+      {/* ── Add existing campaign — the picker ─────────────────────────────
+          Leads with what is FREE on the plan, then a filterable, sortable
+          table of candidates; rows expand into their bookings. Only fitting
+          campaigns are selectable; the rest say why and offer Edit. */}
+      {plan && (
+      <Dialog open={linkExistingOpen} onOpenChange={(o) => { setLinkExistingOpen(o); if (!o) setPickSelectedId(undefined); }}>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Add {pendingExisting?.name} to this plan?</DialogTitle>
+            <DialogTitle>Add existing campaign</DialogTitle>
             <DialogDescription>
-              {pendingImplications?.budgetChanges || pendingImplications?.datesChange
-                ? 'The campaign does not fit the plan as it stands — approving widens the plan to cover it. The campaign itself is left as it is.'
-                : 'It fits inside the plan’s budget and run time — nothing on the plan changes.'}
+              Pick a campaign that fits inside the plan&rsquo;s free budget and run time — the rest stay listed, with why they don&rsquo;t fit.
             </DialogDescription>
           </DialogHeader>
-          {plan && pendingExisting && pendingImplications && (pendingImplications.budgetChanges || pendingImplications.datesChange) && (
-            <div className="space-y-2 rounded-md border border-warning-200 bg-warning-50 p-3 text-warning-700">
-              <p className="text-xs font-medium">What changes on the plan</p>
-              <ul className="space-y-1 text-xs">
-                {pendingImplications.budgetChanges && (
-                  <li>
-                    Budget: {fmtEuro(plan.budget)} → <span className="font-medium">{fmtEuro(pendingImplications.newBudget)}</span>
-                    {' '}(+{fmtEuro(pendingImplications.newBudget - plan.budget)} to cover the campaign’s {fmtEuro(pendingExisting.budget)})
-                  </li>
-                )}
-                {pendingImplications.datesChange && (() => {
-                  /* Ranges get en-dashes here so the one arrow reads as
-                     old → new, not a chain of four dates. */
-                  const range = (a: string, b: string) => `${fmtDate(a)} – ${fmtDate(b)}`;
-                  return (
-                    <li>
-                      Run time: {range(plan.startDate, plan.endDate)} →{' '}
-                      <span className="font-medium">{range(pendingImplications.newStart, pendingImplications.newEnd)}</span>
-                      {' '}to cover the campaign’s {range(pendingExisting.startDate, pendingExisting.endDate)}
-                    </li>
-                  );
-                })()}
-              </ul>
+
+          {/* The plan's budget, free space first. */}
+          <div className="space-y-2 rounded-md border border-border bg-neutral-50 p-3">
+            <div className="flex items-baseline justify-between gap-3 text-xs">
+              <span className="font-medium">{fmtEuro(freeBudget)} free of {fmtEuro(plan.budget)}</span>
+              <span className="text-muted-foreground">Run time {fmtDate(plan.startDate)} – {fmtDate(plan.endDate)}</span>
             </div>
-          )}
+            <FillRateBar
+              total={plan.budget}
+              value={{ booked: claimedBudget, reserved: pickSelected ? pickSelected.budget : 0, available: Math.max(freeBudget - (pickSelected?.budget ?? 0), 0) }}
+              segmentLabels={{ booked: 'Committed', reserved: pickSelected ? pickSelected.name : 'Selected', available: 'Free' }}
+              hoverTooltip={false}
+              height={10}
+            />
+            <div className="flex gap-4 text-[11px] text-muted-foreground">
+              <span>Committed {fmtEuro(claimedBudget)}</span>
+              {pickSelected && <span>Selected {fmtEuro(pickSelected.budget)}</span>}
+              <span>Free {fmtEuro(Math.max(freeBudget - (pickSelected?.budget ?? 0), 0))}</span>
+            </div>
+          </div>
+
+          {/* Filters: proposition / status as the page's own filter bar,
+              run time and budget beside it. */}
+          <div className="flex flex-wrap items-start gap-3">
+            <FilterBar
+              className="min-w-0 flex-1"
+              filters={[
+                {
+                  name: 'Proposition',
+                  options: (Object.keys(propositionMeta) as EngineId[]).map((e) => ({ label: propositionMeta[e].label, value: e })),
+                  selectedValues: pickPropFilter,
+                  onChange: setPickPropFilter,
+                },
+                {
+                  name: 'Status',
+                  options: (Object.keys(statusBadge) as PlanStatus[]).map((st) => ({ label: statusBadge[st].label, value: st })),
+                  selectedValues: pickStateFilter,
+                  onChange: setPickStateFilter,
+                },
+                {
+                  name: 'Budget',
+                  options: [
+                    { label: '< €5,000', value: 'lt5' },
+                    { label: '€5,000 – €15,000', value: '5to15' },
+                    { label: '> €15,000', value: 'gt15' },
+                  ],
+                  selectedValues: pickBudgetFilter,
+                  onChange: setPickBudgetFilter,
+                },
+              ]}
+              searchValue={pickSearch}
+              onSearchChange={setPickSearch}
+              searchPlaceholder="Search campaigns..."
+            />
+            <div className="w-56 shrink-0">
+              <DateRangePicker
+                dateRange={pickRange}
+                onDateRangeChange={setPickRange}
+                placeholder="Run time"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-80 overflow-y-auto">
+            <Table<PickRow>
+              columns={[
+                {
+                  key: 'name', header: 'Name', sortable: true, sortFn: bySortField('sortName'),
+                  render: (r) => {
+                    const Icon = propositionMeta[r.engine].icon;
+                    return (
+                      <span className={cn('flex min-w-0 items-center gap-2', !r.fits && 'opacity-50')}>
+                        {r._kind === 'campaign' && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                        <span className="truncate">{r.name}</span>
+                      </span>
+                    );
+                  },
+                },
+                { key: 'externalId', header: 'External ID', sortable: true, sortFn: (a, b) => bySortField('sortName')(a, b), render: (r) => <span className={cn('text-muted-foreground', !r.fits && 'opacity-50')}>{r.id}</span> },
+                { key: 'budget', header: 'Budget', sortable: true, sortFn: bySortField('sortBudget'), render: (r) => <span className={cn('tabular-nums', !r.fits && 'opacity-50')}>{fmtEuro(r.budget)}</span> },
+                { key: 'runtime', header: 'Run time', sortable: true, sortFn: bySortField('sortStart'), render: (r) => <span className={cn(!r.fits && 'opacity-50')}>{fmtRange(r.startDate, r.endDate)}</span> },
+                {
+                  key: 'status', header: 'Status', sortable: true, sortFn: bySortField('sortStatus'),
+                  render: (r) => <span className={cn(!r.fits && 'opacity-50')}><Badge variant={statusBadge[r.status].variant}>{statusBadge[r.status].label}</Badge></span>,
+                },
+                {
+                  key: 'fit', header: '',
+                  render: (r) => {
+                    if (r._kind !== 'campaign' || r.fits) return null;
+                    return (
+                      <span className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                        <span className="max-w-48 truncate" title={r.fitReason}>{r.fitReason}</span>
+                        {/* Editing the campaign is the way to MAKE it fit. */}
+                        <Button
+                          variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs"
+                          onClick={(e) => { e.stopPropagation(); window.location.href = `/campaigns/${routeSeg[r.engine]}/${r.id}`; }}
+                        >
+                          <Pencil className="h-3 w-3" /> Edit
+                        </Button>
+                      </span>
+                    );
+                  },
+                },
+              ]}
+              data={pickRows}
+              rowKey={(r) => `${r._kind}-${r.id}`}
+              hideActions
+              hideRefreshedAt
+              expandable={{
+                isExpandable: (r) => r._kind === 'campaign' && db.bookings.some((b) => b.campaignId === r.id),
+                isExpanded: (r) => r._kind === 'campaign' && pickExpanded.includes(r.id),
+                onToggle: (r) => setPickExpanded((prev) => prev.includes(r.id) ? prev.filter((x) => x !== r.id) : [...prev, r.id]),
+                isChild: (r) => r._kind === 'booking',
+                getLabel: (r, expanded) => `${expanded ? 'Collapse' : 'Expand'} ${r.name}`,
+              }}
+              onRowClick={(r) => { if (r._kind === 'campaign' && r.fits) setPickSelectedId((prev) => (prev === r.id ? undefined : r.id)); }}
+              rowClassName={(r) =>
+                cn(
+                  r._kind === 'campaign' && r.fits && 'cursor-pointer',
+                  r._kind === 'campaign' && !r.fits && 'cursor-not-allowed',
+                  r._kind === 'campaign' && pickSelectedId === r.id && 'bg-surface-selected',
+                )
+              }
+              emptyState={<span className="text-sm text-muted-foreground">No campaigns match these filters.</span>}
+            />
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingExistingId(undefined)}>Cancel</Button>
-            <Button onClick={approveExistingCampaign}>
-              {pendingImplications?.budgetChanges || pendingImplications?.datesChange ? 'Approve and adjust plan' : 'Add campaign'}
+            <Button variant="outline" onClick={() => { setLinkExistingOpen(false); setPickSelectedId(undefined); }}>Cancel</Button>
+            <Button
+              disabled={!pickSelected}
+              onClick={() => { setLinkExistingOpen(false); setPendingExistingId(pickSelectedId); }}
+            >
+              Continue
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
+
+      {/* ── The approval — clean and simple ────────────────────────────────
+          Only fitting campaigns reach this point, so nothing on the plan
+          changes: the addition on the budget bar, the run time, Approve. */}
+      {plan && pendingExisting && (
+      <Dialog open onOpenChange={(o) => { if (!o) setPendingExistingId(undefined); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add {pendingExisting.name}?</DialogTitle>
+            <DialogDescription>
+              It fits inside the plan&rsquo;s budget and run time — nothing on the plan changes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 rounded-md border border-border bg-neutral-50 p-3">
+            <FillRateBar
+              total={plan.budget}
+              value={{ booked: claimedBudget, reserved: pendingExisting.budget, available: Math.max(freeBudget - pendingExisting.budget, 0) }}
+              segmentLabels={{ booked: 'Committed', reserved: pendingExisting.name, available: 'Free' }}
+              hoverTooltip={false}
+              height={10}
+            />
+            <div className="flex gap-4 text-[11px] text-muted-foreground">
+              <span>Committed {fmtEuro(claimedBudget)}</span>
+              <span>+ {fmtEuro(pendingExisting.budget)} this campaign</span>
+              <span>{fmtEuro(Math.max(freeBudget - pendingExisting.budget, 0))} left free</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Runs {fmtDate(pendingExisting.startDate)} – {fmtDate(pendingExisting.endDate)}, inside the plan&rsquo;s {fmtDate(plan.startDate)} – {fmtDate(plan.endDate)}.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPendingExistingId(undefined); setLinkExistingOpen(true); }}>Back</Button>
+            <Button onClick={approveExistingCampaign}>Approve</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
       </AppLayout>
       </MenuContextProvider>
     );

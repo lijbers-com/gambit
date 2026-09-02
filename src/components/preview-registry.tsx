@@ -46,6 +46,7 @@ import { BarChartComponent } from './ui/bar-chart';
 import { LineChartComponent } from './ui/line-chart';
 import { PieChartComponent } from './ui/pie-chart';
 import { onlineTargetGroups } from '@/lib/target-groups';
+import { cn } from '@/lib/utils';
 import { TablePagination } from './ui/table-pagination';
 import { FormSection } from './ui/form-section';
 import { NotificationDot } from './ui/notification-dot';
@@ -127,6 +128,7 @@ export interface PreviewEntry {
   title: string;
   /** Functional group, matching the design-system chapter's navigation. */
   group:
+    | 'Fundamentals'
     | 'Actions'
     | 'Inputs & controls'
     | 'Containment'
@@ -245,6 +247,50 @@ const PACING_DEMO_OPTIONS = [
   { value: 'frontloaded', label: 'Frontloaded', description: 'Spends faster in the first days, then eases off — buys reach early.' },
   { value: 'custom', label: 'Daily budget', description: 'You set the cap. Delivery stops for the day once it is reached.' },
 ];
+
+/**
+ * The spacing fundamental, rendered from the REAL utility classes — every bar
+ * is the actual Tailwind width, so the scale shown is the scale shipped.
+ * No custom spacing exists in tailwind.config.js: the grid is Tailwind's
+ * 4px base, and these are the steps the house patterns actually use.
+ */
+const SpacingScale: React.FC = () => (
+  <div className="w-full max-w-xl space-y-6">
+    <div className="space-y-2">
+      {[
+        { cls: 'w-1', name: '1', px: '4px', use: 'micro gaps — control clusters (gap-1)' },
+        { cls: 'w-1.5', name: '1.5', px: '6px', use: 'icon to label (gap-1.5) · label to field (space-y-1.5)' },
+        { cls: 'w-2', name: '2', px: '8px', use: 'stacked cards and list rows (space-y-2, gap-2)' },
+        { cls: 'w-3', name: '3', px: '12px', use: 'the card section unit — OptionCard/ToggleCard p-3, body space-y-3' },
+        { cls: 'w-4', name: '4', px: '16px', use: 'compact card padding (p-4) · page grids (gap-4)' },
+        { cls: 'w-6', name: '6', px: '24px', use: 'card padding (p-6) · section gaps (gap-6)' },
+      ].map((step) => (
+        <div key={step.name} className="flex items-center gap-3">
+          <span className={cn('block h-3 shrink-0 rounded-[2px] bg-primary/70', step.cls)} />
+          <span className="w-16 shrink-0 text-xs font-medium tabular-nums">{step.name} · {step.px}</span>
+          <span className="min-w-0 truncate text-xs text-muted-foreground">{step.use}</span>
+        </div>
+      ))}
+    </div>
+    <div className="flex items-end gap-6">
+      {[
+        { cls: 'rounded-sm', label: 'sm 4px' },
+        { cls: 'rounded-md', label: 'md 6px — inputs, option cards' },
+        { cls: 'rounded-lg', label: 'lg 8px (--radius)' },
+        { cls: 'rounded-xl', label: 'xl 12px — cards' },
+      ].map((r) => (
+        <div key={r.cls} className="flex flex-col items-start gap-1.5">
+          <span className={cn('block h-9 w-14 border border-border bg-background', r.cls)} />
+          <span className="text-[11px] text-muted-foreground">{r.label}</span>
+        </div>
+      ))}
+      <div className="flex flex-col items-start gap-1.5">
+        <span className="flex h-9 w-28 items-center rounded-md border border-input px-3 text-xs text-muted-foreground">h-9 · 36px</span>
+        <span className="text-[11px] text-muted-foreground">field & button height</span>
+      </div>
+    </div>
+  </div>
+);
 
 const StatefulSettingsCard: React.FC<{ open?: boolean }> = ({ open }) => {
   const [v, setV] = React.useState('even');
@@ -924,6 +970,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   },
   'budget-pacing': { title: 'Budget pacing / Even (default)', group: 'Product surfaces', render: () => <StatefulPacing />, wide: true },
   'budget-pacing--custom': { title: 'Budget pacing / Custom daily budget', group: 'Product surfaces', render: () => <StatefulPacing custom />, wide: true },
+  'spacing-scale': { title: 'Spacing, radius and control heights', group: 'Fundamentals', wide: true, render: () => <SpacingScale /> },
   'settings-card': { title: 'Settings card / Resting', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard /> },
   'settings-card--open': { title: 'Settings card / Settings unfolded', group: 'Inputs & controls', wide: true, render: () => <StatefulSettingsCard open /> },
   'toggle-card': { title: 'Toggle card', group: 'Inputs & controls', render: () => <StatefulToggleCard /> },
@@ -1165,6 +1212,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
 };
 
 export const previewGroups = [
+  'Fundamentals',
   'Actions',
   'Inputs & controls',
   'Containment',

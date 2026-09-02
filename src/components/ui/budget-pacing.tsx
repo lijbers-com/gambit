@@ -464,6 +464,10 @@ const OverridePicker: React.FC<{
     <DateRangePicker
       dateRange={draft}
       onDateRangeChange={setDraft}
+      // On the selected surface every field is transparent (the Input
+      // default); the trigger's white outline-button fill made it the one
+      // white box on a tinted card.
+      className="w-full min-w-0 bg-transparent"
       placeholder="Select dates to override"
       showWeekNumbers
       events={retailMoments}
@@ -473,7 +477,6 @@ const OverridePicker: React.FC<{
         onAdd(range);
         setDraft(undefined);
       }}
-      className="w-full min-w-0"
     />
   );
 };

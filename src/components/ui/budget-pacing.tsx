@@ -334,7 +334,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
             the chooser to change it, because remove makes no sense where a
             spending rule must always exist. */}
         <SearchSelectList
-          label="Pacing"
+          label="Budget pacing"
           multiple={false}
           settingsPicker
           placeholder="Search pacing…"

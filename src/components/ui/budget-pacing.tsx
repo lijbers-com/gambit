@@ -345,12 +345,13 @@ const OverrideRow: React.FC<{
         {estimate(percent) ?? '—'}
       </span>
       <span className={cn('flex shrink-0 items-center justify-end gap-2', OVERRIDE_ACTIONS_WIDTH)}>
+        {/* Dark the moment there is something to save; quiet otherwise. */}
         <Button
-          variant="outline"
+          variant={dirty ? 'default' : 'outline'}
           size="sm"
           iconOnly
           aria-label="Save override"
-          className="h-8 w-8 shrink-0 p-0"
+          className={cn('h-8 w-8 shrink-0 p-0', !dirty && 'bg-transparent')}
           disabled={!dirty || !range?.from || !range?.to}
           onClick={() => {
             if (!range?.from || !range?.to) return;
@@ -360,11 +361,11 @@ const OverrideRow: React.FC<{
           <Save className="h-4 w-4" />
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           iconOnly
           aria-label="Remove override"
-          className="h-8 w-8 shrink-0 p-0 text-muted-foreground"
+          className="h-8 w-8 shrink-0 bg-transparent p-0 text-muted-foreground hover:text-foreground"
           onClick={onRemove}
         >
           <Trash2 className="h-4 w-4" />

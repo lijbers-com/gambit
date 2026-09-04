@@ -108,7 +108,9 @@ export const OptionCard: React.FC<OptionCardProps> = ({
         ) : (
           <div className="flex min-w-0 flex-1 items-center gap-3">{headerInner}</div>
         )}
-        {control && <span className="flex shrink-0 items-center gap-1">{control}</span>}
+        {/* 8px between stacked controls — a gear beside a tick needs air, and
+            one control doesn't care. */}
+        {control && <span className="flex shrink-0 items-center gap-2">{control}</span>}
       </div>
       {children && (
         <div className={cn('space-y-3 border-t p-3', ruleClass(selected))}>{children}</div>

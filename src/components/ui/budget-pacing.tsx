@@ -291,21 +291,22 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                     made the card read as stacked blocks. */}
                 <div className="space-y-2 pt-1">
                     <Label className="block">Date overrides</Label>
-                    <OverridePicker
-                      disabledDays={disabledDays}
-                      onAdd={(range) => {
-                        onOverridesChange([
-                          ...overrides,
-                          { id: `ovr-${range.from!.getTime()}-${range.to!.getTime()}`, from: range.from!, to: range.to!, percent: '150' },
-                        ]);
-                      }}
-                    />
                     {overrides.map((o) => (
                       <div key={o.id} className="space-y-1.5">
                         <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-                          <span className="min-w-0 flex-1 truncate text-sm">
-                            {fmt(o.from)} – {fmt(o.to)}
-                          </span>
+                          {/* The same date field the draft row shows — one
+                              anatomy for both, and the dates stay editable
+                              after the override exists. */}
+                          <div className="min-w-0 flex-1">
+                            <DateRangePicker
+                              dateRange={{ from: o.from, to: o.to }}
+                              onDateRangeChange={(r) => { if (r?.from && r?.to) setOverride(o.id, { from: r.from, to: r.to }); }}
+                              className="h-8 w-full min-w-0 bg-transparent"
+                              showWeekNumbers
+                              events={retailMoments}
+                              disabledDays={disabledDays}
+                            />
+                          </div>
                           {/* A percentage of the paced target, because the
                               target moves — the euro figure is an estimate. */}
                           <div className="relative w-24 shrink-0">
@@ -340,6 +341,19 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                         )}
                       </div>
                     ))}
+                    {/* The next override is already a ROW: the dates and the
+                        percentage sit where they will live, and Add commits
+                        the line — no separate picker to discover first. */}
+                    <OverrideDraftRow
+                      disabledDays={disabledDays}
+                      estimate={estimate}
+                      onAdd={(range, percent) => {
+                        onOverridesChange([
+                          ...overrides,
+                          { id: `ovr-${range.from.getTime()}-${range.to.getTime()}`, from: range.from, to: range.to, percent },
+                        ]);
+                      }}
+                    />
                     <FieldHint>
                       Raise or lower the paced target for a stretch of the flight — a retail moment, a weekend, a launch. The amount is an estimate; the target is recalculated daily.
                     </FieldHint>
@@ -354,29 +368,61 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   );
 };
 
-/** The override calendar: selection lives here until Add confirms it. */
-const OverridePicker: React.FC<{
+/**
+ * The override-to-be, shaped exactly like the rows above it: dates, then
+ * the percentage, then Add. Dashed border because it is not a rule yet —
+ * Add makes it one and the line resets for the next.
+ */
+const OverrideDraftRow: React.FC<{
   disabledDays: import('react-day-picker').Matcher[];
-  onAdd: (range: { from?: Date; to?: Date }) => void;
-}> = ({ disabledDays, onAdd }) => {
+  estimate: (percent: string) => string | null;
+  onAdd: (range: { from: Date; to: Date }, percent: string) => void;
+}> = ({ disabledDays, estimate, onAdd }) => {
   const [draft, setDraft] = React.useState<DateRange | undefined>(undefined);
+  const [percent, setPercent] = React.useState('150');
+  const complete = !!draft?.from && !!draft?.to;
   return (
-    <DateRangePicker
-      dateRange={draft}
-      onDateRangeChange={setDraft}
-      // On the selected surface every field is transparent (the Input
-      // default); the trigger's white outline-button fill made it the one
-      // white box on a tinted card.
-      className="w-full min-w-0 bg-transparent"
-      placeholder="Select dates to override"
-      showWeekNumbers
-      events={retailMoments}
-      disabledDays={disabledDays}
-      confirmLabel="Add override"
-      onConfirm={(range) => {
-        onAdd(range);
-        setDraft(undefined);
-      }}
-    />
+    <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <DateRangePicker
+          dateRange={draft}
+          onDateRangeChange={setDraft}
+          // Transparent like every field on the selected surface; h-8 so the
+          // draft lines up with the committed rows above it.
+          className="h-8 w-full min-w-0 bg-transparent"
+          placeholder="Select dates"
+          showWeekNumbers
+          events={retailMoments}
+          disabledDays={disabledDays}
+        />
+      </div>
+      <div className="relative w-24 shrink-0">
+        <Input
+          type="number"
+          min="0"
+          value={percent}
+          onChange={(e) => setPercent(e.target.value)}
+          aria-label="Percentage of the daily target for the new override"
+          className="h-8 pr-7"
+        />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+      </div>
+      <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        {estimate(percent) ?? '—'}
+      </span>
+      <Button
+        size="sm"
+        className="h-8 shrink-0"
+        disabled={!complete}
+        onClick={() => {
+          if (!draft?.from || !draft?.to) return;
+          onAdd({ from: draft.from, to: draft.to }, percent);
+          setDraft(undefined);
+          setPercent('150');
+        }}
+      >
+        Add
+      </Button>
+    </div>
   );
 };

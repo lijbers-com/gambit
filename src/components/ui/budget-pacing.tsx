@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Plus, Save, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Input, FieldHint } from './input';
@@ -41,6 +41,8 @@ export interface PacingOverride {
   to: Date;
   /** Percentage of the paced daily target for those days (100 = unchanged). */
   percent: string;
+  /** What the stretch IS — "Black Friday", "Launch week". */
+  name?: string;
 }
 
 const SHAPES: Record<PacingShape, { title: string; description: string }> = {
@@ -293,47 +295,13 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                     <Label className="block">Date overrides</Label>
                     {overrides.map((o) => (
                       <div key={o.id} className="space-y-1.5">
-                        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-                          {/* The same date field the draft row shows — one
-                              anatomy for both, and the dates stay editable
-                              after the override exists. */}
-                          <div className="min-w-0 flex-1">
-                            <DateRangePicker
-                              dateRange={{ from: o.from, to: o.to }}
-                              onDateRangeChange={(r) => { if (r?.from && r?.to) setOverride(o.id, { from: r.from, to: r.to }); }}
-                              className="h-8 w-full min-w-0 bg-transparent"
-                              showWeekNumbers
-                              events={retailMoments}
-                              disabledDays={disabledDays}
-                            />
-                          </div>
-                          {/* A percentage of the paced target, because the
-                              target moves — the euro figure is an estimate. */}
-                          <div className="relative w-24 shrink-0">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={o.percent}
-                              onChange={(e) => setOverride(o.id, { percent: e.target.value })}
-                              aria-label={`Percentage of the daily target for ${fmt(o.from)} to ${fmt(o.to)}`}
-                              className="h-8 pr-7"
-                            />
-                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                          </div>
-                          <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                            {estimate(o.percent) ?? '—'}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            iconOnly
-                            aria-label="Remove override"
-                            className="shrink-0 text-muted-foreground"
-                            onClick={() => removeOverride(o.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <OverrideRow
+                          override={o}
+                          estimate={estimate}
+                          disabledDays={disabledDays}
+                          onSave={(patch) => setOverride(o.id, patch)}
+                          onRemove={() => removeOverride(o.id)}
+                        />
                         {clashing.has(o.id) && (
                           <p className="text-xs text-destructive">
                             These dates overlap another override. One day can only have one target.
@@ -347,10 +315,10 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
                     <OverrideDraftRow
                       disabledDays={disabledDays}
                       estimate={estimate}
-                      onAdd={(range, percent) => {
+                      onAdd={(draft) => {
                         onOverridesChange([
                           ...overrides,
-                          { id: `ovr-${range.from.getTime()}-${range.to.getTime()}`, from: range.from, to: range.to, percent },
+                          { id: `ovr-${draft.from.getTime()}-${draft.to.getTime()}`, ...draft },
                         ]);
                       }}
                     />
@@ -369,26 +337,127 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
 };
 
 /**
- * The override-to-be, shaped exactly like the rows above it: dates, then
- * the percentage, then Add. Dashed border because it is not a rule yet —
- * Add makes it one and the line resets for the next.
+ * One override line — the SAME line whether it exists or not:
+ *
+ *   [name] [dates] [%] [≈ estimate] [actions]
+ *
+ * Committed rows edit into a local draft — play with the %, watch the
+ * estimate move, then SAVE commits it; the bin removes. The draft row is
+ * the identical line with a dashed border and Add. Every column is a fixed
+ * width except the dates, so the rows always align.
  */
+const OVERRIDE_ACTIONS_WIDTH = 'w-[72px]'; // two 32px icon buttons + the 8px gap
+
+const OverrideRowShell: React.FC<{ dashed?: boolean; children: React.ReactNode }> = ({ dashed, children }) => (
+  <div className={cn('flex items-center gap-2 rounded-md border px-3 py-2', dashed ? 'border-dashed border-border' : 'border-border bg-background')}>
+    {children}
+  </div>
+);
+
+const OverrideRow: React.FC<{
+  override: PacingOverride;
+  estimate: (percent: string) => string | null;
+  disabledDays: import('react-day-picker').Matcher[];
+  onSave: (patch: Partial<PacingOverride>) => void;
+  onRemove: () => void;
+}> = ({ override, estimate, disabledDays, onSave, onRemove }) => {
+  const [name, setName] = React.useState(override.name ?? '');
+  const [range, setRange] = React.useState<DateRange | undefined>({ from: override.from, to: override.to });
+  const [percent, setPercent] = React.useState(override.percent);
+  const dirty =
+    name !== (override.name ?? '')
+    || percent !== override.percent
+    || range?.from?.getTime() !== override.from.getTime()
+    || range?.to?.getTime() !== override.to.getTime();
+  return (
+    <OverrideRowShell>
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+        aria-label="Override name"
+        className="h-8 w-36 shrink-0"
+      />
+      <div className="min-w-0 flex-1">
+        <DateRangePicker
+          dateRange={range}
+          onDateRangeChange={setRange}
+          className="h-8 w-full min-w-0 bg-transparent"
+          showWeekNumbers
+          events={retailMoments}
+          disabledDays={disabledDays}
+        />
+      </div>
+      {/* The estimate follows the TYPED percentage immediately — the maths
+          never waits for Save; only the stored rule does. */}
+      <div className="relative w-24 shrink-0">
+        <Input
+          type="number"
+          min="0"
+          value={percent}
+          onChange={(e) => setPercent(e.target.value)}
+          aria-label="Percentage of the daily target"
+          className="h-8 pr-7"
+        />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+      </div>
+      <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        {estimate(percent) ?? '—'}
+      </span>
+      <span className={cn('flex shrink-0 items-center justify-end gap-2', OVERRIDE_ACTIONS_WIDTH)}>
+        <Button
+          variant="outline"
+          size="sm"
+          iconOnly
+          aria-label="Save override"
+          className="h-8 w-8 shrink-0 p-0"
+          disabled={!dirty || !range?.from || !range?.to}
+          onClick={() => {
+            if (!range?.from || !range?.to) return;
+            onSave({ name: name || undefined, from: range.from, to: range.to, percent });
+          }}
+        >
+          <Save className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconOnly
+          aria-label="Remove override"
+          className="h-8 w-8 shrink-0 p-0 text-muted-foreground"
+          onClick={onRemove}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </span>
+    </OverrideRowShell>
+  );
+};
+
+/** The identical line, dashed because it is not a rule yet — Add makes it
+ *  one and the line resets for the next. */
 const OverrideDraftRow: React.FC<{
   disabledDays: import('react-day-picker').Matcher[];
   estimate: (percent: string) => string | null;
-  onAdd: (range: { from: Date; to: Date }, percent: string) => void;
+  onAdd: (draft: { name?: string; from: Date; to: Date; percent: string }) => void;
 }> = ({ disabledDays, estimate, onAdd }) => {
+  const [name, setName] = React.useState('');
   const [draft, setDraft] = React.useState<DateRange | undefined>(undefined);
   const [percent, setPercent] = React.useState('150');
   const complete = !!draft?.from && !!draft?.to;
   return (
-    <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2">
+    <OverrideRowShell dashed>
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+        aria-label="New override name"
+        className="h-8 w-36 shrink-0"
+      />
       <div className="min-w-0 flex-1">
         <DateRangePicker
           dateRange={draft}
           onDateRangeChange={setDraft}
-          // Transparent like every field on the selected surface; h-8 so the
-          // draft lines up with the committed rows above it.
           className="h-8 w-full min-w-0 bg-transparent"
           placeholder="Select dates"
           showWeekNumbers
@@ -410,19 +479,24 @@ const OverrideDraftRow: React.FC<{
       <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
         {estimate(percent) ?? '—'}
       </span>
-      <Button
-        size="sm"
-        className="h-8 shrink-0"
-        disabled={!complete}
-        onClick={() => {
-          if (!draft?.from || !draft?.to) return;
-          onAdd({ from: draft.from, to: draft.to }, percent);
-          setDraft(undefined);
-          setPercent('150');
-        }}
-      >
-        Add
-      </Button>
-    </div>
+      <span className={cn('flex shrink-0 items-center justify-end gap-2', OVERRIDE_ACTIONS_WIDTH)}>
+        <Button
+          size="sm"
+          iconOnly
+          aria-label="Add override"
+          className="h-8 w-8 shrink-0 p-0"
+          disabled={!complete}
+          onClick={() => {
+            if (!draft?.from || !draft?.to) return;
+            onAdd({ name: name || undefined, from: draft.from, to: draft.to, percent });
+            setName('');
+            setDraft(undefined);
+            setPercent('150');
+          }}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </span>
+    </OverrideRowShell>
   );
 };

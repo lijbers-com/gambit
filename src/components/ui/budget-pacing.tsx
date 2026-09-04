@@ -51,7 +51,7 @@ const SHAPES: Record<PacingShape, { title: string; description: string }> = {
     description: 'Follows the default configured for your account.',
   },
   even: {
-    title: 'Even',
+    title: 'Auto even pacing',
     description: 'The same target every day, so the budget lasts exactly as long as the flight.',
   },
   frontloaded: {
@@ -66,61 +66,6 @@ const SHAPES: Record<PacingShape, { title: string; description: string }> = {
     title: 'Daily budget',
     description: 'You set the cap. Delivery stops for the day once it is reached.',
   },
-};
-
-/**
- * The little spend-over-time strip on each row. It is the whole point of
- * showing pacing as a selection rather than a dropdown: "frontloaded" is a
- * shape, and a shape is faster to read than a sentence.
- */
-const PacingStrip: React.FC<{ shape: PacingShape; selected?: boolean }> = ({ shape, selected }) => {
-  const dot = cn('rounded-full transition-colors', selected ? 'bg-foreground/70' : 'bg-muted-foreground/40');
-  const line = cn('h-px flex-1', selected ? 'bg-foreground/25' : 'bg-border');
-
-  if (shape === 'account') {
-    return (
-      <div className="flex h-3 items-center">
-        <div className={cn('h-px w-full border-t border-dashed', selected ? 'border-foreground/30' : 'border-border')} />
-      </div>
-    );
-  }
-  if (shape === 'even') {
-    return (
-      <div className="flex h-3 items-center justify-between">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span key={i} className={cn(dot, 'h-2 w-2')} />
-        ))}
-      </div>
-    );
-  }
-  if (shape === 'frontloaded') {
-    // Dots bunched at the start and shrinking, then the flat tail of the flight.
-    return (
-      <div className="flex h-3 items-center gap-1">
-        {[8, 8, 7, 7, 6, 6, 5].map((size, i) => (
-          <span key={i} className={dot} style={{ height: size, width: size }} />
-        ))}
-        <span className={line} />
-      </div>
-    );
-  }
-  if (shape === 'custom') {
-    // A hand-set cap: the same level every day, drawn as a flat bar rather
-    // than the even rhythm — a rule you wrote, not one that adapts.
-    return (
-      <div className="flex h-3 items-center">
-        <div className={cn('h-1 w-full rounded-full', selected ? 'bg-foreground/40' : 'bg-muted-foreground/25')} />
-      </div>
-    );
-  }
-  return (
-    <div className="flex h-3 items-center gap-1">
-      {[10, 9, 7].map((size, i) => (
-        <span key={i} className={dot} style={{ height: size, width: size }} />
-      ))}
-      <span className={line} />
-    </div>
-  );
 };
 
 /** Whole days a flight covers, both ends included. */
@@ -273,11 +218,6 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
             if (sh === 'custom') return undefined; // the cap is pinned; custom has no further settings
             return (
               <div className="space-y-2">
-                {/* The sketch belongs to the PACED shapes — custom returned
-                    early above: a flat bar under a typed cap says nothing. */}
-                <span className="block w-28 pt-1">
-                  <PacingStrip shape={sh} selected />
-                </span>
                 {(sh === 'even' || sh === 'frontloaded') && (
                   <p className="text-xs text-muted-foreground">
                     {shown != null && days > 0
@@ -397,7 +337,7 @@ const OverrideRow: React.FC<{
           value={percent}
           onChange={(e) => setPercent(e.target.value)}
           aria-label="Percentage of the daily target"
-          className="h-8 pr-7"
+          className="h-8 pr-7 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
       </div>
@@ -472,7 +412,7 @@ const OverrideDraftRow: React.FC<{
           value={percent}
           onChange={(e) => setPercent(e.target.value)}
           aria-label="Percentage of the daily target for the new override"
-          className="h-8 pr-7"
+          className="h-8 pr-7 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
       </div>

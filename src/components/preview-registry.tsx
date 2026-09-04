@@ -243,7 +243,7 @@ const StatefulPacing: React.FC<{ custom?: boolean }> = ({ custom }) => {
 };
 
 const PACING_DEMO_OPTIONS = [
-  { value: 'even', label: 'Even', description: 'The same target every day, so the budget lasts exactly as long as the flight.' },
+  { value: 'even', label: 'Auto even pacing', description: 'The same target every day, so the budget lasts exactly as long as the flight.' },
   { value: 'frontloaded', label: 'Frontloaded', description: 'Spends faster in the first days, then eases off — buys reach early.' },
   { value: 'custom', label: 'Daily budget', description: 'You set the cap. Delivery stops for the day once it is reached.' },
 ];

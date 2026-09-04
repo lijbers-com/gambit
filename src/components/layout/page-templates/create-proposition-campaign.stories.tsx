@@ -1363,6 +1363,9 @@ const PropositionWizard = ({
                             budget is derived from it, so the two belong to one
                             block rather than two fields that can disagree. */}
                         <BudgetPacing
+                          // SP keeps it to two answers for now: the auto even
+                          // rule or a hand-set cap.
+                          shapes={propositionType === 'sponsored-products' ? ['even'] : ['even', 'frontloaded']}
                           budgetField={
                             <div className="space-y-2">
                               <Label htmlFor="budget-amount">Total budget <span className="text-foreground">*</span></Label>
@@ -2002,7 +2005,9 @@ const PropositionWizard = ({
                                   endDate={bookingDateRange?.to}
                                   shape={pacingShape}
                                   onShapeChange={setPacingShape}
-                                  shapes={['account', 'even', 'frontloaded', 'asap']}
+                                  // SP keeps it to two answers for now: the
+                                  // auto even rule or a hand-set cap.
+                                  shapes={propositionType === 'sponsored-products' ? ['even'] : ['account', 'even', 'frontloaded', 'asap']}
                                   dailyBudget={dailyBudget}
                                   onDailyBudgetChange={setDailyBudget}
                                   overrides={pacingOverrides}
@@ -3385,6 +3390,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         />
                       </div>
                       <BudgetPacing
+                        // Sponsored products: auto even pacing or a hand-set
+                        // cap — no frontloaded for now.
+                        shapes={['even']}
                         budgetField={
                           <div className="space-y-1.5">
                             <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>

@@ -95,11 +95,11 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
                 <>
                   {renderOpenExtra && (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      /* No fill: on the tinted selected surface a white
-                         button box is the one thing that doesn't belong. */
-                      className="h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+                      /* Bordered but unfilled — the same look every field on
+                         the tinted selected surface wears. */
+                      className="h-8 w-8 shrink-0 bg-transparent p-0"
                       aria-label={`${settingsOpen ? 'Hide' : 'Show'} ${label ?? opt.label} settings`}
                       aria-expanded={settingsOpen}
                       disabled={disabled}

@@ -1,7 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from './button';
 import { OptionCard, OptionCardTick } from './option-card';
 
 /**
@@ -85,7 +87,28 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
                 setSettingsOpen(true);
               }}
               headerAriaPressed={sel}
-              control={sel ? <OptionCardTick /> : undefined}
+              /* The tick says CHOSEN; the settings glyph beside it says there
+                 is more to set — and is the visible way to fold and unfold
+                 it. Without the glyph nothing told the user the resting
+                 default could be opened at all. */
+              control={sel ? (
+                <>
+                  {renderOpenExtra && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 shrink-0 p-0"
+                      aria-label={`${settingsOpen ? 'Hide' : 'Show'} ${label ?? opt.label} settings`}
+                      aria-expanded={settingsOpen}
+                      disabled={disabled}
+                      onClick={() => setSettingsOpen((o) => !o)}
+                    >
+                      <Settings2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <OptionCardTick />
+                </>
+              ) : undefined}
               className={!sel ? 'transition-colors hover:bg-surface-hover' : undefined}
             >
               {openPart || pinnedPart ? (

@@ -398,14 +398,18 @@ const PropositionWizard = ({
     const all = getWizardSteps(propositionType);
     if (creativesOnly) return all.filter((s) => s.id === 'creatives');
     const withoutCreatives = all.filter((s) => s.id !== 'creatives');
-    // Review mode is bookings-only too: the campaign's own steps are already
-    // answered by the plan, and approval is one summary screen, not a walk.
-    if (bookingMode) return withoutCreatives.filter((s) => s.id === 'bookings');
+    // Review mode keeps the campaign's own steps: the user LANDS on the
+    // bookings step, but the timeline lets them walk back into any answer
+    // the plan prefilled and change it before approving.
+    if (bookingMode && !campaignReview) return withoutCreatives.filter((s) => s.id === 'bookings');
     return withoutCreatives;
-  }, [propositionType, bookingMode, creativesOnly]);
+  }, [propositionType, bookingMode, creativesOnly, campaignReview]);
 
-  // Wizard state
-  const [currentStep, setCurrentStep] = React.useState(0);
+  // Wizard state. Review mode starts at the END — everything before it is
+  // already answered, so the first thing shown is what is left to approve.
+  const [currentStep, setCurrentStep] = React.useState(() =>
+    campaignReview ? Math.max(wizardSteps.findIndex((st) => st.id === 'bookings'), 0) : 0,
+  );
   const currentStepId = wizardSteps[currentStep]?.id;
 
   // Buying type — display and digital in-store auction OR reserve their
@@ -590,7 +594,7 @@ const PropositionWizard = ({
    */
   const campaignStepsActive =
     !creativesOnly
-    && !bookingMode
+    && (!bookingMode || campaignReview)
     && bookingSubStep === null
     && currentStepId !== 'creatives';
 
@@ -752,7 +756,9 @@ const PropositionWizard = ({
       const channel = engineChannels.find((ch) => ch.positions.some((p) => routeBooking.positionIds.includes(p.id)));
       if (channel) setSelectedChannelIds([channel.id]);
     }
-    setBookingSubStep((prev) => (prev === null ? 0 : prev));
+    // Land at the END: the plan answered every sub-step, so the first thing
+    // shown is the last check before approving — the timeline walks back.
+    setBookingSubStep((prev) => (prev === null ? bookingSubStepLabels.length - 1 : prev));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeBooking?.id, engineChannels.length]);
 
@@ -860,8 +866,25 @@ const PropositionWizard = ({
     }
   })();
 
+  /**
+   * Review-mode edits save back to the record the moment the user moves
+   * between steps — a changed name or budget is never lost to navigation.
+   * Approval stays the explicit button; this never touches the status.
+   */
+  const syncCampaignEdits = () => {
+    if (!campaignReview || !routeCampaign) return;
+    updateCampaign(routeCampaign.id, {
+      name: campaignName || routeCampaign.name,
+      budget: parseFloat(budgetAmount) || routeCampaign.budget,
+      ...(toIso(dateRange?.from) ? { startDate: toIso(dateRange?.from) as string } : {}),
+      ...(toIso(dateRange?.to) ? { endDate: toIso(dateRange?.to) as string } : {}),
+      buyingType,
+    });
+  };
+
   // Step navigation helpers
   const goToNextStep = () => {
+    syncCampaignEdits();
     setCurrentStep((prev) => Math.min(prev + 1, wizardSteps.length - 1));
   };
   // Approving takes the record as the plan proposed it — the summary screen
@@ -874,6 +897,7 @@ const PropositionWizard = ({
   };
   const goToPrevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
   const goToStepById = (id: string) => {
+    syncCampaignEdits();
     const idx = wizardSteps.findIndex((s) => s.id === id);
     if (idx >= 0) setCurrentStep(idx);
   };
@@ -2299,23 +2323,42 @@ const PropositionWizard = ({
                         <div className="absolute left-[19px] top-[16px] bottom-[16px] w-px bg-border"></div>
                         <div className="space-y-4">
                           {bookingSubStepLabels.map((label, index) => {
+                            /* A prefilled booking is answered end to end, so
+                               every step but the active one wears its check —
+                               and a check is a clickable way back to change
+                               the answer before approving. */
                             const status: 'completed' | 'active' | 'pending' =
-                              index < bookingSubStep ? 'completed'
-                              : index === bookingSubStep ? 'active'
+                              index === bookingSubStep ? 'active'
+                              : routeBooking || index < bookingSubStep ? 'completed'
                               : 'pending';
                             const vals = status === 'completed' ? getLiveBookingStepValues(index) : null;
-                            return (
-                              <div key={label} className="relative flex items-start -ml-12">
+                            const row = (
+                              <>
                                 <div className="w-10 flex justify-center">
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${status === 'completed' ? 'bg-primary text-primary-foreground' : status === 'active' ? 'bg-background text-primary border border-primary' : 'bg-background text-muted-foreground border border-border'}`}>
                                     {status === 'completed' ? <Check size={14} /> : index + 1}
                                   </div>
                                 </div>
-                                <div className="ml-3 flex-1 min-w-0 pt-1">
+                                <div className="ml-3 flex-1 min-w-0 pt-1 text-left">
                                   <div className={`text-sm ${status === 'active' || status === 'completed' ? 'font-medium' : 'text-muted-foreground'}`}>{label}</div>
                                   {vals && <div className="text-sm text-muted-foreground mt-0.5">{vals.join(', ')}</div>}
                                   {status === 'active' && <div className="text-xs text-muted-foreground italic mt-0.5">Not filled in</div>}
                                 </div>
+                              </>
+                            );
+                            return status === 'completed' ? (
+                              <button
+                                key={label}
+                                type="button"
+                                className="relative flex w-full items-start -ml-12 cursor-pointer"
+                                aria-label={`Go to ${label}`}
+                                onClick={() => setBookingSubStep(index)}
+                              >
+                                {row}
+                              </button>
+                            ) : (
+                              <div key={label} className="relative flex items-start -ml-12">
+                                {row}
                               </div>
                             );
                           })}
@@ -2480,14 +2523,20 @@ const PropositionWizard = ({
                 entity="campaign"
                 variant="process"
                 steps={displayCampaignSteps.map((step, index) => {
-                  const status = isInBookingsPhase ? 'completed' as const : getStepStatus(index);
+                  /* Review mode: the plan answered every step, so every step
+                     but the active one wears its check — and every check is a
+                     door back (or forward) to change and re-approve. */
+                  const status = campaignReview
+                    ? (step.id === currentStepId ? 'active' as const : 'completed' as const)
+                    : isInBookingsPhase ? 'completed' as const : getStepStatus(index);
                   const stepValues = getStepValues(step.id);
+                  const clickable = status === 'completed' && (campaignReview || !isInBookingsPhase);
                   return {
                     id: step.id,
                     label: step.label,
                     status,
                     values: stepValues ? (Array.isArray(stepValues) ? stepValues : [stepValues]) : undefined,
-                    onClick: status === 'completed' && !isInBookingsPhase ? () => goToStepById(step.id) : undefined,
+                    onClick: clickable ? () => goToStepById(step.id) : undefined,
                   };
                 })}
                 // Only the ACTIVE card carries a call to action, and only for

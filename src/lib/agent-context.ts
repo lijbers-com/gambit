@@ -17,6 +17,8 @@ export interface AgentChartData {
   config: Record<string, { label?: string; color?: string }>;
   kind?: 'area' | 'bar';
   xKey?: string;
+  horizontal?: boolean;
+  rightAxisKey?: string;
   title?: string;
 }
 

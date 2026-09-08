@@ -21,8 +21,9 @@ import { Shimmer } from '@/components/ai-elements/shimmer';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { PieChartComponent } from '@/components/ui/pie-chart';
-import { Badge } from '@/components/ui/badge';
 import { MetricCard } from '@/components/ui/card';
+import { CaseCard } from '@/components/ui/case-card';
+import type { ChartDataPoint } from '@/components/ui/chart-types';
 
 /**
  * The live Campaign Agent conversation — `useChat` against `/api/chat`,
@@ -88,44 +89,38 @@ const MetricsSnippet: React.FC<{ metrics: MetricsToolResult }> = ({ metrics }) =
   </div>
 );
 
-/** The fence, visible: what the agent is looking at and nothing else. */
-const ContextCard: React.FC<{ context: AgentContext }> = ({ context }) => (
-  <div className="rounded-lg border border-border bg-neutral-50 p-4">
-    <div className="mb-1 flex items-center gap-2">
-      {context.kind && <Badge variant="outline" className="capitalize">{context.kind}</Badge>}
-      <span className="min-w-0 truncate text-sm font-medium">{context.subject}</span>
-    </div>
-    {context.message && <p className="text-xs text-muted-foreground">{context.message}</p>}
-    {context.stats && context.stats.length > 0 && (
-      <div className="mt-3">
-        <MetricsSnippet metrics={{ tiles: context.stats.slice(0, 4) }} />
-      </div>
-    )}
-    {context.chart && context.chart.data.length > 0 && (
-      <div className="mt-3 rounded-md border border-border bg-background p-3">
-        {context.chart.title && <div className="mb-1 text-xs font-medium text-muted-foreground">{context.chart.title}</div>}
-        <div className="h-44 w-full">
-          {(() => {
-            const config = Object.fromEntries(
-              Object.entries(context.chart!.config).map(([k, v], i) => [k, { label: v.label ?? k, color: v.color ?? CHART_FALLBACK_COLORS[i % CHART_FALLBACK_COLORS.length] }]),
-            );
-            return context.chart!.kind === 'bar' ? (
-              <BarChartComponent data={context.chart!.data} config={config} xAxisDataKey={context.chart!.xKey ?? 'month'} />
-            ) : (
-              <AreaChartComponent
-                data={context.chart!.data.map((row) => ({ ...row, month: row[context.chart!.xKey ?? 'month'] }))}
-                config={config}
-              />
-            );
-          })()}
-        </div>
-      </div>
-    )}
-    <p className="mt-3 text-[11px] text-muted-foreground">
-      The agent answers from this case and your conversation — not from the whole platform.
-    </p>
-  </div>
-);
+/** The fence, visible: what the agent is looking at and nothing else —
+ *  the SAME case card the message drawer shows, so the case reads
+ *  identically in notifications and in the chat. The subject is a plain
+ *  title, not a label. */
+const ContextCard: React.FC<{ context: AgentContext }> = ({ context }) => {
+  const chart = context.chart && context.chart.data.length > 0
+    ? {
+        ...context.chart,
+        data: context.chart.data as ChartDataPoint[],
+        config: Object.fromEntries(
+          Object.entries(context.chart.config).map(([k, v], i) => [
+            k,
+            { label: v.label ?? k, color: v.color ?? CHART_FALLBACK_COLORS[i % CHART_FALLBACK_COLORS.length] },
+          ]),
+        ),
+      }
+    : undefined;
+  return (
+    <CaseCard
+      title={context.subject}
+      description={context.message}
+      stats={context.stats}
+      chart={chart}
+      insights={context.insights}
+      footer={
+        <p className="text-[11px] text-muted-foreground">
+          The agent answers from this case and your conversation — not from the whole platform.
+        </p>
+      }
+    />
+  );
+};
 
 const FOLLOW_UPS = [
   'What would you do about this?',

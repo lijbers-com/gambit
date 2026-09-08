@@ -4,10 +4,9 @@ import * as React from 'react';
 import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { stashAgentContext } from '@/lib/agent-context';
+import { CaseCard, type CaseCardData } from './case-card';
 import { Badge } from './badge';
 import { Button } from './button';
-import { AreaChartComponent } from './area-chart';
-import { BarChartComponent } from './bar-chart';
 import {
   RightDrawer,
   RightDrawerContent,
@@ -17,7 +16,6 @@ import {
   RightDrawerDescription,
   RightDrawerBody,
 } from './right-drawer';
-import type { ChartDataPoint, ChartConfig } from './chart-types';
 import type { MessageKind } from '@/lib/db';
 
 /**
@@ -30,20 +28,9 @@ import type { MessageKind } from '@/lib/db';
  * rather than a conversation the panel pretends to already be having.
  */
 
-/** The evidence behind a recommendation or insight. */
-export interface MessageBusinessCase {
-  stats?: { label: string; value: string; sub?: string; tone?: string }[];
-  chart?: {
-    data: ChartDataPoint[];
-    config: ChartConfig;
-    kind?: 'area' | 'bar';
-    xKey?: string;
-    horizontal?: boolean;
-    rightAxisKey?: string;
-    title?: string;
-  };
-  insights?: { title: string; text: string }[];
-}
+/** The evidence behind a recommendation or insight — the shared case card's
+ *  data shape, so the case reads the same on every surface. */
+export type MessageBusinessCase = CaseCardData;
 
 /** Hierarchy icons, matching HierarchyBadge and the inbox row. */
 const levelIcon = {
@@ -114,65 +101,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           already establish the hierarchy, so the body reads as body text. */}
       <p className="text-sm leading-relaxed text-foreground">{message}</p>
 
-      {hasCase && (
-        <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-          <div className="text-sm font-semibold text-foreground">The case for this</div>
-
-          {businessCase?.stats && businessCase.stats.length > 0 && (
-            <div className="grid grid-cols-3 gap-2">
-              {businessCase.stats.map((s, i) => (
-                <div key={i} className="rounded-lg border bg-background p-2.5">
-                  <div className="text-xs text-muted-foreground">{s.label}</div>
-                  <div className="text-base font-semibold leading-tight">{s.value}</div>
-                  {s.sub && (
-                    <div className={cn('mt-0.5 text-xs', s.tone === 'success' ? 'text-success-600' : 'text-muted-foreground')}>
-                      {s.sub}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {businessCase?.chart && (
-            <div className="rounded-lg border bg-background p-3">
-              {businessCase.chart.title && (
-                <div className="mb-1 text-sm font-medium text-muted-foreground">{businessCase.chart.title}</div>
-              )}
-              {businessCase.chart.kind === 'bar' ? (
-                <BarChartComponent
-                  data={businessCase.chart.data}
-                  config={businessCase.chart.config}
-                  className="h-[190px] w-full"
-                  showLegend
-                  horizontal={businessCase.chart.horizontal}
-                  xAxisDataKey={businessCase.chart.xKey ?? 'month'}
-                />
-              ) : (
-                <AreaChartComponent
-                  data={businessCase.chart.data}
-                  config={businessCase.chart.config}
-                  className="h-[170px] w-full"
-                  showLegend
-                  showRightYAxis={!!businessCase.chart.rightAxisKey}
-                  rightAxisDataKey={businessCase.chart.rightAxisKey}
-                />
-              )}
-            </div>
-          )}
-
-          {businessCase?.insights && businessCase.insights.length > 0 && (
-            <ul className="space-y-2">
-              {businessCase.insights.map((it, i) => (
-                <li key={i} className="text-sm leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground">{it.title}: </span>
-                  {it.text}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {hasCase && <CaseCard title="The case for this" {...businessCase} />}
 
       {/* Going deeper is a deliberate step, not the default reading mode. */}
       <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
@@ -190,15 +119,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
               subject,
               message: typeof message === 'string' ? message : undefined,
               stats: businessCase?.stats?.map(({ label, value, sub }) => ({ label, value, sub })),
-              chart: businessCase?.chart
-                ? {
-                    data: businessCase.chart.data,
-                    config: businessCase.chart.config,
-                    kind: businessCase.chart.kind,
-                    xKey: businessCase.chart.xKey,
-                    title: businessCase.chart.title,
-                  }
-                : undefined,
+              chart: businessCase?.chart,
               insights: businessCase?.insights,
             });
             window.location.href = `/chat?q=${encodeURIComponent(`Tell me more: ${subject}`)}`;

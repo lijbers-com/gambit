@@ -162,7 +162,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ context, initialPrompt, cl
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
       <Conversation className="min-h-0 flex-1">
-        <ConversationContent className="mx-auto w-full max-w-[800px] space-y-4 px-4 py-6">
+        <ConversationContent className="w-full max-w-[800px] space-y-4 px-0 py-6">
           {context && <ContextCard context={context} />}
           {messages.map((message) => (
             <Message key={message.id} from={message.role}>
@@ -196,7 +196,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ context, initialPrompt, cl
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="mx-auto w-full max-w-[800px] space-y-2 px-4 pb-6">
+      <div className="w-full max-w-[800px] space-y-2 pb-6">
         {messages.length > 0 && !busy && (
           <Suggestions>
             {FOLLOW_UPS.map((s) => (

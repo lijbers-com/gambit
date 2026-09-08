@@ -162,7 +162,9 @@ export function BarChartComponent({
             dataKey={key}
             fill={`var(--color-${key})`}
             stackId={stacked ? "a" : undefined}
-            radius={0}
+            /* The standard's rounded bar — except when stacked, where a
+               rounded joint between segments would read as a gap. */
+            radius={stacked ? 0 : 4}
             yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
           >
             {colorByPoint &&

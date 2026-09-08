@@ -14,11 +14,14 @@ export function formatYAxisTick(value: number): string {
   return trimZeros(value.toFixed(2));
 }
 
+// The shadcn/ReUI chart contract's config shape, with the house rule that a
+// series label is required — a chart without labels has nothing to say in
+// its tooltip or legend.
 export interface ChartConfig {
   [key: string]: {
     label: string;
     color?: string;
-    icon?: React.ReactNode;
+    icon?: React.ComponentType;
   };
 }
 

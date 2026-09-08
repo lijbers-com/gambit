@@ -369,16 +369,29 @@ const PropositionWizard = ({
   // right after creating a campaign here.
   const [linkedCampaignId, setLinkedCampaignId] = React.useState<string | undefined>(campaignId ?? routeBooking?.campaignId);
   const [linkingCampaign, setLinkingCampaign] = React.useState(false);
-  // The client store resolves the booking after hydration; adopt its campaign.
+  // Adopt late arrivals: on a client-side navigation the wizard can mount
+  // BEFORE useSearchParams has produced the params, so the one-shot state
+  // seed above catches nothing. When the campaign id (or the booking, whose
+  // campaign it is) shows up a render later, take it — but never overwrite a
+  // link the user changed by hand.
   React.useEffect(() => {
-    if (routeBooking && !linkedCampaignId) setLinkedCampaignId(routeBooking.campaignId);
-  }, [routeBooking, linkedCampaignId]);
+    if (!linkedCampaignId && (campaignId || routeBooking)) {
+      setLinkedCampaignId(campaignId ?? routeBooking?.campaignId);
+    }
+  }, [campaignId, routeBooking, linkedCampaignId]);
   const routeCampaign = linkedCampaignId ? db.campaigns.find((c) => c.id === linkedCampaignId) : undefined;
   // Seeded from the route (`?planId=`, or the campaign's own plan in booking
   // mode); the Media plan card's link action can change it.
   const [linkedPlanId, setLinkedPlanId] = React.useState<string | undefined>(
     planId ?? routeCampaign?.mediaPlanId ?? undefined,
   );
+  // Same late-arrival adoption for the plan (see the campaign link above).
+  React.useEffect(() => {
+    if (!linkedPlanId && (planId || routeCampaign?.mediaPlanId)) {
+      setLinkedPlanId(planId ?? routeCampaign?.mediaPlanId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId, routeCampaign?.mediaPlanId, linkedPlanId]);
   const [linkingMediaPlan, setLinkingMediaPlan] = React.useState(false);
   const linkedPlan = linkedPlanId ? db.mediaPlans.find((p) => p.id === linkedPlanId) : undefined;
   const bookingMode = !!campaignId || !!bookingId;
@@ -410,6 +423,17 @@ const PropositionWizard = ({
   const [currentStep, setCurrentStep] = React.useState(() =>
     campaignReview ? Math.max(wizardSteps.findIndex((st) => st.id === 'bookings'), 0) : 0,
   );
+  // The landing again, for the late-params mount: when review mode only
+  // becomes true a render after mount, jump once — never again, so a user
+  // who walked back to a step is not yanked forward.
+  const reviewLanded = React.useRef(campaignReview);
+  React.useEffect(() => {
+    if (campaignReview && !reviewLanded.current) {
+      reviewLanded.current = true;
+      const idx = wizardSteps.findIndex((st) => st.id === 'bookings');
+      if (idx >= 0) setCurrentStep(idx);
+    }
+  }, [campaignReview, wizardSteps]);
   const currentStepId = wizardSteps[currentStep]?.id;
 
   // Buying type — display and digital in-store auction OR reserve their
@@ -2742,9 +2766,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     : routeCampaign
       ? spDb.mediaPlans.find((p) => p.id === routeCampaign.mediaPlanId)
       : undefined;
-  // Approval mode for the CAMPAIGN itself: the plan prefilled every answer,
-  // so approving is one summary screen — not a walk through the steps — and
-  // hands straight on to the first proposed booking.
+  // Approval mode for the CAMPAIGN itself: the wizard lands on the approval
+  // card, and the campaign timeline keeps every prefilled answer one click
+  // away — walk back, change it, save, return. Approving stays the button.
+  const spCampaignReview = !!routeCampaign && initialValues?.step === 'campaign';
   const [spCampaignJustApproved, setSpCampaignJustApproved] = React.useState(false);
   const spNeedsCampaignApproval =
     !!routeCampaign && initialValues?.step === 'campaign'
@@ -2765,6 +2790,20 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     { id: 'campaign-details', label: 'Campaign details' },
     { id: 'booking', label: 'Booking' },
   ];
+
+  /** Review-mode edits write back to the record and return to the approval
+   *  card. Never touches status — Approve stays the explicit action. */
+  const saveSpCampaignEdits = () => {
+    if (!routeCampaign) return;
+    updateCampaign(routeCampaign.id, {
+      name: campaignName || routeCampaign.name,
+      budget: parseFloat(budget) || routeCampaign.budget,
+      ...(startDate ? { startDate: startDate.toISOString().slice(0, 10) } : {}),
+      ...(endDate ? { endDate: endDate.toISOString().slice(0, 10) } : {}),
+      buyingType: spBuyingType,
+    });
+    setCurrentStep(1);
+  };
 
   // "Add booking" on an existing campaign lands here mid-flow: the campaign
   // step is already done by definition, so the wizard opens on the booking.
@@ -3343,7 +3382,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                     </div>
                     <div className="flex justify-end gap-3 mt-8">
                       <Button variant="ghost" onClick={() => setCampaignSubStep(1)}>Back</Button>
-                      <Button disabled={!isCampaignDetailsComplete} onClick={createCampaignAndContinue}>Create campaign</Button>
+                      <Button disabled={spCampaignReview ? false : !isCampaignDetailsComplete} onClick={spCampaignReview ? saveSpCampaignEdits : createCampaignAndContinue}>
+                        {spCampaignReview ? 'Save changes' : 'Create campaign'}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -3354,7 +3395,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   campaign's details sit in the summary card on the right;
                   this card lists the proposed bookings and carries Approve,
                   which hands straight on to the first booking's own run. */}
-              {spNeedsCampaignApproval && routeCampaign && (() => {
+              {spNeedsCampaignApproval && routeCampaign && currentStepId === 'booking' && (() => {
                 const draftBookings = spDb.bookings.filter((b) => b.campaignId === routeCampaign.id && b.status === 'draft');
                 return (
                   <Card>
@@ -3732,7 +3773,11 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   entity="campaign"
                   variant="process"
                   steps={campaignSubStepLabels.map((label, i) => {
-                    const status = !pending || i < campaignSubStep ? 'completed' as const : i === campaignSubStep ? 'active' as const : 'pending' as const;
+                    /* Review mode: the plan answered every sub-step, so all
+                       of them wear checks except the one being edited. */
+                    const status = spCampaignReview
+                      ? (pending && i === campaignSubStep ? 'active' as const : 'completed' as const)
+                      : !pending || i < campaignSubStep ? 'completed' as const : i === campaignSubStep ? 'active' as const : 'pending' as const;
                     const values = [
                       i === 0 ? [campaignName, spBuyingType === 'guaranteed' ? 'Guaranteed' : 'Auction'] : [],
                       i === 1 ? [advertiserOptions.find((a) => a.value === selectedAdvertiser)?.label ?? '', brandOptions.find((b) => b.value === spBrand)?.label ?? ''] : [],
@@ -3749,8 +3794,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   // Only the last campaign step carries the call to action,
                   // the same rule the other propositions' wizards follow.
                   actions={
-                    campaignSubStep === campaignSubStepLabels.length - 1
-                      ? [{ label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
+                    pending && campaignSubStep === campaignSubStepLabels.length - 1
+                      ? [spCampaignReview
+                          ? { label: 'Save changes', onClick: saveSpCampaignEdits }
+                          : { label: 'Create campaign', disabled: !isCampaignDetailsComplete, onClick: createCampaignAndContinue }]
                       : undefined
                   }
                 />
@@ -3850,7 +3897,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       />
                     </>
                   }
-                  campaign={pending ? campaignTimeline : (
+                  campaign={pending || spCampaignReview ? campaignTimeline : (
                     <>
                       <SummaryCard
                         title="Sponsored products campaign"

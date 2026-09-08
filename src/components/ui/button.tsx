@@ -27,6 +27,8 @@ const buttonVariants = cva(
         sm: "h-8 rounded-md px-3 text-xs min-w-[32px]",
         lg: "h-10 rounded-md px-8 min-w-[40px]",
         icon: "h-9 w-9",
+        // The AI Elements' compact icon button (message actions).
+        "icon-sm": "h-7 w-7 p-0 min-w-[28px]",
       },
     },
     defaultVariants: {

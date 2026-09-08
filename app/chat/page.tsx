@@ -1,10 +1,43 @@
 'use client';
 
+import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { ChatInterface } from '@/components/ui/chat-interface';
+import { AgentChat } from '@/components/ui/agent-chat';
+import { readAgentContext } from '@/lib/agent-context';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
 import { MenuContextProvider } from '@/contexts/menu-context';
+
+/**
+ * The Campaign Agent page has two faces. A hand-off — “Ask the agent” on an
+ * insight or recommendation, arriving with ?q and a stashed context — opens
+ * the LIVE agent, fenced to that case. A direct visit keeps the exploratory
+ * landing with its canned scenario walkthroughs.
+ */
+function ChatPageBody() {
+  const params = useSearchParams();
+  const q = params.get('q');
+  // The stash lives in sessionStorage, which the server can't see — read it
+  // after mount so the hydration render matches the server's.
+  const [context, setContext] = React.useState<ReturnType<typeof readAgentContext>>(null);
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => {
+    setContext(readAgentContext());
+    setReady(true);
+  }, []);
+
+  if (q) {
+    if (!ready) return null;
+    return (
+      <div className="h-[calc(100vh-140px)] min-h-[420px]">
+        <AgentChat context={context} initialPrompt={q} />
+      </div>
+    );
+  }
+  return <ChatInterface />;
+}
 
 export default function ChatPage() {
   const { theme } = useTheme();
@@ -28,7 +61,9 @@ export default function ChatPage() {
           onSettings: () => console.log('Settings clicked'),
         }}
       >
-        <ChatInterface />
+        <React.Suspense fallback={null}>
+          <ChatPageBody />
+        </React.Suspense>
       </AppLayout>
     </MenuContextProvider>
   );

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { stashAgentContext } from '@/lib/agent-context';
 import { Badge } from './badge';
 import { Button } from './button';
 import { AreaChartComponent } from './area-chart';
@@ -181,8 +182,26 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           size="sm"
           className="shrink-0 gap-1.5"
           onClick={onAskAgent ?? (() => {
-            const q = `Tell me more: ${subject}`;
-            if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
+            if (typeof window === 'undefined') return;
+            // The hand-off IS the fence: the agent gets this message and its
+            // business case, nothing else.
+            stashAgentContext({
+              kind,
+              subject,
+              message: typeof message === 'string' ? message : undefined,
+              stats: businessCase?.stats?.map(({ label, value, sub }) => ({ label, value, sub })),
+              chart: businessCase?.chart
+                ? {
+                    data: businessCase.chart.data,
+                    config: businessCase.chart.config,
+                    kind: businessCase.chart.kind,
+                    xKey: businessCase.chart.xKey,
+                    title: businessCase.chart.title,
+                  }
+                : undefined,
+              insights: businessCase?.insights,
+            });
+            window.location.href = `/chat?q=${encodeURIComponent(`Tell me more: ${subject}`)}`;
           })}
         >
           <MessageSquare className="h-4 w-4" />

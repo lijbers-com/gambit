@@ -358,12 +358,6 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
   const todo = items.map((a, i) => ({ a, i })).filter(({ i }) => !completed.has(i));
   const done = items.map((a, i) => ({ a, i })).filter(({ i }) => completed.has(i));
 
-  const askAgent = () => {
-    const base = typeof active?.message === 'string' ? active.message : active?.badge ?? '';
-    const q = `Tell me more: ${base}`;
-    if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
-  };
-
   /**
    * The bold subject line. With the type now shown as a badge, falling back to
    * the type label would print the same word twice — so an advice without an
@@ -443,7 +437,6 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
           subject={subjectOf(active)}
           message={active.message}
           businessCase={active.explain}
-          onAskAgent={askAgent}
           footer={
             activeHealth ? (
               <Button variant="outline" className="ml-auto" onClick={close}>Close</Button>

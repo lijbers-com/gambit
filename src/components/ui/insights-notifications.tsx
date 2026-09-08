@@ -178,10 +178,6 @@ export const InsightsNotifications: React.FC<{ className?: string }> = ({ classN
             context={active.context}
             message={active.preview}
             businessCase={active.caseData}
-            onAskAgent={() => {
-              const q = `Tell me more: ${active.subject}`;
-              if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
-            }}
           />
         )}
       </CardContent>

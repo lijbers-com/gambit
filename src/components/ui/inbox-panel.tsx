@@ -153,10 +153,6 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
           level={active.level}
           message={active.preview}
           businessCase={businessCaseFor(active)}
-          onAskAgent={() => {
-            const q = `Tell me more: ${active.subject} — ${active.preview}`;
-            if (typeof window !== 'undefined') window.location.href = `/chat?q=${encodeURIComponent(q)}`;
-          }}
           footer={
             active.kind === 'recommendation' && status[active.id] !== 'done' ? (
               // A recommendation is a proposal, so its two answers are the

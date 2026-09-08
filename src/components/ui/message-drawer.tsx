@@ -118,7 +118,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
               kind,
               subject,
               message: typeof message === 'string' ? message : undefined,
-              stats: businessCase?.stats?.map(({ label, value, sub }) => ({ label, value, sub })),
+              stats: businessCase?.stats,
               chart: businessCase?.chart,
               insights: businessCase?.insights,
             });

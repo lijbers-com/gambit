@@ -28,7 +28,7 @@ export interface AgentContext {
   subject: string;
   /** The message body the user was reading. */
   message?: string;
-  stats?: { label: string; value: string; sub?: string }[];
+  stats?: { label: string; value: string; sub?: string; tone?: string }[];
   chart?: AgentChartData;
   insights?: { title: string; text: string }[];
 }

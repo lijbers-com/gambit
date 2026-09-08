@@ -22,6 +22,7 @@ import { AreaChartComponent } from '@/components/ui/area-chart';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { PieChartComponent } from '@/components/ui/pie-chart';
 import { Badge } from '@/components/ui/badge';
+import { MetricCard } from '@/components/ui/card';
 
 /**
  * The live Campaign Agent conversation — `useChat` against `/api/chat`,
@@ -78,15 +79,11 @@ const ChartSnippet: React.FC<{ chart: ChartToolResult }> = ({ chart }) => {
   );
 };
 
-/** Headline figures as small tiles — the metric-card language at chat scale. */
+/** Headline figures — the design system's own MetricCard, at chat scale. */
 const MetricsSnippet: React.FC<{ metrics: MetricsToolResult }> = ({ metrics }) => (
-  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
     {metrics.tiles.map((t) => (
-      <div key={t.label} className="rounded-md border border-border bg-background px-3 py-2">
-        <span className="block text-xs text-muted-foreground">{t.label}</span>
-        <span className="block truncate text-sm font-medium tabular-nums">{t.value}</span>
-        {t.sub && <span className="block truncate text-[11px] text-muted-foreground">{t.sub}</span>}
-      </div>
+      <MetricCard key={t.label} label={t.label} value={t.value} subMetric={t.sub} />
     ))}
   </div>
 );

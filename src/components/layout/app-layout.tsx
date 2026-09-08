@@ -24,6 +24,10 @@ export interface AppLayoutProps {
   onLogout?: () => void;
   breadcrumbProps?: React.ComponentProps<typeof SmartBreadcrumbs>;
   pageHeaderProps?: React.ComponentProps<typeof PageHeader>;
+  /** Chat-style pages: the content fills the pane exactly and manages its
+   *  own scrolling — the page itself never scrolls, so the prompt input
+   *  stays pinned to the bottom of the viewport. */
+  fullHeightContent?: boolean;
 }
 
 export function AppLayout({
@@ -34,6 +38,7 @@ export function AppLayout({
   onLogout,
   breadcrumbProps,
   pageHeaderProps,
+  fullHeightContent,
 }: AppLayoutProps) {
   const { collapsed } = useMenu();
   
@@ -87,7 +92,14 @@ export function AppLayout({
           </div>
         </div>
         {/* Scrollable Page Panel — border follows the rounded-tl curve */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border" style={{ background: 'var(--brand-page-bg-hex, #fafafa)' }}>
+        <div
+          className={
+            fullHeightContent
+              ? "flex min-h-0 flex-1 flex-col overflow-hidden rounded-tl-[24px] border-t border-l border-border"
+              : "flex-1 overflow-y-auto overflow-x-hidden rounded-tl-[24px] border-t border-l border-border"
+          }
+          style={{ background: 'var(--brand-page-bg-hex, #fafafa)' }}
+        >
           {/* Page Header */}
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}
@@ -102,11 +114,17 @@ export function AppLayout({
             {...pageHeaderProps}
           />
           {/* Page Content Area */}
-          <div className="w-full p-6 pb-24 min-h-screen overflow-x-hidden">
-              <div className="max-w-full">
-                {children}
-              </div>
-          </div>
+          {fullHeightContent ? (
+            <div className="min-h-0 w-full flex-1 overflow-hidden px-6 pt-4">
+              {children}
+            </div>
+          ) : (
+            <div className="w-full p-6 pb-24 min-h-screen overflow-x-hidden">
+                <div className="max-w-full">
+                  {children}
+                </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

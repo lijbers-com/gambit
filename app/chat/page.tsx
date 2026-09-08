@@ -16,9 +16,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
  * the LIVE agent, fenced to that case. A direct visit keeps the exploratory
  * landing with its canned scenario walkthroughs.
  */
-function ChatPageBody() {
-  const params = useSearchParams();
-  const q = params.get('q');
+function ChatPageBody({ q }: { q: string | null }) {
   // The stash lives in sessionStorage, which the server can't see — read it
   // after mount so the hydration render matches the server's.
   const [context, setContext] = React.useState<ReturnType<typeof readAgentContext>>(null);
@@ -30,22 +28,21 @@ function ChatPageBody() {
 
   if (q) {
     if (!ready) return null;
-    return (
-      <div className="h-[calc(100vh-140px)] min-h-[420px]">
-        <AgentChat context={context} initialPrompt={q} />
-      </div>
-    );
+    return <AgentChat context={context} initialPrompt={q} className="h-full" />;
   }
   return <ChatInterface />;
 }
 
-export default function ChatPage() {
+function ChatPageFrame() {
   const { theme } = useTheme();
   const routes = getRoutesForTheme(theme);
+  const params = useSearchParams();
+  const q = params.get('q');
 
   return (
     <MenuContextProvider>
       <AppLayout
+        fullHeightContent={!!q}
         routes={routes}
         logo={{ src: '/next.svg', alt: 'Logo', width: 40, height: 40 }}
         user={{ name: 'Jane Doe', avatar: 'https://ui-avatars.com/api/?name=Jane+Doe&size=32' }}
@@ -61,10 +58,16 @@ export default function ChatPage() {
           onSettings: () => console.log('Settings clicked'),
         }}
       >
-        <React.Suspense fallback={null}>
-          <ChatPageBody />
-        </React.Suspense>
+        <ChatPageBody q={q} />
       </AppLayout>
     </MenuContextProvider>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <ChatPageFrame />
+    </React.Suspense>
   );
 }

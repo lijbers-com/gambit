@@ -8,7 +8,6 @@ import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
-import { MeasurementSettingsFields, DEFAULT_MEASUREMENT, type MeasurementSettingsValue } from '@/components/ui/measurement-settings';
 import type { EngineId } from '@/lib/db';
 import { PROPOSITION_PATTERNS, PropositionSwatch } from '@/lib/proposition-patterns';
 import { BarChartComponent } from '@/components/ui/bar-chart';
@@ -3304,11 +3303,6 @@ export const FunnelView: Story = {
     const [brandFilter, setBrandFilter] = useState<string[]>([]);
     const [campaignFilter, setCampaignFilter] = useState<string[]>([]);
     const [goalFilter, setGoalFilter] = useState<string[]>([]);
-    const [measurement, setMeasurement] = useState<MeasurementSettingsValue>(DEFAULT_MEASUREMENT);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(2024, 0, 1),
-      to: new Date(2024, 5, 30)
-    });
 
     // Proposition states for each funnel card
     const [awarenessPropositions, setAwarenessPropositions] = useState<string[]>(['display', 'digital-instore', 'offline-instore']);
@@ -3836,10 +3830,8 @@ export const FunnelView: Story = {
           {/* Top Metric Cards — the dashboard's filters sit in the row's header,
               beside Edit metrics: what the numbers cover and which numbers show. */}
           <MetricRow
-            dialogExtra={<MeasurementSettingsFields value={measurement} onChange={setMeasurement} />}
             headerLeft={
               <>
-                <div className="w-56"><DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} /></div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">

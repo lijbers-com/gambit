@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { SessionDateRange } from '@/components/ui/session-date-range';
 import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
+import { SessionDateRange } from '@/components/ui/session-date-range';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -192,6 +192,8 @@ function AllCampaignsPage() {
                 value={headerAdvertiser}
                 onChange={setHeaderAdvertiser}
               />
+              {/* No metric row on this page, so the session range stays in
+                  the header — it still filters the plans below. */}
               <SessionDateRange />
             </div>
           ),

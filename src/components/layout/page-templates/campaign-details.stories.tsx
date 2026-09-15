@@ -1226,17 +1226,6 @@ export const DigitalInstoreRunning: Story = {
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
-            headerRight: (
-              <DateRangePicker
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-                placeholder="Pick a date range with conversion window"
-                showPresets={true}
-                showConversionWindow={true}
-                conversionWindow={conversionWindow}
-                onConversionWindowChange={setConversionWindow}
-              />
-            ),
           }}
         >
         <div className="mb-3">

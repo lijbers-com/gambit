@@ -7,6 +7,9 @@ import { ListFilter, Plus, Settings2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MetricCard, MetricCardProps } from "./card"
 import { Button } from "./button"
+import { SessionDateRange } from "./session-date-range"
+import { MeasurementSettingsFields, DEFAULT_MEASUREMENT } from "./measurement-settings"
+import { useSessionFilters, setSessionMeasurement } from "@/lib/session-filters"
 import { LineChartComponent } from "./line-chart"
 import {
   Dialog,
@@ -98,6 +101,13 @@ export interface MetricRowProps {
   /** Extra content at the top of the Edit metrics dialog — settings that
    *  change how the numbers are counted belong with choosing the numbers. */
   dialogExtra?: React.ReactNode
+  /** The session date range sits first in the header row on every metric
+   *  row, so the range and the figures it applies to are read together.
+   *  Off for a row that carries its own picker. */
+  hideDateRange?: boolean
+  /** The measurement settings (attribution window, which sales count) open
+   *  every Edit metrics dialog. Off for rows that measure nothing. */
+  hideMeasurement?: boolean
   /** Lay the cards out in a single horizontally-scrolling row instead of a
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
    *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
@@ -130,6 +140,8 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     filterNote,
     headerLeft,
     dialogExtra,
+    hideDateRange,
+    hideMeasurement,
     scrollable = false,
     bleedEdges = false,
     ...props
@@ -139,6 +151,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     )
     const [internalActiveKey, setInternalActiveKey] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const sessionFilters = useSessionFilters()
 
     const selectedKeys = controlledSelectedKeys ?? internalSelectedKeys
     const activeKey = controlledActiveKey !== undefined ? controlledActiveKey : internalActiveKey
@@ -209,10 +222,19 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
 
     return (
       <div ref={ref} className={cn("space-y-3", className)} {...props}>
-      {(headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
+      {(!hideDateRange || headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
         <div className="flex items-center justify-between gap-3">
-          {headerLeft ? (
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">{headerLeft}</div>
+          {(!hideDateRange || headerLeft) ? (
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+              {!hideDateRange && <SessionDateRange />}
+              {headerLeft}
+              {filterNote && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
+                  <ListFilter className="h-3.5 w-3.5" />
+                  {filterNote}
+                </span>
+              )}
+            </div>
           ) : filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
               <ListFilter className="h-3.5 w-3.5" />
@@ -284,7 +306,17 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             </DialogDescription>
           </DialogHeader>
           <div className="-mx-1 max-h-[500px] overflow-y-auto px-1 py-1">
-            {dialogExtra && <div className="mb-5">{dialogExtra}</div>}
+            {(!hideMeasurement || dialogExtra) && (
+              <div className="mb-5 space-y-4">
+                {!hideMeasurement && (
+                  <MeasurementSettingsFields
+                    value={sessionFilters.measurement ?? DEFAULT_MEASUREMENT}
+                    onChange={setSessionMeasurement}
+                  />
+                )}
+                {dialogExtra}
+              </div>
+            )}
             <div className="grid grid-cols-3 gap-4">
               {metrics.map((metric) => {
                 const isPicked = selectedKeys.includes(metric.key)

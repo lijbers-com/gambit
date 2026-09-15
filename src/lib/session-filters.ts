@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import type { MeasurementSettingsValue } from '@/components/ui/measurement-settings';
 
 /**
  * Filters the user carries with them across the app.
@@ -27,6 +28,12 @@ export interface SessionFilters {
    * removed a card does not want it back on the next screen.
    */
   metricKeys?: Record<string, string[]>;
+  /**
+   * How the numbers are counted — attribution window and which sales
+   * count. Set in any Edit metrics dialog, applied to every figure the
+   * session shows.
+   */
+  measurement?: MeasurementSettingsValue;
 }
 
 /**
@@ -75,6 +82,11 @@ export function setSessionFilters(patch: SessionFilters) {
 /** Clear the date range back to "everything". */
 export function clearSessionDateRange() {
   setSessionFilters({ dateFrom: undefined, dateTo: undefined });
+}
+
+/** Remember how the numbers are counted. */
+export function setSessionMeasurement(measurement: MeasurementSettingsValue) {
+  setSessionFilters({ measurement });
 }
 
 /** Remember which metric cards a row shows. */

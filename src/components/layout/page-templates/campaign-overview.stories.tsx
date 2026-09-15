@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs, tabFirst } from '@/components/ui/card';
-import { SessionDateRange } from '@/components/ui/session-date-range';
 import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
@@ -324,7 +323,6 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                 value={headerAdvertiser}
                 onChange={setHeaderAdvertiser}
               />
-              <SessionDateRange />
             </div>
           ),
         }}

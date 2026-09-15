@@ -1278,6 +1278,8 @@ export const MediaPlanDetail: Story = {
               defaultVariant={inSetup ? 'default' : 'graph'}
               showCharts={!inSetup}
               hideEditButton={inSetup}
+              hideDateRange={inSetup}
+              hideMeasurement={inSetup}
               removable={false}
               bleedEdges
             />

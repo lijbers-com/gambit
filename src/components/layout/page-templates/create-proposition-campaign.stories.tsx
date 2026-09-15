@@ -1191,6 +1191,8 @@ const PropositionWizard = ({
         <div className="space-y-3">
           {/* Metric cards */}
           <MetricRow
+            hideDateRange
+            hideMeasurement
             metrics={[
               {
                 key: 'reach',
@@ -3202,6 +3204,8 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       >
         <div className="mb-3">
           <MetricRow
+            hideDateRange
+            hideMeasurement
             metrics={spForecastMetrics}
             maxVisible={4}
             defaultVariant="default"

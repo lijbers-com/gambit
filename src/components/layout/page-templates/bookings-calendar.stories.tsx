@@ -892,6 +892,7 @@ const BookingCalendarTemplate = ({
                   drawerMetricKeys ?? drawerMetrics.slice(0, 3).map(m => m.key);
                 return (
                   <MetricRow
+                    hideDateRange
                     metrics={drawerMetrics}
                     selectedKeys={visibleKeys}
                     onSelectionChange={setDrawerMetricKeys}
@@ -2656,6 +2657,7 @@ const OfflineInstoreCalendarTemplate = ({
                   drawerMetricKeys ?? drawerMetrics.slice(0, 3).map(m => m.key);
                 return (
                   <MetricRow
+                    hideDateRange
                     metrics={drawerMetrics}
                     selectedKeys={visibleKeys}
                     onSelectionChange={setDrawerMetricKeys}

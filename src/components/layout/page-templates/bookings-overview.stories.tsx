@@ -10,7 +10,6 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
-import { SessionDateRange } from '@/components/ui/session-date-range';
 import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -214,7 +213,6 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                   value={headerAdvertiser}
                   onChange={setHeaderAdvertiser}
                 />
-                <SessionDateRange />
               </div>
             ),
           }}

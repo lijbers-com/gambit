@@ -967,6 +967,8 @@ export const GoalSelection: Story = {
                 const splitDecided = currentStep >= 4;
                 return (
                   <MetricRow
+                    hideDateRange
+                    hideMeasurement
                     metrics={buildForecastMetrics({ budget: draftBudget, days, engines: splitDecided ? engines : [], stage })}
                     maxVisible={6}
                     defaultVariant="default"
@@ -1943,6 +1945,8 @@ export const NoGoalTargeting: Story = {
           <div className="space-y-6">
             {/* Metric cards */}
               <MetricRow
+                hideDateRange
+                hideMeasurement
                 metrics={[
                   {
                     key: 'reach',

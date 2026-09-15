@@ -104,13 +104,7 @@ export function AppLayout({
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}
             subtitle={pageHeaderProps?.subtitle}
-            headerRight={
-              pageHeaderProps?.headerRight || (
-                pageHeaderProps?.variant === 'campaign-detail' ? undefined : (
-                  <SessionDateRange className="w-[280px]" />
-                )
-              )
-            }
+            headerRight={pageHeaderProps?.headerRight}
             {...pageHeaderProps}
           />
           {/* Page Content Area */}

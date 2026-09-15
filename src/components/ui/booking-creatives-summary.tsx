@@ -49,26 +49,29 @@ export function useBookingCreativeItems(bookingId?: string, creativeIds?: string
             {linked.map((c) => {
               const template = templatesById.get(c.templateId);
               return (
-                <div key={c.id} className="min-w-0 space-y-1 pt-1">
-                  <div className="truncate" title={c.name}>
-                    <span className="text-foreground">{c.name}</span>
-                    {c.status !== 'approved' && <span> · {STATUS_WORD[c.status]}</span>}
+                /* One small creative card per creative: the preview, then its
+                   name and size on one line — click it for the big preview. */
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setPreviewId(c.id)}
+                  className="block w-full rounded-md border bg-background p-1.5 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={`Preview ${c.name}`}
+                  title="Open preview"
+                >
+                  {template ? (
+                    <CreativePreview template={template} values={c.values} creativeId={c.id} showLabel={false} />
+                  ) : (
+                    <div className="h-16 w-full rounded border bg-muted" />
+                  )}
+                  <div className="mt-1.5 flex items-center justify-between gap-2 px-0.5 text-[12px]">
+                    <span className="min-w-0 truncate text-foreground" title={c.name}>
+                      {c.name}
+                      {c.status !== 'approved' && <span className="text-muted-foreground"> · {STATUS_WORD[c.status]}</span>}
+                    </span>
+                    {template && <span className="shrink-0 tabular-nums text-muted-foreground">{template.sizes[0]}</span>}
                   </div>
-                  {/* The preview at the card's width — click it for the big one. */}
-                  <button
-                    type="button"
-                    onClick={() => setPreviewId(c.id)}
-                    className="block w-full rounded-md text-left transition-shadow hover:ring-2 hover:ring-ring/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    aria-label={`Preview ${c.name}`}
-                    title="Open preview"
-                  >
-                    {template ? (
-                      <CreativePreview template={template} values={c.values} creativeId={c.id} />
-                    ) : (
-                      <div className="h-16 w-full rounded border bg-muted" />
-                    )}
-                  </button>
-                </div>
+                </button>
               );
             })}
           </div>

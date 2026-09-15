@@ -52,6 +52,8 @@ export interface CreativePreviewProps {
   lang?: string;
   /** The creative's id, to recall in-session uploads. */
   creativeId?: string;
+  /** The size label under the frame. Off when the caller shows it elsewhere. */
+  showLabel?: boolean;
   className?: string;
 }
 
@@ -300,7 +302,7 @@ const Composition: React.FC<{
  * Full preview: the composition inside a size-true frame, scaled to fit its
  * container, with the real dimensions on the frame.
  */
-export const CreativePreview: React.FC<CreativePreviewProps> = ({ template, values, size, lang, creativeId, className }) => {
+export const CreativePreview: React.FC<CreativePreviewProps> = ({ template, values, size, lang, creativeId, showLabel = true, className }) => {
   const activeSize = size ?? template.sizes[0];
   const { w, h, label } = parseSize(activeSize);
   const v = localizedValues(values, lang);
@@ -313,7 +315,7 @@ export const CreativePreview: React.FC<CreativePreviewProps> = ({ template, valu
       >
         <Composition template={template} v={v} creativeId={creativeId} w={w} h={h} />
       </div>
-      <div className="text-center text-[11px] tabular-nums text-muted-foreground">{label}</div>
+      {showLabel && <div className="text-center text-[11px] tabular-nums text-muted-foreground">{label}</div>}
     </div>
   );
 };

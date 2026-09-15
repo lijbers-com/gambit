@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { LayoutGrid, LayoutTemplate, Link2, Minus, Send } from 'lucide-react';
+import { ChevronDown, LayoutGrid, LayoutTemplate, Link2, Minus, Send, Upload } from 'lucide-react';
 import { ThemeContext, type Theme } from '@/contexts/theme-context';
 import { cn } from '@/lib/utils';
 import {
@@ -23,10 +23,11 @@ import { RetailProductSelect } from './retail-product-select';
 import { SearchSelectList } from './search-select-list';
 import { Switch } from './switch';
 import { Table } from './table';
-import { queueToast } from './toast';
+import { queueToast, useToast } from './toast';
 import { CreativePreview, parseSize, rememberUpload, resolveColor } from './creative-preview';
 import { CreativeLogs } from './creative-logs';
-import { CreativeShareActions, readShareParams } from './creative-share';
+import { CreativeShareMenu, readShareParams } from './creative-share';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 
 /**
  * The creative builder — settings on the left, a LIVE preview on the right.
@@ -205,6 +206,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const [tab, setTab] = React.useState<'details' | 'logs'>('details');
   // A share link says which brand and device it was shared for — the page
   // opens that way. Storybook has no ThemeProvider, hence the optional read.
+  const toast = useToast();
   const themeCtx = React.useContext(ThemeContext);
   const setTheme = themeCtx?.setTheme;
   const [linkLayout, setLinkLayout] = React.useState<'desktop' | 'mobile' | null>(null);
@@ -245,6 +247,13 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const saveDraft = () => {
     persist();
     queueToast({ title: 'Creative saved', description: `"${name}" kept as ${STATUS_BADGE[creative.status].label.toLowerCase()}.` });
+  };
+
+  const requestUpload = () => {
+    persist();
+    setCreativeStatus(creative.id, 'requested');
+    navigator.clipboard?.writeText(`${window.location.origin}/creatives/${engine}/${creative.id}`).catch(() => {});
+    toast({ title: 'Upload requested', description: 'The upload link is on your clipboard — send it to the advertiser.' });
   };
 
   const submit = () => {
@@ -510,30 +519,33 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">Pick a template to see the preview.</p>
               )}
-              {template && template.sizes.length > 1 && (
-                <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={() => setSideBySide(true)}>
-                  <LayoutGrid className="h-4 w-4" /> View all formats side by side
-                </Button>
-              )}
-              {/* Requirements live with the template on the left; the preview
-                  only says what it is for. */}
+              {/* The card's actions, like a summary card's: share the preview,
+                  act on the creative, see every format at once. */}
               {template && (
-                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-                  Every change you make on the left shows here as you type, at the true proportions of each format.
-                </p>
-              )}
-              {/* Share — the same things the live preview page offers, as
-                  buttons: the link opens in this brand, on the layout of the
-                  size in view. */}
-              {template && (
-                <div className="border-t pt-3">
-                  <div className="mb-2 text-xs font-medium">Share this preview</div>
-                  <CreativeShareActions
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <CreativeShareMenu
                     creative={creative}
                     engine={engine}
                     brand={themeCtx?.theme}
                     layout={size && parseSize(size).w < 700 ? 'mobile' : 'desktop'}
                   />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        Action <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-[200px]">
+                      <DropdownMenuItem onSelect={requestUpload} className="gap-2">
+                        <Upload className="h-4 w-4" /> Request file upload
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {template.sizes.length > 1 && (
+                    <Button variant="outline" className="gap-1.5" onClick={() => setSideBySide(true)}>
+                      <LayoutGrid className="h-4 w-4" /> View all
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>

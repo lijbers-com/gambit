@@ -2,19 +2,19 @@
 
 import * as React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Check, Copy, FileDown, Mail, QrCode } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronDown, Copy, FileDown, Mail, QrCode, Share2 } from 'lucide-react';
 import type { Creative, EngineId } from '@/lib/db';
 import { Button } from './button';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { useToast } from './toast';
 
 /**
  * Sharing a creative preview — what the live display product offers on its
- * preview page (brand, layout, PDF, mail, QR), as a row of buttons under the
- * live preview, the way a summary card carries its actions. No form: the
- * link carries the brand the page is showing and the layout of the size in
- * view, so whoever opens it sees the creative the way it was shared.
+ * preview page (brand, layout, PDF, mail, QR), behind one Share button at
+ * the foot of the live preview. No form: the link carries the brand the
+ * page is showing and the layout of the size in view, so whoever opens it
+ * sees the creative the way it was shared.
  */
 
 export const SHARE_BRANDS: Array<{ id: string; name: string }> = [
@@ -39,7 +39,7 @@ export function readShareParams(): { brand?: string; layout?: ShareLayout } {
   };
 }
 
-export const CreativeShareActions: React.FC<{
+export const CreativeShareMenu: React.FC<{
   creative: Creative;
   engine: EngineId;
   /** The brand the page is showing now — the link opens in it. */
@@ -49,7 +49,7 @@ export const CreativeShareActions: React.FC<{
   className?: string;
 }> = ({ creative, engine, brand, layout, className }) => {
   const toast = useToast();
-  const [copied, setCopied] = React.useState(false);
+  const [qrOpen, setQrOpen] = React.useState(false);
   const shareBrand = brand && SHARE_BRANDS.some((b) => b.id === brand) ? brand : 'gambit';
   const brandName = SHARE_BRANDS.find((b) => b.id === shareBrand)?.name ?? 'Edge';
   const layoutName = layout === 'mobile' ? 'mobile web' : 'desktop web';
@@ -58,15 +58,11 @@ export const CreativeShareActions: React.FC<{
 
   const copy = () => {
     navigator.clipboard?.writeText(link).catch(() => {});
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
     toast({ title: 'Preview link copied', description: `Opens as ${brandName} on ${layoutName}.` });
   };
-
   const exportPdf = () => {
     toast({ title: 'PDF on its way', description: `"${creative.name}" is being rendered for ${layoutName} and lands in your downloads.` });
   };
-
   const mail = () => {
     const subject = encodeURIComponent(`Preview: ${creative.name}`);
     const body = encodeURIComponent(`Have a look at this creative preview.\n\n${link}\n\nIt opens as ${brandName} on ${layoutName}.`);
@@ -74,32 +70,34 @@ export const CreativeShareActions: React.FC<{
   };
 
   return (
-    <div className={cn('flex flex-wrap gap-2', className)}>
-      <Button variant="outline" size="sm" className={cn('gap-1.5', copied && 'text-success-600')} onClick={copy}>
-        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-        {copied ? 'Copied' : 'Copy link'}
-      </Button>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <QrCode className="h-4 w-4" /> QR code
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className={className}>
+            <Share2 className="h-4 w-4" /> Share <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-3">
-          <div className="rounded-md border bg-white p-2">
-            <QRCodeSVG value={link} size={144} level="M" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[200px]">
+          <DropdownMenuItem onSelect={copy} className="gap-2"><Copy className="h-4 w-4" /> Copy link</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setQrOpen(true)} className="gap-2"><QrCode className="h-4 w-4" /> QR code</DropdownMenuItem>
+          <DropdownMenuItem onSelect={exportPdf} className="gap-2"><FileDown className="h-4 w-4" /> Export as PDF</DropdownMenuItem>
+          <DropdownMenuItem onSelect={mail} className="gap-2"><Mail className="h-4 w-4" /> Share via mail</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="sm:max-w-[360px]">
+          <DialogHeader>
+            <DialogTitle>Scan to open on your phone</DialogTitle>
+            <DialogDescription>Opens “{creative.name}” as {brandName}, {layoutName}.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center">
+            <div className="rounded-md border bg-white p-3">
+              <QRCodeSVG value={link} size={200} level="M" />
+            </div>
           </div>
-          <p className="mt-2 w-[160px] text-center text-[11px] leading-snug text-muted-foreground">
-            Scan to open on your phone — as {brandName}, {layoutName}.
-          </p>
-        </PopoverContent>
-      </Popover>
-      <Button variant="outline" size="sm" className="gap-1.5" onClick={exportPdf}>
-        <FileDown className="h-4 w-4" /> Export as PDF
-      </Button>
-      <Button variant="outline" size="sm" className="gap-1.5" onClick={mail}>
-        <Mail className="h-4 w-4" /> Share via mail
-      </Button>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

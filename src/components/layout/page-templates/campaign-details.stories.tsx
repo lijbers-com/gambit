@@ -10,6 +10,7 @@ import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { useRouteCampaign } from '@/lib/db';
+import { CampaignCreativesPanel } from '@/components/ui/campaign-creatives-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -289,11 +290,6 @@ export const DigitalInstoreInOption: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
-      { id: 'CR-002', status: 'Rejected', name: 'Creative 2', format: 'Video', placements: 1 },
-      { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Banner', placements: 2 },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
       { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
@@ -962,61 +958,7 @@ const updatedForecastMetrics = [
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Banner', value: 'Banner' },
-                          { label: 'Video', value: 'Video' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
-                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
-                      { key: 'totalSkuUnits', header: 'Total SKU units' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="digital-instore" className="mt-6" />
               ),
             },
             {
@@ -1132,11 +1074,6 @@ export const DigitalInstoreRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Banner', placements: 3 },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1 },
-      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Banner', placements: 2 },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
       { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
@@ -1527,50 +1464,7 @@ export const DigitalInstoreRunning: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Banner', value: 'Banner' },
-                          { label: 'Video', value: 'Video' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/digital-instore/creative/${row.id}`}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="digital-instore" showPerformance className="mt-6" />
               ),
             },
             {
@@ -1685,11 +1579,6 @@ export const OfflineInstoreRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Print', placements: 3, adSpend: '€12,980', impressions: '750,168', clicks: '9,827', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€17,072', onlineSkuUnits: '1,382', onlineSkuConversions: '854', instoreSkuRevenue: '€20,496', instoreSkuUnits: '1,957', instoreSkuConversions: '1,231', totalSkuRevenue: '€37,568', totalSkuUnits: '3,339', totalSkuConversions: '2,085' },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,468', instoreSkuConversions: '923', totalSkuRevenue: '€28,176', totalSkuUnits: '2,505', totalSkuConversions: '1,563' },
-      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Shelf Talker', placements: 2, adSpend: '€9,735', impressions: '562,626', clicks: '7,370', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€12,804', onlineSkuUnits: '1,037', onlineSkuConversions: '640', instoreSkuRevenue: '€15,372', instoreSkuUnits: '1,467', instoreSkuConversions: '924', totalSkuRevenue: '€28,176', totalSkuUnits: '2,504', totalSkuConversions: '1,564' },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
       { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
@@ -2036,67 +1925,7 @@ export const OfflineInstoreRunning: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Print', value: 'Print' },
-                          { label: 'Poster', value: 'Poster' },
-                          { label: 'Shelf Talker', value: 'Shelf Talker' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'adSpend', header: 'Ad Spend' },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks + Add to Carts' },
-                      { key: 'cpc', header: 'CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'cpm', header: 'CPM' },
-                      { key: 'ecpm', header: 'eCPM' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU Units' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU Conversions' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU Units' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU Conversions' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuUnits', header: 'Total SKU Units' },
-                      { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="offline-instore" showPerformance className="mt-6" />
               ),
             },
             {
@@ -2210,11 +2039,6 @@ export const DisplayRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Creative 1', format: 'Display Banner', placements: 4, totalSkuConversions: '3,245', totalSkuConversionRate: '2.8%', totalSkuUnits: '5,678', totalSkuRevenue: '$98,450', totalSkuRoas: '4.2x', onlineSkuConversions: '2,271', onlineSkuUnits: '3,975', onlineSkuRevenue: '$68,915', instoreSkuConversions: '974', instoreSkuUnits: '1,703', instoreSkuRevenue: '$29,535' },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 2, totalSkuConversions: '1,867', totalSkuConversionRate: '3.4%', totalSkuUnits: '3,234', totalSkuRevenue: '$67,890', totalSkuRoas: '4.8x', onlineSkuConversions: '1,307', onlineSkuUnits: '2,264', onlineSkuRevenue: '$47,523', instoreSkuConversions: '560', instoreSkuUnits: '970', instoreSkuRevenue: '$20,367' },
-      { id: 'CR-003', status: 'Approved', name: 'Creative 3', format: 'Rich Media', placements: 3, totalSkuConversions: '2,456', totalSkuConversionRate: '3.1%', totalSkuUnits: '4,123', totalSkuRevenue: '$89,670', totalSkuRoas: '4.6x', onlineSkuConversions: '1,719', onlineSkuUnits: '2,886', onlineSkuRevenue: '$62,769', instoreSkuConversions: '737', instoreSkuUnits: '1,237', instoreSkuRevenue: '$26,901' },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
       { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
@@ -2582,62 +2406,7 @@ export const DisplayRunning: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Display Banner', value: 'Display Banner' },
-                          { label: 'Video', value: 'Video' },
-                          { label: 'Rich Media', value: 'Rich Media' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
-                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
-                      { key: 'totalSkuUnits', header: 'Total SKU units' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/display/creative/${row.id}`}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="display" showPerformance className="mt-6" />
               ),
             },
             {
@@ -2751,11 +2520,6 @@ export const OfflineInstoreInOption: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Print', placements: 2 },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Poster', placements: 1 },
-      { id: 'CR-003', status: 'Pending', name: 'Creative 3', format: 'Shelf Talker', placements: 1 },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
       { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
@@ -3114,51 +2878,7 @@ export const OfflineInstoreInOption: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Print', value: 'Print' },
-                          { label: 'Poster', value: 'Poster' },
-                          { label: 'Shelf Talker', value: 'Shelf Talker' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offline-instore/creative/${row.id}`}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="offline-instore" className="mt-6" />
               ),
             },
             {
@@ -3272,11 +2992,6 @@ export const DisplayInOption: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Pending', name: 'Creative 1', format: 'Display Banner', placements: 3, totalSkuConversions: '1,245', totalSkuConversionRate: '2.1%', totalSkuUnits: '2,134', totalSkuRevenue: '$42,680', totalSkuRoas: '3.5x', onlineSkuConversions: '871', onlineSkuUnits: '1,494', onlineSkuRevenue: '$29,876', instoreSkuConversions: '374', instoreSkuUnits: '640', instoreSkuRevenue: '$12,804' },
-      { id: 'CR-002', status: 'Approved', name: 'Creative 2', format: 'Video', placements: 1, totalSkuConversions: '2,867', totalSkuConversionRate: '3.6%', totalSkuUnits: '4,923', totalSkuRevenue: '$98,460', totalSkuRoas: '4.9x', onlineSkuConversions: '2,007', onlineSkuUnits: '3,446', onlineSkuRevenue: '$68,922', instoreSkuConversions: '860', instoreSkuUnits: '1,477', instoreSkuRevenue: '$29,538' },
-      { id: 'CR-003', status: 'Rejected', name: 'Creative 3', format: 'Rich Media', placements: 0, totalSkuConversions: '0', totalSkuConversionRate: '0%', totalSkuUnits: '0', totalSkuRevenue: '$0', totalSkuRoas: '0x', onlineSkuConversions: '0', onlineSkuUnits: '0', onlineSkuRevenue: '$0', instoreSkuConversions: '0', instoreSkuUnits: '0', instoreSkuRevenue: '$0' },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
       { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
@@ -3646,62 +3361,7 @@ export const DisplayInOption: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Display Banner', value: 'Display Banner' },
-                          { label: 'Video', value: 'Video' },
-                          { label: 'Rich Media', value: 'Rich Media' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'totalSkuConversions', header: 'Total SKU conversions' },
-                      { key: 'totalSkuConversionRate', header: 'Total SKU conversion rate' },
-                      { key: 'totalSkuUnits', header: 'Total SKU units' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuRoas', header: 'Total SKU ROAS' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU conversions' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU units' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU conversions' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU units' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="display" className="mt-6" />
               ),
             },
             {
@@ -5517,12 +5177,6 @@ export const OffsiteRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Approved', name: 'Social Banner Pack', format: 'Social Media', placements: 6, adSpend: '$25,935', impressions: '3,854,196', clicks: '59,537', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$65,592', onlineSkuUnits: '4,447', onlineSkuConversions: '2,680', instoreSkuRevenue: '$46,884', instoreSkuUnits: '3,137', instoreSkuConversions: '1,894', totalSkuRevenue: '$112,476', totalSkuUnits: '7,584', totalSkuConversions: '4,574' },
-      { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 3, adSpend: '$25,935', impressions: '3,854,196', clicks: '59,537', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$65,592', onlineSkuUnits: '4,447', onlineSkuConversions: '2,680', instoreSkuRevenue: '$46,884', instoreSkuUnits: '3,137', instoreSkuConversions: '1,894', totalSkuRevenue: '$112,476', totalSkuUnits: '7,584', totalSkuConversions: '4,574' },
-      { id: 'CR-003', status: 'Approved', name: 'Audio Spot 15s', format: 'Audio', placements: 2, adSpend: '$17,290', impressions: '2,569,464', clicks: '39,691', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$43,728', onlineSkuUnits: '2,965', onlineSkuConversions: '1,787', instoreSkuRevenue: '$31,256', instoreSkuUnits: '2,091', instoreSkuConversions: '1,262', totalSkuRevenue: '$74,984', totalSkuUnits: '5,056', totalSkuConversions: '3,049' },
-      { id: 'CR-004', status: 'Approved', name: 'DOOH Billboard', format: 'Digital Out-of-Home', placements: 4, adSpend: '$17,290', impressions: '2,569,464', clicks: '39,691', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$43,728', onlineSkuUnits: '2,964', onlineSkuConversions: '1,787', instoreSkuRevenue: '$31,256', instoreSkuUnits: '2,091', instoreSkuConversions: '1,262', totalSkuRevenue: '$74,984', totalSkuUnits: '5,055', totalSkuConversions: '3,049' },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'Running', name: 'Coca-Cola Summer Break', channel: 'Homepage Hero', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', viewability: '72.4%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
       { id: 'LI-002', status: 'Running', name: 'Dove Open Web Boost', channel: 'Category Leaderboard', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', viewability: '68.1%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
@@ -5897,68 +5551,7 @@ export const OffsiteRunning: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Social Media', value: 'Social Media' },
-                          { label: 'Video', value: 'Video' },
-                          { label: 'Audio', value: 'Audio' },
-                          { label: 'Digital Out-of-Home', value: 'Digital Out-of-Home' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'adSpend', header: 'Ad Spend' },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks + Add to Carts' },
-                      { key: 'cpc', header: 'CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'cpm', header: 'CPM' },
-                      { key: 'ecpm', header: 'eCPM' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU Units' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU Conversions' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU Units' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU Conversions' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuUnits', header: 'Total SKU Units' },
-                      { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => window.location.href = `/campaigns/offsite/creative/${row.id}`}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="offsite" showPerformance className="mt-6" />
               ),
             },
             {
@@ -6072,11 +5665,6 @@ export const OffsiteInOption: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const creativeData = [
-      { id: 'CR-001', status: 'Pending', name: 'Social Banner Pack', format: 'Social Media', placements: 4, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'CR-002', status: 'Approved', name: 'CTV Spot 30s', format: 'Video', placements: 2, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'CR-003', status: 'Rejected', name: 'Audio Spot 15s', format: 'Audio', placements: 0, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-    ];
     const bookingData = [
       { id: 'LI-001', status: 'In-option', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-002', status: 'In-option', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
@@ -6448,68 +6036,7 @@ export const OffsiteInOption: Story = {
               label: 'Creatives',
               value: 'creatives',
               content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Approved', value: 'Approved' },
-                          { label: 'Rejected', value: 'Rejected' },
-                          { label: 'Pending', value: 'Pending' },
-                        ],
-                        selectedValues: creativeStatus,
-                        onChange: setCreativeStatus,
-                      },
-                      {
-                        name: 'Format',
-                        options: [
-                          { label: 'Social Media', value: 'Social Media' },
-                          { label: 'Video', value: 'Video' },
-                          { label: 'Audio', value: 'Audio' },
-                          { label: 'Digital Out-of-Home', value: 'Digital Out-of-Home' },
-                        ],
-                        selectedValues: creativeFormat,
-                        onChange: setCreativeFormat,
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search creatives..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'id', header: 'Creative ID' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={creativeStatusVariant(row.status)}>{row.status}</Badge> },
-                      { key: 'name', header: 'Name' },
-                      { key: 'format', header: 'Format' },
-                      { key: 'placements', header: 'Placements', render: row => <Badge variant="secondary">{row.placements}</Badge> },
-                      { key: 'adSpend', header: 'Ad Spend' },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks + Add to Carts' },
-                      { key: 'cpc', header: 'CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'cpm', header: 'CPM' },
-                      { key: 'ecpm', header: 'eCPM' },
-                      { key: 'onlineSkuRevenue', header: 'Online SKU Revenue' },
-                      { key: 'onlineSkuUnits', header: 'Online SKU Units' },
-                      { key: 'onlineSkuConversions', header: 'Online SKU Conversions' },
-                      { key: 'instoreSkuRevenue', header: 'In-store SKU Revenue' },
-                      { key: 'instoreSkuUnits', header: 'In-store SKU Units' },
-                      { key: 'instoreSkuConversions', header: 'In-store SKU Conversions' },
-                      { key: 'totalSkuRevenue', header: 'Total SKU Revenue' },
-                      { key: 'totalSkuUnits', header: 'Total SKU Units' },
-                      { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
-                    ]}
-                    data={creativeData.filter(row => {
-                      const statusMatch = creativeStatus.length === 0 || creativeStatus.includes(row.status);
-                      const formatMatch = creativeFormat.length === 0 || creativeFormat.includes(row.format);
-                      return statusMatch && formatMatch;
-                    })}
-                    rowKey={row => row.id}
-                    onRowClick={(row) => console.log(`Navigate to creative detail: ${row.name} (${row.id})`)}
-                  />
-                </div>
+                <CampaignCreativesPanel engine="offsite" className="mt-6" />
               ),
             },
             {

@@ -8,7 +8,7 @@ import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
-import { MeasurementSettings, DEFAULT_MEASUREMENT, type MeasurementSettingsValue } from '@/components/ui/measurement-settings';
+import { MeasurementSettingsFields, DEFAULT_MEASUREMENT, type MeasurementSettingsValue } from '@/components/ui/measurement-settings';
 import type { EngineId } from '@/lib/db';
 import { PROPOSITION_PATTERNS, PropositionSwatch } from '@/lib/proposition-patterns';
 import { BarChartComponent } from '@/components/ui/bar-chart';
@@ -3836,14 +3836,13 @@ export const FunnelView: Story = {
           {/* Top Metric Cards — the dashboard's filters sit in the row's header,
               beside Edit metrics: what the numbers cover and which numbers show. */}
           <MetricRow
+            dialogExtra={<MeasurementSettingsFields value={measurement} onChange={setMeasurement} />}
             headerLeft={
               <>
                 <div className="w-56"><DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} /></div>
-                <MeasurementSettings value={measurement} onChange={setMeasurement} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">
-                    <Settings2 className="h-4 w-4" />
                     Proposition
                   </Button>
                 </DropdownMenuTrigger>

@@ -45,12 +45,65 @@ const MODEL_LABEL: Record<AttributionModel, string> = {
 export const measurementSummary = (v: MeasurementSettingsValue) =>
   `${v.attributionWindow}d · ${MODEL_LABEL[v.model]}${v.includeHalo ? ' · halo' : ''}${v.heroOnly ? ' · hero only' : ''}`;
 
-export const MeasurementSettings: React.FC<{
+/** The settings themselves — hosted by the popover below, or by a dialog
+ *  (the metric row's Edit metrics) so the filter row stays one line. */
+export const MeasurementSettingsFields: React.FC<{
   value: MeasurementSettingsValue;
   onChange: (next: MeasurementSettingsValue) => void;
   className?: string;
 }> = ({ value, onChange, className }) => {
   const set = <K extends keyof MeasurementSettingsValue>(key: K, val: MeasurementSettingsValue[K]) => onChange({ ...value, [key]: val });
+  return (
+    <div className={cn('space-y-4', className)}>
+  <div>
+    <div className="text-sm font-medium">How the numbers are counted</div>
+    <p className="text-xs text-muted-foreground">Applies to every figure on this page.</p>
+  </div>
+  <div className="grid grid-cols-2 gap-3">
+    <div>
+      <label className="mb-1.5 block text-xs font-medium">Attribution window</label>
+      <Input
+        dropdown
+        options={[7, 14, 30].map((d) => ({ value: String(d), label: `${d} days` }))}
+        value={String(value.attributionWindow)}
+        onChange={(v) => set('attributionWindow', Number(v) as 7 | 14 | 30)}
+      />
+    </div>
+    <div>
+      <label className="mb-1.5 block text-xs font-medium">Model</label>
+      <Input
+        dropdown
+        options={(Object.keys(MODEL_LABEL) as AttributionModel[]).map((m) => ({ value: m, label: MODEL_LABEL[m] }))}
+        value={value.model}
+        onChange={(v) => set('model', v as AttributionModel)}
+      />
+    </div>
+  </div>
+  <div className="space-y-2">
+    <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
+      <span>
+        <span className="block text-sm font-medium">Include halo effect</span>
+        <span className="block text-xs text-muted-foreground">Sales of the brand's other products lifted by the campaign</span>
+      </span>
+      <Switch checked={value.includeHalo} onCheckedChange={(on) => set('includeHalo', on)} />
+    </label>
+    <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
+      <span>
+        <span className="block text-sm font-medium">Hero products only</span>
+        <span className="block text-xs text-muted-foreground">Count only the products named on the booking</span>
+      </span>
+      <Switch checked={value.heroOnly} onCheckedChange={(on) => set('heroOnly', on)} />
+    </label>
+  </div>
+    </div>
+  );
+};
+
+export const MeasurementSettings: React.FC<{
+  value: MeasurementSettingsValue;
+  onChange: (next: MeasurementSettingsValue) => void;
+  className?: string;
+}> = ({ value, onChange, className }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -60,47 +113,8 @@ export const MeasurementSettings: React.FC<{
           <span className="text-xs text-muted-foreground">{measurementSummary(value)}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 space-y-4">
-        <div>
-          <div className="text-sm font-medium">How the numbers are counted</div>
-          <p className="text-xs text-muted-foreground">Applies to every figure on this page.</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium">Attribution window</label>
-            <Input
-              dropdown
-              options={[7, 14, 30].map((d) => ({ value: String(d), label: `${d} days` }))}
-              value={String(value.attributionWindow)}
-              onChange={(v) => set('attributionWindow', Number(v) as 7 | 14 | 30)}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium">Model</label>
-            <Input
-              dropdown
-              options={(Object.keys(MODEL_LABEL) as AttributionModel[]).map((m) => ({ value: m, label: MODEL_LABEL[m] }))}
-              value={value.model}
-              onChange={(v) => set('model', v as AttributionModel)}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-            <span>
-              <span className="block text-sm font-medium">Include halo effect</span>
-              <span className="block text-xs text-muted-foreground">Sales of the brand's other products lifted by the campaign</span>
-            </span>
-            <Switch checked={value.includeHalo} onCheckedChange={(on) => set('includeHalo', on)} />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-            <span>
-              <span className="block text-sm font-medium">Hero products only</span>
-              <span className="block text-xs text-muted-foreground">Count only the products named on the booking</span>
-            </span>
-            <Switch checked={value.heroOnly} onCheckedChange={(on) => set('heroOnly', on)} />
-          </label>
-        </div>
+      <PopoverContent align="start" className="w-80">
+        <MeasurementSettingsFields value={value} onChange={onChange} />
       </PopoverContent>
     </Popover>
   );

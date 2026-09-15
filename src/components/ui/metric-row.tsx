@@ -95,6 +95,9 @@ export interface MetricRowProps {
    *  filters, so what the numbers cover and which numbers show are set in
    *  one place. Takes precedence over filterNote. */
   headerLeft?: React.ReactNode
+  /** Extra content at the top of the Edit metrics dialog — settings that
+   *  change how the numbers are counted belong with choosing the numbers. */
+  dialogExtra?: React.ReactNode
   /** Lay the cards out in a single horizontally-scrolling row instead of a
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
    *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
@@ -126,6 +129,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     hideEditButton = false,
     filterNote,
     headerLeft,
+    dialogExtra,
     scrollable = false,
     bleedEdges = false,
     ...props
@@ -280,6 +284,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[500px] overflow-y-auto p-4">
+            {dialogExtra && <div className="mb-5 border-b pb-5">{dialogExtra}</div>}
             <div className="grid grid-cols-3 gap-4">
               {metrics.map((metric) => {
                 const isPicked = selectedKeys.includes(metric.key)

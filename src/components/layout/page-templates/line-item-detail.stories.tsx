@@ -6,6 +6,10 @@ import { LevelMeter } from '@/components/ui/level-meter';
 import { ToggleCard } from '@/components/ui/toggle-card';
 import { LifecycleActions } from '@/components/ui/lifecycle-actions';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
+
+/** Tabs that show an overview rather than a form — no Save/Cancel there;
+ *  their own buttons (Link creative, New creative) are the tab's actions. */
+const READ_ONLY_TABS: string[] = ['creatives', 'actions', 'logs'];
 import { AddButton } from '@/components/ui/add-button';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { AdvertiserBrandProducts } from '@/components/ui/advertiser-brand-products';
@@ -994,7 +998,7 @@ export const Display: Story = {
 
 
               {/* Logs tab */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'logs' && 'hidden')}>
+              <div className={cn(bookingTab !== 'logs' && 'hidden')}>
                 <div className="space-y-6">
                   <FilterBar
                     filters={[
@@ -1052,7 +1056,7 @@ export const Display: Story = {
               </div>
 
               {/* Actions tab — the booking's derived to-dos plus its advice */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'actions' && 'hidden')}>
+              <div className={cn(bookingTab !== 'actions' && 'hidden')}>
                 <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
               </div>
 
@@ -1077,7 +1081,7 @@ export const Display: Story = {
                 </div>
               </div>
 
-              <FormActions />
+              {!READ_ONLY_TABS.includes(bookingTab) && <FormActions />}
               </div>
               {/* end form card */}
               </div>
@@ -2401,8 +2405,8 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
                     </CardHeader>
-                    {/* Logs are read-only — no save/cancel footer there */}
-                    {bookingTab !== 'logs' && (
+                    {/* Overviews are read-only — no save/cancel footer there */}
+                    {!READ_ONLY_TABS.includes(bookingTab) && (
                       <CardContent>
                         <div className="flex gap-2">
                           <Button variant="outline">Cancel</Button>
@@ -3741,12 +3745,14 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
                     </CardHeader>
+                    {!READ_ONLY_TABS.includes(bookingTab) && (
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
                         <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                       </div>
                     </CardContent>
+                    )}
                   </Card>
                   {/* end form card */}
                   </div>
@@ -4380,12 +4386,14 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
                     </CardHeader>
+                    {!READ_ONLY_TABS.includes(bookingTab) && (
                     <CardContent>
                       <div className="flex gap-2">
                         <Button variant="outline">Cancel</Button>
                         <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                       </div>
                     </CardContent>
+                    )}
                   </Card>
                   {/* end form card */}
                   </div>
@@ -4892,12 +4900,14 @@ export const OffsiteDisplay: Story = {
 
 
                 </CardHeader>
+                {!READ_ONLY_TABS.includes(bookingTab) && (
                 <CardContent>
                   <div className="flex gap-2">
                     <Button variant="outline">Cancel</Button>
                     <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
                   </div>
                 </CardContent>
+                )}
               </Card>
               {/* end form card */}
               </div>

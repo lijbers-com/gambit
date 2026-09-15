@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { LayoutGrid, LayoutTemplate, Link2, Minus, Send, Share2 } from 'lucide-react';
+import { ThemeContext, type Theme } from '@/contexts/theme-context';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -24,6 +25,8 @@ import { Switch } from './switch';
 import { Table } from './table';
 import { queueToast } from './toast';
 import { CreativePreview, parseSize, rememberUpload, resolveColor } from './creative-preview';
+import { CreativeLogs } from './creative-logs';
+import { CreativeShareDialog, readShareParams } from './creative-share';
 
 /**
  * The creative builder — settings on the left, a LIVE preview on the right.
@@ -199,6 +202,26 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const [activeSize, setActiveSize] = React.useState<string | null>(null);
   const size = activeSize && template?.sizes.includes(activeSize) ? activeSize : template?.sizes[0];
 
+  const [tab, setTab] = React.useState<'details' | 'logs'>('details');
+  const [sharing, setSharing] = React.useState(false);
+  // A share link says which brand and device it was shared for — the page
+  // opens that way. Storybook has no ThemeProvider, hence the optional read.
+  const themeCtx = React.useContext(ThemeContext);
+  const setTheme = themeCtx?.setTheme;
+  const [linkLayout, setLinkLayout] = React.useState<'desktop' | 'mobile' | 'app' | null>(null);
+  React.useEffect(() => {
+    const { brand, layout } = readShareParams();
+    if (brand && setTheme) setTheme(brand as Theme);
+    if (layout) setLinkLayout(layout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  React.useEffect(() => {
+    if (!linkLayout || !template) return;
+    const byWidth = [...template.sizes].sort((a, b) => parseSize(a).w - parseSize(b).w);
+    setActiveSize(linkLayout === 'desktop' ? byWidth[byWidth.length - 1] : byWidth[0]);
+    setLinkLayout(null);
+  }, [linkLayout, template]);
+
   const [linking, setLinking] = React.useState(false);
   const [linkSelection, setLinkSelection] = React.useState<string[]>([]);
   const [showAllSizes, setShowAllSizes] = React.useState(false);
@@ -223,11 +246,6 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const saveDraft = () => {
     persist();
     queueToast({ title: 'Creative saved', description: `"${name}" kept as ${STATUS_BADGE[creative.status].label.toLowerCase()}.` });
-  };
-
-  const share = () => {
-    navigator.clipboard?.writeText(window.location.href).catch(() => {});
-    queueToast({ title: 'Preview link copied', description: 'Anyone on the plan can open this creative with it.' });
   };
 
   const submit = () => {
@@ -261,7 +279,34 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
       `}</style>
       {/* ── Settings ── */}
       <div className="min-w-0 lg:col-span-3">
-        <Card className="min-w-0">
+        {/* Creative details / Logs — the two tabs the live product has. */}
+        <div className="flex gap-0" role="tablist">
+          {([['details', 'Creative details'], ['logs', 'Logs']] as const).map(([value, label]) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => setTab(value)}
+              className={cn(
+                'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
+                tab === value
+                  ? 'font-medium bg-white text-card-foreground border-border z-10'
+                  : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
+              )}
+              style={{ position: 'relative', top: '1px' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {tab === 'logs' && (
+          <Card className="min-w-0 rounded-tl-none">
+            <CardHeader>
+              <CreativeLogs creative={creative} template={template ?? undefined} />
+            </CardHeader>
+          </Card>
+        )}
+        <Card className={cn('min-w-0 rounded-tl-none', tab !== 'details' && 'hidden')}>
           <CardHeader className="space-y-8">
             {creative.status === 'rejected' && creative.rejectionReason && (
               <div className="rounded-md border border-destructive-200 bg-destructive-50 p-3 text-sm text-destructive-700">
@@ -420,8 +465,8 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-[18px] font-semibold leading-tight tracking-tight">Live preview</h2>
                 <span className="flex items-center gap-1.5">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Copy preview link" onClick={share}>
-                    <Share2 className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2 text-xs" onClick={() => setSharing(true)}>
+                    <Share2 className="h-3.5 w-3.5" /> Share
                   </Button>
                   <CreativeStatusBadge status={creative.status} />
                 </span>
@@ -506,6 +551,8 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
           )}
         </DialogContent>
       </Dialog>
+
+      <CreativeShareDialog open={sharing} onOpenChange={setSharing} creative={creative} engine={engine} currentBrand={themeCtx?.theme} />
 
       {/* ── Link bookings ── */}
       <Dialog open={linking} onOpenChange={setLinking}>

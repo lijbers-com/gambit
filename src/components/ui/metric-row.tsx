@@ -284,7 +284,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[500px] overflow-y-auto p-4">
-            {dialogExtra && <div className="mb-5 border-b pb-5">{dialogExtra}</div>}
+            {dialogExtra && <div className="mb-5">{dialogExtra}</div>}
             <div className="grid grid-cols-3 gap-4">
               {metrics.map((metric) => {
                 const isPicked = selectedKeys.includes(metric.key)

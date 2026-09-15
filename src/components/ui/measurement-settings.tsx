@@ -53,10 +53,6 @@ export const MeasurementSettingsFields: React.FC<{
   const set = <K extends keyof MeasurementSettingsValue>(key: K, val: MeasurementSettingsValue[K]) => onChange({ ...value, [key]: val });
   return (
     <div className={cn('space-y-4', className)}>
-      <div>
-        <div className="text-sm font-medium">How the numbers are counted</div>
-        <p className="text-xs text-muted-foreground">Applies to every figure on this page.</p>
-      </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1.5 block text-xs font-medium">Attribution window</label>

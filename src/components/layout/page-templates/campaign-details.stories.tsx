@@ -898,10 +898,10 @@ const updatedForecastMetrics = [
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1463,10 +1463,10 @@ export const DigitalInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1955,10 +1955,10 @@ export const OfflineInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2506,10 +2506,10 @@ export const DisplayRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -3049,10 +3049,10 @@ export const OfflineInstoreInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -3570,10 +3570,10 @@ export const DisplayInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -5778,10 +5778,10 @@ export const OffsiteRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -6330,10 +6330,10 @@ export const OffsiteInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',

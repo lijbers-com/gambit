@@ -28,8 +28,8 @@ export const AGENT_CASES: AgentCase[] = [
     kind: 'recommendation',
     subject: 'Shift €2,000 from display to sponsored products',
     message:
-      'Sponsored products is returning 4.4x against display’s 2.1x this month. A €2,000 shift raises expected return without changing the plan total.',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '2.1x', roasTo: '4.4x' }),
+      'Sponsored products is returning 440% against display’s 210% this month. A €2,000 shift raises expected return without changing the plan total.',
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '210%', roasTo: '440%' }),
   },
   {
     slug: 'keyword-suggestions',
@@ -53,7 +53,7 @@ export const AGENT_CASES: AgentCase[] = [
       stats: [
         { label: 'Suggested budget', value: '€5,000', sub: 'for a 4-week flight' },
         { label: 'Estimated clicks', value: '4.1K', sub: 'at €1.22 avg. CPC' },
-        { label: 'Projected ROAS', value: '3.8x', sub: 'vs. 3.0x target', tone: 'success' },
+        { label: 'Projected ROAS', value: '380%', sub: 'vs. 300% target', tone: 'success' },
       ],
       insights: [
         { title: 'The proposal', text: 'Sponsored products on the 4 uncovered keywords plus your top 6 converting products, auto bids, even pacing.' },

@@ -30,6 +30,8 @@ export interface AgentContext {
   message?: string;
   stats?: { label: string; value: string; sub?: string; tone?: string }[];
   chart?: AgentChartData;
+  /** A recommendation's proposed budget movement, per booking. */
+  move?: { label: string; from: string; to: string; delta: string }[];
   insights?: { title: string; text: string }[];
 }
 

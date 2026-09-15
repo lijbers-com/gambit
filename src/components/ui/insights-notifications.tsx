@@ -56,9 +56,9 @@ const MESSAGES: InsightMessage[] = [
     id: 'INS-budget-shift',
     kind: 'recommendation',
     subject: 'Shift €2,000 from display to sponsored products',
-    preview: 'Sponsored products is returning 4.4x against display’s 2.1x this month. A €2,000 shift raises expected return without changing the plan total.',
+    preview: 'Sponsored products is returning 440% against display’s 210% this month. A €2,000 shift raises expected return without changing the plan total.',
     context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '2.1x', roasTo: '4.4x' }),
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '210%', roasTo: '440%' }),
   },
   {
     id: 'INS-keywords',

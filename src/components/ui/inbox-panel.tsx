@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowRight, Check, Undo2, X } from 'lucide-react';
+import { ArrowRight, Check, Undo2 } from 'lucide-react';
 import { Inbox, type InboxItem } from './inbox';
 import { Button } from './button';
 import { MessageDrawer, type MessageBusinessCase } from './message-drawer';
@@ -36,6 +36,11 @@ export interface InboxPanelProps {
   /** Show an opened message in place of the list rather than in a second
    *  drawer — for when the panel itself already lives in a drawer. */
   detailInline?: boolean;
+  /** Limit to certain message kinds. The Optimizations tab on entity pages
+   *  passes ['insight', 'recommendation'] — insights and recommendations are
+   *  the features; notifications are only the attention layer, and the
+   *  to-dos stay in the notification center. */
+  kinds?: InboxMessage['kind'][];
   className?: string;
 }
 
@@ -43,7 +48,7 @@ export interface InboxPanelProps {
  *  chart: a to-do like "upload creative" has no trend, and inventing one would
  *  make the panel look more certain than the data is. */
 const businessCaseFor = (m: InboxMessage): MessageBusinessCase | undefined =>
-  m.evidence ? { stats: m.evidence.stats, insights: m.evidence.insights } : undefined;
+  m.evidence ? { stats: m.evidence.stats, insights: m.evidence.insights, move: m.evidence.move } : undefined;
 
 /**
  * Messages for a scope, resolving the entity from the route when it is not
@@ -80,7 +85,7 @@ export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: strin
   return messages.filter((m) => (status[m.id] ?? 'unread') === 'unread').length;
 }
 
-export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, className }) => {
+export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, kinds, className }) => {
   const db = useDb();
   const user = useSession();
   const status = useInboxState();
@@ -106,10 +111,15 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
     return deriveMessages(db, { bookingId: id });
   }, [db, user, scope, id]);
 
-  const [openId, setOpenId] = React.useState<string | null>(null);
-  const active = messages.find((m) => m.id === openId) ?? null;
+  const shown = React.useMemo(
+    () => (kinds ? messages.filter((m) => kinds.includes(m.kind)) : messages),
+    [messages, kinds],
+  );
 
-  const items: InboxItem[] = messages.map((m) => ({
+  const [openId, setOpenId] = React.useState<string | null>(null);
+  const active = shown.find((m) => m.id === openId) ?? null;
+
+  const items: InboxItem[] = shown.map((m) => ({
     id: m.id,
     kind: m.kind,
     subject: m.subject,
@@ -153,29 +163,22 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
           level={active.level}
           message={active.preview}
           businessCase={businessCaseFor(active)}
+          // A recommendation is a proposal, so its two answers are the
+          // proposal's: take it or turn it down. Either way it is answered —
+          // both close the case as done. They render inside the template.
+          onAccept={
+            active.kind === 'recommendation' && status[active.id] !== 'done'
+              ? () => { markDone(active.id); setOpenId(null); }
+              : undefined
+          }
+          acceptLabel={active.acceptLabel}
+          onDecline={
+            active.kind === 'recommendation' && status[active.id] !== 'done'
+              ? () => { markDone(active.id); setOpenId(null); }
+              : undefined
+          }
           footer={
-            active.kind === 'recommendation' && status[active.id] !== 'done' ? (
-              // A recommendation is a proposal, so its two answers are the
-              // proposal's: take it or turn it down. Either way it is
-              // answered — both close the case as done.
-              <>
-                <Button
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() => { markDone(active.id); setOpenId(null); }}
-                >
-                  <X className="h-4 w-4" />
-                  Decline
-                </Button>
-                <Button
-                  className="gap-1.5"
-                  onClick={() => { markDone(active.id); setOpenId(null); }}
-                >
-                  <Check className="h-4 w-4" />
-                  {active.acceptLabel ?? 'Accept'}
-                </Button>
-              </>
-            ) : (
+            active.kind === 'recommendation' && status[active.id] !== 'done' ? undefined : (
             <>
               {status[active.id] === 'done' ? (
                 <Button

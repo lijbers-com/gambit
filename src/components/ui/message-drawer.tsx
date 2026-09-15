@@ -70,6 +70,10 @@ export interface MessageDrawerProps {
    *  Every insight and recommendation offers this — omitting the prop gets
    *  the house behaviour (hand the subject to /chat), not no button. */
   onAskAgent?: () => void;
+  /** A recommendation's answers, rendered inside the case template. */
+  onAccept?: () => void;
+  acceptLabel?: string;
+  onDecline?: () => void;
   /** The actions for this message — they differ per surface. */
   footer?: React.ReactNode;
 }
@@ -85,6 +89,9 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   message,
   businessCase,
   onAskAgent,
+  onAccept,
+  acceptLabel,
+  onDecline,
   footer,
   inline,
 }) => {
@@ -93,7 +100,27 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       ? { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' }
       : kindBadge[kind];
 
-  const hasCase = !!(businessCase?.stats?.length || businessCase?.chart || businessCase?.insights?.length);
+  const hasCase = !!(
+    businessCase?.stats?.length || businessCase?.chart || businessCase?.insights?.length || businessCase?.move?.length
+  );
+
+  // The hand-off IS the fence: the agent gets this message and its business
+  // case, nothing else.
+  const askAgent =
+    onAskAgent ??
+    (() => {
+      if (typeof window === 'undefined') return;
+      stashAgentContext({
+        kind,
+        subject,
+        message: typeof message === 'string' ? message : undefined,
+        stats: businessCase?.stats,
+        chart: businessCase?.chart,
+        move: businessCase?.move,
+        insights: businessCase?.insights,
+      });
+      window.location.href = `/chat?q=${encodeURIComponent(`Tell me more: ${subject}`)}`;
+    });
 
   const bodyEl = (
     <RightDrawerBody className="space-y-6">
@@ -101,34 +128,31 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           already establish the hierarchy, so the body reads as body text. */}
       <p className="text-sm leading-relaxed text-foreground">{message}</p>
 
-      {hasCase && <CaseCard title="The case for this" {...businessCase} />}
+      {hasCase && (
+        <CaseCard
+          title="The case for this"
+          kind={kind === 'recommendation' ? 'recommendation' : 'insight'}
+          basis={kind === 'recommendation' ? { window: 14, method: 'Hero' } : undefined}
+          onAskAgent={askAgent}
+          onAccept={onAccept}
+          acceptLabel={acceptLabel}
+          onDecline={onDecline}
+          {...businessCase}
+        />
+      )}
 
-      {/* Going deeper is a deliberate step, not the default reading mode. */}
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
-        <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0 gap-1.5"
-          onClick={onAskAgent ?? (() => {
-            if (typeof window === 'undefined') return;
-            // The hand-off IS the fence: the agent gets this message and its
-            // business case, nothing else.
-            stashAgentContext({
-              kind,
-              subject,
-              message: typeof message === 'string' ? message : undefined,
-              stats: businessCase?.stats,
-              chart: businessCase?.chart,
-              insights: businessCase?.insights,
-            });
-            window.location.href = `/chat?q=${encodeURIComponent(`Tell me more: ${subject}`)}`;
-          })}
-        >
-          <MessageSquare className="h-4 w-4" />
-          Ask the agent
-        </Button>
-      </div>
+      {/* Going deeper is a deliberate step, not the default reading mode. The
+          case template carries its own Ask-the-agent; this block covers the
+          messages without a case. */}
+      {!hasCase && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
+          <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={askAgent}>
+            <MessageSquare className="h-4 w-4" />
+            Ask the agent
+          </Button>
+        </div>
+      )}
     </RightDrawerBody>
   );
   const footerEl = footer ? <RightDrawerFooter className="justify-between">{footer}</RightDrawerFooter> : null;

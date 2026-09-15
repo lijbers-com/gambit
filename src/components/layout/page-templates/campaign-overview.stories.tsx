@@ -569,10 +569,10 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               // Everything outstanding across this proposition's campaigns and
               // bookings — the same derived to-dos the detail pages show, just
               // scoped to the engine instead of a single entity.
-              label: 'Notifications',
+              label: 'Optimizations',
               value: 'actions',
               badgeCount: engineUnread,
-              content: <InboxPanel scope="engine" entityId={engineId} className="mt-6" />,
+              content: <InboxPanel scope="engine" entityId={engineId} kinds={['insight', 'recommendation']} className="mt-6" />,
             },
             {
               label: 'Insights',

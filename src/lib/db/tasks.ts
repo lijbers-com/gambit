@@ -42,6 +42,8 @@ export interface DerivedTask {
   evidence?: {
     stats?: { label: string; value: string; sub?: string; tone?: string }[];
     insights?: { title: string; text: string }[];
+    /** A recommendation's proposed budget movement, per booking. */
+    move?: { label: string; from: string; to: string; delta: string }[];
   };
   /** What accepting a recommendation does, in the user's words ("Raise daily
    *  budget to €90"). Recommendations are proposals: they are always answered
@@ -235,15 +237,17 @@ function deriveGuidance(db: DbData): DerivedTask[] {
         side: 'both', personaKeys: ['campaign-manager-managed', 'yield-manager', 'media-agency-advertiser'],
         evidence: {
           stats: [
-            { label: 'Budget rebalancing', value: `€${moved.toLocaleString()}`, sub: `of total €${campaign.budget.toLocaleString()}` },
-            { label: 'Projected ROAS', value: `${projectedRoas.toFixed(1)}x`, sub: `now ${currentRoas.toFixed(1)}x`, tone: 'success' },
-            { label: 'Upside', value: `€${upside.toLocaleString()}`, sub: 'Same total budget', tone: 'success' },
+            { label: 'Budget to move', value: `€${moved.toLocaleString()}`, sub: `of €${campaign.budget.toLocaleString()} total` },
+            { label: 'Missed revenue', value: `€${upside.toLocaleString()}`, sub: 'At the same total budget', tone: 'success' },
+            { label: 'ROAS uplift', value: `+${Math.round((projectedRoas - currentRoas) * 100)}%`, sub: `now ${Math.round(currentRoas * 100)}%`, tone: 'success' },
+          ],
+          move: [
+            { label: idle.name, from: `€${idle.budget.toLocaleString()}`, to: `€${idleTarget.toLocaleString()}`, delta: `−€${moved.toLocaleString()}` },
+            { label: hungry.name, from: `€${hungry.budget.toLocaleString()}`, to: `€${hungryTarget.toLocaleString()}`, delta: `+€${moved.toLocaleString()}` },
           ],
           insights: [
-            { title: 'The move', text: `"${hungry.name}" €${hungry.budget.toLocaleString()} → €${hungryTarget.toLocaleString()}, funded by "${idle.name}" €${idle.budget.toLocaleString()} → €${idleTarget.toLocaleString()}.` },
-            { title: 'Why this helps', text: `"${idle.name}" is past the point where extra budget still pays off. "${hungry.name}" still has room.` },
             { title: 'What stays fixed', text: 'The campaign total, and the timing of spend. Budget only moves between bookings running in the same window.' },
-            { title: 'How sure we are', text: 'HIGH confidence, based on how well recent performance on this campaign has been predicted.' },
+            { title: 'How sure we are', text: `HIGH confidence, based on statistical evidence of campaign performance from ${new Date(campaign.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} to ${new Date(campaign.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}.` },
           ],
         },
       });

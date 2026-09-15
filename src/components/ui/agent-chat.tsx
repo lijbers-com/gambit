@@ -108,10 +108,13 @@ const ContextCard: React.FC<{ context: AgentContext }> = ({ context }) => {
     : undefined;
   return (
     <CaseCard
+      kind={context.kind === 'recommendation' ? 'recommendation' : 'insight'}
+      basis={context.kind === 'recommendation' ? { window: 14, method: 'Hero' } : undefined}
       title={context.subject}
       description={context.message}
       stats={context.stats}
       chart={chart}
+      move={context.move}
       insights={context.insights}
       footer={
         <p className="text-[11px] text-muted-foreground">

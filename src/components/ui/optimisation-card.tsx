@@ -95,8 +95,8 @@ export const healthConfig: Record<HealthLevel, { label: string; Icon: LucideIcon
 export function budgetOptimisationExplain(): AdviceExplain {
   return {
     stats: [
-      { label: 'Current ROAS', value: '3.0×', sub: 'On target' },
-      { label: 'With auto budget', value: '3.5×', sub: '+18% projected', tone: 'success' },
+      { label: 'Current ROAS', value: '300%', sub: 'On target' },
+      { label: 'With auto budget', value: '350%', sub: '+18% projected', tone: 'success' },
       { label: 'Extra revenue', value: '+€8.4K', sub: 'Over the flight', tone: 'success' },
     ],
     chart: {
@@ -204,7 +204,7 @@ export function brandReachExplain(opts: { reach: number; roas: number; category:
   return {
     stats: [
       { label: 'Estimated reach', value: `${reach.toFixed(1)}M`, sub: 'Shoppers' },
-      { label: 'Avg ROAS', value: `${roas.toFixed(1)}×`, sub: category, tone: 'success' },
+      { label: 'Avg ROAS', value: `${Math.round(roas * 100)}%`, sub: category, tone: 'success' },
       { label: 'Repeat buyers', value: '42%', sub: 'Of category' },
     ],
     chart: {
@@ -222,7 +222,7 @@ export function brandReachExplain(opts: { reach: number; roas: number; category:
     },
     insights: [
       { title: 'First-party data', text: `Reach and ${category} benchmarks come from observed loyalty-card behaviour — no modelling lag.` },
-      { title: 'Strong ROAS base', text: `${category} buyers return ${roas.toFixed(1)}× on average, a solid foundation for a conversion goal.` },
+      { title: 'Strong ROAS base', text: `${category} buyers return ${Math.round(roas * 100)}% on average, a solid foundation for a conversion goal.` },
       { title: 'Add products', text: 'Attaching SKUs unlocks sales attribution and product-level KPIs.' },
     ],
   };
@@ -237,7 +237,7 @@ export function budgetStarterExplain(): AdviceExplain {
     stats: [
       { label: 'Suggested budget', value: '€5,000', sub: 'Starter' },
       { label: 'Est. reach', value: '6.2M', sub: 'At this budget', tone: 'success' },
-      { label: 'Est. conversions', value: '4.1K', sub: '~3.4× ROAS', tone: 'success' },
+      { label: 'Est. conversions', value: '4.1K', sub: '~340% ROAS', tone: 'success' },
     ],
     chart: {
       rightAxisKey: 'roas',

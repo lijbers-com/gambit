@@ -106,8 +106,8 @@ const kpiFilterOptions = ['toma', 'spontaan', 'adrecall', 'cep'].map((id) => ({
 }));
 const statusOptions = [
   { label: 'Draft', value: 'draft' },
-  { label: 'In-option', value: 'in-option' },
-  { label: 'Running', value: 'running' },
+  { label: 'In review', value: 'in-option' },
+  { label: 'Live', value: 'running' },
   { label: 'Paused', value: 'paused' },
   { label: 'Completed', value: 'completed' },
 ];
@@ -120,7 +120,7 @@ const logData: LogRow[] = [
   { id: 'LOG-003', timestamp: '2026-05-29 09:15:33', user: 'Sarah Wilson', action: 'Campaign added', field: 'Campaigns', oldValue: '-', newValue: 'SP - Early Capout Candidate', description: 'Added sponsored products campaign' },
   { id: 'LOG-004', timestamp: '2026-05-29 10:45:21', user: 'John Smith', action: 'Objective set', field: 'Objective', oldValue: '-', newValue: 'Brand awareness', description: 'Awareness objective selected' },
   { id: 'LOG-005', timestamp: '2026-05-30 11:30:14', user: 'Mike Johnson', action: 'Dates modified', field: 'Run time', oldValue: 'Jun 5, 2026', newValue: 'Jun 1, 2026', description: 'Brought the start date forward' },
-  { id: 'LOG-006', timestamp: '2026-05-30 16:20:58', user: 'Jane Doe', action: 'Status changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Media plan moved to in-option' },
+  { id: 'LOG-006', timestamp: '2026-05-30 16:20:58', user: 'Jane Doe', action: 'Status changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Media plan moved to in-option' },
 ];
 
 // Proposition shown as icon + text (not a coloured badge) — one per engine.
@@ -192,10 +192,10 @@ const PlanBudgetPopover: React.FC<{
 };
 
 const statusBadge: Record<PlanStatus, { variant: 'success' | 'secondary' | 'warning' | 'outline'; label: string }> = {
-  'running': { variant: 'success', label: 'Running' },
+  'running': { variant: 'success', label: 'Live' },
   'completed': { variant: 'secondary', label: 'Completed' },
   'paused': { variant: 'warning', label: 'Paused' },
-  'in-option': { variant: 'outline', label: 'In-option' },
+  'in-option': { variant: 'outline', label: 'In review' },
   'draft': { variant: 'outline', label: 'Draft' },
 };
 

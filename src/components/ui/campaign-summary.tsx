@@ -886,7 +886,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       </Badge>
                     ) : (
                       <Badge variant="outline">
-                        In-option
+                        In review
                       </Badge>
                     )}
                     {/* No "View details" button: the whole collapsed card is the
@@ -1136,7 +1136,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     };
                     const vStatusBadgeLabel: Record<string, string> = {
                       'new': 'New', 'draft': 'Draft', 'ready': 'Ready',
-                      'in-option': 'In Option', 'running': 'Running', 'paused': 'Paused',
+                      'in-option': 'In review', 'running': 'Live', 'paused': 'Paused',
                     };
                     return (
                       <div
@@ -1462,8 +1462,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         'new': 'New',
                         'draft': 'Draft',
                         'ready': 'Ready',
-                        'in-option': 'In Option',
-                        'running': 'Running',
+                        'in-option': 'In review',
+                        'running': 'Live',
                         'paused': 'Paused',
                       };
                       const draft = getDraft(engine.id);

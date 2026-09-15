@@ -291,17 +291,17 @@ export const DigitalInstoreInOption: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-003', status: 'In-option', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-005', status: 'In-option', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-001', status: 'In review', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In review', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-003', status: 'In review', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-004', status: 'In review', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-005', status: 'In review', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
     
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option status' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
@@ -319,8 +319,8 @@ export const DigitalInstoreInOption: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -909,8 +909,8 @@ const updatedForecastMetrics = [
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -1075,17 +1075,17 @@ export const DigitalInstoreRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
     ];
     
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Live', description: 'Campaign is now live' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Homepage booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
@@ -1103,8 +1103,8 @@ export const DigitalInstoreRunning: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -1415,8 +1415,8 @@ export const DigitalInstoreRunning: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -1580,17 +1580,17 @@ export const OfflineInstoreRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
-      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
-      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
+      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
+      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
+      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offline In-store: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Live', description: 'Campaign is now live' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Print creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
@@ -1608,8 +1608,8 @@ export const OfflineInstoreRunning: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -1859,8 +1859,8 @@ export const OfflineInstoreRunning: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -2040,17 +2040,17 @@ export const DisplayRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'Running', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
-      { id: 'LI-002', status: 'Running', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
-      { id: 'LI-003', status: 'Running', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
-      { id: 'LI-004', status: 'Running', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
-      { id: 'LI-005', status: 'Running', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
+      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
+      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
+      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
+      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
+      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Display: Summer Launch', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€50,000', newValue: '€75,000', description: 'Budget increased for Q4 push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Campaign is now live' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Live', description: 'Campaign is now live' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Display banner creative uploaded' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '2024-06-25', newValue: '2024-06-30', description: 'Extended campaign end date' },
@@ -2068,8 +2068,8 @@ export const DisplayRunning: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -2345,8 +2345,8 @@ export const DisplayRunning: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -2521,10 +2521,10 @@ export const OfflineInstoreInOption: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-001', status: 'In review', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget' },
+      { id: 'LI-002', status: 'In review', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend' },
       { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
+      { id: 'LI-004', status: 'In review', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend' },
       { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget' },
     ];
 
@@ -2533,7 +2533,7 @@ export const OfflineInstoreInOption: Story = {
       { id: 'LOG-002', timestamp: '2024-12-09 16:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€75,000', description: 'Initial budget allocation' },
       { id: 'LOG-003', timestamp: '2024-12-10 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added End Cap booking for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 10:45:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Print creative uploaded for review' },
-      { id: 'LOG-005', timestamp: '2024-12-10 11:30:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-005', timestamp: '2024-12-10 11:30:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option status' },
       { id: 'LOG-006', timestamp: '2024-12-10 14:20:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Urban 25-45', newValue: 'Urban 18-45', description: 'Expanded age targeting for approval' },
       { id: 'LOG-007', timestamp: '2024-12-10 16:45:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting client approval for placements', description: 'Added status comment' },
     ];
@@ -2548,8 +2548,8 @@ export const OfflineInstoreInOption: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -2828,8 +2828,8 @@ export const OfflineInstoreInOption: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -2993,10 +2993,10 @@ export const DisplayInOption: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'In-option', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
-      { id: 'LI-002', status: 'In-option', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
+      { id: 'LI-001', status: 'In review', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
+      { id: 'LI-002', status: 'In review', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
       { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.7x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
-      { id: 'LI-004', status: 'In-option', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
+      { id: 'LI-004', status: 'In review', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
       { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '4.1x', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
     ];
 
@@ -3005,7 +3005,7 @@ export const DisplayInOption: Story = {
       { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€0', newValue: '€100,000', description: 'Initial budget allocation for display campaign' },
       { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added Above The Fold placement for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Display banner creative uploaded for review' },
-      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
+      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option for client review' },
       { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Target Updated', field: 'Targeting', oldValue: 'Desktop only', newValue: 'Multi-device 18-45', description: 'Expanded device and demographic targeting' },
       { id: 'LOG-007', timestamp: '2024-12-10 16:20:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting creative approval and placement confirmation', description: 'Added client feedback status' },
     ];
@@ -3020,8 +3020,8 @@ export const DisplayInOption: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -3300,8 +3300,8 @@ export const DisplayInOption: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -3558,7 +3558,7 @@ export const SponsoredProductsInOption: Story = {
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Premium Coffee', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for product promotion' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option status' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-001', description: 'Added Premium Coffee Beans product' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Product Added', field: 'Products', oldValue: '-', newValue: 'P-002', description: 'Added Organic Tea Selection product' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Targeting Updated', field: 'Search Volume', oldValue: 'Medium', newValue: 'High', description: 'Updated targeting for better reach' },
@@ -3576,8 +3576,8 @@ export const SponsoredProductsInOption: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -4510,7 +4510,7 @@ export const SponsoredProductsRunning: Story = {
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Sponsored Products: Running Campaign', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '€500', newValue: '€750', description: 'Budget increased for active campaign' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Campaign activated and running' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'In review', newValue: 'Live', description: 'Campaign activated and running' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Performance Update', field: 'Metrics', oldValue: '-', newValue: 'CTR: 3.5%', description: 'Daily performance metrics update' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'System', action: 'Spend Alert', field: 'Budget', oldValue: '€100 remaining', newValue: '€13 remaining', description: 'Budget alert triggered' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Bid Adjustment', field: 'Bidding', oldValue: '€0.25', newValue: '€0.28', description: 'Increased bid for better positioning' },
@@ -4528,8 +4528,8 @@ export const SponsoredProductsRunning: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -5178,19 +5178,19 @@ export const OffsiteRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'Running', name: 'Coca-Cola Summer Break', channel: 'Homepage Hero', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', viewability: '72.4%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
-      { id: 'LI-002', status: 'Running', name: 'Dove Open Web Boost', channel: 'Category Leaderboard', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', viewability: '68.1%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
-      { id: 'LI-003', status: 'Running', name: 'Hellmann\'s Recipe Season', channel: 'Product Page Rectangle', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '79.3%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-004', status: 'Running', name: 'Ben & Jerry\'s Summer Scoop', channel: 'Search Results Top', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '$9,566', impressions: '1,421,287', clicks: '21,953', viewability: '65.8%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$24,205', onlineSkuUnits: '1,641', onlineSkuConversions: '989', instoreSkuRevenue: '$17,304', instoreSkuUnits: '1,158', instoreSkuConversions: '699', totalSkuRevenue: '$41,509', totalSkuUnits: '2,799', totalSkuConversions: '1,688' },
-      { id: 'LI-005', status: 'Running', name: 'Axe Back to Campus', channel: 'Checkout Sidebar', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '83.6%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-006', status: 'Running', name: 'Knorr Weeknight Meals', channel: 'Newsletter Half Page', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '$8,255', impressions: '1,226,527', clicks: '18,944', viewability: '71.2%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$20,896', onlineSkuUnits: '1,417', onlineSkuConversions: '854', instoreSkuRevenue: '$14,935', instoreSkuUnits: '999', instoreSkuConversions: '603', totalSkuRevenue: '$35,831', totalSkuUnits: '2,416', totalSkuConversions: '1,457' },
-      { id: 'LI-007', status: 'Running', name: 'Magnum Indulgence Moments', channel: 'Mobile Interstitial', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '$12,350', impressions: '1,834,470', clicks: '28,326', viewability: '76.9%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,177', onlineSkuUnits: '2,110', onlineSkuConversions: '1,273', instoreSkuRevenue: '$22,283', instoreSkuUnits: '1,491', instoreSkuConversions: '900', totalSkuRevenue: '$53,460', totalSkuUnits: '3,601', totalSkuConversions: '2,173' },
+      { id: 'LI-001', status: 'Live', name: 'Coca-Cola Summer Break', channel: 'Homepage Hero', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', viewability: '72.4%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
+      { id: 'LI-002', status: 'Live', name: 'Dove Open Web Boost', channel: 'Category Leaderboard', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', viewability: '68.1%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
+      { id: 'LI-003', status: 'Live', name: 'Hellmann\'s Recipe Season', channel: 'Product Page Rectangle', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '79.3%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
+      { id: 'LI-004', status: 'Live', name: 'Ben & Jerry\'s Summer Scoop', channel: 'Search Results Top', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '$9,566', impressions: '1,421,287', clicks: '21,953', viewability: '65.8%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$24,205', onlineSkuUnits: '1,641', onlineSkuConversions: '989', instoreSkuRevenue: '$17,304', instoreSkuUnits: '1,158', instoreSkuConversions: '699', totalSkuRevenue: '$41,509', totalSkuUnits: '2,799', totalSkuConversions: '1,688' },
+      { id: 'LI-005', status: 'Live', name: 'Axe Back to Campus', channel: 'Checkout Sidebar', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '83.6%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
+      { id: 'LI-006', status: 'Live', name: 'Knorr Weeknight Meals', channel: 'Newsletter Half Page', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '$8,255', impressions: '1,226,527', clicks: '18,944', viewability: '71.2%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$20,896', onlineSkuUnits: '1,417', onlineSkuConversions: '854', instoreSkuRevenue: '$14,935', instoreSkuUnits: '999', instoreSkuConversions: '603', totalSkuRevenue: '$35,831', totalSkuUnits: '2,416', totalSkuConversions: '1,457' },
+      { id: 'LI-007', status: 'Live', name: 'Magnum Indulgence Moments', channel: 'Mobile Interstitial', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '$12,350', impressions: '1,834,470', clicks: '28,326', viewability: '76.9%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,177', onlineSkuUnits: '2,110', onlineSkuConversions: '1,273', instoreSkuRevenue: '$22,283', instoreSkuUnits: '1,491', instoreSkuConversions: '900', totalSkuRevenue: '$53,460', totalSkuUnits: '3,601', totalSkuConversions: '2,173' },
     ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$50,000', newValue: '$120,000', description: 'Budget increased for multi-channel offsite push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Running', description: 'Offsite campaign is now live' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'Live', description: 'Offsite campaign is now live' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display booking' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-002', description: 'Added Socials campaign booking' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Channel Added', field: 'Channels', oldValue: '-', newValue: 'Connected TV', description: 'Added CTV channel to offsite mix' },
@@ -5208,8 +5208,8 @@ export const OffsiteRunning: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -5447,8 +5447,8 @@ export const OffsiteRunning: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },
@@ -5666,12 +5666,12 @@ export const OffsiteInOption: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'In-option', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-002', status: 'In-option', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-001', status: 'In review', name: 'Homepage Hero Banner', channel: 'Homepage Hero', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-002', status: 'In review', name: 'Category Leaderboard', channel: 'Category Leaderboard', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-003', status: 'Ready', name: 'Product Page Rectangle', channel: 'Product Page Rectangle', start: '2024-08-10', end: '2024-09-10', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-004', status: 'In-option', name: 'Search Results Top Banner', channel: 'Search Results Top', start: '2024-11-01', end: '2024-11-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-004', status: 'In review', name: 'Search Results Top Banner', channel: 'Search Results Top', start: '2024-11-01', end: '2024-11-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-005', status: 'Ready', name: 'Checkout Sidebar', channel: 'Checkout Sidebar', start: '2024-12-01', end: '2024-12-31', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
-      { id: 'LI-006', status: 'In-option', name: 'Newsletter Half Page', channel: 'Newsletter Half Page', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
+      { id: 'LI-006', status: 'In review', name: 'Newsletter Half Page', channel: 'Newsletter Half Page', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
       { id: 'LI-007', status: 'Ready', name: 'Mobile Interstitial', channel: 'Mobile Interstitial', start: '2024-07-01', end: '2024-07-31', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '-', impressions: '-', clicks: '-', cpc: '-', ctr: '-', cpm: '-', ecpm: '-', onlineSkuRevenue: '-', onlineSkuUnits: '-', onlineSkuConversions: '-', instoreSkuRevenue: '-', instoreSkuUnits: '-', instoreSkuConversions: '-', totalSkuRevenue: '-', totalSkuUnits: '-', totalSkuConversions: '-' },
     ];
 
@@ -5680,7 +5680,7 @@ export const OffsiteInOption: Story = {
       { id: 'LOG-002', timestamp: '2024-12-09 15:45:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$0', newValue: '$100,000', description: 'Initial budget allocation for offsite channels' },
       { id: 'LOG-003', timestamp: '2024-12-10 08:15:33', user: 'Sarah Wilson', action: 'Booking Added', field: 'Bookings', oldValue: '-', newValue: 'LI-001', description: 'Added 3rd Party Display booking for approval' },
       { id: 'LOG-004', timestamp: '2024-12-10 09:30:21', user: 'Jane Doe', action: 'Creative Uploaded', field: 'Creatives', oldValue: '-', newValue: 'CR-001', description: 'Social banner pack uploaded for review' },
-      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option for client review' },
+      { id: 'LOG-005', timestamp: '2024-12-10 10:15:14', user: 'Mike Johnson', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option for client review' },
       { id: 'LOG-006', timestamp: '2024-12-10 13:45:58', user: 'Sarah Wilson', action: 'Channel Added', field: 'Channels', oldValue: '3rd Party Display', newValue: '+ Socials, Connected TV', description: 'Expanded offsite channel mix' },
       { id: 'LOG-007', timestamp: '2024-12-10 16:20:12', user: 'John Smith', action: 'Comment Added', field: 'Notes', oldValue: '-', newValue: 'Awaiting creative approval for all offsite channels', description: 'Added client feedback status' },
     ];
@@ -5695,8 +5695,8 @@ export const OffsiteInOption: Story = {
     };
     const bookingStatusVariant = (status: string) => {
       switch (status) {
-        case 'In-option': return 'outline';
-        case 'Running': return 'success';
+        case 'In review': return 'outline';
+        case 'Live': return 'success';
         case 'Paused': return 'warning';
         case 'Stopped': return 'destructive';
         case 'Ready': return 'info';
@@ -5933,8 +5933,8 @@ export const OffsiteInOption: Story = {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'In-option', value: 'In-option' },
-                          { label: 'Running', value: 'Running' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
                           { label: 'Paused', value: 'Paused' },
                           { label: 'Stopped', value: 'Stopped' },
                           { label: 'Ready', value: 'Ready' },

@@ -61,10 +61,10 @@ interface NotificationResult {
 
 // Mock search results data
 const allCampaignResults: CampaignResult[] = [
-  { id: 'C-001', name: 'Summer Sale 2024', advertiser: 'Acme Corp', type: 'Display', status: 'Running', startDate: '2024-06-01', endDate: '2024-08-31' },
+  { id: 'C-001', name: 'Summer Sale 2024', advertiser: 'Acme Corp', type: 'Display', status: 'Live', startDate: '2024-06-01', endDate: '2024-08-31' },
   { id: 'C-002', name: 'Holiday Promotion', advertiser: 'BrandX', type: 'Sponsored Products', status: 'Ready', startDate: '2024-11-15', endDate: '2024-12-31' },
-  { id: 'C-003', name: 'Brand Awareness Q1', advertiser: 'MediaWorks', type: 'Digital In-Store', status: 'Running', startDate: '2024-01-01', endDate: '2024-03-31' },
-  { id: 'C-004', name: 'New Product Launch', advertiser: 'TechStart', type: 'Offline In-Store', status: 'In option', startDate: '2024-04-01', endDate: '2024-04-30' },
+  { id: 'C-003', name: 'Brand Awareness Q1', advertiser: 'MediaWorks', type: 'Digital In-Store', status: 'Live', startDate: '2024-01-01', endDate: '2024-03-31' },
+  { id: 'C-004', name: 'New Product Launch', advertiser: 'TechStart', type: 'Offline In-Store', status: 'In review', startDate: '2024-04-01', endDate: '2024-04-30' },
   { id: 'C-005', name: 'Winter Collection', advertiser: 'FashionCo', type: 'Display', status: 'Paused', startDate: '2024-12-01', endDate: '2025-02-28' },
 ];
 
@@ -160,7 +160,7 @@ export function SearchResults({ searchQuery, theme = 'retailMedia', onRowClick }
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'Running':
+      case 'Live':
       case 'Approved':
       case 'Confirmed':
         return 'success';
@@ -169,7 +169,7 @@ export function SearchResults({ searchQuery, theme = 'retailMedia', onRowClick }
         return 'warning';
       case 'Paused':
       case 'Draft':
-      case 'In option':
+      case 'In review':
         return 'outline';
       case 'Rejected':
         return 'destructive';
@@ -227,10 +227,10 @@ export function SearchResults({ searchQuery, theme = 'retailMedia', onRowClick }
                 {
                   name: 'Status',
                   options: [
-                    { label: 'Running', value: 'running' },
+                    { label: 'Live', value: 'running' },
                     { label: 'Ready', value: 'ready' },
                     { label: 'Paused', value: 'paused' },
-                    { label: 'In option', value: 'in-option' },
+                    { label: 'In review', value: 'in-option' },
                   ],
                   selectedValues: campaignStatus,
                   onChange: setCampaignStatus,

@@ -141,8 +141,8 @@ export const Home: Story = {
           budgetUsagePercentage: plan.budget > 0 ? Math.round((spend / plan.budget) * 100) : 0,
           bookings,
           badge: plan.status === 'running'
-            ? { text: 'Running', variant: 'success' as const }
-            : { text: plan.status === 'draft' ? 'Draft' : 'In-option', variant: 'outline' as const },
+            ? { text: 'Live', variant: 'success' as const }
+            : { text: plan.status === 'draft' ? 'Draft' : 'In review', variant: 'outline' as const },
           engines: planCampaigns.map((c) => ({
             id: engineCard[c.engine].id,
             name: engineCard[c.engine].name,

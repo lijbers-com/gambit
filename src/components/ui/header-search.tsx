@@ -38,10 +38,10 @@ export interface HeaderSearchProps {
 
 // Mock data for campaigns, bookings, and creatives
 const mockCampaigns: SearchResult[] = [
-  { id: 'camp-1', name: 'Summer Sale 2024', url: '/campaigns/display/C-001', type: 'campaign', category: 'Campaigns', status: 'Running', description: 'Display campaign' },
+  { id: 'camp-1', name: 'Summer Sale 2024', url: '/campaigns/display/C-001', type: 'campaign', category: 'Campaigns', status: 'Live', description: 'Display campaign' },
   { id: 'camp-2', name: 'Holiday Promotion', url: '/campaigns/sponsored-products/C-002', type: 'campaign', category: 'Campaigns', status: 'Ready', description: 'Sponsored products' },
-  { id: 'camp-3', name: 'Brand Awareness Q1', url: '/campaigns/digital-instore/C-003', type: 'campaign', category: 'Campaigns', status: 'Running', description: 'Digital in-store' },
-  { id: 'camp-4', name: 'New Product Launch', url: '/campaigns/offline-instore/C-004', type: 'campaign', category: 'Campaigns', status: 'In option', description: 'Offline in-store' },
+  { id: 'camp-3', name: 'Brand Awareness Q1', url: '/campaigns/digital-instore/C-003', type: 'campaign', category: 'Campaigns', status: 'Live', description: 'Digital in-store' },
+  { id: 'camp-4', name: 'New Product Launch', url: '/campaigns/offline-instore/C-004', type: 'campaign', category: 'Campaigns', status: 'In review', description: 'Offline in-store' },
   { id: 'camp-5', name: 'Winter Collection', url: '/campaigns/display/C-005', type: 'campaign', category: 'Campaigns', status: 'Paused', description: 'Display campaign' },
 ];
 

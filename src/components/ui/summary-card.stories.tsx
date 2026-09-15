@@ -90,7 +90,7 @@ export const BookingDetails: Story = {
           { label: 'Placement', value: 'Homepage banner' },
           { label: 'Format', value: '970×250' },
           { label: 'Budget', value: '€2,500' },
-          { label: 'Status', value: 'In option' },
+          { label: 'Status', value: 'In review' },
         ]}
         actions={[
           { label: 'Save booking', variant: 'default', onClick: () => alert('Saved') },

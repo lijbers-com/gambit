@@ -386,10 +386,10 @@ const TableSelectable: React.FC = () => {
 
 type PlanRow = { id: string; name: string; kind: 'campaign' | 'booking'; status: string; budget: string; parent?: string };
 const planRows: PlanRow[] = [
-  { id: 'C-004', name: 'Summer Launch — Display', kind: 'campaign', status: 'Running', budget: '€5,000' },
-  { id: 'B-005', name: 'Homepage Takeover', kind: 'booking', status: 'Running', budget: '€2,500', parent: 'C-004' },
-  { id: 'B-006', name: 'Category Banner — Drinks', kind: 'booking', status: 'Running', budget: '€2,500', parent: 'C-004' },
-  { id: 'C-005', name: 'Summer Launch — Sponsored products', kind: 'campaign', status: 'Running', budget: '€4,000' },
+  { id: 'C-004', name: 'Summer Launch — Display', kind: 'campaign', status: 'Live', budget: '€5,000' },
+  { id: 'B-005', name: 'Homepage Takeover', kind: 'booking', status: 'Live', budget: '€2,500', parent: 'C-004' },
+  { id: 'B-006', name: 'Category Banner — Drinks', kind: 'booking', status: 'Live', budget: '€2,500', parent: 'C-004' },
+  { id: 'C-005', name: 'Summer Launch — Sponsored products', kind: 'campaign', status: 'Live', budget: '€4,000' },
 ];
 const TableExpandableDemo: React.FC = () => {
   const [open, setOpen] = React.useState<Set<string>>(() => new Set(['C-004']));
@@ -418,7 +418,7 @@ const TableActions: React.FC = () => (
     rowKey={(r) => r.id}
     columns={[
       { key: 'name', header: 'Campaign', render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'Running' ? 'success' : 'todo'}>{r.status}</Badge> },
+      { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'Live' ? 'success' : 'todo'}>{r.status}</Badge> },
       { key: 'budget', header: 'Budget', render: (r) => r.budget },
     ]}
     data={previewRows}
@@ -478,7 +478,7 @@ const FilterBarDemo: React.FC = () => {
       onSearchChange={setQ}
       searchPlaceholder="Search campaigns…"
       filters={[
-        { name: 'Status', options: [{ label: 'Running', value: 'running' }, { label: 'In option', value: 'in-option' }, { label: 'Paused', value: 'paused' }, { label: 'Draft', value: 'draft' }], selectedValues: status, onChange: setStatus },
+        { name: 'Status', options: [{ label: 'Live', value: 'running' }, { label: 'In review', value: 'in-option' }, { label: 'Paused', value: 'paused' }, { label: 'Draft', value: 'draft' }], selectedValues: status, onChange: setStatus },
         { name: 'Proposition', options: [{ label: 'Display', value: 'display' }, { label: 'Sponsored products', value: 'sp' }, { label: 'Digital in-store', value: 'dis' }], selectedValues: engine, onChange: setEngine },
       ]}
     />
@@ -554,8 +554,8 @@ const pieConfig = {
 
 type PreviewRow = { id: string; name: string; status: string; budget: string; spend: string };
 const previewRows: PreviewRow[] = [
-  { id: 'C-004', name: 'Summer Launch — Display', status: 'Running', budget: '€5,000', spend: '€3,800' },
-  { id: 'C-005', name: 'Summer Launch — Sponsored products', status: 'Running', budget: '€4,000', spend: '€3,600' },
+  { id: 'C-004', name: 'Summer Launch — Display', status: 'Live', budget: '€5,000', spend: '€3,800' },
+  { id: 'C-005', name: 'Summer Launch — Sponsored products', status: 'Live', budget: '€4,000', spend: '€3,600' },
   { id: 'C-011', name: 'Back to School — Offline in-store', status: 'To do', budget: '€5,000', spend: '—' },
 ];
 const PreviewTable: React.FC = () => (
@@ -563,7 +563,7 @@ const PreviewTable: React.FC = () => (
     rowKey={(r) => r.id}
     columns={[
       { key: 'name', header: 'Campaign', render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'Running' ? 'success' : 'todo'}>{r.status}</Badge> },
+      { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'Live' ? 'success' : 'todo'}>{r.status}</Badge> },
       { key: 'budget', header: 'Budget', render: (r) => r.budget },
       { key: 'spend', header: 'Spend', render: (r) => r.spend },
     ]}
@@ -644,8 +644,8 @@ const PopoverDemo: React.FC = () => (
       <Button variant="outline">Filter: Status</Button>
     </PopoverTrigger>
     <PopoverContent align="start" className="w-56 space-y-2">
-      {['Running', 'In option', 'Paused', 'Draft'].map((o) => (
-        <label key={o} className="flex items-center gap-2 text-sm"><Checkbox defaultChecked={o === 'Running'} /> {o}</label>
+      {['Live', 'In review', 'Paused', 'Draft'].map((o) => (
+        <label key={o} className="flex items-center gap-2 text-sm"><Checkbox defaultChecked={o === 'Live'} /> {o}</label>
       ))}
     </PopoverContent>
   </Popover>
@@ -705,7 +705,7 @@ const StatefulViewbar: React.FC = () => {
   const [tab, setTab] = React.useState('details');
   return (
     <Viewbar
-      labels={[{ label: 'Running', color: 'success' }, { label: 'B-016', color: 'muted' }]}
+      labels={[{ label: 'Live', color: 'success' }, { label: 'B-016', color: 'muted' }]}
       tabs={[{ value: 'details', label: 'Booking details' }, { value: 'targeting', label: 'Targeting' }, { value: 'logs', label: 'Logs' }]}
       activeTab={tab}
       onTabChange={setTab}
@@ -819,8 +819,8 @@ const StatefulLinkPicker: React.FC = () => {
         onOpenChange={setOpen}
         entityLabel="campaign"
         options={[
-          { value: 'C-004', label: 'Summer Launch — Display', details: { Status: 'Running', Budget: '€5,000' } },
-          { value: 'C-005', label: 'Summer Launch — Sponsored products', details: { Status: 'Running', Budget: '€4,000' } },
+          { value: 'C-004', label: 'Summer Launch — Display', details: { Status: 'Live', Budget: '€5,000' } },
+          { value: 'C-005', label: 'Summer Launch — Sponsored products', details: { Status: 'Live', Budget: '€4,000' } },
           { value: 'C-011', label: 'Back to School — Offline in-store', details: { Status: 'Draft', Budget: '€5,000' } },
         ]}
         value={v}
@@ -856,7 +856,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
 
   /* Communication */
   'badge': { title: 'Badge', group: 'Communication', render: () => <Badge>Draft</Badge> },
-  'badge--success': { title: 'Badge / Success', group: 'Communication', render: () => <Badge variant="success">Running</Badge> },
+  'badge--success': { title: 'Badge / Success', group: 'Communication', render: () => <Badge variant="success">Live</Badge> },
   'badge--warning': { title: 'Badge / Warning', group: 'Communication', render: () => <Badge variant="warning">Paused</Badge> },
   'badge--destructive': { title: 'Badge / Danger', group: 'Communication', render: () => <Badge variant="destructive">Rejected</Badge> },
   'badge--todo': { title: 'Badge / To do', group: 'Communication', render: () => <Badge variant="todo">2 actions</Badge> },
@@ -999,7 +999,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
     title: 'Control bar', group: 'Product surfaces', wide: true,
     render: () => (
       <ControlBar>
-        <ControlBarItem label="Status"><Badge variant="success" size="large">Running</Badge></ControlBarItem>
+        <ControlBarItem label="Status"><Badge variant="success" size="large">Live</Badge></ControlBarItem>
         <ControlBarItem label="Budget"><span className="text-sm font-medium tabular-nums">€40,000</span></ControlBarItem>
         <ControlBarItem label="Run time"><span className="text-sm">7 Sep – 4 Oct 2026</span></ControlBarItem>
       </ControlBar>
@@ -1065,7 +1065,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
     render: () => (
       <CampaignSummary
         title="Summer Launch Plan"
-        badge={{ text: 'Running', variant: 'success' }}
+        badge={{ text: 'Live', variant: 'success' }}
         goal="Purchase"
         audience="Households with kids"
         estimatedRoas="3.8x"

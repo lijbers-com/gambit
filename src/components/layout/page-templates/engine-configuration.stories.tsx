@@ -181,14 +181,7 @@ const createEngineConfigurationStory = (
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [selectedMetric, setSelectedMetric] = useState(metrics[0]?.id || 'configurations');
     const [activeTab, setActiveTab] = useState('rules');
-    const [timeRange, setTimeRange] = useState('last-month');
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
-    });
-    const [conversionWindow, setConversionWindow] = useState<number>(14);
 
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -199,9 +192,6 @@ const createEngineConfigurationStory = (
     const [selectedRules, setSelectedRules] = useState<any[]>([]);
     const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
 
-    const chartData = getChartData(selectedMetric, engineType, timeRange, dateRange);
-    const chartConfig = getChartConfig(selectedMetric);
-    const selectedMetricData = metrics.find(m => m.id === selectedMetric);
 
     return (
       <MenuContextProvider>
@@ -214,17 +204,6 @@ const createEngineConfigurationStory = (
         pageHeaderProps={{
           title: `${engineTitle} Configuration`,
           subtitle: `Manage ${engineType} engine configuration settings and rules`,
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Pick a date range with conversion window"
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-              showPresets={true}
-            />
-          ),
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -232,42 +211,6 @@ const createEngineConfigurationStory = (
         }}
       >
         <div className="space-y-6">
-          <Card>
-            <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {metrics.map((metric) => (
-                  <MetricCard
-                    key={metric.id}
-                    label={metric.label}
-                    value={metric.value}
-                    subMetric={metric.subMetric}
-                    badgeValue={metric.badgeValue}
-                    badgeVariant={metric.badgeVariant}
-                    isSelected={selectedMetric === metric.id}
-                    onClick={() => setSelectedMetric(metric.id)}
-                  />
-                ))}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">
-                  {selectedMetricData?.label || 'Configuration'} Performance
-                </h3>
-                <BarChartComponent
-                  data={chartData}
-                  config={chartConfig}
-                  showLegend={true}
-                  showGrid={true}
-                  showTooltip={true}
-                  showXAxis={true}
-                  showYAxis={true}
-                  className="h-80 aspect-auto"
-                  xAxisDataKey="day"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <Viewbar

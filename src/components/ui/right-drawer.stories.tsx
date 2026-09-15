@@ -117,7 +117,7 @@ const filterOptions = [
   {
     name: 'Status',
     options: [
-      { label: 'Running', value: 'running' },
+      { label: 'Live', value: 'running' },
       { label: 'Paused', value: 'paused' },
       { label: 'Completed', value: 'completed' },
     ],
@@ -137,16 +137,16 @@ const filterOptions = [
 ];
 
 const tableData = [
-  { id: '2023-86527', status: 'Running', brand: 'Coca Cola', mediaProduct: 'Package M', planned: '100', booked: '100' },
+  { id: '2023-86527', status: 'Live', brand: 'Coca Cola', mediaProduct: 'Package M', planned: '100', booked: '100' },
   { id: '2023-86528', status: 'Paused', brand: 'Nike', mediaProduct: 'Digital Display', planned: '150', booked: '120' },
-  { id: '2023-86529', status: 'Running', brand: 'Apple', mediaProduct: 'Audio Ads', planned: '200', booked: '200' },
+  { id: '2023-86529', status: 'Live', brand: 'Apple', mediaProduct: 'Audio Ads', planned: '200', booked: '200' },
   { id: '2023-86530', status: 'Completed', brand: 'Samsung', mediaProduct: 'Sponsored Products', planned: '80', booked: '75' },
-  { id: '2023-86531', status: 'Running', brand: 'McDonald\'s', mediaProduct: 'In-Store Digital', planned: '300', booked: '280' },
+  { id: '2023-86531', status: 'Live', brand: 'McDonald\'s', mediaProduct: 'In-Store Digital', planned: '300', booked: '280' },
 ];
 
 const statusVariant = (status: string) => {
   switch (status) {
-    case 'Running': return 'default';
+    case 'Live': return 'default';
     case 'Paused': return 'secondary';
     case 'Completed': return 'outline';
     default: return 'outline';
@@ -181,7 +181,7 @@ export const Default = {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Status:</span>
-                    <Badge variant="default">Running</Badge>
+                    <Badge variant="default">Live</Badge>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Brand:</span>
@@ -334,7 +334,7 @@ export const FullExample = {
       {
         name: 'Status',
         options: [
-          { label: 'Running', value: 'running' },
+          { label: 'Live', value: 'running' },
           { label: 'Paused', value: 'paused' },
           { label: 'Completed', value: 'completed' },
         ],

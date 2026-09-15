@@ -166,7 +166,7 @@ const mediaPlanOptions = [
     budget: '€850,000',
     startDate: '01 Jan 2026',
     endDate: '30 Jun 2026',
-    status: 'In option',
+    status: 'In review',
   },
   {
     label: 'PepsiCo Annual Plan 2026',

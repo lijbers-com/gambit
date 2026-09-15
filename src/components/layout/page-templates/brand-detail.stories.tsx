@@ -55,9 +55,9 @@ const cocaColaProducts = [
 ];
 
 const cocaColaCampaigns = [
-  { id: 'C-001', name: 'Summer Refresh 2024', engine: 'Display', status: 'Running', start: '01-06-2024', end: '31-08-2024' },
+  { id: 'C-001', name: 'Summer Refresh 2024', engine: 'Display', status: 'Live', start: '01-06-2024', end: '31-08-2024' },
   { id: 'C-002', name: 'Zero Sugar Push', engine: 'Sponsored Products', status: 'Ready', start: '01-07-2024', end: '31-07-2024' },
-  { id: 'C-003', name: 'Holiday Season 2024', engine: 'Offsite', status: 'In option', start: '01-11-2024', end: '31-12-2024' },
+  { id: 'C-003', name: 'Holiday Season 2024', engine: 'Offsite', status: 'In review', start: '01-11-2024', end: '31-12-2024' },
 ];
 
 const cocaColaOrgs = [
@@ -73,7 +73,7 @@ const unoxProducts = [
 ];
 
 const unoxCampaigns = [
-  { id: 'C-101', name: 'Winter Warmers Campaign', engine: 'Display', status: 'Running', start: '01-10-2024', end: '28-02-2025' },
+  { id: 'C-101', name: 'Winter Warmers Campaign', engine: 'Display', status: 'Live', start: '01-10-2024', end: '28-02-2025' },
   { id: 'C-102', name: 'Snert Season Sponsored', engine: 'Sponsored Products', status: 'Ready', start: '01-11-2024', end: '31-01-2025' },
 ];
 
@@ -83,7 +83,7 @@ const unoxOrgs = [
 ];
 
 const campaignStatusVariant = (s: string) =>
-  s === 'Running' ? 'default' as const : s === 'Ready' ? 'secondary' as const : 'outline' as const;
+  s === 'Live' ? 'default' as const : s === 'Ready' ? 'secondary' as const : 'outline' as const;
 
 interface BrandDetailContentProps {
   brandName: string;

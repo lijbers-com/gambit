@@ -51,24 +51,24 @@ const engineCardStatus: Record<PlanStatus, 'new' | 'draft' | 'ready' | 'in-optio
 
 const planBadge = (status: PlanStatus): { text: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' } => {
   switch (status) {
-    case 'running': return { text: 'Running', variant: 'success' };
+    case 'running': return { text: 'Live', variant: 'success' };
     case 'paused': return { text: 'Paused', variant: 'destructive' };
     case 'completed': return { text: 'Completed', variant: 'secondary' };
     case 'draft': return { text: 'Draft', variant: 'outline' };
-    default: return { text: 'In-option', variant: 'outline' };
+    default: return { text: 'In review', variant: 'outline' };
   }
 };
 
 const logData = [
   { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Holiday Sale Campaign', description: 'Initial campaign creation' },
   { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$10,000', newValue: '$15,000', description: 'Budget increased for holiday push' },
-  { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+  { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option status' },
   { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Display', description: 'Added Display engine' },
   { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Sponsored Products', description: 'Added Sponsored Products engine' },
   { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '06/25/2024', newValue: '06/30/2024', description: 'Extended campaign end date' },
   { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Budget Updated', field: 'Budget', oldValue: '$15,000', newValue: '$18,000', description: 'Budget reallocated across engines' },
   { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Summer Launch Campaign', description: 'New campaign created' },
-  { id: 'LOG-009', timestamp: '2024-12-12 10:15:00', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Holiday Sale Campaign is now live' },
+  { id: 'LOG-009', timestamp: '2024-12-12 10:15:00', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'In review', newValue: 'Live', description: 'Holiday Sale Campaign is now live' },
   { id: 'LOG-010', timestamp: '2024-12-13 09:00:00', user: 'Mike Johnson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Digital In-store', description: 'Added Digital In-store engine to Summer Launch' },
 ];
 
@@ -210,9 +210,9 @@ function AllCampaignsPage() {
                       {
                         name: 'Status',
                         options: [
-                          { label: 'Running', value: 'running' },
+                          { label: 'Live', value: 'running' },
                           { label: 'Ready', value: 'ready' },
-                          { label: 'In option', value: 'in-option' },
+                          { label: 'In review', value: 'in-option' },
                           { label: 'Paused', value: 'paused' },
                         ],
                         selectedValues: status,

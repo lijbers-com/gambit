@@ -41,6 +41,7 @@ import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
+import { WorkflowProgress } from '@/components/ui/workflow-progress';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
@@ -568,7 +569,7 @@ export const Display: Story = {
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
       { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
-      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review' },
       { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
     ];
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -780,6 +781,10 @@ export const Display: Story = {
               >
 
               {/* 1. Booking setup — Booking details tab */}
+              {/* Where this booking stands in the proposition's workflow, and what is next. */}
+              <FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
+                <WorkflowProgress engine="display" bookingId={routeEntityId} />
+              </FormSection>
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={1} title="Booking setup" open={section1Open} onToggle={() => setSection1Open(v => !v)} />
                 {section1Open && (
@@ -1164,7 +1169,7 @@ export const DigitalInStore: Story = {
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
       { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
-      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review' },
       { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
     ];
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -1834,6 +1839,10 @@ export const DigitalInStore: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+{/* Where this booking stands in the proposition's workflow, and what is next. */}
+<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
+  <WorkflowProgress engine="digital-instore" bookingId={routeEntityId} />
+</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -2546,7 +2555,7 @@ export const OfflineInStore: Story = {
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
       { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
-      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review' },
       { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
     ];
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -3110,6 +3119,10 @@ export const OfflineInStore: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+{/* Where this booking stands in the proposition's workflow, and what is next. */}
+<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
+  <WorkflowProgress engine="offline-instore" bookingId={routeEntityId} />
+</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -3888,7 +3901,7 @@ export const SponsoredProducts: Story = {
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
       { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
-      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review' },
       { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
     ];
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -4118,6 +4131,10 @@ export const SponsoredProducts: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+{/* Where this booking stands in the proposition's workflow, and what is next. */}
+<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
+  <WorkflowProgress engine="sponsored-products" bookingId={routeEntityId} />
+</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -4511,7 +4528,7 @@ export const OffsiteDisplay: Story = {
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
       { id: 'BLOG-002', timestamp: '12/10/2024 15:05', user: 'John Smith', action: 'Budget Updated', field: 'Budget', oldValue: '€2,000', newValue: '€3,750' },
       { id: 'BLOG-003', timestamp: '12/11/2024 09:18', user: 'Sarah Wilson', action: 'Creative Linked', field: 'Creatives', oldValue: '-', newValue: 'CR-001' },
-      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option' },
+      { id: 'BLOG-004', timestamp: '12/11/2024 11:42', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review' },
       { id: 'BLOG-005', timestamp: '12/12/2024 08:27', user: 'Mike Johnson', action: 'Run time Modified', field: 'End date', oldValue: '2024-08-25', newValue: '2024-08-30' },
     ];
     const [logUsers, setLogUsers] = React.useState<string[]>([]);
@@ -4698,6 +4715,10 @@ export const OffsiteDisplay: Story = {
               <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
+{/* Where this booking stands in the proposition's workflow, and what is next. */}
+<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
+  <WorkflowProgress engine="offsite" bookingId={routeEntityId} />
+</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>

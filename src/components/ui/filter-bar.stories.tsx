@@ -24,7 +24,7 @@ export const Default: Story = {
             {
               name: "Status",
               options: [
-                { label: "Running", value: "running" },
+                { label: "Live", value: "running" },
                 { label: "Paused", value: "paused" },
                 { label: "Draft", value: "draft" },
                 { label: "Completed", value: "completed" },

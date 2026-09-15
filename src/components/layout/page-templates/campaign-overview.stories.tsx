@@ -106,8 +106,8 @@ type Story = StoryObj<typeof meta>;
 // Campaign rows come from the prototype database; these helpers translate
 // store statuses/engines into the table's display vocabulary.
 const statusLabel: Record<string, string> = {
-  'running': 'Running',
-  'in-option': 'In option',
+  'running': 'Live',
+  'in-option': 'In review',
   'draft': 'Draft',
   'paused': 'Paused',
   'completed': 'Completed',
@@ -115,9 +115,9 @@ const statusLabel: Record<string, string> = {
 
 const statusVariant = (status: string) => {
   switch (status) {
-    case 'Running': return 'default';
+    case 'Live': return 'default';
     case 'Completed': return 'secondary';
-    case 'In option': return 'outline';
+    case 'In review': return 'outline';
     case 'Draft': return 'outline';
     case 'Paused': return 'destructive';
     default: return 'outline';
@@ -451,9 +451,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       {
                         name: 'Status',
                         options: [
-                          { label: 'Running', value: 'running' },
+                          { label: 'Live', value: 'running' },
                           { label: 'Ready', value: 'ready' },
-                          { label: 'In option', value: 'in-option' },
+                          { label: 'In review', value: 'in-option' },
                           { label: 'Paused', value: 'paused' },
                         ],
                         selectedValues: status,
@@ -679,7 +679,7 @@ const campaignSummaryData = [
     id: 'C-003',
     campaignType: 'digital-instore',
     title: 'Back to School Campaign',
-    badge: { text: 'In Option', variant: 'outline' as const },
+    badge: { text: 'In review', variant: 'outline' as const },
     goal: 'customer-acquisition',
     estimatedRoas: '5.1x',
     budget: '$12,000',
@@ -783,9 +783,9 @@ export const Campaigns360: Story = {
                   {
                     name: 'Status',
                     options: [
-                      { label: 'Running', value: 'running' },
+                      { label: 'Live', value: 'running' },
                       { label: 'Ready', value: 'ready' },
-                      { label: 'In option', value: 'in-option' },
+                      { label: 'In review', value: 'in-option' },
                       { label: 'Paused', value: 'paused' },
                     ],
                     selectedValues: status,
@@ -916,13 +916,13 @@ export const Campaigns360NoGoalTargeting: Story = {
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Holiday Sale Campaign', description: 'Initial campaign creation' },
       { id: 'LOG-002', timestamp: '2024-12-10 14:35:12', user: 'Jane Doe', action: 'Budget Updated', field: 'Budget', oldValue: '$10,000', newValue: '$15,000', description: 'Budget increased for holiday push' },
-      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In-option', description: 'Campaign moved to in-option status' },
+      { id: 'LOG-003', timestamp: '2024-12-10 15:22:45', user: 'John Smith', action: 'Status Changed', field: 'Status', oldValue: 'Draft', newValue: 'In review', description: 'Campaign moved to in-option status' },
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Display', description: 'Added Display engine' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'Jane Doe', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Sponsored Products', description: 'Added Sponsored Products engine' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Dates Modified', field: 'End Date', oldValue: '06/25/2024', newValue: '06/30/2024', description: 'Extended campaign end date' },
       { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'Budget Updated', field: 'Budget', oldValue: '$15,000', newValue: '$18,000', description: 'Budget reallocated across engines' },
       { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Summer Launch Campaign', description: 'New campaign created' },
-      { id: 'LOG-009', timestamp: '2024-12-12 10:15:00', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'In-option', newValue: 'Running', description: 'Holiday Sale Campaign is now live' },
+      { id: 'LOG-009', timestamp: '2024-12-12 10:15:00', user: 'Jane Doe', action: 'Status Changed', field: 'Status', oldValue: 'In review', newValue: 'Live', description: 'Holiday Sale Campaign is now live' },
       { id: 'LOG-010', timestamp: '2024-12-13 09:00:00', user: 'Mike Johnson', action: 'Engine Added', field: 'Engines', oldValue: '-', newValue: 'Digital In-store', description: 'Added Digital In-store engine to Summer Launch' },
     ];
 
@@ -1005,9 +1005,9 @@ export const Campaigns360NoGoalTargeting: Story = {
                         {
                           name: 'Status',
                           options: [
-                            { label: 'Running', value: 'running' },
+                            { label: 'Live', value: 'running' },
                             { label: 'Ready', value: 'ready' },
-                            { label: 'In option', value: 'in-option' },
+                            { label: 'In review', value: 'in-option' },
                             { label: 'Paused', value: 'paused' },
                           ],
                           selectedValues: status,

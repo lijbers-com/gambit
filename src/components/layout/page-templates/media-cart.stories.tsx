@@ -35,7 +35,7 @@ The Media Cart page template provides a shopping cart-like interface for managin
 - **Media Products Display**: Table format showing budget and ROAS per engine
 - **Goal and Runtime**: Side-by-side configuration fields
 - **Action Buttons**: Edit and Add to Cart functionality
-- **Status Badges**: Visual status indicators with "In-option" secondary badge
+- **Status Badges**: Visual status indicators with "In review" secondary badge
 
 ## Layout Structure
 

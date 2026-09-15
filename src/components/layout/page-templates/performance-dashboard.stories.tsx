@@ -4035,6 +4035,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
+                      <PropositionSwatch engine="all" />
                       Total Volume {totalVolumeLabel}
                       <TooltipProvider>
                         <Tooltip>

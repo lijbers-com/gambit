@@ -13,7 +13,10 @@ import type { EngineId } from '@/lib/db';
  * separates even where a pattern is too small to see.
  */
 
-export type PatternKind = 'diagonal' | 'diagonal-reverse' | 'dots' | 'crosshatch' | 'solid';
+export type PatternKind = 'diagonal' | 'diagonal-reverse' | 'dots' | 'crosshatch' | 'checker' | 'solid';
+
+/** A series that stands for every proposition together — the total. */
+export type PatternKey = EngineId | 'all';
 
 export interface PropositionPattern {
   kind: PatternKind;
@@ -27,25 +30,30 @@ export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
   'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-400))' },
   display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
   'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
-  'offline-instore':    { kind: 'solid',            base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-600))' },
+  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-600))' },
   offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-600))', ink: 'rgb(var(--neutral-800))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */
-export const patternId = (engine: EngineId) => `pp-${engine}`;
-export const patternFill = (engine: EngineId) => `url(#${patternId(engine)})`;
+/** Solid grey is reserved for the whole: a series that adds every
+ *  proposition together wears no pattern, so the eye reads "all" at once. */
+export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' };
+
+export const patternFor = (key: PatternKey): PropositionPattern => (key === 'all' ? ALL_PROPOSITIONS_PATTERN : PROPOSITION_PATTERNS[key]);
+export const patternId = (key: PatternKey) => `pp-${key}`;
+export const patternFill = (key: PatternKey) => `url(#${patternId(key)})`;
 
 /**
  * The SVG <defs> that every chart drawing propositions needs once. Rendered
  * inside the chart's own <svg> (Recharts lets a <defs> sit among its
  * children) or in a hidden <svg> at the top of a page for CSS use.
  */
-export const PropositionPatternDefs: React.FC<{ engines?: EngineId[]; opacity?: number }> = ({ engines, opacity = 1 }) => {
-  const list = engines ?? (Object.keys(PROPOSITION_PATTERNS) as EngineId[]);
+export const PropositionPatternDefs: React.FC<{ engines?: PatternKey[]; opacity?: number }> = ({ engines, opacity = 1 }) => {
+  const list: PatternKey[] = engines ?? [...(Object.keys(PROPOSITION_PATTERNS) as EngineId[]), 'all'];
   return (
     <defs>
       {list.map((engine) => {
-        const p = PROPOSITION_PATTERNS[engine];
+        const p = patternFor(engine);
         const id = patternId(engine);
         const size = 10;
         return (
@@ -60,6 +68,12 @@ export const PropositionPatternDefs: React.FC<{ engines?: EngineId[]; opacity?: 
               </>
             )}
             {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={1} fill={p.ink} />}
+            {p.kind === 'checker' && (
+              <>
+                <rect x={0} y={0} width={size / 2} height={size / 2} fill={p.ink} opacity={0.45} />
+                <rect x={size / 2} y={size / 2} width={size / 2} height={size / 2} fill={p.ink} opacity={0.45} />
+              </>
+            )}
           </pattern>
         );
       })}
@@ -68,8 +82,8 @@ export const PropositionPatternDefs: React.FC<{ engines?: EngineId[]; opacity?: 
 };
 
 /** A small swatch of the proposition's pattern, for legends and chips. */
-export const PropositionSwatch: React.FC<{ engine: EngineId; className?: string; size?: number }> = ({ engine, className, size = 12 }) => {
-  const p = PROPOSITION_PATTERNS[engine];
+export const PropositionSwatch: React.FC<{ engine: PatternKey; className?: string; size?: number }> = ({ engine, className, size = 12 }) => {
+  const p = patternFor(engine);
   const id = `sw-${engine}`;
   return (
     <svg width={size} height={size} className={className} aria-hidden style={{ borderRadius: 2, flexShrink: 0 }}>
@@ -85,6 +99,12 @@ export const PropositionSwatch: React.FC<{ engine: EngineId; className?: string;
             </>
           )}
           {p.kind === 'dots' && <circle cx={3} cy={3} r={0.9} fill={p.ink} />}
+          {p.kind === 'checker' && (
+            <>
+              <rect x={0} y={0} width={3} height={3} fill={p.ink} opacity={0.45} />
+              <rect x={3} y={3} width={3} height={3} fill={p.ink} opacity={0.45} />
+            </>
+          )}
         </pattern>
       </defs>
       <rect width={size} height={size} rx={2} fill={`url(#${id})`} stroke="hsl(var(--border))" strokeWidth={0.5} />
@@ -97,8 +117,8 @@ export const PropositionSwatch: React.FC<{ engine: EngineId; className?: string;
  * faint tile behind a header or card so the eye learns "this texture is
  * display" before reading a label. Kept very light: it is a cue, not a fill.
  */
-export function patternBackground(engine: EngineId, opts: { ink?: string; base?: string; size?: number } = {}): React.CSSProperties {
-  const p = PROPOSITION_PATTERNS[engine];
+export function patternBackground(engine: PatternKey, opts: { ink?: string; base?: string; size?: number } = {}): React.CSSProperties {
+  const p = patternFor(engine);
   const size = opts.size ?? 10;
   const ink = opts.ink ?? 'rgb(var(--neutral-300))';
   const base = opts.base ?? 'transparent';
@@ -111,6 +131,8 @@ export function patternBackground(engine: EngineId, opts: { ink?: string; base?:
       return { backgroundColor: base, backgroundImage: `repeating-linear-gradient(45deg, ${ink} 0 1px, transparent 1px ${size}px), repeating-linear-gradient(135deg, ${ink} 0 1px, transparent 1px ${size}px)` };
     case 'dots':
       return { backgroundColor: base, backgroundImage: `radial-gradient(${ink} 1px, transparent 1.2px)`, backgroundSize: `${size}px ${size}px` };
+    case 'checker':
+      return { backgroundColor: base, backgroundImage: `linear-gradient(45deg, ${ink} 25%, transparent 25%, transparent 75%, ${ink} 75%), linear-gradient(45deg, ${ink} 25%, transparent 25%, transparent 75%, ${ink} 75%)`, backgroundSize: `${size}px ${size}px`, backgroundPosition: `0 0, ${size / 2}px ${size / 2}px` };
     default:
       return { backgroundColor: base };
   }

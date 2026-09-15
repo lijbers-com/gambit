@@ -30,11 +30,12 @@ export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
   // The shade does the separating; the pattern is a whisper on top — one
   // step of ink over the base, wide and thin — there to be recognised, not
   // to be read at a glance.
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-400))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-400))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
-  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
-  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-700))' },
+  // Never the page's own shade: the lightest step is one above the surface.
+  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-500))' },
+  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
+  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-700))' },
+  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-600))', ink: 'rgb(var(--neutral-800))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */

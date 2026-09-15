@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { LayoutGrid, LayoutTemplate, Link2, Minus, Send, Share2 } from 'lucide-react';
+import { LayoutGrid, LayoutTemplate, Link2, Minus, Send } from 'lucide-react';
 import { ThemeContext, type Theme } from '@/contexts/theme-context';
 import { cn } from '@/lib/utils';
 import {
@@ -26,7 +26,7 @@ import { Table } from './table';
 import { queueToast } from './toast';
 import { CreativePreview, parseSize, rememberUpload, resolveColor } from './creative-preview';
 import { CreativeLogs } from './creative-logs';
-import { CreativeShareDialog, readShareParams } from './creative-share';
+import { CreativeShareActions, readShareParams } from './creative-share';
 
 /**
  * The creative builder — settings on the left, a LIVE preview on the right.
@@ -203,12 +203,11 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const size = activeSize && template?.sizes.includes(activeSize) ? activeSize : template?.sizes[0];
 
   const [tab, setTab] = React.useState<'details' | 'logs'>('details');
-  const [sharing, setSharing] = React.useState(false);
   // A share link says which brand and device it was shared for — the page
   // opens that way. Storybook has no ThemeProvider, hence the optional read.
   const themeCtx = React.useContext(ThemeContext);
   const setTheme = themeCtx?.setTheme;
-  const [linkLayout, setLinkLayout] = React.useState<'desktop' | 'mobile' | 'app' | null>(null);
+  const [linkLayout, setLinkLayout] = React.useState<'desktop' | 'mobile' | null>(null);
   React.useEffect(() => {
     const { brand, layout } = readShareParams();
     if (brand && setTheme) setTheme(brand as Theme);
@@ -467,12 +466,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
             <CardHeader className="space-y-3 pb-4">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-[18px] font-semibold leading-tight tracking-tight">Live preview</h2>
-                <span className="flex items-center gap-1.5">
-                  <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2 text-xs" onClick={() => setSharing(true)}>
-                    <Share2 className="h-3.5 w-3.5" /> Share
-                  </Button>
-                  <CreativeStatusBadge status={creative.status} />
-                </span>
+                <CreativeStatusBadge status={creative.status} />
               </div>
               {template && template.sizes.length > 1 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -528,6 +522,20 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
                   Every change you make on the left shows here as you type, at the true proportions of each format.
                 </p>
               )}
+              {/* Share — the same things the live preview page offers, as
+                  buttons: the link opens in this brand, on the layout of the
+                  size in view. */}
+              {template && (
+                <div className="border-t pt-3">
+                  <div className="mb-2 text-xs font-medium">Share this preview</div>
+                  <CreativeShareActions
+                    creative={creative}
+                    engine={engine}
+                    brand={themeCtx?.theme}
+                    layout={size && parseSize(size).w < 700 ? 'mobile' : 'desktop'}
+                  />
+                </div>
+              )}
             </CardContent>
           </div>
         </Card>
@@ -554,8 +562,6 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
           )}
         </DialogContent>
       </Dialog>
-
-      <CreativeShareDialog open={sharing} onOpenChange={setSharing} creative={creative} engine={engine} currentBrand={themeCtx?.theme} />
 
       {/* ── Link bookings ── */}
       <Dialog open={linking} onOpenChange={setLinking}>

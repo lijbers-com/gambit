@@ -167,7 +167,7 @@ export function AreaChartComponent({
               dataKey={key}
               type={curved ? "monotone" : "linear"}
               fill={engine ? patternFill(engine) : `var(--color-${key})`}
-              fillOpacity={engine ? 1 : 0.4}
+              fillOpacity={engine ? (stacked ? 1 : 0.55) : 0.4}
               stroke={engine ? patternFor(engine).ink : `var(--color-${key})`}
               strokeWidth={engine ? 1 : undefined}
               stackId={stacked ? "a" : undefined}

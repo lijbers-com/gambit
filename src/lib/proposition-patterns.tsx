@@ -41,18 +41,6 @@ export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
  *  proposition together wears no pattern, so the eye reads "all" at once. */
 export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' };
 
-/** A line cannot carry a fill pattern, so it carries a dash instead — one
- *  per proposition, in the same family as its fill. The total is solid. */
-export const LINE_DASH: Record<PatternKey, string | undefined> = {
-  'sponsored-products': '2 4',
-  display: '8 4',
-  'digital-instore': '8 3 2 3',
-  'offline-instore': '4 4',
-  offsite: '12 4 2 4',
-  all: undefined,
-};
-export const lineDash = (key: PatternKey) => LINE_DASH[key];
-
 export const patternFor = (key: PatternKey): PropositionPattern => (key === 'all' ? ALL_PROPOSITIONS_PATTERN : PROPOSITION_PATTERNS[key]);
 export const patternId = (key: PatternKey) => `pp-${key}`;
 export const patternFill = (key: PatternKey) => `url(#${patternId(key)})`;

@@ -3709,13 +3709,7 @@ export const FunnelView: Story = {
           { name: 'Offline Media In-store', value: purchaseData[purchaseData.length - 1].omiRevenue },
           { name: 'Display Offsite', value: purchaseData[purchaseData.length - 1].offsiteRevenue },
         ],
-        donutColors: [
-          'hsl(var(--chart-2))',
-          'hsl(var(--chart-3))',
-          'hsl(var(--chart-4))',
-          'hsl(var(--chart-5))',
-          'hsl(var(--chart-1))',
-        ],
+        donutEngines: ['sponsored-products', 'display', 'digital-instore', 'offline-instore', 'offsite'],
         valueFormatter: formatEur,
       },
       {
@@ -4535,20 +4529,19 @@ export const FunnelView: Story = {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
                         roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k] }])
                       )}
+                      stacked={false}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
                       benchmark={{ value: 4, label: "Target 4x" }}
-                      showDots={true}
                       className="h-[200px] w-full"
-                      xAxisDataKey="month"
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+82%</Badge>

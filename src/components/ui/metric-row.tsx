@@ -34,6 +34,7 @@ export interface MetricDefinition {
   /** Data for donut / donutLegend variants */
   donutData?: MetricCardProps["donutData"]
   donutColors?: MetricCardProps["donutColors"]
+  donutEngines?: MetricCardProps["donutEngines"]
   /** Data for barHorizontal variant */
   productData?: MetricCardProps["productData"]
   /** Data for barVertical variant */
@@ -253,6 +254,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             graphColor={metric.graphColor}
             donutData={metric.donutData}
             donutColors={metric.donutColors}
+            donutEngines={metric.donutEngines}
             productData={metric.productData}
             dateData={metric.dateData}
             budgetData={metric.budgetData}
@@ -294,6 +296,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
                     graphColor={metric.graphColor}
                     donutData={metric.donutData}
                     donutColors={metric.donutColors}
+            donutEngines={metric.donutEngines}
                     productData={metric.productData}
                     dateData={metric.dateData}
                     budgetData={metric.budgetData}

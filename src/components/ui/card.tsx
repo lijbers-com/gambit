@@ -1,4 +1,5 @@
 import * as React from "react"
+import { PropositionPatternDefs, PropositionSwatch, patternFill, type PatternKey } from "@/lib/proposition-patterns"
 import { LineChart, Line, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -267,6 +268,9 @@ export interface MetricCardProps {
   progress?: number;
   donutData?: Array<{ name: string; value: number }>;
   donutColors?: string[];
+  /** The proposition behind each slice — drawn in its pattern, so a donut
+   *  splits the same way the stacked charts do. Wins over donutColors. */
+  donutEngines?: PatternKey[];
   /** For barHorizontal variant — top categories with a value each */
   productData?: Array<{ name: string; value: number; color?: string }>;
   /** For barVertical variant — time-series with a value per period */
@@ -417,22 +421,26 @@ const BudgetStackedBody = ({
 export const DonutLegendDetail = ({
   donutData,
   donutColors,
+  donutEngines,
   totalRow,
   valueFormatter,
 }: {
   donutData: NonNullable<MetricCardProps['donutData']>;
   donutColors?: MetricCardProps['donutColors'];
+  donutEngines?: MetricCardProps['donutEngines'];
   totalRow?: MetricCardProps['totalRow'];
   valueFormatter?: MetricCardProps['valueFormatter'];
 }) => {
   const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
   const total = donutData.reduce((sum, d) => sum + d.value, 0);
   const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+  const fillFor = (i: number) => (donutEngines?.[i] ? patternFill(donutEngines[i]) : colorFor(i));
   return (
     <div className="flex items-center gap-6">
       <div className="aspect-square w-40 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            {donutEngines && <PropositionPatternDefs />}
             <Pie
               data={donutData}
               cx="50%"
@@ -445,7 +453,7 @@ export const DonutLegendDetail = ({
               endAngle={-270}
             >
               {donutData.map((_, i) => (
-                <Cell key={i} fill={colorFor(i)} />
+                <Cell key={i} fill={fillFor(i)} stroke="hsl(var(--card))" strokeWidth={2} />
               ))}
             </Pie>
           </PieChart>
@@ -464,7 +472,11 @@ export const DonutLegendDetail = ({
           const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
           return (
             <li key={`${item.name}-${i}`} className="flex items-center gap-2 min-w-0">
-              <span aria-hidden className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: colorFor(i) }} />
+              {donutEngines?.[i] ? (
+                <PropositionSwatch engine={donutEngines[i]} size={10} />
+              ) : (
+                <span aria-hidden className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: colorFor(i) }} />
+              )}
               <span className="text-muted-foreground truncate">{item.name}</span>
               <span className="ml-auto font-medium tabular-nums whitespace-nowrap">
                 {fmt(item.value)}
@@ -715,15 +727,19 @@ export const BudgetStackedMini = ({
 export const DonutMini = ({
   donutData,
   donutColors,
+  donutEngines,
 }: {
   donutData: NonNullable<MetricCardProps['donutData']>;
   donutColors?: MetricCardProps['donutColors'];
+  donutEngines?: MetricCardProps['donutEngines'];
 }) => {
   const colorFor = (i: number) => donutColors?.[i] ?? `hsl(var(--chart-${(i % 5) + 1}))`;
+  const fillFor = (i: number) => (donutEngines?.[i] ? patternFill(donutEngines[i]) : colorFor(i));
   return (
     <div className="h-16 w-16">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
+          {donutEngines && <PropositionPatternDefs />}
           <Pie
             data={donutData}
             cx="50%"
@@ -736,7 +752,7 @@ export const DonutMini = ({
             endAngle={-270}
           >
             {donutData.map((_, i) => (
-              <Cell key={i} fill={colorFor(i)} />
+              <Cell key={i} fill={fillFor(i)} stroke="hsl(var(--card))" strokeWidth={1.5} />
             ))}
           </Pie>
         </PieChart>
@@ -845,6 +861,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
     progress,
     donutData,
     donutColors,
+    donutEngines,
     productData,
     dateData,
     budgetData,

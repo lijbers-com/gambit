@@ -267,7 +267,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const localizedFields = template?.fields.some((f) => f.localized) ?? false;
 
   return (
-    <div className={cn('creative-builder-grid grid grid-cols-1 items-start gap-6 lg:grid-cols-5', className)}>
+    <div className={cn('creative-builder-grid grid grid-cols-1 items-start gap-x-6 gap-y-0 lg:grid-cols-5', className)}>
       {/* AppLayout's content wrapper clips horizontal overflow, which kills
           position:sticky for everything inside it. The pane itself still
           guards against horizontal scroll, so releasing the wrapper here is
@@ -277,10 +277,10 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
           overflow-x: visible !important;
         }
       `}</style>
-      {/* ── Settings ── */}
-      <div className="min-w-0 lg:col-span-3">
-        {/* Creative details / Logs — the two tabs the live product has. */}
-        <div className="flex gap-0" role="tablist">
+      {/* Creative details / Logs — the two tabs the live product has. The
+          strip is its own grid row, so both cards below start at the same
+          height and the settings card still attaches to the active tab. */}
+      <div className="flex gap-0 lg:col-span-5" role="tablist">
           {([['details', 'Creative details'], ['logs', 'Logs']] as const).map(([value, label]) => (
             <button
               key={value}
@@ -298,7 +298,10 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
               {label}
             </button>
           ))}
-        </div>
+      </div>
+
+      {/* ── Settings ── */}
+      <div className="min-w-0 lg:col-span-3">
         {tab === 'logs' && (
           <Card className="min-w-0 rounded-tl-none">
             <CardHeader>

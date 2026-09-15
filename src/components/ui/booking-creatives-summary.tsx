@@ -41,20 +41,22 @@ export function useBookingCreativeItems(bookingId?: string, creativeIds?: string
               {linked.length} linked{approved < linked.length ? ` · ${approved} approved` : ' · all approved'}
             </div>
             {linked.map((c) => (
-              <div key={c.id} className="flex w-full min-w-0 items-center gap-2">
-                <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} className="shrink-0" />
-                <span className="min-w-0 flex-1 truncate text-foreground" title={c.name}>{c.name}</span>
-                <CreativeStatusBadge status={c.status} />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="-my-1 h-7 w-7 shrink-0"
-                  aria-label={`Preview ${c.name}`}
-                  title="Preview"
-                  onClick={() => setPreviewId(c.id)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+              <div key={c.id} className="min-w-0 space-y-1 pt-1">
+                <div className="truncate text-foreground" title={c.name}>{c.name}</div>
+                <div className="flex w-full min-w-0 items-center gap-2">
+                  <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} className="shrink-0" />
+                  <CreativeStatusBadge status={c.status} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="-my-1 ml-auto h-7 w-7 shrink-0"
+                    aria-label={`Preview ${c.name}`}
+                    title="Preview"
+                    onClick={() => setPreviewId(c.id)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

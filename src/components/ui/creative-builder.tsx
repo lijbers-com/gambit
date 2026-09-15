@@ -241,7 +241,16 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const localizedFields = template?.fields.some((f) => f.localized) ?? false;
 
   return (
-    <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-5', className)}>
+    <div className={cn('creative-builder-grid grid grid-cols-1 items-start gap-6 lg:grid-cols-5', className)}>
+      {/* AppLayout's content wrapper clips horizontal overflow, which kills
+          position:sticky for everything inside it. The pane itself still
+          guards against horizontal scroll, so releasing the wrapper here is
+          safe — and the preview genuinely rides along while you edit. */}
+      <style>{`
+        .w-full.p-6.pb-24.min-h-screen.overflow-x-hidden:has(.creative-builder-grid) {
+          overflow-x: visible !important;
+        }
+      `}</style>
       {/* ── Settings ── */}
       <div className="min-w-0 lg:col-span-3">
         <Card className="min-w-0">
@@ -403,11 +412,11 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
         </Card>
       </div>
 
-      {/* ── Live preview — the card runs the full height of the settings so
-             the two columns read as one page; the content stays sticky. ── */}
-      <div className="min-w-0 lg:col-span-2">
-        <Card className="h-full min-w-0">
-          <div className="sticky top-6">
+      {/* ── Live preview — top-aligned with the settings card, natural
+             height, and sticky so it rides along while you scroll. ── */}
+      <div className="min-w-0 lg:col-span-2 lg:sticky lg:top-6">
+        <Card className="min-w-0">
+          <div>
             <CardHeader className="space-y-3 pb-4">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-[18px] font-semibold leading-tight tracking-tight">Live preview</h2>

@@ -24,7 +24,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { BookingCreativesPanel } from '@/components/ui/booking-creatives-panel';
-import { BookingCreativesSummary } from '@/components/ui/booking-creatives-summary';
 import { Table } from '@/components/ui/table';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
@@ -2361,10 +2360,6 @@ const PropositionWizard = ({
                   </CardSummary>
                 );
               })()}
-              {/* Its creatives — on the booking's level, as on the booking page. */}
-              {isInBookingsPhase && bookingSubStep !== null && hasCreativeStep && (
-                <BookingCreativesSummary creativeIds={bookingCreativeIds} />
-              )}
 
               {/* Saved booking cards — one per booking */}
               {isInBookingsPhase && bookings.map((booking, index) => {

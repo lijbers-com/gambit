@@ -40,7 +40,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
-import { BookingCreativesSummary } from '@/components/ui/booking-creatives-summary';
+import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
@@ -554,6 +554,7 @@ export const Display: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
@@ -1096,7 +1097,6 @@ export const Display: Story = {
                   hierarchy order. */}
               <HierarchySidebar
                 active="booking"
-                creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                 booking={
                   <>
                 <SummaryCard
@@ -1116,8 +1116,10 @@ export const Display: Story = {
                     ...(displayIsAuction && pacingShape !== 'account'
                       ? [{ label: 'Pacing', value: pacingShape.charAt(0).toUpperCase() + pacingShape.slice(1) }]
                       : []),
+                    ...bookingCreatives.items,
                   ]}
                 />
+                  {bookingCreatives.dialog}
                   </>
                 }
                 mediaPlan={<MediaPlanSidebar />}
@@ -1150,6 +1152,7 @@ export const DigitalInStore: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
@@ -2429,7 +2432,6 @@ export const DigitalInStore: Story = {
                       hierarchy order. */}
                   <HierarchySidebar
                     active="booking"
-                    creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                     booking={
                       <>
                   <SummaryCard
@@ -2469,6 +2471,7 @@ export const DigitalInStore: Story = {
                       ...(selectedStoreTypes.length > 0 ? [{ label: 'Store types', value: `${selectedStoreTypes.length} selected` }] : []),
                       ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
                       ...(selectedCreatives.length > 0 ? [{ label: 'Creatives', value: `${selectedCreatives.length} linked` }] : []),
+                      ...bookingCreatives.items,
                     ]}
                   />
 
@@ -2500,6 +2503,7 @@ export const DigitalInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
+                      {bookingCreatives.dialog}
                       </>
                     }
                     mediaPlan={<MediaPlanSidebar />}
@@ -2530,6 +2534,7 @@ export const OfflineInStore: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
@@ -3769,7 +3774,6 @@ export const OfflineInStore: Story = {
                       hierarchy order. */}
                   <HierarchySidebar
                     active="booking"
-                    creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                     booking={
                       <>
                   <SummaryCard
@@ -3792,6 +3796,7 @@ export const OfflineInStore: Story = {
                         : []),
                       { label: 'Creatives', value: creativeStatus === 'not-set' ? 'Not set' : creativeStatus === 'received' ? 'Creative received' : 'Creative not approved' },
                       { label: 'Printer', value: printerStatus === 'not-set' ? 'Not set' : printerStatus === 'instruction-send' ? 'Instruction send' : printerStatus === 'delivered' ? 'Delivered' : 'Installed' },
+                      ...bookingCreatives.items,
                     ]}
                   />
 
@@ -3823,6 +3828,7 @@ export const OfflineInStore: Story = {
                     </CardSummaryContent>
                   </CardSummary>
                   */}
+                      {bookingCreatives.dialog}
                       </>
                     }
                     mediaPlan={<MediaPlanSidebar />}
@@ -4493,6 +4499,7 @@ export const OffsiteDisplay: Story = {
     const bookingUnread = useUnreadCount('booking');
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
+    const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
     const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
@@ -4925,7 +4932,6 @@ export const OffsiteDisplay: Story = {
                   hierarchy order. */}
               <HierarchySidebar
                 active="booking"
-                creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                 booking={
                   <>
               <SummaryCard
@@ -4944,8 +4950,10 @@ export const OffsiteDisplay: Story = {
                   ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
                   ...(selectedDevices.length > 0 ? [{ label: 'Devices', value: selectedDevices.join(', ') }] : []),
                   ...(selectedGeos.length > 0 ? [{ label: 'Geo', value: `${selectedGeos.length} selected` }] : []),
+                  ...bookingCreatives.items,
                 ]}
               />
+                  {bookingCreatives.dialog}
                   </>
                 }
                 mediaPlan={<MediaPlanSidebar />}

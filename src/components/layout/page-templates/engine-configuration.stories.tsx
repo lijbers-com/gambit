@@ -11,6 +11,8 @@ import { BarChartComponent } from '@/components/ui/bar-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { WorkflowBuilder } from '@/components/ui/workflow-builder';
+import type { EngineId } from '@/lib/db';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -273,12 +275,14 @@ const createEngineConfigurationStory = (
                 tabs={[
                   { value: 'rules', label: 'Configuration Rules' },
                   { value: 'templates', label: 'Templates' },
+                  { value: 'workflow', label: 'Workflow' },
                 ]}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
               />
             </CardHeader>
             <CardContent>
+              {activeTab !== 'workflow' && (
               <div className="mb-4">
                 <FilterBar
                   filters={[
@@ -309,6 +313,7 @@ const createEngineConfigurationStory = (
                   searchPlaceholder="Search configuration rules, templates..."
                 />
               </div>
+              )}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsContent value="rules" className="mt-0">
                   <Table
@@ -383,6 +388,12 @@ const createEngineConfigurationStory = (
                       getKey: row => row.id,
                     }}
                   />
+                </TabsContent>
+                {/* The proposition's workflow — the retailer's board: which
+                    steps, who approves, what is mandatory, deadlines, SLAs
+                    and the actions Edge fires. */}
+                <TabsContent value="workflow" className="mt-0">
+                  <WorkflowBuilder engine={engineType as EngineId} />
                 </TabsContent>
               </Tabs>
             </CardContent>

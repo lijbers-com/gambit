@@ -1,4 +1,4 @@
-import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote } from './types';
+import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote, Workflow } from './types';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
 
@@ -379,6 +379,16 @@ export function updateCreative(id: string, patch: Partial<Omit<Creative, 'id' | 
   syncBookingCreativeStatus(db, [...new Set([...before, ...creative.bookingIds])]);
   notify();
   return creative;
+}
+
+/** Save a workflow's board — steps, transitions, name — and optionally its status. */
+export function updateWorkflow(id: string, patch: Partial<Omit<Workflow, 'id' | 'engine'>>): Workflow | undefined {
+  const db = load();
+  const wf = db.workflows.find((w) => w.id === id);
+  if (!wf) return undefined;
+  Object.assign(wf, patch, { updatedAt: timestamp() });
+  notify();
+  return wf;
 }
 
 export function deleteCreative(id: string) {

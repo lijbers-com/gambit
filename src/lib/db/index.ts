@@ -19,6 +19,7 @@ export {
   updateCreative,
   deleteCreative,
   setCreativeStatus,
+  updateWorkflow,
 } from './store';
 export { login, logout, getCurrentUser, subscribeSession } from './session';
 export {

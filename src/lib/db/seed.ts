@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 17;
+export const SEED_VERSION = 18;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -883,5 +883,110 @@ export const seedData: DbData = {
     { id: 'NOTE-002', version: 'v1.5', date: 'June 2026', title: 'Smarter date picker', items: ['Media plans: Forward-looking range presets, defaulting to "Next week".', 'Media plans: Click a week number to select the whole week at once.'], published: true, order: 2, updatedAt: now },
     { id: 'NOTE-003', version: 'v1.4', date: 'May 2026', title: 'Unified creative overview', items: ['Creatives: One overview for every creative across all propositions.', 'Creatives: Filter by status, type and format in a single place.'], published: true, order: 3, updatedAt: now },
     { id: 'NOTE-004', version: 'v1.3', date: 'May 2026', title: 'Booking health checks', items: ['Bookings: Missing creatives and targeting gaps are flagged before launch.', 'Insights: The notifications tab shows the same list, so nothing is tracked twice.'], published: true, order: 4, updatedAt: now },
+  ],
+
+  // ── Workflows — one board per proposition, the retailer's to shape ─────
+  // The shared vocabulary is the six-state lifecycle (draft → in review →
+  // approved → scheduled → live → completed); what sits between the stages —
+  // checks, approvals, fulfilment steps, notifications, who owns them, what
+  // is mandatory, deadlines and SLAs — is drawn per proposition and per
+  // banner. These four start from Jacco's DMI and OMI lifecycles and the
+  // status-lifecycle proposal; Delhaize input for OMI, so AH and ADUSA will
+  // move things on the board.
+  workflows: [
+    { id: 'WF-DMI', engine: 'digital-instore', name: 'Digital in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
+      description: 'Book, upload creatives, target screens. Sales in AdCRM, preparation from X-8, creatives due X-4, live on the flight date.',
+      steps: [
+        { id: 's-draft',     kind: 'stage',        name: 'Draft',              description: 'Booking outlined; sales phase in AdCRM (from X-20).', owner: 'retailer',   mandatory: true,  x: 40,  y: 40,  actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
+        { id: 's-review',    kind: 'stage',        name: 'In review',          description: 'Submitted by the advertiser or built on their behalf.', owner: 'retailer',   mandatory: true,  x: 40,  y: 180, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
+        { id: 's-approve',   kind: 'approval',     name: 'Approve booking',    description: 'AdOps approves; inventory goes from option to booked.', owner: 'retailer',   mandatory: true,  x: 40,  y: 320, slaDays: 2, escalateTo: 'retailer', deputy: 'Campaign manager on duty', actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }, { id: 'a4', type: 'set-status', label: 'Inventory: booked' }] },
+        { id: 's-changes',   kind: 'notification', name: 'Changes requested',  description: 'Back to the advertiser with itemised reasons.',     owner: 'advertiser', mandatory: false, x: 340, y: 320, actions: [{ id: 'a5', type: 'email', label: 'Email the advertiser what to change', to: 'advertiser' }] },
+        { id: 's-creative',  kind: 'check',        name: 'Creatives approved', description: 'Requested at approval; due X-4; approval logic lives in the engine.', owner: 'advertiser', mandatory: true, x: 40, y: 460, dueDaysBeforeStart: 4, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a6', type: 'email', label: 'Email the advertiser the upload link', to: 'advertiser' }, { id: 'a7', type: 'todo', label: 'To-do: upload creatives per format', to: 'advertiser' }] },
+        { id: 's-stores',    kind: 'check',        name: 'Screens targeted',   description: 'Store list and screen list generated — automatic.', owner: 'edge',      mandatory: true,  x: 340, y: 460, actions: [{ id: 'a8', type: 'kafka', label: 'Publish store list to the DMI engine' }] },
+        { id: 's-scheduled', kind: 'stage',        name: 'Scheduled',          description: 'Derived: approved + creatives approved + screens targeted.', owner: 'edge', mandatory: true, x: 40, y: 600, actions: [{ id: 'a9', type: 'notification', label: 'Notify both sides: ready to go live', to: 'advertiser' }] },
+        { id: 's-live',      kind: 'stage',        name: 'Live',               description: 'From the flight date; screens play.',                 owner: 'edge',       mandatory: true,  x: 40,  y: 740, actions: [{ id: 'a10', type: 'notification', label: 'Notify the advertiser: campaign live', to: 'advertiser' }] },
+        { id: 's-done',      kind: 'stage',        name: 'Completed',          description: 'After the end date; performance report; offload to Databricks.', owner: 'edge', mandatory: true, x: 40, y: 880, actions: [{ id: 'a11', type: 'email', label: 'Send the performance report', to: 'advertiser' }, { id: 'a12', type: 'kafka', label: 'Offload to Databricks' }] },
+      ],
+      transitions: [
+        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 't2', from: 's-review', to: 's-approve' },
+        { id: 't3', from: 's-approve', to: 's-changes', label: 'changes requested' },
+        { id: 't4', from: 's-changes', to: 's-review', label: 'resubmitted' },
+        { id: 't5', from: 's-approve', to: 's-creative', label: 'approved' },
+        { id: 't6', from: 's-approve', to: 's-stores', label: 'approved' },
+        { id: 't7', from: 's-creative', to: 's-scheduled' },
+        { id: 't8', from: 's-stores', to: 's-scheduled' },
+        { id: 't9', from: 's-scheduled', to: 's-live', label: 'flight date' },
+        { id: 't10', from: 's-live', to: 's-done', label: 'end date' },
+      ] },
+    { id: 'WF-OMI', engine: 'offline-instore', name: 'Offline in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
+      description: 'Sales → preparation (X-8, five checks and a sign-off) → production (print and distribution) → run → done. Built on Delhaize input.',
+      steps: [
+        { id: 's-sales',     kind: 'stage',       name: 'Sales',                    description: 'Booking new or updated; campaign pipeline or closed won in AdCRM.', owner: 'retailer', mandatory: true, x: 40, y: 40, actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
+        { id: 's-prep',      kind: 'stage',       name: 'Preparation',              description: 'From X-8. Done only when every check below is yes.', owner: 'retailer', mandatory: true, x: 40, y: 180, dueDaysBeforeStart: 8, actions: [{ id: 'a2', type: 'notification', label: 'Notify AdOps: preparation starts', to: 'retailer' }] },
+        { id: 'c-brief',     kind: 'check',       name: 'Briefing sent to advertiser', description: 'Manual; may also happen in the sales phase.', owner: 'retailer', mandatory: true, x: 340, y: 120, actions: [{ id: 'a3', type: 'kafka', label: 'Send briefing to the Kafka topic' }, { id: 'a4', type: 'log', label: 'Chat line: briefing sent' }] },
+        { id: 'c-creative',  kind: 'check',       name: 'Creative received & checked', description: 'Due X-4. The creative portal makes this derived.', owner: 'advertiser', mandatory: true, x: 340, y: 240, dueDaysBeforeStart: 4, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a5', type: 'email', label: 'Email the advertiser the upload link', to: 'advertiser' }, { id: 'a6', type: 'log', label: 'Chat line: creatives added' }] },
+        { id: 'c-products',  kind: 'check',       name: 'Retail products assigned', description: 'Automatic.',                                  owner: 'edge',     mandatory: true, x: 340, y: 360, actions: [{ id: 'a7', type: 'kafka', label: 'Publish products to the OMI engine' }] },
+        { id: 'c-stores',    kind: 'check',       name: 'Store list generated',     description: 'Automatic (DLL in place, AH in progress).',       owner: 'edge',     mandatory: true, x: 340, y: 480, actions: [{ id: 'a8', type: 'kafka', label: 'Publish store list to the OMI engine' }] },
+        { id: 'c-printer',   kind: 'check',       name: 'Printer approval received', description: 'Automatic, any time during preparation.',     owner: 'external', mandatory: true, x: 340, y: 600, actions: [{ id: 'a9', type: 'log', label: 'Chat line: printer approved' }] },
+        { id: 's-signoff',   kind: 'approval',    name: 'Preparation done',         description: 'AdOps sign-off; the button is enabled only when all five checks are yes.', owner: 'retailer', mandatory: true, x: 40, y: 740, deputy: 'Second AdOps', slaDays: 1, escalateTo: 'retailer', actions: [{ id: 'a10', type: 'set-status', label: 'Booking: production' }] },
+        { id: 's-delay',     kind: 'notification', name: 'Delay',                   description: 'Derived to-do: past X-4 without Done.',          owner: 'retailer', mandatory: false, x: 640, y: 740, actions: [{ id: 'a11', type: 'todo', label: 'To-do: creatives overdue — chase the advertiser', to: 'retailer' }] },
+        { id: 's-production', kind: 'stage',      name: 'Production',               description: 'X-4 → X. Print and distribution, external.',      owner: 'external', mandatory: true, x: 40, y: 880, actions: [] },
+        { id: 'f-print',     kind: 'fulfilment',  name: 'Sent to print',            description: 'Printer instruction sent.',                      owner: 'retailer', mandatory: true, x: 340, y: 860, actions: [{ id: 'a12', type: 'log', label: 'Chat line: printer instruction sent' }] },
+        { id: 'f-installed', kind: 'fulfilment',  name: 'Installed in stores',      description: 'Hamilton Bright / Smart Spotter → real stores.', owner: 'external', mandatory: true, x: 340, y: 980, actions: [{ id: 'a13', type: 'notification', label: 'Notify the advertiser: material installed', to: 'advertiser' }] },
+        { id: 's-run',       kind: 'stage',       name: 'Run',                      description: 'From X, the run period.',                        owner: 'edge',     mandatory: true, x: 40, y: 1020, actions: [] },
+        { id: 's-done',      kind: 'stage',       name: 'Done',                     description: 'After the end date; correct store list; sign off; offload to Databricks.', owner: 'retailer', mandatory: true, x: 40, y: 1160, actions: [{ id: 'a14', type: 'todo', label: 'To-do: correct the store list', to: 'retailer' }, { id: 'a15', type: 'kafka', label: 'Offload to Databricks' }] },
+      ],
+      transitions: [
+        { id: 't1', from: 's-sales', to: 's-prep', label: 'X-8' },
+        { id: 't2', from: 's-prep', to: 'c-brief' }, { id: 't3', from: 's-prep', to: 'c-creative' }, { id: 't4', from: 's-prep', to: 'c-products' }, { id: 't5', from: 's-prep', to: 'c-stores' }, { id: 't6', from: 's-prep', to: 'c-printer' },
+        { id: 't7', from: 'c-brief', to: 's-signoff' }, { id: 't8', from: 'c-creative', to: 's-signoff' }, { id: 't9', from: 'c-products', to: 's-signoff' }, { id: 't10', from: 'c-stores', to: 's-signoff' }, { id: 't11', from: 'c-printer', to: 's-signoff' },
+        { id: 't12', from: 'c-creative', to: 's-delay', label: 'past X-4' },
+        { id: 't13', from: 's-signoff', to: 's-production', label: 'done pressed' },
+        { id: 't14', from: 's-production', to: 'f-print' }, { id: 't15', from: 'f-print', to: 'f-installed' },
+        { id: 't16', from: 's-production', to: 's-run', label: 'X' }, { id: 't17', from: 'f-installed', to: 's-run' },
+        { id: 't18', from: 's-run', to: 's-done', label: 'end date' },
+      ] },
+    { id: 'WF-DIS', engine: 'display', name: 'Display — campaign lifecycle', status: 'draft', updatedAt: now,
+      description: 'The shared six-state lifecycle with creative approval executed in the display engine: spec check on upload, content review, one resubmit loop.',
+      steps: [
+        { id: 's-draft',    kind: 'stage',        name: 'Draft',             description: 'Wizard or AdCRM order.',                           owner: 'advertiser', mandatory: true, x: 40,  y: 40,  actions: [] },
+        { id: 's-review',   kind: 'stage',        name: 'In review',         description: 'Booking submitted; option placed with an expiry.',   owner: 'retailer',   mandatory: true, x: 40,  y: 180, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'set-status', label: 'Inventory: option until expiry' }, { id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
+        { id: 's-approve',  kind: 'approval',     name: 'Approve booking',   description: 'AdOps approves the plan and placements.',           owner: 'retailer',   mandatory: true, x: 40,  y: 320, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }] },
+        { id: 'c-spec',     kind: 'check',        name: 'Spec check',        description: 'On upload; a failed spec check never becomes submitted.', owner: 'edge', mandatory: true, x: 40,  y: 460, actions: [{ id: 'a4', type: 'notification', label: 'Tell the advertiser what failed', to: 'advertiser' }] },
+        { id: 's-content',  kind: 'approval',     name: 'Content review',    description: 'Content, brand, legal — in the engine. Reasons itemised.', owner: 'retailer', mandatory: true, x: 40, y: 600, slaDays: 2, escalateTo: 'retailer', deputy: 'Brand team', actions: [{ id: 'a5', type: 'todo', label: 'To-do for the reviewer', to: 'retailer' }] },
+        { id: 's-changes',  kind: 'notification', name: 'Changes requested', description: 'Every resubmit is a version.',                       owner: 'advertiser', mandatory: false, x: 340, y: 600, actions: [{ id: 'a6', type: 'email', label: 'Email the advertiser the reasons', to: 'advertiser' }] },
+        { id: 's-scheduled', kind: 'stage',       name: 'Scheduled',         description: 'Derived: approved + every required format approved.', owner: 'edge', mandatory: true, x: 40, y: 740, actions: [] },
+        { id: 's-live',     kind: 'stage',        name: 'Live',              description: 'Ad server delivering from the flight date.',         owner: 'edge',       mandatory: true, x: 40,  y: 880, actions: [{ id: 'a7', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
+        { id: 's-done',     kind: 'stage',        name: 'Completed',         description: 'After the end date; report; make-good if needed.',   owner: 'edge',       mandatory: true, x: 40,  y: 1020, actions: [{ id: 'a8', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+      ],
+      transitions: [
+        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 't2', from: 's-review', to: 's-approve' },
+        { id: 't3', from: 's-approve', to: 'c-spec', label: 'approved · creatives requested' },
+        { id: 't4', from: 'c-spec', to: 's-content', label: 'passed' },
+        { id: 't5', from: 's-content', to: 's-changes', label: 'changes requested' },
+        { id: 't6', from: 's-changes', to: 'c-spec', label: 'resubmitted' },
+        { id: 't7', from: 's-content', to: 's-scheduled', label: 'approved' },
+        { id: 't8', from: 's-scheduled', to: 's-live', label: 'flight date' },
+        { id: 't9', from: 's-live', to: 's-done', label: 'end date' },
+      ] },
+    { id: 'WF-SP', engine: 'sponsored-products', name: 'Sponsored products — campaign lifecycle', status: 'draft', updatedAt: now,
+      description: 'No creatives: the product listing is the ad. Approval, a feed check, then live on the flight date.',
+      steps: [
+        { id: 's-draft',   kind: 'stage',    name: 'Draft',          description: 'Self-service or built on behalf.',           owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
+        { id: 's-review',  kind: 'stage',    name: 'In review',      description: 'Keywords, bids and products submitted.',      owner: 'retailer',   mandatory: true, x: 40, y: 180, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review keywords and bids', to: 'retailer' }] },
+        { id: 's-approve', kind: 'approval', name: 'Approve campaign', description: 'AdOps approves.',                         owner: 'retailer',   mandatory: true, x: 40, y: 320, actions: [{ id: 'a2', type: 'email', label: 'Email the advertiser: approved', to: 'advertiser' }] },
+        { id: 'c-feed',    kind: 'check',    name: 'Product feed check', description: 'Products in stock and listed — automatic.', owner: 'edge',     mandatory: true, x: 40, y: 460, actions: [{ id: 'a3', type: 'notification', label: 'Flag products missing from the feed', to: 'advertiser' }] },
+        { id: 's-live',    kind: 'stage',    name: 'Live',           description: 'Bidding from the flight date.',               owner: 'edge',       mandatory: true, x: 40, y: 600, actions: [] },
+        { id: 's-done',    kind: 'stage',    name: 'Completed',      description: 'After the end date; report.',                 owner: 'edge',       mandatory: true, x: 40, y: 740, actions: [{ id: 'a4', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+      ],
+      transitions: [
+        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 't2', from: 's-review', to: 's-approve' },
+        { id: 't3', from: 's-approve', to: 'c-feed', label: 'approved' },
+        { id: 't4', from: 'c-feed', to: 's-live', label: 'flight date' },
+        { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
+      ] },
   ],
 };

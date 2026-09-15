@@ -332,6 +332,73 @@ export interface Creative {
   updatedAt: string;
 }
 
+// ── Workflows ───────────────────────────────────────────────────────────
+
+/** What a step is: a lifecycle stage, a human approval, a derived check, a
+ *  physical fulfilment step, a notification, or a gate that branches. */
+export type WorkflowStepKind = 'stage' | 'approval' | 'check' | 'fulfilment' | 'notification' | 'gate';
+/** Whose move it is. */
+export type WorkflowOwner = 'advertiser' | 'retailer' | 'edge' | 'external';
+/** What Edge does when a step is reached or completed. */
+export type WorkflowActionType = 'email' | 'notification' | 'todo' | 'set-status' | 'kafka' | 'log';
+
+export interface WorkflowAction {
+  id: string;
+  type: WorkflowActionType;
+  /** "Email the advertiser the upload link" — what it does, in words. */
+  label: string;
+  /** Who receives it, for email / notification / to-do. */
+  to?: WorkflowOwner;
+}
+
+export interface WorkflowStep {
+  id: string;
+  kind: WorkflowStepKind;
+  name: string;
+  description?: string;
+  owner: WorkflowOwner;
+  /** A mandatory step blocks the next stage until it is done. */
+  mandatory: boolean;
+  /** Due this many days before the flight starts (OMI: creatives X-4). */
+  dueDaysBeforeStart?: number;
+  /** How long the owner has before Edge escalates. */
+  slaDays?: number;
+  /** Who is told when the SLA passes. */
+  escalateTo?: WorkflowOwner;
+  /** Who steps in when the owner is absent. */
+  deputy?: string;
+  actions: WorkflowAction[];
+  /** Position on the board. */
+  x: number;
+  y: number;
+}
+
+export interface WorkflowTransition {
+  id: string;
+  from: string;
+  to: string;
+  /** The condition or outcome this edge stands for ("approved", "changes requested"). */
+  label?: string;
+}
+
+/**
+ * A retailer's workflow for one proposition — the statuses, checks,
+ * approvals, fulfilment steps and notifications a booking passes through,
+ * and the order they come in. The vocabulary is shared; what is mandatory,
+ * who approves, deputies and SLAs are the retailer's to set, on the board.
+ */
+export interface Workflow {
+  id: string;
+  engine: EngineId;
+  name: string;
+  description: string;
+  status: 'draft' | 'published';
+  steps: WorkflowStep[];
+  transitions: WorkflowTransition[];
+  updatedAt: string;
+  publishedAt?: string;
+}
+
 // ── The database document ──────────────────────────────────────────────
 
 export interface DbData {
@@ -352,6 +419,7 @@ export interface DbData {
   releaseNotes: ReleaseNote[];
   creativeTemplates: CreativeTemplate[];
   creatives: Creative[];
+  workflows: Workflow[];
 }
 
 /**

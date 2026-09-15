@@ -42,6 +42,8 @@ const W = 100
 const H = 100
 /** The last stage never thins to nothing — a line still reads as flow. */
 const MIN_HALF = 3
+/** Room above the flow for each stage's label, share and volume. */
+const LABEL_H = 76
 
 export function ConversionFunnelComponent({
   stages,
@@ -97,53 +99,12 @@ export function ConversionFunnelComponent({
 
   return (
     <div className={cn("flex flex-col w-full", className)}>
-      {/* Breakdown header — one cell per stage */}
-      <div
-        className="grid border-b border-border"
-        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
-      >
-        {stages.map((stage, i) => {
-          const prev = i > 0 ? stages[i - 1].value : null
-          const stageRate = firstValue > 0 ? (stage.value / firstValue) * 100 : 0
-          const dropOff = prev !== null && prev > 0 ? ((prev - stage.value) / prev) * 100 : null
-          const selected = isSelected(stage.key)
-          return (
-            <div
-              key={stage.key}
-              role={isInteractive ? "button" : undefined}
-              tabIndex={isInteractive ? 0 : undefined}
-              aria-pressed={isInteractive ? selected : undefined}
-              className={cn(
-                "px-4 py-3 border-l border-border first:border-l-0 transition-colors",
-                isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                selected && "bg-muted/30",
-                !selected && hoveredIndex === i && "bg-muted/20",
-              )}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => isInteractive && handleSelect(stage.key)}
-              onKeyDown={(e) => {
-                if (isInteractive && (e.key === "Enter" || e.key === " ")) {
-                  e.preventDefault()
-                  handleSelect(stage.key)
-                }
-              }}
-            >
-              <div className="text-xs text-muted-foreground truncate">{stage.label}</div>
-              <div className="text-2xl font-semibold leading-tight">{formatPercent(stageRate)}</div>
-              <div className="text-xs text-muted-foreground">
-                {valueFormatter(stage.value)}
-                {dropOff !== null && <span className="ml-1">&#8600; {formatPercent(dropOff)}</span>}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* The flow — one shape across every column */}
-      <div className="relative" style={{ height: barHeight }}>
+      {/* One area: the stage's label, share and volume sit at the top of its
+          column, the flow runs beneath them — the numbers ride the shape. */}
+      <div className="relative" style={{ height: barHeight + LABEL_H }}>
         <svg
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-x-0 bottom-0 w-full"
+          style={{ height: barHeight }}
           preserveAspectRatio="none"
           viewBox={`0 0 ${n * W} ${H}`}
         >
@@ -157,32 +118,56 @@ export function ConversionFunnelComponent({
           {activeIndex !== null && activeIndex >= 0 && (
             <path d={path} fill={color} clipPath="url(#cf-active)" />
           )}
-          {/* Stage dividers, hairline */}
-          {stages.slice(1).map((s, i) => (
-            <line key={s.key} x1={(i + 1) * W} x2={(i + 1) * W} y1={0} y2={H} stroke="hsl(var(--border))" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
-          ))}
         </svg>
 
-        {/* Hit areas + tooltips, one per column */}
+        {/* Columns: label block on top, hit area for the whole height */}
         <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
-          {stages.map((stage, i) => (
-            <div
-              key={stage.key}
-              className={cn("relative", isInteractive && "cursor-pointer")}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => isInteractive && handleSelect(stage.key)}
-            >
-              {showTooltip && hoveredIndex === i && (
-                <ConversionFunnelTooltip
-                  stage={stage}
-                  stageRate={firstValue > 0 ? (stage.value / firstValue) * 100 : 0}
-                  color={color}
-                  valueFormatter={valueFormatter}
-                />
-              )}
-            </div>
-          ))}
+          {stages.map((stage, i) => {
+            const prev = i > 0 ? stages[i - 1].value : null
+            const stageRate = firstValue > 0 ? (stage.value / firstValue) * 100 : 0
+            const dropOff = prev !== null && prev > 0 ? ((prev - stage.value) / prev) * 100 : null
+            const selected = isSelected(stage.key)
+            return (
+              <div
+                key={stage.key}
+                role={isInteractive ? "button" : undefined}
+                tabIndex={isInteractive ? 0 : undefined}
+                aria-pressed={isInteractive ? selected : undefined}
+                className={cn(
+                  "relative border-l border-border first:border-l-0 transition-colors",
+                  isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  selected && "bg-muted/30",
+                  !selected && hoveredIndex === i && "bg-muted/20",
+                )}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                onClick={() => isInteractive && handleSelect(stage.key)}
+                onKeyDown={(e) => {
+                  if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault()
+                    handleSelect(stage.key)
+                  }
+                }}
+              >
+                <div className="px-4 py-3">
+                  <div className="text-xs text-muted-foreground truncate">{stage.label}</div>
+                  <div className="text-2xl font-semibold leading-tight">{formatPercent(stageRate)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {valueFormatter(stage.value)}
+                    {dropOff !== null && <span className="ml-1">&#8600; {formatPercent(dropOff)}</span>}
+                  </div>
+                </div>
+                {showTooltip && hoveredIndex === i && (
+                  <ConversionFunnelTooltip
+                    stage={stage}
+                    stageRate={stageRate}
+                    color={color}
+                    valueFormatter={valueFormatter}
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -198,7 +183,7 @@ interface TooltipProps {
 
 function ConversionFunnelTooltip({ stage, stageRate, color, valueFormatter }: TooltipProps) {
   return (
-    <div className="pointer-events-none absolute left-1/2 top-2 z-10 -translate-x-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-[84px] z-10 -translate-x-1/2">
       <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
         <div className="font-medium">{stage.label}</div>
         <div className="flex items-center gap-2">

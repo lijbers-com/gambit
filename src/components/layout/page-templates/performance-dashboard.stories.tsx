@@ -3829,6 +3829,7 @@ export const FunnelView: Story = {
         pageHeaderProps={{
           title: 'Insights dashboard',
           subtitle: 'Complete customer journey from awareness to purchase',
+          headerRight: null,
         }}
       >
         <div className="space-y-6">

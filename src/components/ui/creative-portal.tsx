@@ -158,11 +158,11 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
           <Table
             columns={[
               {
-                key: 'preview', header: '', width: 72,
+                key: 'preview', header: '', width: 88,
                 render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} />,
               },
               {
-                key: 'review', header: 'Actions', width: 110,
+                key: 'review', header: 'Actions', width: 136,
                 render: (c: Creative) => (
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={`Preview ${c.name}`} onClick={(e) => { e.stopPropagation(); setReviewing(c); }}>

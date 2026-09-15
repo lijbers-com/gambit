@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from "recharts"
+import { Area, ComposedChart, Line, XAxis, YAxis, ReferenceLine } from "recharts"
 import {
   ChartContainer,
   ChartTooltip,
@@ -28,6 +28,23 @@ export interface AreaChartProps {
   benchmark?: { value: number; label?: string }
 }
 
+/** The benchmark's name as a small pill on the chart surface — text over
+ *  patterned fills is unreadable, a badge is not. Recharts hands the
+ *  reference line's box in via viewBox. */
+const BenchmarkBadge = ({ text, viewBox }: { text: string; viewBox?: { x: number; y: number; width: number; height: number } }) => {
+  if (!viewBox) return null
+  const w = text.length * 6.2 + 16
+  const h = 18
+  const x = viewBox.x + viewBox.width - w - 4
+  const y = viewBox.y - h / 2
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={h / 2} fill="hsl(var(--card))" stroke="hsl(var(--border))" />
+      <text x={x + w / 2} y={y + h / 2 + 3.5} textAnchor="middle" fontSize={11} fill="hsl(var(--foreground))">{text}</text>
+    </g>
+  )
+}
+
 export function AreaChartComponent({
   data,
   config,
@@ -43,7 +60,12 @@ export function AreaChartComponent({
   curved = true,
   benchmark,
 }: AreaChartProps) {
-  const dataKeys = Object.keys(config).filter(key => config[key].label)
+  const allKeys = Object.keys(config).filter(key => config[key].label)
+  // Lines ride the right axis when one is shown; the areas own the left.
+  const dataKeys = allKeys.filter(key => config[key].kind !== 'line')
+  const lineKeys = allKeys.filter(key => config[key].kind === 'line')
+  const rightKey = rightAxisDataKey ?? lineKeys[0]
+  const rightFormat = rightKey ? config[rightKey]?.format : undefined
 
   // Calculate Y-axis ticks for gridlines
   const { yAxisTicks, yAxisDomain } = React.useMemo(() => {
@@ -83,7 +105,7 @@ export function AreaChartComponent({
 
   return (
     <ChartContainer config={config} className={className}>
-      <AreaChart
+      <ComposedChart
         accessibilityLayer
         data={data}
         margin={{
@@ -131,11 +153,9 @@ export function AreaChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            ticks={yAxisTicks}
-            domain={yAxisDomain}
-            width={40}
+            width={48}
             style={{ fontSize: '12px' }}
-            tick={{ dy: 4 }}
+            tickFormatter={rightFormat ?? formatYAxisTick}
           />
         )}
         {dataKeys.some((key) => config[key].engine) && <PropositionPatternDefs />}
@@ -151,10 +171,23 @@ export function AreaChartComponent({
               stroke={engine ? patternFor(engine).ink : `var(--color-${key})`}
               strokeWidth={engine ? 1 : undefined}
               stackId={stacked ? "a" : undefined}
-              yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
+              yAxisId={showRightYAxis && rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
             />
           )
         })}
+        {lineKeys.map((key) => (
+          <Line
+            key={key}
+            dataKey={key}
+            type={curved ? "monotone" : "linear"}
+            stroke={config[key].color ?? 'hsl(var(--foreground))'}
+            strokeWidth={2}
+            strokeDasharray="6 4"
+            dot={false}
+            activeDot={{ r: 4 }}
+            yAxisId={showRightYAxis && key === rightKey ? "right" : "left"}
+          />
+        ))}
         {benchmark != null && (
           <ReferenceLine
             y={benchmark.value}
@@ -163,11 +196,7 @@ export function AreaChartComponent({
             strokeDasharray="4 4"
             strokeOpacity={0.8}
             ifOverflow="extendDomain"
-            label={
-              benchmark.label
-                ? { value: benchmark.label, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }
-                : undefined
-            }
+            label={benchmark.label ? <BenchmarkBadge text={benchmark.label} /> : undefined}
           />
         )}
         {showTooltip && (
@@ -179,7 +208,7 @@ export function AreaChartComponent({
         {showLegend && (
           <ChartLegend content={<ChartLegendContent />} />
         )}
-      </AreaChart>
+      </ComposedChart>
     </ChartContainer>
   )
 } 

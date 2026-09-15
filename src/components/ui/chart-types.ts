@@ -27,6 +27,11 @@ export interface ChartConfig {
      *  proposition's pattern and grey, so identity never rests on hue.
      *  'all' is every proposition together: solid grey. */
     engine?: PatternKey;
+    /** Draw this series as a line rather than an area — a measure of a
+     *  different kind laid over the fills (spend beside volume). */
+    kind?: 'area' | 'line';
+    /** A formatter for the series' axis and tooltip values (e.g. euros). */
+    format?: (value: number) => string;
   };
 }
 

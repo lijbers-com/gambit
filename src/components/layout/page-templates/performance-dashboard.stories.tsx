@@ -3413,12 +3413,12 @@ export const FunnelView: Story = {
     const selectedImpressionKeys = impressionKeys.filter(k => awarenessMetrics.includes(k));
 
     const awarenessDataRaw = [
-      { month: 'Jan', spaImpressions: 120000, impressions: 65000, sov: 28, salesUplift: 12, omiDots: 62000, doohSpots: 58000, offsiteImpressions: 42000 },
-      { month: 'Feb', spaImpressions: 175000, impressions: 95000, sov: 38, salesUplift: 15, omiDots: 98000, doohSpots: 87000, offsiteImpressions: 63000 },
-      { month: 'Mar', spaImpressions: 155000, impressions: 82000, sov: 35, salesUplift: 18, omiDots: 85000, doohSpots: 78000, offsiteImpressions: 55000 },
-      { month: 'Apr', spaImpressions: 220000, impressions: 118000, sov: 42, salesUplift: 21, omiDots: 120000, doohSpots: 112000, offsiteImpressions: 82000 },
-      { month: 'May', spaImpressions: 265000, impressions: 140000, sov: 44, salesUplift: 24, omiDots: 142000, doohSpots: 133000, offsiteImpressions: 98000 },
-      { month: 'Jun', spaImpressions: 300000, impressions: 160000, sov: 47, salesUplift: 27, omiDots: 160000, doohSpots: 155000, offsiteImpressions: 115000 }
+      { month: 'Jan', spend: 14200, spaImpressions: 120000, impressions: 65000, sov: 28, salesUplift: 12, omiDots: 62000, doohSpots: 58000, offsiteImpressions: 42000 },
+      { month: 'Feb', spend: 19800, spaImpressions: 175000, impressions: 95000, sov: 38, salesUplift: 15, omiDots: 98000, doohSpots: 87000, offsiteImpressions: 63000 },
+      { month: 'Mar', spend: 17600, spaImpressions: 155000, impressions: 82000, sov: 35, salesUplift: 18, omiDots: 85000, doohSpots: 78000, offsiteImpressions: 55000 },
+      { month: 'Apr', spend: 25400, spaImpressions: 220000, impressions: 118000, sov: 42, salesUplift: 21, omiDots: 120000, doohSpots: 112000, offsiteImpressions: 82000 },
+      { month: 'May', spend: 30100, spaImpressions: 265000, impressions: 140000, sov: 44, salesUplift: 24, omiDots: 142000, doohSpots: 133000, offsiteImpressions: 98000 },
+      { month: 'Jun', spend: 34200, spaImpressions: 300000, impressions: 160000, sov: 47, salesUplift: 27, omiDots: 160000, doohSpots: 155000, offsiteImpressions: 115000 }
     ];
 
     const awarenessData = awarenessDataRaw.map(d => ({
@@ -3653,12 +3653,12 @@ export const FunnelView: Story = {
 
     // Data for top metric cards
     const topMetricsData = [
-      { month: 'Jan', sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
-      { month: 'Feb', sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
-      { month: 'Mar', sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
-      { month: 'Apr', sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
-      { month: 'May', sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
-      { month: 'Jun', sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
+      { month: 'Jan', newToBrand: 38, sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
+      { month: 'Feb', newToBrand: 40, sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
+      { month: 'Mar', newToBrand: 41, sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
+      { month: 'Apr', newToBrand: 43, sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
+      { month: 'May', newToBrand: 44, sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
+      { month: 'Jun', newToBrand: 45, sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
     ];
 
     // Metric definitions for top cards
@@ -3675,6 +3675,7 @@ export const FunnelView: Story = {
       roas: { label: 'ROAS', value: '4.7x', badge: '+0.8x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
       iroas: { label: 'iROAS', value: '4.2x', badge: '+1.4x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
       conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
+      newToBrand: { label: 'New-to-brand', value: '48%', badge: '+6 pts', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { newToBrand: { label: "New-to-brand %", color: "hsl(var(--chart-2))" } }, dataKey: 'newToBrand' },
       clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
     };
 
@@ -4035,7 +4036,6 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      <PropositionSwatch engine="all" />
                       Total Volume {totalVolumeLabel}
                       <TooltipProvider>
                         <Tooltip>
@@ -4077,15 +4077,20 @@ export const FunnelView: Story = {
                   <CardContent>
                     <AreaChartComponent
                       data={awarenessData}
-                      config={Object.fromEntries(
-                        selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k], engine: channelEngines[k] }])
-                      )}
+                      config={{
+                        ...Object.fromEntries(
+                          selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k], engine: channelEngines[k] }])
+                        ),
+                        // Spend rides the volume as a dashed line on its own euro axis.
+                        spend: { label: 'Spend', color: 'hsl(var(--foreground))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                      }}
                       stacked={true}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
+                      showRightYAxis={true}
                       benchmark={{ value: 700000, label: "Target 700K" }}
                       className="h-[200px] w-full"
                     />

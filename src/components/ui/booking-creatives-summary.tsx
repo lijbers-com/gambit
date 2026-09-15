@@ -1,13 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { Eye } from 'lucide-react';
 import { useDb, type Creative } from '@/lib/db';
-import { Button } from './button';
 import type { SummaryItem } from './summary-card';
-import { CreativePreviewThumb } from './creative-preview';
+import { CreativePreview } from './creative-preview';
 import { CreativePreviewDialog } from './creative-preview-dialog';
-import { CreativeStatusBadge } from './creative-builder';
 
 /**
  * The booking's creatives as an item of the BOOKING summary card — not a card
@@ -19,6 +16,15 @@ import { CreativeStatusBadge } from './creative-builder';
  * Returns the item to spread into the card's items and the preview dialog to
  * render next to the card.
  */
+const STATUS_WORD: Record<Creative['status'], string> = {
+  requested: 'Requested',
+  draft: 'Draft',
+  submitted: 'Submitted',
+  'in-review': 'In review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
+
 export function useBookingCreativeItems(bookingId?: string, creativeIds?: string[]): { items: SummaryItem[]; dialog: React.ReactNode } {
   const db = useDb();
   const templatesById = new Map(db.creativeTemplates.map((t) => [t.id, t]));
@@ -40,25 +46,31 @@ export function useBookingCreativeItems(bookingId?: string, creativeIds?: string
             <div>
               {linked.length} linked{approved < linked.length ? ` · ${approved} approved` : ' · all approved'}
             </div>
-            {linked.map((c) => (
-              <div key={c.id} className="min-w-0 space-y-1 pt-1">
-                <div className="truncate text-foreground" title={c.name}>{c.name}</div>
-                <div className="flex w-full min-w-0 items-center gap-2">
-                  <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} className="shrink-0" />
-                  <CreativeStatusBadge status={c.status} />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="-my-1 ml-auto h-7 w-7 shrink-0"
-                    aria-label={`Preview ${c.name}`}
-                    title="Preview"
+            {linked.map((c) => {
+              const template = templatesById.get(c.templateId);
+              return (
+                <div key={c.id} className="min-w-0 space-y-1 pt-1">
+                  <div className="truncate" title={c.name}>
+                    <span className="text-foreground">{c.name}</span>
+                    {c.status !== 'approved' && <span> · {STATUS_WORD[c.status]}</span>}
+                  </div>
+                  {/* The preview at the card's width — click it for the big one. */}
+                  <button
+                    type="button"
                     onClick={() => setPreviewId(c.id)}
+                    className="block w-full rounded-md text-left transition-shadow hover:ring-2 hover:ring-ring/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`Preview ${c.name}`}
+                    title="Open preview"
                   >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                    {template ? (
+                      <CreativePreview template={template} values={c.values} creativeId={c.id} />
+                    ) : (
+                      <div className="h-16 w-full rounded border bg-muted" />
+                    )}
+                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ),
     },

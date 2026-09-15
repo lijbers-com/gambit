@@ -421,11 +421,15 @@ const MediaPlanSidebar = () => {
 // form can be submitted from either column without scrolling back.
 // Save is the everyday action; sending for approval is the same work leaving
 // the user's hands, so it sits behind the arrow of the same button.
-const summaryActionsFor = (_tab: string): SummaryAction[] => [
-  // Cancel then Save, the same order as the form's own footer.
-  { label: 'Cancel', variant: 'outline' },
-  { label: 'Save', menu: [{ label: 'Submit for approval' }] },
-];
+const summaryActionsFor = (tab: string): SummaryAction[] | undefined =>
+  // Overview tabs have nothing to save; the form tabs get Cancel then Save,
+  // the same order as the form's own footer.
+  READ_ONLY_TABS.includes(tab)
+    ? undefined
+    : [
+        { label: 'Cancel', variant: 'outline' },
+        { label: 'Save', menu: [{ label: 'Submit for approval' }] },
+      ];
 
 // The same actions at the foot of the form card. One list above, one row here,
 // so the two can never drift apart.
@@ -1097,8 +1101,8 @@ export const Display: Story = {
                   title="Booking"
                   entity="booking"
                   variant="details"
-                  actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                  className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
+                  actions={summaryActionsFor(bookingTab)}
+                  className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
                   items={[
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
@@ -2429,8 +2433,8 @@ export const DigitalInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
+                    actions={summaryActionsFor(bookingTab)}
+                    className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
@@ -3768,8 +3772,8 @@ export const OfflineInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                    className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
+                    actions={summaryActionsFor(bookingTab)}
+                    className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
@@ -4923,8 +4927,8 @@ export const OffsiteDisplay: Story = {
                 title="Booking"
                 entity="booking"
                 variant="details"
-                actions={bookingTab === 'creatives' ? undefined : summaryActionsFor(bookingTab)}
-                className={bookingTab === 'creatives' ? 'bg-page' : 'bg-card'}
+                actions={summaryActionsFor(bookingTab)}
+                className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),

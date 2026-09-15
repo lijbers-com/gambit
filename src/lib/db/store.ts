@@ -1,4 +1,4 @@
-import type { Booking, Campaign, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote } from './types';
+import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote } from './types';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
 
@@ -353,5 +353,70 @@ export function applyBookingLifecycle(bookingId: string, action: LifecycleAction
   if (next) {
     Object.assign(booking, { status: next, updatedAt: timestamp() });
     notify();
+  }
+}
+
+
+// ── Creatives ──────────────────────────────────────────────────────────
+
+export function createCreative(
+  input: Omit<Creative, 'id' | 'createdAt' | 'updatedAt'>,
+): Creative {
+  const db = load();
+  const creative: Creative = { ...input, id: nextId('CR', db.creatives), createdAt: timestamp(), updatedAt: timestamp() };
+  db.creatives.push(creative);
+  syncBookingCreativeStatus(db, creative.bookingIds);
+  notify();
+  return creative;
+}
+
+export function updateCreative(id: string, patch: Partial<Omit<Creative, 'id' | 'createdAt'>>): Creative | undefined {
+  const db = load();
+  const creative = db.creatives.find((c) => c.id === id);
+  if (!creative) return undefined;
+  const before = creative.bookingIds;
+  Object.assign(creative, patch, { updatedAt: timestamp() });
+  syncBookingCreativeStatus(db, [...new Set([...before, ...creative.bookingIds])]);
+  notify();
+  return creative;
+}
+
+export function deleteCreative(id: string) {
+  const db = load();
+  const creative = db.creatives.find((c) => c.id === id);
+  db.creatives = db.creatives.filter((c) => c.id !== id);
+  if (creative) syncBookingCreativeStatus(db, creative.bookingIds);
+  notify();
+}
+
+/** Move a creative through the approval flow. A rejection carries its reason. */
+export function setCreativeStatus(id: string, status: CreativeApprovalStatus, rejectionReason?: string) {
+  const db = load();
+  const creative = db.creatives.find((c) => c.id === id);
+  if (!creative) return;
+  creative.status = status;
+  creative.rejectionReason = status === 'rejected' ? rejectionReason : undefined;
+  creative.updatedAt = timestamp();
+  syncBookingCreativeStatus(db, creative.bookingIds);
+  notify();
+}
+
+/**
+ * A booking's creativeStatus is DERIVED from the creatives linked to it, so
+ * the existing to-dos and the setup checklist stay truthful: any approved
+ * creative makes the booking ready; anything on its way keeps it at
+ * submitted; nothing linked means missing.
+ */
+function syncBookingCreativeStatus(db: DbData, bookingIds: string[]) {
+  for (const bookingId of bookingIds) {
+    const booking = db.bookings.find((b) => b.id === bookingId);
+    if (!booking) continue;
+    const linked = db.creatives.filter((c) => c.bookingIds.includes(bookingId));
+    booking.creativeStatus = linked.some((c) => c.status === 'approved')
+      ? 'approved'
+      : linked.some((c) => c.status === 'submitted' || c.status === 'in-review')
+        ? 'submitted'
+        : 'missing';
+    booking.updatedAt = timestamp();
   }
 }

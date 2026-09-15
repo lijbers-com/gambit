@@ -15,6 +15,10 @@ export {
   deleteBooking,
   addMetricDefinition,
   removeMetricDefinition,
+  createCreative,
+  updateCreative,
+  deleteCreative,
+  setCreativeStatus,
 } from './store';
 export { login, logout, getCurrentUser, subscribeSession } from './session';
 export {

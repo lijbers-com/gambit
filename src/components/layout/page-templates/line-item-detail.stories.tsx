@@ -48,6 +48,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../
 import { Switch } from '../../ui/switch';
 import { useDb } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import { BookingCreativesPanel } from '@/components/ui/booking-creatives-panel';
 import { format, addWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -985,49 +986,14 @@ export const Display: Story = {
                 </div>
               </ToggleSection>
 
-              {/* Creatives tab — placeholder pending wiring to /creatives/[type]/[id] */}
+              {/* Creatives tab — link from the portal or start a new one from
+                  the engine's templates; the panel writes the database. */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'creatives' && 'hidden')}>
                 <h3 className="text-base font-semibold text-foreground mb-1">Creatives</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Creatives attached to this booking. Link existing ones or upload new.
+                  Creatives attached to this booking. Link existing ones or create new.
                 </p>
-                {selectedCreatives.length > 0 && (
-                  <div className="mb-4 overflow-x-auto">
-                    <Table
-                      columns={[
-                        {
-                          key: 'remove',
-                          header: '',
-                          render: (row) => (
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                              aria-label="Remove creative"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          ),
-                          className: 'w-10 text-center',
-                        },
-                        { key: 'name', header: 'Name' },
-                        { key: 'format', header: 'Format' },
-                        { key: 'status', header: 'Status' },
-                      ]}
-                      data={selectedCreatives}
-                      rowKey={row => row.id}
-                      hideActions
-                      onRowClick={row => console.log('Navigate to creative', row.name)}
-                    />
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <CreativeLinkingDialog
-                    selectedCreatives={selectedCreatives}
-                    onSelectionChange={setSelectedCreatives}
-                  />
-                  <Button className="mt-4"><Upload className="w-4 h-4 mr-1" /> Upload creative</Button>
-                </div>
+                <BookingCreativesPanel engine="display" />
               </div>
 
 
@@ -2096,45 +2062,7 @@ export const DigitalInStore: Story = {
                       </FormSection>
 
                       <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
-                        {selectedCreatives.length > 0 && (
-                          <div className="mb-4 overflow-x-auto">
-                            <Table
-                              columns={[
-                                {
-                                  key: 'remove',
-                                  header: '',
-                                  render: (row) => (
-                                    <Button
-                                      size="icon"
-                                      variant="outline"
-                                      onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                                      aria-label="Remove creative"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  ),
-                                  className: 'w-10 text-center',
-                                },
-                                { key: 'name', header: 'Name' },
-                                { key: 'format', header: 'Format' },
-                                { key: 'status', header: 'Status' },
-                                { key: 'type', header: 'Type' },
-                              ]}
-                              data={selectedCreatives}
-                              rowKey={row => row.id}
-                              hideActions
-                              rowClassName={() => 'cursor-pointer'}
-                              onRowClick={row => {
-                                console.log('Navigate to creative details for', row.name);
-                              }}
-                            />
-                          </div>
-                        )}
-
-                        <CreativeLinkingDialog
-                          selectedCreatives={selectedCreatives}
-                          onSelectionChange={setSelectedCreatives}
-                        />
+                        <BookingCreativesPanel engine="digital-instore" />
                       </FormSection>
 
                       <section className={cn(bookingTab !== 'logs' && "hidden")}>
@@ -3663,32 +3591,7 @@ export const OfflineInStore: Story = {
 
 
                       <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Status</label>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full justify-between">
-                                  {creativeStatus === 'not-set' && 'Creative not set'}
-                                  {creativeStatus === 'received' && 'Creative received'}
-                                  {creativeStatus === 'not-approved' && 'Creative not approved'}
-                                  <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-                                <DropdownMenuItem onClick={() => setCreativeStatus('not-set')}>
-                                  Creative not set
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setCreativeStatus('received')}>
-                                  Creative received
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setCreativeStatus('not-approved')}>
-                                  Creative not approved
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </div>
+                        <BookingCreativesPanel engine="offline-instore" />
                       </FormSection>
 
                       <FormSection bordered title="Printer" className={cn(bookingTab !== 'creatives' && "hidden")}>
@@ -4905,40 +4808,7 @@ export const OffsiteDisplay: Story = {
                   </FormSection>
 
                   <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
-                    {selectedCreatives.length > 0 && (
-                      <div className="mb-4 overflow-x-auto">
-                        <Table
-                          columns={[
-                            {
-                              key: 'remove',
-                              header: '',
-                              render: (row) => (
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  onClick={() => setSelectedCreatives(selectedCreatives.filter(item => item.id !== row.id))}
-                                  aria-label="Remove creative"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              ),
-                              className: 'w-10 text-center',
-                            },
-                            { key: 'name', header: 'Name' },
-                            { key: 'format', header: 'Format' },
-                            { key: 'status', header: 'Status' },
-                          ]}
-                          data={selectedCreatives}
-                          rowKey={row => row.id}
-                          hideActions
-                          onRowClick={row => console.log('Navigate to creative', row.name)}
-                        />
-                      </div>
-                    )}
-                    <CreativeLinkingDialog
-                      selectedCreatives={selectedCreatives}
-                      onSelectionChange={setSelectedCreatives}
-                    />
+                    <BookingCreativesPanel engine="offsite" />
                   </FormSection>
 
                       <section className={cn(bookingTab !== 'logs' && "hidden")}>

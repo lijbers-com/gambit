@@ -256,6 +256,72 @@ export interface FaqEntry {
   updatedAt: string;
 }
 
+// ── Creatives ──────────────────────────────────────────────────────────
+
+/** Where a creative stands in the approval workflow — the shared vocabulary
+ *  of the creative portal. `requested` is an open ask to the advertiser;
+ *  approval logic itself lives with the engine. */
+export type CreativeApprovalStatus =
+  | 'requested'
+  | 'draft'
+  | 'submitted'
+  | 'in-review'
+  | 'approved'
+  | 'rejected';
+
+/** One setting a template asks for — the schema the builder renders. */
+export interface CreativeTemplateField {
+  key: string;
+  label: string;
+  type: 'text' | 'color' | 'image' | 'number' | 'toggle';
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
+  /** Text fields that differ per language (header, CTA). */
+  localized?: boolean;
+}
+
+/**
+ * A creative template — the engine's own definition of what a format needs.
+ * Template logic lives with the proposition: a shelf wobbler and an open-web
+ * banner ask for different things. One template renders to ALL its sizes
+ * (fill it once, every size follows), which is what later format automation
+ * builds on.
+ */
+export interface CreativeTemplate {
+  id: string;
+  engine: EngineId;
+  name: string;
+  /** One line: when to use this template. */
+  description: string;
+  /** The sizes this template renders to — "970x250", "A6", "1080x1920 15s". */
+  sizes: string[];
+  /** Which preview rig draws it. */
+  preview: 'banner' | 'app-screen' | 'video' | 'instore-screen' | 'print' | 'social';
+  fields: CreativeTemplateField[];
+  /** File guidance shown as the format requirements. */
+  fileHint?: string;
+}
+
+/** A creative: a filled-in template, linked to the bookings it runs on. */
+export interface Creative {
+  id: string;
+  name: string;
+  engine: EngineId;
+  templateId: string;
+  status: CreativeApprovalStatus;
+  /** Field values by field key; localized fields store per language under
+   *  `${lang}:${key}` with the bare key as the default language (EN). */
+  values: Record<string, string>;
+  /** Languages this creative carries text for; first is the default. */
+  languages: string[];
+  bookingIds: string[];
+  /** Why the engine rejected it — always given with a rejection. */
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── The database document ──────────────────────────────────────────────
 
 export interface DbData {
@@ -274,6 +340,8 @@ export interface DbData {
   faqs: FaqEntry[];
   terms: TermEntry[];
   releaseNotes: ReleaseNote[];
+  creativeTemplates: CreativeTemplate[];
+  creatives: Creative[];
 }
 
 /**

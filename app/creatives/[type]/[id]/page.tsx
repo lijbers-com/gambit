@@ -1,8 +1,11 @@
 'use client';
 
-import { Display as CreativeDisplay } from '@/components/layout/page-templates/creative-detail.stories';
-import { DigitalInStore as CreativeDigital } from '@/components/layout/page-templates/creative-detail.stories';
-import { OfflineInStore as CreativeOffline } from '@/components/layout/page-templates/creative-detail.stories';
+import {
+  Display as CreativeDisplay,
+  DigitalInStore as CreativeDigital,
+  OfflineInStore as CreativeOffline,
+  Offsite as CreativeOffsite,
+} from '@/components/layout/page-templates/creative-detail.stories';
 import { useParams } from 'next/navigation';
 
 export default function CreativeDetailPage() {
@@ -19,6 +22,9 @@ export default function CreativeDetailPage() {
       break;
     case 'offline-instore':
       Component = CreativeOffline.render as () => React.JSX.Element;
+      break;
+    case 'offsite':
+      Component = CreativeOffsite.render as () => React.JSX.Element;
       break;
     default:
       Component = null;

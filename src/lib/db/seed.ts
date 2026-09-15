@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 13;
+export const SEED_VERSION = 14;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -600,6 +600,162 @@ export const seedData: DbData = {
 
   // Metric glossary — the terms the metric cards use, explained once, in the
   // retailer's words. Shown in Help; editable in the edge theme only.
+  // ── Creative templates — the engine's own format logic ────────────────
+  // Every format option of the old builders returns as a template; the five
+  // competing hard-coded lists unify here. Fill a template once and every
+  // size renders from it.
+  creativeTemplates: [
+    // Display
+    { id: 'tpl-dis-banner', engine: 'display', name: 'Banner', description: 'The standard onsite display set — one design, every IAB size.', sizes: ['970x250', '728x90', '300x600', '300x250'], preview: 'banner',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Shop now', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Banner image', type: 'image' },
+        { key: 'transparentImage', label: 'Transparent image', type: 'image', hint: 'Product cut-out on transparent background' },
+      ],
+      fileHint: 'PNG or JPG, RGB. The image is cropped per size; keep the subject centred.' },
+    { id: 'tpl-dis-app-homepage', engine: 'display', name: 'App homepage', description: 'Full-width takeover of the app home screen.', sizes: ['1080x1920'], preview: 'app-screen',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Discover', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Banner image', type: 'image' },
+        { key: 'transparentImage', label: 'Transparent image', type: 'image' },
+      ],
+      fileHint: 'PNG or JPG, portrait. Safe area: keep text and logo inside the middle 80%.' },
+    { id: 'tpl-dis-interstitial', engine: 'display', name: 'Interstitial', description: 'Full-screen moment between pages, dismissible.', sizes: ['1080x1920', '768x1024'], preview: 'app-screen',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'View offer', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Banner image', type: 'image' },
+        { key: 'transparentImage', label: 'Transparent image', type: 'image' },
+      ],
+      fileHint: 'PNG or JPG. A close button is added by the app; leave the top-right corner free.' },
+    { id: 'tpl-dis-video', engine: 'display', name: 'Video', description: 'Short autoplay video with an end-card CTA.', sizes: ['1920x1080 15s', '1080x1920 15s'], preview: 'video',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Watch', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Poster frame', type: 'image' },
+      ],
+      fileHint: 'MP4 H.264, max 15s, sound off by default. Poster frame shown before play.' },
+    // Digital in-store
+    { id: 'tpl-dgi-signage', engine: 'digital-instore', name: 'Digital signage', description: 'The store screen network — aisle and wall screens.', sizes: ['1920x1080', '1080x1920'], preview: 'instore-screen',
+      fields: [
+        { key: 'background', label: 'Background video / image', type: 'image', required: true },
+        { key: 'header', label: 'Header', type: 'text', placeholder: 'Header', localized: true },
+        { key: 'duration', label: 'Duration (seconds)', type: 'number', required: true, placeholder: '10' },
+        { key: 'loop', label: 'Loop', type: 'toggle' },
+      ],
+      fileHint: 'MP4 or PNG/JPG at the exact pixel size. 10s default slot; no sound.' },
+    { id: 'tpl-dgi-led', engine: 'digital-instore', name: 'LED display', description: 'High-brightness LED walls at the entrance.', sizes: ['1920x158'], preview: 'instore-screen',
+      fields: [
+        { key: 'background', label: 'Background video / image', type: 'image', required: true },
+        { key: 'duration', label: 'Duration (seconds)', type: 'number', required: true, placeholder: '8' },
+        { key: 'loop', label: 'Loop', type: 'toggle' },
+      ],
+      fileHint: 'Extreme letterbox — large type only, no body copy.' },
+    { id: 'tpl-dgi-kiosk', engine: 'digital-instore', name: 'Interactive kiosk', description: 'Touch screens at service points — tappable.', sizes: ['1080x1920'], preview: 'instore-screen',
+      fields: [
+        { key: 'background', label: 'Background video / image', type: 'image', required: true },
+        { key: 'header', label: 'Header', type: 'text', placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', placeholder: 'Tap to explore', localized: true },
+        { key: 'duration', label: 'Duration (seconds)', type: 'number', required: true, placeholder: '15' },
+        { key: 'loop', label: 'Loop', type: 'toggle' },
+      ],
+      fileHint: 'Portrait. Touch targets at least 80px; CTA rendered by the kiosk shell.' },
+    { id: 'tpl-dgi-videowall', engine: 'digital-instore', name: 'Video wall', description: 'The large-format wall behind the entrance.', sizes: ['3840x2160'], preview: 'instore-screen',
+      fields: [
+        { key: 'background', label: 'Background video / image', type: 'image', required: true },
+        { key: 'duration', label: 'Duration (seconds)', type: 'number', required: true, placeholder: '20' },
+        { key: 'loop', label: 'Loop', type: 'toggle' },
+      ],
+      fileHint: '4K MP4. Seams fall on the quarter lines — keep the subject out of them.' },
+    // Offline in-store
+    { id: 'tpl-oit-wobbler', engine: 'offline-instore', name: 'Wobbler', description: 'Shelf-edge attention card at the product.', sizes: ['A6'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF, PNG, JPG, AI or EPS. Max 10MB. 3mm bleed, print-ready CMYK.' },
+    { id: 'tpl-oit-vsb', engine: 'offline-instore', name: 'VSB', description: 'Vloer-staand bord at the aisle head.', sizes: ['A1'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF, PNG, JPG, AI or EPS. Max 10MB. 3mm bleed, print-ready CMYK.' },
+    { id: 'tpl-oit-vloersticker', engine: 'offline-instore', name: 'Vloersticker', description: 'Floor decal in front of the shelf.', sizes: ['60x60 cm'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF or EPS preferred. Max 10MB. Anti-slip lamination is applied in production.' },
+    { id: 'tpl-oit-koeldeursticker', engine: 'offline-instore', name: 'Koeldeursticker', description: 'Cooler-door sticker at eye height.', sizes: ['A4'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF, PNG, JPG, AI or EPS. Max 10MB. Account for the door handle cut-out.' },
+    { id: 'tpl-oit-makelaarsbord', engine: 'offline-instore', name: 'Makelaarsbord', description: 'Estate-agent style board in the parking area.', sizes: ['A0'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF or EPS. Max 10MB. Viewed from 5m+ — headline first.' },
+    { id: 'tpl-oit-koeldeurvlag', engine: 'offline-instore', name: 'Koeldeurvlag', description: 'Flag on the cooler door, visible down the aisle.', sizes: ['A5'], preview: 'print',
+      fields: [{ key: 'file', label: 'Creative file', type: 'image', required: true }],
+      fileHint: 'PDF, PNG, JPG, AI or EPS. Max 10MB. Double-sided; mirror-safe design.' },
+    // Offsite
+    { id: 'tpl-off-banner', engine: 'offsite', name: 'Display banner', description: 'Open-web display across the partner network.', sizes: ['300x250', '970x250', '160x600'], preview: 'banner',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Shop now', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Banner image', type: 'image' },
+        { key: 'transparentImage', label: 'Transparent image', type: 'image' },
+      ],
+      fileHint: 'PNG or JPG, max 150KB per size after export.' },
+    { id: 'tpl-off-social', engine: 'offsite', name: 'Social display', description: 'Feed placement on social partners.', sizes: ['1080x1080', '1080x1920'], preview: 'social',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Shop now', localized: true },
+        { key: 'bannerImage', label: 'Media', type: 'image', required: true },
+      ],
+      fileHint: 'Square or story. Text overlay under 20% of the surface.' },
+    { id: 'tpl-off-preroll', engine: 'offsite', name: 'Video pre-roll', description: '15s pre-roll on partner video inventory.', sizes: ['1920x1080 15s'], preview: 'video',
+      fields: [
+        { key: 'header', label: 'Header', type: 'text', placeholder: 'Header', localized: true },
+        { key: 'cta', label: 'CTA', type: 'text', placeholder: 'Learn more', localized: true },
+        { key: 'textColor', label: 'Text colour', type: 'color', placeholder: '#FFFFFF' },
+        { key: 'bgColor', label: 'Background colour', type: 'color', placeholder: '#0B0B0B' },
+        { key: 'bannerImage', label: 'Poster frame', type: 'image' },
+      ],
+      fileHint: 'MP4 H.264, exactly 15s, sound on first frame muted.' },
+  ],
+
+  // ── Creatives — filled templates, linked to the bookings they run on ──
+  // Statuses mirror the bookings' creativeStatus so the derived to-dos and
+  // the setup checklist stay truthful.
+  creatives: [
+    { id: 'CR-101', name: 'Zero Sugar — Summer banner set', engine: 'display', templateId: 'tpl-dis-banner', status: 'approved',
+      values: { header: 'Zero sugar. All summer.', cta: 'Shop the deal', 'nl:header': 'Nul suiker. De hele zomer.', 'nl:cta': 'Bekijk de deal', textColor: '#FFFFFF', bgColor: '#0A4D8C' },
+      languages: ['en', 'nl'], bookingIds: ['B-002'], createdAt: now, updatedAt: now },
+    { id: 'CR-102', name: 'Holiday Hero — App homepage', engine: 'display', templateId: 'tpl-dis-app-homepage', status: 'approved',
+      values: { header: 'The holidays start here', cta: 'Discover', textColor: '#FFFFFF', bgColor: '#7C1D2E' },
+      languages: ['en'], bookingIds: ['B-001'], createdAt: now, updatedAt: now },
+    { id: 'CR-103', name: 'Summer Launch — Entrance screens', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
+      values: { header: 'New this summer', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-031'], createdAt: now, updatedAt: now },
+    { id: 'CR-104', name: 'Aisle Screens — Summer loop', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
+      values: { header: 'Cool down. Aisle 7.', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-026'], createdAt: now, updatedAt: now },
+    { id: 'CR-105', name: 'Floor Graphics — Spring decal', engine: 'offline-instore', templateId: 'tpl-oit-vloersticker', status: 'approved',
+      values: {}, languages: ['en'], bookingIds: ['B-025'], createdAt: now, updatedAt: now },
+    { id: 'CR-106', name: 'Coffee Moments — Open web', engine: 'offsite', templateId: 'tpl-off-banner', status: 'submitted',
+      values: { header: 'Your coffee moment', cta: 'Taste it', 'nl:header': 'Jouw koffiemoment', 'nl:cta': 'Proef hem', textColor: '#2B1B12', bgColor: '#E9DCC9' },
+      languages: ['en', 'nl'], bookingIds: ['B-009'], createdAt: now, updatedAt: now },
+    { id: 'CR-107', name: 'Back to School — Open web', engine: 'offsite', templateId: 'tpl-off-banner', status: 'submitted',
+      values: { header: 'Ready for day one', cta: 'Get set', textColor: '#FFFFFF', bgColor: '#1E5A3C' }, languages: ['en'], bookingIds: ['B-028'], createdAt: now, updatedAt: now },
+    { id: 'CR-108', name: 'Ice Cream — Search video', engine: 'display', templateId: 'tpl-dis-video', status: 'in-review',
+      values: { header: 'Summer, served', cta: 'Watch', textColor: '#FFFFFF', bgColor: '#123047' }, languages: ['en'], bookingIds: [], createdAt: now, updatedAt: now },
+    { id: 'CR-109', name: 'Wobbler — Zero Sugar shelf', engine: 'offline-instore', templateId: 'tpl-oit-wobbler', status: 'rejected',
+      values: {}, languages: ['en'], bookingIds: [], rejectionReason: 'Logo below minimum size for A6; supply the master file with 3mm bleed.', createdAt: now, updatedAt: now },
+    { id: 'CR-110', name: 'Winter Warmers — Video wall', engine: 'digital-instore', templateId: 'tpl-dgi-videowall', status: 'draft',
+      values: { duration: '20' }, languages: ['en'], bookingIds: [], createdAt: now, updatedAt: now },
+    { id: 'CR-111', name: 'Shelf Displays — September', engine: 'offline-instore', templateId: 'tpl-oit-vsb', status: 'requested',
+      values: {}, languages: ['en'], bookingIds: ['B-029'], createdAt: now, updatedAt: now },
+  ],
+
   terms: [
     { id: 'TERM-001', term: 'Impressions', definition: 'How many times an ad was shown. One person can account for many impressions.', published: true, order: 1, updatedAt: now },
     { id: 'TERM-002', term: 'Reach', definition: 'How many different people saw the ad at least once. Reach never exceeds impressions.', published: true, order: 2, updatedAt: now },

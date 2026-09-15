@@ -139,7 +139,7 @@ function DetailsItems({ items }: { items: SummaryItem[] }) {
             {item.originalValue && (
               <span className="line-through">{item.originalValue}</span>
             )}
-            <span>{item.value}</span>
+            <span className="min-w-0">{item.value}</span>
             {item.badge && (
               <Badge
                 variant="secondary"

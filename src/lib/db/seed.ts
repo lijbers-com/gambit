@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 14;
+export const SEED_VERSION = 15;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -606,6 +606,29 @@ export const seedData: DbData = {
   // size renders from it.
   creativeTemplates: [
     // Display
+    // The production Display builder's template, field for field: SKU-driven
+    // hero with product tiles, a CTA and background colour chosen from a
+    // list, tracking and per-device images.
+    { id: 'tpl-dis-hero', engine: 'display', name: 'Hero banner', description: 'The homepage hero — headline, body copy and product tiles, per device.', sizes: ['1376x344', '375x200'], preview: 'banner',
+      fields: [
+        { key: 'header', label: 'Headline', type: 'text', required: true, placeholder: 'Headline', maxLength: 44, localized: true, hint: 'Fill in a headline' },
+        { key: 'bodyCopy', label: 'Body copy', type: 'text', placeholder: 'Body copy', maxLength: 80, localized: true, hint: 'Set the content of the body copy' },
+        { key: 'cta', label: 'CTA', type: 'select', required: true, options: ['Get Offer', 'Shop now', 'Discover', 'Order now', 'Learn more'], hint: 'Select the Call to Action from the list' },
+        { key: 'bgColor', label: 'Background color', type: 'select', required: true, options: ['Black', 'White', 'Blue', 'Green', 'Orange'], hint: 'Select the background color from the list' },
+        { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
+        { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
+        { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
+        { key: 'dvScript', label: 'DV script', type: 'text', hint: 'Enter the DV script src to be used. Make sure to not add any HTML tags.' },
+        { key: 'productId1', label: 'Product ID 1', type: 'text', hint: 'Enter 1st product tile product ID' },
+        { key: 'productId2', label: 'Product ID 2', type: 'text', hint: 'Enter 2nd product tile product ID' },
+        { key: 'productId3', label: 'Product ID 3', type: 'text', hint: 'Enter 3rd product tile product ID' },
+        { key: 'productId4', label: 'Product ID 4', type: 'text', hint: 'Enter 4th product tile product ID' },
+        { key: 'productId5', label: 'Product ID 5', type: 'text', hint: 'Enter 5th product tile product ID' },
+        { key: 'productId6', label: 'Product ID 6', type: 'text', hint: 'Enter 6th product tile product ID' },
+        { key: 'mobileImage', label: '(Mobile) image — 375x200', type: 'image', hint: 'Select an image for mobile devices to be shown' },
+        { key: 'desktopImage', label: '(Desktop) image', type: 'image', hint: 'Select an image to be shown on desktop devices' },
+      ],
+      fileHint: 'PNG or JPG, RGB. Mobile 375x200; desktop fills the hero slot.' },
     { id: 'tpl-dis-banner', engine: 'display', name: 'Banner', description: 'The standard onsite display set — one design, every IAB size.', sizes: ['970x250', '728x90', '300x600', '300x250'], preview: 'banner',
       fields: [
         { key: 'header', label: 'Header', type: 'text', required: true, placeholder: 'Header', localized: true },
@@ -729,6 +752,9 @@ export const seedData: DbData = {
   // Statuses mirror the bookings' creativeStatus so the derived to-dos and
   // the setup checklist stay truthful.
   creatives: [
+    { id: 'CR-100', name: 'Hero — Fresh Summer Bowls', engine: 'display', templateId: 'tpl-dis-hero', status: 'submitted',
+      values: { header: 'Fresh on the table', bodyCopy: 'Seasonal bowls, ready in ten minutes.', 'nl:header': 'Vers op tafel', 'nl:bodyCopy': 'Seizoensbowls, klaar in tien minuten.', cta: 'Get Offer', bgColor: 'Black', clickUrl: '/fresh-summer', altText: 'Summer bowl with vegetables', sponsoredLabel: 'Yes', productId1: '606983', productId2: '607124', productId3: '614038' },
+      languages: ['en', 'nl'], skus: ['606983', '607124', '614038'], bookingIds: [], createdAt: now, updatedAt: now },
     { id: 'CR-101', name: 'Zero Sugar — Summer banner set', engine: 'display', templateId: 'tpl-dis-banner', status: 'approved',
       values: { header: 'Zero sugar. All summer.', cta: 'Shop the deal', 'nl:header': 'Nul suiker. De hele zomer.', 'nl:cta': 'Bekijk de deal', textColor: '#FFFFFF', bgColor: '#0A4D8C' },
       languages: ['en', 'nl'], bookingIds: ['B-002'], createdAt: now, updatedAt: now },

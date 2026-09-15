@@ -273,12 +273,16 @@ export type CreativeApprovalStatus =
 export interface CreativeTemplateField {
   key: string;
   label: string;
-  type: 'text' | 'color' | 'image' | 'number' | 'toggle';
+  type: 'text' | 'color' | 'image' | 'number' | 'toggle' | 'select';
   required?: boolean;
   placeholder?: string;
   hint?: string;
   /** Text fields that differ per language (header, CTA). */
   localized?: boolean;
+  /** The list a 'select' field chooses from (CTA list, colour list). */
+  options?: string[];
+  /** Character limit on a text field — shown as "max. N characters". */
+  maxLength?: number;
 }
 
 /**
@@ -315,6 +319,8 @@ export interface Creative {
   values: Record<string, string>;
   /** Languages this creative carries text for; first is the default. */
   languages: string[];
+  /** The SKUs this creative promotes — comma-entered, chip-shown. */
+  skus?: string[];
   bookingIds: string[];
   /** Why the engine rejected it — always given with a rejection. */
   rejectionReason?: string;

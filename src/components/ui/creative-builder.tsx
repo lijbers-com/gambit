@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Link2, Minus, Send } from 'lucide-react';
+import { LayoutGrid, Link2, Minus, Send, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -22,7 +22,7 @@ import { SettingsCard } from './settings-card';
 import { Switch } from './switch';
 import { Table } from './table';
 import { queueToast } from './toast';
-import { CreativePreview, rememberUpload } from './creative-preview';
+import { CreativePreview, parseSize, rememberUpload } from './creative-preview';
 
 /**
  * The creative builder — settings on the left, a LIVE preview on the right.
@@ -104,6 +104,21 @@ const TemplateField: React.FC<{
       </div>
     );
   }
+  if (field.type === 'select') {
+    return (
+      <div className="min-w-0">
+        <label className="mb-1.5 block text-sm font-medium">{label}</label>
+        <Input
+          dropdown
+          options={(field.options ?? []).map((o) => ({ label: o, value: o }))}
+          value={values[field.key] ?? ''}
+          onChange={(v) => onChange(field.key, v)}
+          placeholder={field.placeholder ?? 'Select…'}
+        />
+        {field.hint && <p className="mt-1 text-xs text-muted-foreground">{field.hint}</p>}
+      </div>
+    );
+  }
   if (field.type === 'toggle') {
     return (
       <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
@@ -112,15 +127,19 @@ const TemplateField: React.FC<{
       </div>
     );
   }
+  const hint = field.maxLength
+    ? `${field.hint ? `${field.hint} ` : ''}(max. ${field.maxLength} characters)`
+    : field.hint;
   return (
     <div className="min-w-0">
       <label className="mb-1.5 block text-sm font-medium">{label}</label>
       <Input
         type={field.type === 'number' ? 'number' : 'text'}
         placeholder={field.placeholder}
+        maxLength={field.maxLength}
         value={values[key] ?? ''}
         onChange={(e) => onChange(key, e.target.value)}
-        hint={field.hint}
+        hint={hint}
       />
     </div>
   );
@@ -145,6 +164,8 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const [templateId, setTemplateId] = React.useState('');
   const [values, setValues] = React.useState<Record<string, string>>({});
   const [languages, setLanguages] = React.useState<string[]>(['en']);
+  const [skus, setSkus] = React.useState<string[]>([]);
+  const [skuInput, setSkuInput] = React.useState('');
   const [bookingIds, setBookingIds] = React.useState<string[]>([]);
   const seeded = React.useRef<string | null>(null);
   React.useEffect(() => {
@@ -154,6 +175,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
       setTemplateId(creative.templateId);
       setValues(creative.values);
       setLanguages(creative.languages.length ? creative.languages : ['en']);
+      setSkus(creative.skus ?? []);
       setBookingIds(creative.bookingIds);
     }
   }, [creative]);
@@ -165,6 +187,8 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
 
   const [linking, setLinking] = React.useState(false);
   const [linkSelection, setLinkSelection] = React.useState<string[]>([]);
+  const [showAllSizes, setShowAllSizes] = React.useState(false);
+  const [sideBySide, setSideBySide] = React.useState(false);
 
   if (!creative) {
     return (
@@ -180,11 +204,22 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const setValue = (key: string, value: string) => setValues((prev) => ({ ...prev, [key]: value }));
 
   const persist = (patch?: Partial<Creative>) =>
-    updateCreative(creative.id, { name, templateId, values, languages, bookingIds, ...patch });
+    updateCreative(creative.id, { name, templateId, values, languages, skus, bookingIds, ...patch });
+
+  const addSkus = () => {
+    const parsed = skuInput.split(',').map((x) => x.trim()).filter(Boolean);
+    if (parsed.length) setSkus((prev) => [...new Set([...prev, ...parsed])]);
+    setSkuInput('');
+  };
 
   const saveDraft = () => {
     persist();
     queueToast({ title: 'Creative saved', description: `"${name}" kept as ${STATUS_BADGE[creative.status].label.toLowerCase()}.` });
+  };
+
+  const share = () => {
+    navigator.clipboard?.writeText(window.location.href).catch(() => {});
+    queueToast({ title: 'Preview link copied', description: 'Anyone on the plan can open this creative with it.' });
   };
 
   const submit = () => {
@@ -219,9 +254,33 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
             )}
 
             <FormSection title="Creative details">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Name*</label>
-                <Input placeholder="Enter creative name" value={name} onChange={(e) => setName(e.target.value)} />
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Name*</label>
+                  <Input placeholder="Enter creative name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">SKU</label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter SKUs separated by commas"
+                      value={skuInput}
+                      onChange={(e) => setSkuInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkus(); } }}
+                    />
+                    <Button variant="outline" onClick={addSkus} disabled={!skuInput.trim()}>Add SKU</Button>
+                  </div>
+                  {skus.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {skus.map((sku) => (
+                        <span key={sku} className="inline-flex items-center gap-1 rounded-md border bg-muted/40 px-2 py-0.5 text-xs tabular-nums">
+                          {sku}
+                          <button type="button" aria-label={`Remove SKU ${sku}`} onClick={() => setSkus((prev) => prev.filter((x) => x !== sku))} className="text-muted-foreground hover:text-foreground">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </FormSection>
 
@@ -344,52 +403,105 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
         </Card>
       </div>
 
-      {/* ── Live preview ── */}
+      {/* ── Live preview — the card runs the full height of the settings so
+             the two columns read as one page; the content stays sticky. ── */}
       <div className="min-w-0 lg:col-span-2">
-        <Card className="sticky top-6 min-w-0">
-          <CardHeader className="space-y-3 pb-4">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-[18px] font-semibold leading-tight tracking-tight">Live preview</h2>
-              <CreativeStatusBadge status={creative.status} />
-            </div>
-            {template && template.sizes.length > 1 && (
-              <div className="flex flex-wrap gap-1.5">
-                {template.sizes.map((s) => (
+        <Card className="h-full min-w-0">
+          <div className="sticky top-6">
+            <CardHeader className="space-y-3 pb-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-[18px] font-semibold leading-tight tracking-tight">Live preview</h2>
+                <span className="flex items-center gap-1.5">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Copy preview link" onClick={share}>
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  <CreativeStatusBadge status={creative.status} />
+                </span>
+              </div>
+              {template && template.sizes.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {template.sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => { setActiveSize(s); setShowAllSizes(false); }}
+                      className={cn(
+                        'rounded-full border px-2.5 py-0.5 text-xs tabular-nums transition-colors',
+                        !showAllSizes && s === size ? 'border-foreground bg-foreground text-background' : 'bg-background hover:bg-surface-hover',
+                      )}
+                    >
+                      {s}
+                    </button>
+                  ))}
                   <button
-                    key={s}
                     type="button"
-                    onClick={() => setActiveSize(s)}
+                    onClick={() => setShowAllSizes(true)}
                     className={cn(
-                      'rounded-full border px-2.5 py-0.5 text-xs tabular-nums transition-colors',
-                      s === size ? 'border-foreground bg-foreground text-background' : 'bg-background hover:bg-surface-hover',
+                      'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                      showAllSizes ? 'border-foreground bg-foreground text-background' : 'bg-background hover:bg-surface-hover',
                     )}
                   >
-                    {s}
+                    All
                   </button>
-                ))}
-              </div>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {template ? (
-              <CreativePreview template={template} values={values} size={size ?? undefined} lang={activeLang} creativeId={creative.id} />
-            ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">Pick a template to see the preview.</p>
-            )}
-            {template && languages.length > 1 && (
-              <p className="text-center text-[11px] text-muted-foreground">
-                Showing the {LANG_LABELS[activeLang] ?? activeLang} variant — switch languages above the settings.
-              </p>
-            )}
-            {template?.fileHint && (
-              <p className="border-t pt-3 text-xs leading-relaxed text-muted-foreground">
-                <span className="font-medium text-foreground">Format requirements: </span>
-                {template.fileHint}
-              </p>
-            )}
-          </CardContent>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {template ? (
+                showAllSizes ? (
+                  <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+                    {template.sizes.map((s) => (
+                      <CreativePreview key={s} template={template} values={values} size={s} lang={activeLang} creativeId={creative.id} />
+                    ))}
+                  </div>
+                ) : (
+                  <CreativePreview template={template} values={values} size={size ?? undefined} lang={activeLang} creativeId={creative.id} />
+                )
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">Pick a template to see the preview.</p>
+              )}
+              {template && template.sizes.length > 1 && (
+                <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={() => setSideBySide(true)}>
+                  <LayoutGrid className="h-4 w-4" /> View all formats side by side
+                </Button>
+              )}
+              {template && languages.length > 1 && (
+                <p className="text-center text-[11px] text-muted-foreground">
+                  Showing the {LANG_LABELS[activeLang] ?? activeLang} variant — switch languages above the settings.
+                </p>
+              )}
+              {template?.fileHint && (
+                <p className="border-t pt-3 text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">Format requirements: </span>
+                  {template.fileHint}
+                </p>
+              )}
+            </CardContent>
+          </div>
         </Card>
       </div>
+
+      {/* ── Every format at once, side by side — one design, all sizes ── */}
+      <Dialog open={sideBySide} onOpenChange={setSideBySide}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[960px]">
+          <DialogHeader>
+            <DialogTitle>All formats — {template?.name}</DialogTitle>
+          </DialogHeader>
+          {template && (
+            <div className="flex flex-wrap items-start gap-6">
+              {template.sizes.map((s) => {
+                const { w, h } = parseSize(s);
+                const wide = w / h > 3;
+                return (
+                  <div key={s} className={cn('min-w-0', wide ? 'basis-full' : h > w ? 'basis-[calc(33%-1rem)] min-w-[180px]' : 'basis-[calc(50%-0.75rem)] min-w-[260px]')}>
+                    <CreativePreview template={template} values={values} size={s} lang={activeLang} creativeId={creative.id} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* ── Link bookings ── */}
       <Dialog open={linking} onOpenChange={setLinking}>

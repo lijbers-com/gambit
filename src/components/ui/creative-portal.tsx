@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, Eye, X } from 'lucide-react';
+import { Check, Eye, Send, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -94,17 +94,28 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
   const [addName, setAddName] = React.useState('');
   const addTemplates = templates.filter((t) => t.engine === (addEngine ?? engine));
 
+  /** Add = build it yourself; Request = ask the advertiser to upload.
+   *  A request creates the creative as `requested` and copies the upload
+   *  link to send along — the no-login advertiser page is the next step. */
+  const [mode, setMode] = React.useState<'add' | 'request'>('add');
+
   const createDraft = () => {
     if (!addEngine || !addTemplate) return;
     const creative = createCreative({
       name: addName.trim() || 'Untitled creative',
       engine: addEngine,
       templateId: addTemplate,
-      status: 'draft',
+      status: mode === 'request' ? 'requested' : 'draft',
       values: {},
       languages: ['en'],
       bookingIds: [],
     });
+    if (mode === 'request') {
+      navigator.clipboard?.writeText(`${window.location.origin}/creatives/${addEngine}/${creative.id}`).catch(() => {});
+      queueToast({ title: 'Upload requested', description: 'The upload link is on your clipboard — send it to the advertiser.' });
+      setAdding(false);
+      return;
+    }
     window.location.href = `/creatives/${addEngine}/${creative.id}`;
   };
 
@@ -130,9 +141,18 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
                 },
               ]}
             />
-            <AddButton onClick={() => { setAddEngine(engine ?? null); setAddTemplate(null); setAddName(''); setAdding(true); }}>
-              Add creative
-            </AddButton>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => { setMode('request'); setAddEngine(engine ?? null); setAddTemplate(null); setAddName(''); setAdding(true); }}
+              >
+                <Send className="h-4 w-4" /> Request upload
+              </Button>
+              <AddButton onClick={() => { setMode('add'); setAddEngine(engine ?? null); setAddTemplate(null); setAddName(''); setAdding(true); }}>
+                Add creative
+              </AddButton>
+            </div>
           </div>
 
           <Table
@@ -261,8 +281,12 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
       <Dialog open={adding} onOpenChange={setAdding}>
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
-            <DialogTitle>New creative</DialogTitle>
-            <DialogDescription>Start from the engine's template — its logic decides the settings and sizes.</DialogDescription>
+            <DialogTitle>{mode === 'request' ? 'Request an upload' : 'New creative'}</DialogTitle>
+            <DialogDescription>
+              {mode === 'request'
+                ? 'Pick the template the advertiser must fill — the request appears here as Requested, and the upload link goes on your clipboard.'
+                : "Start from the engine's template — its logic decides the settings and sizes."}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!engine && (
@@ -307,7 +331,9 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAdding(false)}>Cancel</Button>
-            <Button disabled={!addEngine || !addTemplate} onClick={createDraft}>Create and open builder</Button>
+            <Button disabled={!addEngine || !addTemplate} onClick={createDraft}>
+              {mode === 'request' ? 'Create request and copy link' : 'Create and open builder'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

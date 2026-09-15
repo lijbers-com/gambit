@@ -55,6 +55,21 @@ export interface CreativePreviewProps {
   className?: string;
 }
 
+/** The live builder picks colours from a list — map names to paint. */
+const NAMED_COLORS: Record<string, string> = {
+  black: '#0B0B0B',
+  white: '#F5F3EF',
+  blue: '#0A4D8C',
+  green: '#1E5A3C',
+  orange: '#C2571B',
+  red: '#7C1D2E',
+};
+export const resolveColor = (v: string | undefined, fallback: string): string => {
+  if (!v) return fallback;
+  if (v.startsWith('#')) return v;
+  return NAMED_COLORS[v.toLowerCase()] ?? fallback;
+};
+
 const imgFor = (creativeId: string | undefined, values: Record<string, string>, key: string): string | undefined => {
   if (creativeId) {
     const remembered = recallUpload(creativeId, key);
@@ -105,9 +120,17 @@ const Composition: React.FC<{
   h: number;
   small?: boolean;
 }> = ({ template, v, creativeId, w, h, small }) => {
-  const bg = v.bgColor || '#0B0B0B';
-  const text = v.textColor || '#FFFFFF';
-  const image = imgFor(creativeId, v, 'bannerImage') ?? imgFor(creativeId, v, 'background') ?? imgFor(creativeId, v, 'file');
+  const bg = resolveColor(v.bgColor, '#0B0B0B');
+  const text = resolveColor(v.textColor, bg.toLowerCase() === '#f5f3ef' ? '#252422' : '#FFFFFF');
+  // Per-device art: wide frames prefer the desktop image, small ones mobile.
+  const deviceImage = w >= 700 ? imgFor(creativeId, v, 'desktopImage') : imgFor(creativeId, v, 'mobileImage');
+  const image =
+    deviceImage ??
+    imgFor(creativeId, v, 'desktopImage') ??
+    imgFor(creativeId, v, 'mobileImage') ??
+    imgFor(creativeId, v, 'bannerImage') ??
+    imgFor(creativeId, v, 'background') ??
+    imgFor(creativeId, v, 'file');
   const cutout = imgFor(creativeId, v, 'transparentImage');
   const portrait = h > w;
 
@@ -211,7 +234,8 @@ const Composition: React.FC<{
         </div>
       );
     case 'banner':
-    default:
+    default: {
+      const productIds = [v.productId1, v.productId2, v.productId3, v.productId4, v.productId5, v.productId6].filter(Boolean);
       return (
         <div className="absolute inset-0" style={{ background: bg }}>
           {imageLayer}
@@ -222,9 +246,46 @@ const Composition: React.FC<{
               className={cn('absolute z-[5] object-contain', portrait ? 'bottom-[25%] left-1/2 max-h-[35%] -translate-x-1/2' : 'right-[4%] top-1/2 max-h-[80%] max-w-[30%] -translate-y-1/2')}
             />
           )}
-          <Lockup header={v.header} cta={v.cta} textColor={text} stacked={portrait} small={small} />
+          {!small && v.sponsoredLabel === 'Yes' && (
+            <span className="absolute left-[2%] top-[6%] z-20 rounded-sm bg-black/45 px-1.5 py-0.5 text-[9px] text-white">Sponsored</span>
+          )}
+          <div className={cn('relative z-10 flex h-full w-full items-center gap-[4%] p-[5%]', portrait ? 'flex-col items-start justify-end' : 'flex-row justify-between')}>
+            <span className="min-w-0">
+              <span
+                className={cn('block font-semibold leading-tight', small ? 'text-[10px]' : 'text-[clamp(10px,6cqw,26px)]')}
+                style={{ color: text, overflowWrap: 'anywhere' }}
+              >
+                {v.header || 'Your headline'}
+              </span>
+              {v.bodyCopy && !small && (
+                <span className="block text-[clamp(8px,3cqw,13px)] opacity-90" style={{ color: text }}>
+                  {v.bodyCopy}
+                </span>
+              )}
+            </span>
+            <span className="flex shrink-0 items-center gap-[6px]">
+              {!small && productIds.length > 0 && !portrait && (
+                <span className="flex items-center gap-[4px]">
+                  {productIds.slice(0, 3).map((id) => (
+                    <span key={id} className="flex h-[3.2em] w-[2.6em] flex-col items-center justify-center gap-[2px] rounded-sm bg-white/95 p-[2px] shadow-sm">
+                      <ImageIcon className="h-[35%] w-[35%] text-neutral-400" />
+                      <span className="w-full truncate text-center text-[6px] leading-none text-neutral-500">{id}</span>
+                    </span>
+                  ))}
+                  {productIds.length > 3 && <span className="text-[8px]" style={{ color: text }}>+{productIds.length - 3}</span>}
+                </span>
+              )}
+              <span
+                className={cn('whitespace-nowrap rounded-full font-medium', small ? 'px-1.5 py-0.5 text-[7px]' : 'px-[1em] py-[0.45em] text-[clamp(8px,3.5cqw,14px)]')}
+                style={{ background: text, color: bg }}
+              >
+                {v.cta || 'Call to action'}
+              </span>
+            </span>
+          </div>
         </div>
       );
+    }
   }
 };
 

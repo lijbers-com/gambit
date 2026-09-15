@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Link2, Plus, X } from 'lucide-react';
+import { Link2, Plus, Send, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -68,17 +68,25 @@ export const BookingCreativesPanel: React.FC<{
     setLinking(false);
   };
 
+  const [mode, setMode] = React.useState<'create' | 'request'>('create');
+
   const create = () => {
     if (!bookingId || !newTemplate) return;
     const creative = createCreative({
       name: newName.trim() || 'Untitled creative',
       engine,
       templateId: newTemplate,
-      status: 'draft',
+      status: mode === 'request' ? 'requested' : 'draft',
       values: {},
       languages: ['en'],
       bookingIds: [bookingId],
     });
+    if (mode === 'request') {
+      navigator.clipboard?.writeText(`${window.location.origin}/creatives/${engine}/${creative.id}`).catch(() => {});
+      queueToast({ title: 'Upload requested', description: 'The upload link is on your clipboard — send it to the advertiser.' });
+      setCreating(false);
+      return;
+    }
     window.location.href = `/creatives/${engine}/${creative.id}`;
   };
 
@@ -118,7 +126,10 @@ export const BookingCreativesPanel: React.FC<{
         <Button variant="outline" className="gap-1.5" onClick={() => { setSelection([]); setLinking(true); }}>
           <Link2 className="h-4 w-4" /> Link creative
         </Button>
-        <Button className="gap-1.5" onClick={() => { setNewTemplate(null); setNewName(''); setCreating(true); }}>
+        <Button variant="outline" className="gap-1.5" onClick={() => { setMode('request'); setNewTemplate(null); setNewName(''); setCreating(true); }}>
+          <Send className="h-4 w-4" /> Request upload
+        </Button>
+        <Button className="gap-1.5" onClick={() => { setMode('create'); setNewTemplate(null); setNewName(''); setCreating(true); }}>
           <Plus className="h-4 w-4" /> New creative
         </Button>
       </div>
@@ -159,8 +170,12 @@ export const BookingCreativesPanel: React.FC<{
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
-            <DialogTitle>New creative</DialogTitle>
-            <DialogDescription>Starts from this proposition's template and opens the builder, linked to this booking.</DialogDescription>
+            <DialogTitle>{mode === 'request' ? 'Request an upload' : 'New creative'}</DialogTitle>
+            <DialogDescription>
+              {mode === 'request'
+                ? 'The advertiser fills this template; the request stays on this booking as Requested and the upload link goes on your clipboard.'
+                : "Starts from this proposition's template and opens the builder, linked to this booking."}
+            </DialogDescription>
           </DialogHeader>
           <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
             {engineTemplates.map((t) => (
@@ -183,7 +198,9 @@ export const BookingCreativesPanel: React.FC<{
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreating(false)}>Cancel</Button>
-            <Button disabled={!newTemplate} onClick={create}>Create and open builder</Button>
+            <Button disabled={!newTemplate} onClick={create}>
+              {mode === 'request' ? 'Create request and copy link' : 'Create and open builder'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

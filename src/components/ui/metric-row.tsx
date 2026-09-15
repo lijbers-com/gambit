@@ -283,7 +283,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
               {atCap && ' Deselect one to pick another.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[500px] overflow-y-auto p-4">
+          <div className="-mx-1 max-h-[500px] overflow-y-auto px-1 py-1">
             {dialogExtra && <div className="mb-5">{dialogExtra}</div>}
             <div className="grid grid-cols-3 gap-4">
               {metrics.map((metric) => {

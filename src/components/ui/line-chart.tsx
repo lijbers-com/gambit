@@ -29,6 +29,8 @@ export interface LineChartProps {
     dataKey: string
     domain?: [number | 'auto' | 'dataMin' | 'dataMax', number | 'auto' | 'dataMin' | 'dataMax']
     label?: string
+    /** Formats the right axis (e.g. euros). */
+    format?: (value: number) => string
   }
   benchmark?: { value: number; label?: string }
 }
@@ -137,11 +139,10 @@ export function LineChartComponent({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            ticks={yAxisTicks}
-            width={40}
+            width={48}
             style={{ fontSize: '12px' }}
-            domain={secondaryYAxis.domain || yAxisDomain}
-            tick={{ dy: 4 }}
+            domain={secondaryYAxis.domain || [0, 'auto']}
+            tickFormatter={secondaryYAxis.format ?? formatYAxisTick}
           />
         )}
         {dataKeys.map((key) => (
@@ -152,7 +153,10 @@ export function LineChartComponent({
             type={curved ? "monotone" : "linear"}
             stroke={config[key]?.color || `hsl(var(--chart-1))`}
             strokeWidth={2}
-            dot={showDots ? { fill: config[key]?.color || `hsl(var(--chart-1))` } : false}
+            // The right-axis series is a different kind of measure (spend beside
+            // a count) and reads as such: dashed, no dots.
+            strokeDasharray={secondaryYAxis && key === secondaryYAxis.dataKey ? "6 4" : undefined}
+            dot={showDots && !(secondaryYAxis && key === secondaryYAxis.dataKey) ? { fill: config[key]?.color || `hsl(var(--chart-1))` } : false}
           />
         ))}
         {tooltipDataKeys.map((key) => (

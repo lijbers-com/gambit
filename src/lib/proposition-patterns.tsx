@@ -27,17 +27,19 @@ export interface PropositionPattern {
 }
 
 export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-400))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
-  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-600))' },
-  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-600))', ink: 'rgb(var(--neutral-800))' },
+  // One near-white base for all: the pattern alone tells them apart, and a
+  // thin ink line at each series edge keeps neighbours from blurring.
+  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
+  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
+  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
+  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */
 /** Solid grey is reserved for the whole: a series that adds every
  *  proposition together wears no pattern, so the eye reads "all" at once. */
-export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' };
+export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' };
 
 export const patternFor = (key: PatternKey): PropositionPattern => (key === 'all' ? ALL_PROPOSITIONS_PATTERN : PROPOSITION_PATTERNS[key]);
 export const patternId = (key: PatternKey) => `pp-${key}`;

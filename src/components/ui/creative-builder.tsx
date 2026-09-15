@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader } from './card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './dialog';
 import { FormSection } from './form-section';
 import { Input, FileInput } from './input';
+import { RetailProductSelect } from './retail-product-select';
 import { SettingsCard } from './settings-card';
 import { Switch } from './switch';
 import { Table } from './table';
@@ -165,7 +166,6 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
   const [values, setValues] = React.useState<Record<string, string>>({});
   const [languages, setLanguages] = React.useState<string[]>(['en']);
   const [skus, setSkus] = React.useState<string[]>([]);
-  const [skuInput, setSkuInput] = React.useState('');
   const [bookingIds, setBookingIds] = React.useState<string[]>([]);
   const seeded = React.useRef<string | null>(null);
   React.useEffect(() => {
@@ -205,12 +205,6 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
 
   const persist = (patch?: Partial<Creative>) =>
     updateCreative(creative.id, { name, templateId, values, languages, skus, bookingIds, ...patch });
-
-  const addSkus = () => {
-    const parsed = skuInput.split(',').map((x) => x.trim()).filter(Boolean);
-    if (parsed.length) setSkus((prev) => [...new Set([...prev, ...parsed])]);
-    setSkuInput('');
-  };
 
   const saveDraft = () => {
     persist();
@@ -268,28 +262,15 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
                   <label className="mb-1.5 block text-sm font-medium">Name*</label>
                   <Input placeholder="Enter creative name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">SKU</label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Enter SKUs separated by commas"
-                      value={skuInput}
-                      onChange={(e) => setSkuInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkus(); } }}
-                    />
-                    <Button variant="outline" onClick={addSkus} disabled={!skuInput.trim()}>Add SKU</Button>
-                  </div>
-                  {skus.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {skus.map((sku) => (
-                        <span key={sku} className="inline-flex items-center gap-1 rounded-md border bg-muted/40 px-2 py-0.5 text-xs tabular-nums">
-                          {sku}
-                          <button type="button" aria-label={`Remove SKU ${sku}`} onClick={() => setSkus((prev) => prev.filter((x) => x !== sku))} className="text-muted-foreground hover:text-foreground">×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* The one retail-product picker the whole platform uses —
+                    the creative's SKUs are products, not free text. */}
+                <RetailProductSelect
+                  label="Retail products"
+                  optional
+                  showCount
+                  value={skus}
+                  onChange={setSkus}
+                />
               </div>
             </FormSection>
 

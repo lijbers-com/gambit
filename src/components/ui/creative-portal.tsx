@@ -158,7 +158,7 @@ export const CreativePortal: React.FC<{ engine?: EngineId; className?: string }>
           <Table
             columns={[
               {
-                key: 'preview', header: '', width: 88,
+                key: 'preview', header: '', width: 128,
                 render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} />,
               },
               {

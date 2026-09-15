@@ -104,7 +104,7 @@ export const BookingCreativesPanel: React.FC<{
         <div className="mb-4 overflow-x-auto">
           <Table
             columns={[
-              { key: 'preview', header: '', width: 88, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
+              { key: 'preview', header: '', width: 128, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
               {
                 // Widths include the cell padding: two 28px buttons and a gap.
                 key: 'actions', header: 'Actions', width: 104,
@@ -184,7 +184,7 @@ export const BookingCreativesPanel: React.FC<{
           </DialogHeader>
           <Table
             columns={[
-              { key: 'preview', header: '', width: 72, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
+              { key: 'preview', header: '', width: 128, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
               { key: 'name', header: 'Name' },
               { key: 'template', header: 'Template', render: (c: Creative) => templatesById.get(c.templateId)?.name ?? '—' },
               { key: 'status', header: 'Status', render: (c: Creative) => <CreativeStatusBadge status={c.status} /> },

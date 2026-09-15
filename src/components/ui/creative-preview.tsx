@@ -318,7 +318,17 @@ export const CreativePreview: React.FC<CreativePreviewProps> = ({ template, valu
   );
 };
 
-/** Table/dialog thumbnail — same renderer at postage-stamp size. */
+/**
+ * Table/dialog thumbnail — the format itself, scaled down. The composition
+ * is laid out at a fixed design width (the width the builder's preview
+ * pane has) and shrunk with a transform, so the thumbnail shows exactly
+ * what the preview shows, at true proportions — not a re-flowed miniature
+ * with a different layout.
+ */
+const THUMB_DESIGN_WIDTH = 320;
+const THUMB_MAX_W = 96;
+const THUMB_MAX_H = 48;
+
 export const CreativePreviewThumb: React.FC<{
   creative: Pick<Creative, 'id' | 'values' | 'templateId'>;
   template?: CreativeTemplate;
@@ -328,13 +338,23 @@ export const CreativePreviewThumb: React.FC<{
     return <div className={cn('h-9 w-14 rounded border bg-muted', className)} />;
   }
   const { w, h } = parseSize(template.sizes[0]);
-  const portrait = h > w;
+  const ratio = w / h;
+  // Wide formats fill the width; tall ones fill the height.
+  const outerW = ratio >= THUMB_MAX_W / THUMB_MAX_H ? THUMB_MAX_W : Math.round(THUMB_MAX_H * ratio);
+  const outerH = Math.round(outerW / ratio);
+  const scale = outerW / THUMB_DESIGN_WIDTH;
   return (
     <div
-      className={cn('relative shrink-0 overflow-hidden rounded border bg-background', portrait ? 'h-12 w-8' : 'h-9 w-14', className)}
-      style={{ containerType: 'inline-size' }}
+      className={cn('relative shrink-0 overflow-hidden rounded border bg-background', className)}
+      style={{ width: outerW, height: outerH }}
+      title={template.sizes[0]}
     >
-      <Composition template={template} v={localizedValues(creative.values)} creativeId={creative.id} w={w} h={h} small />
+      <div
+        className="absolute left-0 top-0 origin-top-left"
+        style={{ width: THUMB_DESIGN_WIDTH, height: THUMB_DESIGN_WIDTH / ratio, transform: `scale(${scale})`, containerType: 'inline-size' }}
+      >
+        <Composition template={template} v={localizedValues(creative.values)} creativeId={creative.id} w={w} h={h} />
+      </div>
     </div>
   );
 };

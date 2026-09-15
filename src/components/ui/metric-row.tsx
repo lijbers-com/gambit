@@ -90,6 +90,10 @@ export interface MetricRowProps {
    *  e.g. "Filtered · 3 of 12 bookings". Cards showing filtered totals
    *  without saying so read as the totals being wrong. */
   filterNote?: string
+  /** What sits left of "Edit metrics" in the header row — the page's
+   *  filters, so what the numbers cover and which numbers show are set in
+   *  one place. Takes precedence over filterNote. */
+  headerLeft?: React.ReactNode
   /** Lay the cards out in a single horizontally-scrolling row instead of a
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
    *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
@@ -120,6 +124,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     showCharts = false,
     hideEditButton = false,
     filterNote,
+    headerLeft,
     scrollable = false,
     bleedEdges = false,
     ...props
@@ -199,9 +204,11 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
 
     return (
       <div ref={ref} className={cn("space-y-3", className)} {...props}>
-      {(filterNote || (hasDialogContent && !hideEditButton)) && (
+      {(headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
         <div className="flex items-center justify-between gap-3">
-          {filterNote ? (
+          {headerLeft ? (
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">{headerLeft}</div>
+          ) : filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
               <ListFilter className="h-3.5 w-3.5" />
               {filterNote}

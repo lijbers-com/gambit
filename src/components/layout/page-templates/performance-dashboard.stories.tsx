@@ -3835,128 +3835,129 @@ export const FunnelView: Story = {
         }}
       >
         <div className="space-y-6">
-          {/* FilterBar with Settings */}
-          <div className="flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Settings2 className="h-4 w-4" />
-                  Proposition
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuCheckboxItem
-                  checked={awarenessMetrics.includes('spaImpressions')}
-                  onCheckedChange={(checked) => {
-                    setAwarenessMetrics(prev =>
-                      checked ? [...prev, 'spaImpressions'] : prev.filter(m => m !== 'spaImpressions')
-                    );
-                  }}
-                >
-                  Sponsored Products
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={awarenessMetrics.includes('impressions')}
-                  onCheckedChange={(checked) => {
-                    setAwarenessMetrics(prev =>
-                      checked ? [...prev, 'impressions'] : prev.filter(m => m !== 'impressions')
-                    );
-                  }}
-                >
-                  Display
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={awarenessMetrics.includes('omiDots')}
-                  onCheckedChange={(checked) => {
-                    setAwarenessMetrics(prev =>
-                      checked ? [...prev, 'omiDots'] : prev.filter(m => m !== 'omiDots')
-                    );
-                  }}
-                >
-                  Digital Media In-store
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={awarenessMetrics.includes('doohSpots')}
-                  onCheckedChange={(checked) => {
-                    setAwarenessMetrics(prev =>
-                      checked ? [...prev, 'doohSpots'] : prev.filter(m => m !== 'doohSpots')
-                    );
-                  }}
-                >
-                  Offline Media In-store
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={awarenessMetrics.includes('offsiteImpressions')}
-                  onCheckedChange={(checked) => {
-                    setAwarenessMetrics(prev =>
-                      checked ? [...prev, 'offsiteImpressions'] : prev.filter(m => m !== 'offsiteImpressions')
-                    );
-                  }}
-                >
-                  Display Offsite
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="flex-1">
-              <FilterBar
-                filters={[
-                  {
-                    name: 'Brand',
-                    options: [
-                      { label: 'Unilever', value: 'unilever', description: 'Parent brand' },
-                      { label: "Ben & Jerry's", value: 'ben-jerrys', description: 'Ice cream & frozen' },
-                      { label: 'Dove', value: 'dove', description: 'Personal care' },
-                      { label: 'Axe', value: 'axe', description: 'Personal care' },
-                      { label: 'Hellmann\'s', value: 'hellmanns', description: 'Food & condiments' },
-                      { label: 'Knorr', value: 'knorr', description: 'Food & cooking' },
-                      { label: 'Lipton', value: 'lipton', description: 'Beverages' },
-                      { label: 'Magnum', value: 'magnum', description: 'Ice cream & frozen' },
-                      { label: 'Vaseline', value: 'vaseline', description: 'Personal care' },
-                      { label: 'Rexona', value: 'rexona', description: 'Personal care' },
-                      { label: 'Omo', value: 'omo', description: 'Home care' },
-                      { label: 'Domestos', value: 'domestos', description: 'Home care' },
-                    ],
-                    selectedValues: brandFilter,
-                    onChange: setBrandFilter
-                  },
-                  {
-                    name: 'Campaign',
-                    options: [
-                      { label: 'Summer Sale 2024', value: 'summer-2024', description: 'Jun – Aug 2024' },
-                      { label: 'Spring Collection 2024', value: 'spring-2024', description: 'Mar – May 2024' },
-                      { label: 'Holiday Special 2024', value: 'holiday-2024', description: 'Nov – Dec 2024' },
-                      { label: 'Back to School 2024', value: 'bts-2024', description: 'Aug – Sep 2024' },
-                      { label: 'Black Friday 2024', value: 'bf-2024', description: 'Nov 2024' },
-                      { label: 'Valentine\'s Day 2025', value: 'vday-2025', description: 'Jan – Feb 2025' },
-                      { label: 'Easter Campaign 2025', value: 'easter-2025', description: 'Mar – Apr 2025' },
-                      { label: 'Summer Sale 2025', value: 'summer-2025', description: 'Jun – Aug 2025' },
-                      { label: 'New Year Launch 2025', value: 'ny-2025', description: 'Jan 2025' },
-                      { label: 'Brand Awareness Q1', value: 'awareness-q1', description: 'Jan – Mar 2025' },
-                      { label: 'Loyalty Rewards 2025', value: 'loyalty-2025', description: 'Ongoing' },
-                    ],
-                    selectedValues: campaignFilter,
-                    onChange: setCampaignFilter
-                  },
-                  {
-                    name: 'Goal',
-                    options: [
-                      { label: 'Awareness', value: 'awareness' },
-                      { label: 'Consideration', value: 'consideration' },
-                      { label: 'Purchase', value: 'purchase' },
-                      { label: 'Loyalty', value: 'loyalty' }
-                    ],
-                    selectedValues: goalFilter,
-                    onChange: setGoalFilter
-                  }
-                ]}
-                hideSearch={true}
-              />
-            </div>
-          </div>
-
-          {/* Top Metric Cards */}
+          {/* Top Metric Cards — the dashboard's filters sit in the row's header,
+              beside Edit metrics: what the numbers cover and which numbers show. */}
           <MetricRow
+            headerLeft={
+              <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    Proposition
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuCheckboxItem
+                    checked={awarenessMetrics.includes('spaImpressions')}
+                    onCheckedChange={(checked) => {
+                      setAwarenessMetrics(prev =>
+                        checked ? [...prev, 'spaImpressions'] : prev.filter(m => m !== 'spaImpressions')
+                      );
+                    }}
+                  >
+                    Sponsored Products
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={awarenessMetrics.includes('impressions')}
+                    onCheckedChange={(checked) => {
+                      setAwarenessMetrics(prev =>
+                        checked ? [...prev, 'impressions'] : prev.filter(m => m !== 'impressions')
+                      );
+                    }}
+                  >
+                    Display
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={awarenessMetrics.includes('omiDots')}
+                    onCheckedChange={(checked) => {
+                      setAwarenessMetrics(prev =>
+                        checked ? [...prev, 'omiDots'] : prev.filter(m => m !== 'omiDots')
+                      );
+                    }}
+                  >
+                    Digital Media In-store
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={awarenessMetrics.includes('doohSpots')}
+                    onCheckedChange={(checked) => {
+                      setAwarenessMetrics(prev =>
+                        checked ? [...prev, 'doohSpots'] : prev.filter(m => m !== 'doohSpots')
+                      );
+                    }}
+                  >
+                    Offline Media In-store
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={awarenessMetrics.includes('offsiteImpressions')}
+                    onCheckedChange={(checked) => {
+                      setAwarenessMetrics(prev =>
+                        checked ? [...prev, 'offsiteImpressions'] : prev.filter(m => m !== 'offsiteImpressions')
+                      );
+                    }}
+                  >
+                    Display Offsite
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <div className="flex-1">
+                <FilterBar
+                  filters={[
+                    {
+                      name: 'Brand',
+                      options: [
+                        { label: 'Unilever', value: 'unilever', description: 'Parent brand' },
+                        { label: "Ben & Jerry's", value: 'ben-jerrys', description: 'Ice cream & frozen' },
+                        { label: 'Dove', value: 'dove', description: 'Personal care' },
+                        { label: 'Axe', value: 'axe', description: 'Personal care' },
+                        { label: 'Hellmann\'s', value: 'hellmanns', description: 'Food & condiments' },
+                        { label: 'Knorr', value: 'knorr', description: 'Food & cooking' },
+                        { label: 'Lipton', value: 'lipton', description: 'Beverages' },
+                        { label: 'Magnum', value: 'magnum', description: 'Ice cream & frozen' },
+                        { label: 'Vaseline', value: 'vaseline', description: 'Personal care' },
+                        { label: 'Rexona', value: 'rexona', description: 'Personal care' },
+                        { label: 'Omo', value: 'omo', description: 'Home care' },
+                        { label: 'Domestos', value: 'domestos', description: 'Home care' },
+                      ],
+                      selectedValues: brandFilter,
+                      onChange: setBrandFilter
+                    },
+                    {
+                      name: 'Campaign',
+                      options: [
+                        { label: 'Summer Sale 2024', value: 'summer-2024', description: 'Jun – Aug 2024' },
+                        { label: 'Spring Collection 2024', value: 'spring-2024', description: 'Mar – May 2024' },
+                        { label: 'Holiday Special 2024', value: 'holiday-2024', description: 'Nov – Dec 2024' },
+                        { label: 'Back to School 2024', value: 'bts-2024', description: 'Aug – Sep 2024' },
+                        { label: 'Black Friday 2024', value: 'bf-2024', description: 'Nov 2024' },
+                        { label: 'Valentine\'s Day 2025', value: 'vday-2025', description: 'Jan – Feb 2025' },
+                        { label: 'Easter Campaign 2025', value: 'easter-2025', description: 'Mar – Apr 2025' },
+                        { label: 'Summer Sale 2025', value: 'summer-2025', description: 'Jun – Aug 2025' },
+                        { label: 'New Year Launch 2025', value: 'ny-2025', description: 'Jan 2025' },
+                        { label: 'Brand Awareness Q1', value: 'awareness-q1', description: 'Jan – Mar 2025' },
+                        { label: 'Loyalty Rewards 2025', value: 'loyalty-2025', description: 'Ongoing' },
+                      ],
+                      selectedValues: campaignFilter,
+                      onChange: setCampaignFilter
+                    },
+                    {
+                      name: 'Goal',
+                      options: [
+                        { label: 'Awareness', value: 'awareness' },
+                        { label: 'Consideration', value: 'consideration' },
+                        { label: 'Purchase', value: 'purchase' },
+                        { label: 'Loyalty', value: 'loyalty' }
+                      ],
+                      selectedValues: goalFilter,
+                      onChange: setGoalFilter
+                    }
+                  ]}
+                  hideSearch={true}
+                />
+              </div>
+              </>
+            }
             metrics={[
               ...Object.entries(metricDefinitions).map(([key, metric]) => ({
                 key,

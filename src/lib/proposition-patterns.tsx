@@ -29,11 +29,11 @@ export interface PropositionPattern {
 export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
   // One near-white base for all: the pattern alone tells them apart, and a
   // thin ink line at each series edge keeps neighbours from blurring.
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
-  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
-  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-600))' },
+  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
+  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
+  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
+  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */

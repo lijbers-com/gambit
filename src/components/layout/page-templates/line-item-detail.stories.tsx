@@ -1104,7 +1104,7 @@ export const Display: Story = {
                   entity="booking"
                   variant="details"
                   actions={summaryActionsFor(bookingTab)}
-                  className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
+                  className="bg-card"
                   items={[
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
@@ -2439,7 +2439,7 @@ export const DigitalInStore: Story = {
                     entity="booking"
                     variant="details"
                     actions={summaryActionsFor(bookingTab)}
-                    className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
+                    className="bg-card"
                     items={[
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
@@ -3781,7 +3781,7 @@ export const OfflineInStore: Story = {
                     entity="booking"
                     variant="details"
                     actions={summaryActionsFor(bookingTab)}
-                    className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
+                    className="bg-card"
                     items={[
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
@@ -4939,7 +4939,7 @@ export const OffsiteDisplay: Story = {
                 entity="booking"
                 variant="details"
                 actions={summaryActionsFor(bookingTab)}
-                className={READ_ONLY_TABS.includes(bookingTab) ? 'bg-page' : 'bg-card'}
+                className="bg-card"
                 items={[
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),

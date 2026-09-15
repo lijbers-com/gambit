@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Link2, Plus, Send, X } from 'lucide-react';
+import { Eye, Link2, Plus, Send, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -16,7 +16,7 @@ import { Input } from './input';
 import { OptionCard, OptionCardTick } from './option-card';
 import { Table } from './table';
 import { queueToast } from './toast';
-import { CreativePreviewThumb } from './creative-preview';
+import { CreativePreview, CreativePreviewThumb } from './creative-preview';
 import { CreativeStatusBadge } from './creative-builder';
 
 /**
@@ -46,6 +46,10 @@ export const BookingCreativesPanel: React.FC<{
 
   const [linking, setLinking] = React.useState(false);
   const [selection, setSelection] = React.useState<string[]>([]);
+  // The same look-before-you-open preview the portal has.
+  const [previewId, setPreviewId] = React.useState<string | null>(null);
+  const previewing = previewId ? db.creatives.find((c) => c.id === previewId) ?? null : null;
+  const openCreative = (c: Creative) => { window.location.href = `/creatives/${engine}/${c.id}`; };
 
   const [creating, setCreating] = React.useState(false);
   const [newTemplate, setNewTemplate] = React.useState<string | null>(null);
@@ -100,15 +104,21 @@ export const BookingCreativesPanel: React.FC<{
         <div className="mb-4 overflow-x-auto">
           <Table
             columns={[
+              { key: 'preview', header: '', width: 88, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
               {
-                key: 'remove', header: '', width: 48,
+                // Widths include the cell padding: two 28px buttons and a gap.
+                key: 'actions', header: 'Actions', width: 104,
                 render: (c: Creative) => (
-                  <Button size="icon" variant="outline" className="h-8 w-8" aria-label={`Unlink ${c.name}`} onClick={() => unlink(c)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={`Preview ${c.name}`} onClick={(e) => { e.stopPropagation(); setPreviewId(c.id); }}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={`Unlink ${c.name}`} onClick={(e) => { e.stopPropagation(); unlink(c); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ),
               },
-              { key: 'preview', header: '', width: 72, render: (c: Creative) => <CreativePreviewThumb creative={c} template={templatesById.get(c.templateId)} /> },
               { key: 'name', header: 'Name' },
               { key: 'template', header: 'Template', render: (c: Creative) => templatesById.get(c.templateId)?.name ?? '—' },
               { key: 'status', header: 'Status', render: (c: Creative) => <CreativeStatusBadge status={c.status} /> },
@@ -117,7 +127,7 @@ export const BookingCreativesPanel: React.FC<{
             rowKey={(c: Creative) => c.id}
             hideActions
             rowClassName={() => 'cursor-pointer'}
-            onRowClick={(c: Creative) => { window.location.href = `/creatives/${engine}/${c.id}`; }}
+            onRowClick={openCreative}
           />
         </div>
       )}
@@ -133,6 +143,37 @@ export const BookingCreativesPanel: React.FC<{
           <Plus className="h-4 w-4" /> New creative
         </Button>
       </div>
+
+      {/* ── Preview: the real composition, then open the builder ── */}
+      <Dialog open={!!previewing} onOpenChange={(o) => !o && setPreviewId(null)}>
+        <DialogContent className="sm:max-w-[560px]">
+          {previewing && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span className="min-w-0 truncate">{previewing.name}</span>
+                  <CreativeStatusBadge status={previewing.status} />
+                </DialogTitle>
+                <DialogDescription>
+                  {previewing.id} · {templatesById.get(previewing.templateId)?.name}
+                </DialogDescription>
+              </DialogHeader>
+              {templatesById.get(previewing.templateId) && (
+                <CreativePreview template={templatesById.get(previewing.templateId)!} values={previewing.values} creativeId={previewing.id} />
+              )}
+              {previewing.status === 'rejected' && previewing.rejectionReason && (
+                <p className="rounded-md border border-destructive-200 bg-destructive-50 p-2.5 text-sm text-destructive-700">
+                  {previewing.rejectionReason}
+                </p>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPreviewId(null)}>Close</Button>
+                <Button onClick={() => openCreative(previewing)}>Open creative</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* ── Link existing ── */}
       <Dialog open={linking} onOpenChange={setLinking}>

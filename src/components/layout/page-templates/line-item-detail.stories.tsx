@@ -988,13 +988,9 @@ export const Display: Story = {
 
               {/* Creatives tab — link from the portal or start a new one from
                   the engine's templates; the panel writes the database. */}
-              <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'creatives' && 'hidden')}>
-                <h3 className="text-base font-semibold text-foreground mb-1">Creatives</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Creatives attached to this booking. Link existing ones or create new.
-                </p>
+              <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && 'hidden')}>
                 <BookingCreativesPanel engine="display" />
-              </div>
+              </FormSection>
 
 
               {/* Logs tab */}
@@ -2061,7 +2057,7 @@ export const DigitalInStore: Story = {
                         />
                       </FormSection>
 
-                      <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <BookingCreativesPanel engine="digital-instore" />
                       </FormSection>
 
@@ -3590,7 +3586,7 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
 
-                      <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                      <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                         <BookingCreativesPanel engine="offline-instore" />
                       </FormSection>
 
@@ -4807,7 +4803,7 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection bordered title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
+                  <FormSection title="Creatives" className={cn(bookingTab !== 'creatives' && "hidden")}>
                     <BookingCreativesPanel engine="offsite" />
                   </FormSection>
 

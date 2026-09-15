@@ -178,6 +178,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
 
   const onTilePointerDown = (e: React.PointerEvent, s: WorkflowStep) => {
     if ((e.target as HTMLElement).closest('[data-port]')) return;
+    e.preventDefault(); // a drag, not a text selection
     const p = boardPoint(e);
     drag.current = { id: s.id, dx: p.x - s.x, dy: p.y - s.y };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -340,7 +341,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
         {/* ── Board ── */}
         <div
           ref={boardRef}
-          className="relative h-[70vh] min-h-[560px] overflow-auto rounded-xl border bg-page"
+          className="relative h-[70vh] min-h-[560px] select-none overflow-auto rounded-xl border bg-page"
           style={{ backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)', backgroundSize: `${GRID}px ${GRID}px` }}
           onDragOver={(e) => { if (e.dataTransfer.types.includes('text/workflow-kind')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}
           onDrop={(e) => {

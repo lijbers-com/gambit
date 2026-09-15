@@ -3545,13 +3545,16 @@ export const FunnelView: Story = {
       omiClicks: 'OMI Clicks',
       offsiteClicks: 'Offsite Clicks',
     };
-    const engagementColors: Record<string, string> = {
-      spaClicks: 'hsl(var(--chart-1))',
-      displayClicks: 'hsl(var(--chart-2))',
-      doohClicks: 'hsl(var(--chart-3))',
-      omiClicks: 'hsl(var(--chart-4))',
-      offsiteClicks: 'hsl(var(--chart-5))',
+    const engagementEngines: Record<string, EngineId> = {
+      spaClicks: 'sponsored-products',
+      displayClicks: 'display',
+      doohClicks: 'digital-instore',
+      omiClicks: 'offline-instore',
+      offsiteClicks: 'offsite',
     };
+    const engagementColors: Record<string, string> = Object.fromEntries(
+      Object.entries(engagementEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
 
     const unitLabels: Record<string, string> = {
       spaUnitsSold: 'Sponsored Products',
@@ -3560,13 +3563,16 @@ export const FunnelView: Story = {
       omiUnitsSold: 'Offline Media In-store',
       offsiteUnitsSold: 'Display Offsite',
     };
-    const unitColors: Record<string, string> = {
-      spaUnitsSold: 'hsl(var(--chart-2))',
-      displayUnitsSold: 'hsl(var(--chart-3))',
-      dmiUnitsSold: 'hsl(var(--chart-4))',
-      omiUnitsSold: 'hsl(var(--chart-5))',
-      offsiteUnitsSold: 'hsl(var(--chart-1))',
+    const unitEngines: Record<string, EngineId> = {
+      spaUnitsSold: 'sponsored-products',
+      displayUnitsSold: 'display',
+      dmiUnitsSold: 'digital-instore',
+      omiUnitsSold: 'offline-instore',
+      offsiteUnitsSold: 'offsite',
     };
+    const unitColors: Record<string, string> = Object.fromEntries(
+      Object.entries(unitEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
 
     const roasLabels: Record<string, string> = {
       spaRoas: 'Sponsored Products',
@@ -3574,12 +3580,15 @@ export const FunnelView: Story = {
       dmiRoas: 'Digital In-store',
       omiRoas: 'Offline In-store',
     };
-    const roasColors: Record<string, string> = {
-      spaRoas: 'hsl(var(--chart-1))',
-      displayRoas: 'hsl(var(--chart-2))',
-      dmiRoas: 'hsl(var(--chart-3))',
-      omiRoas: 'hsl(var(--chart-4))',
+    const roasEngines: Record<string, EngineId> = {
+      spaRoas: 'sponsored-products',
+      displayRoas: 'display',
+      dmiRoas: 'digital-instore',
+      omiRoas: 'offline-instore',
     };
+    const roasColors: Record<string, string> = Object.fromEntries(
+      Object.entries(roasEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
 
     const channelSovTooltips: Record<string, string> = {
       spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
@@ -4253,7 +4262,7 @@ export const FunnelView: Story = {
                               variant={active ? "secondary" : "outline"}
                               className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
                             >
-                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: engagementColors[key] }} />
+                              <PropositionSwatch engine={engagementEngines[key]} className="mr-1.5" />
                               {engagementLabels[key]} {Math.round(considerationDataRaw[5][key] / 1000)}K
                             </Badge>
                           </button>
@@ -4265,7 +4274,7 @@ export const FunnelView: Story = {
                     <AreaChartComponent
                       data={considerationData}
                       config={Object.fromEntries(
-                        engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k] }])
+                        engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
                       )}
                       stacked={true}
                       showLegend={false}
@@ -4460,7 +4469,7 @@ export const FunnelView: Story = {
                               variant={active ? "secondary" : "outline"}
                               className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
                             >
-                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: unitColors[key] }} />
+                              <PropositionSwatch engine={unitEngines[key]} className="mr-1.5" />
                               {unitLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key].toLocaleString()}
                             </Badge>
                           </button>
@@ -4472,7 +4481,7 @@ export const FunnelView: Story = {
                     <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
-                        unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k] }])
+                        unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k], engine: unitEngines[k] }])
                       )}
                       stacked={true}
                       showLegend={false}
@@ -4517,7 +4526,7 @@ export const FunnelView: Story = {
                               variant={active ? "secondary" : "outline"}
                               className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
                             >
-                              <span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: roasColors[key] }} />
+                              <PropositionSwatch engine={roasEngines[key]} className="mr-1.5" />
                               {roasLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key]}x
                             </Badge>
                           </button>
@@ -4529,7 +4538,7 @@ export const FunnelView: Story = {
                     <LineChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
-                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k] }])
+                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k] }])
                       )}
                       showLegend={false}
                       showGrid={true}

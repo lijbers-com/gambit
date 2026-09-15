@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { ChartDataPoint, ChartConfig, formatYAxisTick } from "./chart-types"
+import { lineDash, patternFor } from "@/lib/proposition-patterns"
 
 export interface LineChartProps {
   data: ChartDataPoint[]
@@ -150,9 +151,11 @@ export function LineChartComponent({
             yAxisId={secondaryYAxis && key === secondaryYAxis.dataKey ? "right" : "left"}
             dataKey={key}
             type={curved ? "monotone" : "linear"}
-            stroke={config[key]?.color || `hsl(var(--chart-1))`}
+            // A proposition's line carries its dash, in the shared grey ink.
+            stroke={config[key]?.engine ? patternFor(config[key].engine!).ink : config[key]?.color || `hsl(var(--chart-1))`}
             strokeWidth={2}
-            dot={showDots ? { fill: config[key]?.color || `hsl(var(--chart-1))` } : false}
+            strokeDasharray={config[key]?.engine ? lineDash(config[key].engine!) : undefined}
+            dot={showDots ? { fill: config[key]?.engine ? patternFor(config[key].engine!).ink : config[key]?.color || `hsl(var(--chart-1))`, r: 3 } : false}
           />
         ))}
         {tooltipDataKeys.map((key) => (

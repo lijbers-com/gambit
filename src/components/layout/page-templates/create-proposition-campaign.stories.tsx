@@ -23,7 +23,8 @@ import { SelectionList } from '@/components/ui/selection-list';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
-import { creativesForEngine } from '@/lib/creatives';
+import { BookingCreativesPanel } from '@/components/ui/booking-creatives-panel';
+import { BookingCreativesSummary } from '@/components/ui/booking-creatives-summary';
 import { Table } from '@/components/ui/table';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
@@ -37,7 +38,7 @@ import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaul
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
-import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, type EngineId } from '@/lib/db';
+import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, type EngineId } from '@/lib/db';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -495,8 +496,8 @@ const PropositionWizard = ({
     /** Per-position CPC on auction campaigns — the bid lives on the placement. */
     bids: Record<string, string>;
     inclTargets: Record<string, string[]>; exclTargets: Record<string, string[]>;
-    /** The creative it runs, chosen on the booking's own last step. */
-    creativeId: string;
+    /** The creatives it runs, chosen on the booking's own last step. */
+    creativeIds: string[];
     deliveryBehavior: DeliveryBehaviorValue; objectivesEnabled: boolean; deliveryObjectives: DeliveryObjectivesValue;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
@@ -510,8 +511,8 @@ const PropositionWizard = ({
   const bookingSubStepLabels = hasCreativeStep
     ? ['Setup', 'Run time & budget', 'Placement', 'Targeting', 'Creative']
     : ['Setup', 'Run time & budget', 'Placement', 'Targeting'];
-  /** The creative chosen for the booking being built or approved. */
-  const [bookingCreativeId, setBookingCreativeId] = React.useState('');
+  /** The creatives chosen for the booking being built or approved. */
+  const [bookingCreativeIds, setBookingCreativeIds] = React.useState<string[]>([]);
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -531,8 +532,21 @@ const PropositionWizard = ({
   const [bookingPositionIds, setBookingPositionIds] = React.useState<string[]>([]);
   // The bid per selected position (auction campaigns only).
   const [positionBids, setPositionBids] = React.useState<Record<string, string>>({});
-  // Creative step: per booking, the chosen creative ('' = add later).
-  const [creativeChoice, setCreativeChoice] = React.useState<Record<string, string>>({});
+  // Creative step: per booking, the chosen creatives ([] = add later).
+  const [creativeChoice, setCreativeChoice] = React.useState<Record<string, string[]>>({});
+  /** Link chosen creatives to a booking that now exists. A draft goes in as
+   *  submitted — choosing it for a booking is asking for its approval — and
+   *  the store derives the booking's creative status from what is linked. */
+  const linkCreatives = (bookingId: string, ids: string[]) => {
+    for (const id of new Set(ids)) {
+      const c = getDb().creatives.find((x) => x.id === id);
+      if (!c) continue;
+      updateCreative(id, {
+        bookingIds: c.bookingIds.includes(bookingId) ? c.bookingIds : [...c.bookingIds, bookingId],
+        ...(c.status === 'draft' ? { status: 'submitted' as const } : {}),
+      });
+    }
+  };
   // Targeting — the same include/exclude target-group control the booking
   // detail page uses (ui/target-select): groups first, values as chips.
   const [inclTargets, setInclTargets] = React.useState<Record<string, string[]>>({});
@@ -560,8 +574,8 @@ const PropositionWizard = ({
         startDate: toIso(bookingDateRange?.from) ?? routeBooking.startDate,
         endDate: toIso(bookingDateRange?.to) ?? routeBooking.endDate,
         positionIds: bookingPositionIds.length > 0 ? bookingPositionIds : routeBooking.positionIds,
-        ...(bookingCreativeId ? { creativeStatus: 'submitted' as const } : {}),
       });
+      linkCreatives(routeBooking.id, bookingCreativeIds);
       queueToast({ title: 'Booking approved', description: bookingName || routeBooking.name });
       if (typeof window !== 'undefined') window.location.href = afterBooking(routeBooking.campaignId, routeBooking.id);
       return;
@@ -574,7 +588,7 @@ const PropositionWizard = ({
       positionIds: [...bookingPositionIds],
       bids: { ...positionBids },
       inclTargets: { ...inclTargets }, exclTargets: { ...exclTargets },
-      creativeId: bookingCreativeId,
+      creativeIds: [...bookingCreativeIds],
       deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
     }]);
     // Reset form for next booking
@@ -583,7 +597,7 @@ const PropositionWizard = ({
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
-    setInclTargets({}); setExclTargets({}); setBookingCreativeId('');
+    setInclTargets({}); setExclTargets({}); setBookingCreativeIds([]);
     setDeliveryBehavior(defaultDeliveryBehavior); setObjectivesEnabled(false); setDeliveryObjectives(defaultDeliveryObjectives);
   };
   const removeBooking = (id: string) => setBookings(prev => prev.filter(b => b.id !== id));
@@ -671,12 +685,6 @@ const PropositionWizard = ({
       ];
 
   /** Demo creative library — linking one marks the booking 'submitted'. */
-  const creativeOptions = [
-    { id: 'cr-hero', name: 'Summer hero banner' },
-    { id: 'cr-spotlight', name: 'Product spotlight set' },
-    { id: 'cr-video', name: 'Brand video 15s' },
-  ];
-
   const toIso = (d?: Date) => (d ? d.toISOString().slice(0, 10) : undefined);
 
   /**
@@ -792,7 +800,8 @@ const PropositionWizard = ({
     if (currentStepId !== 'creatives' || routeCampaign?.mode !== 'assisted') return;
     setCreativeChoice((prev) => {
       const next = { ...prev };
-      creativeTargets.forEach((t) => { if (!(t.id in next)) next[t.id] = creativeOptions[0].id; });
+      const first = getDb().creatives.find((c) => c.engine === propositionType);
+      creativeTargets.forEach((t) => { if (!(t.id in next)) next[t.id] = first ? [first.id] : []; });
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -806,10 +815,8 @@ const PropositionWizard = ({
    */
   const finishWizard = () => {
     if (creativesOnly) {
-      creativeTargets.forEach((t) => {
-        if (creativeChoice[t.id]) updateBooking(t.id, { creativeStatus: 'submitted' });
-      });
-      queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]).length} booking(s) updated` });
+      creativeTargets.forEach((t) => linkCreatives(t.id, creativeChoice[t.id] ?? []));
+      queueToast({ title: 'Creatives linked', description: `${creativeTargets.filter((t) => creativeChoice[t.id]?.length).length} booking(s) updated` });
       if (typeof window !== 'undefined') {
         window.location.href = afterBooking(routeBooking?.campaignId ?? linkedCampaignId, routeBooking?.id);
       }
@@ -828,10 +835,10 @@ const PropositionWizard = ({
               startDate: toIso(b.startDate) ?? routeBooking.startDate,
               endDate: toIso(b.endDate) ?? routeBooking.endDate,
               positionIds: b.positionIds.length > 0 ? b.positionIds : routeBooking.positionIds,
-              ...(b.creativeId ? { creativeStatus: 'submitted' as const } : {}),
             }
           : {}),
       });
+      linkCreatives(routeBooking.id, [...(b?.creativeIds ?? []), ...(creativeChoice[routeBooking.id] ?? [])]);
       queueToast({ title: 'Booking approved', description: b?.name || routeBooking.name });
       if (typeof window !== 'undefined') window.location.href = afterBooking(routeBooking.campaignId, routeBooking.id);
       return;
@@ -859,12 +866,12 @@ const PropositionWizard = ({
       startDate: toIso(b.startDate) ?? campaignRecord.startDate,
       endDate: toIso(b.endDate) ?? campaignRecord.endDate,
       positionIds: b.positionIds,
-      creativeStatus: b.creativeId ? 'submitted' : 'missing',
+      creativeStatus: 'missing',
     }));
-    // Creatives chosen for bookings that already existed are linked to them.
-    existingBookings.forEach((b) => {
-      if (creativeChoice[b.id]) updateBooking(b.id, { creativeStatus: 'submitted' });
-    });
+    // The creatives each booking chose — on its own step or on the campaign's
+    // creatives step — are linked now that the booking exists.
+    created.forEach((record, i) => linkCreatives(record.id, [...bookings[i].creativeIds, ...(creativeChoice[bookings[i].id] ?? [])]));
+    existingBookings.forEach((b) => linkCreatives(b.id, creativeChoice[b.id] ?? []));
     queueToast(
       bookingMode
         ? { title: 'Booking created', description: created[0]?.name ?? '' }
@@ -1148,7 +1155,7 @@ const PropositionWizard = ({
         return vals.length > 0 ? vals : null;
       }
       case 'creatives': {
-        const linked = creativeTargets.filter((t) => creativeChoice[t.id]).length;
+        const linked = creativeTargets.filter((t) => creativeChoice[t.id]?.length).length;
         return linked > 0 ? [`${linked} creative${linked === 1 ? '' : 's'} linked`] : null;
       }
       default:
@@ -2124,44 +2131,13 @@ const PropositionWizard = ({
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Creative</CardTitle>
-                            <CardDescription>Pick the creative this booking runs — or leave it, and the setup checklist keeps it open.</CardDescription>
+                            <CardDescription>Link the creatives this booking runs, or start a new one — the same way the booking page does it. Leave it, and the setup checklist keeps it open.</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <Table
-                              columns={[
-                                {
-                                  key: 'pick',
-                                  header: '',
-                                  className: 'w-10',
-                                  render: (row) => (
-                                    <Checkbox
-                                      checked={bookingCreativeId === row.id}
-                                      onCheckedChange={() => setBookingCreativeId((prev) => (prev === row.id ? '' : row.id))}
-                                      aria-label={`Use ${row.name}`}
-                                    />
-                                  ),
-                                },
-                                { key: 'name', header: 'Creative' },
-                                { key: 'format', header: 'Format' },
-                                { key: 'size', header: 'Size', render: (row) => <span className="tabular-nums text-muted-foreground">{row.size}</span> },
-                                {
-                                  key: 'status',
-                                  header: 'Status',
-                                  render: (row) => <Badge variant={row.status === 'Approved' ? 'secondary' : 'outline'}>{row.status}</Badge>,
-                                },
-                                { key: 'updated', header: 'Updated', render: (row) => <span className="text-muted-foreground">{row.updated}</span> },
-                              ]}
-                              data={creativesForEngine(propositionType)}
-                              rowKey={(row) => row.id}
-                              hideActions
-                              onRowClick={(row) => setBookingCreativeId((prev) => (prev === row.id ? '' : row.id))}
-                              emptyState={<span className="text-sm text-muted-foreground">No creatives in the library for this proposition yet.</span>}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              {bookingCreativeId
-                                ? 'Submitted for approval when the booking is saved.'
-                                : 'No creative yet — the booking cannot go live without one.'}
-                            </p>
+                            <BookingCreativesPanel engine={propositionType as EngineId} value={bookingCreativeIds} onChange={setBookingCreativeIds} />
+                            {bookingCreativeIds.length > 0 && (
+                              <p className="text-xs text-muted-foreground">Linked and submitted for approval when the booking is saved.</p>
+                            )}
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(3)}>Back</Button>
                               <Button onClick={saveBooking}>{routeBooking ? 'Save booking' : 'Create booking'}</Button>
@@ -2254,33 +2230,19 @@ const PropositionWizard = ({
                       </p>
                     )}
                     {creativeTargets.map((t) => (
-                      <div key={t.id} className="rounded-lg border p-4 space-y-3">
+                      <div key={t.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center gap-2">
                           <ImagePlus className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm font-medium">{t.name}</span>
                         </div>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          {creativeOptions.map((c) => {
-                            const picked = creativeChoice[t.id] === c.id;
-                            return (
-                              <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => setCreativeChoice(prev => ({ ...prev, [t.id]: picked ? '' : c.id }))}
-                                className={cn(
-                                  'flex items-center gap-2 rounded-md border p-3 text-left text-sm transition-colors',
-                                  picked ? 'border-surface-selected-border bg-surface-selected font-medium' : 'border-border bg-background hover:bg-surface-hover',
-                                )}
-                              >
-                                {picked ? <Check className="h-4 w-4 shrink-0" /> : <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" />}
-                                {c.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {creativeChoice[t.id] ? 'Submitted for approval when you finish.' : 'No creative yet — the setup checklist will keep this open.'}
-                        </p>
+                        <BookingCreativesPanel
+                          engine={propositionType as EngineId}
+                          value={creativeChoice[t.id] ?? []}
+                          onChange={(ids) => setCreativeChoice((prev) => ({ ...prev, [t.id]: ids }))}
+                        />
+                        {creativeChoice[t.id]?.length ? (
+                          <p className="text-xs text-muted-foreground">Linked and submitted for approval when you finish.</p>
+                        ) : null}
                       </div>
                     ))}
                     <div className="flex justify-between pt-1">
@@ -2331,8 +2293,8 @@ const PropositionWizard = ({
                       return vals.length > 0 ? vals : null;
                     }
                     case 4: { // Creative
-                      const c = creativesForEngine(propositionType).find((x) => x.id === bookingCreativeId);
-                      return c ? [c.name] : null;
+                      const names = db.creatives.filter((c) => bookingCreativeIds.includes(c.id)).map((c) => c.name);
+                      return names.length > 0 ? names : null;
                     }
                     default: return null;
                   }
@@ -2399,6 +2361,10 @@ const PropositionWizard = ({
                   </CardSummary>
                 );
               })()}
+              {/* Its creatives — on the booking's level, as on the booking page. */}
+              {isInBookingsPhase && bookingSubStep !== null && hasCreativeStep && (
+                <BookingCreativesSummary creativeIds={bookingCreativeIds} />
+              )}
 
               {/* Saved booking cards — one per booking */}
               {isInBookingsPhase && bookings.map((booking, index) => {
@@ -2432,8 +2398,8 @@ const PropositionWizard = ({
                       return vals.length > 0 ? vals : null;
                     }
                     case 4: { // Creative
-                      const c = creativesForEngine(propositionType).find((x) => x.id === booking.creativeId);
-                      return c ? [c.name] : null;
+                      const names = db.creatives.filter((c) => booking.creativeIds.includes(c.id)).map((c) => c.name);
+                      return names.length > 0 ? names : null;
                     }
                     default: return null;
                   }

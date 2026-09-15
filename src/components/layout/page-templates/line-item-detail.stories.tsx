@@ -40,6 +40,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
+import { BookingCreativesSummary } from '@/components/ui/booking-creatives-summary';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
@@ -1095,6 +1096,7 @@ export const Display: Story = {
                   hierarchy order. */}
               <HierarchySidebar
                 active="booking"
+                creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                 booking={
                   <>
                 <SummaryCard
@@ -2427,6 +2429,7 @@ export const DigitalInStore: Story = {
                       hierarchy order. */}
                   <HierarchySidebar
                     active="booking"
+                    creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                     booking={
                       <>
                   <SummaryCard
@@ -3766,6 +3769,7 @@ export const OfflineInStore: Story = {
                       hierarchy order. */}
                   <HierarchySidebar
                     active="booking"
+                    creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                     booking={
                       <>
                   <SummaryCard
@@ -4921,6 +4925,7 @@ export const OffsiteDisplay: Story = {
                   hierarchy order. */}
               <HierarchySidebar
                 active="booking"
+                creative={<BookingCreativesSummary bookingId={routeEntityId} actions={bookingTab === 'creatives' ? undefined : [{ label: 'Manage creatives', variant: 'outline', onClick: () => setBookingTab('creatives') }]} />}
                 booking={
                   <>
               <SummaryCard

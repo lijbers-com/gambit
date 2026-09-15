@@ -16,7 +16,8 @@ import { Input } from './input';
 import { OptionCard, OptionCardTick } from './option-card';
 import { Table } from './table';
 import { queueToast } from './toast';
-import { CreativePreview, CreativePreviewThumb } from './creative-preview';
+import { CreativePreviewThumb } from './creative-preview';
+import { CreativePreviewDialog } from './creative-preview-dialog';
 import { CreativeStatusBadge } from './creative-builder';
 
 /**
@@ -27,22 +28,30 @@ import { CreativeStatusBadge } from './creative-builder';
  */
 export const BookingCreativesPanel: React.FC<{
   engine: EngineId;
-  /** The booking this panel belongs to; read from the route when omitted. */
+  /** The booking this panel belongs to; read from the route when omitted.
+   *  Linking and unlinking write the database straight away. */
   bookingId?: string;
+  /** Wizard mode — the booking does not exist yet, so the panel holds the
+   *  chosen creative ids for the caller, who links them when it saves. */
+  value?: string[];
+  onChange?: (ids: string[]) => void;
   className?: string;
-}> = ({ engine, bookingId: bookingIdProp, className }) => {
+}> = ({ engine, bookingId: bookingIdProp, value, onChange, className }) => {
   const db = useDb();
+  const controlled = value !== undefined && onChange !== undefined;
 
   const [routeId, setRouteId] = React.useState<string | null>(null);
   React.useEffect(() => {
+    if (controlled) return;
     const segments = window.location.pathname.split('/').filter(Boolean);
     setRouteId(segments[segments.length - 1] ?? null);
-  }, []);
-  const bookingId = bookingIdProp ?? routeId ?? undefined;
+  }, [controlled]);
+  const bookingId = controlled ? undefined : (bookingIdProp ?? routeId ?? undefined);
 
   const templatesById = new Map(db.creativeTemplates.map((t) => [t.id, t]));
-  const attached = bookingId ? db.creatives.filter((c) => c.bookingIds.includes(bookingId)) : [];
-  const linkable = db.creatives.filter((c) => c.engine === engine && bookingId && !c.bookingIds.includes(bookingId));
+  const isAttached = (c: Creative) => (controlled ? value.includes(c.id) : !!bookingId && c.bookingIds.includes(bookingId));
+  const attached = db.creatives.filter(isAttached);
+  const linkable = db.creatives.filter((c) => c.engine === engine && !isAttached(c) && (controlled || !!bookingId));
 
   const [linking, setLinking] = React.useState(false);
   const [selection, setSelection] = React.useState<string[]>([]);
@@ -57,17 +66,25 @@ export const BookingCreativesPanel: React.FC<{
   const engineTemplates = db.creativeTemplates.filter((t) => t.engine === engine);
 
   const unlink = (c: Creative) => {
+    if (controlled) {
+      onChange(value.filter((id) => id !== c.id));
+      return;
+    }
     if (!bookingId) return;
     updateCreative(c.id, { bookingIds: c.bookingIds.filter((id) => id !== bookingId) });
   };
 
   const link = () => {
-    if (!bookingId) return;
-    for (const id of selection) {
-      const c = db.creatives.find((x) => x.id === id);
-      if (c) updateCreative(id, { bookingIds: [...c.bookingIds, bookingId] });
+    if (controlled) {
+      onChange([...value, ...selection.filter((id) => !value.includes(id))]);
+    } else {
+      if (!bookingId) return;
+      for (const id of selection) {
+        const c = db.creatives.find((x) => x.id === id);
+        if (c) updateCreative(id, { bookingIds: [...c.bookingIds, bookingId] });
+      }
+      queueToast({ title: 'Creatives linked', description: `${selection.length} linked to this booking.` });
     }
-    queueToast({ title: 'Creatives linked', description: `${selection.length} linked to this booking.` });
     setSelection([]);
     setLinking(false);
   };
@@ -75,7 +92,7 @@ export const BookingCreativesPanel: React.FC<{
   const [mode, setMode] = React.useState<'create' | 'request'>('create');
 
   const create = () => {
-    if (!bookingId || !newTemplate) return;
+    if (!newTemplate || (!controlled && !bookingId)) return;
     const creative = createCreative({
       name: newName.trim() || 'Untitled creative',
       engine,
@@ -83,8 +100,17 @@ export const BookingCreativesPanel: React.FC<{
       status: mode === 'request' ? 'requested' : 'draft',
       values: {},
       languages: ['en'],
-      bookingIds: [bookingId],
+      bookingIds: bookingId ? [bookingId] : [],
     });
+    if (controlled) {
+      // The booking is still being built: the new creative joins the
+      // selection and gets linked when the wizard saves. Nothing navigates
+      // away from a half-filled wizard.
+      onChange([...value, creative.id]);
+      if (mode === 'request') navigator.clipboard?.writeText(`${window.location.origin}/creatives/${engine}/${creative.id}`).catch(() => {});
+      setCreating(false);
+      return;
+    }
     if (mode === 'request') {
       navigator.clipboard?.writeText(`${window.location.origin}/creatives/${engine}/${creative.id}`).catch(() => {});
       queueToast({ title: 'Upload requested', description: 'The upload link is on your clipboard — send it to the advertiser.' });
@@ -98,7 +124,7 @@ export const BookingCreativesPanel: React.FC<{
     <div className={className}>
       {attached.length === 0 ? (
         <p className="mb-4 text-sm text-muted-foreground">
-          No creative attached yet — the booking cannot go live without an approved one.
+          No creative {controlled ? 'chosen' : 'attached'} yet — the booking cannot go live without an approved one.
         </p>
       ) : (
         <div className="mb-4 overflow-x-auto">
@@ -144,36 +170,7 @@ export const BookingCreativesPanel: React.FC<{
         </Button>
       </div>
 
-      {/* ── Preview: the real composition, then open the builder ── */}
-      <Dialog open={!!previewing} onOpenChange={(o) => !o && setPreviewId(null)}>
-        <DialogContent className="sm:max-w-[560px]">
-          {previewing && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <span className="min-w-0 truncate">{previewing.name}</span>
-                  <CreativeStatusBadge status={previewing.status} />
-                </DialogTitle>
-                <DialogDescription>
-                  {previewing.id} · {templatesById.get(previewing.templateId)?.name}
-                </DialogDescription>
-              </DialogHeader>
-              {templatesById.get(previewing.templateId) && (
-                <CreativePreview template={templatesById.get(previewing.templateId)!} values={previewing.values} creativeId={previewing.id} />
-              )}
-              {previewing.status === 'rejected' && previewing.rejectionReason && (
-                <p className="rounded-md border border-destructive-200 bg-destructive-50 p-2.5 text-sm text-destructive-700">
-                  {previewing.rejectionReason}
-                </p>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setPreviewId(null)}>Close</Button>
-                <Button onClick={() => openCreative(previewing)}>Open creative</Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <CreativePreviewDialog creative={previewing} onClose={() => setPreviewId(null)} />
 
       {/* ── Link existing ── */}
       <Dialog open={linking} onOpenChange={setLinking}>

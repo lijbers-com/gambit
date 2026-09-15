@@ -8,6 +8,8 @@ import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
+import type { EngineId } from '@/lib/db';
+import { PROPOSITION_PATTERNS, PropositionSwatch } from '@/lib/proposition-patterns';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { ConversionFunnelComponent } from '@/components/ui/conversion-funnel';
 import { LineChartComponent } from '@/components/ui/line-chart';
@@ -3515,13 +3517,18 @@ export const FunnelView: Story = {
       offsiteImpressions: 'Display Offsite',
     };
 
-    const channelColors: Record<string, string> = {
-      spaImpressions: 'hsl(var(--chart-2))',
-      impressions: 'hsl(var(--chart-3))',
-      omiDots: 'hsl(var(--chart-4))',
-      doohSpots: 'hsl(var(--chart-5))',
-      offsiteImpressions: 'hsl(var(--chart-1))',
+    // Each channel is a proposition: it is drawn in that proposition's
+    // pattern and grey, the same everywhere the proposition appears.
+    const channelEngines: Record<string, EngineId> = {
+      spaImpressions: 'sponsored-products',
+      impressions: 'display',
+      omiDots: 'digital-instore',
+      doohSpots: 'offline-instore',
+      offsiteImpressions: 'offsite',
     };
+    const channelColors: Record<string, string> = Object.fromEntries(
+      Object.entries(channelEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
 
     const channelTooltips: Record<string, string> = {
       spaImpressions: 'Impressions from Sponsored Product Ads shown in search results and product pages',
@@ -4054,11 +4061,7 @@ export const FunnelView: Story = {
                                     variant={active ? "secondary" : "outline"}
                                     className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
                                   >
-                                    <span
-                                      aria-hidden
-                                      className="mr-1.5 inline-block h-2 w-2 rounded-full"
-                                      style={{ backgroundColor: channelColors[key] }}
-                                    />
+                                    <PropositionSwatch engine={channelEngines[key]} className="mr-1.5" />
                                     {channelLabels[key]} {Math.round((awarenessDataRaw[awarenessDataRaw.length - 1] as any)[key] / 1000)}K
                                   </Badge>
                                 </button>
@@ -4074,7 +4077,7 @@ export const FunnelView: Story = {
                     <AreaChartComponent
                       data={awarenessData}
                       config={Object.fromEntries(
-                        selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k] }])
+                        selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k], engine: channelEngines[k] }])
                       )}
                       stacked={true}
                       showLegend={false}

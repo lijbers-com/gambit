@@ -1,3 +1,4 @@
+import type { EngineId } from '@/lib/db';
 // Chart data types
 export interface ChartDataPoint {
   [key: string]: string | number | boolean | null | undefined;
@@ -22,6 +23,9 @@ export interface ChartConfig {
     label: string;
     color?: string;
     icon?: React.ComponentType;
+    /** The proposition this series stands for — it is drawn in that
+     *  proposition's pattern and grey, so identity never rests on hue. */
+    engine?: EngineId;
   };
 }
 

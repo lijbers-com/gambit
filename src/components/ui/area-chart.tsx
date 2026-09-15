@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { ChartDataPoint, ChartConfig, formatYAxisTick } from "./chart-types"
+import { PropositionPatternDefs, PROPOSITION_PATTERNS, patternFill } from "@/lib/proposition-patterns"
 
 export interface AreaChartProps {
   data: ChartDataPoint[]
@@ -137,18 +138,23 @@ export function AreaChartComponent({
             tick={{ dy: 4 }}
           />
         )}
-        {dataKeys.map((key) => (
-          <Area
-            key={key}
-            dataKey={key}
-            type={curved ? "monotone" : "linear"}
-            fill={`var(--color-${key})`}
-            fillOpacity={0.4}
-            stroke={`var(--color-${key})`}
-            stackId={stacked ? "a" : undefined}
-            yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
-          />
-        ))}
+        {dataKeys.some((key) => config[key].engine) && <PropositionPatternDefs />}
+        {dataKeys.map((key) => {
+          const engine = config[key].engine
+          return (
+            <Area
+              key={key}
+              dataKey={key}
+              type={curved ? "monotone" : "linear"}
+              fill={engine ? patternFill(engine) : `var(--color-${key})`}
+              fillOpacity={engine ? 1 : 0.4}
+              stroke={engine ? PROPOSITION_PATTERNS[engine].ink : `var(--color-${key})`}
+              strokeWidth={engine ? 1 : undefined}
+              stackId={stacked ? "a" : undefined}
+              yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
+            />
+          )
+        })}
         {benchmark != null && (
           <ReferenceLine
             y={benchmark.value}

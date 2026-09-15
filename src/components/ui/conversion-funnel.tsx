@@ -1,9 +1,13 @@
 "use client"
 
-// Hand-rolled in SVG rather than wrapping Recharts' Funnel: this chart
-// needs each stage to be its own clickable column with a synced
-// breakdown header (label + percentage + volume) above the bar — a
-// layout Recharts' Funnel doesn't expose.
+// Hand-rolled in SVG rather than wrapping Recharts' Funnel: each stage is
+// its own clickable column with a synced breakdown header (label, share,
+// volume, drop-off) above the drawing, which Recharts' Funnel does not give.
+//
+// The drawing is one continuous shape: the flow narrows smoothly from one
+// stage's share to the next, centred on the baseline like a river seen from
+// above, in one quiet grey. Where the reader is (hover or selection) the
+// column lifts; the rest steps back.
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
@@ -18,6 +22,7 @@ export interface ConversionFunnelProps {
   stages: ConversionFunnelStage[]
   className?: string
   showTooltip?: boolean
+  /** The flow's fill. Defaults to a neutral grey. */
   color?: string
   valueFormatter?: (value: number) => string
   barHeight?: number
@@ -32,11 +37,17 @@ const formatPercent = (n: number) => {
   return `${Math.round(n)}%`
 }
 
+/** Drawing units: each stage is 100 wide; the flow's full height is 100. */
+const W = 100
+const H = 100
+/** The last stage never thins to nothing — a line still reads as flow. */
+const MIN_HALF = 3
+
 export function ConversionFunnelComponent({
   stages,
   className,
   showTooltip = true,
-  color = "hsl(var(--chart-1))",
+  color = "rgb(var(--neutral-400))",
   valueFormatter = (v) => v.toLocaleString(),
   barHeight = 160,
   selectedKey,
@@ -47,32 +58,55 @@ export function ConversionFunnelComponent({
   const firstValue = stages[0]?.value ?? 0
   const maxValue = Math.max(...stages.map((s) => s.value), 1)
   const isInteractive = typeof onStageClick === "function"
+  const n = stages.length
 
   const handleSelect = (key: string) => {
     if (onStageClick) onStageClick(key)
   }
+  const isSelected = (key: string) => selectedKey !== undefined && selectedKey === key
+  const activeIndex = selectedKey !== undefined ? stages.findIndex((s) => s.key === selectedKey) : hoveredIndex
 
-  const isSelected = (key: string) =>
-    selectedKey !== undefined && selectedKey === key
+  // Half-height of the flow at each stage boundary. A stage holds its width
+  // across the first part of its column and eases into the next stage's
+  // width at the boundary, so the narrowing sits where the drop-off is read.
+  const half = (v: number) => Math.max(MIN_HALF, (v / maxValue) * (H / 2))
+  const halves = stages.map((s) => half(s.value))
 
-  const isDimmed = (i: number, key: string) => {
-    if (selectedKey !== undefined) return !isSelected(key)
-    return hoveredIndex !== null && hoveredIndex !== i
-  }
+  const path = React.useMemo(() => {
+    if (n === 0) return ""
+    const mid = H / 2
+    const top: string[] = []
+    const bottom: string[] = []
+    // Ease over the last 40% of each column into the next stage's width.
+    const HOLD = 0.6
+    for (let i = 0; i < n; i++) {
+      const x0 = i * W
+      const x1 = x0 + W * HOLD
+      const x2 = x0 + W
+      const a = halves[i]
+      const b = i < n - 1 ? halves[i + 1] : halves[i]
+      if (i === 0) top.push(`M ${x0} ${mid - a}`)
+      top.push(`L ${x1} ${mid - a}`)
+      const cx = (x1 + x2) / 2
+      top.push(`C ${cx} ${mid - a}, ${cx} ${mid - b}, ${x2} ${mid - b}`)
+      bottom.unshift(`C ${cx} ${mid + b}, ${cx} ${mid + a}, ${x1} ${mid + a}`, `L ${x0} ${mid + a}`)
+      if (i === n - 1) bottom.unshift(`L ${x2} ${mid + b}`)
+    }
+    return `${top.join(" ")} ${bottom.join(" ")} Z`
+  }, [halves, n])
 
   return (
     <div className={cn("flex flex-col w-full", className)}>
+      {/* Breakdown header — one cell per stage */}
       <div
         className="grid border-b border-border"
-        style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         {stages.map((stage, i) => {
           const prev = i > 0 ? stages[i - 1].value : null
           const stageRate = firstValue > 0 ? (stage.value / firstValue) * 100 : 0
-          const dropOff =
-            prev !== null && prev > 0 ? ((prev - stage.value) / prev) * 100 : null
+          const dropOff = prev !== null && prev > 0 ? ((prev - stage.value) / prev) * 100 : null
           const selected = isSelected(stage.key)
-
           return (
             <div
               key={stage.key}
@@ -83,7 +117,7 @@ export function ConversionFunnelComponent({
                 "px-4 py-3 border-l border-border first:border-l-0 transition-colors",
                 isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected && "bg-muted/30",
-                !selected && hoveredIndex === i && "bg-muted/20"
+                !selected && hoveredIndex === i && "bg-muted/20",
               )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -96,83 +130,60 @@ export function ConversionFunnelComponent({
               }}
             >
               <div className="text-xs text-muted-foreground truncate">{stage.label}</div>
-              <div className="text-2xl font-semibold leading-tight">
-                {formatPercent(stageRate)}
-              </div>
+              <div className="text-2xl font-semibold leading-tight">{formatPercent(stageRate)}</div>
               <div className="text-xs text-muted-foreground">
                 {valueFormatter(stage.value)}
-                {dropOff !== null && (
-                  <span className="ml-1">&#8600; {formatPercent(dropOff)}</span>
-                )}
+                {dropOff !== null && <span className="ml-1">&#8600; {formatPercent(dropOff)}</span>}
               </div>
             </div>
           )
         })}
       </div>
 
-      <div
-        className="relative grid"
-        style={{
-          gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))`,
-          height: barHeight,
-        }}
-      >
-        {stages.map((stage, i) => {
-          const next = i < stages.length - 1 ? stages[i + 1].value : stage.value
-          const leftPct = (stage.value / maxValue) * 100
-          const rightPct = (next / maxValue) * 100
-          const isLast = i === stages.length - 1
-          const dimmed = isDimmed(i, stage.key)
-          const selected = isSelected(stage.key)
+      {/* The flow — one shape across every column */}
+      <div className="relative" style={{ height: barHeight }}>
+        <svg
+          className="absolute inset-0 h-full w-full"
+          preserveAspectRatio="none"
+          viewBox={`0 0 ${n * W} ${H}`}
+        >
+          <defs>
+            {/* Where the reader is, the flow is fully inked; elsewhere it steps back. */}
+            <clipPath id="cf-active">
+              {activeIndex !== null && activeIndex >= 0 && <rect x={activeIndex * W} y={0} width={W} height={H} />}
+            </clipPath>
+          </defs>
+          <path d={path} fill={color} opacity={activeIndex !== null && activeIndex >= 0 ? 0.35 : 0.8} />
+          {activeIndex !== null && activeIndex >= 0 && (
+            <path d={path} fill={color} clipPath="url(#cf-active)" />
+          )}
+          {/* Stage dividers, hairline */}
+          {stages.slice(1).map((s, i) => (
+            <line key={s.key} x1={(i + 1) * W} x2={(i + 1) * W} y1={0} y2={H} stroke="hsl(var(--border))" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
+          ))}
+        </svg>
 
-          return (
+        {/* Hit areas + tooltips, one per column */}
+        <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+          {stages.map((stage, i) => (
             <div
               key={stage.key}
-              className={cn(
-                "relative border-l border-border first:border-l-0 transition-colors",
-                isInteractive && "cursor-pointer",
-                selected && "bg-muted/30",
-                !selected && hoveredIndex === i && "bg-muted/20"
-              )}
+              className={cn("relative", isInteractive && "cursor-pointer")}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => isInteractive && handleSelect(stage.key)}
             >
-              <svg
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="none"
-                viewBox="0 0 100 100"
-              >
-                <rect
-                  x={0}
-                  y={100 - leftPct}
-                  width={75}
-                  height={leftPct}
-                  fill={dimmed ? "hsl(var(--muted-foreground))" : color}
-                  opacity={dimmed ? 0.25 : 1}
-                />
-                {!isLast && (
-                  <polygon
-                    points={`75,${100 - leftPct} 100,${100 - rightPct} 100,100 75,100`}
-                    fill={dimmed ? "hsl(var(--muted-foreground))" : color}
-                    opacity={dimmed ? 0.12 : 0.3}
-                  />
-                )}
-              </svg>
-
               {showTooltip && hoveredIndex === i && (
                 <ConversionFunnelTooltip
                   stage={stage}
-                  stageRate={
-                    firstValue > 0 ? (stage.value / firstValue) * 100 : 0
-                  }
+                  stageRate={firstValue > 0 ? (stage.value / firstValue) * 100 : 0}
                   color={color}
                   valueFormatter={valueFormatter}
                 />
               )}
             </div>
-          )
-        })}
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -185,34 +196,22 @@ interface TooltipProps {
   valueFormatter: (value: number) => string
 }
 
-function ConversionFunnelTooltip({
-  stage,
-  stageRate,
-  color,
-  valueFormatter,
-}: TooltipProps) {
+function ConversionFunnelTooltip({ stage, stageRate, color, valueFormatter }: TooltipProps) {
   return (
-    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-2 -translate-y-full z-10">
+    <div className="pointer-events-none absolute left-1/2 top-2 z-10 -translate-x-1/2">
       <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
         <div className="font-medium">{stage.label}</div>
         <div className="flex items-center gap-2">
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-            style={{ backgroundColor: color }}
-          />
+          <span className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
           <div className="flex flex-1 justify-between gap-3 leading-none">
             <span className="text-muted-foreground">Volume</span>
-            <span className="font-mono font-medium tabular-nums text-foreground">
-              {valueFormatter(stage.value)}
-            </span>
+            <span className="font-mono font-medium tabular-nums text-foreground">{valueFormatter(stage.value)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 pl-[14px]">
           <div className="flex flex-1 justify-between gap-3 leading-none">
             <span className="text-muted-foreground">Share</span>
-            <span className="font-mono font-medium tabular-nums text-foreground">
-              {formatPercent(stageRate)}
-            </span>
+            <span className="font-mono font-medium tabular-nums text-foreground">{formatPercent(stageRate)}</span>
           </div>
         </div>
       </div>

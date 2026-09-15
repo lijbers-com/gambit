@@ -133,6 +133,10 @@ const Composition: React.FC<{
     imgFor(creativeId, v, 'file');
   const cutout = imgFor(creativeId, v, 'transparentImage');
   const portrait = h > w;
+  // Square tiles stack headline over CTA; a super-skinny strip has room for
+  // one line of small type and nothing else.
+  const stacked = h / w > 0.75;
+  const skinny = w / h > 8;
   const sponsored = !small && v.sponsoredLabel === 'Yes' && (
     <span className="absolute left-[2%] top-[6%] z-20 rounded-sm bg-black/45 px-1.5 py-0.5 text-[9px] text-white">Sponsored</span>
   );
@@ -252,22 +256,22 @@ const Composition: React.FC<{
             />
           )}
           {sponsored}
-          <div className={cn('relative z-10 flex h-full w-full items-center gap-[4%] p-[5%]', portrait ? 'flex-col items-start justify-end' : 'flex-row justify-between')}>
+          <div className={cn('relative z-10 flex h-full w-full items-center gap-[4%]', skinny ? 'px-[3%] py-[1%]' : 'p-[5%]', sponsored && !skinny && 'pt-[9%]', stacked ? 'flex-col items-start justify-end' : 'flex-row justify-between')}>
             <span className="min-w-0">
               <span
-                className={cn('block font-semibold leading-tight', small ? 'text-[10px]' : 'text-[clamp(10px,6cqw,26px)]')}
-                style={{ color: text, overflowWrap: 'anywhere' }}
+                className={cn('block font-semibold leading-tight', small ? 'text-[10px]' : skinny ? 'truncate text-[clamp(8px,2.2cqw,14px)]' : 'text-[clamp(10px,6cqw,26px)]')}
+                style={{ color: text, overflowWrap: skinny ? undefined : 'anywhere' }}
               >
                 {v.header || 'Your headline'}
               </span>
-              {v.bodyCopy && !small && (
+              {v.bodyCopy && !small && !skinny && (
                 <span className="block text-[clamp(8px,3cqw,13px)] opacity-90" style={{ color: text }}>
                   {v.bodyCopy}
                 </span>
               )}
             </span>
             <span className="flex shrink-0 items-center gap-[6px]">
-              {!small && productIds.length > 0 && !portrait && (
+              {!small && !skinny && productIds.length > 0 && !stacked && (
                 <span className="flex items-center gap-[4px]">
                   {productIds.slice(0, 3).map((id) => (
                     <span key={id} className="flex h-[3.2em] w-[2.6em] flex-col items-center justify-center gap-[2px] rounded-sm bg-white/95 p-[2px] shadow-sm">
@@ -279,7 +283,7 @@ const Composition: React.FC<{
                 </span>
               )}
               <span
-                className={cn('whitespace-nowrap rounded-full font-medium', small ? 'px-1.5 py-0.5 text-[7px]' : 'px-[1em] py-[0.45em] text-[clamp(8px,3.5cqw,14px)]')}
+                className={cn('whitespace-nowrap rounded-full font-medium', small ? 'px-1.5 py-0.5 text-[7px]' : skinny ? 'px-[0.8em] py-[0.25em] text-[clamp(7px,1.6cqw,11px)]' : 'px-[1em] py-[0.45em] text-[clamp(8px,3.5cqw,14px)]')}
                 style={{ background: text, color: bg }}
               >
                 {v.cta || 'Call to action'}
@@ -304,7 +308,7 @@ export const CreativePreview: React.FC<CreativePreviewProps> = ({ template, valu
   return (
     <div className={cn('space-y-1', className)}>
       <div
-        className={cn('relative mx-auto w-full overflow-hidden rounded-md border bg-background shadow-sm', portrait && 'max-w-[240px]')}
+        className={cn('relative mx-auto w-full overflow-hidden rounded-md border bg-background shadow-sm', portrait ? 'max-w-[240px]' : h / w > 0.75 && 'max-w-[300px]')}
         style={{ aspectRatio: `${w} / ${h}`, containerType: 'inline-size' }}
       >
         <Composition template={template} v={v} creativeId={creativeId} w={w} h={h} />

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { LayoutGrid, Link2, Minus, Send, Share2 } from 'lucide-react';
+import { LayoutGrid, LayoutTemplate, Link2, Minus, Send, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useDb,
@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { FormSection } from './form-section';
 import { Input, FileInput } from './input';
 import { RetailProductSelect } from './retail-product-select';
-import { SettingsCard } from './settings-card';
+import { SearchSelectList } from './search-select-list';
 import { Switch } from './switch';
 import { Table } from './table';
 import { queueToast } from './toast';
@@ -275,18 +275,22 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
             </FormSection>
 
             {/* The template IS the format choice — its logic comes from the
-                engine, and its requirements are on the card, not behind a
-                dead "See format requirements" button. */}
+                engine. Picked the way retail products are: search, choose,
+                and the chosen one sits below as a card with its sizes and
+                requirements; the other nine stay out of the way. */}
             <FormSection title="Template">
-              <SettingsCard
+              <SearchSelectList
+                multiple={false}
+                label={null}
+                placeholder="Search templates…"
+                icon={<LayoutTemplate className="h-4 w-4" />}
                 options={templates.map((t) => ({ value: t.id, label: t.name, description: t.description }))}
-                value={templateId}
-                onChange={(v) => {
-                  setTemplateId(v);
+                value={templateId ? [templateId] : []}
+                onChange={(ids) => {
+                  setTemplateId(ids[0] ?? '');
                   setActiveSize(null);
                 }}
-                defaultSettingsOpen
-                renderOpenExtra={(opt) => {
+                renderSelectedExtra={(opt) => {
                   const t = templates.find((x) => x.id === opt.value);
                   if (!t) return null;
                   return (

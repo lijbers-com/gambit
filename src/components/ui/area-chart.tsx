@@ -169,7 +169,7 @@ export function AreaChartComponent({
               fill={engine ? patternFill(engine) : `var(--color-${key})`}
               fillOpacity={engine ? (stacked ? 1 : 0.55) : 0.4}
               stroke={engine ? patternFor(engine).ink : `var(--color-${key})`}
-              strokeWidth={engine ? 1 : undefined}
+              strokeWidth={engine ? 0.75 : undefined}
               stackId={stacked ? "a" : undefined}
               yAxisId={showRightYAxis && rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
             />

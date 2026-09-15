@@ -27,13 +27,14 @@ export interface PropositionPattern {
 }
 
 export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
-  // One near-white base for all: the pattern alone tells them apart, and a
-  // thin ink line at each series edge keeps neighbours from blurring.
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
-  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
-  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-600))' },
+  // The shade does the separating; the pattern is a whisper on top — one
+  // step of ink over the base, wide and thin — there to be recognised, not
+  // to be read at a glance.
+  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-100))', ink: 'rgb(var(--neutral-400))' },
+  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-400))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
+  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
+  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-700))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */
@@ -57,23 +58,23 @@ export const PropositionPatternDefs: React.FC<{ engines?: PatternKey[]; opacity?
       {list.map((engine) => {
         const p = patternFor(engine);
         const id = patternId(engine);
-        const size = 10;
+        const size = 12;
         return (
           <pattern key={id} id={id} patternUnits="userSpaceOnUse" width={size} height={size} style={{ opacity }}>
             <rect width={size} height={size} fill={p.base} />
-            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.75} />}
-            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.75} />}
+            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
+            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
             {p.kind === 'crosshatch' && (
               <>
-                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.6} />
-                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.6} />
+                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.5} opacity={0.7} />
+                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.5} opacity={0.7} />
               </>
             )}
-            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={1} fill={p.ink} />}
+            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={0.9} fill={p.ink} opacity={0.8} />}
             {p.kind === 'checker' && (
               <>
-                <rect x={0} y={0} width={size / 2} height={size / 2} fill={p.ink} opacity={0.45} />
-                <rect x={size / 2} y={size / 2} width={size / 2} height={size / 2} fill={p.ink} opacity={0.45} />
+                <rect x={0} y={0} width={size / 2} height={size / 2} fill={p.ink} opacity={0.22} />
+                <rect x={size / 2} y={size / 2} width={size / 2} height={size / 2} fill={p.ink} opacity={0.22} />
               </>
             )}
           </pattern>
@@ -92,8 +93,8 @@ export const PropositionSwatch: React.FC<{ engine: PatternKey; className?: strin
       <defs>
         <pattern id={id} patternUnits="userSpaceOnUse" width={6} height={6}>
           <rect width={6} height={6} fill={p.base} />
-          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.75} />}
-          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.75} />}
+          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
+          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
           {p.kind === 'crosshatch' && (
             <>
               <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.7} />
@@ -103,8 +104,8 @@ export const PropositionSwatch: React.FC<{ engine: PatternKey; className?: strin
           {p.kind === 'dots' && <circle cx={3} cy={3} r={0.9} fill={p.ink} />}
           {p.kind === 'checker' && (
             <>
-              <rect x={0} y={0} width={3} height={3} fill={p.ink} opacity={0.45} />
-              <rect x={3} y={3} width={3} height={3} fill={p.ink} opacity={0.45} />
+              <rect x={0} y={0} width={3} height={3} fill={p.ink} opacity={0.22} />
+              <rect x={3} y={3} width={3} height={3} fill={p.ink} opacity={0.22} />
             </>
           )}
         </pattern>

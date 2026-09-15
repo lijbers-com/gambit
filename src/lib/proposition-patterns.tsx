@@ -24,10 +24,10 @@ export interface PropositionPattern {
 }
 
 export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-500))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-600))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-700))' },
-  'offline-instore':    { kind: 'solid',            base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-700))' },
+  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-400))' },
+  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
+  'offline-instore':    { kind: 'solid',            base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-600))' },
   offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-600))', ink: 'rgb(var(--neutral-800))' },
 };
 
@@ -47,19 +47,19 @@ export const PropositionPatternDefs: React.FC<{ engines?: EngineId[]; opacity?: 
       {list.map((engine) => {
         const p = PROPOSITION_PATTERNS[engine];
         const id = patternId(engine);
-        const size = 8;
+        const size = 10;
         return (
           <pattern key={id} id={id} patternUnits="userSpaceOnUse" width={size} height={size} style={{ opacity }}>
             <rect width={size} height={size} fill={p.base} />
-            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={1} />}
-            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={1} />}
+            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.75} />}
+            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.75} />}
             {p.kind === 'crosshatch' && (
               <>
-                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.8} />
-                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.8} />
+                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.6} />
+                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.6} />
               </>
             )}
-            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={1.1} fill={p.ink} />}
+            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={1} fill={p.ink} />}
           </pattern>
         );
       })}
@@ -76,8 +76,8 @@ export const PropositionSwatch: React.FC<{ engine: EngineId; className?: string;
       <defs>
         <pattern id={id} patternUnits="userSpaceOnUse" width={6} height={6}>
           <rect width={6} height={6} fill={p.base} />
-          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={1} />}
-          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={1} />}
+          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.75} />}
+          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.75} />}
           {p.kind === 'crosshatch' && (
             <>
               <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.7} />

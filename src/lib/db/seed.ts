@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 15;
+export const SEED_VERSION = 16;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -613,8 +613,8 @@ export const seedData: DbData = {
       fields: [
         { key: 'header', label: 'Headline', type: 'text', required: true, placeholder: 'Headline', maxLength: 44, localized: true, hint: 'Fill in a headline' },
         { key: 'bodyCopy', label: 'Body copy', type: 'text', placeholder: 'Body copy', maxLength: 80, localized: true, hint: 'Set the content of the body copy' },
-        { key: 'cta', label: 'CTA', type: 'select', required: true, options: ['Get Offer', 'Shop now', 'Discover', 'Order now', 'Learn more'], hint: 'Select the Call to Action from the list' },
-        { key: 'bgColor', label: 'Background color', type: 'select', required: true, options: ['Black', 'White', 'Blue', 'Green', 'Orange'], hint: 'Select the background color from the list' },
+        { key: 'cta', label: 'CTA', type: 'select', options: ['Get Offer', 'Shop now', 'Discover', 'Order now', 'Learn more'], hint: 'Select the Call to Action from the list' },
+        { key: 'bgColor', label: 'Background color', type: 'select', options: ['Black', 'White', 'Blue', 'Green', 'Orange'], hint: 'Select the background color from the list' },
         { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
         { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
         { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
@@ -635,6 +635,10 @@ export const seedData: DbData = {
         { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Shop now', localized: true },
         { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
         { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
+        { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
+        { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
+        { key: 'dvScript', label: 'DV script', type: 'text', hint: 'Enter the DV script src to be used. Make sure to not add any HTML tags.' },
         { key: 'bannerImage', label: 'Banner image', type: 'image' },
         { key: 'transparentImage', label: 'Transparent image', type: 'image', hint: 'Product cut-out on transparent background' },
       ],
@@ -645,6 +649,10 @@ export const seedData: DbData = {
         { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Discover', localized: true },
         { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
         { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
+        { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
+        { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
+        { key: 'dvScript', label: 'DV script', type: 'text', hint: 'Enter the DV script src to be used. Make sure to not add any HTML tags.' },
         { key: 'bannerImage', label: 'Banner image', type: 'image' },
         { key: 'transparentImage', label: 'Transparent image', type: 'image' },
       ],
@@ -655,6 +663,10 @@ export const seedData: DbData = {
         { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'View offer', localized: true },
         { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
         { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
+        { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
+        { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
+        { key: 'dvScript', label: 'DV script', type: 'text', hint: 'Enter the DV script src to be used. Make sure to not add any HTML tags.' },
         { key: 'bannerImage', label: 'Banner image', type: 'image' },
         { key: 'transparentImage', label: 'Transparent image', type: 'image' },
       ],
@@ -665,6 +677,10 @@ export const seedData: DbData = {
         { key: 'cta', label: 'CTA', type: 'text', required: true, placeholder: 'Watch', localized: true },
         { key: 'textColor', label: 'Text colour', type: 'color', required: true, placeholder: '#FFFFFF' },
         { key: 'bgColor', label: 'Background colour', type: 'color', required: true, placeholder: '#0B0B0B' },
+        { key: 'clickUrl', label: 'Click URL', type: 'text', required: true, placeholder: '/…', hint: 'Fill in the URL where the user should be redirected to' },
+        { key: 'altText', label: 'Alt text', type: 'text', required: true, hint: 'Fill in an alt text for the image' },
+        { key: 'sponsoredLabel', label: 'Show sponsored label', type: 'select', options: ['Yes', 'No'], hint: 'Show the sponsored label' },
+        { key: 'dvScript', label: 'DV script', type: 'text', hint: 'Enter the DV script src to be used. Make sure to not add any HTML tags.' },
         { key: 'bannerImage', label: 'Poster frame', type: 'image' },
       ],
       fileHint: 'MP4 H.264, max 15s, sound off by default. Poster frame shown before play.' },
@@ -756,10 +772,10 @@ export const seedData: DbData = {
       values: { header: 'Fresh on the table', bodyCopy: 'Seasonal bowls, ready in ten minutes.', 'nl:header': 'Vers op tafel', 'nl:bodyCopy': 'Seizoensbowls, klaar in tien minuten.', cta: 'Get Offer', bgColor: 'Black', clickUrl: '/fresh-summer', altText: 'Summer bowl with vegetables', sponsoredLabel: 'Yes', productId1: '606983', productId2: '607124', productId3: '614038' },
       languages: ['en', 'nl'], skus: ['606983', '607124', '614038'], bookingIds: [], createdAt: now, updatedAt: now },
     { id: 'CR-101', name: 'Zero Sugar — Summer banner set', engine: 'display', templateId: 'tpl-dis-banner', status: 'approved',
-      values: { header: 'Zero sugar. All summer.', cta: 'Shop the deal', 'nl:header': 'Nul suiker. De hele zomer.', 'nl:cta': 'Bekijk de deal', textColor: '#FFFFFF', bgColor: '#0A4D8C' },
+      values: { header: 'Zero sugar. All summer.', cta: 'Shop the deal', 'nl:header': 'Nul suiker. De hele zomer.', 'nl:cta': 'Bekijk de deal', textColor: '#FFFFFF', bgColor: '#0A4D8C', clickUrl: '/zero-sugar', altText: 'Zero sugar cola bottles on ice', sponsoredLabel: 'Yes' },
       languages: ['en', 'nl'], bookingIds: ['B-002'], createdAt: now, updatedAt: now },
     { id: 'CR-102', name: 'Holiday Hero — App homepage', engine: 'display', templateId: 'tpl-dis-app-homepage', status: 'approved',
-      values: { header: 'The holidays start here', cta: 'Discover', textColor: '#FFFFFF', bgColor: '#7C1D2E' },
+      values: { header: 'The holidays start here', cta: 'Discover', textColor: '#FFFFFF', bgColor: '#7C1D2E', clickUrl: '/holidays', altText: 'Festive table with holiday dishes', sponsoredLabel: 'Yes' },
       languages: ['en'], bookingIds: ['B-001'], createdAt: now, updatedAt: now },
     { id: 'CR-103', name: 'Summer Launch — Entrance screens', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
       values: { header: 'New this summer', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-031'], createdAt: now, updatedAt: now },
@@ -773,7 +789,7 @@ export const seedData: DbData = {
     { id: 'CR-107', name: 'Back to School — Open web', engine: 'offsite', templateId: 'tpl-off-banner', status: 'submitted',
       values: { header: 'Ready for day one', cta: 'Get set', textColor: '#FFFFFF', bgColor: '#1E5A3C' }, languages: ['en'], bookingIds: ['B-028'], createdAt: now, updatedAt: now },
     { id: 'CR-108', name: 'Ice Cream — Search video', engine: 'display', templateId: 'tpl-dis-video', status: 'in-review',
-      values: { header: 'Summer, served', cta: 'Watch', textColor: '#FFFFFF', bgColor: '#123047' }, languages: ['en'], bookingIds: [], createdAt: now, updatedAt: now },
+      values: { header: 'Summer, served', cta: 'Watch', textColor: '#FFFFFF', bgColor: '#123047', clickUrl: '/ice-cream', altText: 'Ice cream cones in the sun', sponsoredLabel: 'No' }, languages: ['en'], bookingIds: [], createdAt: now, updatedAt: now },
     { id: 'CR-109', name: 'Wobbler — Zero Sugar shelf', engine: 'offline-instore', templateId: 'tpl-oit-wobbler', status: 'rejected',
       values: {}, languages: ['en'], bookingIds: [], rejectionReason: 'Logo below minimum size for A6; supply the master file with 3mm bleed.', createdAt: now, updatedAt: now },
     { id: 'CR-110', name: 'Winter Warmers — Video wall', engine: 'digital-instore', templateId: 'tpl-dgi-videowall', status: 'draft',

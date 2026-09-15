@@ -133,6 +133,9 @@ const Composition: React.FC<{
     imgFor(creativeId, v, 'file');
   const cutout = imgFor(creativeId, v, 'transparentImage');
   const portrait = h > w;
+  const sponsored = !small && v.sponsoredLabel === 'Yes' && (
+    <span className="absolute left-[2%] top-[6%] z-20 rounded-sm bg-black/45 px-1.5 py-0.5 text-[9px] text-white">Sponsored</span>
+  );
 
   const imageLayer = image ? (
     <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -164,6 +167,7 @@ const Composition: React.FC<{
         <div className="absolute inset-0" style={{ background: bg }}>
           {imageLayer}
           <div className="absolute inset-0 bg-black/25" />
+          {sponsored}
           <div className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 p-[3%]">
             <Play className={small ? 'h-3 w-3' : 'h-6 w-6'} fill="white" color="white" />
           </div>
@@ -227,6 +231,7 @@ const Composition: React.FC<{
             <span className="text-[0.55em] text-white/90">9:41</span>
             <span className="h-[0.5em] w-[22%] rounded-full bg-white/40" />
           </div>
+          {sponsored && <span className="absolute left-[4%] top-[9%] z-20 rounded-sm bg-black/45 px-1.5 py-0.5 text-[9px] text-white">Sponsored</span>}
           {cutout && <img src={cutout} alt="" className="absolute bottom-[18%] left-1/2 z-[5] max-h-[45%] -translate-x-1/2" />}
           <div className="absolute inset-x-0 bottom-[4%]">
             <Lockup header={v.header} cta={v.cta} textColor={text} stacked small={small} />
@@ -246,9 +251,7 @@ const Composition: React.FC<{
               className={cn('absolute z-[5] object-contain', portrait ? 'bottom-[25%] left-1/2 max-h-[35%] -translate-x-1/2' : 'right-[4%] top-1/2 max-h-[80%] max-w-[30%] -translate-y-1/2')}
             />
           )}
-          {!small && v.sponsoredLabel === 'Yes' && (
-            <span className="absolute left-[2%] top-[6%] z-20 rounded-sm bg-black/45 px-1.5 py-0.5 text-[9px] text-white">Sponsored</span>
-          )}
+          {sponsored}
           <div className={cn('relative z-10 flex h-full w-full items-center gap-[4%] p-[5%]', portrait ? 'flex-col items-start justify-end' : 'flex-row justify-between')}>
             <span className="min-w-0">
               <span

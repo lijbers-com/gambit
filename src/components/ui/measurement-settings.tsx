@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Input } from './input';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
-import { Switch } from './switch';
 
 /**
  * How the numbers are counted — attribution window and model, whether halo
@@ -16,34 +15,33 @@ import { Switch } from './switch';
  * row above them.
  */
 
-export type AttributionModel = 'last-click' | 'any-click' | 'view-through';
+/** Which sales count against the media. */
+export type SalesScope = 'hero' | 'halo' | 'basket';
 
 export interface MeasurementSettingsValue {
   /** Days after an ad exposure in which a sale still counts. */
   attributionWindow: 7 | 14 | 30;
-  model: AttributionModel;
-  /** Count sales of the brand's other products lifted by the campaign. */
-  includeHalo: boolean;
-  /** Count only the hero products named on the booking. */
-  heroOnly: boolean;
+  scope: SalesScope;
 }
 
 export const DEFAULT_MEASUREMENT: MeasurementSettingsValue = {
   attributionWindow: 14,
-  model: 'last-click',
-  includeHalo: true,
-  heroOnly: false,
+  scope: 'halo',
 };
 
-const MODEL_LABEL: Record<AttributionModel, string> = {
-  'last-click': 'Last click',
-  'any-click': 'Any click',
-  'view-through': 'View-through',
+export const SCOPE_LABEL: Record<SalesScope, string> = {
+  hero: 'Hero products only',
+  halo: 'Hero + halo',
+  basket: 'Full basket',
+};
+const SCOPE_HINT: Record<SalesScope, string> = {
+  hero: 'Only the products named on the booking.',
+  halo: "The hero products plus the brand's other products lifted by the campaign.",
+  basket: 'Everything in the baskets of reached shoppers.',
 };
 
-/** One line that says how the figures are counted, for the button. */
-export const measurementSummary = (v: MeasurementSettingsValue) =>
-  `${v.attributionWindow}d · ${MODEL_LABEL[v.model]}${v.includeHalo ? ' · halo' : ''}${v.heroOnly ? ' · hero only' : ''}`;
+/** One line that says how the figures are counted, for a button. */
+export const measurementSummary = (v: MeasurementSettingsValue) => `${v.attributionWindow}d · ${SCOPE_LABEL[v.scope]}`;
 
 /** The settings themselves — hosted by the popover below, or by a dialog
  *  (the metric row's Edit metrics) so the filter row stays one line. */
@@ -55,46 +53,32 @@ export const MeasurementSettingsFields: React.FC<{
   const set = <K extends keyof MeasurementSettingsValue>(key: K, val: MeasurementSettingsValue[K]) => onChange({ ...value, [key]: val });
   return (
     <div className={cn('space-y-4', className)}>
-  <div>
-    <div className="text-sm font-medium">How the numbers are counted</div>
-    <p className="text-xs text-muted-foreground">Applies to every figure on this page.</p>
-  </div>
-  <div className="grid grid-cols-2 gap-3">
-    <div>
-      <label className="mb-1.5 block text-xs font-medium">Attribution window</label>
-      <Input
-        dropdown
-        options={[7, 14, 30].map((d) => ({ value: String(d), label: `${d} days` }))}
-        value={String(value.attributionWindow)}
-        onChange={(v) => set('attributionWindow', Number(v) as 7 | 14 | 30)}
-      />
-    </div>
-    <div>
-      <label className="mb-1.5 block text-xs font-medium">Model</label>
-      <Input
-        dropdown
-        options={(Object.keys(MODEL_LABEL) as AttributionModel[]).map((m) => ({ value: m, label: MODEL_LABEL[m] }))}
-        value={value.model}
-        onChange={(v) => set('model', v as AttributionModel)}
-      />
-    </div>
-  </div>
-  <div className="space-y-2">
-    <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-      <span>
-        <span className="block text-sm font-medium">Include halo effect</span>
-        <span className="block text-xs text-muted-foreground">Sales of the brand's other products lifted by the campaign</span>
-      </span>
-      <Switch checked={value.includeHalo} onCheckedChange={(on) => set('includeHalo', on)} />
-    </label>
-    <label className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-      <span>
-        <span className="block text-sm font-medium">Hero products only</span>
-        <span className="block text-xs text-muted-foreground">Count only the products named on the booking</span>
-      </span>
-      <Switch checked={value.heroOnly} onCheckedChange={(on) => set('heroOnly', on)} />
-    </label>
-  </div>
+      <div>
+        <div className="text-sm font-medium">How the numbers are counted</div>
+        <p className="text-xs text-muted-foreground">Applies to every figure on this page.</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1.5 block text-xs font-medium">Attribution window</label>
+          <Input
+            dropdown
+            options={[7, 14, 30].map((d) => ({ value: String(d), label: `${d} days` }))}
+            value={String(value.attributionWindow)}
+            onChange={(v) => set('attributionWindow', Number(v) as 7 | 14 | 30)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">Days after an ad exposure in which a sale still counts.</p>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium">Sales counted</label>
+          <Input
+            dropdown
+            options={(Object.keys(SCOPE_LABEL) as SalesScope[]).map((k) => ({ value: k, label: SCOPE_LABEL[k] }))}
+            value={value.scope}
+            onChange={(v) => set('scope', v as SalesScope)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">{SCOPE_HINT[value.scope]}</p>
+        </div>
+      </div>
     </div>
   );
 };

@@ -23,7 +23,7 @@ import { SearchSelectList } from './search-select-list';
 import { Switch } from './switch';
 import { Table } from './table';
 import { queueToast } from './toast';
-import { CreativePreview, parseSize, rememberUpload } from './creative-preview';
+import { CreativePreview, parseSize, rememberUpload, resolveColor } from './creative-preview';
 
 /**
  * The creative builder — settings on the left, a LIVE preview on the right.
@@ -53,6 +53,11 @@ export const CreativeStatusBadge: React.FC<{ status: Creative['status']; classNa
 );
 
 const LANG_LABELS: Record<string, string> = { en: 'EN', nl: 'NL' };
+
+/** Text and images get the whole row unless the template says otherwise;
+ *  selects, colours, numbers and toggles pair up. */
+const fieldSpansRow = (f: CreativeTemplateField) =>
+  f.width ? f.width === 'full' : f.type === 'text' || f.type === 'image';
 
 /** One schema-driven field. Text fields follow the active language. */
 const TemplateField: React.FC<{
@@ -111,7 +116,16 @@ const TemplateField: React.FC<{
         <label className="mb-1.5 block text-sm font-medium">{label}</label>
         <Input
           dropdown
-          options={(field.options ?? []).map((o) => ({ label: o, value: o }))}
+          options={(field.options ?? []).map((o) => {
+            // A list of colour names shows its colours — the swatch is the
+            // choice, the word only names it.
+            const paint = resolveColor(o, '');
+            return {
+              label: o,
+              value: o,
+              icon: paint ? <span aria-hidden className="h-3.5 w-3.5 shrink-0 rounded-full border border-black/15" style={{ background: paint }} /> : undefined,
+            };
+          })}
           value={values[field.key] ?? ''}
           onChange={(v) => onChange(field.key, v)}
           placeholder={field.placeholder ?? 'Select…'}
@@ -341,7 +355,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
               >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {template.fields.map((f) => (
-                    <div key={f.key} className={f.type === 'image' ? 'sm:col-span-2' : undefined}>
+                    <div key={f.key} className={fieldSpansRow(f) ? 'sm:col-span-2' : undefined}>
                       <TemplateField field={f} creativeId={creative.id} lang={activeLang} values={values} onChange={setValue} />
                     </div>
                   ))}

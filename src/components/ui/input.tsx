@@ -21,6 +21,8 @@ export const FieldHint: React.FC<{ children: React.ReactNode; className?: string
 export interface InputDropdownOption {
   label: string;
   value: string;
+  /** Leading visual for the option — a colour swatch, a small icon. */
+  icon?: React.ReactNode;
 }
 
 interface InputDropdownProps {
@@ -54,13 +56,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 className
               )}
             >
-              <span className={cn('flex-1 truncate flex items-center h-full', !selected && 'text-muted-foreground')}>{selected ? selected.label : placeholder}</span>
+              <span className={cn('flex-1 truncate flex items-center gap-2 h-full', !selected && 'text-muted-foreground')}>
+                {selected?.icon}
+                {selected ? selected.label : placeholder}
+              </span>
               <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-full min-w-[180px]">
             {options.map(opt => (
-              <DropdownMenuItem key={opt.value} onSelect={() => onChange(opt.value)}>
+              <DropdownMenuItem key={opt.value} onSelect={() => onChange(opt.value)} className="gap-2">
+                {opt.icon}
                 {opt.label}
               </DropdownMenuItem>
             ))}

@@ -283,6 +283,10 @@ export interface CreativeTemplateField {
   options?: string[];
   /** Character limit on a text field — shown as "max. N characters". */
   maxLength?: number;
+  /** How much of the form row the field takes. Text and images default to
+   *  the full row — a headline or URL needs the room — everything else to
+   *  half, so short controls sit in pairs. */
+  width?: 'full' | 'half';
 }
 
 /**

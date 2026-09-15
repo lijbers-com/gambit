@@ -459,15 +459,11 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
                   <LayoutGrid className="h-4 w-4" /> View all formats side by side
                 </Button>
               )}
-              {template && languages.length > 1 && (
-                <p className="text-center text-[11px] text-muted-foreground">
-                  Showing the {LANG_LABELS[activeLang] ?? activeLang} variant — switch languages above the settings.
-                </p>
-              )}
-              {template?.fileHint && (
-                <p className="border-t pt-3 text-xs leading-relaxed text-muted-foreground">
-                  <span className="font-medium text-foreground">Format requirements: </span>
-                  {template.fileHint}
+              {/* Requirements live with the template on the left; the preview
+                  only says what it is for. */}
+              {template && (
+                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+                  Every change you make on the left shows here as you type, at the true proportions of each format.
                 </p>
               )}
             </CardContent>

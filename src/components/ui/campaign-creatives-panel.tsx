@@ -76,7 +76,7 @@ export const CampaignCreativesPanel: React.FC<{
       clicks: clicks.toLocaleString('en-GB'),
       ctr: `${((clicks / impressions) * 100).toFixed(2)}%`,
       revenue: `€${revenue.toLocaleString('en-GB')}`,
-      roas: `${(r(22, 52, 4) / 10).toFixed(1)}x`,
+      roas: `${r(22, 52, 4) * 10}%`,
     };
   };
 

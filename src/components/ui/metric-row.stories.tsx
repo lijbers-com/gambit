@@ -51,8 +51,8 @@ const allMetrics: MetricDefinition[] = [
   {
     key: 'roas',
     label: 'ROAS',
-    value: '4.7x',
-    badgeValue: '+0.8x',
+    value: '470%',
+    badgeValue: '+80%',
     badgeVariant: 'success',
     graphData: sampleGraphData.roas,
     graphColor: 'hsl(262, 83%, 58%)',
@@ -60,8 +60,8 @@ const allMetrics: MetricDefinition[] = [
   {
     key: 'iroas',
     label: 'iROAS',
-    value: '4.2x',
-    badgeValue: '+1.4x',
+    value: '420%',
+    badgeValue: '+140%',
     badgeVariant: 'success',
     graphData: sampleGraphData.iroas,
     graphColor: 'hsl(262, 83%, 58%)',

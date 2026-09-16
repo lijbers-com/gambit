@@ -75,9 +75,9 @@ const volumeCardInsights: CardInsight[] = [
     id: 'INS-volume-budget',
     kind: 'recommendation',
     subject: 'Shift €2,000 from display to sponsored products',
-    preview: 'Sponsored products is returning 4.4x against display\u2019s 2.1x this month — the same volume can buy more return.',
+    preview: 'Sponsored products is returning 440% against display\u2019s 210% this month — the same volume can buy more return.',
     context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '2.1x', roasTo: '4.4x' }),
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '210%', roasTo: '440%' }),
   },
 ];
 
@@ -229,7 +229,7 @@ const performanceMetrics = [
   { 
     id: 'roas', 
     label: 'ROAS', 
-    value: '3.24x', 
+    value: '324%', 
     subMetric: 'AOV: €78.50',
     badgeValue: '+12%',
     badgeVariant: 'success' as const,
@@ -448,23 +448,23 @@ const getChartConfig = (selectedMetric: string) => ({
 
 // Mock data for bookings performance
 const bookingsData = [
-  { id: '1893', name: 'Campaign total', planned: 27000, achieved: 25000, performance: '103.00%', creatives: 2, roas: '3.24x' },
-  { id: '1893', name: 'Auction booking #1', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.15x' },
-  { id: '1893', name: 'Auction booking #2', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.42x' },
-  { id: '1893', name: 'Auction booking #3', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.98x' },
-  { id: '1893', name: 'Auction booking #4', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.67x' },
-  { id: '1893', name: 'Auction booking #5', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.21x' },
-  { id: '1893', name: 'Auction booking #6', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '2.87x' },
-  { id: '1893', name: 'Auction booking #7', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '3.55x' },
+  { id: '1893', name: 'Campaign total', planned: 27000, achieved: 25000, performance: '103.00%', creatives: 2, roas: '324%' },
+  { id: '1893', name: 'Auction booking #1', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '315%' },
+  { id: '1893', name: 'Auction booking #2', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '342%' },
+  { id: '1893', name: 'Auction booking #3', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '298%' },
+  { id: '1893', name: 'Auction booking #4', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '367%' },
+  { id: '1893', name: 'Auction booking #5', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '321%' },
+  { id: '1893', name: 'Auction booking #6', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '287%' },
+  { id: '1893', name: 'Auction booking #7', planned: 1300, achieved: 1250, performance: '103.00%', creatives: 2, roas: '355%' },
 ];
 
 // Mock data for creatives performance
 const creativesData = [
-  { id: 'CR-001', name: 'Summer Banner', planned: 15000, achieved: 14500, performance: '96.67%', bookings: 3, roas: '3.45x' },
-  { id: 'CR-002', name: 'Holiday Video', planned: 12000, achieved: 10500, performance: '87.50%', bookings: 2, roas: '2.78x' },
-  { id: 'CR-003', name: 'Store Display', planned: 8000, achieved: 8200, performance: '102.50%', bookings: 1, roas: '4.12x' },
-  { id: 'CR-004', name: 'Product Banner', planned: 10000, achieved: 9800, performance: '98.00%', bookings: 2, roas: '2.95x' },
-  { id: 'CR-005', name: 'Promo Video', planned: 6000, achieved: 6300, performance: '105.00%', bookings: 1, roas: '3.67x' },
+  { id: 'CR-001', name: 'Summer Banner', planned: 15000, achieved: 14500, performance: '96.67%', bookings: 3, roas: '345%' },
+  { id: 'CR-002', name: 'Holiday Video', planned: 12000, achieved: 10500, performance: '87.50%', bookings: 2, roas: '278%' },
+  { id: 'CR-003', name: 'Store Display', planned: 8000, achieved: 8200, performance: '102.50%', bookings: 1, roas: '412%' },
+  { id: 'CR-004', name: 'Product Banner', planned: 10000, achieved: 9800, performance: '98.00%', bookings: 2, roas: '295%' },
+  { id: 'CR-005', name: 'Promo Video', planned: 6000, achieved: 6300, performance: '105.00%', bookings: 1, roas: '367%' },
 ];
 
 const getPerformanceBadgeVariant = (performance: string) => {
@@ -519,13 +519,13 @@ export const GeneralInsights: Story = {
           ];
         case 'iroas':
           return [
-            { day: 'Mon', overallIroas: 3.4, sponsoredIroas: 4.0, displayIroas: 2.8, digitalInstoreIroas: 3.2, offlineInstoreIroas: 2.9 },
-            { day: 'Tue', overallIroas: 3.6, sponsoredIroas: 4.2, displayIroas: 3.0, digitalInstoreIroas: 3.4, offlineInstoreIroas: 3.1 },
-            { day: 'Wed', overallIroas: 3.2, sponsoredIroas: 3.8, displayIroas: 2.6, digitalInstoreIroas: 3.0, offlineInstoreIroas: 2.7 },
-            { day: 'Thu', overallIroas: 3.8, sponsoredIroas: 4.4, displayIroas: 3.2, digitalInstoreIroas: 3.6, offlineInstoreIroas: 3.3 },
-            { day: 'Fri', overallIroas: 4.1, sponsoredIroas: 4.8, displayIroas: 3.4, digitalInstoreIroas: 3.9, offlineInstoreIroas: 3.5 },
-            { day: 'Sat', overallIroas: 3.9, sponsoredIroas: 4.5, displayIroas: 3.3, digitalInstoreIroas: 3.7, offlineInstoreIroas: 3.4 },
-            { day: 'Sun', overallIroas: 3.65, sponsoredIroas: 4.2, displayIroas: 3.1, digitalInstoreIroas: 3.5, offlineInstoreIroas: 3.2 },
+            { day: 'Mon', overallIroas: 340, sponsoredIroas: 400, displayIroas: 280, digitalInstoreIroas: 320, offlineInstoreIroas: 290 },
+            { day: 'Tue', overallIroas: 360, sponsoredIroas: 420, displayIroas: 300, digitalInstoreIroas: 340, offlineInstoreIroas: 310 },
+            { day: 'Wed', overallIroas: 320, sponsoredIroas: 380, displayIroas: 260, digitalInstoreIroas: 300, offlineInstoreIroas: 270 },
+            { day: 'Thu', overallIroas: 380, sponsoredIroas: 440, displayIroas: 320, digitalInstoreIroas: 360, offlineInstoreIroas: 330 },
+            { day: 'Fri', overallIroas: 410, sponsoredIroas: 480, displayIroas: 340, digitalInstoreIroas: 390, offlineInstoreIroas: 350 },
+            { day: 'Sat', overallIroas: 390, sponsoredIroas: 450, displayIroas: 330, digitalInstoreIroas: 370, offlineInstoreIroas: 340 },
+            { day: 'Sun', overallIroas: 365, sponsoredIroas: 420, displayIroas: 310, digitalInstoreIroas: 350, offlineInstoreIroas: 320 },
           ];
         default:
           return [];
@@ -701,7 +701,7 @@ export const GeneralInsights: Story = {
                   />
                   <MetricCard
                     label="Overall IROAS"
-                    value="3.65x"
+                    value="365%"
                     subMetric="Incremental return"
                     badgeValue="+18%"
                     badgeVariant="success"
@@ -1241,7 +1241,7 @@ export const DisplayPerformance: Story = {
       { 
         id: 'roas', 
         label: 'ROAS', 
-        value: '4.15x', 
+        value: '415%', 
         subMetric: 'AOV: €85.20',
         badgeValue: '+18%',
         badgeVariant: 'success' as const,
@@ -1539,7 +1539,7 @@ export const DigitalInstorePerformance: Story = {
       { 
         id: 'roas', 
         label: 'ROAS', 
-        value: '2.85x', 
+        value: '285%', 
         subMetric: 'AOV: €92.40',
         badgeValue: '+7%',
         badgeVariant: 'success' as const,
@@ -1712,28 +1712,28 @@ export const DigitalInstorePerformance: Story = {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <MetricCard
                     label="Overall ROAS"
-                    value="4.25x"
+                    value="425%"
                     subMetric="All channels"
                     badgeValue="+12%"
                     badgeVariant="success"
                   />
                   <MetricCard
                     label="Overall IROAS"
-                    value="3.65x"
+                    value="365%"
                     subMetric="Incremental ROAS"
                     badgeValue="+18%"
                     badgeVariant="success"
                   />
                   <MetricCard
                     label="Offline ROAS"
-                    value="2.89x"
+                    value="289%"
                     subMetric="In-store campaigns"
                     badgeValue="+8%"
                     badgeVariant="success"
                   />
                   <MetricCard
                     label="Online ROAS"
-                    value="5.12x"
+                    value="512%"
                     subMetric="Digital campaigns"
                     badgeValue="+22%"
                     badgeVariant="success"
@@ -1745,13 +1745,13 @@ export const DigitalInstorePerformance: Story = {
                   <h4 className="text-sm font-medium mb-2 text-muted-foreground">ROAS Performance Trend</h4>
                   <LineChartComponent
                     data={[
-                      { day: 'Mon', overallRoas: 4.1, overallIroas: 3.4, offlineRoas: 2.8, onlineRoas: 4.9 },
-                      { day: 'Tue', overallRoas: 4.3, overallIroas: 3.6, offlineRoas: 2.9, onlineRoas: 5.1 },
-                      { day: 'Wed', overallRoas: 3.9, overallIroas: 3.2, offlineRoas: 2.7, onlineRoas: 4.8 },
-                      { day: 'Thu', overallRoas: 4.5, overallIroas: 3.8, offlineRoas: 3.1, onlineRoas: 5.3 },
-                      { day: 'Fri', overallRoas: 4.8, overallIroas: 4.1, offlineRoas: 3.2, onlineRoas: 5.6 },
-                      { day: 'Sat', overallRoas: 4.6, overallIroas: 3.9, offlineRoas: 3.0, onlineRoas: 5.4 },
-                      { day: 'Sun', overallRoas: 4.25, overallIroas: 3.65, offlineRoas: 2.89, onlineRoas: 5.12 },
+                      { day: 'Mon', overallRoas: 410, overallIroas: 340, offlineRoas: 280, onlineRoas: 490 },
+                      { day: 'Tue', overallRoas: 430, overallIroas: 360, offlineRoas: 290, onlineRoas: 510 },
+                      { day: 'Wed', overallRoas: 390, overallIroas: 320, offlineRoas: 270, onlineRoas: 480 },
+                      { day: 'Thu', overallRoas: 450, overallIroas: 380, offlineRoas: 310, onlineRoas: 530 },
+                      { day: 'Fri', overallRoas: 480, overallIroas: 410, offlineRoas: 320, onlineRoas: 560 },
+                      { day: 'Sat', overallRoas: 460, overallIroas: 390, offlineRoas: 300, onlineRoas: 540 },
+                      { day: 'Sun', overallRoas: 425, overallIroas: 365, offlineRoas: 289, onlineRoas: 512 },
                     ]}
                     config={{
                       overallRoas: {
@@ -1910,7 +1910,7 @@ export const OfflineInstorePerformance: Story = {
       { 
         id: 'roas', 
         label: 'ROAS', 
-        value: '1.95x', 
+        value: '195%', 
         subMetric: 'AOV: €65.80',
         badgeValue: '+4%',
         badgeVariant: 'success' as const,
@@ -2236,7 +2236,7 @@ export const FullReportView: Story = {
         spend: 6089.50,
         conversions: 234,
         revenue: 18576.80,
-        roas: '3.05x',
+        roas: '305%',
         ctr: '0.30%',
         cpc: '€0.72',
         cvr: '2.78%',
@@ -2255,7 +2255,7 @@ export const FullReportView: Story = {
         spend: 4234.75,
         conversions: 156,
         revenue: 12890.40,
-        roas: '3.04x',
+        roas: '304%',
         ctr: '0.30%',
         cpc: '€0.73',
         cvr: '2.68%',
@@ -2274,7 +2274,7 @@ export const FullReportView: Story = {
         spend: 8967.25,
         conversions: 378,
         revenue: 29456.70,
-        roas: '3.28x',
+        roas: '328%',
         ctr: '0.35%',
         cpc: '€0.74',
         cvr: '3.14%',
@@ -2293,7 +2293,7 @@ export const FullReportView: Story = {
         spend: 7123.80,
         conversions: 287,
         revenue: 21456.90,
-        roas: '3.01x',
+        roas: '301%',
         ctr: '0.43%',
         cpc: '€0.77',
         cvr: '3.11%',
@@ -2312,7 +2312,7 @@ export const FullReportView: Story = {
         spend: 11234.50,
         conversions: 445,
         revenue: 34567.80,
-        roas: '3.08x',
+        roas: '308%',
         ctr: '0.34%',
         cpc: '€0.72',
         cvr: '2.84%',
@@ -2331,7 +2331,7 @@ export const FullReportView: Story = {
         spend: 5234.60,
         conversions: 198,
         revenue: 15678.90,
-        roas: '2.99x',
+        roas: '299%',
         ctr: '0.38%',
         cpc: '€0.77',
         cvr: '2.92%',
@@ -2350,7 +2350,7 @@ export const FullReportView: Story = {
         spend: 7890.40,
         conversions: 312,
         revenue: 23456.70,
-        roas: '2.97x',
+        roas: '297%',
         ctr: '0.34%',
         cpc: '€0.77',
         cvr: '3.05%',
@@ -2369,7 +2369,7 @@ export const FullReportView: Story = {
         spend: 13567.80,
         conversions: 523,
         revenue: 41234.50,
-        roas: '3.04x',
+        roas: '304%',
         ctr: '0.35%',
         cpc: '€0.72',
         cvr: '2.79%',
@@ -2576,7 +2576,7 @@ export const ProductReportView: Story = {
         purchases: 634,
         revenue: 31750.40,
         units: 1268,
-        roas: '3.55x',
+        roas: '355%',
         ctr: '0.30%',
         cpc: '€0.62',
         cartRate: '19.6%',
@@ -2601,7 +2601,7 @@ export const ProductReportView: Story = {
         purchases: 789,
         revenue: 23670.60,
         units: 1578,
-        roas: '3.27x',
+        roas: '327%',
         ctr: '0.36%',
         cpc: '€0.53',
         cartRate: '19.2%',
@@ -2626,7 +2626,7 @@ export const ProductReportView: Story = {
         purchases: 573,
         revenue: 22920.00,
         units: 573,
-        roas: '3.33x',
+        roas: '333%',
         ctr: '0.36%',
         cpc: '€0.60',
         cartRate: '19.9%',
@@ -2651,7 +2651,7 @@ export const ProductReportView: Story = {
         purchases: 385,
         revenue: 15015.00,
         units: 1155,
-        roas: '2.75x',
+        roas: '275%',
         ctr: '0.34%',
         cpc: '€0.57',
         cartRate: '20.2%',
@@ -2676,7 +2676,7 @@ export const ProductReportView: Story = {
         purchases: 439,
         revenue: 10536.00,
         units: 1317,
-        roas: '2.31x',
+        roas: '231%',
         ctr: '0.39%',
         cpc: '€0.53',
         cartRate: '20.5%',
@@ -2690,17 +2690,17 @@ export const ProductReportView: Story = {
     ];
 
     const audienceReportData = [
-      { id: 'AUD-001', segment: 'New-to-brand', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '4.41x', percentage: '35%', age: 'All', gender: 'Mixed' },
-      { id: 'AUD-002', segment: 'Lapsed', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '4.02x', percentage: '25%', age: 'All', gender: 'Mixed' },
-      { id: 'AUD-003', segment: 'Existing', impressions: 2115000, clicks: 8200, spend: 4850.50, revenue: 22890.60, roas: '4.72x', percentage: '40%', age: 'All', gender: 'Mixed' }
+      { id: 'AUD-001', segment: 'New-to-brand', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '441%', percentage: '35%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-002', segment: 'Lapsed', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '402%', percentage: '25%', age: 'All', gender: 'Mixed' },
+      { id: 'AUD-003', segment: 'Existing', impressions: 2115000, clicks: 8200, spend: 4850.50, revenue: 22890.60, roas: '472%', percentage: '40%', age: 'All', gender: 'Mixed' }
     ];
 
     const iroasReportData = [
-      { id: 'ENG-001', engine: 'Overall', incrementalRevenue: 2400000, mediaSpend: 650000, iroas: '3.65x', organicRevenue: 980000, totalRevenue: 3380000 },
-      { id: 'ENG-002', engine: 'Display', incrementalRevenue: 680000, mediaSpend: 180000, iroas: '3.78x', organicRevenue: 280000, totalRevenue: 960000 },
-      { id: 'ENG-003', engine: 'Sponsored Products', incrementalRevenue: 950000, mediaSpend: 245000, iroas: '3.88x', organicRevenue: 410000, totalRevenue: 1360000 },
-      { id: 'ENG-004', engine: 'Digital In-store', incrementalRevenue: 420000, mediaSpend: 125000, iroas: '3.36x', organicRevenue: 160000, totalRevenue: 580000 },
-      { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '3.50x', organicRevenue: 130000, totalRevenue: 480000 }
+      { id: 'ENG-001', engine: 'Overall', incrementalRevenue: 2400000, mediaSpend: 650000, iroas: '365%', organicRevenue: 980000, totalRevenue: 3380000 },
+      { id: 'ENG-002', engine: 'Display', incrementalRevenue: 680000, mediaSpend: 180000, iroas: '378%', organicRevenue: 280000, totalRevenue: 960000 },
+      { id: 'ENG-003', engine: 'Sponsored Products', incrementalRevenue: 950000, mediaSpend: 245000, iroas: '388%', organicRevenue: 410000, totalRevenue: 1360000 },
+      { id: 'ENG-004', engine: 'Digital In-store', incrementalRevenue: 420000, mediaSpend: 125000, iroas: '336%', organicRevenue: 160000, totalRevenue: 580000 },
+      { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '350%', organicRevenue: 130000, totalRevenue: 480000 }
     ];
 
     const getStatusBadgeVariant = (status: string) => {
@@ -3264,11 +3264,11 @@ export const ProductReportView: Story = {
                           { key: 'cpa', header: 'CPA' },
                         ]}
                         data={[
-                          { id: 'NR-001', proposition: 'Sponsored Products', campaigns: 12, impressions: 6200000, clicks: 24800, ctr: '0.40%', spend: 15200, revenue: 58400, roas: '3.84x', conversions: 11680, cpa: '€1.30' },
-                          { id: 'NR-002', proposition: 'Display', campaigns: 8, impressions: 4100000, clicks: 12300, ctr: '0.30%', spend: 9800, revenue: 32600, roas: '3.33x', conversions: 6150, cpa: '€1.59' },
-                          { id: 'NR-003', proposition: 'Digital In-store', campaigns: 6, impressions: 2800000, clicks: 8400, ctr: '0.30%', spend: 7100, revenue: 24500, roas: '3.45x', conversions: 4200, cpa: '€1.69' },
-                          { id: 'NR-004', proposition: 'Offline In-store', campaigns: 5, impressions: 1900000, clicks: 3800, ctr: '0.20%', spend: 4950, revenue: 18900, roas: '3.82x', conversions: 1900, cpa: '€2.61' },
-                          { id: 'NR-005', proposition: 'Display Offsite', campaigns: 3, impressions: 980000, clicks: 2940, ctr: '0.30%', spend: 1400, revenue: 8430, roas: '6.02x', conversions: 710, cpa: '€1.97' },
+                          { id: 'NR-001', proposition: 'Sponsored Products', campaigns: 12, impressions: 6200000, clicks: 24800, ctr: '0.40%', spend: 15200, revenue: 58400, roas: '384%', conversions: 11680, cpa: '€1.30' },
+                          { id: 'NR-002', proposition: 'Display', campaigns: 8, impressions: 4100000, clicks: 12300, ctr: '0.30%', spend: 9800, revenue: 32600, roas: '333%', conversions: 6150, cpa: '€1.59' },
+                          { id: 'NR-003', proposition: 'Digital In-store', campaigns: 6, impressions: 2800000, clicks: 8400, ctr: '0.30%', spend: 7100, revenue: 24500, roas: '345%', conversions: 4200, cpa: '€1.69' },
+                          { id: 'NR-004', proposition: 'Offline In-store', campaigns: 5, impressions: 1900000, clicks: 3800, ctr: '0.20%', spend: 4950, revenue: 18900, roas: '382%', conversions: 1900, cpa: '€2.61' },
+                          { id: 'NR-005', proposition: 'Display Offsite', campaigns: 3, impressions: 980000, clicks: 2940, ctr: '0.30%', spend: 1400, revenue: 8430, roas: '602%', conversions: 710, cpa: '€1.97' },
                         ]}
                         rowKey={(row: { id: string }) => row.id}
                         rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
@@ -3624,12 +3624,12 @@ export const FunnelView: Story = {
 
     // Purchase data - revenue and conversions by channel
     const purchaseDataRaw = [
-      { month: 'Jan', spend: 14200, spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 2.8, spaRoas: 3.2, displayRoas: 2.4, dmiRoas: 2.6, omiRoas: 2.1, iroas: 2.4, addToCartRate: 3.2, spaUnitsSold: 3120, displayUnitsSold: 1860, dmiUnitsSold: 1320, omiUnitsSold: 900, offsiteUnitsSold: 720, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
-      { month: 'Feb', spend: 19800, spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 3.9, spaRoas: 4.5, displayRoas: 3.3, dmiRoas: 3.6, omiRoas: 2.9, iroas: 3.4, addToCartRate: 3.8, spaUnitsSold: 4680, displayUnitsSold: 2760, dmiUnitsSold: 1980, omiUnitsSold: 1380, offsiteUnitsSold: 1080, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
-      { month: 'Mar', spend: 17600, spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 3.5, spaRoas: 4.0, displayRoas: 3.0, dmiRoas: 3.2, omiRoas: 2.5, iroas: 3.0, addToCartRate: 3.5, spaUnitsSold: 4020, displayUnitsSold: 2400, dmiUnitsSold: 1680, omiUnitsSold: 1200, offsiteUnitsSold: 930, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
-      { month: 'Apr', spend: 25400, spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 4.3, spaRoas: 5.0, displayRoas: 3.7, dmiRoas: 4.0, omiRoas: 3.2, iroas: 3.8, addToCartRate: 4.2, spaUnitsSold: 5700, displayUnitsSold: 3360, dmiUnitsSold: 2400, omiUnitsSold: 1740, offsiteUnitsSold: 1320, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
-      { month: 'May', spend: 30100, spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 4.6, spaRoas: 5.3, displayRoas: 3.9, dmiRoas: 4.3, omiRoas: 3.4, iroas: 4.1, addToCartRate: 4.5, spaUnitsSold: 6240, displayUnitsSold: 3660, dmiUnitsSold: 2580, omiUnitsSold: 1920, offsiteUnitsSold: 1440, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
-      { month: 'Jun', spend: 34200, spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 5.1, spaRoas: 5.8, displayRoas: 4.2, dmiRoas: 4.7, omiRoas: 3.7, iroas: 4.5, addToCartRate: 4.8, spaUnitsSold: 7020, displayUnitsSold: 4140, dmiUnitsSold: 2940, omiUnitsSold: 2100, offsiteUnitsSold: 1620, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
+      { month: 'Jan', spend: 14200, spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 280, spaRoas: 320, displayRoas: 240, dmiRoas: 260, omiRoas: 210, iroas: 240, addToCartRate: 3.2, spaUnitsSold: 3120, displayUnitsSold: 1860, dmiUnitsSold: 1320, omiUnitsSold: 900, offsiteUnitsSold: 720, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
+      { month: 'Feb', spend: 19800, spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 390, spaRoas: 450, displayRoas: 330, dmiRoas: 360, omiRoas: 290, iroas: 340, addToCartRate: 3.8, spaUnitsSold: 4680, displayUnitsSold: 2760, dmiUnitsSold: 1980, omiUnitsSold: 1380, offsiteUnitsSold: 1080, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
+      { month: 'Mar', spend: 17600, spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 350, spaRoas: 400, displayRoas: 300, dmiRoas: 320, omiRoas: 250, iroas: 300, addToCartRate: 3.5, spaUnitsSold: 4020, displayUnitsSold: 2400, dmiUnitsSold: 1680, omiUnitsSold: 1200, offsiteUnitsSold: 930, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
+      { month: 'Apr', spend: 25400, spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 430, spaRoas: 500, displayRoas: 370, dmiRoas: 400, omiRoas: 320, iroas: 380, addToCartRate: 4.2, spaUnitsSold: 5700, displayUnitsSold: 3360, dmiUnitsSold: 2400, omiUnitsSold: 1740, offsiteUnitsSold: 1320, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
+      { month: 'May', spend: 30100, spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 460, spaRoas: 530, displayRoas: 390, dmiRoas: 430, omiRoas: 340, iroas: 410, addToCartRate: 4.5, spaUnitsSold: 6240, displayUnitsSold: 3660, dmiUnitsSold: 2580, omiUnitsSold: 1920, offsiteUnitsSold: 1440, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
+      { month: 'Jun', spend: 34200, spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 510, spaRoas: 580, displayRoas: 420, dmiRoas: 470, omiRoas: 370, iroas: 450, addToCartRate: 4.8, spaUnitsSold: 7020, displayUnitsSold: 4140, dmiUnitsSold: 2940, omiUnitsSold: 2100, offsiteUnitsSold: 1620, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
     ];
 
     const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
@@ -3658,12 +3658,12 @@ export const FunnelView: Story = {
 
     // Data for top metric cards
     const topMetricsData = [
-      { month: 'Jan', newToBrand: 38, sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 2.5, roasEuro: 95, iroas: 2.2, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
-      { month: 'Feb', newToBrand: 40, sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 3.5, roasEuro: 142, iroas: 3.1, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
-      { month: 'Mar', newToBrand: 41, sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 3.3, roasEuro: 128, iroas: 2.9, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
-      { month: 'Apr', newToBrand: 43, sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 4.1, roasEuro: 175, iroas: 3.7, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
-      { month: 'May', newToBrand: 44, sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 4.5, roasEuro: 188, iroas: 4.0, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
-      { month: 'Jun', newToBrand: 45, sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 4.7, roasEuro: 210, iroas: 4.2, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
+      { month: 'Jan', newToBrand: 38, sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 250, roasEuro: 95, iroas: 220, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
+      { month: 'Feb', newToBrand: 40, sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 350, roasEuro: 142, iroas: 310, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
+      { month: 'Mar', newToBrand: 41, sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 330, roasEuro: 128, iroas: 290, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
+      { month: 'Apr', newToBrand: 43, sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 410, roasEuro: 175, iroas: 370, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
+      { month: 'May', newToBrand: 44, sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 450, roasEuro: 188, iroas: 400, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
+      { month: 'Jun', newToBrand: 45, sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 470, roasEuro: 210, iroas: 420, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
     ];
 
     // Metric definitions for top cards
@@ -3677,8 +3677,8 @@ export const FunnelView: Story = {
       costPerAcquisition: { label: 'Cost per Acquisition', value: '€18', badge: '-36%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerAcquisition: { label: "CPA (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerAcquisition' },
       costPerClick: { label: 'Cost per Click', value: '€1.60', badge: '-24%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerClick: { label: "CPC (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerClick' },
       budgetUtilization: { label: 'Budget Utilization', value: '85%', badge: '+31%', badgeVariant: 'warning', graphColor: 'hsl(var(--chart-1))', config: { budgetUtilization: { label: "Budget %", color: "hsl(var(--chart-1))" } }, dataKey: 'budgetUtilization' },
-      roas: { label: 'ROAS', value: '4.7x', badge: '+0.8x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
-      iroas: { label: 'iROAS', value: '4.2x', badge: '+1.4x', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
+      roas: { label: 'ROAS', value: '470%', badge: '+80%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
+      iroas: { label: 'iROAS', value: '420%', badge: '+140%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
       conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
       newToBrand: { label: 'New-to-brand', value: '48%', badge: '+6 pts', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { newToBrand: { label: "New-to-brand %", color: "hsl(var(--chart-2))" } }, dataKey: 'newToBrand' },
       clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
@@ -4492,7 +4492,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      ROAS {purchaseData[purchaseData.length - 1].roas}x
+                      ROAS {purchaseData[purchaseData.length - 1].roas}%
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4517,7 +4517,7 @@ export const FunnelView: Story = {
                               className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
                             >
                               <PropositionSwatch engine={roasEngines[key]} className="mr-1.5" />
-                              {roasLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key]}x
+                              {roasLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key]}%
                             </Badge>
                           </button>
                         );
@@ -4528,7 +4528,7 @@ export const FunnelView: Story = {
                     <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
-                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k] }])
+                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k], format: (v: number) => `${Math.round(v)}%` }])
                       )}
                       stacked={false}
                       showLegend={false}
@@ -4536,7 +4536,7 @@ export const FunnelView: Story = {
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 4, label: "Target 4x" }}
+                      benchmark={{ value: 4, label: "Target 400%" }}
                       className="h-[200px] w-full"
                     />
                     <div className="flex justify-end mt-2">

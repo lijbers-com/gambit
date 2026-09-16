@@ -529,7 +529,7 @@ export const Overview = {
       { id: 'clicks', label: 'Clicks', value: '425K', subMetric: 'Total clicks', badgeValue: '+62%', badgeVariant: 'success' as const },
       { id: 'ctr', label: 'CTR', value: '3.4%', subMetric: 'Click-through rate', badgeValue: '+0.8%', badgeVariant: 'success' as const },
       { id: 'conversions', label: 'Conversions', value: '18.2K', subMetric: 'Total conversions', badgeValue: '+45%', badgeVariant: 'success' as const },
-      { id: 'roi', label: 'ROI', value: '4.2x', subMetric: 'Return on investment', badgeValue: '+1.1x', badgeVariant: 'success' as const },
+      { id: 'roi', label: 'ROI', value: '420%', subMetric: 'Return on investment', badgeValue: '+110%', badgeVariant: 'success' as const },
       { id: 'cpc', label: 'CPC', value: '€2.00', subMetric: 'Cost per click', badgeValue: '-€0.35', badgeVariant: 'success' as const },
     ];
 

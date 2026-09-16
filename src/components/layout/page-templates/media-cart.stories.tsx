@@ -57,7 +57,7 @@ The template includes realistic campaign data with:
 - **Budget**: $18,000 total budget
 - **Used Budget**: $1,200 (7% utilization)
 - **Total Price**: $19,500
-- **Estimated ROAS**: 4.5x
+- **Estimated ROAS**: 450%
 - **Media Products**: Display and Sponsored products with individual budgets
 
 ## Use Cases
@@ -90,15 +90,15 @@ type Story = StoryObj<typeof meta>;
 
 // Media products data for each engine
 const displayBookings = [
-  { id: 'D-001', name: 'Premium Banner Placement', brand: 'Coca-Cola', budget: '$3,000', roas: '4.2x', status: 'Active' },
-  { id: 'D-002', name: 'Mobile App Ads', brand: 'Nike', budget: '$2,500', roas: '4.8x', status: 'Active' },
-  { id: 'D-003', name: 'Video Interstitials', brand: 'Samsung', budget: '$3,500', roas: '4.5x', status: 'Pending' },
+  { id: 'D-001', name: 'Premium Banner Placement', brand: 'Coca-Cola', budget: '$3,000', roas: '420%', status: 'Active' },
+  { id: 'D-002', name: 'Mobile App Ads', brand: 'Nike', budget: '$2,500', roas: '480%', status: 'Active' },
+  { id: 'D-003', name: 'Video Interstitials', brand: 'Samsung', budget: '$3,500', roas: '450%', status: 'Pending' },
 ];
 
 const sponsoredBookings = [
-  { id: 'S-001', name: 'Search Result Placement', brand: 'Amazon Basics', budget: '$4,000', roas: '5.1x', status: 'Active' },
-  { id: 'S-002', name: 'Product Page Ads', brand: 'Unilever', budget: '$3,000', roas: '4.3x', status: 'Active' },
-  { id: 'S-003', name: 'Category Spotlight', brand: 'P&G', budget: '$2,000', roas: '4.7x', status: 'Active' },
+  { id: 'S-001', name: 'Search Result Placement', brand: 'Amazon Basics', budget: '$4,000', roas: '510%', status: 'Active' },
+  { id: 'S-002', name: 'Product Page Ads', brand: 'Unilever', budget: '$3,000', roas: '430%', status: 'Active' },
+  { id: 'S-003', name: 'Category Spotlight', brand: 'P&G', budget: '$2,000', roas: '470%', status: 'Active' },
 ];
 
 // Campaign data matching the horizontal-low-budget-usage story
@@ -114,7 +114,7 @@ const campaignData = {
     { label: 'Retargeting', value: 'retargeting' },
   ],
   audience: 'ah-bonus',
-  estimatedRoas: '4.5x',
+  estimatedRoas: '450%',
   budget: '$18,000',
   usedBudget: '$1,200',
   totalPrice: '$1,260',
@@ -217,7 +217,7 @@ export const MediaCart: Story = {
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Est. ROAS</div>
-                                <div className="text-lg font-semibold text-green-600">4.5x</div>
+                                <div className="text-lg font-semibold text-green-600">450%</div>
                               </div>
                             </div>
 
@@ -269,7 +269,7 @@ export const MediaCart: Story = {
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Est. ROAS</div>
-                                <div className="text-lg font-semibold text-green-600">4.5x</div>
+                                <div className="text-lg font-semibold text-green-600">450%</div>
                               </div>
                             </div>
 
@@ -425,7 +425,7 @@ This story demonstrates the Media Cart page template with a single campaign in h
 - **Campaign**: AI performance campaign, week 1-4
 - **Status**: Best ROAS badge with In-option secondary badge
 - **Budget**: $18,000 total with only $1,200 used (7% utilization)
-- **ROAS**: 4.5x estimated return on ad spend
+- **ROAS**: 450% estimated return on ad spend
 - **Media Products**: Display and Sponsored products enabled
 - **Runtime**: January 2024 campaign dates
 

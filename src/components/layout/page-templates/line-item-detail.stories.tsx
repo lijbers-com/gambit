@@ -78,14 +78,14 @@ const displayMetrics: MetricDefinition[] = [
   { key: 'cpm', label: 'CPM', value: '€8.59', subMetric: 'Cost per 1,000 impressions', badgeValue: '-2%', badgeVariant: 'success' },
   { key: 'onlineSkuRevenue', label: 'Online SKU Revenue', value: '€18,450', subMetric: '28-day attribution', badgeValue: '+18%', badgeVariant: 'success' },
   { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€24,680', subMetric: '28-day attribution', badgeValue: '+15%', badgeVariant: 'success' },
-  { key: 'roas', label: 'ROAS', value: '3.04x', subMetric: 'Revenue / Ad Spend', badgeValue: '+12%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '304%', subMetric: 'Revenue / Ad Spend', badgeValue: '+12%', badgeVariant: 'success' },
 ];
 
 const digitalInstoreMetrics: MetricDefinition[] = [
   { key: 'repetitions', label: 'Repetitions', value: '1,245,890', subMetric: 'CTR: 2.14%', badgeValue: '+8%', badgeVariant: 'success' },
   { key: 'stores', label: 'Stores', value: '128', subMetric: 'Coverage: 74%', badgeValue: '0%', badgeVariant: 'secondary' },
   { key: 'reach', label: 'Reach', value: '680K', subMetric: 'Unique shoppers', badgeValue: '+12%', badgeVariant: 'success' },
-  { key: 'roas', label: 'ROAS', value: '1.92x', subMetric: 'AOV: €42.30', badgeValue: '+5%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '192%', subMetric: 'AOV: €42.30', badgeValue: '+5%', badgeVariant: 'success' },
   { key: 'adSpend', label: 'Ad Spend', value: '€4,250', subMetric: 'Budget: €8,000', badgeValue: '+6%', badgeVariant: 'success' },
   { key: 'cpm', label: 'CPM', value: '€3.41', subMetric: 'Cost per 1,000 repetitions', badgeValue: '-3%', badgeVariant: 'success' },
   { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '€8,160', subMetric: '28-day attribution', badgeValue: '+14%', badgeVariant: 'success' },
@@ -101,7 +101,7 @@ const offlineInstoreMetrics: MetricDefinition[] = [
   { key: 'instoreSkuRevenue', label: 'In-store SKU Revenue', value: '€12,480', subMetric: '28-day attribution', badgeValue: '+22%', badgeVariant: 'success' },
   { key: 'instoreSkuUnits', label: 'In-store SKU Units', value: '1,245', subMetric: '28-day attribution', badgeValue: '+16%', badgeVariant: 'success' },
   { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€18,960', subMetric: '28-day attribution', badgeValue: '+20%', badgeVariant: 'success' },
-  { key: 'roas', label: 'ROAS', value: '2.93x', subMetric: 'Revenue / Ad Spend', badgeValue: '+8%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '293%', subMetric: 'Revenue / Ad Spend', badgeValue: '+8%', badgeVariant: 'success' },
 ];
 
 const offsiteDisplayMetrics: MetricDefinition[] = [
@@ -126,7 +126,7 @@ const sponsoredProductsMetrics: MetricDefinition[] = [
   { key: 'onlineSkuRevenue', label: 'Online SKU Revenue', value: '€42,680', subMetric: '28-day attribution', badgeValue: '+18%', badgeVariant: 'success' },
   { key: 'onlineSkuUnits', label: 'Online SKU Units', value: '3,456', subMetric: '28-day attribution', badgeValue: '+14%', badgeVariant: 'success' },
   { key: 'totalSkuRevenue', label: 'Total SKU Revenue', value: '€52,340', subMetric: '28-day attribution', badgeValue: '+20%', badgeVariant: 'success' },
-  { key: 'roas', label: 'ROAS', value: '4.81x', subMetric: 'Revenue / Ad Spend', badgeValue: '+18%', badgeVariant: 'success' },
+  { key: 'roas', label: 'ROAS', value: '481%', subMetric: 'Revenue / Ad Spend', badgeValue: '+18%', badgeVariant: 'success' },
 ];
 
 const meta: Meta<typeof AppLayout> = {

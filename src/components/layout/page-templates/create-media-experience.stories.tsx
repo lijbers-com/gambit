@@ -255,12 +255,12 @@ const advertiserOptions = [
 // expose the retail-product picker (sales attribution). Non-endemic or
 // not-carried brands run without SKUs.
 const brandOptions = [
-  { label: 'Coca-Cola', value: 'coca-cola', category: 'Soft drinks', reach: 6.4, roas: 4.1, hasRetailProducts: true },
-  { label: 'Unilever', value: 'unilever', category: 'FMCG', reach: 8.1, roas: 3.6, hasRetailProducts: false },
-  { label: 'Procter & Gamble', value: 'procter-gamble', category: 'Personal care', reach: 7.2, roas: 3.9, hasRetailProducts: false },
-  { label: 'Nestlé', value: 'nestle', category: 'Food', reach: 7.8, roas: 3.4, hasRetailProducts: false },
-  { label: 'PepsiCo', value: 'pepsico', category: 'Snacks & drinks', reach: 6.9, roas: 3.8, hasRetailProducts: true },
-  { label: 'Heineken', value: 'heineken', category: 'Beer', reach: 5.3, roas: 4.4, hasRetailProducts: true },
+  { label: 'Coca-Cola', value: 'coca-cola', category: 'Soft drinks', reach: 6.4, roas: 410, hasRetailProducts: true },
+  { label: 'Unilever', value: 'unilever', category: 'FMCG', reach: 8.1, roas: 360, hasRetailProducts: false },
+  { label: 'Procter & Gamble', value: 'procter-gamble', category: 'Personal care', reach: 7.2, roas: 390, hasRetailProducts: false },
+  { label: 'Nestlé', value: 'nestle', category: 'Food', reach: 7.8, roas: 340, hasRetailProducts: false },
+  { label: 'PepsiCo', value: 'pepsico', category: 'Snacks & drinks', reach: 6.9, roas: 380, hasRetailProducts: true },
+  { label: 'Heineken', value: 'heineken', category: 'Beer', reach: 5.3, roas: 440, hasRetailProducts: true },
 ];
 
 const audienceOptions = [
@@ -329,7 +329,7 @@ const propositions = [
     name: 'Display',
     description: 'Banner ads across the retailer website and app',
     icon: MonitorSpeaker,
-    metrics: { reach: '3.2M', roas: '2.8x', sales: '€8,400', roasChange: '+8%' },
+    metrics: { reach: '3.2M', roas: '280%', sales: '€8,400', roasChange: '+8%' },
     aiPreset: {
       id: 'display-ai',
       name: 'AI optimised display campaign',
@@ -343,7 +343,7 @@ const propositions = [
     name: 'Sponsored Products',
     description: 'Promoted product listings in search and category results',
     icon: ListStart,
-    metrics: { reach: '4.8M', roas: '4.2x', sales: '€12,600', roasChange: '+18%' },
+    metrics: { reach: '4.8M', roas: '420%', sales: '€12,600', roasChange: '+18%' },
     aiPreset: {
       id: 'sp-ai',
       name: 'AI optimised sponsored products',
@@ -357,7 +357,7 @@ const propositions = [
     name: 'Digital In-Store',
     description: 'Digital screens and kiosks in physical retail locations',
     icon: MonitorPlay,
-    metrics: { reach: '680K', roas: '1.9x', sales: '€3,200', roasChange: '+5%' },
+    metrics: { reach: '680K', roas: '190%', sales: '€3,200', roasChange: '+5%' },
     aiPreset: {
       id: 'dis-ai',
       name: 'AI optimised in-store digital',
@@ -371,7 +371,7 @@ const propositions = [
     name: 'Offline In-Store',
     description: 'Physical media placements like shelf talkers, flyers and POS materials',
     icon: Store,
-    metrics: { reach: '240K', roas: '1.4x', sales: '€1,800', roasChange: '+3%' },
+    metrics: { reach: '240K', roas: '140%', sales: '€1,800', roasChange: '+3%' },
     aiPreset: {
       id: 'ois-ai',
       name: 'AI optimised in-store media',
@@ -385,7 +385,7 @@ const propositions = [
     name: 'Offsite',
     description: 'Extend your campaign beyond the retailer with 3rd party display, socials, connected TV, DOOH, AI, audio and mailing',
     icon: Globe,
-    metrics: { reach: '8.5M', roas: '2.1x', sales: '€15,200', roasChange: '+14%' },
+    metrics: { reach: '8.5M', roas: '210%', sales: '€15,200', roasChange: '+14%' },
     aiPreset: {
       id: 'er-ai',
       name: 'AI optimised offsite',
@@ -2021,7 +2021,7 @@ export const NoGoalTargeting: Story = {
                       ? (() => {
                           const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0);
                           const boostedRoas = baseRoas * (1 + propositionImpact.roasBoost / 100);
-                          return forecastRange(boostedRoas, (n) => n.toFixed(1), 'x');
+                          return forecastRange(boostedRoas, (n) => String(Math.round(n * 100)), '%');
                         })()
                       : '-',
                     subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',

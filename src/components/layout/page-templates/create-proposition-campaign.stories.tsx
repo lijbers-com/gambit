@@ -94,7 +94,7 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     name: 'Display',
     description: 'Banner ads across the retailer website and app',
     icon: MonitorSpeaker,
-    metrics: { reach: '3.2M', roas: '2.8x', sales: '€8,400', roasChange: '+8%' },
+    metrics: { reach: '3.2M', roas: '280%', sales: '€8,400', roasChange: '+8%' },
     campaignRoute: '/campaigns/display',
   },
   'sponsored-products': {
@@ -102,7 +102,7 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     name: 'Sponsored Products',
     description: 'Promoted product listings in search and category results',
     icon: ListStart,
-    metrics: { reach: '4.8M', roas: '4.2x', sales: '€12,600', roasChange: '+18%' },
+    metrics: { reach: '4.8M', roas: '420%', sales: '€12,600', roasChange: '+18%' },
     campaignRoute: '/campaigns/sponsored-products',
   },
   'offline-instore': {
@@ -110,7 +110,7 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     name: 'Offline In-Store',
     description: 'Physical media placements like shelf talkers, flyers and POS materials',
     icon: Store,
-    metrics: { reach: '240K', roas: '1.4x', sales: '€1,800', roasChange: '+3%' },
+    metrics: { reach: '240K', roas: '140%', sales: '€1,800', roasChange: '+3%' },
     campaignRoute: '/campaigns/offline-instore',
   },
   'digital-instore': {
@@ -118,7 +118,7 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     name: 'Digital In-Store',
     description: 'Digital screens and kiosks in physical retail locations',
     icon: MonitorPlay,
-    metrics: { reach: '680K', roas: '1.9x', sales: '€3,200', roasChange: '+5%' },
+    metrics: { reach: '680K', roas: '190%', sales: '€3,200', roasChange: '+5%' },
     campaignRoute: '/campaigns/digital-instore',
   },
   offsite: {
@@ -126,7 +126,7 @@ const propositionConfigs: Record<string, PropositionConfig> = {
     name: 'Offsite',
     description: 'Reach shoppers beyond the retailer — open web, social, CTV',
     icon: Globe,
-    metrics: { reach: '5.6M', roas: '2.2x', sales: '€6,100', roasChange: '+6%' },
+    metrics: { reach: '5.6M', roas: '220%', sales: '€6,100', roasChange: '+6%' },
     campaignRoute: '/campaigns/offsite',
   },
 };
@@ -1227,7 +1227,7 @@ const PropositionWizard = ({
                   ? (() => {
                       const baseRoas = 2.4 + (parseFloat(budgetAmount) > 5000 ? 1.2 : parseFloat(budgetAmount) > 2000 ? 0.6 : 0) + (selectedAudiences.length > 2 ? 0.5 : 0);
                       const boostedRoas = baseRoas * (1 + roasBoost / 100);
-                      return `${boostedRoas.toFixed(1)}x`;
+                      return `${Math.round(boostedRoas * 100)}%`;
                     })()
                   : '-',
                 subMetric: budgetAmount.trim() !== '' ? 'Predicted return' : 'Set budget to calculate',
@@ -3034,7 +3034,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       {
         key: 'roas',
         label: 'Est. ROAS',
-        value: sales > 0 && total > 0 ? `${(sales / total).toFixed(1)}x` : dash,
+        value: sales > 0 && total > 0 ? `${Math.round((sales / total) * 100)}%` : dash,
         subMetric: keywords.length > 0 ? `${keywords.length} keywords targeted` : 'Add keywords to lift this',
       },
     ];

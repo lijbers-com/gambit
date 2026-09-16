@@ -147,8 +147,8 @@ const ChatInterfaceWithSpendAnalysis = () => {
       <div className="grid grid-cols-3 gap-4 mb-4">
         <MetricCard
           label="ROAS Performance"
-          value="4.2x"
-          subMetric="Above target (3.0x)"
+          value="420%"
+          subMetric="Above target (300%)"
           badgeValue="+40%"
           badgeVariant="success"
         />

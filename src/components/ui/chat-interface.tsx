@@ -303,8 +303,8 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
         <div className="grid grid-cols-3 gap-4 mb-4">
           <MetricCard
             label="ROAS Performance"
-            value="4.2x"
-            subMetric="Above target (3.0x)"
+            value="420%"
+            subMetric="Above target (300%)"
             badgeValue="+40%"
             badgeVariant="success"
           />
@@ -354,7 +354,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
           <ul className="space-y-2 ml-4">
             <li className="flex items-start gap-2">
               <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-              <span><strong>High ROAS:</strong> Your campaign is generating $4.20 for every $1 spent, which is 40% above your target of 3.0x</span>
+              <span><strong>High ROAS:</strong> Your campaign is generating $4.20 for every $1 spent, which is 40% above your target of 300%</span>
             </li>
             <li className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
@@ -781,7 +781,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                           { label: 'Premium customers', value: 'premium' },
                           { label: 'Loyal customers', value: 'loyal' }
                         ]}
-                        estimatedRoas="4.8x"
+                        estimatedRoas="480%"
                         budget="$5,000"
                         engines={[
                           { id: 'display', name: 'Display', enabled: true },
@@ -812,7 +812,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                           { label: 'AH bonus shoppers', value: 'ah-bonus' },
                           { label: 'Premium customers', value: 'premium' }
                         ]}
-                        estimatedRoas="3.2x"
+                        estimatedRoas="320%"
                         budget="$7,500"
                         engines={[
                           { id: 'display', name: 'Display', enabled: true },

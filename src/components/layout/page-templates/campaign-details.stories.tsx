@@ -62,7 +62,7 @@ const parseMetric = (v: unknown) => parseFloat(String(v ?? '').replace(/[^0-9.]/
 const roasOf = (revenue: unknown, spend: unknown) => {
   const s = parseMetric(spend);
   const r = parseMetric(revenue);
-  return s && r ? `${(r / s).toFixed(1)}x` : '–';
+  return s && r ? `${Math.round((r / s) * 100)}%` : '–';
 };
 const convRateOf = (conversions: unknown, clicks: unknown) => {
   const c = parseMetric(clicks);
@@ -399,7 +399,7 @@ export const DigitalInstoreInOption: Story = {
       { 
         id: 'roas', 
         label: 'ROAS Forecast', 
-        value: '3.35x', 
+        value: '335%', 
         subMetric: 'Projected return',
         badgeValue: '+3.4%',
         badgeVariant: 'success' as const,
@@ -439,7 +439,7 @@ const updatedForecastMetrics = [
       { 
         id: 'roas', 
         label: 'ROAS Forecast', 
-        value: `${(currentMetrics.roas / 100).toFixed(2)}x`, 
+        value: `${Math.round(currentMetrics.roas)}%`, 
         subMetric: 'Projected return',
         badgeValue: '+3.8%',
         badgeVariant: 'success' as const,
@@ -1171,7 +1171,7 @@ export const DigitalInstoreRunning: Story = {
       { 
         id: 'roas', 
         label: 'ROAS', 
-        value: '3.24x', 
+        value: '324%', 
         subMetric: 'AOV: €78.50',
         badgeValue: '+12%',
         badgeVariant: 'success' as const,
@@ -2011,11 +2011,11 @@ export const DisplayRunning: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '4.8x', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
-      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '4.2x', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
-      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '5.3x', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
-      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '3.7x', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
-      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '4.9x', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
+      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '480%', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
+      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '420%', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
+      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '530%', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
+      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '370%', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
+      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '490%', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
     ];
 
     const logData = [
@@ -2107,7 +2107,7 @@ export const DisplayRunning: Story = {
       {
         id: 'roas',
         label: 'ROAS',
-        value: '4.12x',
+        value: '412%',
         subMetric: 'CPA: €23.50',
         badgeValue: '+22%',
         badgeVariant: 'success' as const,
@@ -2571,7 +2571,7 @@ export const OfflineInstoreInOption: Story = {
       {
         id: 'target-roas',
         label: 'Target ROAS',
-        value: '2.50x',
+        value: '250%',
         subMetric: 'Target AOV: €60',
         badgeValue: 'Goal',
         badgeVariant: 'secondary' as const,
@@ -2585,7 +2585,7 @@ export const OfflineInstoreInOption: Story = {
       { key: 'budgetAllocation', label: 'Budget Allocation', value: '€75K', subMetric: 'Initial allocation', badgeValue: 'Approved', badgeVariant: 'info' },
       { key: 'targetAwareness', label: 'Target Awareness', value: '+20%', subMetric: 'Expected lift', badgeValue: 'Goal', badgeVariant: 'secondary' },
       { key: 'cpi', label: 'Cost Per Impression', value: '€0.15', subMetric: 'Target CPI', badgeValue: 'Target', badgeVariant: 'secondary' },
-      { key: 'expectedRoi', label: 'Expected ROI', value: '2.5x', subMetric: 'Target return', badgeValue: 'Goal', badgeVariant: 'secondary' },
+      { key: 'expectedRoi', label: 'Expected ROI', value: '250%', subMetric: 'Target return', badgeValue: 'Goal', badgeVariant: 'secondary' },
       { key: 'timeline', label: 'Timeline', value: '45 days', subMetric: 'To launch', badgeValue: 'Pending', badgeVariant: 'warning' },
       { key: 'approvalStatus', label: 'Approval Status', value: '75%', subMetric: 'Creatives approved', badgeValue: 'In Review', badgeVariant: 'warning' },
     ];
@@ -2927,11 +2927,11 @@ export const DisplayInOption: Story = {
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const bookingData = [
-      { id: 'LI-001', status: 'In review', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '3.8x', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
-      { id: 'LI-002', status: 'In review', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '3.2x', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
-      { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '4.7x', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
-      { id: 'LI-004', status: 'In review', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '2.8x', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
-      { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '4.1x', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
+      { id: 'LI-001', status: 'In review', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '856', totalSkuConversionRate: '2.4%', totalSkuUnits: '1,467', totalSkuRevenue: '$31,280', totalSkuRoas: '380%', onlineSkuConversions: '598', onlineSkuUnits: '1,023', onlineSkuRevenue: '$21,840', instoreSkuConversions: '258', instoreSkuUnits: '444', instoreSkuRevenue: '$9,440' },
+      { id: 'LI-002', status: 'In review', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '634', totalSkuConversionRate: '1.9%', totalSkuUnits: '1,156', totalSkuRevenue: '$25,670', totalSkuRoas: '320%', onlineSkuConversions: '443', onlineSkuUnits: '798', onlineSkuRevenue: '$17,340', instoreSkuConversions: '191', instoreSkuUnits: '358', instoreSkuRevenue: '$8,330' },
+      { id: 'LI-003', status: 'Ready', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,456', totalSkuConversionRate: '3.8%', totalSkuUnits: '2,543', totalSkuRevenue: '$54,230', totalSkuRoas: '470%', onlineSkuConversions: '1,019', onlineSkuUnits: '1,780', onlineSkuRevenue: '$37,960', instoreSkuConversions: '437', instoreSkuUnits: '763', instoreSkuRevenue: '$16,270' },
+      { id: 'LI-004', status: 'In review', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '432', totalSkuConversionRate: '1.5%', totalSkuUnits: '798', totalSkuRevenue: '$18,450', totalSkuRoas: '280%', onlineSkuConversions: '302', onlineSkuUnits: '559', onlineSkuRevenue: '$12,920', instoreSkuConversions: '130', instoreSkuUnits: '239', instoreSkuRevenue: '$5,530' },
+      { id: 'LI-005', status: 'Ready', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,089', totalSkuConversionRate: '3.1%', totalSkuUnits: '1,967', totalSkuRevenue: '$41,780', totalSkuRoas: '410%', onlineSkuConversions: '762', onlineSkuUnits: '1,377', onlineSkuRevenue: '$29,250', instoreSkuConversions: '327', instoreSkuUnits: '590', instoreSkuRevenue: '$12,530' },
     ];
 
     const logData = [
@@ -3022,7 +3022,7 @@ export const DisplayInOption: Story = {
       {
         id: 'target-roas',
         label: 'Target ROAS',
-        value: '3.50x',
+        value: '350%',
         subMetric: 'Target CPA: €28',
         badgeValue: 'Goal',
         badgeVariant: 'secondary' as const,
@@ -3562,7 +3562,7 @@ export const SponsoredProductsInOption: Story = {
       { 
         id: 'roas', 
         label: 'ROAS Forecast', 
-        value: '4.2x', 
+        value: '420%', 
         subMetric: 'Projected return',
         badgeValue: '+8.5%',
         badgeVariant: 'success' as const,
@@ -3610,7 +3610,7 @@ export const SponsoredProductsInOption: Story = {
       { 
         id: 'roas',
         label: 'ROAS Forecast',
-        value: `${(currentMetrics.roas / 100).toFixed(2)}x`,
+        value: `${Math.round(currentMetrics.roas)}%`,
         subMetric: 'Projected return',
         badgeValue: '+3.4%',
         badgeVariant: 'success' as const,
@@ -4361,9 +4361,9 @@ export const SponsoredProductsRunning: Story = {
         budget: '€500', 
         spent: '€423', 
         budgetLeft: '€77', 
-        roas: '3.8x', 
-        extROAS: '4.2x', 
-        iROAS: '3.6x', 
+        roas: '380%', 
+        extROAS: '420%', 
+        iROAS: '360%', 
         startTime: '2024-06-01', 
         endTime: '2024-06-30',
         searchVolume: 'High',
@@ -4385,9 +4385,9 @@ export const SponsoredProductsRunning: Story = {
         budget: '€750', 
         spent: '€612', 
         budgetLeft: '€138', 
-        roas: '2.9x', 
-        extROAS: '3.1x', 
-        iROAS: '2.8x', 
+        roas: '290%', 
+        extROAS: '310%', 
+        iROAS: '280%', 
         startTime: '2024-07-01', 
         endTime: '2024-07-31',
         searchVolume: 'Medium',
@@ -4409,9 +4409,9 @@ export const SponsoredProductsRunning: Story = {
         budget: '€300', 
         spent: '€287', 
         budgetLeft: '€13', 
-        roas: '4.2x', 
-        extROAS: '4.6x', 
-        iROAS: '4.1x', 
+        roas: '420%', 
+        extROAS: '460%', 
+        iROAS: '410%', 
         startTime: '2024-08-10', 
         endTime: '2024-09-10',
         searchVolume: 'Low',
@@ -4425,7 +4425,7 @@ export const SponsoredProductsRunning: Story = {
       { id: 'LOG-004', timestamp: '2024-12-11 09:15:33', user: 'Sarah Wilson', action: 'Performance Update', field: 'Metrics', oldValue: '-', newValue: 'CTR: 3.5%', description: 'Daily performance metrics update' },
       { id: 'LOG-005', timestamp: '2024-12-11 10:45:21', user: 'System', action: 'Spend Alert', field: 'Budget', oldValue: '€100 remaining', newValue: '€13 remaining', description: 'Budget alert triggered' },
       { id: 'LOG-006', timestamp: '2024-12-11 11:30:14', user: 'Mike Johnson', action: 'Bid Adjustment', field: 'Bidding', oldValue: '€0.25', newValue: '€0.28', description: 'Increased bid for better positioning' },
-      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'ROAS Update', field: 'Performance', oldValue: '3.8x', newValue: '4.2x', description: 'Improved return on ad spend' },
+      { id: 'LOG-007', timestamp: '2024-12-11 16:20:58', user: 'Sarah Wilson', action: 'ROAS Update', field: 'Performance', oldValue: '380%', newValue: '420%', description: 'Improved return on ad spend' },
       { id: 'LOG-008', timestamp: '2024-12-12 08:45:12', user: 'John Smith', action: 'Campaign Review', field: 'Notes', oldValue: '-', newValue: 'Performing well, continue current strategy', description: 'Weekly campaign review' },
     ];
     
@@ -4509,7 +4509,7 @@ export const SponsoredProductsRunning: Story = {
         id: 'sales', 
         label: 'Sales', 
         value: '€127,890', 
-        subMetric: 'ROAS: 3.34x',
+        subMetric: 'ROAS: 334%',
         badgeValue: '+18%',
         badgeVariant: 'success' as const,
       },
@@ -4849,9 +4849,9 @@ export const SponsoredProductsRunning: Story = {
                       { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
                     ]}
                     data={[
-                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversion: '1.8%', sales: '€4,234', budget: '€200', spent: '€187', budgetLeft: '€13', roas: '2.8x', searchVolume: 'High', competitive: 'Medium' },
-                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversion: '1.5%', sales: '€2,156', budget: '€150', spent: '€143', budgetLeft: '€7', roas: '2.1x', searchVolume: 'Medium', competitive: 'High' },
-                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '89,234', clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversion: '2.2%', sales: '€1,234', budget: '€100', spent: '€95', budgetLeft: '€5', roas: '3.1x', searchVolume: 'Low', competitive: 'Low' },
+                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversion: '1.8%', sales: '€4,234', budget: '€200', spent: '€187', budgetLeft: '€13', roas: '280%', searchVolume: 'High', competitive: 'Medium' },
+                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversion: '1.5%', sales: '€2,156', budget: '€150', spent: '€143', budgetLeft: '€7', roas: '210%', searchVolume: 'Medium', competitive: 'High' },
+                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '89,234', clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversion: '2.2%', sales: '€1,234', budget: '€100', spent: '€95', budgetLeft: '€5', roas: '310%', searchVolume: 'Low', competitive: 'Low' },
                     ]}
                     rowKey={row => row.keyword}
                   />
@@ -4908,9 +4908,9 @@ export const SponsoredProductsRunning: Story = {
                       { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
                     ]}
                     data={[
-                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '456,789', clicks: '12,345', avgCPC: '€0.35', ctr: '2.7%', conversion: '1.9%', sales: '€5,678', budget: '€300', spent: '€278', budgetLeft: '€22', roas: '3.2x', searchVolume: 'High', competitive: 'Medium' },
-                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '234,567', clicks: '6,789', avgCPC: '€0.41', ctr: '2.9%', conversion: '1.6%', sales: '€3,456', budget: '€200', spent: '€189', budgetLeft: '€11', roas: '2.8x', searchVolume: 'Medium', competitive: 'High' },
-                      { category: 'Organic Products', level: 'Level 1', impressions: '345,678', clicks: '8,912', avgCPC: '€0.33', ctr: '2.6%', conversion: '2.1%', sales: '€4,567', budget: '€250', spent: '€234', budgetLeft: '€16', roas: '3.5x', searchVolume: 'Medium', competitive: 'Low' },
+                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '456,789', clicks: '12,345', avgCPC: '€0.35', ctr: '2.7%', conversion: '1.9%', sales: '€5,678', budget: '€300', spent: '€278', budgetLeft: '€22', roas: '320%', searchVolume: 'High', competitive: 'Medium' },
+                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '234,567', clicks: '6,789', avgCPC: '€0.41', ctr: '2.9%', conversion: '1.6%', sales: '€3,456', budget: '€200', spent: '€189', budgetLeft: '€11', roas: '280%', searchVolume: 'Medium', competitive: 'High' },
+                      { category: 'Organic Products', level: 'Level 1', impressions: '345,678', clicks: '8,912', avgCPC: '€0.33', ctr: '2.6%', conversion: '2.1%', sales: '€4,567', budget: '€250', spent: '€234', budgetLeft: '€16', roas: '350%', searchVolume: 'Medium', competitive: 'Low' },
                     ]}
                     rowKey={row => row.category}
                   />
@@ -4966,9 +4966,9 @@ export const SponsoredProductsRunning: Story = {
                       { key: 'status', header: 'Status', render: row => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
                     ]}
                     data={[
-                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '567,890', clicks: '14,567', avgCPC: '€0.36', ctr: '2.6%', conversion: '1.8%', sales: '€6,789', budget: '€400', spent: '€387', budgetLeft: '€13', roas: '3.1x', status: 'Active' },
-                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '456,789', clicks: '11,234', avgCPC: '€0.39', ctr: '2.5%', conversion: '1.7%', sales: '€5,234', budget: '€300', spent: '€289', budgetLeft: '€11', roas: '2.9x', status: 'Active' },
-                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '234,567', clicks: '6,789', avgCPC: '€0.34', ctr: '2.9%', conversion: '2.0%', sales: '€3,456', budget: '€200', spent: '€192', budgetLeft: '€8', roas: '3.4x', status: 'Active' },
+                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '567,890', clicks: '14,567', avgCPC: '€0.36', ctr: '2.6%', conversion: '1.8%', sales: '€6,789', budget: '€400', spent: '€387', budgetLeft: '€13', roas: '310%', status: 'Active' },
+                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '456,789', clicks: '11,234', avgCPC: '€0.39', ctr: '2.5%', conversion: '1.7%', sales: '€5,234', budget: '€300', spent: '€289', budgetLeft: '€11', roas: '290%', status: 'Active' },
+                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '234,567', clicks: '6,789', avgCPC: '€0.34', ctr: '2.9%', conversion: '2.0%', sales: '€3,456', budget: '€200', spent: '€192', budgetLeft: '€8', roas: '340%', status: 'Active' },
                     ]}
                     rowKey={row => row.setting}
                   />

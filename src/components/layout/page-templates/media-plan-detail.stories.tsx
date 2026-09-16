@@ -411,7 +411,7 @@ export const MediaPlanDetail: Story = {
 
     const fmtNumberCompact = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
-    const fmtRoasValue = (v: number) => `${v.toFixed(1)}x`;
+    const fmtRoasValue = (v: number) => `${Math.round(v * 100)}%`;
 
     /**
      * Before the plan runs there are no actuals — a row of zeros read as the

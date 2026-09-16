@@ -449,7 +449,7 @@ const MetricRowDemo: React.FC = () => (
   <MetricRow
     metrics={[
       { key: 'spend', label: 'Spend', value: '€2.1K', subMetric: 'of €3.2K budget', badgeValue: '66%', badgeVariant: 'secondary' },
-      { key: 'roas', label: 'ROAS', value: '4.2x', subMetric: 'vs. 3.5x target', badgeValue: '+20%', badgeVariant: 'success' },
+      { key: 'roas', label: 'ROAS', value: '420%', subMetric: 'vs. 350% target', badgeValue: '+20%', badgeVariant: 'success' },
       { key: 'sales', label: 'Sales', value: '€8.8K', subMetric: 'attributed', badgeValue: '+8%', badgeVariant: 'success' },
       { key: 'clicks', label: 'Clicks', value: '6.2K', subMetric: 'last 30d', variant: 'graph', graphData: spark },
     ]}
@@ -1013,7 +1013,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   'table--empty': { title: 'Table / Empty state', group: 'Containment', wide: true, render: () => <TableEmpty /> },
 
   /* Data display — metric cards */
-  'metric-card': { title: 'Metric card', group: 'Data display', render: () => <div className="w-52"><MetricCard label="ROAS" value="4.2x" subMetric="vs. 3.5x target" badgeValue="+20%" badgeVariant="success" /></div> },
+  'metric-card': { title: 'Metric card', group: 'Data display', render: () => <div className="w-52"><MetricCard label="ROAS" value="420%" subMetric="vs. 350% target" badgeValue="+20%" badgeVariant="success" /></div> },
   'metric-card--graph': { title: 'Metric card / Sparkline', group: 'Data display', render: () => <div className="w-52"><MetricCard label="Clicks" value="6.2K" subMetric="last 30d" variant="graph" graphData={spark} /></div> },
   'metric-card--donut': { title: 'Metric card / Donut legend', group: 'Data display', render: () => <div className="w-64"><MetricCard label="Spend by proposition" variant="donutLegend" donutData={[{ name: 'Display', value: 4200 }, { name: 'Sponsored products', value: 2600 }, { name: 'Digital in-store', value: 1900 }]} valueFormatter={(v) => `€${v.toLocaleString()}`} /></div> },
   'metric-card--bar': { title: 'Metric card / Top categories', group: 'Data display', render: () => <div className="w-64"><MetricCard label="Top products" variant="barHorizontal" productData={[{ name: 'Coca-Cola Zero 1.5L', value: 3200 }, { name: 'Fanta Orange 1L', value: 2100 }, { name: 'Sprite 1.5L', value: 1400 }]} valueFormatter={(v) => `€${v.toLocaleString()}`} /></div> },
@@ -1068,7 +1068,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
         badge={{ text: 'Live', variant: 'success' }}
         goal="Purchase"
         audience="Households with kids"
-        estimatedRoas="3.8x"
+        estimatedRoas="380%"
         budget="9000"
         usedBudget="€3,420"
         budgetUsagePercentage={38}

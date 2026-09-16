@@ -195,7 +195,7 @@ export const MetricCardWithGraph: Story = {
           <MetricCard
             label="Sales"
             value="€127,890"
-            subMetric="ROAS: 3.34x"
+            subMetric="ROAS: 334%"
             badgeValue="+18%"
             badgeVariant="success"
             variant="graph"
@@ -237,8 +237,8 @@ export const MetricCardWithGraph: Story = {
 
           <MetricCard
             label="ROAS"
-            value="4.2x"
-            subMetric="Target: 3.0x"
+            value="420%"
+            subMetric="Target: 300%"
             badgeValue="+40%"
             badgeVariant="success"
             variant="graph"

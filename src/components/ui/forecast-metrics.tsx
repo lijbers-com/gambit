@@ -110,7 +110,7 @@ export function buildForecastMetrics({ budget, days = 0, engines = [], stage, sp
     {
       key: 'roas',
       label: 'ROAS',
-      value: noBudget ? '-' : fmtForecastRange(fc.roas, (v) => v.toFixed(1), 'x'),
+      value: noBudget ? '-' : fmtForecastRange(fc.roas, (v) => String(Math.round(v * 100)), '%'),
       subMetric: noBudget ? 'Set budget to forecast' : 'Predicted return at full delivery',
       ...forecastBadge,
     },

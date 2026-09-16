@@ -34,7 +34,7 @@ import { CampaignSummary } from '@/components/ui/campaign-summary';
   badge={{ text: "Best ROAS", variant: "default" }}
   goal="Performance on transaction"
   audience="AH bonus shoppers"
-  estimatedRoas="4.8x"
+  estimatedRoas="480%"
   budget="$5,000"
   engines={[
     { id: 'display', name: 'Display', enabled: true },
@@ -140,7 +140,7 @@ const defaultProps = {
     { label: 'Full funnel', value: 'full-funnel' },
   ],
   audience: 'ah-bonus',
-  estimatedRoas: '4.8x',
+  estimatedRoas: '480%',
   budget: '$5,000',
   engines: [
     { id: 'display', name: 'Display', enabled: true },

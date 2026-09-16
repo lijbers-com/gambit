@@ -451,11 +451,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
     // Calculate ROAS based on budget (higher budget = higher ROAS with some variation)
     const calculateEngineROAS = (engineId: string) => {
-      if (engineId === 'offline') return '0x';
+      if (engineId === 'offline') return '0%';
 
       const budget = parseFloat(getEngineBudget(engineId).replace(/[^0-9.]/g, '')) || 0;
 
-      if (budget === 0) return '0x';
+      if (budget === 0) return '0%';
 
       // Engine-specific base ROAS values (distinct for demo purposes)
       const engineBaseROAS: Record<string, number> = {
@@ -468,7 +468,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
       const baseROAS = engineBaseROAS[engineId as keyof typeof engineBaseROAS] || 3.0;
 
-      return `${baseROAS.toFixed(1)}x`;
+      return `${Math.round(baseROAS * 100)}%`;
     };
 
     // Calculate total budget from all engines
@@ -488,16 +488,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       
       currentEngines.forEach(engine => {
         const budget = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
-        const roas = parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0;
+        const roas = parseFloat(calculateEngineROAS(engine.id).replace('%', '')) || 0;
         
         totalBudget += budget;
         weightedROAS += budget * roas;
       });
       
-      if (totalBudget === 0) return '0.0x';
+      if (totalBudget === 0) return '0%';
       
       const averageROAS = weightedROAS / totalBudget;
-      return `${averageROAS.toFixed(1)}x`;
+      return `${Math.round(averageROAS)}%`;
     };
 
     // Notify parent when engine budgets change (without overwriting total budget)
@@ -532,7 +532,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           if (engine.id === 'offline') {
             roasValues[engine.id] = 0;
           } else {
-            const roas = parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0;
+            const roas = parseFloat(calculateEngineROAS(engine.id).replace('%', '')) || 0;
             roasValues[engine.id] = roas;
             totalRoasWeight += roas;
           }
@@ -608,14 +608,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       autoTargeting ? 82 : autoBudgetOptimization ? 72 : 64
     ) : undefined;
 
-    // ROAS: base 3.2x + engine bonus, boosted by toggles
+    // ROAS: base 320% + engine bonus, boosted by toggles
     const engBonus = Math.min(enabledEngineCount * 0.2, 1.0);
     const baseRoasEst = 3.2 + engBonus;
     const roasMult = autoBudgetOptimization && autoTargeting ? 1.4 :
       autoBudgetOptimization ? 1.22 : autoTargeting ? 1.1 : 1.0;
     const estRoasNum = baseRoasEst * roasMult;
-    const estRoas = hasBudget ? `${estRoasNum.toFixed(1)}x` : '—';
-    const estRoasCurrent = hasProgress ? `Current: ${(estRoasNum * 0.78).toFixed(1)}x` : undefined;
+    const estRoas = hasBudget ? `${Math.round(estRoasNum * 100)}%` : '—';
+    const estRoasCurrent = hasProgress ? `Current: ${Math.round(estRoasNum * 0.78 * 100)}%` : undefined;
     const roasProgress = hasProgress ? (
       autoBudgetOptimization && autoTargeting ? 88 :
       autoBudgetOptimization ? 78 : autoTargeting ? 70 : 64
@@ -1335,7 +1335,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 }));
                 const roasByEngine = enabledEngines.map(engine => ({
                   name: engine.name,
-                  value: parseFloat(calculateEngineROAS(engine.id).replace('x', '')) || 0,
+                  value: parseFloat(calculateEngineROAS(engine.id).replace('%', '')) || 0,
                   color: propColor(engine.id),
                 }));
                 // Parallel colour array for the donut legends so each proposition
@@ -1346,7 +1346,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const conversionsTotal = conversionsByEngine.reduce((s, e) => s + e.value, 0);
                 const fmtCurrencyValue = (v: number) => fmtCurrency(v);
                 const fmtNumberValue = (v: number) => fmtNumber(v);
-                const fmtRoas = (v: number) => `${v.toFixed(1)}x`;
+                const fmtRoas = (v: number) => `${Math.round(v)}%`;
 
                 // Total budget across propositions — used as the "of $X budget" sub-line on the Budget card
                 const totalBudgetNum = budgetVsSpendData.reduce((s, d) => s + d.budget, 0);

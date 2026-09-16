@@ -1021,10 +1021,10 @@ const channelChartConfig = {
 
 // Mock data for positions tables
 const sponsoredProductsPositionsData = [
-  { id: 'SP-001', name: 'Search Results Top', fillRate: '99.2%', totalPositions: 1200, filledPositions: 1190, revenue: '€4,567', roas: '3.24x' },
-  { id: 'SP-002', name: 'Product Detail Page', fillRate: '98.8%', totalPositions: 850, filledPositions: 840, revenue: '€3,891', roas: '2.98x' },
-  { id: 'SP-003', name: 'Category Listings', fillRate: '97.5%', totalPositions: 650, filledPositions: 634, revenue: '€2,156', roas: '2.76x' },
-  { id: 'SP-004', name: 'Search Results Bottom', fillRate: '96.1%', totalPositions: 450, filledPositions: 432, revenue: '€1,234', roas: '2.12x' },
+  { id: 'SP-001', name: 'Search Results Top', fillRate: '99.2%', totalPositions: 1200, filledPositions: 1190, revenue: '€4,567', roas: '324%' },
+  { id: 'SP-002', name: 'Product Detail Page', fillRate: '98.8%', totalPositions: 850, filledPositions: 840, revenue: '€3,891', roas: '298%' },
+  { id: 'SP-003', name: 'Category Listings', fillRate: '97.5%', totalPositions: 650, filledPositions: 634, revenue: '€2,156', roas: '276%' },
+  { id: 'SP-004', name: 'Search Results Bottom', fillRate: '96.1%', totalPositions: 450, filledPositions: 432, revenue: '€1,234', roas: '212%' },
 ];
 
 const sponsoredProductsMediaData = [
@@ -1035,10 +1035,10 @@ const sponsoredProductsMediaData = [
 ];
 
 const displayPositionsData = [
-  { id: 'DP-001', name: 'Homepage Hero Banner', fillRate: '96.7%', totalPositions: 800, filledPositions: 774, revenue: '€2,890', roas: '2.45x' },
-  { id: 'DP-002', name: 'Category Page Header', fillRate: '95.2%', totalPositions: 600, filledPositions: 571, revenue: '€1,780', roas: '2.12x' },
+  { id: 'DP-001', name: 'Homepage Hero Banner', fillRate: '96.7%', totalPositions: 800, filledPositions: 774, revenue: '€2,890', roas: '245%' },
+  { id: 'DP-002', name: 'Category Page Header', fillRate: '95.2%', totalPositions: 600, filledPositions: 571, revenue: '€1,780', roas: '212%' },
   { id: 'DP-003', name: 'Sidebar Banner 300x600', fillRate: '93.8%', totalPositions: 450, filledPositions: 422, revenue: '€1,230', roas: '1.98x' },
-  { id: 'DP-004', name: 'Footer Banner', fillRate: '91.5%', totalPositions: 320, filledPositions: 293, revenue: '€890', roas: '1.76x' },
+  { id: 'DP-004', name: 'Footer Banner', fillRate: '91.5%', totalPositions: 320, filledPositions: 293, revenue: '€890', roas: '176%' },
 ];
 
 const displayMediaData = [
@@ -1049,10 +1049,10 @@ const displayMediaData = [
 ];
 
 const digitalInstorePositionsData = [
-  { id: 'DI-001', name: 'Entrance Digital Screen', fillRate: '91.4%', totalPositions: 150, filledPositions: 137, revenue: '€1,890', roas: '2.34x' },
-  { id: 'DI-002', name: 'Aisle End Display', fillRate: '89.7%', totalPositions: 120, filledPositions: 108, revenue: '€1,456', roas: '2.12x' },
-  { id: 'DI-003', name: 'Checkout Screen', fillRate: '88.2%', totalPositions: 80, filledPositions: 71, revenue: '€892', roas: '1.98x' },
-  { id: 'DI-004', name: 'Product Shelf Display', fillRate: '86.8%', totalPositions: 60, filledPositions: 52, revenue: '€624', roas: '1.76x' },
+  { id: 'DI-001', name: 'Entrance Digital Screen', fillRate: '91.4%', totalPositions: 150, filledPositions: 137, revenue: '€1,890', roas: '234%' },
+  { id: 'DI-002', name: 'Aisle End Display', fillRate: '89.7%', totalPositions: 120, filledPositions: 108, revenue: '€1,456', roas: '212%' },
+  { id: 'DI-003', name: 'Checkout Screen', fillRate: '88.2%', totalPositions: 80, filledPositions: 71, revenue: '€892', roas: '198%' },
+  { id: 'DI-004', name: 'Product Shelf Display', fillRate: '86.8%', totalPositions: 60, filledPositions: 52, revenue: '€624', roas: '176%' },
 ];
 
 const digitalInstoreMediaData = [
@@ -1063,10 +1063,10 @@ const digitalInstoreMediaData = [
 ];
 
 const offlineInstorePositionsData = [
-  { id: 'OI-001', name: 'Entrance Poster Frame', fillRate: '86.9%', totalPositions: 45, filledPositions: 39, revenue: '€468', roas: '1.89x' },
-  { id: 'OI-002', name: 'Aisle Header Banner', fillRate: '84.2%', totalPositions: 35, filledPositions: 29, revenue: '€348', roas: '1.67x' },
-  { id: 'OI-003', name: 'Checkout Counter Display', fillRate: '82.6%', totalPositions: 25, filledPositions: 21, revenue: '€252', roas: '1.45x' },
-  { id: 'OI-004', name: 'Product End Cap', fillRate: '80.1%', totalPositions: 20, filledPositions: 16, revenue: '€192', roas: '1.23x' },
+  { id: 'OI-001', name: 'Entrance Poster Frame', fillRate: '86.9%', totalPositions: 45, filledPositions: 39, revenue: '€468', roas: '189%' },
+  { id: 'OI-002', name: 'Aisle Header Banner', fillRate: '84.2%', totalPositions: 35, filledPositions: 29, revenue: '€348', roas: '167%' },
+  { id: 'OI-003', name: 'Checkout Counter Display', fillRate: '82.6%', totalPositions: 25, filledPositions: 21, revenue: '€252', roas: '145%' },
+  { id: 'OI-004', name: 'Product End Cap', fillRate: '80.1%', totalPositions: 20, filledPositions: 16, revenue: '€192', roas: '123%' },
 ];
 
 const offlineInstoreMediaData = [

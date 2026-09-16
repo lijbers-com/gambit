@@ -868,7 +868,7 @@ export const seedData: DbData = {
     { id: 'TERM-001', term: 'Impressions', definition: 'How many times an ad was shown. One person can account for many impressions.', published: true, order: 1, updatedAt: now },
     { id: 'TERM-002', term: 'Reach', definition: 'How many different people saw the ad at least once. Reach never exceeds impressions.', published: true, order: 2, updatedAt: now },
     { id: 'TERM-003', term: 'CTR (click-through rate)', definition: 'Clicks divided by impressions. A 0.8% CTR means 8 clicks per 1,000 times the ad was shown.', published: true, order: 3, updatedAt: now },
-    { id: 'TERM-004', term: 'ROAS (return on ad spend)', definition: 'Attributed sales revenue divided by media spend. A ROAS of 3x means every euro spent returned three euros in sales.', published: true, order: 4, updatedAt: now },
+    { id: 'TERM-004', term: 'ROAS (return on ad spend)', definition: 'Attributed sales revenue divided by media spend. A ROAS of 300% means every euro spent returned three euros in sales.', published: true, order: 4, updatedAt: now },
     { id: 'TERM-005', term: 'Spend', definition: 'What the booking has actually delivered in media cost so far, as opposed to budget, which is the ceiling you set.', published: true, order: 5, updatedAt: now },
     { id: 'TERM-006', term: 'Conversions', definition: 'Purchases attributed to the campaign, counted within the attribution window you chose.', published: true, order: 6, updatedAt: now },
     { id: 'TERM-007', term: 'Buyer reach', definition: 'The number of distinct shoppers who both saw the ad and bought in the category.', published: true, order: 7, updatedAt: now },

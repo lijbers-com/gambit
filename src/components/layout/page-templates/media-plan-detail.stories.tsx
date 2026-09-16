@@ -49,7 +49,7 @@ import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/compo
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, type EngineId, type PlanStatus, type SetupStepKey } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -702,6 +702,49 @@ export const MediaPlanDetail: Story = {
     // view, however its status was spelled on the way in. Skipping the cards
     // releases it.
     const inSetup = !!plan && !planHasRun && (plan.status === 'draft' || awaitingApproval || planNeedsSetup);
+
+    /**
+     * At the end of a workflow step row: for a setup step, how many
+     * campaigns still need it and a Start that opens the first one's wizard —
+     * the same doors the setup cards open.
+     */
+    const planStepExtra = (step: WorkflowStep, done: boolean): React.ReactNode => {
+      if (!plan || done || !step.setup) return null;
+      const key = step.setup;
+      const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+      if (key === 'add-campaigns') {
+        return <Button size="sm" onClick={() => addCampaign('display')}>Add campaign</Button>;
+      }
+      const isOpen = (c: Campaign) => (key === 'approve-campaigns' ? c.status === 'draft' : !setupStepDone(db, c, key));
+      const waiting = planCampaigns.filter(isOpen);
+      const first = waiting[0];
+      const start = () => {
+        if (!first) return;
+        const bookings = db.bookings.filter((b) => b.campaignId === first.id);
+        const draft = bookings.find((b) => b.status === 'draft');
+        const seg = routeSeg[first.engine];
+        switch (key) {
+          case 'approve-campaigns':
+          case 'approve-campaign': window.location.href = `/create/${seg}?campaignId=${first.id}&step=campaign${backToPlan}`; break;
+          case 'create-bookings':
+          case 'add-targeting': addBookingTo(first.id); break;
+          case 'approve-bookings': approveBooking(draft?.id ?? bookings[0]?.id, first.id); break;
+          case 'link-creatives': {
+            const missing = bookings.find((b) => b.creativeStatus === 'missing');
+            window.location.href = missing
+              ? `/create/${seg}?bookingId=${missing.id}&step=creatives${backToPlan}`
+              : `/create/${seg}?campaignId=${first.id}${backToPlan}`;
+            break;
+          }
+        }
+      };
+      return (
+        <span className="flex shrink-0 items-center gap-3">
+          <span className="text-xs text-muted-foreground">{waiting.length} of {planCampaigns.length} campaign{planCampaigns.length === 1 ? '' : 's'}</span>
+          <Button size="sm" onClick={start} disabled={!first}>Start</Button>
+        </span>
+      );
+    };
     const campaignsView = campaignViewOverride ?? (planHasRun || !planNeedsSetup ? 'table' : 'cards');
 
     const planBlockers = plan
@@ -1016,10 +1059,9 @@ export const MediaPlanDetail: Story = {
               metrics above the tabs rather than inside one of them. */}
           {/* mb-1 + the tab card's built-in 12px above its strip = the same
               16px gap the metric cards keep. */}
-          {/* In setup the controls step aside: what the plan may spend and
-              when it runs were just answered in the wizard, and the page is
-              about approving what it proposed. */}
-          {!inSetup && (
+          {/* In setup the panel opens its to-dos: the page is about getting
+              the plan approved, so the steps sit in view, each with what is
+              left and a way to start it. */}
           <ControlBar
             className="mb-4"
             // Where the plan stands in its own workflow — each stage a chip that opens its steps.
@@ -1028,7 +1070,7 @@ export const MediaPlanDetail: Story = {
             // controls right — launch, pause, resume, stop.
             footer={plan ? (
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <WorkflowProgress variant="bar" hideNext engine="media-plan" mediaPlanId={plan.id} />
+                <WorkflowProgress variant="bar" hideNext expanded={inSetup} engine="media-plan" mediaPlanId={plan.id} renderStepExtra={planStepExtra} />
                 <div className="ml-auto flex items-center gap-2">
                   <LifecycleActions
                   level="media-plan"
@@ -1098,7 +1140,6 @@ export const MediaPlanDetail: Story = {
               </div>
             </ControlBarItem>
           </ControlBar>
-          )}
 
           {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
               keep between themselves — the whole column shares one gap. */}

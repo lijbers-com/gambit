@@ -52,10 +52,15 @@ export interface WorkflowProgressProps {
   variant?: 'full' | 'bar';
   /** Bar only: leave out the "Next: …" line — the chips already open the steps. */
   hideNext?: boolean;
+  /** Bar only: list the current stage's steps beneath the row, open — for a
+   *  page that is about getting them done, so the to-dos sit in view. */
+  expanded?: boolean;
+  /** Something to show at the end of a step row — a count, a button. */
+  renderStepExtra?: (step: WorkflowStep, done: boolean) => React.ReactNode;
   className?: string;
 }
 
-export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, className }) => {
+export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, expanded, renderStepExtra, className }) => {
   const db = useDb();
   const workflow = workflowFor(db, engine);
   const foundBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
@@ -159,6 +164,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
               </span>
             </span>
             {step.mandatory && !done && <span className="shrink-0 rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
+            {renderStepExtra?.(step, done)}
           </li>
         );
       })}
@@ -247,6 +253,16 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     return (
       <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2', className)}>
         {stageBarWithSteps}
+        {/* Expanded: the stage's steps in view, not behind the chip. */}
+        {expanded && items.length > 0 && (
+          <div className="order-last w-full basis-full rounded-md border bg-background">
+            <div className="flex items-center justify-between border-b px-3 py-2">
+              <span className="text-sm font-medium">{heading}</span>
+              <span className="text-xs text-muted-foreground">{open.length} open · {items.length - open.length} done</span>
+            </div>
+            {todoList}
+          </div>
+        )}
         {items.length > 0 && !hideNext && (
           <span className="ml-auto min-w-0 truncate text-sm">
             {nextOpen ? (

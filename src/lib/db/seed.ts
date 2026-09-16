@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 19;
+export const SEED_VERSION = 20;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -352,52 +352,52 @@ export const seedData: DbData = {
   ],
   positions: [
     // Display onsite — a channel holds every slot on that page type.
-    { id: 'pos-dsp-home-top',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage top banner',       format: 'Billboard 970x250', dailyCapacity: 4 },
-    { id: 'pos-dsp-home-mid',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage mid banner',       format: 'Leaderboard 728x90', dailyCapacity: 6 },
-    { id: 'pos-dsp-home-rail',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage side rail',        format: 'Halfpage 300x600', dailyCapacity: 8 },
-    { id: 'pos-dsp-home-native', mediaProductId: 'mprod-dsp-home',  name: 'Homepage native row',       format: 'Native card', dailyCapacity: 10 },
-    { id: 'pos-dsp-home-hero',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage hero takeover',    format: 'Takeover', dailyCapacity: 1 },
-    { id: 'pos-dsp-cat-top',     mediaProductId: 'mprod-dsp-cat',   name: 'Category top banner',       format: 'Billboard 970x250', dailyCapacity: 8 },
-    { id: 'pos-dsp-cat-inline',  mediaProductId: 'mprod-dsp-cat',   name: 'Category inline banner',    format: 'Leaderboard 728x90', dailyCapacity: 12 },
-    { id: 'pos-dsp-cat-rail',    mediaProductId: 'mprod-dsp-cat',   name: 'Category side rail',        format: 'Halfpage 300x600', dailyCapacity: 10 },
-    { id: 'pos-dsp-cat-footer',  mediaProductId: 'mprod-dsp-cat',   name: 'Category footer banner',    format: 'Leaderboard 728x90', dailyCapacity: 14 },
-    { id: 'pos-dsp-pdp',         mediaProductId: 'mprod-dsp-pdp',   name: 'PDP banner',                format: 'Leaderboard 728x90', dailyCapacity: 12 },
-    { id: 'pos-dsp-pdp-related', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP related products',      format: 'Native card', dailyCapacity: 18 },
-    { id: 'pos-dsp-pdp-gallery', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP gallery slot',          format: 'Rich media', dailyCapacity: 6 },
-    { id: 'pos-dsp-pdp-basket',  mediaProductId: 'mprod-dsp-pdp',   name: 'Add-to-basket overlay',     format: 'Overlay 300x250', dailyCapacity: 9 },
+    { id: 'pos-dsp-home-top',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage top banner',       format: 'Billboard 970x250', dailyCapacity: 4, floorPrice: 15.6, listPrice: 2340 },
+    { id: 'pos-dsp-home-mid',    mediaProductId: 'mprod-dsp-home',  name: 'Homepage mid banner',       format: 'Leaderboard 728x90', dailyCapacity: 6, floorPrice: 14.4, listPrice: 2510 },
+    { id: 'pos-dsp-home-rail',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage side rail',        format: 'Halfpage 300x600', dailyCapacity: 8, floorPrice: 17.2, listPrice: 2480 },
+    { id: 'pos-dsp-home-native', mediaProductId: 'mprod-dsp-home',  name: 'Homepage native row',       format: 'Native card', dailyCapacity: 10, floorPrice: 13.0, listPrice: 2050 },
+    { id: 'pos-dsp-home-hero',   mediaProductId: 'mprod-dsp-home',  name: 'Homepage hero takeover',    format: 'Takeover', dailyCapacity: 1, floorPrice: 20.4, listPrice: 2460 },
+    { id: 'pos-dsp-cat-top',     mediaProductId: 'mprod-dsp-cat',   name: 'Category top banner',       format: 'Billboard 970x250', dailyCapacity: 8, floorPrice: 16.2, listPrice: 2080 },
+    { id: 'pos-dsp-cat-inline',  mediaProductId: 'mprod-dsp-cat',   name: 'Category inline banner',    format: 'Leaderboard 728x90', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2170 },
+    { id: 'pos-dsp-cat-rail',    mediaProductId: 'mprod-dsp-cat',   name: 'Category side rail',        format: 'Halfpage 300x600', dailyCapacity: 10, floorPrice: 15.0, listPrice: 2250 },
+    { id: 'pos-dsp-cat-footer',  mediaProductId: 'mprod-dsp-cat',   name: 'Category footer banner',    format: 'Leaderboard 728x90', dailyCapacity: 14, floorPrice: 9.6, listPrice: 1890 },
+    { id: 'pos-dsp-pdp',         mediaProductId: 'mprod-dsp-pdp',   name: 'PDP banner',                format: 'Leaderboard 728x90', dailyCapacity: 12, floorPrice: 15.8, listPrice: 2070 },
+    { id: 'pos-dsp-pdp-related', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP related products',      format: 'Native card', dailyCapacity: 18, floorPrice: 12.2, listPrice: 1830 },
+    { id: 'pos-dsp-pdp-gallery', mediaProductId: 'mprod-dsp-pdp',   name: 'PDP gallery slot',          format: 'Rich media', dailyCapacity: 6, floorPrice: 16.4, listPrice: 2360 },
+    { id: 'pos-dsp-pdp-basket',  mediaProductId: 'mprod-dsp-pdp',   name: 'Add-to-basket overlay',     format: 'Overlay 300x250', dailyCapacity: 9, floorPrice: 14.6, listPrice: 2190 },
     // Sponsored products
-    { id: 'pos-sp-search',       mediaProductId: 'mprod-sp-search', name: 'Search results slot',       format: 'Product listing', dailyCapacity: 40 },
-    { id: 'pos-sp-search-top',   mediaProductId: 'mprod-sp-search', name: 'Search top-of-page',        format: 'Product listing', dailyCapacity: 12 },
-    { id: 'pos-sp-search-rail',  mediaProductId: 'mprod-sp-search', name: 'Search side rail',          format: 'Product listing', dailyCapacity: 20 },
-    { id: 'pos-sp-autocomplete', mediaProductId: 'mprod-sp-search', name: 'Autocomplete suggestion',   format: 'Text + thumbnail', dailyCapacity: 25 },
+    { id: 'pos-sp-search',       mediaProductId: 'mprod-sp-search', name: 'Search results slot',       format: 'Product listing', dailyCapacity: 40, floorPrice: 2, listPrice: 1050 },
+    { id: 'pos-sp-search-top',   mediaProductId: 'mprod-sp-search', name: 'Search top-of-page',        format: 'Product listing', dailyCapacity: 12, floorPrice: 15.8, listPrice: 2070 },
+    { id: 'pos-sp-search-rail',  mediaProductId: 'mprod-sp-search', name: 'Search side rail',          format: 'Product listing', dailyCapacity: 20, floorPrice: 7.0, listPrice: 1650 },
+    { id: 'pos-sp-autocomplete', mediaProductId: 'mprod-sp-search', name: 'Autocomplete suggestion',   format: 'Text + thumbnail', dailyCapacity: 25, floorPrice: 9.0, listPrice: 1550 },
     // Digital in-store
-    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6 },
-    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10 },
-    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12 },
-    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8 },
-    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20 },
+    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6, floorPrice: 20.4, listPrice: 2560 },
+    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10, floorPrice: 16.0, listPrice: 2250 },
+    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2320 },
+    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8, floorPrice: 14.2, listPrice: 2080 },
+    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20, floorPrice: 10.0, listPrice: 1900 },
     // Offline in-store
-    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Shelf displays',            format: 'Shelf talker A6', dailyCapacity: 20 },
-    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Floor stickers',            format: 'Floor decal 60x60', dailyCapacity: 15 },
-    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'Endcap posters',            format: 'Poster A1', dailyCapacity: 10 },
-    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Trolley panels',            format: 'Panel A3', dailyCapacity: 25 },
-    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Window posters',            format: 'Poster A0', dailyCapacity: 8 },
+    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Shelf displays',            format: 'Shelf talker A6', dailyCapacity: 20, floorPrice: 11.0, listPrice: 1650 },
+    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Floor stickers',            format: 'Floor decal 60x60', dailyCapacity: 15, floorPrice: 10.0, listPrice: 2100 },
+    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'Endcap posters',            format: 'Poster A1', dailyCapacity: 10, floorPrice: 17.0, listPrice: 2100 },
+    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Trolley panels',            format: 'Panel A3', dailyCapacity: 25, floorPrice: 6.0, listPrice: 1500 },
+    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Window posters',            format: 'Poster A0', dailyCapacity: 8, floorPrice: 17.2, listPrice: 2080 },
     // Offsite positions per channel
-    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display',    name: 'Open web display',      format: 'MPU 300x250', dailyCapacity: 100 },
-    { id: 'pos-off-web-hpa',      mediaProductId: 'mprod-off-display',    name: 'High-impact takeover',  format: 'Skin + billboard', dailyCapacity: 15 },
-    { id: 'pos-off-web-native',   mediaProductId: 'mprod-off-display',    name: 'Native in-feed',        format: 'Native card', dailyCapacity: 80 },
-    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       format: 'Pre-roll 15s', dailyCapacity: 60 },
-    { id: 'pos-off-olv-outstream',mediaProductId: 'mprod-off-olv',        name: 'Out-stream video',      format: 'In-article 6s', dailyCapacity: 45 },
-    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              format: 'Spot 20s', dailyCapacity: 30 },
-    { id: 'pos-off-ctv-pause',    mediaProductId: 'mprod-off-ctv',        name: 'Pause ad',              format: 'Static overlay', dailyCapacity: 20 },
-    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     format: 'Native card', dailyCapacity: 50 },
-    { id: 'pos-off-ctx-article',  mediaProductId: 'mprod-off-contextual', name: 'Article placements',    format: 'In-article MPU', dailyCapacity: 40 },
+    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display',    name: 'Open web display',      format: 'MPU 300x250', dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-web-hpa',      mediaProductId: 'mprod-off-display',    name: 'High-impact takeover',  format: 'Skin + billboard', dailyCapacity: 15, floorPrice: 11.0, listPrice: 1800 },
+    { id: 'pos-off-web-native',   mediaProductId: 'mprod-off-display',    name: 'Native in-feed',        format: 'Native card', dailyCapacity: 80, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       format: 'Pre-roll 15s', dailyCapacity: 60, floorPrice: 2, listPrice: 250 },
+    { id: 'pos-off-olv-outstream',mediaProductId: 'mprod-off-olv',        name: 'Out-stream video',      format: 'In-article 6s', dailyCapacity: 45, floorPrice: 2, listPrice: 900 },
+    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              format: 'Spot 20s', dailyCapacity: 30, floorPrice: 3.0, listPrice: 1350 },
+    { id: 'pos-off-ctv-pause',    mediaProductId: 'mprod-off-ctv',        name: 'Pause ad',              format: 'Static overlay', dailyCapacity: 20, floorPrice: 9.0, listPrice: 2000 },
+    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     format: 'Native card', dailyCapacity: 50, floorPrice: 2, listPrice: 700 },
+    { id: 'pos-off-ctx-article',  mediaProductId: 'mprod-off-contextual', name: 'Article placements',    format: 'In-article MPU', dailyCapacity: 40, floorPrice: 2, listPrice: 900 },
     // Social Media: positions are the platforms
-    { id: 'pos-off-soc-meta',      mediaProductId: 'mprod-off-social', name: 'Meta',            dailyCapacity: 100 },
-    { id: 'pos-off-soc-tiktok',    mediaProductId: 'mprod-off-social', name: 'TikTok',          dailyCapacity: 100 },
-    { id: 'pos-off-soc-pinterest', mediaProductId: 'mprod-off-social', name: 'Pinterest',       dailyCapacity: 100 },
-    { id: 'pos-off-soc-youtube',   mediaProductId: 'mprod-off-social', name: 'YouTube (DV360)', dailyCapacity: 100 },
-    { id: 'pos-off-dooh-screens',  mediaProductId: 'mprod-off-dooh',   name: 'DOOH screens',    dailyCapacity: 40 },
+    { id: 'pos-off-soc-meta',      mediaProductId: 'mprod-off-social', name: 'Meta',            dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-soc-tiktok',    mediaProductId: 'mprod-off-social', name: 'TikTok',          dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-soc-pinterest', mediaProductId: 'mprod-off-social', name: 'Pinterest',       dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-soc-youtube',   mediaProductId: 'mprod-off-social', name: 'YouTube (DV360)', dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
+    { id: 'pos-off-dooh-screens',  mediaProductId: 'mprod-off-dooh',   name: 'DOOH screens',    dailyCapacity: 40, floorPrice: 2, listPrice: 1150 },
   ],
 
   // Seeded per-week booked load across the summer flights; the calendar and
@@ -893,6 +893,22 @@ export const seedData: DbData = {
   // banner. These four start from Jacco's DMI and OMI lifecycles and the
   // status-lifecycle proposal; Delhaize input for OMI, so AH and ADUSA will
   // move things on the board.
+  // Who may and may not buy each proposition. Reasons on record so a sales
+  // manager can answer "why not?" without asking around.
+  listings: [
+    { id: 'lst-01', engine: 'display',            kind: 'block', subject: 'category',   name: 'Tobacco & vaping',        reason: 'Retailer policy — no advertising of tobacco products.',     addedAt: '2026-01-10' },
+    { id: 'lst-02', engine: 'display',            kind: 'block', subject: 'category',   name: 'Alcohol above 15%',       reason: 'Onsite display is visible to under-18 shoppers.',            addedAt: '2026-01-10' },
+    { id: 'lst-03', engine: 'display',            kind: 'allow', subject: 'advertiser', name: 'Acme Media',              reason: 'Framework agreement 2026 — homepage takeover pre-cleared.',  addedAt: '2026-02-03' },
+    { id: 'lst-04', engine: 'sponsored-products', kind: 'block', subject: 'brand',      name: 'Private label',           reason: 'Own brands never bid against suppliers.',                    addedAt: '2026-01-15' },
+    { id: 'lst-05', engine: 'sponsored-products', kind: 'block', subject: 'category',   name: 'Infant formula',          reason: 'Regulated — no paid promotion.',                             addedAt: '2026-01-15' },
+    { id: 'lst-06', engine: 'digital-instore',    kind: 'allow', subject: 'advertiser', name: 'Unilever Shopper Marketing', reason: 'Screen network pilot partner.',                          addedAt: '2026-03-01' },
+    { id: 'lst-07', engine: 'digital-instore',    kind: 'block', subject: 'category',   name: 'Alcohol',                 reason: 'Entrance screens face the street.',                          addedAt: '2026-03-01' },
+    { id: 'lst-08', engine: 'offline-instore',    kind: 'block', subject: 'category',   name: 'Tobacco & vaping',        reason: 'Retailer policy — no advertising of tobacco products.',     addedAt: '2026-01-10' },
+    { id: 'lst-09', engine: 'offline-instore',    kind: 'allow', subject: 'brand',      name: 'Heineken 0.0',            reason: 'Alcohol-free — allowed on shelf materials.',                 addedAt: '2026-04-12' },
+    { id: 'lst-10', engine: 'offsite',            kind: 'block', subject: 'advertiser', name: 'Global Brands Co.',       reason: 'Audience data sharing not agreed for offsite.',              addedAt: '2026-05-20' },
+    { id: 'lst-11', engine: 'offsite',            kind: 'block', subject: 'category',   name: 'Gambling',                reason: 'Partner network policy.',                                     addedAt: '2026-05-20' },
+  ],
+
   workflows: [
     { id: 'WF-DMI', engine: 'digital-instore', name: 'Digital in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
       description: 'Book, upload creatives, target screens. Sales in AdCRM, preparation from X-8, creatives due X-4, live on the flight date.',

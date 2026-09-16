@@ -11,9 +11,8 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
-import { useDb, useInboxState, deriveMessages, workflowFor, walkSteps, type EngineId } from '@/lib/db';
-import { Inbox } from '@/components/ui/inbox';
-import { ArrowRight, Bell, GitBranch, LayoutTemplate, SlidersHorizontal } from 'lucide-react';
+import { useDb, workflowFor, walkSteps, type EngineId } from '@/lib/db';
+import { ArrowRight, GitBranch, LayoutTemplate, ShieldCheck, SlidersHorizontal, Tag, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -166,7 +165,7 @@ const getChartConfig = (selectedMetric: string) => ({
   }
 });
 
-const createEngineConfigurationStory = (
+const createEngineConfigurationStories = (
   engineType: string,
   engineTitle: string,
   metrics: Array<{
@@ -177,12 +176,19 @@ const createEngineConfigurationStory = (
     badgeValue: string;
     badgeVariant: 'success' | 'destructive' | 'secondary' | 'outline';
   }>
-) => ({
-  render: () => {
+): { dashboard: Story; settings: Story } => {
+  const render = (view: 'dashboard' | 'settings') => () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
+    // The settings page opens on the tab a dashboard widget asked for.
     const [activeTab, setActiveTab] = useState('rules');
+    // Read after mount: the server renders without a query string, and the
+    // hydrated tree has to match it before the tab can change.
+    React.useEffect(() => {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab) setActiveTab(tab);
+    }, []);
 
     // Filter states
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -201,14 +207,28 @@ const createEngineConfigurationStory = (
     const workflowSteps = workflow ? walkSteps(workflow) : [];
     const workflowStages = workflowSteps.filter((st) => st.kind === 'stage');
     const setupSteps = workflowSteps.filter((st) => !!st.setup);
-    const inboxStatus = useInboxState();
-    const engineMessages = deriveMessages(db, { engine }).filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
-    const engineInboxItems = engineMessages.slice(0, 4).map((m) => ({
-      id: m.id, kind: m.kind, subject: m.subject, preview: m.preview,
-      context: m.context, level: m.level, severity: m.severity,
-    }));
     const activeRules = configurationRulesData.filter((r) => r.status === 'Active').length;
     const activeTemplates = configurationTemplatesData.filter((t) => t.status === 'Active').length;
+    // Who works on this proposition: the retailer's own people, and the
+    // advertiser organisations with a campaign on it.
+    const retailerUsers = db.users.filter((u) => u.side === 'retailer');
+    const activeAdvertiserIds = new Set(
+      db.campaigns.filter((c) => c.engine === engine).map((c) => db.mediaPlans.find((p) => p.id === c.mediaPlanId)?.advertiserId).filter(Boolean),
+    );
+    const activeOrganisations = db.advertisers.filter((a) => activeAdvertiserIds.has(a.id));
+    const advertiserUsers = db.users.filter((u) => u.side === 'advertiser' && u.advertiserId && activeAdvertiserIds.has(u.advertiserId));
+    // Who may and may not buy it.
+    const listings = db.listings.filter((l) => l.engine === engine);
+    const allowed = listings.filter((l) => l.kind === 'allow');
+    const blocked = listings.filter((l) => l.kind === 'block');
+    // What its positions cost: a floor for auctions, a list price when guaranteed.
+    const engineProductIds = new Set(db.mediaProducts.filter((m) => m.engine === engine).map((m) => m.id));
+    const pricedPositions = db.positions
+      .filter((pos) => engineProductIds.has(pos.mediaProductId))
+      .map((pos) => ({ ...pos, product: db.mediaProducts.find((m) => m.id === pos.mediaProductId)?.name ?? '' }));
+    const hasAuction = ['sponsored-products', 'display', 'digital-instore'].includes(engine);
+    const settingsHref = (tab: string) => `/configuration/${engineType}/settings?tab=${tab}`;
+    const go = (href: string) => { if (typeof window !== 'undefined') window.location.href = href; };
     /** A widget's button opens its tab and brings the card into view. */
     const openTab = (tab: string) => {
       setActiveTab(tab);
@@ -266,8 +286,8 @@ const createEngineConfigurationStory = (
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: `${engineTitle} Configuration`,
-          subtitle: `Manage ${engineType} engine configuration settings and rules`,
+          title: view === 'settings' ? `${engineTitle} configuration settings` : `${engineTitle} Configuration`,
+          subtitle: view === 'settings' ? 'Rules, templates, workflow, lists and prices' : `Manage ${engineType} engine configuration settings and rules`,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -275,52 +295,52 @@ const createEngineConfigurationStory = (
         }}
       >
         <div className="space-y-6">
-          {/* The dashboard, in the home page's shape: widgets first, each
-              one a door into the configuration behind it — the workflow the
-              proposition follows, its rules and templates, and what is
-              waiting on it. The tables and the board sit underneath. */}
+          {view === 'dashboard' && (
+          <>
+          {/* The dashboard, in the home page's shape: widgets first, each one
+              a door into the page behind it — the configuration (rules,
+              templates, workflow), who works on the proposition, who may buy
+              it, and what its positions cost. */}
           <section className="space-y-4">
             <Card>
               <CardContent className="flex h-full flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <GitBranch className="h-5 w-5 text-primary" />
-                    Workflow
+                    <SlidersHorizontal className="h-5 w-5 text-primary" />
+                    Configuration
                   </h3>
                   {workflow && (
                     <Badge variant={workflow.status === 'published' ? 'success' : 'outline'}>
-                      {workflow.status === 'published' ? 'Published' : 'Draft'}
+                      Workflow {workflow.status === 'published' ? 'published' : 'draft'}
                     </Badge>
                   )}
                 </div>
-                {workflow ? (
-                  <>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {workflow.name} — {workflowStages.length} stages, {workflowSteps.length - workflowStages.length} steps between them, {setupSteps.length} of which are setup steps Edge ticks off from the data.
-                    </p>
-                    <ol className="mt-4 flex flex-wrap items-center gap-y-2">
-                      {workflowStages.map((st, i) => (
-                        <li key={st.id} className="flex items-center">
-                          <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium" title={st.description}>
-                            {st.name}
-                          </span>
-                          {i < workflowStages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
-                        </li>
-                      ))}
-                    </ol>
-                    <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                      {setupSteps.map((st) => (
-                        <li key={st.id} className="rounded-md border border-border px-3 py-2">
-                          <span className="block font-medium">{st.name}</span>
-                          <span className="block text-xs text-muted-foreground">Setup · {st.owner}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : (
-                  <p className="mt-1 text-sm text-muted-foreground">No workflow yet — open the board to draw one.</p>
+                <p className="mt-1 text-sm text-muted-foreground">The rules this proposition runs by, the templates it starts from, and the workflow its campaigns follow.</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  <button type="button" onClick={() => go(settingsHref('rules'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
+                    <span className="flex items-center gap-2 text-sm font-medium"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" />Configuration rules</span>
+                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeRules}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></span>
+                  </button>
+                  <button type="button" onClick={() => go(settingsHref('templates'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
+                    <span className="flex items-center gap-2 text-sm font-medium"><LayoutTemplate className="h-4 w-4 text-muted-foreground" />Templates</span>
+                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeTemplates}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationTemplatesData.length} active</span></span>
+                  </button>
+                  <button type="button" onClick={() => go(settingsHref('workflow'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
+                    <span className="flex items-center gap-2 text-sm font-medium"><GitBranch className="h-4 w-4 text-muted-foreground" />Workflow</span>
+                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{workflowStages.length}<span className="ml-1.5 text-sm font-normal text-muted-foreground">stages · {workflowSteps.length - workflowStages.length} steps</span></span>
+                  </button>
+                </div>
+                {workflow && (
+                  <ol className="mt-4 flex flex-wrap items-center gap-y-2">
+                    {workflowStages.map((st, i) => (
+                      <li key={st.id} className="flex items-center">
+                        <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium" title={st.description}>{st.name}</span>
+                        {i < workflowStages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
+                      </li>
+                    ))}
+                  </ol>
                 )}
-                {viewAll('Open the workflow board', () => openTab('workflow'))}
+                {viewAll('Open configuration', () => go(settingsHref('rules')))}
               </CardContent>
             </Card>
 
@@ -328,63 +348,84 @@ const createEngineConfigurationStory = (
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <SlidersHorizontal className="h-5 w-5 text-primary" />
-                    Configuration rules
+                    <Users className="h-5 w-5 text-primary" />
+                    Users & organisations
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">How this proposition targets, prioritises and spends.</p>
-                  <p className="mt-4 text-3xl font-semibold tabular-nums">{activeRules}<span className="ml-2 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></p>
+                  <p className="mt-1 text-sm text-muted-foreground">Who works on this proposition.</p>
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div><span className="block text-2xl font-semibold tabular-nums">{activeOrganisations.length}</span><span className="text-xs text-muted-foreground">organisations</span></div>
+                    <div><span className="block text-2xl font-semibold tabular-nums">{advertiserUsers.length}</span><span className="text-xs text-muted-foreground">advertiser users</span></div>
+                    <div><span className="block text-2xl font-semibold tabular-nums">{retailerUsers.length}</span><span className="text-xs text-muted-foreground">retailer users</span></div>
+                  </div>
                   <ul className="mt-3 flex-1 space-y-1 text-sm">
-                    {configurationRulesData.slice(0, 3).map((r) => (
-                      <li key={r.id} className="flex items-center justify-between gap-2">
-                        <span className="truncate">{r.name}</span>
-                        <Badge variant={r.status === 'Active' ? 'success' : 'secondary'}>{r.status}</Badge>
+                    {activeOrganisations.slice(0, 4).map((a) => (
+                      <li key={a.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">{a.name}</span>
+                        <span className="text-xs text-muted-foreground">{a.brands.length} brand{a.brands.length === 1 ? '' : 's'}</span>
                       </li>
                     ))}
                   </ul>
-                  {viewAll('Manage rules', () => openTab('rules'))}
+                  {viewAll('Manage users & organisations', () => go('/configuration/organisations-users'))}
                 </CardContent>
               </Card>
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <LayoutTemplate className="h-5 w-5 text-primary" />
-                    Templates
+                    <ShieldCheck className="h-5 w-5 text-primary" />
+                    Allow & block lists
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">The shapes a booking or campaign starts from.</p>
-                  <p className="mt-4 text-3xl font-semibold tabular-nums">{activeTemplates}<span className="ml-2 text-sm font-normal text-muted-foreground">of {configurationTemplatesData.length} active</span></p>
+                  <p className="mt-1 text-sm text-muted-foreground">Who may buy this proposition, and who never can.</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div><span className="block text-2xl font-semibold tabular-nums">{allowed.length}</span><span className="text-xs text-muted-foreground">allowed</span></div>
+                    <div><span className="block text-2xl font-semibold tabular-nums">{blocked.length}</span><span className="text-xs text-muted-foreground">blocked</span></div>
+                  </div>
                   <ul className="mt-3 flex-1 space-y-1 text-sm">
-                    {configurationTemplatesData.slice(0, 3).map((t) => (
-                      <li key={t.id} className="flex items-center justify-between gap-2">
-                        <span className="truncate">{t.name}</span>
-                        <span className="text-xs text-muted-foreground">{t.category}</span>
+                    {listings.slice(0, 4).map((l) => (
+                      <li key={l.id} className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate">{l.name}<span className="ml-1.5 text-xs text-muted-foreground">{l.subject}</span></span>
+                        <Badge variant={l.kind === 'allow' ? 'success' : 'destructive'}>{l.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge>
                       </li>
                     ))}
                   </ul>
-                  {viewAll('Manage templates', () => openTab('templates'))}
+                  {viewAll('Manage lists', () => go(settingsHref('lists')))}
                 </CardContent>
               </Card>
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
-                  <div className="mb-3 flex items-center gap-2">
-                    <Bell className={cn('h-5 w-5', engineMessages.length > 0 ? 'text-primary' : 'text-muted-foreground')} />
-                    <h3 className="text-lg font-semibold">Notifications</h3>
-                    <span className="text-sm text-muted-foreground">{engineMessages.length} open</span>
-                  </div>
-                  <Inbox
-                    items={engineInboxItems}
-                    status={inboxStatus}
-                    showFilters={false}
-                    emptyMessage="Nothing is waiting on this proposition."
-                    onOpen={() => { if (typeof window !== 'undefined') window.location.href = '/notifications'; }}
-                  />
-                  {viewAll('View all notifications', () => { if (typeof window !== 'undefined') window.location.href = '/notifications'; })}
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <Tag className="h-5 w-5 text-primary" />
+                    Position pricing
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{hasAuction ? 'Floor prices for auction, list prices when guaranteed.' : 'List prices — this proposition sells guaranteed only.'}</p>
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground">
+                        <th className="pb-1 font-medium">Position</th>
+                        {hasAuction && <th className="pb-1 text-right font-medium">Floor</th>}
+                        <th className="pb-1 text-right font-medium">List</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pricedPositions.slice(0, 5).map((pos) => (
+                        <tr key={pos.id}>
+                          <td className="truncate py-0.5 pr-2">{pos.name}</td>
+                          {hasAuction && <td className="py-0.5 text-right tabular-nums">€{pos.floorPrice?.toFixed(2)}</td>}
+                          <td className="py-0.5 text-right tabular-nums">€{pos.listPrice?.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {viewAll(`All ${pricedPositions.length} positions`, () => go(settingsHref('pricing')))}
                 </CardContent>
               </Card>
             </div>
           </section>
+          </>
+          )}
 
-          {/* The tab strip sits above the card, left, the way every campaign
-              and booking page is built — the card is the open tab's body. */}
+          {/* The settings page: the tab strip above the card, left, the way
+              every campaign and booking page is built. */}
+          {view === 'settings' && (
           <CardWithTabs
             id="config-tabs"
             className="w-full"
@@ -478,6 +519,47 @@ const createEngineConfigurationStory = (
                 ),
               },
               {
+                value: 'lists',
+                label: 'Allow & block lists',
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Name' },
+                        { key: 'subject', header: 'What', render: (row) => <span className="capitalize">{row.subject}</span> },
+                        { key: 'kind', header: 'List', render: (row) => <Badge variant={row.kind === 'allow' ? 'success' : 'destructive'}>{row.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge> },
+                        { key: 'reason', header: 'Reason' },
+                        { key: 'addedAt', header: 'Since' },
+                      ]}
+                      data={listings}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+              {
+                value: 'pricing',
+                label: 'Position pricing',
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Position' },
+                        { key: 'product', header: 'Media product' },
+                        { key: 'format', header: 'Format', render: (row) => row.format ?? '—' },
+                        { key: 'dailyCapacity', header: 'Slots / day' },
+                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor price (auction, CPM)', render: (row: typeof pricedPositions[number]) => `€${row.floorPrice?.toFixed(2)}` }] : []),
+                        { key: 'listPrice', header: 'List price (guaranteed, per day)', render: (row) => `€${row.listPrice?.toLocaleString()}` },
+                      ]}
+                      data={pricedPositions}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+              {
                 // The proposition's workflow — the retailer's board: which
                 // steps, who approves, what is mandatory, deadlines, SLAs
                 // and the actions Edge fires.
@@ -493,14 +575,16 @@ const createEngineConfigurationStory = (
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
+          )}
         </div>
       </AppLayout>
       </MenuContextProvider>
     );
-  },
-});
+  };
+  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') } };
+};
 
-export const SponsoredProducts: Story = createEngineConfigurationStory(
+const sponsoredProductsStories = createEngineConfigurationStories(
   'sponsored-products',
   'Sponsored Products',
   [
@@ -538,8 +622,10 @@ export const SponsoredProducts: Story = createEngineConfigurationStory(
     },
   ]
 );
+export const SponsoredProducts: Story = sponsoredProductsStories.dashboard;
+export const SponsoredProductsSettings: Story = sponsoredProductsStories.settings;
 
-export const Display: Story = createEngineConfigurationStory(
+const displayStories = createEngineConfigurationStories(
   'display',
   'Display',
   [
@@ -577,8 +663,10 @@ export const Display: Story = createEngineConfigurationStory(
     },
   ]
 );
+export const Display: Story = displayStories.dashboard;
+export const DisplaySettings: Story = displayStories.settings;
 
-export const DigitalInstore: Story = createEngineConfigurationStory(
+const digitalInstoreStories = createEngineConfigurationStories(
   'digital-instore',
   'Digital In-store',
   [
@@ -616,8 +704,10 @@ export const DigitalInstore: Story = createEngineConfigurationStory(
     },
   ]
 );
+export const DigitalInstore: Story = digitalInstoreStories.dashboard;
+export const DigitalInstoreSettings: Story = digitalInstoreStories.settings;
 
-export const OfflineInstore: Story = createEngineConfigurationStory(
+const offlineInstoreStories = createEngineConfigurationStories(
   'offline-instore',
   'Offline In-store',
   [
@@ -655,8 +745,10 @@ export const OfflineInstore: Story = createEngineConfigurationStory(
     },
   ]
 );
+export const OfflineInstore: Story = offlineInstoreStories.dashboard;
+export const OfflineInstoreSettings: Story = offlineInstoreStories.settings;
 
-export const Offsite: Story = createEngineConfigurationStory(
+const offsiteStories = createEngineConfigurationStories(
   'offsite',
   'Offsite',
   [
@@ -694,3 +786,5 @@ export const Offsite: Story = createEngineConfigurationStory(
     },
   ]
 );
+export const Offsite: Story = offsiteStories.dashboard;
+export const OffsiteSettings: Story = offsiteStories.settings;

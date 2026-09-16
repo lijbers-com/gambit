@@ -203,6 +203,27 @@ export interface Position {
   /** Creative format this slot takes, e.g. "Billboard 970x250". */
   format?: string;
   dailyCapacity: number;
+  /** Auction: the lowest bid the position accepts, € CPM. */
+  floorPrice?: number;
+  /** Guaranteed: the fixed price of a day on the position, €. */
+  listPrice?: number;
+}
+
+// ── Allow and block lists ───────────────────────────────────────────────
+
+/**
+ * Who may, and who may not, buy a proposition. A retailer keeps an allow
+ * list (only these) or a block list (never these) per proposition — an
+ * advertiser, a brand or a whole category — with the reason on record.
+ */
+export interface PropositionListing {
+  id: string;
+  engine: EngineId;
+  kind: 'allow' | 'block';
+  subject: 'advertiser' | 'brand' | 'category';
+  name: string;
+  reason?: string;
+  addedAt: string;
 }
 
 /** One position × ISO week → how much of the capacity is already booked. */
@@ -431,6 +452,7 @@ export interface DbData {
   creativeTemplates: CreativeTemplate[];
   creatives: Creative[];
   workflows: Workflow[];
+  listings: PropositionListing[];
 }
 
 /**

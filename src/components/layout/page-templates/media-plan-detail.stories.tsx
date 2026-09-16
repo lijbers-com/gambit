@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
+import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { allocateBudget } from '@/lib/budget-allocation';
 import { Euro, FlaskConical, Lock, MoreHorizontal, Pencil } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
@@ -49,7 +50,7 @@ import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/compo
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -907,9 +908,41 @@ export const MediaPlanDetail: Story = {
     /** Open the campaign wizard for the chosen proposition, inside this plan.
      *  The wizard runs the campaign steps and continues into bookings and
      *  creatives; the campaign record is created when it finishes. */
+    /**
+     * Add a campaign without leaving the plan: the same form the plan wizard
+     * ends with, in a dialog, and the campaign lands in the table as a new
+     * row — proposed, for the setup steps to approve.
+     */
+    const [newCampaign, setNewCampaign] = React.useState<{
+      engine: EngineId; name: string; mode: 'assisted' | 'expert'; budget: string; dateRange?: DateRange; buyingType: 'auction' | 'guaranteed';
+    } | null>(null);
     const addCampaign = (engine: EngineId) => {
-      if (!plan || typeof window === 'undefined') return;
-      window.location.href = `/create/${routeSeg[engine]}?planId=${plan.id}`;
+      if (!plan) return;
+      setNewCampaign({ engine, name: '', mode: 'assisted', budget: '', dateRange: undefined, buyingType: 'auction' });
+    };
+    const saveNewCampaign = () => {
+      if (!plan || !newCampaign) return;
+      const label = propositionMeta[newCampaign.engine].label;
+      const name = newCampaign.name.trim() || `${plan.name} — ${label}`;
+      const committed = db.campaigns.filter((c) => c.mediaPlanId === plan.id).reduce((sum, c) => sum + c.budget, 0);
+      const budget = parseFloat(newCampaign.budget) || Math.max(plan.budget - committed, 0);
+      const startDate = newCampaign.dateRange?.from ? newCampaign.dateRange.from.toISOString().slice(0, 10) : plan.startDate;
+      const endDate = newCampaign.dateRange?.to ? newCampaign.dateRange.to.toISOString().slice(0, 10) : plan.endDate;
+      const created = createCampaign({
+        mediaPlanId: plan.id,
+        name,
+        engine: newCampaign.engine,
+        mode: newCampaign.mode,
+        buyingType: newCampaign.buyingType,
+        // Proposed, not yet approved: the plan's setup steps ask for that.
+        status: 'draft',
+        budget,
+        spend: 0,
+        startDate,
+        endDate,
+      });
+      setNewCampaign(null);
+      toast({ title: 'Campaign added', description: `${created.name} — proposed, not approved yet. Its bookings and creatives are the next steps.` });
     };
 
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
@@ -1733,6 +1766,66 @@ export const MediaPlanDetail: Story = {
             </RightDrawerBody>
           </RightDrawerContent>
         </RightDrawer>
+      {/* New campaign — the plan wizard's campaign form, in place. */}
+      {newCampaign && plan && (() => {
+        const meta = propositionMeta[newCampaign.engine];
+        const NewIcon = meta.icon;
+        const committed = db.campaigns.filter((c) => c.mediaPlanId === plan.id).reduce((sum, c) => sum + c.budget, 0);
+        const free = Math.max(plan.budget - committed, 0);
+        const isAssisted = newCampaign.mode === 'assisted';
+        return (
+          <Dialog open onOpenChange={(o) => { if (!o) setNewCampaign(null); }}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground"><NewIcon className="h-3.5 w-3.5" /></span>
+                  {meta.label} campaign
+                </DialogTitle>
+                <DialogDescription>
+                  Added to {plan.name} as a proposal — its bookings and creatives are the setup steps that follow.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border p-3">
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium">{isAssisted ? 'Assisted' : 'Expert'}</span>
+                    <span className="block text-xs text-muted-foreground">{isAssisted ? 'Prefilled by the AI presets — bookings are proposed for you.' : 'Starts blank — you make the bookings yourself.'}</span>
+                  </span>
+                  <Switch checked={isAssisted} onCheckedChange={(checked: boolean) => setNewCampaign({ ...newCampaign, mode: checked ? 'assisted' : 'expert' })} aria-label="Campaign mode" />
+                </label>
+                <div className="space-y-2">
+                  <Label>Campaign name</Label>
+                  <Input value={newCampaign.name} placeholder={`${plan.name} — ${meta.label}`} onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-1 gap-x-2 gap-y-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Campaign budget</Label>
+                    <Input type="number" min="0" value={newCampaign.budget} placeholder={free > 0 ? String(free) : 'Enter budget amount'} onChange={(e) => setNewCampaign({ ...newCampaign, budget: e.target.value })} />
+                    <FieldHint>€{free.toLocaleString()} of the plan's €{plan.budget.toLocaleString()} is still free.</FieldHint>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Campaign run time</Label>
+                    <DateRangePicker
+                      dateRange={newCampaign.dateRange}
+                      onDateRangeChange={(r) => setNewCampaign({ ...newCampaign, dateRange: r })}
+                      placeholder="Inherits the plan run time"
+                      showPresets
+                      presets={futureDateRangePresets}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <BuyingTypePicker value={newCampaign.buyingType} onChange={(v) => setNewCampaign({ ...newCampaign, buyingType: v })} />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setNewCampaign(null)}>Cancel</Button>
+                <Button onClick={saveNewCampaign}>Add campaign</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
       {/* Delete confirmation — names the object; a campaign takes its
           bookings with it, and there is no undo for a delete. */}
       {deleteTarget && (

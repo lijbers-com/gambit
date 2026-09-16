@@ -3,9 +3,7 @@ import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table } from '@/components/ui/table';
-import { Viewbar } from '@/components/ui/viewbar';
 import { Badge } from '@/components/ui/badge';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
@@ -192,6 +190,36 @@ const createEngineConfigurationStory = (
     const [selectedRules, setSelectedRules] = useState<any[]>([]);
     const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
 
+    // One filter row, shared by the two lists.
+    const filterBar = (      <FilterBar
+        filters={[
+          {
+            name: "Status",
+            options: [
+              { label: "Active", value: "active" },
+              { label: "Paused", value: "paused" },
+              { label: "Draft", value: "draft" },
+              { label: "Archived", value: "archived" },
+            ],
+            selectedValues: statusFilter,
+            onChange: setStatusFilter,
+          },
+          {
+            name: "Priority",
+            options: [
+              { label: "High", value: "high" },
+              { label: "Medium", value: "medium" },
+              { label: "Low", value: "low" },
+            ],
+            selectedValues: priorityFilter,
+            onChange: setPriorityFilter,
+          },
+        ]}
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        searchPlaceholder="Search configuration rules, templates..."
+      />
+    );
 
     return (
       <MenuContextProvider>
@@ -211,54 +239,17 @@ const createEngineConfigurationStory = (
         }}
       >
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Viewbar
-                labels={[]}
-                tabs={[
-                  { value: 'rules', label: 'Configuration Rules' },
-                  { value: 'templates', label: 'Templates' },
-                  { value: 'workflow', label: 'Workflow' },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
-            </CardHeader>
-            <CardContent>
-              {activeTab !== 'workflow' && (
-              <div className="mb-4">
-                <FilterBar
-                  filters={[
-                    {
-                      name: "Status",
-                      options: [
-                        { label: "Active", value: "active" },
-                        { label: "Paused", value: "paused" },
-                        { label: "Draft", value: "draft" },
-                        { label: "Archived", value: "archived" },
-                      ],
-                      selectedValues: statusFilter,
-                      onChange: setStatusFilter,
-                    },
-                    {
-                      name: "Priority",
-                      options: [
-                        { label: "High", value: "high" },
-                        { label: "Medium", value: "medium" },
-                        { label: "Low", value: "low" },
-                      ],
-                      selectedValues: priorityFilter,
-                      onChange: setPriorityFilter,
-                    },
-                  ]}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
-                  searchPlaceholder="Search configuration rules, templates..."
-                />
-              </div>
-              )}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsContent value="rules" className="mt-0">
+          {/* The tab strip sits above the card, left, the way every campaign
+              and booking page is built — the card is the open tab's body. */}
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                value: 'rules',
+                label: 'Configuration Rules',
+                content: (
+                  <div className="space-y-4 mt-6">
+                    {filterBar}
                   <Table
                     columns={[
                       { key: 'name', header: 'Name' },
@@ -296,8 +287,15 @@ const createEngineConfigurationStory = (
                       getKey: row => `${row.id}-${row.name}`,
                     }}
                   />
-                </TabsContent>
-                <TabsContent value="templates" className="mt-0">
+                  </div>
+                ),
+              },
+              {
+                value: 'templates',
+                label: 'Templates',
+                content: (
+                  <div className="space-y-4 mt-6">
+                    {filterBar}
                   <Table
                     columns={[
                       { key: 'name', header: 'Name' },
@@ -331,16 +329,25 @@ const createEngineConfigurationStory = (
                       getKey: row => row.id,
                     }}
                   />
-                </TabsContent>
-                {/* The proposition's workflow — the retailer's board: which
-                    steps, who approves, what is mandatory, deadlines, SLAs
-                    and the actions Edge fires. */}
-                <TabsContent value="workflow" className="mt-0">
+                  </div>
+                ),
+              },
+              {
+                // The proposition's workflow — the retailer's board: which
+                // steps, who approves, what is mandatory, deadlines, SLAs
+                // and the actions Edge fires.
+                value: 'workflow',
+                label: 'Workflow',
+                content: (
+                  <div className="mt-6">
                   <WorkflowBuilder engine={engineType as EngineId} />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                  </div>
+                ),
+              },
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
       </AppLayout>
       </MenuContextProvider>

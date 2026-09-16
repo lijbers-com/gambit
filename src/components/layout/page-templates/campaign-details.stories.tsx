@@ -737,16 +737,8 @@ const updatedForecastMetrics = [
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign name</label>
-                      <Input placeholder="Enter campaign name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">PO Number</label>
-                      <Input placeholder="Enter PO number" />
-                    </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -757,10 +749,15 @@ const updatedForecastMetrics = [
                         searchPlaceholder="Search media plans..."
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -786,21 +783,22 @@ const updatedForecastMetrics = [
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign" className="mb-6">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -830,21 +828,25 @@ const updatedForecastMetrics = [
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
@@ -1234,16 +1236,8 @@ export const DigitalInstoreRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign name</label>
-                      <Input placeholder="Enter campaign name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">PO Number</label>
-                      <Input placeholder="Enter PO number" />
-                    </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -1254,10 +1248,15 @@ export const DigitalInstoreRunning: Story = {
                         searchPlaceholder="Search media plans..."
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign name</label>
+                      <Input placeholder="Enter campaign name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">PO Number</label>
+                      <Input placeholder="Enter PO number" />
+                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1283,21 +1282,22 @@ export const DigitalInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign" className="mb-6">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -1327,21 +1327,25 @@ export const DigitalInstoreRunning: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
@@ -1691,8 +1695,18 @@ export const OfflineInstoreRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -1705,20 +1719,7 @@ export const OfflineInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1744,21 +1745,22 @@ export const OfflineInstoreRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -1788,21 +1790,25 @@ export const OfflineInstoreRunning: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -2164,8 +2170,18 @@ export const DisplayRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -2178,20 +2194,7 @@ export const DisplayRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2217,21 +2220,22 @@ export const DisplayRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -2261,21 +2265,25 @@ export const DisplayRunning: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -2634,8 +2642,18 @@ export const OfflineInstoreInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -2648,20 +2666,7 @@ export const OfflineInstoreInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2687,21 +2692,22 @@ export const OfflineInstoreInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -2731,21 +2737,25 @@ export const OfflineInstoreInOption: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -3093,8 +3103,18 @@ export const DisplayInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -3107,20 +3127,7 @@ export const DisplayInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3146,21 +3153,22 @@ export const DisplayInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -3190,21 +3198,25 @@ export const DisplayInOption: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -3878,8 +3890,18 @@ export const SponsoredProductsInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -3892,20 +3914,7 @@ export const SponsoredProductsInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3931,21 +3940,22 @@ export const SponsoredProductsInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -3975,21 +3985,25 @@ export const SponsoredProductsInOption: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -4609,8 +4623,18 @@ export const SponsoredProductsRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -4623,20 +4647,7 @@ export const SponsoredProductsRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4662,21 +4673,22 @@ export const SponsoredProductsRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -4706,21 +4718,25 @@ export const SponsoredProductsRunning: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -5205,8 +5221,18 @@ export const OffsiteRunning: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -5219,20 +5245,7 @@ export const OffsiteRunning: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5258,21 +5271,22 @@ export const OffsiteRunning: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -5302,21 +5316,25 @@ export const OffsiteRunning: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -5678,8 +5696,18 @@ export const OffsiteInOption: Story = {
           header={
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
-                <FormSection bordered title="Details" className="mb-6">
+                <FormSection bordered title="Setup" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Media plan</label>
+                      <SearchableSelect
+                        options={mediaPlanOptions}
+                        value={detailsMediaPlan}
+                        onChange={setDetailsMediaPlan}
+                        placeholder="Select media plan"
+                        searchPlaceholder="Search media plans..."
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign name</label>
                       <Input placeholder="Enter campaign name" />
@@ -5692,20 +5720,7 @@ export const OffsiteInOption: Story = {
                       <label className="block text-sm font-medium mb-1">Evaluation ID</label>
                       <Input placeholder="Enter evaluation ID" />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Media plan</label>
-                      <SearchableSelect
-                        options={mediaPlanOptions}
-                        value={detailsMediaPlan}
-                        onChange={setDetailsMediaPlan}
-                        placeholder="Select media plan"
-                        searchPlaceholder="Search media plans..."
-                      />
-                    </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5731,21 +5746,22 @@ export const OffsiteInOption: Story = {
                     </div>
                   </div>
                 </FormSection>
-                <FormSection bordered title="Campaign">
+                <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium mb-1">Run time</label>
+                    {/* One field for the whole span, with the retailer's
+                        commercial moments in the calendar — same picker the
+                        media plan uses. */}
+                    <DateRangePicker
+                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
+                      placeholder="Select start and end date"
+                      showPresets
+                      showWeekNumbers
+                      events={retailMoments}
+                      presets={futureDateRangePresets}
+                    />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Budget</label>
@@ -5775,21 +5791,25 @@ export const OffsiteInOption: Story = {
                       })()}
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Run Time</label>
-                    {/* One field for the whole span, with the retailer's
-                        commercial moments in the calendar — same picker the
-                        media plan uses. */}
-                    <DateRangePicker
-                      dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-                      onDateRangeChange={(range) => { setStartDate(range?.from); setEndDate(range?.to); }}
-                      placeholder="Select start and end date"
-                      showPresets
-                      showWeekNumbers
-                      events={retailMoments}
-                      presets={futureDateRangePresets}
-                    />
+                </FormSection>
+                <FormSection bordered title="Objective & KPIs" className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
+                      <Input
+                        dropdown
+                        options={[
+                          { label: 'Awareness', value: 'awareness' },
+                          { label: 'Engagement', value: 'engagement' },
+                          { label: 'Conversion', value: 'conversion' },
+                        ]}
+                        value={detailsTotalBudget}
+                        onChange={setDetailsTotalBudget}
+                        placeholder="Select goal"
+                      />
+                    </div>
                   </div>
+                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>

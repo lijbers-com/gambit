@@ -1181,7 +1181,7 @@ export const MediaPlanDetail: Story = {
                       </div>
                     </FormSection>
 
-                    <FormSection title="Goals & objectives" bordered>
+                    <FormSection title="Goal and objectives" bordered>
                       <div className="space-y-5">
                         {/* The wizard's own goal card, one card only: the goal
                             is fixed once the plan exists (the KPIs and the

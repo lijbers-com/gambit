@@ -807,18 +807,6 @@ export const Display: Story = {
               </div>
 
               {/* Create placement — its own block, like every booking form. */}
-              <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
-                <CreatePlacement
-                  productLabel="Find channel"
-                  mediaProducts={displayMediaProducts}
-                  mediaProduct={displayMediaProduct}
-                  onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
-                  positions={displayCurrentPositions}
-                  positionsValue={displayPositions}
-                  onPositionsChange={setDisplayPositions}
-                />
-              </FormSection>
-
               {/* Budget & run time — the shared block every booking form uses. */}
               <BookingBudgetRuntime
                 className={cn(bookingTab !== 'details' && 'hidden')}
@@ -837,21 +825,33 @@ export const Display: Story = {
                 activeDays={activeDays}
                 onActiveDaysChange={setActiveDays}
                 pacing={displayIsAuction ? (budgetField) => (
-                  <BudgetPacing
-                    budgetField={budgetField}
-                    totalBudget={Number(bookingBudget) || undefined}
-                    startDate={startDate}
-                    endDate={endDate}
-                    shape={pacingShape}
-                    onShapeChange={setPacingShape}
-                    shapes={['account', 'even', 'frontloaded', 'asap']}
-                    dailyBudget={dailyBudget}
-                    onDailyBudgetChange={setDailyBudget}
-                    overrides={pacingOverrides}
-                    onOverridesChange={setPacingOverrides}
-                  />
+                <BudgetPacing
+                budgetField={budgetField}
+                totalBudget={Number(bookingBudget) || undefined}
+                startDate={startDate}
+                endDate={endDate}
+                shape={pacingShape}
+                onShapeChange={setPacingShape}
+                shapes={['account', 'even', 'frontloaded', 'asap']}
+                dailyBudget={dailyBudget}
+                onDailyBudgetChange={setDailyBudget}
+                overrides={pacingOverrides}
+                onOverridesChange={setPacingOverrides}
+              />
                 ) : undefined}
               />
+
+              <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
+                <CreatePlacement
+                  productLabel="Find channel"
+                  mediaProducts={displayMediaProducts}
+                  mediaProduct={displayMediaProduct}
+                  onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
+                  positions={displayCurrentPositions}
+                  positionsValue={displayPositions}
+                  onPositionsChange={setDisplayPositions}
+                />
+              </FormSection>
 
               {/* 2. Targeting — Targeting tab */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
@@ -1870,22 +1870,6 @@ export const DigitalInStore: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <CreatePlacement
-                          productLabel="Find channel"
-                          positionsLabel="Ad spaces"
-                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
-                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
-                          onMediaProductChange={(v) => {
-                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
-                            setBookingPositions([]);
-                          }}
-                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
-                          positionsValue={bookingPositions}
-                          onPositionsChange={setBookingPositions}
-                        />
-                      </FormSection>
-
                       <BookingBudgetRuntime
                         className={cn(bookingTab !== 'details' && "hidden")}
                         budget={bookingBudget}
@@ -1903,6 +1887,22 @@ export const DigitalInStore: Story = {
                         activeDays={dInstoreActiveDays}
                         onActiveDaysChange={setDInstoreActiveDays}
                       />
+
+                      <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                        <CreatePlacement
+                          productLabel="Find channel"
+                          positionsLabel="Ad spaces"
+                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
+                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
+                          onMediaProductChange={(v) => {
+                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
+                            setBookingPositions([]);
+                          }}
+                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
+                          positionsValue={bookingPositions}
+                          onPositionsChange={setBookingPositions}
+                        />
+                      </FormSection>
 
 
                       {renderTargetListSection('stores')}
@@ -3140,6 +3140,22 @@ export const OfflineInStore: Story = {
                         </div>
                       </FormSection>
 
+<BookingBudgetRuntime
+  className={cn(bookingTab !== 'details' && "hidden")}
+  budget={bookingBudget}
+  onBudgetChange={setBookingBudget}
+  startDate={startDate}
+  endDate={endDate}
+  onStartDateChange={setStartDate}
+  onEndDateChange={setEndDate}
+  startTime={bookingStartTime}
+  endTime={bookingEndTime}
+  onStartTimeChange={setBookingStartTime}
+  onEndTimeChange={setBookingEndTime}
+  campaignBudget="€10,000"
+  campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
+/>
+
 <FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
                           <p className="text-sm text-muted-foreground">
@@ -3188,22 +3204,6 @@ export const OfflineInStore: Story = {
                           </div>
                         </div>
                       </FormSection>
-
-                      <BookingBudgetRuntime
-                        className={cn(bookingTab !== 'details' && "hidden")}
-                        budget={bookingBudget}
-                        onBudgetChange={setBookingBudget}
-                        startDate={startDate}
-                        endDate={endDate}
-                        onStartDateChange={setStartDate}
-                        onEndDateChange={setEndDate}
-                        startTime={bookingStartTime}
-                        endTime={bookingEndTime}
-                        onStartTimeChange={setBookingStartTime}
-                        onEndTimeChange={setBookingEndTime}
-                        campaignBudget="€10,000"
-                        campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
-                      />
 
                       <FormSection bordered
                         headerClassName="mb-8"
@@ -4736,18 +4736,6 @@ export const OffsiteDisplay: Story = {
                     </div>
                   </FormSection>
 
-                  <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <CreatePlacement
-                      productLabel="Find platform"
-                      mediaProducts={offsiteMediaProducts}
-                      mediaProduct={mediaProduct}
-                      onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
-                      positions={currentPositions}
-                      positionsValue={positions}
-                      onPositionsChange={setPositions}
-                    />
-                  </FormSection>
-
                   <BookingBudgetRuntime
                     className={cn(bookingTab !== 'details' && "hidden")}
                     budget={selectedBudget}
@@ -4765,6 +4753,18 @@ export const OffsiteDisplay: Story = {
                     activeDays={bookingActiveDays}
                     onActiveDaysChange={setBookingActiveDays}
                   />
+
+                  <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
+                    <CreatePlacement
+                      productLabel="Find platform"
+                      mediaProducts={offsiteMediaProducts}
+                      mediaProduct={mediaProduct}
+                      onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
+                      positions={currentPositions}
+                      positionsValue={positions}
+                      onPositionsChange={setPositions}
+                    />
+                  </FormSection>
 
                   <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <RetailProductSelect

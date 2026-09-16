@@ -255,7 +255,9 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
     if (record && seeded.current !== record.id) {
       seeded.current = record.id;
       setName(record.name);
-      setSteps(record.steps.map((s) => ({ ...s, actions: [...s.actions] })));
+      // Opens arranged — stages in a row, each stage's steps beneath — so the
+      // board always reads the way the control panel does.
+      setSteps(arrangeSteps(record.steps.map((s) => ({ ...s, actions: [...s.actions] })), record.transitions));
       setTransitions([...record.transitions]);
       setDirty(false);
     }
@@ -466,14 +468,11 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
     <div className={cn('space-y-4', className)}>
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <Input value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} className="max-w-md font-medium" placeholder="Workflow name" />
-        </div>
+        <div className="min-w-0 flex-1 text-sm font-medium">{name}</div>
         <Badge variant="outline" className={cn('px-2 py-0.5 text-xs', record.status === 'published' ? 'border-success-200 bg-success-50 text-success-700' : 'border-border bg-neutral-50 text-neutral-600')}>
           {record.status === 'published' ? 'Published' : 'Draft'}{dirty ? ' · unsaved changes' : ''}
         </Badge>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={arrange} className="gap-1.5" title="Stages left to right, each stage's steps beneath it"><LayoutGrid className="h-4 w-4" /> Arrange</Button>
           <Button variant="outline" onClick={validate} className="gap-1.5">
             {issues.length ? <AlertTriangle className="h-4 w-4 text-warning-600" /> : <CheckCircle2 className="h-4 w-4 text-success-600" />}
             Validate
@@ -624,7 +623,8 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
 
           {/* Zoom: in, out, and the whole board at once. */}
           <div className="absolute right-3 top-3 z-10 flex flex-col overflow-hidden rounded-md border bg-card shadow-sm" onPointerDown={(e) => e.stopPropagation()}>
-            <button type="button" className="flex h-8 w-8 items-center justify-center hover:bg-accent" aria-label="Zoom in" onClick={() => zoomAt(1.2)}><ZoomIn className="h-4 w-4" /></button>
+            <button type="button" className="flex h-8 w-8 items-center justify-center hover:bg-accent" aria-label="Arrange" title="Arrange: stages left to right, each stage's steps beneath it" onClick={arrange}><LayoutGrid className="h-4 w-4" /></button>
+            <button type="button" className="flex h-8 w-8 items-center justify-center border-t hover:bg-accent" aria-label="Zoom in" onClick={() => zoomAt(1.2)}><ZoomIn className="h-4 w-4" /></button>
             <button type="button" className="flex h-8 w-8 items-center justify-center border-t hover:bg-accent" aria-label="Zoom out" onClick={() => zoomAt(1 / 1.2)}><ZoomOut className="h-4 w-4" /></button>
             <button type="button" className="flex h-8 w-8 items-center justify-center border-t hover:bg-accent" aria-label="Fit to view" onClick={() => fit(steps)}><Maximize2 className="h-4 w-4" /></button>
           </div>

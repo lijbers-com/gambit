@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 22;
+export const SEED_VERSION = 23;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -986,7 +986,7 @@ export const seedData: DbData = {
         { id: 't18', from: 's-run', to: 's-done', label: 'end date' },
       ] },
     { id: 'WF-DIS', engine: 'display', name: 'Display — campaign lifecycle', status: 'draft', updatedAt: now,
-      description: 'The shared six-state lifecycle with creative approval executed in the display engine: spec check on upload, content review, one resubmit loop.',
+      description: 'Draft, with the setup steps; in review, where AdOps approves the booking and the creative is checked and approved in the display engine (one resubmit loop); then scheduled, live on the flight date, completed after the end date.',
       steps: [
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
@@ -999,7 +999,7 @@ export const seedData: DbData = {
         { id: 's-review',   kind: 'stage',        name: 'In review',         description: 'Booking submitted; option placed with an expiry.',   owner: 'retailer',   mandatory: true, x: 360, y: 40, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'set-status', label: 'Inventory: option until expiry' }, { id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
         { id: 's-approve',  kind: 'approval',     name: 'Approve booking',   description: 'AdOps approves the plan and placements.',           owner: 'retailer',   mandatory: true, x: 360, y: 180, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }] },
         { id: 'c-spec',     kind: 'check',        name: 'Spec check',        description: 'On upload; a failed spec check never becomes submitted.', owner: 'edge', mandatory: true, x: 360, y: 320, actions: [{ id: 'a4', type: 'notification', label: 'Tell the advertiser what failed', to: 'advertiser' }] },
-        { id: 's-content',  kind: 'approval',     name: 'Content review',    description: 'Content, brand, legal — in the engine. Reasons itemised.', owner: 'retailer', mandatory: true, x: 360, y: 460, slaDays: 2, escalateTo: 'retailer', deputy: 'Brand team', actions: [{ id: 'a5', type: 'todo', label: 'To-do for the reviewer', to: 'retailer' }] },
+        { id: 's-content',  kind: 'approval',     name: 'Creative approval', description: 'The creative is approved on content, brand and legal — in the display engine. Reasons itemised.', owner: 'retailer', mandatory: true, x: 360, y: 460, slaDays: 2, escalateTo: 'retailer', deputy: 'Brand team', actions: [{ id: 'a5', type: 'todo', label: 'To-do for the reviewer', to: 'retailer' }] },
         { id: 's-changes',  kind: 'notification', name: 'Changes requested', description: 'Every resubmit is a version.',                       owner: 'advertiser', mandatory: false, x: 360, y: 600, actions: [{ id: 'a6', type: 'email', label: 'Email the advertiser the reasons', to: 'advertiser' }] },
         { id: 's-scheduled', kind: 'stage',       name: 'Scheduled',         description: 'Derived: approved + every required format approved.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-live',     kind: 'stage',        name: 'Live',              description: 'Ad server delivering from the flight date.',         owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a7', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },

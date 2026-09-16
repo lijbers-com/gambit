@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
-import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
-import { SessionDateRange } from '@/components/ui/session-date-range';
+import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
+import { MetricRow } from '@/components/ui/metric-row';
+import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { PropositionIcon } from '@/components/ui/proposition-icon';
@@ -131,6 +132,13 @@ function AllCampaignsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newCampaignName]);
 
+  // What the visible plans spend and may spend — the metric row's basis.
+  const visiblePlans = db.mediaPlans.filter((plan) => withinSessionRange(sessionFilters, plan.startDate, plan.endDate));
+  const spendOf = (planIds: Set<string>) => db.campaigns.filter((c) => planIds.has(c.mediaPlanId)).reduce((sum, c) => sum + c.spend, 0);
+  const visibleSpend = spendOf(new Set(visiblePlans.map((p) => p.id)));
+  const totalSpend = spendOf(new Set(db.mediaPlans.map((p) => p.id)));
+  const visibleBudget = visiblePlans.reduce((sum, p) => sum + p.budget, 0);
+
   // Map store entities into the CampaignSummary card shape. Newest first, and
   // only the plans whose flight overlaps the session's date range.
   const campaigns = [...db.mediaPlans]
@@ -187,16 +195,29 @@ function AllCampaignsPage() {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <div className="flex items-center gap-2">
-              <SessionAdvertiserSelect />
-              {/* No metric row on this page, so the session range stays in
-                  the header — it still filters the plans below. */}
-              <SessionDateRange />
-            </div>
-          ),
+          headerRight: <SessionAdvertiserSelect />,
         }}
       >
+        {/* The metric row every overview opens with: the numbers for the
+            plans the session's date range keeps, with the range picker in
+            the row so the range and the figures it applies to read together. */}
+        <div className="mb-3">
+          <MetricRow
+            metrics={scaleMetricsToSelection(getPropositionMetrics('all', 'overview'), {
+              spend: visibleSpend,
+              budget: visibleBudget,
+              share: totalSpend > 0 ? visibleSpend / totalSpend : 1,
+            })}
+            filterNote={sessionFilters.dateFrom ? `Filtered · ${campaigns.length} of ${db.mediaPlans.length} media plans` : undefined}
+            selectedKeys={sessionFilters.metricKeys?.['media-plans']}
+            onSelectionChange={(keys) => setSessionMetricKeys('media-plans', keys)}
+            maxVisible={5}
+            defaultVariant="default"
+            removable={false}
+            bleedEdges
+            showCharts
+          />
+        </div>
         <CardWithTabs
           className="w-full"
           tabs={[

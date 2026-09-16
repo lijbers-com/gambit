@@ -8,7 +8,9 @@ import {
   Flag,
   GitBranch,
   Mail,
+  LayoutGrid,
   ListChecks,
+  Maximize2,
   Plus,
   Rocket,
   Save,
@@ -17,6 +19,8 @@ import {
   Truck,
   Users,
   X,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -88,11 +92,71 @@ const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2,
 /** Where a step's in and out ports sit. */
 const portIn = (s: WorkflowStep) => ({ x: s.x + NODE_W / 2, y: s.y });
 const portOut = (s: WorkflowStep) => ({ x: s.x + NODE_W / 2, y: s.y + NODE_H });
+/** Side ports, for a line between two tiles on the same row. */
+const portRight = (s: WorkflowStep) => ({ x: s.x + NODE_W, y: s.y + NODE_H / 2 });
+const portLeft = (s: WorkflowStep) => ({ x: s.x, y: s.y + NODE_H / 2 });
+/** Two tiles side by side link side to side; otherwise foot to head. */
+const sameRow = (a: WorkflowStep, b: WorkflowStep) => Math.abs(a.y - b.y) < NODE_H && b.x > a.x;
+
+/** The line from a to b, with the ports the tiles' positions ask for. */
+const link = (a: WorkflowStep, b: WorkflowStep) => {
+  if (sameRow(a, b)) {
+    const p = portRight(a); const q = portLeft(b);
+    const dx = Math.max(30, (q.x - p.x) / 2);
+    return { from: p, to: q, d: `M ${p.x} ${p.y} C ${p.x + dx} ${p.y}, ${q.x - dx} ${q.y}, ${q.x} ${q.y}` };
+  }
+  const p = portOut(a); const q = portIn(b);
+  return { from: p, to: q, d: curve(p, q) };
+};
 
 const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
   const dy = Math.max(40, Math.abs(b.y - a.y) / 2);
   return `M ${a.x} ${a.y} C ${a.x} ${a.y + dy}, ${b.x} ${b.y - dy}, ${b.x} ${b.y}`;
 };
+
+/** Column gap between stages and row gap between a stage's steps. */
+const COL_GAP = 60;
+const ROW_GAP = 40;
+
+/**
+ * Arrange the board the way the control panel reads it: the stages in a
+ * row from left to right, and under each stage, top to bottom, the steps
+ * that belong to it — the work between that stage and the next.
+ */
+export function arrangeSteps(steps: WorkflowStep[], transitions: { from: string; to: string }[]): WorkflowStep[] {
+  const incoming = new Set(transitions.map((t) => t.to));
+  const start = steps.find((s) => !incoming.has(s.id)) ?? steps[0];
+  if (!start) return steps;
+  const order: WorkflowStep[] = [];
+  const seen = new Set<string>();
+  const queue = [start.id];
+  while (queue.length) {
+    const id = queue.shift()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const st = steps.find((x) => x.id === id);
+    if (!st) continue;
+    order.push(st);
+    for (const t of transitions.filter((t) => t.from === id)) queue.push(t.to);
+  }
+  for (const st of steps) if (!seen.has(st.id)) order.push(st); // orphans last
+  const stages = order.filter((st) => st.kind === 'stage');
+  const columnOf = new Map<string, number>();
+  let col = -1;
+  for (const st of order) {
+    if (st.kind === 'stage') col = stages.findIndex((x) => x.id === st.id);
+    columnOf.set(st.id, Math.max(0, col));
+  }
+  const rowNext = new Map<number, number>();
+  return steps.map((st) => {
+    const c = columnOf.get(st.id) ?? 0;
+    const x = 40 + c * (NODE_W + COL_GAP);
+    if (st.kind === 'stage') return { ...st, x, y: 40 };
+    const row = (rowNext.get(c) ?? 0) + 1;
+    rowNext.set(c, row);
+    return { ...st, x, y: 40 + row * (NODE_H + ROW_GAP) };
+  });
+}
 
 /** What stops a workflow from being published. */
 export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): string[] {
@@ -161,15 +225,65 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
   const [selectedEdge, setSelectedEdge] = React.useState<string | null>(null);
   const boardRef = React.useRef<HTMLDivElement>(null);
 
+  // The viewport over the board: where it is panned to, and how far zoomed.
+  // The board itself has no edges — it moves under the viewport freely.
+  const [view, setView] = React.useState({ x: 0, y: 0, k: 1 });
+  const pan = React.useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const [panning, setPanning] = React.useState(false);
+
   // Dragging a tile, or drawing a line from a tile's foot.
   const drag = React.useRef<{ id: string; dx: number; dy: number } | null>(null);
   const [connecting, setConnecting] = React.useState<{ from: string; x: number; y: number } | null>(null);
 
+  /** A pointer position in board coordinates, whatever the pan and zoom. */
   const boardPoint = (e: { clientX: number; clientY: number }) => {
     const el = boardRef.current!;
     const r = el.getBoundingClientRect();
-    return { x: e.clientX - r.left + el.scrollLeft, y: e.clientY - r.top + el.scrollTop };
+    return { x: (e.clientX - r.left - view.x) / view.k, y: (e.clientY - r.top - view.y) / view.k };
   };
+
+  const zoomAt = (factor: number, cx?: number, cy?: number) => {
+    const el = boardRef.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = cx ?? r.width / 2; const py = cy ?? r.height / 2;
+    setView((v) => {
+      const k = Math.min(2, Math.max(0.3, v.k * factor));
+      // Keep the point under the cursor where it is.
+      return { k, x: px - ((px - v.x) / v.k) * k, y: py - ((py - v.y) / v.k) * k };
+    });
+  };
+  /** Fit the whole board into the viewport, at most at true size. */
+  const fit = React.useCallback((list: WorkflowStep[]) => {
+    const el = boardRef.current; if (!el || !list.length) return;
+    const w = list.reduce((m, st) => Math.max(m, st.x + NODE_W), 0) + 40;
+    const h = list.reduce((m, st) => Math.max(m, st.y + NODE_H), 0) + 40;
+    const k = Math.min(1, (el.clientWidth - 24) / w, (el.clientHeight - 24) / h);
+    setView({ k, x: Math.max(12, (el.clientWidth - w * k) / 2), y: 12 });
+  }, []);
+  const onBoardPointerDown = (e: React.PointerEvent) => {
+    // The background pans; tiles and ports have their own handlers.
+    const t = e.target as HTMLElement;
+    if (t !== e.currentTarget && t.tagName !== 'svg' && !t.dataset.canvas) return;
+    pan.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+    setPanning(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onBoardWheel = (e: React.WheelEvent) => {
+    // Pinch or ctrl+wheel zooms around the cursor; a plain wheel pans.
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) {
+      zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top);
+    } else {
+      setView((v) => ({ ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }));
+    }
+  };
+
+  React.useEffect(() => {
+    const el = boardRef.current; if (!el) return;
+    const stop = (e: WheelEvent) => e.preventDefault();
+    el.addEventListener('wheel', stop, { passive: false });
+    return () => el.removeEventListener('wheel', stop);
+  }, []);
 
   const patchStep = (id: string, patch: Partial<WorkflowStep>) => {
     setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -209,14 +323,28 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
     setConnecting({ from: s.id, x: p.x, y: p.y });
   };
   const onBoardPointerMove = (e: React.PointerEvent) => {
+    if (pan.current) {
+      const { x, y, vx, vy } = pan.current;
+      setView((v) => ({ ...v, x: vx + (e.clientX - x), y: vy + (e.clientY - y) }));
+      return;
+    }
     if (connecting) {
       const p = boardPoint(e);
       setConnecting({ ...connecting, x: p.x, y: p.y });
     }
   };
   const onBoardPointerUp = () => {
+    pan.current = null;
+    setPanning(false);
     // Released over the board, not a tile: the line is dropped.
     if (connecting) setConnecting(null);
+  };
+
+  const arrange = () => {
+    const next = arrangeSteps(steps, transitions);
+    setSteps(next);
+    setDirty(true);
+    fit(next);
   };
 
   const addTransition = (from: string, to: string) => {
@@ -279,6 +407,11 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
     );
   };
 
+  const fittedFor = React.useRef<string | null>(null);
+  React.useLayoutEffect(() => {
+    if (record && steps.length && fittedFor.current !== record.id) { fittedFor.current = record.id; fit(steps); }
+  }, [record, steps, fit]);
+
   const selected = steps.find((s) => s.id === selectedStep) ?? null;
   const edge = transitions.find((t) => t.id === selectedEdge) ?? null;
   const byId = new Map(steps.map((s) => [s.id, s]));
@@ -300,6 +433,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
           {record.status === 'published' ? 'Published' : 'Draft'}{dirty ? ' · unsaved changes' : ''}
         </Badge>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={arrange} className="gap-1.5" title="Stages left to right, each stage's steps beneath it"><LayoutGrid className="h-4 w-4" /> Arrange</Button>
           <Button variant="outline" onClick={validate} className="gap-1.5">
             {issues.length ? <AlertTriangle className="h-4 w-4 text-warning-600" /> : <CheckCircle2 className="h-4 w-4 text-success-600" />}
             Validate
@@ -341,8 +475,15 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
         {/* ── Board ── */}
         <div
           ref={boardRef}
-          className="relative h-[70vh] min-h-[560px] select-none overflow-auto rounded-xl border bg-page"
-          style={{ backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)', backgroundSize: `${GRID}px ${GRID}px` }}
+          className={cn('relative h-[70vh] min-h-[560px] select-none overflow-hidden rounded-xl border bg-page', panning ? 'cursor-grabbing' : 'cursor-grab')}
+          style={{
+            backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)',
+            backgroundSize: `${GRID * view.k}px ${GRID * view.k}px`,
+            backgroundPosition: `${view.x}px ${view.y}px`,
+            touchAction: 'none',
+          }}
+          onPointerDown={onBoardPointerDown}
+          onWheel={onBoardWheel}
           onDragOver={(e) => { if (e.dataTransfer.types.includes('text/workflow-kind')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}
           onDrop={(e) => {
             const kind = e.dataTransfer.getData('text/workflow-kind') as WorkflowStepKind;
@@ -352,7 +493,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
           onPointerUp={onBoardPointerUp}
           onClick={(e) => { if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'svg') { setSelectedStep(null); setSelectedEdge(null); } }}
         >
-          <div className="relative" style={{ width: boardW, height: boardH }}>
+          <div data-canvas className="absolute left-0 top-0" style={{ width: boardW, height: boardH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`, transformOrigin: '0 0' }}>
             {/* Lines */}
             <svg className="absolute inset-0" width={boardW} height={boardH}>
               <defs>
@@ -363,7 +504,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
               {transitions.map((t) => {
                 const a = byId.get(t.from); const b = byId.get(t.to);
                 if (!a || !b) return null;
-                const d = curve(portOut(a), portIn(b));
+                const { d } = link(a, b);
                 const isSel = t.id === selectedEdge;
                 return (
                   <g key={t.id} className="cursor-pointer" onClick={(e) => { e.stopPropagation(); setSelectedEdge(t.id); setSelectedStep(null); }}>
@@ -381,7 +522,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
             {transitions.map((t) => {
               const a = byId.get(t.from); const b = byId.get(t.to);
               if (!a || !b || !t.label) return null;
-              const pa = portOut(a); const pb = portIn(b);
+              const { from: pa, to: pb } = link(a, b);
               return (
                 <span
                   key={`${t.id}-label`}
@@ -438,9 +579,17 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
             })}
           </div>
 
+          {/* Zoom: in, out, and the whole board at once. */}
+          <div className="absolute right-3 top-3 z-10 flex flex-col overflow-hidden rounded-md border bg-card shadow-sm" onPointerDown={(e) => e.stopPropagation()}>
+            <button type="button" className="flex h-8 w-8 items-center justify-center hover:bg-accent" aria-label="Zoom in" onClick={() => zoomAt(1.2)}><ZoomIn className="h-4 w-4" /></button>
+            <button type="button" className="flex h-8 w-8 items-center justify-center border-t hover:bg-accent" aria-label="Zoom out" onClick={() => zoomAt(1 / 1.2)}><ZoomOut className="h-4 w-4" /></button>
+            <button type="button" className="flex h-8 w-8 items-center justify-center border-t hover:bg-accent" aria-label="Fit to view" onClick={() => fit(steps)}><Maximize2 className="h-4 w-4" /></button>
+          </div>
+          <span className="pointer-events-none absolute bottom-3 right-3 z-10 rounded-md border bg-card px-2 py-0.5 text-[11px] tabular-nums text-muted-foreground">{Math.round(view.k * 100)}%</span>
+
           {/* Selected line: label it or remove it. */}
           {edge && (
-            <div className="sticky bottom-3 left-3 z-10 mr-3 flex w-fit items-center gap-2 rounded-md border bg-card p-2 shadow-md">
+            <div className="absolute bottom-3 left-3 z-10 flex w-fit items-center gap-2 rounded-md border bg-card p-2 shadow-md" onPointerDown={(e) => e.stopPropagation()}>
               <span className="text-xs text-muted-foreground">
                 {byId.get(edge.from)?.name} → {byId.get(edge.to)?.name}
               </span>

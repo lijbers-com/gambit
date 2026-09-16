@@ -115,25 +115,16 @@ const configurationRulesData = [
   },
 ];
 
+/**
+ * Templates are preset campaigns: a name, a shape (budget, run time,
+ * placements, targeting) a user starts from instead of a blank wizard. A
+ * quick start is a template the wizard offers up front.
+ */
 const configurationTemplatesData = [
-  {
-    id: 'TEMP-001',
-    name: 'Standard Product Template',
-    category: 'Product',
-    status: 'Active',
-    usageCount: 45,
-    lastModified: '2024-01-14',
-    performance: '96%'
-  },
-  {
-    id: 'TEMP-002',
-    name: 'Seasonal Campaign Template',
-    category: 'Campaign',
-    status: 'Active',
-    usageCount: 23,
-    lastModified: '2024-01-13',
-    performance: '89%'
-  },
+  { id: 'TEMP-001', name: 'Standard product push',   presets: '4 weeks · €5,000 · category pages · products on offer', category: 'Product',  status: 'Active', quickStart: true,  usageCount: 45, lastModified: '2026-08-14', performance: '96%' },
+  { id: 'TEMP-002', name: 'Seasonal moment',         presets: '2 weeks · €8,000 · homepage + category · retail moment', category: 'Campaign', status: 'Active', quickStart: true,  usageCount: 23, lastModified: '2026-08-02', performance: '89%' },
+  { id: 'TEMP-003', name: 'New product launch',      presets: '6 weeks · €12,000 · all placements · awareness first', category: 'Campaign', status: 'Active', quickStart: false, usageCount: 9,  lastModified: '2026-07-20', performance: '91%' },
+  { id: 'TEMP-004', name: 'Always-on brand',         presets: '12 weeks · €20,000 · homepage rail · frequency capped', category: 'Brand',    status: 'Draft',  quickStart: false, usageCount: 0,  lastModified: '2026-09-10', performance: '—' },
 ];
 
 // Chart data generator
@@ -176,13 +167,13 @@ const createEngineConfigurationStories = (
     badgeValue: string;
     badgeVariant: 'success' | 'destructive' | 'secondary' | 'outline';
   }>
-): { dashboard: Story; settings: Story; lists: Story; pricing: Story } => {
-  const render = (view: 'dashboard' | 'settings' | 'lists' | 'pricing') => () => {
+): { dashboard: Story; settings: Story; lists: Story; pricing: Story; templates: Story } => {
+  const render = (view: 'dashboard' | 'settings' | 'lists' | 'pricing' | 'templates') => () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     // The settings page opens on the tab a dashboard widget asked for.
-    const [activeTab, setActiveTab] = useState('rules');
+    const [activeTab, setActiveTab] = useState('workflow');
     // Read after mount: the server renders without a query string, and the
     // hydrated tree has to match it before the tab can change.
     React.useEffect(() => {
@@ -209,6 +200,7 @@ const createEngineConfigurationStories = (
     const setupSteps = workflowSteps.filter((st) => !!st.setup);
     const activeRules = configurationRulesData.filter((r) => r.status === 'Active').length;
     const activeTemplates = configurationTemplatesData.filter((t) => t.status === 'Active').length;
+    const quickStarts = configurationTemplatesData.filter((t) => t.quickStart);
     // Who works on this proposition: the retailer's own people, and the
     // advertiser organisations with a campaign on it.
     const retailerUsers = db.users.filter((u) => u.side === 'retailer');
@@ -289,12 +281,14 @@ const createEngineConfigurationStories = (
           title: {
             dashboard: `${engineTitle} Configuration`,
             settings: `${engineTitle} configuration settings`,
+            templates: `${engineTitle} campaign templates`,
             lists: `${engineTitle} allow & block lists`,
             pricing: `${engineTitle} position pricing`,
           }[view],
           subtitle: {
             dashboard: `Manage ${engineType} engine configuration settings and rules`,
-            settings: 'Rules, templates and workflow',
+            settings: 'Workflow and rules',
+            templates: 'Preset campaigns a user starts from — quick starts are offered in the wizard',
             lists: 'Who may buy this proposition, and who never can',
             pricing: 'Floor prices for auction, list prices when guaranteed',
           }[view],
@@ -325,15 +319,11 @@ const createEngineConfigurationStories = (
                     </Badge>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">The rules this proposition runs by, the templates it starts from, and the workflow its campaigns follow.</p>
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <p className="mt-1 text-sm text-muted-foreground">The workflow its campaigns follow and the rules this proposition runs by.</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <button type="button" onClick={() => go(settingsHref('rules'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
                     <span className="flex items-center gap-2 text-sm font-medium"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" />Configuration rules</span>
                     <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeRules}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></span>
-                  </button>
-                  <button type="button" onClick={() => go(settingsHref('templates'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
-                    <span className="flex items-center gap-2 text-sm font-medium"><LayoutTemplate className="h-4 w-4 text-muted-foreground" />Templates</span>
-                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeTemplates}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationTemplatesData.length} active</span></span>
                   </button>
                   <button type="button" onClick={() => go(settingsHref('workflow'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
                     <span className="flex items-center gap-2 text-sm font-medium"><GitBranch className="h-4 w-4 text-muted-foreground" />Workflow</span>
@@ -350,11 +340,33 @@ const createEngineConfigurationStories = (
                     ))}
                   </ol>
                 )}
-                {viewAll('Open configuration', () => go(settingsHref('rules')))}
+                {viewAll('Open configuration', () => go(settingsHref('workflow')))}
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Card className="flex flex-col">
+                <CardContent className="flex h-full flex-col p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <LayoutTemplate className="h-5 w-5 text-primary" />
+                    Campaign templates
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Preset campaigns a user starts from; quick starts are offered in the wizard.</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div><span className="block text-2xl font-semibold tabular-nums">{quickStarts.length}</span><span className="text-xs text-muted-foreground">quick starts</span></div>
+                    <div><span className="block text-2xl font-semibold tabular-nums">{activeTemplates}</span><span className="text-xs text-muted-foreground">of {configurationTemplatesData.length} active</span></div>
+                  </div>
+                  <ul className="mt-3 flex-1 space-y-1 text-sm">
+                    {configurationTemplatesData.slice(0, 4).map((t) => (
+                      <li key={t.id} className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate">{t.name}<span className="ml-1.5 text-xs text-muted-foreground">{t.presets}</span></span>
+                        {t.quickStart ? <Badge variant="success">Quick start</Badge> : <Badge variant="outline">{t.status}</Badge>}
+                      </li>
+                    ))}
+                  </ul>
+                  {viewAll('Manage templates', () => go(`/configuration/${engineType}/templates`))}
+                </CardContent>
+              </Card>
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -488,6 +500,61 @@ const createEngineConfigurationStories = (
           />
           )}
 
+          {view === 'templates' && (
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                value: 'quick',
+                label: `Quick starts (${quickStarts.length})`,
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Template' },
+                        { key: 'presets', header: 'What it presets' },
+                        { key: 'quickStart', header: 'Quick start', render: (row) => (row.quickStart ? <Badge variant="success">In the wizard</Badge> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
+                        { key: 'usageCount', header: 'Uses' },
+                        { key: 'performance', header: 'Performance' },
+                        { key: 'lastModified', header: 'Last modified' },
+                      ]}
+                      data={quickStarts}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+              {
+                value: 'all',
+                label: `All templates (${configurationTemplatesData.length})`,
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Template' },
+                        { key: 'presets', header: 'What it presets' },
+                        { key: 'quickStart', header: 'Quick start', render: (row) => (row.quickStart ? <Badge variant="success">In the wizard</Badge> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
+                        { key: 'usageCount', header: 'Uses' },
+                        { key: 'performance', header: 'Performance' },
+                        { key: 'lastModified', header: 'Last modified' },
+                      ]}
+                      data={configurationTemplatesData}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            action={<Button className="gap-1.5"><Plus className="h-4 w-4" />New template</Button>}
+            activeTab={activeTab === 'all' ? 'all' : 'quick'}
+            onTabChange={setActiveTab}
+          />
+          )}
+
           {view === 'pricing' && (
           <CardWithTabs
             className="w-full"
@@ -523,6 +590,18 @@ const createEngineConfigurationStories = (
             id="config-tabs"
             className="w-full"
             tabs={[
+              {
+                // The proposition's workflow — the retailer's board: which
+                // steps, who approves, what is mandatory, deadlines, SLAs
+                // and the actions Edge fires.
+                value: 'workflow',
+                label: 'Workflow',
+                content: (
+                  <div className="mt-6">
+                  <WorkflowBuilder engine={engineType as EngineId} />
+                  </div>
+                ),
+              },
               {
                 value: 'rules',
                 label: 'Configuration Rules',
@@ -569,60 +648,6 @@ const createEngineConfigurationStories = (
                   </div>
                 ),
               },
-              {
-                value: 'templates',
-                label: 'Templates',
-                content: (
-                  <div className="space-y-4 mt-6">
-                    {filterBar}
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'category', header: 'Category' },
-                      { key: 'status', header: 'Status', render: row => (
-                        <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>
-                          {row.status}
-                        </Badge>
-                      )},
-                      { key: 'usageCount', header: 'Usage Count', render: row => (
-                        <Badge variant="secondary">{row.usageCount}</Badge>
-                      )},
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'lastModified', header: 'Last Modified' },
-                    ]}
-                    data={configurationTemplatesData}
-                    rowKey={row => row.id}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to template details for', row.name);
-                    }}
-                    rowSelection={{
-                      selectedKeys: selectedTemplates,
-                      onChange: setSelectedTemplates,
-                      getKey: row => row.id,
-                    }}
-                  />
-                  </div>
-                ),
-              },
-              {
-                // The proposition's workflow — the retailer's board: which
-                // steps, who approves, what is mandatory, deadlines, SLAs
-                // and the actions Edge fires.
-                value: 'workflow',
-                label: 'Workflow',
-                content: (
-                  <div className="mt-6">
-                  <WorkflowBuilder engine={engineType as EngineId} />
-                  </div>
-                ),
-              },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -633,7 +658,7 @@ const createEngineConfigurationStories = (
       </MenuContextProvider>
     );
   };
-  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') } };
+  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') }, templates: { render: render('templates') } };
 };
 
 const sponsoredProductsStories = createEngineConfigurationStories(
@@ -678,6 +703,7 @@ export const SponsoredProducts: Story = sponsoredProductsStories.dashboard;
 export const SponsoredProductsSettings: Story = sponsoredProductsStories.settings;
 export const SponsoredProductsLists: Story = sponsoredProductsStories.lists;
 export const SponsoredProductsPricing: Story = sponsoredProductsStories.pricing;
+export const SponsoredProductsTemplates: Story = sponsoredProductsStories.templates;
 
 const displayStories = createEngineConfigurationStories(
   'display',
@@ -721,6 +747,7 @@ export const Display: Story = displayStories.dashboard;
 export const DisplaySettings: Story = displayStories.settings;
 export const DisplayLists: Story = displayStories.lists;
 export const DisplayPricing: Story = displayStories.pricing;
+export const DisplayTemplates: Story = displayStories.templates;
 
 const digitalInstoreStories = createEngineConfigurationStories(
   'digital-instore',
@@ -764,6 +791,7 @@ export const DigitalInstore: Story = digitalInstoreStories.dashboard;
 export const DigitalInstoreSettings: Story = digitalInstoreStories.settings;
 export const DigitalInstoreLists: Story = digitalInstoreStories.lists;
 export const DigitalInstorePricing: Story = digitalInstoreStories.pricing;
+export const DigitalInstoreTemplates: Story = digitalInstoreStories.templates;
 
 const offlineInstoreStories = createEngineConfigurationStories(
   'offline-instore',
@@ -807,6 +835,7 @@ export const OfflineInstore: Story = offlineInstoreStories.dashboard;
 export const OfflineInstoreSettings: Story = offlineInstoreStories.settings;
 export const OfflineInstoreLists: Story = offlineInstoreStories.lists;
 export const OfflineInstorePricing: Story = offlineInstoreStories.pricing;
+export const OfflineInstoreTemplates: Story = offlineInstoreStories.templates;
 
 const offsiteStories = createEngineConfigurationStories(
   'offsite',
@@ -850,3 +879,4 @@ export const Offsite: Story = offsiteStories.dashboard;
 export const OffsiteSettings: Story = offsiteStories.settings;
 export const OffsiteLists: Story = offsiteStories.lists;
 export const OffsitePricing: Story = offsiteStories.pricing;
+export const OffsiteTemplates: Story = offsiteStories.templates;

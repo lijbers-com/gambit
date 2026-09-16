@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 import { ControlBar, ControlBarItem } from './control-bar';
 import { BudgetPopover, DatesCell, HealthCell, NotificationsCell, type HealthLevel } from './control-cells';
 import { LifecycleActions } from './lifecycle-actions';
@@ -54,11 +55,35 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
   const noun = level === 'campaign' ? 'Campaign' : 'Booking';
   const displayName = entity?.name ?? name ?? entityId;
 
+  const lifecycle = (
+    <LifecycleActions
+      level={level}
+      entityId={entityId}
+      status={entity?.status ?? status ?? 'running'}
+      name={displayName}
+      playDisabled={blockers.length > 0}
+      playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+    />
+  );
+
+  // A booking's panel is the simple one: its budget, run time and health are
+  // its campaign's business and sit on the booking form itself. What steers
+  // a booking is where it stands in the workflow and the run controls, so
+  // that is the whole panel — one row, the stages left, the controls right.
+  if (level === 'booking') {
+    return (
+      <section className={cn('flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-4 py-3', className)}>
+        <WorkflowProgress variant="bar" hideNext engine={engine} bookingId={entityId} />
+        <div className="ml-auto flex items-center gap-2">{lifecycle}</div>
+      </section>
+    );
+  }
+
   return (
     <>
       <ControlBar
         className={className}
-        footer={<WorkflowProgress variant="bar" engine={engine} campaignId={campaign?.id} bookingId={level === 'booking' ? entityId : undefined} />}
+        footer={<WorkflowProgress variant="bar" engine={engine} campaignId={entityId} />}
       >
         <ControlBarItem label={`${noun} budget`}>
           {entity ? (
@@ -95,16 +120,7 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
           </div>
         </ControlBarItem>
         {/* Launch, pause, resume, stop — with the facts that govern them. */}
-        <div className="ml-auto flex items-center gap-2">
-          <LifecycleActions
-            level={level}
-            entityId={entityId}
-            status={entity?.status ?? status ?? 'running'}
-            name={displayName}
-            playDisabled={blockers.length > 0}
-            playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-          />
-        </div>
+        <div className="ml-auto flex items-center gap-2">{lifecycle}</div>
       </ControlBar>
 
       <RightDrawer open={inboxOpen} onOpenChange={setInboxOpen}>

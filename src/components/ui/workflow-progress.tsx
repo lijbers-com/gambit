@@ -49,10 +49,12 @@ export interface WorkflowProgressProps {
   bookingId?: string;
   campaignId?: string;
   variant?: 'full' | 'bar';
+  /** Bar only: leave out the "Next: …" line — the chips already open the steps. */
+  hideNext?: boolean;
   className?: string;
 }
 
-export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, variant = 'full', className }) => {
+export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, variant = 'full', hideNext, className }) => {
   const db = useDb();
   const workflow = workflowFor(db, engine);
   const foundBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
@@ -232,7 +234,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     return (
       <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2', className)}>
         {stageBarWithSteps}
-        {items.length > 0 && (
+        {items.length > 0 && !hideNext && (
           <span className="ml-auto min-w-0 truncate text-sm">
             {nextOpen ? (
               <>

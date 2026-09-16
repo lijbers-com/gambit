@@ -1023,7 +1023,24 @@ export const MediaPlanDetail: Story = {
           <ControlBar
             className="mb-4"
             // Where the plan stands in its own workflow — each stage a chip that opens its steps.
-            footer={plan ? <WorkflowProgress variant="bar" hideNext engine="media-plan" mediaPlanId={plan.id} /> : undefined}
+            // The workflow row, the same as on campaigns and bookings: the
+            // stages left, each a chip that opens its steps, and the run
+            // controls right — launch, pause, resume, stop.
+            footer={plan ? (
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <WorkflowProgress variant="bar" hideNext engine="media-plan" mediaPlanId={plan.id} />
+                <div className="ml-auto flex items-center gap-2">
+                  <LifecycleActions
+                  level="media-plan"
+                  entityId={plan.id}
+                  status={plan.status}
+                  name={plan.name}
+                  playDisabled={!canLaunch}
+                  playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+                  />
+                </div>
+              </div>
+            ) : undefined}
           >
             <ControlBarItem label="Media plan budget">
               {/* One number: the ceiling. Budgets are given to campaigns,
@@ -1080,20 +1097,6 @@ export const MediaPlanDetail: Story = {
                 />
               </div>
             </ControlBarItem>
-            {/* Launch, pause, resume, stop — the plan's run state, with the
-                facts that govern it. */}
-            <div className="ml-auto flex items-center gap-2">
-              {plan && (
-                <LifecycleActions
-                  level="media-plan"
-                  entityId={plan.id}
-                  status={plan.status}
-                  name={plan.name}
-                  playDisabled={!canLaunch}
-                  playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-                />
-              )}
-            </div>
           </ControlBar>
           )}
 

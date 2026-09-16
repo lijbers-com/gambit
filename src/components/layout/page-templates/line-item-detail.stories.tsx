@@ -4,7 +4,7 @@ import { BudgetPacing, type PacingShape, type PacingOverride } from '@/component
 import { BidRow } from '@/components/ui/bid-row';
 import { LevelMeter } from '@/components/ui/level-meter';
 import { ToggleCard } from '@/components/ui/toggle-card';
-import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { EntityControlBar } from '@/components/ui/entity-control-bar';
 import { TabActionGroup, TAB_STRIP_FORM_COLUMN, TAB_LABEL } from '@/components/ui/tab-actions';
 
 /** Tabs that show an overview rather than a form — no Save/Cancel there;
@@ -41,7 +41,6 @@ import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
-import { WorkflowProgress } from '@/components/ui/workflow-progress';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
@@ -704,6 +703,16 @@ export const Display: Story = {
             headerRight: null,
           }}
         >
+          {/* The control panel: what this booking may spend and when, how it is
+              doing, the run controls, and where it stands in the display workflow. */}
+          <EntityControlBar
+            level="booking"
+            engine="display"
+            entityId={routeBooking?.id ?? 'demo-booking'}
+            name={routeBooking?.name ?? bookingName}
+            status={routeBooking?.status ?? 'running'}
+            className="mb-4"
+          />
           <div className="mb-3">
             <MetricRow
               metrics={getPropositionMetrics('display', 'booking')}
@@ -754,12 +763,6 @@ export const Display: Story = {
               </div>
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
-                <LifecycleActions
-                  level="booking"
-                  entityId={routeBooking?.id ?? 'demo-booking'}
-                  status={routeBooking?.status ?? 'running'}
-                  name={routeBooking?.name ?? bookingName}
-                />
                 <AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
               </TabActionGroup>
               </div>
@@ -781,10 +784,6 @@ export const Display: Story = {
               >
 
               {/* 1. Booking setup — Booking details tab */}
-              {/* Where this booking stands in the proposition's workflow, and what is next. */}
-              <FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
-                <WorkflowProgress engine="display" bookingId={routeEntityId} />
-              </FormSection>
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'details' && 'hidden')}>
                 <SectionHeader number={1} title="Booking setup" open={section1Open} onToggle={() => setSection1Open(v => !v)} />
                 {section1Open && (
@@ -1776,6 +1775,16 @@ export const DigitalInStore: Story = {
           headerRight: null,
         }}
       >
+        {/* The control panel: what this booking may spend and when, how it is
+            doing, the run controls, and where it stands in the digital instore workflow. */}
+        <EntityControlBar
+          level="booking"
+          engine="digital-instore"
+          entityId={routeBooking?.id ?? 'demo-booking'}
+          name={routeBooking?.name ?? bookingName}
+          status={routeBooking?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <MetricRow
             metrics={getPropositionMetrics('digital-instore', 'booking')}
@@ -1825,12 +1834,6 @@ export const DigitalInStore: Story = {
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <LifecycleActions
-                      level="booking"
-                      entityId={routeBooking?.id ?? 'demo-booking'}
-                      status={routeBooking?.status ?? 'running'}
-                      name={routeBooking?.name ?? bookingName}
-                    />
                     <AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
@@ -1839,10 +1842,6 @@ export const DigitalInStore: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-{/* Where this booking stands in the proposition's workflow, and what is next. */}
-<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
-  <WorkflowProgress engine="digital-instore" bookingId={routeEntityId} />
-</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -3056,6 +3055,16 @@ export const OfflineInStore: Story = {
           headerRight: null,
         }}
       >
+        {/* The control panel: what this booking may spend and when, how it is
+            doing, the run controls, and where it stands in the offline instore workflow. */}
+        <EntityControlBar
+          level="booking"
+          engine="offline-instore"
+          entityId={routeBooking?.id ?? 'demo-booking'}
+          name={routeBooking?.name ?? bookingName}
+          status={routeBooking?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <MetricRow
             metrics={getPropositionMetrics('offline-instore', 'booking')}
@@ -3105,12 +3114,6 @@ export const OfflineInStore: Story = {
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <LifecycleActions
-                      level="booking"
-                      entityId={routeBooking?.id ?? 'demo-booking'}
-                      status={routeBooking?.status ?? 'running'}
-                      name={routeBooking?.name ?? bookingName}
-                    />
                     <AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
@@ -3119,10 +3122,6 @@ export const OfflineInStore: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-{/* Where this booking stands in the proposition's workflow, and what is next. */}
-<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
-  <WorkflowProgress engine="offline-instore" bookingId={routeEntityId} />
-</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -4069,6 +4068,16 @@ export const SponsoredProducts: Story = {
           headerRight: null,
         }}
       >
+        {/* The control panel: what this booking may spend and when, how it is
+            doing, the run controls, and where it stands in the sponsored products workflow. */}
+        <EntityControlBar
+          level="booking"
+          engine="sponsored-products"
+          entityId={routeBooking?.id ?? 'demo-booking'}
+          name={routeBooking?.name ?? bookingName}
+          status={routeBooking?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <MetricRow
             metrics={getPropositionMetrics('sponsored-products', 'booking')}
@@ -4117,12 +4126,6 @@ export const SponsoredProducts: Story = {
                   </div>
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <LifecycleActions
-                      level="booking"
-                      entityId={routeBooking?.id ?? 'demo-booking'}
-                      status={routeBooking?.status ?? 'running'}
-                      name={routeBooking?.name ?? bookingName}
-                    />
                     <AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
                   </TabActionGroup>
                   </div>
@@ -4131,10 +4134,6 @@ export const SponsoredProducts: Story = {
                   <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-{/* Where this booking stands in the proposition's workflow, and what is next. */}
-<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
-  <WorkflowProgress engine="sponsored-products" bookingId={routeEntityId} />
-</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-4">
                           <div>
@@ -4654,6 +4653,16 @@ export const OffsiteDisplay: Story = {
             headerRight: null,
           }}
         >
+          {/* The control panel: what this booking may spend and when, how it is
+              doing, the run controls, and where it stands in the offsite workflow. */}
+          <EntityControlBar
+            level="booking"
+            engine="offsite"
+            entityId={routeBooking?.id ?? 'demo-booking'}
+            name={routeBooking?.name ?? bookingName}
+            status={routeBooking?.status ?? 'running'}
+            className="mb-4"
+          />
           <div className="mb-3">
             <MetricRow
               metrics={getPropositionMetrics('offsite', 'booking')}
@@ -4701,12 +4710,6 @@ export const OffsiteDisplay: Story = {
                   </div>
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
-                <LifecycleActions
-                  level="booking"
-                  entityId={routeBooking?.id ?? 'demo-booking'}
-                  status={routeBooking?.status ?? 'running'}
-                  name={routeBooking?.name ?? bookingName}
-                />
                 <AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
               </TabActionGroup>
               </div>
@@ -4715,10 +4718,6 @@ export const OffsiteDisplay: Story = {
               <div className="lg:col-span-2 min-w-0 space-y-6">
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
-{/* Where this booking stands in the proposition's workflow, and what is next. */}
-<FormSection title="Workflow" className={cn(bookingTab !== 'details' && 'hidden')}>
-  <WorkflowProgress engine="offsite" bookingId={routeEntityId} />
-</FormSection>
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
                     <div className="space-y-4">
                       <div>

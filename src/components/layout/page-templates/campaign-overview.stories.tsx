@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { FormSection } from '@/components/ui/form-section';
 import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
@@ -319,10 +320,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           onSettings: () => alert('Settings clicked'),
           headerRight: (
             <div className="flex items-center gap-2">
-              <AdvertiserSelect
-                value={headerAdvertiser}
-                onChange={setHeaderAdvertiser}
-              />
+              <SessionAdvertiserSelect />
             </div>
           ),
         }}
@@ -767,10 +765,7 @@ export const Campaigns360: Story = {
             onImport: () => alert('Import clicked'),
             onSettings: () => alert('Settings clicked'),
             headerRight: (
-              <AdvertiserSelect
-                value={headerAdvertiser}
-                onChange={setHeaderAdvertiser}
-              />
+              <SessionAdvertiserSelect />
             ),
           }}
         >
@@ -975,10 +970,7 @@ export const Campaigns360NoGoalTargeting: Story = {
             onSettings: () => alert('Settings clicked'),
             headerRight: (
               <>
-                <AdvertiserSelect
-                  value={headerAdvertiser}
-                  onChange={setHeaderAdvertiser}
-                />
+                <SessionAdvertiserSelect />
                 <DateRangePicker
                   dateRange={pageDateRange}
                   onDateRangeChange={setPageDateRange}

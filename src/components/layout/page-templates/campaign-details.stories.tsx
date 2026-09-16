@@ -8,7 +8,7 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
-import { LifecycleActions } from '@/components/ui/lifecycle-actions';
+import { EntityControlBar } from '@/components/ui/entity-control-bar';
 import { useRouteCampaign } from '@/lib/db';
 import { CampaignCreativesPanel } from '@/components/ui/campaign-creatives-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
@@ -716,23 +716,18 @@ const updatedForecastMetrics = [
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the digital instore workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="digital-instore"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -1028,14 +1023,6 @@ const updatedForecastMetrics = [
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('digital-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -1228,6 +1215,16 @@ export const DigitalInstoreRunning: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the digital instore workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="digital-instore"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -1523,14 +1520,6 @@ export const DigitalInstoreRunning: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('digital-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -1681,23 +1670,18 @@ export const OfflineInstoreRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the offline instore workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="offline-instore"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -1984,14 +1968,6 @@ export const OfflineInstoreRunning: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('offline-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -2167,23 +2143,18 @@ export const DisplayRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the display workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="display"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -2465,14 +2436,6 @@ export const DisplayRunning: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('display', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -2650,23 +2613,18 @@ export const OfflineInstoreInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the offline instore workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="offline-instore"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -2937,14 +2895,6 @@ export const OfflineInstoreInOption: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('offline-instore', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -3122,23 +3072,18 @@ export const DisplayInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the display workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="display"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -3420,14 +3365,6 @@ export const DisplayInOption: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('display', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -3920,23 +3857,18 @@ export const SponsoredProductsInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the sponsored products workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="sponsored-products"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -4368,12 +4300,6 @@ export const SponsoredProductsInOption: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-            <LifecycleActions
-              level="campaign"
-              entityId={routeCampaign?.id ?? 'demo-campaign'}
-              status={routeCampaign?.status ?? 'running'}
-              name={routeCampaign?.name}
-            />
             {activeTab === 'products' ? (
               <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
@@ -4662,23 +4588,18 @@ export const SponsoredProductsRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the sponsored products workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="sponsored-products"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -5121,12 +5042,6 @@ export const SponsoredProductsRunning: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-            <LifecycleActions
-              level="campaign"
-              entityId={routeCampaign?.id ?? 'demo-campaign'}
-              status={routeCampaign?.status ?? 'running'}
-              name={routeCampaign?.name}
-            />
             {activeTab === 'products' ? (
               <AddButton>Add product</AddButton>
             ) : activeTab === 'keywords' ? (
@@ -5269,23 +5184,18 @@ export const OffsiteRunning: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the offsite workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="offsite"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -5609,14 +5519,6 @@ export const OffsiteRunning: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('offsite', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (
@@ -5755,23 +5657,18 @@ export const OffsiteInOption: Story = {
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          variant: 'campaign-detail',
-          advertiserProps: {
-            value: headerAdvertiser,
-            onChange: setHeaderAdvertiser,
-          },
-          attributionWindowProps: {
-            value: conversionWindow,
-            onChange: setConversionWindow,
-          },
-          dateRangeProps: {
-            dateRange: dateRange,
-            onDateRangeChange: setDateRange,
-            placeholder: "Select date range",
-            showPresets: true,
-          },
         }}
       >
+        {/* The control panel: what this campaign may spend and when, how it is
+            doing, the run controls, and where it stands in the offsite workflow. */}
+        <EntityControlBar
+          level="campaign"
+          engine="offsite"
+          entityId={routeCampaign?.id ?? 'demo-campaign'}
+          name={routeCampaign?.name}
+          status={routeCampaign?.status ?? 'running'}
+          className="mb-4"
+        />
         <div className="mb-3">
           <ForecastSection />
         </div>
@@ -6094,14 +5991,6 @@ export const OffsiteInOption: Story = {
           ], 'bookings')}
           action={
             <div className="flex items-center gap-2">
-              {/* Run controls first: they act on the campaign and every booking
-                  under it, whichever tab happens to be open. */}
-              <LifecycleActions
-                level="campaign"
-                entityId={routeCampaign?.id ?? 'demo-campaign'}
-                status={routeCampaign?.status ?? 'running'}
-                name={routeCampaign?.name}
-              />
               {activeTab === 'bookings' ? (
                 <AddButton onClick={() => addBooking('offsite', routeCampaign)}>Add booking</AddButton>
               ) : activeTab === 'creatives' ? (

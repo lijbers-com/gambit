@@ -351,9 +351,20 @@ export interface WorkflowAction {
   to?: WorkflowOwner;
 }
 
+/**
+ * The setup work Edge can see for itself: a workflow step that carries one of
+ * these keys is ticked off from the data (a campaign approved, bookings
+ * made, creatives linked) rather than by hand. The media plan's setup cards
+ * and the campaign's workflow bar both list exactly these steps, so the
+ * retailer's board is the one place the setup is defined.
+ */
+export type SetupStepKey = 'approve-campaign' | 'create-bookings' | 'approve-bookings' | 'link-creatives' | 'add-targeting';
+
 export interface WorkflowStep {
   id: string;
   kind: WorkflowStepKind;
+  /** Which setup step this stands for, when Edge derives its done state. */
+  setup?: SetupStepKey;
   name: string;
   description?: string;
   owner: WorkflowOwner;

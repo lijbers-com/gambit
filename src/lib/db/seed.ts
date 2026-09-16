@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 18;
+export const SEED_VERSION = 19;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -897,6 +897,13 @@ export const seedData: DbData = {
     { id: 'WF-DMI', engine: 'digital-instore', name: 'Digital in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
       description: 'Book, upload creatives, target screens. Sales in AdCRM, preparation from X-8, creatives due X-4, live on the flight date.',
       steps: [
+        // Setup — what Edge derives from the data, listed on the media plan's
+        // setup cards and the campaign's workflow bar. Ticked off by the work
+        // itself, never by hand.
+        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 640, y: 40,  actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 640, y: 180, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 640, y: 320, actions: [] },
+        { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 640, y: 460, actions: [] },
         { id: 's-draft',     kind: 'stage',        name: 'Draft',              description: 'Booking outlined; sales phase in AdCRM (from X-20).', owner: 'retailer',   mandatory: true,  x: 40,  y: 40,  actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
         { id: 's-review',    kind: 'stage',        name: 'In review',          description: 'Submitted by the advertiser or built on their behalf.', owner: 'retailer',   mandatory: true,  x: 40,  y: 180, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
         { id: 's-approve',   kind: 'approval',     name: 'Approve booking',    description: 'AdOps approves; inventory goes from option to booked.', owner: 'retailer',   mandatory: true,  x: 40,  y: 320, slaDays: 2, escalateTo: 'retailer', deputy: 'Campaign manager on duty', actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }, { id: 'a4', type: 'set-status', label: 'Inventory: booked' }] },
@@ -908,7 +915,11 @@ export const seedData: DbData = {
         { id: 's-done',      kind: 'stage',        name: 'Completed',          description: 'After the end date; performance report; offload to Databricks.', owner: 'edge', mandatory: true, x: 40, y: 880, actions: [{ id: 'a11', type: 'email', label: 'Send the performance report', to: 'advertiser' }, { id: 'a12', type: 'kafka', label: 'Offload to Databricks' }] },
       ],
       transitions: [
-        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 'ts1', from: 's-draft', to: 'su-campaign' },
+        { id: 'ts2', from: 'su-campaign', to: 'su-bookings' },
+        { id: 'ts3', from: 'su-bookings', to: 'su-approve' },
+        { id: 'ts4', from: 'su-approve', to: 'su-creatives' },
+        { id: 't1', from: 'su-creatives', to: 's-review', label: 'submit' },
         { id: 't2', from: 's-review', to: 's-approve' },
         { id: 't3', from: 's-approve', to: 's-changes', label: 'changes requested' },
         { id: 't4', from: 's-changes', to: 's-review', label: 'resubmitted' },
@@ -922,6 +933,13 @@ export const seedData: DbData = {
     { id: 'WF-OMI', engine: 'offline-instore', name: 'Offline in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
       description: 'Sales → preparation (X-8, five checks and a sign-off) → production (print and distribution) → run → done. Built on Delhaize input.',
       steps: [
+        // Setup — what Edge derives from the data, listed on the media plan's
+        // setup cards and the campaign's workflow bar. Ticked off by the work
+        // itself, never by hand.
+        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 640, y: 40,  actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 640, y: 180, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 640, y: 320, actions: [] },
+        { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 640, y: 460, actions: [] },
         { id: 's-sales',     kind: 'stage',       name: 'Sales',                    description: 'Booking new or updated; campaign pipeline or closed won in AdCRM.', owner: 'retailer', mandatory: true, x: 40, y: 40, actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
         { id: 's-prep',      kind: 'stage',       name: 'Preparation',              description: 'From X-8. Done only when every check below is yes.', owner: 'retailer', mandatory: true, x: 40, y: 180, dueDaysBeforeStart: 8, actions: [{ id: 'a2', type: 'notification', label: 'Notify AdOps: preparation starts', to: 'retailer' }] },
         { id: 'c-brief',     kind: 'check',       name: 'Briefing sent to advertiser', description: 'Manual; may also happen in the sales phase.', owner: 'retailer', mandatory: true, x: 340, y: 120, actions: [{ id: 'a3', type: 'kafka', label: 'Send briefing to the Kafka topic' }, { id: 'a4', type: 'log', label: 'Chat line: briefing sent' }] },
@@ -938,7 +956,11 @@ export const seedData: DbData = {
         { id: 's-done',      kind: 'stage',       name: 'Done',                     description: 'After the end date; correct store list; sign off; offload to Databricks.', owner: 'retailer', mandatory: true, x: 40, y: 1160, actions: [{ id: 'a14', type: 'todo', label: 'To-do: correct the store list', to: 'retailer' }, { id: 'a15', type: 'kafka', label: 'Offload to Databricks' }] },
       ],
       transitions: [
-        { id: 't1', from: 's-sales', to: 's-prep', label: 'X-8' },
+        { id: 'ts1', from: 's-sales', to: 'su-campaign' },
+        { id: 'ts2', from: 'su-campaign', to: 'su-bookings' },
+        { id: 'ts3', from: 'su-bookings', to: 'su-approve' },
+        { id: 'ts4', from: 'su-approve', to: 'su-creatives' },
+        { id: 't1', from: 'su-creatives', to: 's-prep', label: 'X-8' },
         { id: 't2', from: 's-prep', to: 'c-brief' }, { id: 't3', from: 's-prep', to: 'c-creative' }, { id: 't4', from: 's-prep', to: 'c-products' }, { id: 't5', from: 's-prep', to: 'c-stores' }, { id: 't6', from: 's-prep', to: 'c-printer' },
         { id: 't7', from: 'c-brief', to: 's-signoff' }, { id: 't8', from: 'c-creative', to: 's-signoff' }, { id: 't9', from: 'c-products', to: 's-signoff' }, { id: 't10', from: 'c-stores', to: 's-signoff' }, { id: 't11', from: 'c-printer', to: 's-signoff' },
         { id: 't12', from: 'c-creative', to: 's-delay', label: 'past X-4' },
@@ -950,6 +972,13 @@ export const seedData: DbData = {
     { id: 'WF-DIS', engine: 'display', name: 'Display — campaign lifecycle', status: 'draft', updatedAt: now,
       description: 'The shared six-state lifecycle with creative approval executed in the display engine: spec check on upload, content review, one resubmit loop.',
       steps: [
+        // Setup — what Edge derives from the data, listed on the media plan's
+        // setup cards and the campaign's workflow bar. Ticked off by the work
+        // itself, never by hand.
+        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 340, y: 40,  actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 340, y: 180, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 340, y: 320, actions: [] },
+        { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 340, y: 460, actions: [] },
         { id: 's-draft',    kind: 'stage',        name: 'Draft',             description: 'Wizard or AdCRM order.',                           owner: 'advertiser', mandatory: true, x: 40,  y: 40,  actions: [] },
         { id: 's-review',   kind: 'stage',        name: 'In review',         description: 'Booking submitted; option placed with an expiry.',   owner: 'retailer',   mandatory: true, x: 40,  y: 180, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'set-status', label: 'Inventory: option until expiry' }, { id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
         { id: 's-approve',  kind: 'approval',     name: 'Approve booking',   description: 'AdOps approves the plan and placements.',           owner: 'retailer',   mandatory: true, x: 40,  y: 320, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }] },
@@ -961,7 +990,11 @@ export const seedData: DbData = {
         { id: 's-done',     kind: 'stage',        name: 'Completed',         description: 'After the end date; report; make-good if needed.',   owner: 'edge',       mandatory: true, x: 40,  y: 1020, actions: [{ id: 'a8', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
       ],
       transitions: [
-        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 'ts1', from: 's-draft', to: 'su-campaign' },
+        { id: 'ts2', from: 'su-campaign', to: 'su-bookings' },
+        { id: 'ts3', from: 'su-bookings', to: 'su-approve' },
+        { id: 'ts4', from: 'su-approve', to: 'su-creatives' },
+        { id: 't1', from: 'su-creatives', to: 's-review', label: 'submit' },
         { id: 't2', from: 's-review', to: 's-approve' },
         { id: 't3', from: 's-approve', to: 'c-spec', label: 'approved · creatives requested' },
         { id: 't4', from: 'c-spec', to: 's-content', label: 'passed' },
@@ -974,6 +1007,13 @@ export const seedData: DbData = {
     { id: 'WF-SP', engine: 'sponsored-products', name: 'Sponsored products — campaign lifecycle', status: 'draft', updatedAt: now,
       description: 'No creatives: the product listing is the ad. Approval, a feed check, then live on the flight date.',
       steps: [
+        // Setup — what Edge derives from the data, listed on the media plan's
+        // setup cards and the campaign's workflow bar. Ticked off by the work
+        // itself, never by hand.
+        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 340, y: 40,  actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 340, y: 180, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 340, y: 320, actions: [] },
+        { id: 'su-targeting', kind: 'fulfilment', name: 'Add products and keywords', description: 'Part of the booking setup — target the right products and terms.', owner: 'advertiser', mandatory: true, setup: 'add-targeting', x: 340, y: 460, actions: [] },
         { id: 's-draft',   kind: 'stage',    name: 'Draft',          description: 'Self-service or built on behalf.',           owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
         { id: 's-review',  kind: 'stage',    name: 'In review',      description: 'Keywords, bids and products submitted.',      owner: 'retailer',   mandatory: true, x: 40, y: 180, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review keywords and bids', to: 'retailer' }] },
         { id: 's-approve', kind: 'approval', name: 'Approve campaign', description: 'AdOps approves.',                         owner: 'retailer',   mandatory: true, x: 40, y: 320, actions: [{ id: 'a2', type: 'email', label: 'Email the advertiser: approved', to: 'advertiser' }] },
@@ -982,10 +1022,42 @@ export const seedData: DbData = {
         { id: 's-done',    kind: 'stage',    name: 'Completed',      description: 'After the end date; report.',                 owner: 'edge',       mandatory: true, x: 40, y: 740, actions: [{ id: 'a4', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
       ],
       transitions: [
-        { id: 't1', from: 's-draft', to: 's-review', label: 'submit' },
+        { id: 'ts1', from: 's-draft', to: 'su-campaign' },
+        { id: 'ts2', from: 'su-campaign', to: 'su-bookings' },
+        { id: 'ts3', from: 'su-bookings', to: 'su-approve' },
+        { id: 'ts4', from: 'su-approve', to: 'su-targeting' },
+        { id: 't1', from: 'su-targeting', to: 's-review', label: 'submit' },
         { id: 't2', from: 's-review', to: 's-approve' },
         { id: 't3', from: 's-approve', to: 'c-feed', label: 'approved' },
         { id: 't4', from: 'c-feed', to: 's-live', label: 'flight date' },
+        { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
+      ] },
+    { id: 'WF-OFF', engine: 'offsite', name: 'Offsite — campaign lifecycle', status: 'draft', updatedAt: now,
+      description: 'Book, hand the creatives to the partner network, go live off the retailer\'s own properties.',
+      steps: [
+        // Setup — what Edge derives from the data, listed on the media plan's
+        // setup cards and the campaign's workflow bar. Ticked off by the work
+        // itself, never by hand.
+        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 340, y: 40,  actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 340, y: 180, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 340, y: 320, actions: [] },
+        { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 340, y: 460, actions: [] },
+        { id: 's-draft',   kind: 'stage',      name: 'Draft',            description: 'Wizard or built on behalf.',                       owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
+        { id: 's-review',  kind: 'stage',      name: 'In review',        description: 'Audience and partner placements submitted.',       owner: 'retailer',   mandatory: true, x: 40, y: 180, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
+        { id: 's-approve', kind: 'approval',   name: 'Approve booking',  description: 'AdOps approves audience and budget.',              owner: 'retailer',   mandatory: true, x: 40, y: 320, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a2', type: 'email', label: 'Email the advertiser: booking approved', to: 'advertiser' }] },
+        { id: 'f-partner', kind: 'fulfilment', name: 'Sent to partner',  description: 'Creatives and audience handed to the partner network.', owner: 'external', mandatory: true, x: 40, y: 460, actions: [{ id: 'a3', type: 'kafka', label: 'Publish the line to the partner' }] },
+        { id: 's-live',    kind: 'stage',      name: 'Live',             description: 'Partner delivering from the flight date.',         owner: 'external',   mandatory: true, x: 40, y: 600, actions: [{ id: 'a4', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
+        { id: 's-done',    kind: 'stage',      name: 'Completed',        description: 'After the end date; partner report merged.',       owner: 'edge',       mandatory: true, x: 40, y: 740, actions: [{ id: 'a5', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+      ],
+      transitions: [
+        { id: 'ts1', from: 's-draft', to: 'su-campaign' },
+        { id: 'ts2', from: 'su-campaign', to: 'su-bookings' },
+        { id: 'ts3', from: 'su-bookings', to: 'su-approve' },
+        { id: 'ts4', from: 'su-approve', to: 'su-creatives' },
+        { id: 't1', from: 'su-creatives', to: 's-review', label: 'submit' },
+        { id: 't2', from: 's-review', to: 's-approve' },
+        { id: 't3', from: 's-approve', to: 'f-partner', label: 'approved' },
+        { id: 't4', from: 'f-partner', to: 's-live', label: 'flight date' },
         { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
       ] },
   ],

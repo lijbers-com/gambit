@@ -44,10 +44,11 @@ import { stageForGoal, funnelKpis } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
+import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/components/ui/control-cells';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, type EngineId, type PlanStatus } from '@/lib/db';
+import { useDb, updateMediaPlan, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, type EngineId, type PlanStatus, type SetupStepKey } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -138,59 +139,6 @@ const propositionMeta: Record<EngineId, { icon: LucideIcon; label: string }> = {
  * room so more campaigns can be added. So this popover edits one number,
  * the ceiling, and shows what of it is committed vs still free.
  */
-const PlanBudgetPopover: React.FC<{
-  total: number;
-  committed: number;
-  onApply: (next: number) => void;
-  className?: string;
-}> = ({ total, committed, onApply, className }) => {
-  const [open, setOpen] = React.useState(false);
-  const [draft, setDraft] = React.useState(String(total));
-  React.useEffect(() => { if (open) setDraft(String(total)); }, [open, total]);
-  const next = parseFloat(draft) || 0;
-  const free = Math.max(next - committed, 0);
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className={cn('h-9 justify-start gap-2 font-normal', className)}>
-          <Euro className="h-4 w-4 text-muted-foreground" />
-          <span className="truncate">€{total.toLocaleString()}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 space-y-4 p-4">
-        <div className="space-y-2">
-          <Label htmlFor="plan-budget-total">Total budget</Label>
-          <Input id="plan-budget-total" type="number" min="0" value={draft} onChange={(e) => setDraft(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <FillRateBar
-            total={Math.max(next, committed, 1)}
-            value={{ booked: committed, available: free }}
-            hoverTooltip={false}
-            height={10}
-          />
-          <div className="flex gap-4 text-[11px] text-muted-foreground">
-            <span>Committed to campaigns €{committed.toLocaleString()}</span>
-            <span>Free €{free.toLocaleString()}</span>
-          </div>
-          {next < committed && (
-            <p className="text-xs text-warning-700">
-              Below the €{committed.toLocaleString()} the campaigns already claim.
-            </p>
-          )}
-        </div>
-        <FieldHint>
-          Campaign budgets are set on the campaigns themselves — free room stays open for adding more.
-        </FieldHint>
-        <div className="flex justify-end gap-2 border-t pt-3">
-          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button size="sm" onClick={() => { onApply(next); setOpen(false); }}>Apply</Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-};
-
 const statusBadge: Record<PlanStatus, { variant: 'success' | 'secondary' | 'warning' | 'outline'; label: string }> = {
   'running': { variant: 'success', label: 'Live' },
   'completed': { variant: 'secondary', label: 'Completed' },
@@ -290,96 +238,6 @@ const BudgetCell = ({ value, onSave, className, fullWidth }: { value: number; on
           <Check className="h-3.5 w-3.5" />
         </button>
       )}
-    </span>
-  );
-};
-
-/** Run-time cell that edits in place, using the same picker as the forms. */
-const DatesCell = ({
-  start,
-  end,
-  onSave,
-  className = 'h-8 px-2 text-sm font-normal',
-}: {
-  start?: string;
-  end?: string;
-  onSave: (startDate: string, endDate: string) => void;
-  className?: string;
-}) => (
-  <div onClick={(e) => e.stopPropagation()}>
-    <DateRangePicker
-      dateRange={start && end ? { from: new Date(start), to: new Date(end) } : undefined}
-      onDateRangeChange={(range) => {
-        if (range?.from && range?.to) {
-          onSave(range.from.toISOString().slice(0, 10), range.to.toISOString().slice(0, 10));
-        }
-      }}
-      showPresets={false}
-      showWeekNumbers
-      events={retailMoments}
-      className={className}
-      placeholder="Set run time"
-    />
-  </div>
-);
-
-const HealthCell = ({ health }: { health: 'good' | 'attention' | 'risk' }) => {
-  const cfg = {
-    good: { label: 'Healthy', className: 'border-success-200 bg-success-50 text-success-700' },
-    attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
-    risk: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
-  }[health];
-  return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', cfg.className)}>
-      <HeartPulse className="h-3 w-3" />
-      {cfg.label}
-    </span>
-  );
-};
-
-/** A count of open inbox messages for a row. */
-/**
- * What a row's inbox holds, in one column.
- *
- * Three columns of counts made the reader add up their own total and left most
- * cells empty; one column says how many of what, and stays silent when there
- * is nothing. Actions lead because they block delivery — a recommendation can
- * wait, a missing creative cannot.
- */
-const NotificationsCell = ({
-  actions = 0,
-  recommendations = 0,
-  insights = 0,
-  onOpen,
-}: {
-  actions?: number;
-  recommendations?: number;
-  insights?: number;
-  /** Clicking any badge opens this row's notifications in the side panel. */
-  onOpen?: () => void;
-}) => {
-  const parts = [
-    { count: actions, label: 'action', plural: 'actions', variant: 'todo' as const },
-    { count: recommendations, label: 'recommendation', plural: 'recommendations', variant: 'secondary' as const },
-    { count: insights, label: 'insight', plural: 'insights', variant: 'secondary' as const },
-  ].filter((p) => p.count > 0);
-
-  if (parts.length === 0) return <span className="text-muted-foreground">—</span>;
-
-  return (
-    <span className="flex flex-wrap items-center gap-1">
-      {parts.map((p) => (
-        <button
-          key={p.label}
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOpen?.(); }}
-          title="Open notifications"
-        >
-          <Badge variant={p.variant} className="whitespace-nowrap tabular-nums transition-colors hover:opacity-80">
-            {p.count} {p.count === 1 ? p.label : p.plural}
-          </Badge>
-        </button>
-      ))}
     </span>
   );
 };
@@ -763,59 +621,30 @@ export const MediaPlanDetail: Story = {
             // prefilled booking wizard and saving it.
             const openCampaign = () => { if (typeof window !== 'undefined') window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
             const draftBookings = bookings.filter((b) => b.status === 'draft');
-            const steps = [
-              {
-                id: `${c.id}-campaign`,
-                title: 'Approve campaign',
-                description: 'Check what the media plan proposed — name, budget, run time and type.',
-                done: c.status !== 'draft',
-                onClick: () => {
-                  if (typeof window !== 'undefined') window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign${backToPlan}`;
-                },
+            // The steps come from the proposition's workflow — its setup
+            // steps, ticked off from the data — so the board is the one
+            // place setup is defined. Each step opens where the work is done.
+            const missingCreative = bookings.find((b) => b.creativeStatus === 'missing');
+            const openStep: Record<SetupStepKey, () => void> = {
+              'approve-campaign': () => { window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign${backToPlan}`; },
+              'create-bookings': () => addBookingTo(c.id),
+              'approve-bookings': () => approveBooking(draftBookings[0]?.id ?? bookings[0]?.id, c.id),
+              'add-targeting': () => addBookingTo(c.id),
+              'link-creatives': () => {
+                window.location.href = missingCreative
+                  ? `/create/${routeSeg[c.engine]}?bookingId=${missingCreative.id}&step=creatives${backToPlan}`
+                  : `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
               },
-              // An assisted campaign arrives with its bookings proposed, so
-              // creating them is not work the user has left — approving them
-              // is. An expert campaign starts empty and still has to make
-              // them, so only it carries this step.
-              ...(c.mode === 'assisted' && bookings.length > 0 ? [] : [{
-                id: `${c.id}-bookings`,
-                title: 'Create bookings',
-                description: 'The guided setup walks through schedule, placement and delivery.',
-                done: bookings.length > 0,
-                onClick: () => addBookingTo(c.id),
-              }]),
-              {
-                id: `${c.id}-approve`,
-                title: 'Approve bookings',
-                description: draftBookings.length > 0
-                  ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to approve.`
-                  : 'Check the prefilled bookings and approve them.',
-                done: bookings.length > 0 && draftBookings.length === 0,
-                onClick: () => approveBooking(draftBookings[0]?.id ?? bookings[0]?.id, c.id),
-              },
-              c.engine === 'sponsored-products'
-                ? {
-                    id: `${c.id}-targeting`,
-                    title: 'Add products and keywords',
-                    description: 'Part of the booking setup — target the right products and terms.',
-                    done: bookings.length > 0 && bookings.every((b) => b.positionIds.length > 0),
-                    onClick: () => addBookingTo(c.id),
-                  }
-                : {
-                    id: `${c.id}-creatives`,
-                    title: 'Link creatives',
-                    description: 'The creative step of the setup wizard, for bookings still missing one.',
-                    done: bookings.length > 0 && bookings.every((b) => b.creativeStatus !== 'missing'),
-                    // The creative step belongs to the booking's own wizard —
-                    // opened on the booking that still needs one.
-                    onClick: () => {
-                      const missing = bookings.find((b) => b.creativeStatus === 'missing');
-                      window.location.href = missing
-                        ? `/create/${routeSeg[c.engine]}?bookingId=${missing.id}&step=creatives${backToPlan}`
-                        : `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
-                    },
-                  },
-            ];
+            };
+            const steps = setupStepsForCampaign(db, c).map((st) => ({
+              id: `${c.id}-${st.key}`,
+              title: st.title,
+              description: st.key === 'approve-bookings' && draftBookings.length > 0
+                ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to approve.`
+                : st.description,
+              done: st.done,
+              onClick: openStep[st.key],
+            }));
             return {
               id: c.id,
               icon: <CardIcon />,
@@ -1192,7 +1021,9 @@ export const MediaPlanDetail: Story = {
               {/* One number: the ceiling. Budgets are given to campaigns,
                   not split over propositions here — and free room is a
                   feature, kept open so more campaigns can be added. */}
-              <PlanBudgetPopover
+              <BudgetPopover
+                committedLabel="Committed to campaigns"
+                hint="Campaign budgets are set on the campaigns themselves — free room stays open for adding more."
                 className="w-40"
                 total={plan?.budget ?? 0}
                 committed={db.campaigns
@@ -1441,7 +1272,9 @@ export const MediaPlanDetail: Story = {
                         </div>
                         <div className="space-y-2">
                           <Label className="block">Media plan budget</Label>
-                          <PlanBudgetPopover
+                          <BudgetPopover
+                            committedLabel="Committed to campaigns"
+                            hint="Campaign budgets are set on the campaigns themselves — free room stays open for adding more."
                             className="w-full max-w-xs"
                             total={plan?.budget ?? 0}
                             committed={db.campaigns

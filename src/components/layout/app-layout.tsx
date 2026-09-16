@@ -5,7 +5,7 @@ import { SideNavigation, Route } from "@/components/ui/side-navigation";
 import { SmartBreadcrumbs } from "@/components/ui/smart-breadcrumbs";
 import { PageHeader } from "@/components/ui/page-header";
 import { HeaderActions } from "@/components/ui/header-actions";
-import { SessionDateRange } from "@/components/ui/session-date-range";
+import { SessionAdvertiserSelect } from "@/components/ui/session-advertiser-select";
 import { useMenu } from "@/hooks/use-menu";
 
 export interface AppLayoutProps {
@@ -104,8 +104,11 @@ export function AppLayout({
           <PageHeader
             title={pageHeaderProps?.title || "PageHeader Title"}
             subtitle={pageHeaderProps?.subtitle}
-            headerRight={pageHeaderProps?.headerRight}
+            // Every page carries the media partner unless it brings its own
+            // header content; `null` no longer clears it — the partner is
+            // session state and belongs on every page.
             {...pageHeaderProps}
+            headerRight={pageHeaderProps?.headerRight ?? <SessionAdvertiserSelect />}
           />
           {/* Page Content Area */}
           {fullHeightContent ? (

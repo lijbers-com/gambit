@@ -13,6 +13,7 @@ import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { useSessionFilters, withinSessionRange } from '@/lib/session-filters';
 import { SessionDateRange } from '@/components/ui/session-date-range';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useTheme } from '@/contexts/theme-context';
@@ -188,10 +189,7 @@ function AllCampaignsPage() {
           onSettings: () => alert('Settings clicked'),
           headerRight: (
             <div className="flex items-center gap-2">
-              <AdvertiserSelect
-                value={headerAdvertiser}
-                onChange={setHeaderAdvertiser}
-              />
+              <SessionAdvertiserSelect />
               {/* No metric row on this page, so the session range stays in
                   the header — it still filters the plans below. */}
               <SessionDateRange />

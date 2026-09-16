@@ -11,8 +11,10 @@ import { Label } from './label';
  * the header, because the header is the same on every page and carries the
  * session's own controls (the date range, the advertiser).
  *
- * Outlined but unfilled: the border says where the panel ends without the
- * white card that made it a second surface on top of the page.
+ * A white card, like the metric cards under it: the panel is where the
+ * entity is steered — its facts, its run controls, its workflow — and it
+ * reads as one surface for that. A second row (`footer`) carries the
+ * workflow: where the entity stands and what is next.
  *
  * ONE ROW, ALWAYS. When the row runs out of width the panel DROPS items
  * rather than wrapping — least important first, in the order its items
@@ -20,11 +22,12 @@ import { Label } from './label';
  * reads as two bands. Nothing is lost by dropping: every fact stated here is
  * also on the entity's own tabs.
  */
-export const ControlBar: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export const ControlBar: React.FC<{ children: React.ReactNode; className?: string; footer?: React.ReactNode }> = ({
   children,
   className,
+  footer,
 }) => {
-  const ref = React.useRef<HTMLElement>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
   /** Natural widths, cached while every item is still visible. */
   const widths = React.useRef<number[]>([]);
   const [dropped, setDropped] = React.useState(0);
@@ -73,8 +76,9 @@ export const ControlBar: React.FC<{ children: React.ReactNode; className?: strin
   const hidden = new Set(droppable.slice(0, dropped));
 
   return (
-    // No wrapping: the row sheds rather than folds.
-    <section ref={ref} className={cn('flex items-end gap-x-4 overflow-hidden rounded-xl border border-border p-4', className)}>
+    <section className={cn('rounded-xl border border-border bg-card', className)}>
+    {/* No wrapping: the row sheds rather than folds. */}
+    <div ref={ref} className="flex items-end gap-x-4 overflow-hidden p-4">
       {items.map((child, i) => {
         // Each item gets a wrapper so it can be dropped without touching the
         // item itself; an item that asked to be pushed to the end (`ml-auto`)
@@ -93,6 +97,8 @@ export const ControlBar: React.FC<{ children: React.ReactNode; className?: strin
           </div>
         );
       })}
+    </div>
+    {footer && <div className="border-t border-border px-4 py-3">{footer}</div>}
     </section>
   );
 };

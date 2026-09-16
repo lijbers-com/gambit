@@ -34,6 +34,8 @@ export interface SessionFilters {
    * session shows.
    */
   measurement?: MeasurementSettingsValue;
+  /** The media partner the session is looking at. */
+  advertiserId?: string;
 }
 
 /**

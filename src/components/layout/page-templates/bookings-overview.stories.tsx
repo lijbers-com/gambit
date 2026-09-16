@@ -10,6 +10,7 @@ import { MetricRow } from '@/components/ui/metric-row';
 import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
+import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -209,10 +210,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
             onSettings: () => alert('Settings clicked'),
             headerRight: (
               <div className="flex items-center gap-2">
-                <AdvertiserSelect
-                  value={headerAdvertiser}
-                  onChange={setHeaderAdvertiser}
-                />
+                <SessionAdvertiserSelect />
               </div>
             ),
           }}

@@ -22,6 +22,7 @@ export {
   updateWorkflow,
 } from './store';
 export { login, logout, getCurrentUser, subscribeSession } from './session';
+export { setupStepsForCampaign, setupStepDone, setupStepDoneForBooking, setupWorkflowSteps, workflowFor, walkSteps, SETUP_STEP_DEFAULTS, type SetupStep } from './setup-steps';
 export {
   deriveTasks,
   deriveTasksForPlan,

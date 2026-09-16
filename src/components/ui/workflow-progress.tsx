@@ -232,7 +232,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
                   {chip(st, i, true)}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="start" className="w-96 p-0">
+              <PopoverContent align="start" className="w-[32rem] p-0">
                 <div className="flex items-center justify-between border-b px-3 py-2">
                   <span className="text-sm font-medium">{i === currentIndex ? `To get past ${st.name}` : i < currentIndex ? `${st.name} — done` : `Before ${st.name} is left`}</span>
                   {list.length > 0 && <span className="text-xs text-muted-foreground">{openCount} open · {list.length - openCount} done</span>}

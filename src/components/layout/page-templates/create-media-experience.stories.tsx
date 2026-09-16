@@ -461,6 +461,10 @@ export const GoalSelection: Story = {
       /** Set when the row IS a campaign that already exists: the plan absorbs
        *  it on save rather than creating it. */
       existingId?: string;
+      /** The user has checked this campaign — it is created in review, not as a draft. */
+      approved?: boolean;
+      /** The row's form is open. Closed, the row reads like a proposed booking. */
+      open?: boolean;
     };
     const rowSeq = React.useRef(0);
     const nextRowId = () => `row-${(rowSeq.current += 1)}`;
@@ -473,6 +477,8 @@ export const GoalSelection: Story = {
       budget: '',
       dateRange: undefined,
       buyingType: 'auction',
+      // A campaign added by hand opens on its form straight away.
+      open: true,
     });
     // Default: one assisted campaign per proposition.
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
@@ -803,9 +809,9 @@ export const GoalSelection: Story = {
           // to open fully prefilled (assisted) or only with the shared facts.
           mode: row.mode === 'preset' ? 'assisted' : 'expert',
           buyingType: row.buyingType,
-          // Proposed, not yet checked: the plan's setup checklist asks the
-          // user to run the campaign's own steps and approve it.
-          status: 'draft',
+          // Approved in the wizard it starts in review; otherwise it is a
+          // proposal the plan's setup asks the user to check.
+          status: row.approved ? 'in-option' : 'draft',
           budget: rowBudget,
           spend: 0,
           startDate: campaignStart,
@@ -1418,9 +1424,9 @@ export const GoalSelection: Story = {
               {currentStep === 4 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Media plan</CardTitle>
+                    <CardTitle className="text-lg">Campaigns</CardTitle>
                     <CardDescription>
-                      The campaigns in this plan — add one per proposition. Assisted campaigns come prefilled by the AI presets; expert campaigns start blank.
+                      The campaigns in this plan, one per proposition, proposed and prefilled. Approve each one — or open it to change it — and add any that are missing.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1478,8 +1484,39 @@ export const GoalSelection: Story = {
                             });
                           }
                         };
+                        const rowName = row.name.trim() || prefill;
+                        const runTime = rowFrom && rowTo ? `${fmtDay(rowFrom)} – ${fmtDay(rowTo)}` : 'inherits the plan run time';
+                        // Closed, the row reads like a proposed booking on the
+                        // campaign wizard's last step: what it is, where it
+                        // stands, and the one thing to do about it.
+                        if (!row.open) {
+                          return (
+                            <div key={row.id} className="flex items-center justify-between gap-3 rounded-lg border bg-neutral-50 p-4">
+                              <div className="flex min-w-0 items-center gap-3">
+                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                                  <IconComponent size={14} />
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="truncate text-sm font-medium">{rowName}</div>
+                                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                                    {row.existingId ? 'Existing campaign · joins this plan on save' : row.approved ? 'Approved' : 'Proposed — not approved yet'}
+                                    {' · '}€{share.toLocaleString()} · {runTime}
+                                    {!row.existingId && ` · ${isAssisted ? 'Assisted' : 'Expert'}`}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-2">
+                                {row.approved || row.existingId ? (
+                                  <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { open: true })}>Open</Button>
+                                ) : (
+                                  <Button size="sm" onClick={() => updateRow(row.id, { open: true })}>Approve</Button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
-                          /* The campaign-as-a-card anatomy — the same
+                          /* Open: the campaign-as-a-card anatomy — the same
                              OptionCard the setup cards on the plan page wear,
                              so a campaign looks like a campaign at every
                              moment of its life. */
@@ -1643,6 +1680,15 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                             )}
+                            {/* Approving here is the check the plan's setup
+                                asks for: the campaign is created in review
+                                rather than as a draft. */}
+                            <div className="flex items-center justify-end gap-2 pt-1">
+                              <Button variant="ghost" size="sm" onClick={() => updateRow(row.id, { open: false })}>Close</Button>
+                              {!row.existingId && (
+                                <Button size="sm" onClick={() => updateRow(row.id, { open: false, approved: true })}>Approve campaign</Button>
+                              )}
+                            </div>
                           </OptionCard>
                         );
                       })}
@@ -1652,12 +1698,10 @@ export const GoalSelection: Story = {
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
-                            className="w-full rounded-lg border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-all p-3 flex items-center gap-3"
+                            className="w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 transition-colors p-5 text-center"
                           >
-                            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-muted text-muted-foreground flex-shrink-0">
-                              <Plus size={14} />
-                            </div>
-                            <span className="text-sm text-muted-foreground">Add campaign</span>
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground"><Plus className="h-4 w-4" />Add campaign</span>
+                            <div className="mt-1 text-xs text-muted-foreground">Pick a proposition — assisted comes prefilled, expert starts blank</div>
                           </button>
                         </DropdownMenuTrigger>
                         {/* Pick the proposition — the campaign starts in expert

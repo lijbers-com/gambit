@@ -341,7 +341,7 @@ const OverrideRow: React.FC<{
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
       </div>
-      <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+      <span className="w-32 shrink-0 whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
         {estimate(percent) ?? '—'}
       </span>
       <span className={cn('flex shrink-0 items-center justify-end gap-2', OVERRIDE_ACTIONS_WIDTH)}>
@@ -417,7 +417,7 @@ const OverrideDraftRow: React.FC<{
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
       </div>
-      <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+      <span className="w-32 shrink-0 whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
         {estimate(percent) ?? '—'}
       </span>
       <span className={cn('flex shrink-0 items-center justify-end gap-2', OVERRIDE_ACTIONS_WIDTH)}>

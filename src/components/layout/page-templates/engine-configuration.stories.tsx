@@ -12,7 +12,7 @@ import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
 import { useDb, workflowFor, walkSteps, type EngineId } from '@/lib/db';
-import { ArrowRight, GitBranch, LayoutTemplate, ShieldCheck, SlidersHorizontal, Tag, Users } from 'lucide-react';
+import { ArrowRight, GitBranch, LayoutTemplate, Plus, ShieldCheck, SlidersHorizontal, Tag, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -176,8 +176,8 @@ const createEngineConfigurationStories = (
     badgeValue: string;
     badgeVariant: 'success' | 'destructive' | 'secondary' | 'outline';
   }>
-): { dashboard: Story; settings: Story } => {
-  const render = (view: 'dashboard' | 'settings') => () => {
+): { dashboard: Story; settings: Story; lists: Story; pricing: Story } => {
+  const render = (view: 'dashboard' | 'settings' | 'lists' | 'pricing') => () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
@@ -286,8 +286,18 @@ const createEngineConfigurationStories = (
         onLogout={() => alert('Logout clicked')}
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
-          title: view === 'settings' ? `${engineTitle} configuration settings` : `${engineTitle} Configuration`,
-          subtitle: view === 'settings' ? 'Rules, templates, workflow, lists and prices' : `Manage ${engineType} engine configuration settings and rules`,
+          title: {
+            dashboard: `${engineTitle} Configuration`,
+            settings: `${engineTitle} configuration settings`,
+            lists: `${engineTitle} allow & block lists`,
+            pricing: `${engineTitle} position pricing`,
+          }[view],
+          subtitle: {
+            dashboard: `Manage ${engineType} engine configuration settings and rules`,
+            settings: 'Rules, templates and workflow',
+            lists: 'Who may buy this proposition, and who never can',
+            pricing: 'Floor prices for auction, list prices when guaranteed',
+          }[view],
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -387,7 +397,7 @@ const createEngineConfigurationStories = (
                       </li>
                     ))}
                   </ul>
-                  {viewAll('Manage lists', () => go(settingsHref('lists')))}
+                  {viewAll('Manage lists', () => go(`/configuration/${engineType}/lists`))}
                 </CardContent>
               </Card>
               <Card className="flex flex-col">
@@ -415,7 +425,7 @@ const createEngineConfigurationStories = (
                       ))}
                     </tbody>
                   </table>
-                  {viewAll(`All ${pricedPositions.length} positions`, () => go(settingsHref('pricing')))}
+                  {viewAll(`All ${pricedPositions.length} positions`, () => go(`/configuration/${engineType}/pricing`))}
                 </CardContent>
               </Card>
             </div>
@@ -425,6 +435,89 @@ const createEngineConfigurationStories = (
 
           {/* The settings page: the tab strip above the card, left, the way
               every campaign and booking page is built. */}
+          {/* Each widget has a page of its own: the lists, split into who
+              may buy and who never can; the positions with their prices. */}
+          {view === 'lists' && (
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                value: 'allow',
+                label: `Allowed (${allowed.length})`,
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Name' },
+                        { key: 'subject', header: 'What', render: (row) => <span className="capitalize">{row.subject}</span> },
+                        { key: 'kind', header: 'List', render: (row) => <Badge variant={row.kind === 'allow' ? 'success' : 'destructive'}>{row.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge> },
+                        { key: 'reason', header: 'Reason' },
+                        { key: 'addedAt', header: 'Since' },
+                      ]}
+                      data={allowed}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+              {
+                value: 'block',
+                label: `Blocked (${blocked.length})`,
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Name' },
+                        { key: 'subject', header: 'What', render: (row) => <span className="capitalize">{row.subject}</span> },
+                        { key: 'kind', header: 'List', render: (row) => <Badge variant={row.kind === 'allow' ? 'success' : 'destructive'}>{row.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge> },
+                        { key: 'reason', header: 'Reason' },
+                        { key: 'addedAt', header: 'Since' },
+                      ]}
+                      data={blocked}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            action={<Button className="gap-1.5"><Plus className="h-4 w-4" />Add to a list</Button>}
+            activeTab={activeTab === 'block' ? 'block' : 'allow'}
+            onTabChange={setActiveTab}
+          />
+          )}
+
+          {view === 'pricing' && (
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                value: 'positions',
+                label: `Positions (${pricedPositions.length})`,
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Position' },
+                        { key: 'product', header: 'Media product' },
+                        { key: 'format', header: 'Format', render: (row) => row.format ?? '—' },
+                        { key: 'dailyCapacity', header: 'Slots / day' },
+                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor price (auction, CPM)', render: (row: typeof pricedPositions[number]) => `€${row.floorPrice?.toFixed(2)}` }] : []),
+                        { key: 'listPrice', header: 'List price (guaranteed, per day)', render: (row) => `€${row.listPrice?.toLocaleString()}` },
+                      ]}
+                      data={pricedPositions}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            activeTab="positions"
+          />
+          )}
+
           {view === 'settings' && (
           <CardWithTabs
             id="config-tabs"
@@ -519,47 +612,6 @@ const createEngineConfigurationStories = (
                 ),
               },
               {
-                value: 'lists',
-                label: 'Allow & block lists',
-                content: (
-                  <div className="mt-6">
-                    <Table
-                      columns={[
-                        { key: 'name', header: 'Name' },
-                        { key: 'subject', header: 'What', render: (row) => <span className="capitalize">{row.subject}</span> },
-                        { key: 'kind', header: 'List', render: (row) => <Badge variant={row.kind === 'allow' ? 'success' : 'destructive'}>{row.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge> },
-                        { key: 'reason', header: 'Reason' },
-                        { key: 'addedAt', header: 'Since' },
-                      ]}
-                      data={listings}
-                      rowKey={(row) => row.id}
-                      hideActions
-                    />
-                  </div>
-                ),
-              },
-              {
-                value: 'pricing',
-                label: 'Position pricing',
-                content: (
-                  <div className="mt-6">
-                    <Table
-                      columns={[
-                        { key: 'name', header: 'Position' },
-                        { key: 'product', header: 'Media product' },
-                        { key: 'format', header: 'Format', render: (row) => row.format ?? '—' },
-                        { key: 'dailyCapacity', header: 'Slots / day' },
-                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor price (auction, CPM)', render: (row: typeof pricedPositions[number]) => `€${row.floorPrice?.toFixed(2)}` }] : []),
-                        { key: 'listPrice', header: 'List price (guaranteed, per day)', render: (row) => `€${row.listPrice?.toLocaleString()}` },
-                      ]}
-                      data={pricedPositions}
-                      rowKey={(row) => row.id}
-                      hideActions
-                    />
-                  </div>
-                ),
-              },
-              {
                 // The proposition's workflow — the retailer's board: which
                 // steps, who approves, what is mandatory, deadlines, SLAs
                 // and the actions Edge fires.
@@ -581,7 +633,7 @@ const createEngineConfigurationStories = (
       </MenuContextProvider>
     );
   };
-  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') } };
+  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') } };
 };
 
 const sponsoredProductsStories = createEngineConfigurationStories(
@@ -624,6 +676,8 @@ const sponsoredProductsStories = createEngineConfigurationStories(
 );
 export const SponsoredProducts: Story = sponsoredProductsStories.dashboard;
 export const SponsoredProductsSettings: Story = sponsoredProductsStories.settings;
+export const SponsoredProductsLists: Story = sponsoredProductsStories.lists;
+export const SponsoredProductsPricing: Story = sponsoredProductsStories.pricing;
 
 const displayStories = createEngineConfigurationStories(
   'display',
@@ -665,6 +719,8 @@ const displayStories = createEngineConfigurationStories(
 );
 export const Display: Story = displayStories.dashboard;
 export const DisplaySettings: Story = displayStories.settings;
+export const DisplayLists: Story = displayStories.lists;
+export const DisplayPricing: Story = displayStories.pricing;
 
 const digitalInstoreStories = createEngineConfigurationStories(
   'digital-instore',
@@ -706,6 +762,8 @@ const digitalInstoreStories = createEngineConfigurationStories(
 );
 export const DigitalInstore: Story = digitalInstoreStories.dashboard;
 export const DigitalInstoreSettings: Story = digitalInstoreStories.settings;
+export const DigitalInstoreLists: Story = digitalInstoreStories.lists;
+export const DigitalInstorePricing: Story = digitalInstoreStories.pricing;
 
 const offlineInstoreStories = createEngineConfigurationStories(
   'offline-instore',
@@ -747,6 +805,8 @@ const offlineInstoreStories = createEngineConfigurationStories(
 );
 export const OfflineInstore: Story = offlineInstoreStories.dashboard;
 export const OfflineInstoreSettings: Story = offlineInstoreStories.settings;
+export const OfflineInstoreLists: Story = offlineInstoreStories.lists;
+export const OfflineInstorePricing: Story = offlineInstoreStories.pricing;
 
 const offsiteStories = createEngineConfigurationStories(
   'offsite',
@@ -788,3 +848,5 @@ const offsiteStories = createEngineConfigurationStories(
 );
 export const Offsite: Story = offsiteStories.dashboard;
 export const OffsiteSettings: Story = offsiteStories.settings;
+export const OffsiteLists: Story = offsiteStories.lists;
+export const OffsitePricing: Story = offsiteStories.pricing;

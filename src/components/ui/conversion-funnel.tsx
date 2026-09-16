@@ -6,7 +6,7 @@
 //
 // The drawing is one continuous shape: the flow narrows smoothly from one
 // stage's share to the next, centred on the baseline like a river seen from
-// above, in one quiet grey. Where the reader is (hover or selection) the
+// above, in one blue. Where the reader is (hover or selection) the
 // column lifts; the rest steps back.
 
 import * as React from "react"
@@ -22,7 +22,7 @@ export interface ConversionFunnelProps {
   stages: ConversionFunnelStage[]
   className?: string
   showTooltip?: boolean
-  /** The flow's fill. Defaults to a neutral grey. */
+  /** The flow's fill. Defaults to the chart ramp's mid blue. */
   color?: string
   valueFormatter?: (value: number) => string
   barHeight?: number
@@ -49,7 +49,7 @@ export function ConversionFunnelComponent({
   stages,
   className,
   showTooltip = true,
-  color = "rgb(var(--neutral-400))",
+  color = "hsl(var(--chart-400))",
   valueFormatter = (v) => v.toLocaleString(),
   barHeight = 160,
   selectedKey,

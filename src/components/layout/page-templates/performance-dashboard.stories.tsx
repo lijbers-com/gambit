@@ -4074,7 +4074,7 @@ export const FunnelView: Story = {
                           selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k], engine: channelEngines[k] }])
                         ),
                         // Spend rides the volume as a dashed line on its own euro axis.
-                        spend: { label: 'Spend', color: 'hsl(var(--foreground))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}
@@ -4259,7 +4259,7 @@ export const FunnelView: Story = {
                         ...Object.fromEntries(
                           engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
                         ),
-                        spend: { label: 'Spend', color: 'hsl(var(--foreground))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}
@@ -4470,7 +4470,7 @@ export const FunnelView: Story = {
                         ...Object.fromEntries(
                           unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k], engine: unitEngines[k] }])
                         ),
-                        spend: { label: 'Spend', color: 'hsl(var(--foreground))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}

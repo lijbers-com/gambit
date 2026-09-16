@@ -139,19 +139,19 @@ body[data-theme="retailMedia"] {
   --brand-900: 258  80% 18%;
   --brand-950: 258  75% 10%;
 
-  /* Chart shade ramp — Edge charts are quiet: one warm grey ramp, so the
-     data (and, per proposition, its pattern) is the only loud thing. */
-  --chart-50:  40 20% 97%;
-  --chart-100: 40 15% 93%;
-  --chart-200: 38 12% 86%;
-  --chart-300: 36 9% 76%;
-  --chart-400: 34 7% 63%;
-  --chart-500: 33 6% 50%;
-  --chart-600: 32 6% 40%;
-  --chart-700: 31 6% 31%;
-  --chart-800: 30 6% 24%;
-  --chart-900: 30 6% 18%;
-  --chart-950: 30 8% 12%;
+  /* Chart shade ramp — one blue ramp: the charts read in tints of one hue,
+     and per proposition its pattern carries the identity on top. */
+  --chart-50:  204 100% 97%;
+  --chart-100: 204 94% 94%;
+  --chart-200: 201 94% 86%;
+  --chart-300: 199 95% 74%;
+  --chart-400: 198 93% 60%;
+  --chart-500: 199 89% 48%;
+  --chart-600: 200 98% 39%;
+  --chart-700: 201 96% 32%;
+  --chart-800: 201 90% 27%;
+  --chart-900: 202 80% 24%;
+  --chart-950: 204 80% 16%;
   /* Chart slot aliases — spaced along the ramp so neighbours stay apart. */
   --chart-1: var(--chart-700);   /* deep */
   --chart-2: var(--chart-400);   /* mid */

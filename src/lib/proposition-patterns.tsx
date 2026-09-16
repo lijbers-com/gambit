@@ -5,9 +5,9 @@ import type { EngineId } from '@/lib/db';
  * One pattern per proposition — the mark a proposition wears everywhere it is
  * drawn: a chart series, a legend swatch, a tile background on its own pages.
  *
- * Greys, not hues: the charts are quiet and the pattern carries identity, so
- * five stacked series still read apart without five colours, in print, and
- * for every kind of colour vision. The patterns are deliberately faint and
+ * Tints of one blue, not five hues: the pattern carries identity, so five
+ * stacked series still read apart without five colours, in print, and for
+ * every kind of colour vision. The patterns are deliberately faint and
  * simple — a texture, not decoration — and diagonal, so they never read as
  * gridlines. Each proposition also sits on its own grey step, so a stack
  * separates even where a pattern is too small to see.
@@ -30,18 +30,18 @@ export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
   // The shade does the separating; the pattern is a whisper on top — one
   // step of ink over the base, wide and thin — there to be recognised, not
   // to be read at a glance.
-  // Never the page's own shade: the lightest step is one above the surface.
-  'sponsored-products': { kind: 'dots',             base: 'rgb(var(--neutral-200))', ink: 'rgb(var(--neutral-500))' },
-  display:              { kind: 'diagonal',         base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'rgb(var(--neutral-400))', ink: 'rgb(var(--neutral-600))' },
-  'offline-instore':    { kind: 'checker',          base: 'rgb(var(--neutral-500))', ink: 'rgb(var(--neutral-700))' },
-  offsite:              { kind: 'diagonal-reverse', base: 'rgb(var(--neutral-600))', ink: 'rgb(var(--neutral-800))' },
+  // Never the page's own shade: the lightest step is well above the surface.
+  'sponsored-products': { kind: 'dots',             base: 'hsl(var(--chart-200))', ink: 'hsl(var(--chart-500))' },
+  display:              { kind: 'diagonal',         base: 'hsl(var(--chart-300))', ink: 'hsl(var(--chart-600))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'hsl(var(--chart-400))', ink: 'hsl(var(--chart-700))' },
+  'offline-instore':    { kind: 'checker',          base: 'hsl(var(--chart-600))', ink: 'hsl(var(--chart-800))' },
+  offsite:              { kind: 'diagonal-reverse', base: 'hsl(var(--chart-700))', ink: 'hsl(var(--chart-900))' },
 };
 
 /** The id of the SVG pattern for a proposition — use as `url(#…)`. */
 /** Solid grey is reserved for the whole: a series that adds every
  *  proposition together wears no pattern, so the eye reads "all" at once. */
-export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'rgb(var(--neutral-300))', ink: 'rgb(var(--neutral-500))' };
+export const ALL_PROPOSITIONS_PATTERN: PropositionPattern = { kind: 'solid', base: 'hsl(var(--chart-300))', ink: 'hsl(var(--chart-500))' };
 
 export const patternFor = (key: PatternKey): PropositionPattern => (key === 'all' ? ALL_PROPOSITIONS_PATTERN : PROPOSITION_PATTERNS[key]);
 export const patternId = (key: PatternKey) => `pp-${key}`;
@@ -124,7 +124,7 @@ export const PropositionSwatch: React.FC<{ engine: PatternKey; className?: strin
 export function patternBackground(engine: PatternKey, opts: { ink?: string; base?: string; size?: number } = {}): React.CSSProperties {
   const p = patternFor(engine);
   const size = opts.size ?? 10;
-  const ink = opts.ink ?? 'rgb(var(--neutral-300))';
+  const ink = opts.ink ?? 'hsl(var(--chart-300))';
   const base = opts.base ?? 'transparent';
   switch (p.kind) {
     case 'diagonal':

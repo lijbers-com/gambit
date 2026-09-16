@@ -92,31 +92,71 @@ const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2,
 /** Where a step's in and out ports sit. */
 const portIn = (s: WorkflowStep) => ({ x: s.x + NODE_W / 2, y: s.y });
 const portOut = (s: WorkflowStep) => ({ x: s.x + NODE_W / 2, y: s.y + NODE_H });
+/** Column gap between stages and row gap between a stage's steps. */
+const COL_GAP = 60;
+const ROW_GAP = 40;
+
 /** Side ports, for a line between two tiles on the same row. */
 const portRight = (s: WorkflowStep) => ({ x: s.x + NODE_W, y: s.y + NODE_H / 2 });
 const portLeft = (s: WorkflowStep) => ({ x: s.x, y: s.y + NODE_H / 2 });
 /** Two tiles side by side link side to side; otherwise foot to head. */
 const sameRow = (a: WorkflowStep, b: WorkflowStep) => Math.abs(a.y - b.y) < NODE_H && b.x > a.x;
 
-/** The line from a to b, with the ports the tiles' positions ask for. */
-const link = (a: WorkflowStep, b: WorkflowStep) => {
-  if (sameRow(a, b)) {
-    const p = portRight(a); const q = portLeft(b);
-    const dx = Math.max(30, (q.x - p.x) / 2);
-    return { from: p, to: q, d: `M ${p.x} ${p.y} C ${p.x + dx} ${p.y}, ${q.x - dx} ${q.y}, ${q.x} ${q.y}` };
+type Pt = { x: number; y: number };
+
+/** A path through the points with the corners rounded off. */
+const polyline = (pts: Pt[], r = 8) => {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i - 1]; const c = pts[i]; const n = pts[i + 1];
+    const inLen = Math.hypot(c.x - p.x, c.y - p.y); const outLen = Math.hypot(n.x - c.x, n.y - c.y);
+    const rr = Math.min(r, inLen / 2, outLen / 2);
+    if (rr < 1) { d += ` L ${c.x} ${c.y}`; continue; }
+    const ax = c.x - Math.sign(c.x - p.x) * rr; const ay = c.y - Math.sign(c.y - p.y) * rr;
+    const bx = c.x + Math.sign(n.x - c.x) * rr; const by = c.y + Math.sign(n.y - c.y) * rr;
+    d += ` L ${ax} ${ay} Q ${c.x} ${c.y} ${bx} ${by}`;
   }
-  const p = portOut(a); const q = portIn(b);
-  return { from: p, to: q, d: curve(p, q) };
+  const last = pts[pts.length - 1];
+  d += ` L ${last.x} ${last.y}`;
+  return d;
 };
 
-const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+/**
+ * The line from a to b, in right angles, kept to the gutters between rows
+ * and columns so it never runs through a card: down out of a's foot into
+ * the row gutter, across to the column gutter beside b, up or down to the
+ * row gutter above b, across to b's head, and in.
+ */
+const link = (a: WorkflowStep, b: WorkflowStep): { from: Pt; to: Pt; d: string; label: Pt } => {
+  if (sameRow(a, b)) {
+    const p = portRight(a); const q = portLeft(b);
+    return { from: p, to: q, d: polyline([p, q]), label: { x: (p.x + q.x) / 2, y: p.y } };
+  }
+  const p = portOut(a); const q = portIn(b);
+  const y1 = a.y + NODE_H + ROW_GAP / 2;   // the gutter under a
+  const y2 = b.y - ROW_GAP / 2;             // the gutter above b
+  // Straight down: b sits under a in the same column with nothing between.
+  if (Math.abs(p.x - q.x) < 1 && b.y > a.y) {
+    return { from: p, to: q, d: polyline([p, q]), label: { x: p.x, y: (p.y + q.y) / 2 } };
+  }
+  // The column gutter the line climbs or descends in: beside b, on a's side.
+  const xt = b.x > a.x
+    ? b.x - COL_GAP / 2
+    : b.x < a.x
+      ? b.x + NODE_W + COL_GAP / 2
+      : a.x + NODE_W + COL_GAP / 2; // same column, b above a: go round on the right
+  const pts: Pt[] = [p, { x: p.x, y: y1 }, { x: xt, y: y1 }, { x: xt, y: y2 }, { x: q.x, y: y2 }, q];
+  // Drop the doubled points a straight run leaves behind.
+  const clean = pts.filter((pt, i) => i === 0 || pt.x !== pts[i - 1].x || pt.y !== pts[i - 1].y);
+  return { from: p, to: q, d: polyline(clean), label: { x: xt, y: (y1 + y2) / 2 } };
+};
+
+const curve = (a: Pt, b: Pt) => {
   const dy = Math.max(40, Math.abs(b.y - a.y) / 2);
   return `M ${a.x} ${a.y} C ${a.x} ${a.y + dy}, ${b.x} ${b.y - dy}, ${b.x} ${b.y}`;
 };
 
-/** Column gap between stages and row gap between a stage's steps. */
-const COL_GAP = 60;
-const ROW_GAP = 40;
 
 /**
  * Arrange the board the way the control panel reads it: the stages in a
@@ -522,12 +562,12 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
             {transitions.map((t) => {
               const a = byId.get(t.from); const b = byId.get(t.to);
               if (!a || !b || !t.label) return null;
-              const { from: pa, to: pb } = link(a, b);
+              const { label: at } = link(a, b);
               return (
                 <span
                   key={`${t.id}-label`}
                   className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border bg-card px-2 py-0.5 text-[10px] text-muted-foreground"
-                  style={{ left: (pa.x + pb.x) / 2, top: (pa.y + pb.y) / 2 }}
+                  style={{ left: at.x, top: at.y }}
                 >
                   {t.label}
                 </span>

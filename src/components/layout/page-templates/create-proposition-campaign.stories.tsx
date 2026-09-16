@@ -609,7 +609,7 @@ const PropositionWizard = ({
   const isSetupComplete = campaignName.trim() !== '';
   const isAdvertiserComplete = selectedBrand !== '';
   const isBudgetComplete = isSponsoredProducts
-    ? budgetAmount.trim() !== '' && dailyBudget.trim() !== '' && biddingCPC.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined
+    ? budgetAmount.trim() !== '' && (pacingShape !== 'custom' || dailyBudget.trim() !== '') && biddingCPC.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined
     : budgetAmount.trim() !== '' && dateRange?.from !== undefined && dateRange?.to !== undefined;
   const isTargetingComplete = isSponsoredProducts
     ? selectedLocalBrands.length > 0
@@ -3062,7 +3062,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
     !bookingCampaignName.trim() && 'booking name',
     !bookingStartDate && 'run time',
     !totalBudget.trim() && 'total budget',
-    !dailyBudget.trim() && 'daily budget',
+    // A typed daily budget only exists on the daily-budget shape; auto pacing
+    // derives it from the total and the run time.
+    pacingShape === 'custom' && !dailyBudget.trim() && 'daily budget',
   ].filter(Boolean) as string[];
   const isBookingComplete = bookingMissing.length === 0;
 

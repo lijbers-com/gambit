@@ -57,10 +57,13 @@ export interface WorkflowProgressProps {
   expanded?: boolean;
   /** Something to show at the end of a step row — a count, a button. */
   renderStepExtra?: (step: WorkflowStep, done: boolean) => React.ReactNode;
+  /** Bar only: what sits at the right end of the stage row — the run
+   *  controls — so it stays on that row when the list opens beneath. */
+  trailing?: React.ReactNode;
   className?: string;
 }
 
-export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, expanded, renderStepExtra, className }) => {
+export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, expanded, renderStepExtra, trailing, className }) => {
   const db = useDb();
   const workflow = workflowFor(db, engine);
   const foundBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
@@ -251,30 +254,34 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   if (variant === 'bar') {
     const nextOpen = open[0];
     return (
-      <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2', className)}>
-        {stageBarWithSteps}
+      <div className={cn('flex flex-col gap-3', className)}>
+        {/* The stage row: chips left, the next step or the controls right. */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {stageBarWithSteps}
+          {items.length > 0 && !hideNext && (
+            <span className="ml-auto min-w-0 truncate text-sm">
+              {nextOpen ? (
+                <>
+                  <span className="text-muted-foreground">Next: </span>
+                  <span className="font-medium">{nextOpen.step.name}</span>
+                  <span className="text-muted-foreground"> · {OWNER_LABEL[nextOpen.step.owner]}</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground">Nothing open in this stage</span>
+              )}
+            </span>
+          )}
+          {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
+        </div>
         {/* Expanded: the stage's steps in view, not behind the chip. */}
         {expanded && items.length > 0 && (
-          <div className="order-last w-full basis-full rounded-md border bg-background">
+          <div className="rounded-md border bg-background">
             <div className="flex items-center justify-between border-b px-3 py-2">
               <span className="text-sm font-medium">{heading}</span>
               <span className="text-xs text-muted-foreground">{open.length} open · {items.length - open.length} done</span>
             </div>
             {todoList}
           </div>
-        )}
-        {items.length > 0 && !hideNext && (
-          <span className="ml-auto min-w-0 truncate text-sm">
-            {nextOpen ? (
-              <>
-                <span className="text-muted-foreground">Next: </span>
-                <span className="font-medium">{nextOpen.step.name}</span>
-                <span className="text-muted-foreground"> · {OWNER_LABEL[nextOpen.step.owner]}</span>
-              </>
-            ) : (
-              <span className="text-muted-foreground">Nothing open in this stage</span>
-            )}
-          </span>
         )}
       </div>
     );

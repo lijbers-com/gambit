@@ -37,24 +37,25 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
     .filter((m) => m.kind === 'action' && m.severity === 'blocking');
 
   return (
-    <section className={cn('flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-4 py-3', className)}>
+    <section className={cn('rounded-xl border border-border bg-card px-4 py-3', className)}>
       <WorkflowProgress
+        className="w-full"
         variant="bar"
         hideNext
         engine={engine}
         campaignId={level === 'campaign' ? entityId : undefined}
         bookingId={level === 'booking' ? entityId : undefined}
+        trailing={(
+          <LifecycleActions
+            level={level}
+            entityId={entityId}
+            status={entity?.status ?? status ?? 'running'}
+            name={entity?.name ?? name ?? entityId}
+            playDisabled={blockers.length > 0}
+            playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+          />
+        )}
       />
-      <div className="ml-auto flex items-center gap-2">
-        <LifecycleActions
-          level={level}
-          entityId={entityId}
-          status={entity?.status ?? status ?? 'running'}
-          name={entity?.name ?? name ?? entityId}
-          playDisabled={blockers.length > 0}
-          playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-        />
-      </div>
     </section>
   );
 };

@@ -1069,9 +1069,14 @@ export const MediaPlanDetail: Story = {
             // stages left, each a chip that opens its steps, and the run
             // controls right — launch, pause, resume, stop.
             footer={plan ? (
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <WorkflowProgress variant="bar" hideNext expanded={inSetup} engine="media-plan" mediaPlanId={plan.id} renderStepExtra={planStepExtra} />
-                <div className="ml-auto flex items-center gap-2">
+              <WorkflowProgress
+                variant="bar"
+                hideNext
+                expanded={inSetup}
+                engine="media-plan"
+                mediaPlanId={plan.id}
+                renderStepExtra={planStepExtra}
+                trailing={(
                   <LifecycleActions
                   level="media-plan"
                   entityId={plan.id}
@@ -1080,8 +1085,8 @@ export const MediaPlanDetail: Story = {
                   playDisabled={!canLaunch}
                   playDisabledReason={`${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
                   />
-                </div>
-              </div>
+                )}
+              />
             ) : undefined}
           >
             <ControlBarItem label="Media plan budget">

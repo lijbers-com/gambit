@@ -11,8 +11,8 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
-import { useDb, workflowFor, walkSteps, type EngineId } from '@/lib/db';
-import { ArrowRight, GitBranch, LayoutTemplate, Plus, ShieldCheck, SlidersHorizontal, Tag, Users } from 'lucide-react';
+import { useDb, useRouteEntityId, workflowFor, walkSteps, type EngineId } from '@/lib/db';
+import { ArrowRight, GitBranch, Info, LayoutTemplate, Plus, ShieldCheck, SlidersHorizontal, Tag, Users, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -84,34 +84,39 @@ const getPerformanceBadgeVariant = (performance: string) => {
   return 'destructive';
 };
 
-// Sample configuration data
+/**
+ * Configuration rules: what the proposition does on its own. Each one is a
+ * condition Edge watches and the effect it applies when it holds — the
+ * retailer's standing decisions, written down once so nobody has to make
+ * them per booking.
+ */
 const configurationRulesData = [
   {
-    id: 'RULE-001',
-    name: 'Product Category Targeting',
-    status: 'Active',
-    priority: 'High',
-    lastUpdated: '2024-01-15',
-    performance: '98%',
-    templates: 3
+    id: 'RULE-001', name: 'Product Category Targeting', status: 'Active', priority: 'High', lastUpdated: '2026-08-15', performance: '98%', templates: 3,
+    owner: 'Yield Manager',
+    summary: 'Keeps a booking on the category pages of the products it advertises.',
+    when: 'A booking selects retail products and a category-page placement.',
+    then: 'The placement is limited to the categories those products sit in; other categories are not served.',
+    scope: 'Every booking on this proposition, unless a template turns it off.',
+    why: 'Shoppers see the ad next to the product they came for; the retailer keeps category pages relevant. It also lifts click-through — the 98% is the share of impressions that landed in the right category.',
   },
   {
-    id: 'RULE-002',
-    name: 'Audience Segmentation',
-    status: 'Active',
-    priority: 'Medium',
-    lastUpdated: '2024-01-12',
-    performance: '94%',
-    templates: 2
+    id: 'RULE-002', name: 'Audience Segmentation', status: 'Active', priority: 'Medium', lastUpdated: '2026-08-12', performance: '94%', templates: 2,
+    owner: 'Performance Analyst',
+    summary: 'Splits delivery over the audience segments a booking targets.',
+    when: 'A booking targets more than one audience segment.',
+    then: 'Impressions are divided over the segments in proportion to their size, and a segment that stops converting is paused for the booking.',
+    scope: 'Bookings with audience targeting; not applied to run-of-site bookings.',
+    why: 'One large segment would otherwise take the whole budget. The 94% is how often the split held within 5% of the plan.',
   },
   {
-    id: 'RULE-003',
-    name: 'Budget Optimization',
-    status: 'Paused',
-    priority: 'Low',
-    lastUpdated: '2024-01-10',
-    performance: '87%',
-    templates: 1
+    id: 'RULE-003', name: 'Budget Optimization', status: 'Paused', priority: 'Low', lastUpdated: '2026-08-10', performance: '87%', templates: 1,
+    owner: 'Yield Manager',
+    summary: 'Moves unspent budget from slow placements to the ones that deliver.',
+    when: 'A booking is past 40% of its run time and a placement has spent under half its share.',
+    then: 'The remaining budget of that placement is moved to the booking\'s best-performing placement, once a day, never more than 25% at a time.',
+    scope: 'Auction bookings only; guaranteed bookings keep their fixed split.',
+    why: 'Paused while the daily move is reviewed — it moved budget away from placements that were merely late to start. The 87% is the share of moves that improved the booking\'s ROAS.',
   },
 ];
 
@@ -167,8 +172,8 @@ const createEngineConfigurationStories = (
     badgeValue: string;
     badgeVariant: 'success' | 'destructive' | 'secondary' | 'outline';
   }>
-): { dashboard: Story; settings: Story; lists: Story; pricing: Story; templates: Story } => {
-  const render = (view: 'dashboard' | 'settings' | 'lists' | 'pricing' | 'templates') => () => {
+): { dashboard: Story; settings: Story; lists: Story; pricing: Story; templates: Story; rule: Story } => {
+  const render = (view: 'dashboard' | 'settings' | 'lists' | 'pricing' | 'templates' | 'rule') => () => {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
@@ -220,6 +225,15 @@ const createEngineConfigurationStories = (
       .map((pos) => ({ ...pos, product: db.mediaProducts.find((m) => m.id === pos.mediaProductId)?.name ?? '' }));
     const hasAuction = ['sponsored-products', 'display', 'digital-instore'].includes(engine);
     const settingsHref = (tab: string) => `/configuration/${engineType}/settings?tab=${tab}`;
+    // The rule this page is about, from the route; the first one in Storybook.
+    const routeRuleId = useRouteEntityId();
+    const rule = configurationRulesData.find((r) => r.id === routeRuleId) ?? configurationRulesData[0];
+    const ruleTemplates = configurationTemplatesData.slice(0, rule.templates);
+    const ruleHistory = [
+      { id: 'h1', when: rule.lastUpdated, who: rule.owner, what: rule.status === 'Paused' ? 'Paused the rule for review' : 'Raised the priority' },
+      { id: 'h2', when: '2026-06-02', who: 'Campaign Builder', what: `Added to the "${ruleTemplates[0]?.name ?? 'Standard product push'}" template` },
+      { id: 'h3', when: '2026-03-18', who: rule.owner, what: 'Created the rule' },
+    ];
     const go = (href: string) => { if (typeof window !== 'undefined') window.location.href = href; };
     /** A widget's button opens its tab and brings the card into view. */
     const openTab = (tab: string) => {
@@ -282,6 +296,7 @@ const createEngineConfigurationStories = (
             dashboard: `${engineTitle} Configuration`,
             settings: `${engineTitle} configuration settings`,
             templates: `${engineTitle} campaign templates`,
+            rule: rule.name,
             lists: `${engineTitle} allow & block lists`,
             pricing: `${engineTitle} position pricing`,
           }[view],
@@ -289,6 +304,7 @@ const createEngineConfigurationStories = (
             dashboard: `Manage ${engineType} engine configuration settings and rules`,
             settings: 'Workflow and rules',
             templates: 'Preset campaigns a user starts from — quick starts are offered in the wizard',
+            rule: `${engineTitle} configuration rule · ${rule.id}`,
             lists: 'Who may buy this proposition, and who never can',
             pricing: 'Floor prices for auction, list prices when guaranteed',
           }[view],
@@ -500,6 +516,96 @@ const createEngineConfigurationStories = (
           />
           )}
 
+          {view === 'rule' && (
+          <CardWithTabs
+            className="w-full"
+            tabs={[
+              {
+                value: 'what',
+                label: 'What it does',
+                content: (
+                  <div className="mt-6 space-y-6">
+                    <p className="max-w-3xl text-base">{rule.summary}</p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-xl border border-border p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold"><Zap className="h-4 w-4 text-primary" />When</div>
+                        <p className="mt-2 text-sm text-muted-foreground">{rule.when}</p>
+                      </div>
+                      <div className="rounded-xl border border-border p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold"><ArrowRight className="h-4 w-4 text-primary" />Then</div>
+                        <p className="mt-2 text-sm text-muted-foreground">{rule.then}</p>
+                      </div>
+                      <div className="rounded-xl border border-border p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal className="h-4 w-4 text-primary" />Applies to</div>
+                        <p className="mt-2 text-sm text-muted-foreground">{rule.scope}</p>
+                      </div>
+                      <div className="rounded-xl border border-border p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold"><Info className="h-4 w-4 text-primary" />Why it exists</div>
+                        <p className="mt-2 text-sm text-muted-foreground">{rule.why}</p>
+                      </div>
+                    </div>
+                    <dl className="grid gap-4 rounded-xl border border-border p-5 sm:grid-cols-5">
+                      <div><dt className="text-xs text-muted-foreground">Status</dt><dd className="mt-1"><Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge></dd></div>
+                      <div><dt className="text-xs text-muted-foreground">Priority</dt><dd className="mt-1"><Badge variant={rule.priority === 'High' ? 'destructive' : rule.priority === 'Medium' ? 'secondary' : 'outline'}>{rule.priority}</Badge></dd></div>
+                      <div><dt className="text-xs text-muted-foreground">Performance</dt><dd className="mt-1 text-sm font-medium tabular-nums">{rule.performance}</dd></div>
+                      <div><dt className="text-xs text-muted-foreground">Owner</dt><dd className="mt-1 text-sm">{rule.owner}</dd></div>
+                      <div><dt className="text-xs text-muted-foreground">Last updated</dt><dd className="mt-1 text-sm tabular-nums">{rule.lastUpdated}</dd></div>
+                    </dl>
+                  </div>
+                ),
+              },
+              {
+                value: 'templates',
+                label: `Templates (${ruleTemplates.length})`,
+                content: (
+                  <div className="mt-6">
+                    <p className="mb-4 text-sm text-muted-foreground">The templates that switch this rule on for the campaigns they start.</p>
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Template' },
+                        { key: 'presets', header: 'What it presets' },
+                        { key: 'quickStart', header: 'Quick start', render: (row) => (row.quickStart ? <Badge variant="success">In the wizard</Badge> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'usageCount', header: 'Uses' },
+                      ]}
+                      data={ruleTemplates}
+                      rowKey={(row) => row.id}
+                      hideActions
+                      rowClassName={() => 'cursor-pointer'}
+                      onRowClick={() => go(`/configuration/${engineType}/templates`)}
+                    />
+                  </div>
+                ),
+              },
+              {
+                value: 'history',
+                label: 'History',
+                content: (
+                  <div className="mt-6">
+                    <Table
+                      columns={[
+                        { key: 'when', header: 'When' },
+                        { key: 'who', header: 'Who' },
+                        { key: 'what', header: 'What changed' },
+                      ]}
+                      data={ruleHistory}
+                      rowKey={(row) => row.id}
+                      hideActions
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            action={
+              <div className="flex items-center gap-2">
+                <Button variant="outline">{rule.status === 'Paused' ? 'Resume rule' : 'Pause rule'}</Button>
+                <Button>Edit rule</Button>
+              </div>
+            }
+            activeTab={['what', 'templates', 'history'].includes(activeTab) ? activeTab : 'what'}
+            onTabChange={setActiveTab}
+          />
+          )}
+
           {view === 'templates' && (
           <CardWithTabs
             className="w-full"
@@ -636,9 +742,7 @@ const createEngineConfigurationStories = (
                     rowKey={row => `${row.id}-${row.name}`}
                     hideActions
                     rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => {
-                      console.log('Navigate to rule details for', row.name);
-                    }}
+                    onRowClick={row => go(`/configuration/${engineType}/rules/${row.id}`)}
                     rowSelection={{
                       selectedKeys: selectedRules,
                       onChange: setSelectedRules,
@@ -658,7 +762,7 @@ const createEngineConfigurationStories = (
       </MenuContextProvider>
     );
   };
-  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') }, templates: { render: render('templates') } };
+  return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') }, templates: { render: render('templates') }, rule: { render: render('rule') } };
 };
 
 const sponsoredProductsStories = createEngineConfigurationStories(
@@ -704,6 +808,7 @@ export const SponsoredProductsSettings: Story = sponsoredProductsStories.setting
 export const SponsoredProductsLists: Story = sponsoredProductsStories.lists;
 export const SponsoredProductsPricing: Story = sponsoredProductsStories.pricing;
 export const SponsoredProductsTemplates: Story = sponsoredProductsStories.templates;
+export const SponsoredProductsRule: Story = sponsoredProductsStories.rule;
 
 const displayStories = createEngineConfigurationStories(
   'display',
@@ -748,6 +853,7 @@ export const DisplaySettings: Story = displayStories.settings;
 export const DisplayLists: Story = displayStories.lists;
 export const DisplayPricing: Story = displayStories.pricing;
 export const DisplayTemplates: Story = displayStories.templates;
+export const DisplayRule: Story = displayStories.rule;
 
 const digitalInstoreStories = createEngineConfigurationStories(
   'digital-instore',
@@ -792,6 +898,7 @@ export const DigitalInstoreSettings: Story = digitalInstoreStories.settings;
 export const DigitalInstoreLists: Story = digitalInstoreStories.lists;
 export const DigitalInstorePricing: Story = digitalInstoreStories.pricing;
 export const DigitalInstoreTemplates: Story = digitalInstoreStories.templates;
+export const DigitalInstoreRule: Story = digitalInstoreStories.rule;
 
 const offlineInstoreStories = createEngineConfigurationStories(
   'offline-instore',
@@ -836,6 +943,7 @@ export const OfflineInstoreSettings: Story = offlineInstoreStories.settings;
 export const OfflineInstoreLists: Story = offlineInstoreStories.lists;
 export const OfflineInstorePricing: Story = offlineInstoreStories.pricing;
 export const OfflineInstoreTemplates: Story = offlineInstoreStories.templates;
+export const OfflineInstoreRule: Story = offlineInstoreStories.rule;
 
 const offsiteStories = createEngineConfigurationStories(
   'offsite',
@@ -880,3 +988,4 @@ export const OffsiteSettings: Story = offsiteStories.settings;
 export const OffsiteLists: Story = offsiteStories.lists;
 export const OffsitePricing: Story = offsiteStories.pricing;
 export const OffsiteTemplates: Story = offsiteStories.templates;
+export const OffsiteRule: Story = offsiteStories.rule;

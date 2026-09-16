@@ -753,6 +753,34 @@ export const MediaPlanDetail: Story = {
     const canLaunch = !!plan && planBlockers.length === 0;
 
     /**
+     * What the plan's health is judged on — the same facts the to-do engine
+     * reads, laid out as checks so the chip can show its evidence.
+     */
+    const planHealthChecks = (() => {
+      if (!plan) return undefined;
+      const cs = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+      const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
+      const openActions = planAllMsgs.filter((m) => m.kind === 'action');
+      const committed = cs.reduce((sum, c) => sum + c.budget, 0);
+      const spend = cs.reduce((sum, c) => sum + c.spend, 0);
+      const live = plan.status === 'running';
+      const start = new Date(plan.startDate).getTime(); const end = new Date(plan.endDate).getTime();
+      const elapsed = Math.min(1, Math.max(0, (Date.now() - start) / Math.max(1, end - start)));
+      const expected = plan.budget * elapsed;
+      const pacingOk = !live || expected === 0 || Math.abs(spend - expected) / expected <= 0.2;
+      const missingCreatives = bs.filter((b) => b.creativeStatus === 'missing').length;
+      const draftCampaigns = cs.filter((c) => c.status === 'draft').length;
+      return [
+        { label: 'No blocking to-dos', ok: planBlockers.length === 0, detail: planBlockers.length ? `${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} — ${planBlockers[0].subject}` : 'Nothing stands in the way', liveOnly: !live },
+        { label: 'No open to-dos', ok: openActions.length === 0, detail: openActions.length ? `${openActions.length} open action${openActions.length === 1 ? '' : 's'}` : 'Everything is done', liveOnly: !live },
+        { label: 'Budget within ceiling', ok: committed <= plan.budget, detail: `€${committed.toLocaleString()} committed of €${plan.budget.toLocaleString()}` },
+        { label: 'Pacing on track', ok: pacingOk, detail: live ? `€${spend.toLocaleString()} spent, €${Math.round(expected).toLocaleString()} expected by now` : 'Judged once the plan is live', liveOnly: !live },
+        { label: 'Every campaign approved', ok: draftCampaigns === 0, detail: draftCampaigns ? `${draftCampaigns} still in draft` : `${cs.length} campaign${cs.length === 1 ? '' : 's'}` },
+        { label: 'Every booking has a creative', ok: missingCreatives === 0, detail: missingCreatives ? `${missingCreatives} booking${missingCreatives === 1 ? '' : 's'} without one` : `${bs.length} booking${bs.length === 1 ? '' : 's'}` },
+      ];
+    })();
+
+    /**
      * Add a campaign of a chosen proposition to this plan and open it.
      *
      * It starts as a draft inside the plan's flight with no budget of its own:
@@ -1125,13 +1153,12 @@ export const MediaPlanDetail: Story = {
                 a bar here said the same thing twice on one card. */}
             <ControlBarItem label="Health" dropOrder={2}>
               <div className="flex h-9 items-center">
-                <button
-                  type="button"
-                  onClick={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
-                  title="Open notifications"
-                >
-                  <HealthCell health={plan ? ({ good: 'good', attention: 'attention', risk: 'risk' } as const)[derivePlanHealth(db, plan).level] : 'good'} />
-                </button>
+                {/* The chip opens what it is judged on. */}
+                <HealthCell
+                  health={plan ? derivePlanHealth(db, plan).level : 'good'}
+                  message={plan ? derivePlanHealth(db, plan).message : undefined}
+                  checks={planHealthChecks}
+                />
               </div>
             </ControlBarItem>
             <ControlBarItem label="Notifications" dropOrder={1}>

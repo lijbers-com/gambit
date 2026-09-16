@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, Euro, HeartPulse } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, Euro, HeartPulse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -104,17 +104,66 @@ export const DatesCell = ({
 
 export type HealthLevel = 'good' | 'attention' | 'risk';
 
-export const HealthCell = ({ health }: { health: HealthLevel }) => {
+/** One of the things health is judged on, and how it stands. */
+export interface HealthCheck {
+  label: string;
+  ok: boolean;
+  /** The number or fact behind the verdict — "3 blockers", "€9,700 of €10,000". */
+  detail?: string;
+  /** A failed check that only counts once the entity is live. */
+  liveOnly?: boolean;
+}
+
+/**
+ * The health chip. Given its checks it opens them: what health is judged on,
+ * which checks hold and which do not, and the rule that turns them into a
+ * colour — so "at risk" is never a verdict without its evidence.
+ */
+export const HealthCell = ({ health, checks, message }: { health: HealthLevel; checks?: HealthCheck[]; message?: string }) => {
   const cfg = {
     good: { label: 'Healthy', className: 'border-success-200 bg-success-50 text-success-700' },
     attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
     risk: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
   }[health];
-  return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', cfg.className)}>
+  const chip = (
+    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', cfg.className, checks && 'cursor-pointer hover:opacity-80')}>
       <HeartPulse className="h-3 w-3" />
       {cfg.label}
+      {checks && <ChevronDown className="h-3 w-3 opacity-60" />}
     </span>
+  );
+  if (!checks) return chip;
+  const failing = checks.filter((c) => !c.ok).length;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">{chip}</button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-96 p-0">
+        <div className="flex items-center justify-between border-b px-3 py-2">
+          <span className="text-sm font-medium">What health is judged on</span>
+          <span className="text-xs text-muted-foreground">{checks.length - failing} of {checks.length} hold</span>
+        </div>
+        <ul className="divide-y">
+          {checks.map((c) => (
+            <li key={c.label} className="flex items-center gap-3 px-3 py-2 text-sm">
+              <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', c.ok ? 'border-success-200 bg-success-50 text-success-700' : c.liveOnly ? 'border-border bg-background text-muted-foreground' : 'border-warning-200 bg-warning-50 text-warning-700')}>
+                {c.ok ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{c.label}</span>
+                {c.detail && <span className="block truncate text-xs text-muted-foreground">{c.detail}</span>}
+              </span>
+              {!c.ok && c.liveOnly && <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">Once live</span>}
+            </li>
+          ))}
+        </ul>
+        <p className="border-t px-3 py-2 text-xs text-muted-foreground">
+          {message ? <>{message} </> : null}
+          Healthy while nothing blocks; needs attention with open to-dos; at risk when a live plan has a blocker.
+        </p>
+      </PopoverContent>
+    </Popover>
   );
 };
 

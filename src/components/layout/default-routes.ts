@@ -216,6 +216,13 @@ export const defaultRoutes: Route[] = [
     type: "title" as const,
   },
   {
+    id: 18,
+    name: "Media plan config",
+    type: "single" as const,
+    icon: { lucide: "WalletCards" },
+    url: "/configuration/media-plan",
+  },
+  {
     id: 9,
     name: "Display config",
     type: "single" as const,

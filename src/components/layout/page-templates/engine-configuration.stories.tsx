@@ -11,7 +11,7 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
-import { useDb, useRouteEntityId, workflowFor, walkSteps, type EngineId } from '@/lib/db';
+import { useDb, useRouteEntityId, workflowFor, walkSteps, type WorkflowScope } from '@/lib/db';
 import { ArrowRight, GitBranch, Info, LayoutTemplate, Plus, ShieldCheck, SlidersHorizontal, Tag, Users, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
@@ -198,7 +198,10 @@ const createEngineConfigurationStories = (
     // ── The dashboard widgets read the store: the proposition's workflow,
     //    and the open messages about this proposition. ──
     const db = useDb();
-    const engine = engineType as EngineId;
+    const engine = engineType as WorkflowScope;
+    // The media plan sits above the propositions: it has a workflow, rules
+    // and templates, but no positions to price and no buyers to list.
+    const isPlan = engine === 'media-plan';
     const workflow = workflowFor(db, engine);
     const workflowSteps = workflow ? walkSteps(workflow) : [];
     const workflowStages = workflowSteps.filter((st) => st.kind === 'stage');
@@ -210,7 +213,7 @@ const createEngineConfigurationStories = (
     // advertiser organisations with a campaign on it.
     const retailerUsers = db.users.filter((u) => u.side === 'retailer');
     const activeAdvertiserIds = new Set(
-      db.campaigns.filter((c) => c.engine === engine).map((c) => db.mediaPlans.find((p) => p.id === c.mediaPlanId)?.advertiserId).filter(Boolean),
+      isPlan ? db.mediaPlans.map((p) => p.advertiserId) : db.campaigns.filter((c) => c.engine === engine).map((c) => db.mediaPlans.find((p) => p.id === c.mediaPlanId)?.advertiserId).filter(Boolean),
     );
     const activeOrganisations = db.advertisers.filter((a) => activeAdvertiserIds.has(a.id));
     const advertiserUsers = db.users.filter((u) => u.side === 'advertiser' && u.advertiserId && activeAdvertiserIds.has(u.advertiserId));
@@ -301,7 +304,7 @@ const createEngineConfigurationStories = (
             pricing: `${engineTitle} position pricing`,
           }[view],
           subtitle: {
-            dashboard: `Manage ${engineType} engine configuration settings and rules`,
+            dashboard: isPlan ? 'How media plans are set up, reviewed and run' : `Manage ${engineType} engine configuration settings and rules`,
             settings: 'Workflow and rules',
             templates: 'Preset campaigns a user starts from — quick starts are offered in the wizard',
             rule: `${engineTitle} configuration rule · ${rule.id}`,
@@ -367,7 +370,7 @@ const createEngineConfigurationStories = (
                     <LayoutTemplate className="h-5 w-5 text-primary" />
                     Campaign templates
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Preset campaigns a user starts from; quick starts are offered in the wizard.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{isPlan ? 'Preset media plans a user starts from; quick starts are offered in the wizard.' : 'Preset campaigns a user starts from; quick starts are offered in the wizard.'}</p>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div><span className="block text-2xl font-semibold tabular-nums">{quickStarts.length}</span><span className="text-xs text-muted-foreground">quick starts</span></div>
                     <div><span className="block text-2xl font-semibold tabular-nums">{activeTemplates}</span><span className="text-xs text-muted-foreground">of {configurationTemplatesData.length} active</span></div>
@@ -406,6 +409,7 @@ const createEngineConfigurationStories = (
                   {viewAll('Manage users & organisations', () => go('/configuration/organisations-users'))}
                 </CardContent>
               </Card>
+              {!isPlan && (
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -428,6 +432,8 @@ const createEngineConfigurationStories = (
                   {viewAll('Manage lists', () => go(`/configuration/${engineType}/lists`))}
                 </CardContent>
               </Card>
+              )}
+              {!isPlan && (
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -456,6 +462,7 @@ const createEngineConfigurationStories = (
                   {viewAll(`All ${pricedPositions.length} positions`, () => go(`/configuration/${engineType}/pricing`))}
                 </CardContent>
               </Card>
+              )}
             </div>
           </section>
           </>
@@ -704,7 +711,7 @@ const createEngineConfigurationStories = (
                 label: 'Workflow',
                 content: (
                   <div className="mt-6">
-                  <WorkflowBuilder engine={engineType as EngineId} />
+                  <WorkflowBuilder engine={engine} />
                   </div>
                 ),
               },
@@ -764,6 +771,21 @@ const createEngineConfigurationStories = (
   };
   return { dashboard: { render: render('dashboard') }, settings: { render: render('settings') }, lists: { render: render('lists') }, pricing: { render: render('pricing') }, templates: { render: render('templates') }, rule: { render: render('rule') } };
 };
+
+const mediaPlanStories = createEngineConfigurationStories(
+  'media-plan',
+  'Media plan',
+  [
+    { id: 'configurations', label: 'Active Configurations', value: '6', subMetric: 'Rules: 3', badgeValue: '+1', badgeVariant: 'success' as const },
+    { id: 'rules', label: 'Configuration Rules', value: '3', subMetric: 'Templates: 4', badgeValue: '+1', badgeVariant: 'success' as const },
+    { id: 'performance', label: 'Config Performance', value: '95.1%', subMetric: 'Uptime: 99.9%', badgeValue: '+0.8%', badgeVariant: 'success' as const },
+    { id: 'updated', label: 'Last Updated', value: '1h ago', subMetric: 'Auto-sync: On', badgeValue: 'Live', badgeVariant: 'secondary' as const },
+  ]
+);
+export const MediaPlan: Story = mediaPlanStories.dashboard;
+export const MediaPlanSettings: Story = mediaPlanStories.settings;
+export const MediaPlanTemplates: Story = mediaPlanStories.templates;
+export const MediaPlanRule: Story = mediaPlanStories.rule;
 
 const sponsoredProductsStories = createEngineConfigurationStories(
   'sponsored-products',

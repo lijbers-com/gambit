@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 import {
   useDb,
   updateWorkflow,
-  type EngineId,
+  type WorkflowScope,
   type Workflow,
   type WorkflowAction,
   type WorkflowActionType,
@@ -240,7 +240,7 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
 
 // ── The board ────────────────────────────────────────────────────────────
 
-export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }> = ({ engine, className }) => {
+export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: string }> = ({ engine, className }) => {
   const db = useDb();
   const toast = useToast();
   const record = db.workflows.find((w) => w.engine === engine) ?? null;

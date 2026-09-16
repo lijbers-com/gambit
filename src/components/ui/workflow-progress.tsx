@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Bell, Check, CheckCircle2, ChevronDown, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useDb, setupStepDone, setupStepDoneForBooking, walkSteps, workflowFor, type Booking, type Campaign, type EngineId, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
+import { useDb, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, walkSteps, workflowFor, type Booking, type Campaign, type MediaPlan, type WorkflowScope, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
 import { LIFECYCLE_LABEL, PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
@@ -45,20 +45,22 @@ const daysBefore = (iso: string, days: number) => {
 };
 
 export interface WorkflowProgressProps {
-  engine: EngineId;
+  engine: WorkflowScope;
   bookingId?: string;
   campaignId?: string;
+  mediaPlanId?: string;
   variant?: 'full' | 'bar';
   /** Bar only: leave out the "Next: …" line — the chips already open the steps. */
   hideNext?: boolean;
   className?: string;
 }
 
-export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, variant = 'full', hideNext, className }) => {
+export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, className }) => {
   const db = useDb();
   const workflow = workflowFor(db, engine);
   const foundBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
   const foundCampaign = campaignId ? db.campaigns.find((c) => c.id === campaignId) : undefined;
+  const foundPlan = mediaPlanId ? db.mediaPlans.find((pl) => pl.id === mediaPlanId) : undefined;
 
   // A demo entity the store does not hold still reads the workflow: in
   // review, two weeks out, creatives as linked, no placement yet.
@@ -82,7 +84,19 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
       createdAt: c.createdAt, updatedAt: c.updatedAt,
     };
   };
-  const entity: Booking | undefined = foundBooking ?? (foundCampaign ? campaignAsBooking(foundCampaign) : bookingId ? fallback(bookingId) : campaignId ? fallback(campaignId) : undefined);
+  // A plan reads as the sum of its campaigns' bookings.
+  const planAsBooking = (pl: MediaPlan): Booking => {
+    const cs = db.campaigns.filter((c) => c.mediaPlanId === pl.id);
+    const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
+    return {
+      id: pl.id, campaignId: '', name: pl.name, status: pl.status, budget: pl.budget, spend: cs.reduce((sum, c) => sum + c.spend, 0),
+      startDate: pl.startDate, endDate: pl.endDate,
+      positionIds: bs.flatMap((b) => b.positionIds),
+      creativeStatus: bs.length && bs.every((b) => b.creativeStatus === 'approved') ? 'approved' : bs.some((b) => b.creativeStatus !== 'missing') ? 'submitted' : 'missing',
+      createdAt: pl.createdAt, updatedAt: pl.updatedAt,
+    };
+  };
+  const entity: Booking | undefined = foundBooking ?? (foundCampaign ? campaignAsBooking(foundCampaign) : foundPlan ? planAsBooking(foundPlan) : bookingId ? fallback(bookingId) : campaignId ? fallback(campaignId) : undefined);
   if (!workflow || !entity) return null;
 
   const order = walkSteps(workflow);
@@ -108,7 +122,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   const stepDone = (step: WorkflowStep): boolean => {
     if ((stageOf.get(step.id) ?? 0) < currentIndex) return true; // a past stage's work is behind us
     if (step.setup) {
-      return foundCampaign ? setupStepDone(db, foundCampaign, step.setup) : setupStepDoneForBooking(db, entity, step.setup);
+      return foundPlan ? setupStepDoneForPlan(db, foundPlan, step.setup) : foundCampaign ? setupStepDone(db, foundCampaign, step.setup) : setupStepDoneForBooking(db, entity, step.setup);
     }
     const n = step.name.toLowerCase();
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';

@@ -379,7 +379,7 @@ export interface WorkflowAction {
  * and the campaign's workflow bar both list exactly these steps, so the
  * retailer's board is the one place the setup is defined.
  */
-export type SetupStepKey = 'approve-campaign' | 'create-bookings' | 'approve-bookings' | 'link-creatives' | 'add-targeting';
+export type SetupStepKey = 'approve-campaign' | 'create-bookings' | 'approve-bookings' | 'link-creatives' | 'add-targeting' | 'add-campaigns' | 'approve-campaigns';
 
 export interface WorkflowStep {
   id: string;
@@ -419,9 +419,12 @@ export interface WorkflowTransition {
  * and the order they come in. The vocabulary is shared; what is mandatory,
  * who approves, deputies and SLAs are the retailer's to set, on the board.
  */
+/** What a workflow governs: a proposition's campaigns, or the media plan above them. */
+export type WorkflowScope = EngineId | 'media-plan';
+
 export interface Workflow {
   id: string;
-  engine: EngineId;
+  engine: WorkflowScope;
   name: string;
   description: string;
   status: 'draft' | 'published';

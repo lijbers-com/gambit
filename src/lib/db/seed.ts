@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 23;
+export const SEED_VERSION = 24;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -1075,6 +1075,36 @@ export const seedData: DbData = {
         { id: 't3', from: 's-approve', to: 'f-partner', label: 'approved' },
         { id: 't4', from: 'f-partner', to: 's-live', label: 'flight date' },
         { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
+      ] },
+    // The media plan's own lifecycle, above the campaigns': the setup the
+    // wizard leaves open, one review of the plan as a whole, then live and
+    // done as its campaigns run. Each campaign follows its proposition's board.
+    { id: 'WF-MP', engine: 'media-plan', name: 'Media plan — lifecycle', status: 'published', updatedAt: now, publishedAt: now,
+      description: 'Draft with the setup steps (campaigns, bookings, creatives); in review, where the budget is checked and the account manager approves the plan; live from the first flight; completed after the last.',
+      steps: [
+        { id: 's-draft', kind: 'stage', name: 'Draft', description: 'The plan as the wizard left it: campaigns proposed, nothing approved.', owner: 'advertiser', mandatory: true, x: 40, y: 40, actions: [] },
+        { id: 'su-campaigns', kind: 'fulfilment', name: 'Add campaigns', description: 'One campaign per proposition the plan buys.', owner: 'advertiser', mandatory: true, setup: 'add-campaigns', x: 40, y: 180, actions: [] },
+        { id: 'su-approve', kind: 'approval', name: 'Approve campaigns', description: 'Check what the plan proposed for each campaign — name, budget, run time, type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaigns', x: 40, y: 320, actions: [] },
+        { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings', description: 'Every campaign has its bookings.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'Every booking has a creative linked.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
+        { id: 's-review', kind: 'stage', name: 'In review', description: 'Submitted: the retailer checks the plan as a whole.', owner: 'retailer', mandatory: true, slaDays: 3, escalateTo: 'retailer', x: 360, y: 40, actions: [{ id: 'a1', type: 'todo', label: 'To-do for the account manager: review the plan', to: 'retailer' }] },
+        { id: 'c-budget', kind: 'check', name: 'Budget within ceiling', description: 'The campaigns\' budgets add up to no more than the plan\'s — automatic.', owner: 'edge', mandatory: true, x: 360, y: 180, actions: [{ id: 'a2', type: 'notification', label: 'Tell the advertiser the plan is over budget', to: 'advertiser' }] },
+        { id: 's-approveplan', kind: 'approval', name: 'Approve media plan', description: 'The account manager approves the plan; the campaigns follow their own workflows from here.', owner: 'retailer', mandatory: true, slaDays: 2, escalateTo: 'retailer', x: 360, y: 320, actions: [{ id: 'a3', type: 'email', label: 'Email the advertiser: media plan approved', to: 'advertiser' }] },
+        { id: 's-live', kind: 'stage', name: 'Live', description: 'The first campaign is delivering.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [{ id: 'a4', type: 'notification', label: 'Notify the advertiser: the plan is live', to: 'advertiser' }] },
+        { id: 'c-pacing', kind: 'check', name: 'Pacing check', description: 'Weekly: spend against the plan\'s run time — automatic.', owner: 'edge', mandatory: false, x: 680, y: 180, actions: [{ id: 'a5', type: 'todo', label: 'To-do when a campaign under-paces by 20%', to: 'retailer' }] },
+        { id: 's-done', kind: 'stage', name: 'Completed', description: 'The last campaign has ended; the plan reports as a whole.', owner: 'edge', mandatory: true, x: 1000, y: 40, actions: [{ id: 'a6', type: 'email', label: 'Send the media plan report', to: 'advertiser' }] },
+      ],
+      transitions: [
+        { id: 't1', from: 's-draft', to: 'su-campaigns' },
+        { id: 't2', from: 'su-campaigns', to: 'su-approve' },
+        { id: 't3', from: 'su-approve', to: 'su-bookings' },
+        { id: 't4', from: 'su-bookings', to: 'su-creatives' },
+        { id: 't5', from: 'su-creatives', to: 's-review', label: 'submit' },
+        { id: 't6', from: 's-review', to: 'c-budget' },
+        { id: 't7', from: 'c-budget', to: 's-approveplan', label: 'within budget' },
+        { id: 't8', from: 's-approveplan', to: 's-live', label: 'first flight date' },
+        { id: 't9', from: 's-live', to: 'c-pacing' },
+        { id: 't10', from: 's-live', to: 's-done', label: 'last end date' },
       ] },
   ],
 };

@@ -1,4 +1,4 @@
-import type { Booking, Campaign, DbData, SetupStepKey, Workflow, WorkflowStep } from './types';
+import type { Booking, Campaign, DbData, MediaPlan, SetupStepKey, Workflow, WorkflowScope, WorkflowStep } from './types';
 
 /**
  * The setup steps, read off the proposition's workflow.
@@ -26,11 +26,13 @@ export const SETUP_STEP_DEFAULTS: Record<SetupStepKey, { title: string; descript
   'approve-bookings': { title: 'Approve bookings', description: 'Check the prefilled bookings and approve them.' },
   'link-creatives':   { title: 'Link creatives',   description: 'The creative step of the setup wizard, for bookings still missing one.' },
   'add-targeting':    { title: 'Add products and keywords', description: 'Part of the booking setup — target the right products and terms.' },
+  'add-campaigns':    { title: 'Add campaigns',    description: 'One campaign per proposition the plan buys.' },
+  'approve-campaigns': { title: 'Approve campaigns', description: 'Check what the plan proposed for each campaign.' },
 };
 
 /** The workflow a proposition follows: the published one, else its draft. */
-export function workflowFor(db: DbData, engine: Campaign['engine']): Workflow | undefined {
-  return db.workflows.find((w) => w.engine === engine && w.status === 'published') ?? db.workflows.find((w) => w.engine === engine);
+export function workflowFor(db: DbData, scope: WorkflowScope): Workflow | undefined {
+  return db.workflows.find((w) => w.engine === scope && w.status === 'published') ?? db.workflows.find((w) => w.engine === scope);
 }
 
 /** Whether the data already shows a setup step as done, for a campaign. */
@@ -42,6 +44,19 @@ export function setupStepDone(db: DbData, campaign: Campaign, key: SetupStepKey)
     case 'approve-bookings': return bookings.length > 0 && bookings.every((b) => b.status !== 'draft');
     case 'link-creatives':   return bookings.length > 0 && bookings.every((b) => b.creativeStatus !== 'missing');
     case 'add-targeting':    return bookings.length > 0 && bookings.every((b) => b.positionIds.length > 0);
+    case 'add-campaigns':    return true; // a campaign exists by definition
+    case 'approve-campaigns': return campaign.status !== 'draft';
+  }
+}
+
+/** The same question asked of a media plan: done when every campaign under it is. */
+export function setupStepDoneForPlan(db: DbData, plan: MediaPlan, key: SetupStepKey): boolean {
+  const campaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+  switch (key) {
+    case 'add-campaigns':    return campaigns.length > 0;
+    case 'approve-campaigns':
+    case 'approve-campaign': return campaigns.length > 0 && campaigns.every((c) => c.status !== 'draft');
+    default:                 return campaigns.length > 0 && campaigns.every((c) => setupStepDone(db, c, key));
   }
 }
 
@@ -54,6 +69,8 @@ export function setupStepDoneForBooking(db: DbData, booking: Booking, key: Setup
     case 'approve-bookings': return booking.status !== 'draft';
     case 'link-creatives':   return booking.creativeStatus !== 'missing';
     case 'add-targeting':    return booking.positionIds.length > 0;
+    case 'add-campaigns':
+    case 'approve-campaigns': return true;
   }
 }
 

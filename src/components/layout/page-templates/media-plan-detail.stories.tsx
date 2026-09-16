@@ -44,6 +44,7 @@ import { stageForGoal, funnelKpis } from '@/lib/funnel';
 import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
+import { WorkflowProgress } from '@/components/ui/workflow-progress';
 import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/components/ui/control-cells';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
@@ -630,6 +631,9 @@ export const MediaPlanDetail: Story = {
               'create-bookings': () => addBookingTo(c.id),
               'approve-bookings': () => approveBooking(draftBookings[0]?.id ?? bookings[0]?.id, c.id),
               'add-targeting': () => addBookingTo(c.id),
+              // Plan-level steps never appear on a campaign's card; they open the campaign.
+              'add-campaigns': openCampaign,
+              'approve-campaigns': openCampaign,
               'link-creatives': () => {
                 window.location.href = missingCreative
                   ? `/create/${routeSeg[c.engine]}?bookingId=${missingCreative.id}&step=creatives${backToPlan}`
@@ -1016,7 +1020,11 @@ export const MediaPlanDetail: Story = {
               when it runs were just answered in the wizard, and the page is
               about approving what it proposed. */}
           {!inSetup && (
-          <ControlBar className="mb-4">
+          <ControlBar
+            className="mb-4"
+            // Where the plan stands in its own workflow — each stage a chip that opens its steps.
+            footer={plan ? <WorkflowProgress variant="bar" hideNext engine="media-plan" mediaPlanId={plan.id} /> : undefined}
+          >
             <ControlBarItem label="Media plan budget">
               {/* One number: the ceiling. Budgets are given to campaigns,
                   not split over propositions here — and free room is a

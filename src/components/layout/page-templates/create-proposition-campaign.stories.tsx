@@ -8,7 +8,7 @@ import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { GoalCard } from '@/components/ui/goal-card';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
-import { LevelMeter } from '@/components/ui/level-meter';
+import { LevelMeter, LEVEL_LABELS, type Level } from '@/components/ui/level-meter';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
@@ -2707,6 +2707,14 @@ export interface SPWizardInitialValues {
   planId?: string;
 }
 
+/** A keyword's volume or competition as a badge, for a table cell. */
+const spLevelBadge = (level: Level, tone: 'supply' | 'risk') => {
+  // Plenty of volume is good; plenty of competition is not.
+  const good = tone === 'supply' ? level >= 4 : level <= 2;
+  const bad = tone === 'supply' ? level <= 2 : level >= 4;
+  return <Badge variant={good ? 'success' : bad ? 'destructive' : 'secondary'}>{LEVEL_LABELS[level]}</Badge>;
+};
+
 export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizardInitialValues } = {}) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -2954,6 +2962,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   ];
   const [keywordInput, setKeywordInput] = React.useState('');
   const [keywords, setKeywords] = React.useState<string[]>(['summer sale', 'beverages', 'snacks']);
+  const [keywordQuery, setKeywordQuery] = React.useState('');
+  const [selectedKeywordRows, setSelectedKeywordRows] = React.useState<React.Key[]>([]);
+  const [selectedSuggestionRows, setSelectedSuggestionRows] = React.useState<React.Key[]>([]);
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
@@ -3416,6 +3427,19 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingCampaignName(e.target.value)}
                       />
                     </div>
+                    {/* The products the booking advertises belong to its setup —
+                        the keywords and categories that follow target them. */}
+                  <FormSection title="Add retail products">
+                    <SearchSelectList
+                      label={null}
+                      placeholder="Search for retail products…"
+                      icon={<ScanBarcode className="w-4 h-4" />}
+                      maxVisibleSelected={5}
+                      options={spProductOptions}
+                      value={selectedProducts}
+                      onChange={setSelectedProducts}
+                    />
+                  </FormSection>
                     <div className="flex justify-end gap-3 mt-4">
                       <Button variant="outline" onClick={() => setCurrentStep(0)}>Back</Button>
                       <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
@@ -3498,77 +3522,113 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   {/* Products — the selection component, so searching for a
                       product works the same as searching for anything else. */}
-                  <FormSection title="Add retail products">
-                    <SearchSelectList
-                      label={null}
-                      placeholder="Search for retail products…"
-                      icon={<ScanBarcode className="w-4 h-4" />}
-                      maxVisibleSelected={5}
-                      options={spProductOptions}
-                      value={selectedProducts}
-                      onChange={setSelectedProducts}
-                    />
-                  </FormSection>
-
-                  <FormSection title="Add keywords">
-                    <div className="space-y-3">
+                  <FormSection
+                    title={`Add keywords (${keywords.length})`}
+                    action={
+                      keywords.length > 0 ? (
+                        <Button variant="outline" size="sm" onClick={() => { setKeywords([]); setSelectedKeywordRows([]); }}>Clear all</Button>
+                      ) : undefined
+                    }
+                  >
+                    <div className="space-y-4">
                       <p className="-mt-2 text-xs text-muted-foreground">
-                        Add keywords to target shoppers searching for relevant products.
+                        Keywords target shoppers searching for relevant products. A booking often carries a hundred or more, so they are tables: add suggestions one at a time, a selection, or all; type your own. Bids are set on the booking once it exists.
                       </p>
-                      {/* The selection component, with create turned on: the
-                          suggestions are a starting point, not the whole set of
-                          valid keywords. */}
-                      <SearchSelectList
-                        label={null}
-                        placeholder="Search or type a keyword…"
-                        allowCreate
-                        maxVisibleSelected={5}
-                        options={Array.from(new Set([...spKeywordSuggestions, ...keywords])).map((k) => ({
-                          value: k,
-                          label: k,
-                          // One muted sub-line, same as every other selected card —
-                          // on typed keywords too, not just the suggested ones.
-                          description: spKeywordDescription(k),
-                        }))}
-                        value={keywords}
-                        onChange={setKeywords}
-                        // The card carries what the keyword is worth: its bid
-                        // first (auction only), then volume and competition on
-                        // the same meters the media plan wizard uses.
-                        hideSelectedDescription
-                        renderSelectedExtra={(opt) => {
-                          const detail = spKeywordDetail(opt.value);
-                          return (
-                            <div className="space-y-2">
-                              {spIsAuction && (
-                                <BidRow
-                                  id={opt.value}
-                                  className="mt-1"
-                                  value={spBids[opt.value] ?? ''}
-                                  onChange={(v) => setSpBids(prev => ({ ...prev, [opt.value]: v }))}
-                                />
-                              )}
-                              <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
-                                <LevelMeter label="Volume" tone="supply" level={detail.volume} />
-                                <LevelMeter label="Competition" tone="risk" level={detail.competition} />
+                      {/* Type a keyword and press Enter to add it; the same box filters both tables. */}
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          className="pl-9"
+                          placeholder="Search or type a keyword and press Enter…"
+                          value={keywordQuery}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeywordQuery(e.target.value)}
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key !== 'Enter') return;
+                            e.preventDefault();
+                            const k = keywordQuery.trim().toLowerCase();
+                            if (!k) return;
+                            if (!keywords.includes(k)) setKeywords((prev) => [...prev, k]);
+                            setKeywordQuery('');
+                          }}
+                        />
+                      </div>
+
+                      {/* What the booking has. */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium">In this booking · {keywords.length}</span>
+                          {selectedKeywordRows.length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => { setKeywords((prev) => prev.filter((k) => !selectedKeywordRows.includes(k))); setSelectedKeywordRows([]); }}
+                            >
+                              Remove selected ({selectedKeywordRows.length})
+                            </Button>
+                          )}
+                        </div>
+                        <div className="max-h-72 overflow-y-auto rounded-md border">
+                          <Table
+                            columns={[
+                              { key: 'keyword', header: 'Keyword' },
+                              { key: 'searches', header: 'Searches / month', render: (row) => row.searches.toLocaleString('en-GB') },
+                              { key: 'volume', header: 'Volume', render: (row) => spLevelBadge(row.volume, 'supply') },
+                              { key: 'competition', header: 'Competition', render: (row) => spLevelBadge(row.competition, 'risk') },
+                            ]}
+                            data={keywords
+                              .filter((k) => !keywordQuery.trim() || k.includes(keywordQuery.trim().toLowerCase()))
+                              .map((k) => ({ id: k, keyword: k, ...spKeywordDetail(k) }))}
+                            rowKey={(row) => row.id}
+                            rowSelection={{ selectedKeys: selectedKeywordRows, onChange: setSelectedKeywordRows, getKey: (row) => row.id }}
+                            rowActions={(row) => (
+                              <Button variant="ghost" size="sm" onClick={() => setKeywords((prev) => prev.filter((k) => k !== row.id))}>Remove</Button>
+                            )}
+                            emptyState={<p className="p-4 text-sm text-muted-foreground">No keywords yet — add suggestions below or type your own above.</p>}
+                          />
+                        </div>
+                      </div>
+
+                      {/* What we offer. */}
+                      {(() => {
+                        const q = keywordQuery.trim().toLowerCase();
+                        const suggested = spKeywordSuggestions.filter((k) => !keywords.includes(k) && (!q || k.includes(q)));
+                        const addMany = (list: string[]) => {
+                          setKeywords((prev) => [...prev, ...list.filter((k) => !prev.includes(k))]);
+                          setSelectedSuggestionRows([]);
+                        };
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-sm font-medium">Suggested · {suggested.length}</span>
+                              <div className="flex items-center gap-2">
+                                {selectedSuggestionRows.length > 0 && (
+                                  <Button size="sm" onClick={() => addMany(selectedSuggestionRows.map(String))}>
+                                    Add selected ({selectedSuggestionRows.length})
+                                  </Button>
+                                )}
+                                <Button variant="outline" size="sm" disabled={suggested.length === 0} onClick={() => addMany(suggested)}>Add all</Button>
                               </div>
                             </div>
-                          );
-                        }}
-                      />
-                      {/* Offered, not chosen: dashed pills in their own tray,
-                          inside the section they feed. */}
-                      <SuggestionList
-                        items={spKeywordSuggestions
-                          .filter(k => !keywords.includes(k))
-                          .map(k => ({ value: k, meta: spKeywordDescription(k) }))}
-                        onAdd={(k) => setKeywords(prev => [...prev, k])}
-                        onAddAll={() => setKeywords(prev => [
-                          ...prev,
-                          ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                        ])}
-                        label="Suggested keywords"
-                      />
+                            <div className="max-h-72 overflow-y-auto rounded-md border">
+                              <Table
+                                columns={[
+                                  { key: 'keyword', header: 'Keyword' },
+                                  { key: 'searches', header: 'Searches / month', render: (row) => row.searches.toLocaleString('en-GB') },
+                                  { key: 'volume', header: 'Volume', render: (row) => spLevelBadge(row.volume, 'supply') },
+                                  { key: 'competition', header: 'Competition', render: (row) => spLevelBadge(row.competition, 'risk') },
+                                ]}
+                                data={suggested.map((k) => ({ id: k, keyword: k, ...spKeywordDetail(k) }))}
+                                rowKey={(row) => row.id}
+                                rowSelection={{ selectedKeys: selectedSuggestionRows, onChange: setSelectedSuggestionRows, getKey: (row) => row.id }}
+                                rowActions={(row) => (
+                                  <Button variant="outline" size="sm" onClick={() => addMany([row.id])}>Add</Button>
+                                )}
+                                emptyState={<p className="p-4 text-sm text-muted-foreground">{q ? `Nothing suggested matches "${q}" — press Enter to add it.` : 'Every suggestion is in the booking.'}</p>}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </FormSection>
 

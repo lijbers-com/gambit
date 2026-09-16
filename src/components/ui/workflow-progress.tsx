@@ -217,7 +217,6 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
                 {list.length > 0 ? renderList(list) : (
                   <p className="px-3 py-3 text-sm text-muted-foreground">{st.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
                 )}
-                <p className="border-t px-3 py-2 text-xs text-muted-foreground">{source}</p>
               </PopoverContent>
             </Popover>
             {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}

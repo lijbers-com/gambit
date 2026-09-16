@@ -172,7 +172,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               <button
                 type="button"
                 onClick={() => setShowResults((v) => !v)}
-                className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <span className="flex min-w-0 items-center gap-2">
                   {icon}

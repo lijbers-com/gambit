@@ -20,6 +20,7 @@ import { GoalSelect } from '@/components/ui/goal-select';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { planForecast, fmtForecastRange } from '@/lib/forecast';
@@ -484,6 +485,8 @@ export const GoalSelection: Story = {
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
       propositions.map((p) => ({
         id: `row-${(rowSeq.current += 1)}`,
+        // Open, so every option — mode, name, budget, run time — is in view.
+        open: true,
         engine: p.id,
         mode: 'preset' as const,
         name: '',
@@ -1426,7 +1429,7 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Campaigns</CardTitle>
                     <CardDescription>
-                      The campaigns in this plan, one per proposition, proposed and prefilled. Approve each one — or open it to change it — and add any that are missing.
+                      The campaigns in this plan, one per proposition, proposed and prefilled. Check each one and mark it reviewed; add any that are missing.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1499,17 +1502,31 @@ export const GoalSelection: Story = {
                                 <div className="min-w-0">
                                   <div className="truncate text-sm font-medium">{rowName}</div>
                                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                                    {row.existingId ? 'Existing campaign · joins this plan on save' : row.approved ? 'Approved' : 'Proposed — not approved yet'}
+                                    {row.existingId ? 'Existing campaign · joins this plan on save' : row.approved ? 'Reviewed' : 'Proposed — to review'}
                                     {' · '}€{share.toLocaleString()} · {runTime}
                                     {!row.existingId && ` · ${isAssisted ? 'Assisted' : 'Expert'}`}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex shrink-0 items-center gap-2">
+                              <div className="flex shrink-0 items-center gap-3">
+                                {/* The mode stays at hand on a closed row too. */}
+                                {!row.existingId && (
+                                  <label className="flex shrink-0 cursor-pointer items-center gap-2">
+                                    <Switch
+                                      checked={isAssisted}
+                                      onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
+                                      aria-label={`${prop.name} campaign mode`}
+                                    />
+                                    <span className={cn('w-14 text-xs', isAssisted ? 'font-medium text-primary' : 'text-muted-foreground')}>
+                                      {isAssisted ? 'Assisted' : 'Expert'}
+                                    </span>
+                                  </label>
+                                )}
+                                {row.approved && <Badge variant="success">Reviewed</Badge>}
                                 {row.approved || row.existingId ? (
                                   <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { open: true })}>Open</Button>
                                 ) : (
-                                  <Button size="sm" onClick={() => updateRow(row.id, { open: true })}>Approve</Button>
+                                  <Button size="sm" onClick={() => updateRow(row.id, { open: true })}>Review</Button>
                                 )}
                               </div>
                             </div>
@@ -1542,6 +1559,9 @@ export const GoalSelection: Story = {
                             }
                             control={
                               <>
+                                {!row.existingId && (
+                                  <Badge variant={row.approved ? 'success' : 'outline'}>{row.approved ? 'Reviewed' : 'To review'}</Badge>
+                                )}
                                 {/* Mode toggle — it both shows and sets the
                                     mode. Fixed-width word so the header does
                                     not twitch on flip. An existing campaign
@@ -1680,13 +1700,17 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                             )}
-                            {/* Approving here is the check the plan's setup
-                                asks for: the campaign is created in review
-                                rather than as a draft. */}
+                            {/* Marking it reviewed is the check the plan's
+                                setup asks for: the campaign is created in
+                                review rather than as a draft. The card folds
+                                to a row; Open brings the options back. */}
                             <div className="flex items-center justify-end gap-2 pt-1">
-                              <Button variant="ghost" size="sm" onClick={() => updateRow(row.id, { open: false })}>Close</Button>
-                              {!row.existingId && (
-                                <Button size="sm" onClick={() => updateRow(row.id, { open: false, approved: true })}>Approve campaign</Button>
+                              <Button variant="ghost" size="sm" onClick={() => updateRow(row.id, { open: false })}>Collapse</Button>
+                              {!row.existingId && !row.approved && (
+                                <Button size="sm" onClick={() => updateRow(row.id, { open: false, approved: true })}>Mark as reviewed</Button>
+                              )}
+                              {!row.existingId && row.approved && (
+                                <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { approved: false })}>Reopen review</Button>
                               )}
                             </div>
                           </OptionCard>

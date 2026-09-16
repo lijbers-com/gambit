@@ -645,7 +645,7 @@ export const MediaPlanDetail: Story = {
               id: `${c.id}-${st.key}`,
               title: st.title,
               description: st.key === 'approve-bookings' && draftBookings.length > 0
-                ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to approve.`
+                ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to review.`
                 : st.description,
               done: st.done,
               onClick: openStep[st.key],
@@ -942,7 +942,7 @@ export const MediaPlanDetail: Story = {
         endDate,
       });
       setNewCampaign(null);
-      toast({ title: 'Campaign added', description: `${created.name} — proposed, not approved yet. Its bookings and creatives are the next steps.` });
+      toast({ title: 'Campaign added', description: `${created.name} — proposed, to review. Its bookings and creatives are the next steps.` });
     };
 
     const countsFor = (scope: { campaignId?: string; bookingId?: string }) => {
@@ -1209,8 +1209,8 @@ export const MediaPlanDetail: Story = {
           {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
               keep between themselves — the whole column shares one gap. */}
           <div className="mb-1">
-            {/* showCharts turns each card into its chart and lets it expand in place to
-                the per-proposition breakdown below the row. */}
+            {/* showCharts lets a card expand in place to the per-proposition
+                breakdown below the row; the cards themselves stay numbers. */}
             <MetricRow
               // In setup the row reads like the wizard's estimate row: the
               // promised numbers, plainly — no donuts, no expand-on-click.
@@ -1218,12 +1218,14 @@ export const MediaPlanDetail: Story = {
               metrics={
                 inSetup
                   ? (preLive ? forecastMetrics : liveMetrics).map(({ key, label, value, subMetric, badgeValue, badgeVariant }) => ({ key, label, value, subMetric, badgeValue, badgeVariant }))
-                  : preLive
-                    ? forecastMetrics
-                    : liveMetrics
+                  // Otherwise the cards carry numbers only — the chart is
+                  // what a click opens beneath the row, like everywhere else.
+                  : (preLive ? forecastMetrics : liveMetrics).map(
+                      ({ chart, donutData, donutColors, donutEngines, budgetData, graphData, productData, dateData, totalRow, ...rest }) => rest,
+                    )
               }
               maxVisible={preLive ? 6 : 4}
-              defaultVariant={inSetup ? 'default' : 'graph'}
+              defaultVariant="default"
               showCharts={!inSetup}
               hideEditButton={inSetup}
               hideDateRange={inSetup}

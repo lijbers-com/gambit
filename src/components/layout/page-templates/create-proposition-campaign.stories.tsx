@@ -1918,10 +1918,10 @@ const PropositionWizard = ({
                             campaign's details sit in the summary card on the
                             right, its proposed bookings are the rows below,
                             and the footer carries Approve. */}
-                        <CardTitle className="text-lg">{needsCampaignApproval ? 'Approve campaign' : 'Bookings'}</CardTitle>
+                        <CardTitle className="text-lg">{needsCampaignApproval ? 'Review campaign' : 'Bookings'}</CardTitle>
                         <CardDescription>
                           {needsCampaignApproval
-                            ? 'The media plan filled in every detail — the summary is on the right. Approve the campaign, then each proposed booking.'
+                            ? 'The media plan filled in every detail — the summary is on the right. Review the campaign, then each proposed booking.'
                             : 'Add one or more bookings to your campaign'}
                         </CardDescription>
                       </CardHeader>
@@ -1934,7 +1934,7 @@ const PropositionWizard = ({
                             <div className="min-w-0">
                               <div className="truncate text-sm font-medium">{booking.name}</div>
                               <div className="mt-0.5 text-xs text-muted-foreground">
-                                {booking.status === 'draft' ? 'Proposed — not approved yet' : 'Approved'}
+                                {booking.status === 'draft' ? 'Proposed — to review' : 'Reviewed'}
                                 {booking.creativeStatus === 'missing' && ' · needs a creative'}
                               </div>
                             </div>
@@ -1943,7 +1943,7 @@ const PropositionWizard = ({
                                 size="sm"
                                 onClick={() => { if (typeof window !== 'undefined') window.location.href = `/create/${propositionType}?bookingId=${booking.id}${backLink}`; }}
                               >
-                                Approve
+                                Review
                               </Button>
                             ) : (
                               <Button variant="outline" size="sm" onClick={() => { if (typeof window !== 'undefined') window.location.href = `${proposition.campaignRoute}/booking/${booking.id}`; }}>
@@ -1985,7 +1985,7 @@ const PropositionWizard = ({
                                 Back to plan
                               </Button>
                             )}
-                            <Button size="sm" onClick={approveCampaign}>Approve campaign</Button>
+                            <Button size="sm" onClick={approveCampaign}>Mark as reviewed</Button>
                           </div>
                         ) : (
                         <div className="flex items-center justify-between gap-3 mt-2">
@@ -3365,9 +3365,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 return (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Approve campaign</CardTitle>
+                      <CardTitle className="text-lg">Review campaign</CardTitle>
                       <CardDescription>
-                        The media plan filled in every detail — the summary is on the right. Approve the campaign, then each proposed booking.
+                        The media plan filled in every detail — the summary is on the right. Review the campaign, then each proposed booking.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -3375,7 +3375,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg border bg-neutral-50 p-4">
                           <div className="min-w-0">
                             <div className="truncate text-sm font-medium">{booking.name}</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">Proposed — not approved yet</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">Proposed — to review</div>
                           </div>
                         </div>
                       ))}
@@ -3385,7 +3385,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                             Back to plan
                           </Button>
                         )}
-                        <Button size="sm" onClick={approveSpCampaign}>Approve campaign</Button>
+                        <Button size="sm" onClick={approveSpCampaign}>Mark as reviewed</Button>
                       </div>
                     </CardContent>
                   </Card>

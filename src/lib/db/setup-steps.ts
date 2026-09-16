@@ -21,13 +21,13 @@ export interface SetupStep {
 
 /** What each setup step means when a board has not yet said so itself. */
 export const SETUP_STEP_DEFAULTS: Record<SetupStepKey, { title: string; description: string }> = {
-  'approve-campaign': { title: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.' },
+  'approve-campaign': { title: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.' },
   'create-bookings':  { title: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.' },
-  'approve-bookings': { title: 'Approve bookings', description: 'Check the prefilled bookings and approve them.' },
+  'approve-bookings': { title: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.' },
   'link-creatives':   { title: 'Link creatives',   description: 'The creative step of the setup wizard, for bookings still missing one.' },
   'add-targeting':    { title: 'Add products and keywords', description: 'Part of the booking setup — target the right products and terms.' },
   'add-campaigns':    { title: 'Add campaigns',    description: 'One campaign per proposition the plan buys.' },
-  'approve-campaigns': { title: 'Approve campaigns', description: 'Check what the plan proposed for each campaign.' },
+  'approve-campaigns': { title: 'Review campaigns', description: 'Check what the plan proposed for each campaign.' },
 };
 
 /** The workflow a proposition follows: the published one, else its draft. */

@@ -11,7 +11,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 24;
+export const SEED_VERSION = 25;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -916,9 +916,9 @@ export const seedData: DbData = {
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
         // itself, never by hand.
-        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
+        { id: 'su-campaign', kind: 'approval',   name: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 320, actions: [] },
-        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
         { id: 's-draft',     kind: 'stage',        name: 'Draft',              description: 'Booking outlined; sales phase in AdCRM (from X-20).', owner: 'retailer',   mandatory: true,  x: 40, y: 40,  actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
         { id: 's-review',    kind: 'stage',        name: 'In review',          description: 'Submitted by the advertiser or built on their behalf.', owner: 'retailer',   mandatory: true,  x: 360, y: 40, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
@@ -952,9 +952,9 @@ export const seedData: DbData = {
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
         // itself, never by hand.
-        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
+        { id: 'su-campaign', kind: 'approval',   name: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 320, actions: [] },
-        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
         { id: 's-sales',     kind: 'stage',       name: 'Sales',                    description: 'Booking new or updated; campaign pipeline or closed won in AdCRM.', owner: 'retailer', mandatory: true, x: 40, y: 40, actions: [{ id: 'a1', type: 'log', label: 'Log booking created' }] },
         { id: 's-prep',      kind: 'stage',       name: 'Preparation',              description: 'From X-8. Done only when every check below is yes.', owner: 'retailer', mandatory: true, x: 360, y: 40, dueDaysBeforeStart: 8, actions: [{ id: 'a2', type: 'notification', label: 'Notify AdOps: preparation starts', to: 'retailer' }] },
@@ -991,9 +991,9 @@ export const seedData: DbData = {
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
         // itself, never by hand.
-        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
+        { id: 'su-campaign', kind: 'approval',   name: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 320, actions: [] },
-        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
         { id: 's-draft',    kind: 'stage',        name: 'Draft',             description: 'Wizard or AdCRM order.',                           owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
         { id: 's-review',   kind: 'stage',        name: 'In review',         description: 'Booking submitted; option placed with an expiry.',   owner: 'retailer',   mandatory: true, x: 360, y: 40, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'set-status', label: 'Inventory: option until expiry' }, { id: 'a2', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
@@ -1026,9 +1026,9 @@ export const seedData: DbData = {
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
         // itself, never by hand.
-        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
+        { id: 'su-campaign', kind: 'approval',   name: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 320, actions: [] },
-        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-targeting', kind: 'fulfilment', name: 'Add products and keywords', description: 'Part of the booking setup — target the right products and terms.', owner: 'advertiser', mandatory: true, setup: 'add-targeting', x: 40, y: 600, actions: [] },
         { id: 's-draft',   kind: 'stage',    name: 'Draft',          description: 'Self-service or built on behalf.',           owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
         { id: 's-review',  kind: 'stage',    name: 'In review',      description: 'Keywords, bids and products submitted.',      owner: 'retailer',   mandatory: true, x: 360, y: 40, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review keywords and bids', to: 'retailer' }] },
@@ -1054,9 +1054,9 @@ export const seedData: DbData = {
         // Setup — what Edge derives from the data, listed on the media plan's
         // setup cards and the campaign's workflow bar. Ticked off by the work
         // itself, never by hand.
-        { id: 'su-campaign', kind: 'approval',   name: 'Approve campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
+        { id: 'su-campaign', kind: 'approval',   name: 'Review campaign', description: 'Check what the media plan proposed — name, budget, run time and type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaign', x: 40, y: 180,  actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings',  description: 'The guided setup walks through schedule, placement and delivery.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 320, actions: [] },
-        { id: 'su-approve',  kind: 'approval',   name: 'Approve bookings', description: 'Check the prefilled bookings and approve them.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
+        { id: 'su-approve',  kind: 'approval',   name: 'Review bookings', description: 'Check the prefilled bookings and mark them reviewed.', owner: 'advertiser', mandatory: true, setup: 'approve-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'The creative step of the setup wizard, for bookings still missing one.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
         { id: 's-draft',   kind: 'stage',      name: 'Draft',            description: 'Wizard or built on behalf.',                       owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
         { id: 's-review',  kind: 'stage',      name: 'In review',        description: 'Audience and partner placements submitted.',       owner: 'retailer',   mandatory: true, x: 360, y: 40, slaDays: 3, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review the booking', to: 'retailer' }] },
@@ -1084,7 +1084,7 @@ export const seedData: DbData = {
       steps: [
         { id: 's-draft', kind: 'stage', name: 'Draft', description: 'The plan as the wizard left it: campaigns proposed, nothing approved.', owner: 'advertiser', mandatory: true, x: 40, y: 40, actions: [] },
         { id: 'su-campaigns', kind: 'fulfilment', name: 'Add campaigns', description: 'One campaign per proposition the plan buys.', owner: 'advertiser', mandatory: true, setup: 'add-campaigns', x: 40, y: 180, actions: [] },
-        { id: 'su-approve', kind: 'approval', name: 'Approve campaigns', description: 'Check what the plan proposed for each campaign — name, budget, run time, type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaigns', x: 40, y: 320, actions: [] },
+        { id: 'su-approve', kind: 'approval', name: 'Review campaigns', description: 'Check what the plan proposed for each campaign — name, budget, run time, type.', owner: 'advertiser', mandatory: true, setup: 'approve-campaigns', x: 40, y: 320, actions: [] },
         { id: 'su-bookings', kind: 'fulfilment', name: 'Create bookings', description: 'Every campaign has its bookings.', owner: 'advertiser', mandatory: true, setup: 'create-bookings', x: 40, y: 460, actions: [] },
         { id: 'su-creatives', kind: 'fulfilment', name: 'Link creatives', description: 'Every booking has a creative linked.', owner: 'advertiser', mandatory: true, setup: 'link-creatives', x: 40, y: 600, actions: [] },
         { id: 's-review', kind: 'stage', name: 'In review', description: 'Submitted: the retailer checks the plan as a whole.', owner: 'retailer', mandatory: true, slaDays: 3, escalateTo: 'retailer', x: 360, y: 40, actions: [{ id: 'a1', type: 'todo', label: 'To-do for the account manager: review the plan', to: 'retailer' }] },

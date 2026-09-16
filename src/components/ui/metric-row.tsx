@@ -374,7 +374,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       {/* The expand panel sits on the page canvas, not a card surface — it
           belongs to the row above it rather than reading as another card. */}
       {(chartPanelCustom || chartPanelData) && (
-        <div className="relative bg-page border rounded-lg p-6">
+        <div className="relative bg-card border rounded-lg p-6">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="font-semibold text-sm text-foreground">{activeMetric?.label}</div>
             <Button

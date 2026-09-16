@@ -948,8 +948,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
             icon: <MonitorSpeaker className="h-4 w-4" />,
             title: 'Summer Launch — Display',
             steps: [
-              { id: 's1', title: 'Approve campaign', done: true },
-              { id: 's2', title: 'Approve bookings', description: '2 bookings awaiting approval', done: false },
+              { id: 's1', title: 'Review campaign', done: true },
+              { id: 's2', title: 'Review bookings', description: '2 bookings to review', done: false },
               { id: 's3', title: 'Link creatives', done: false },
             ],
           },
@@ -958,8 +958,8 @@ export const previewRegistry: Record<string, PreviewEntry> = {
             icon: <ListStart className="h-4 w-4" />,
             title: 'Summer Launch — Sponsored products',
             steps: [
-              { id: 's1', title: 'Approve campaign', done: true },
-              { id: 's2', title: 'Approve bookings', done: true },
+              { id: 's1', title: 'Review campaign', done: true },
+              { id: 's2', title: 'Review bookings', done: true },
               { id: 's3', title: 'Add products and keywords', done: true },
             ],
           },

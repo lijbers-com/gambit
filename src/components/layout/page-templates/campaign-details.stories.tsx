@@ -362,7 +362,7 @@ export const DigitalInstoreInOption: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -902,10 +902,10 @@ const updatedForecastMetrics = [
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1134,7 +1134,7 @@ export const DigitalInstoreRunning: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -1400,10 +1400,10 @@ export const DigitalInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -1631,7 +1631,7 @@ export const OfflineInstoreRunning: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -1823,10 +1823,10 @@ export const OfflineInstoreRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2070,7 +2070,7 @@ export const DisplayRunning: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -2293,10 +2293,10 @@ export const DisplayRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2534,7 +2534,7 @@ export const OfflineInstoreInOption: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -2755,10 +2755,10 @@ export const OfflineInstoreInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -2985,7 +2985,7 @@ export const DisplayInOption: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -3211,10 +3211,10 @@ export const DisplayInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -3525,7 +3525,7 @@ export const SponsoredProductsInOption: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -4471,7 +4471,7 @@ export const SponsoredProductsRunning: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
@@ -5131,7 +5131,7 @@ export const OffsiteRunning: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -5323,10 +5323,10 @@ export const OffsiteRunning: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',
@@ -5597,7 +5597,7 @@ export const OffsiteInOption: Story = {
     const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
     const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
-    const campaignUnread = useUnreadCount('campaign');
+    const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
@@ -5788,10 +5788,10 @@ export const OffsiteInOption: Story = {
             {
               // Everything to do or know for this campaign: derived to-dos
               // plus its recommendations and insights.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: campaignUnread,
-              content: <InboxPanel scope="campaign" kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Bookings',

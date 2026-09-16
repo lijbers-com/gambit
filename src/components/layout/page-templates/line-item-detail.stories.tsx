@@ -551,7 +551,7 @@ export const Display: Story = {
     // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
     // 3. Creatives (link / upload creatives — placeholder for now)
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
-    const bookingUnread = useUnreadCount('booking');
+    const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -734,7 +734,7 @@ export const Display: Story = {
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
-                  { value: 'actions',    label: 'Optimizations' },
+                  { value: 'actions',    label: 'Recommendations' },
                   { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs',       label: 'Logs' },
                 ].map((t) => (
@@ -1067,7 +1067,7 @@ export const Display: Story = {
 
               {/* Actions tab — the booking's derived to-dos plus its advice */}
               <div className={cn(bookingTab !== 'actions' && 'hidden')}>
-                <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
+                <InboxPanel scope="booking" kinds={['recommendation']} />
               </div>
 
               {/* Booking evaluation tab */}
@@ -1153,7 +1153,7 @@ export const DigitalInStore: Story = {
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
-    const bookingUnread = useUnreadCount('booking');
+    const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -1805,7 +1805,7 @@ export const DigitalInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions',    label: 'Optimizations' },
+                      { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -2141,7 +2141,7 @@ export const DigitalInStore: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
+                        <InboxPanel scope="booking" kinds={['recommendation']} />
 
                       </div>
 
@@ -2539,7 +2539,7 @@ export const OfflineInStore: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
-    const bookingUnread = useUnreadCount('booking');
+    const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -3085,7 +3085,7 @@ export const OfflineInStore: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions',    label: 'Optimizations' },
+                      { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -3744,7 +3744,7 @@ export const OfflineInStore: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
+                        <InboxPanel scope="booking" kinds={['recommendation']} />
 
                       </div>
 
@@ -3876,7 +3876,7 @@ export const SponsoredProducts: Story = {
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'evaluation' | 'logs'>('details');
-    const bookingUnread = useUnreadCount('booking');
+    const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -4097,7 +4097,7 @@ export const SponsoredProducts: Story = {
                     {[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
-                      { value: 'actions',    label: 'Optimizations' },
+                      { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -4392,7 +4392,7 @@ export const SponsoredProducts: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
+                        <InboxPanel scope="booking" kinds={['recommendation']} />
 
                       </div>
 
@@ -4512,7 +4512,7 @@ export const OffsiteDisplay: Story = {
 
     const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
-    const bookingUnread = useUnreadCount('booking');
+    const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -4681,7 +4681,7 @@ export const OffsiteDisplay: Story = {
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
-                      { value: 'actions',    label: 'Optimizations' },
+                      { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
                     ].map((t) => (
@@ -4909,7 +4909,7 @@ export const OffsiteDisplay: Story = {
 
                       <div className={cn('px-6 pt-6', bookingTab !== 'actions' && 'hidden')}>
 
-                        <InboxPanel scope="booking" kinds={['insight', 'recommendation']} />
+                        <InboxPanel scope="booking" kinds={['recommendation']} />
 
                       </div>
 

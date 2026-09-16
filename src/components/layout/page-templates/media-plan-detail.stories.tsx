@@ -531,7 +531,7 @@ export const MediaPlanDetail: Story = {
     const inboxStatus = useInboxState();
     const unreadCount = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter(
-          (m) => (inboxStatus[m.id] ?? 'unread') === 'unread',
+          (m) => m.kind === 'recommendation' && (inboxStatus[m.id] ?? 'unread') === 'unread',
         ).length
       : 0;
 
@@ -1392,10 +1392,10 @@ export const MediaPlanDetail: Story = {
               {
                 // Everything the user should do or know for this plan: the
                 // derived to-dos plus its recommendations and insights.
-                label: 'Optimizations',
+                label: 'Recommendations',
                 value: 'inbox',
                 badgeCount: unreadCount,
-                content: <InboxPanel scope="media-plan" entityId={plan?.id} kinds={['insight', 'recommendation']} className="mt-6" />,
+                content: <InboxPanel scope="media-plan" entityId={plan?.id} kinds={['recommendation']} className="mt-6" />,
               },
               {
                 label: 'Campaigns & bookings',

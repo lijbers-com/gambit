@@ -15,6 +15,7 @@ import {
   markUndone,
   type InboxMessage,
   type EngineId,
+  type MessageKind,
 } from '@/lib/db';
 
 /**
@@ -36,8 +37,8 @@ export interface InboxPanelProps {
   /** Show an opened message in place of the list rather than in a second
    *  drawer — for when the panel itself already lives in a drawer. */
   detailInline?: boolean;
-  /** Limit to certain message kinds. The Optimizations tab on entity pages
-   *  passes ['insight', 'recommendation'] — insights and recommendations are
+  /** Limit to certain message kinds. The Recommendations tab on entity pages
+   *  passes ['recommendation'] — recommendations are
    *  the features; notifications are only the attention layer, and the
    *  to-dos stay in the notification center. */
   kinds?: InboxMessage['kind'][];
@@ -79,10 +80,10 @@ export function useScopedMessages(scope: InboxPanelProps['scope'], entityId?: st
 }
 
 /** How many messages in this scope the reader has not opened — the tab badge. */
-export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: string): number {
+export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: string, kinds?: MessageKind[]): number {
   const messages = useScopedMessages(scope, entityId);
   const status = useInboxState();
-  return messages.filter((m) => (status[m.id] ?? 'unread') === 'unread').length;
+  return messages.filter((m) => (!kinds || kinds.includes(m.kind)) && (status[m.id] ?? 'unread') === 'unread').length;
 }
 
 export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, kinds, className }) => {

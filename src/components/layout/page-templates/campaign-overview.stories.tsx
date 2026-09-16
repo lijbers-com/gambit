@@ -218,7 +218,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
       .filter((c) => engineId === 'all' || c.engine === engineId)
       .reduce((sum, c) => sum + c.spend, 0);
     const metricRowId = `campaigns:${engineType}`;
-    const engineUnread = useUnreadCount('engine', engineId);
+    const engineUnread = useUnreadCount('engine', engineId, ['recommendation']);
 
     const campaignRowsFromDb = engineCampaigns.map((c, i) => {
       const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
@@ -565,10 +565,10 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
               // Everything outstanding across this proposition's campaigns and
               // bookings — the same derived to-dos the detail pages show, just
               // scoped to the engine instead of a single entity.
-              label: 'Optimizations',
+              label: 'Recommendations',
               value: 'actions',
               badgeCount: engineUnread,
-              content: <InboxPanel scope="engine" entityId={engineId} kinds={['insight', 'recommendation']} className="mt-6" />,
+              content: <InboxPanel scope="engine" entityId={engineId} kinds={['recommendation']} className="mt-6" />,
             },
             {
               label: 'Insights',

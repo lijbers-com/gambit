@@ -25,6 +25,8 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { retailMoments } from '@/lib/retail-moments';
 import { BookingCreativesPanel } from '@/components/ui/booking-creatives-panel';
 import { Table } from '@/components/ui/table';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
@@ -2707,14 +2709,6 @@ export interface SPWizardInitialValues {
   planId?: string;
 }
 
-/** A keyword's volume or competition as a badge, for a table cell. */
-const spLevelBadge = (level: Level, tone: 'supply' | 'risk') => {
-  // Plenty of volume is good; plenty of competition is not.
-  const good = tone === 'supply' ? level >= 4 : level <= 2;
-  const bad = tone === 'supply' ? level <= 2 : level >= 4;
-  return <Badge variant={good ? 'success' : bad ? 'destructive' : 'secondary'}>{LEVEL_LABELS[level]}</Badge>;
-};
-
 export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizardInitialValues } = {}) => {
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
@@ -2964,7 +2958,9 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   const [keywords, setKeywords] = React.useState<string[]>(['summer sale', 'beverages', 'snacks']);
   const [keywordQuery, setKeywordQuery] = React.useState('');
   const [selectedKeywordRows, setSelectedKeywordRows] = React.useState<React.Key[]>([]);
-  const [selectedSuggestionRows, setSelectedSuggestionRows] = React.useState<React.Key[]>([]);
+  const [keywordView, setKeywordView] = React.useState<'suggested' | 'added'>('suggested');
+  const [keywordVolumeFilter, setKeywordVolumeFilter] = React.useState<string[]>([]);
+  const [keywordCompetitionFilter, setKeywordCompetitionFilter] = React.useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
   // Completion checks
@@ -3522,19 +3518,12 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
 
                   {/* Products — the selection component, so searching for a
                       product works the same as searching for anything else. */}
-                  <FormSection
-                    title={`Add keywords (${keywords.length})`}
-                    action={
-                      keywords.length > 0 ? (
-                        <Button variant="outline" size="sm" onClick={() => { setKeywords([]); setSelectedKeywordRows([]); }}>Clear all</Button>
-                      ) : undefined
-                    }
-                  >
+                  <FormSection title={`Add keywords (${keywords.length})`}>
                     <div className="space-y-4">
                       <p className="-mt-2 text-xs text-muted-foreground">
-                        Keywords target shoppers searching for relevant products. A booking often carries a hundred or more, so they are tables: add suggestions one at a time, a selection, or all; type your own. Bids are set on the booking once it exists.
+                        Keywords target shoppers searching for relevant products. Switch between what we suggest and what the booking has; add one, a selection or all; type your own. Bids are set on the booking once it exists.
                       </p>
-                      {/* Type a keyword and press Enter to add it; the same box filters both tables. */}
+                      {/* Type a keyword and press Enter to add it; the same box filters the table. */}
                       <div className="relative">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -3549,81 +3538,84 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                             if (!k) return;
                             if (!keywords.includes(k)) setKeywords((prev) => [...prev, k]);
                             setKeywordQuery('');
+                            setKeywordView('added');
                           }}
                         />
                       </div>
 
-                      {/* What the booking has. */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium">In this booking · {keywords.length}</span>
-                          {selectedKeywordRows.length > 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => { setKeywords((prev) => prev.filter((k) => !selectedKeywordRows.includes(k))); setSelectedKeywordRows([]); }}
-                            >
-                              Remove selected ({selectedKeywordRows.length})
-                            </Button>
-                          )}
-                        </div>
-                        <div className="max-h-72 overflow-y-auto rounded-md border">
-                          <Table
-                            columns={[
-                              { key: 'keyword', header: 'Keyword' },
-                              { key: 'searches', header: 'Searches / month', render: (row) => row.searches.toLocaleString('en-GB') },
-                              { key: 'volume', header: 'Volume', render: (row) => spLevelBadge(row.volume, 'supply') },
-                              { key: 'competition', header: 'Competition', render: (row) => spLevelBadge(row.competition, 'risk') },
-                            ]}
-                            data={keywords
-                              .filter((k) => !keywordQuery.trim() || k.includes(keywordQuery.trim().toLowerCase()))
-                              .map((k) => ({ id: k, keyword: k, ...spKeywordDetail(k) }))}
-                            rowKey={(row) => row.id}
-                            rowSelection={{ selectedKeys: selectedKeywordRows, onChange: setSelectedKeywordRows, getKey: (row) => row.id }}
-                            rowActions={(row) => (
-                              <Button variant="ghost" size="sm" onClick={() => setKeywords((prev) => prev.filter((k) => k !== row.id))}>Remove</Button>
-                            )}
-                            emptyState={<p className="p-4 text-sm text-muted-foreground">No keywords yet — add suggestions below or type your own above.</p>}
-                          />
-                        </div>
-                      </div>
-
-                      {/* What we offer. */}
                       {(() => {
                         const q = keywordQuery.trim().toLowerCase();
-                        const suggested = spKeywordSuggestions.filter((k) => !keywords.includes(k) && (!q || k.includes(q)));
+                        const suggested = spKeywordSuggestions.filter((k) => !keywords.includes(k));
+                        const source = keywordView === 'suggested' ? suggested : keywords;
+                        const rows = source
+                          .map((k) => ({ id: k, keyword: k, ...spKeywordDetail(k) }))
+                          .filter((r) => !q || r.keyword.includes(q))
+                          .filter((r) => keywordVolumeFilter.length === 0 || keywordVolumeFilter.includes(String(r.volume)))
+                          .filter((r) => keywordCompetitionFilter.length === 0 || keywordCompetitionFilter.includes(String(r.competition)));
+                        const levelOptions = ([5, 4, 3, 2, 1] as Level[]).map((l) => ({ label: LEVEL_LABELS[l], value: String(l) }));
+                        const picked = selectedKeywordRows.map(String);
                         const addMany = (list: string[]) => {
                           setKeywords((prev) => [...prev, ...list.filter((k) => !prev.includes(k))]);
-                          setSelectedSuggestionRows([]);
+                          setSelectedKeywordRows([]);
+                        };
+                        const removeMany = (list: string[]) => {
+                          setKeywords((prev) => prev.filter((k) => !list.includes(k)));
+                          setSelectedKeywordRows([]);
                         };
                         return (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-sm font-medium">Suggested · {suggested.length}</span>
+                          <div className="space-y-3">
+                            {/* One table, two views; the filters narrow whichever is open. */}
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <Tabs value={keywordView} onValueChange={(v) => { setKeywordView(v as 'suggested' | 'added'); setSelectedKeywordRows([]); }}>
+                                <TabsList>
+                                  <TabsTrigger value="suggested">Suggested · {suggested.length}</TabsTrigger>
+                                  <TabsTrigger value="added">In booking · {keywords.length}</TabsTrigger>
+                                </TabsList>
+                              </Tabs>
                               <div className="flex items-center gap-2">
-                                {selectedSuggestionRows.length > 0 && (
-                                  <Button size="sm" onClick={() => addMany(selectedSuggestionRows.map(String))}>
-                                    Add selected ({selectedSuggestionRows.length})
-                                  </Button>
+                                {keywordView === 'suggested' ? (
+                                  <>
+                                    {picked.length > 0 && <Button size="sm" onClick={() => addMany(picked)}>Add selected ({picked.length})</Button>}
+                                    <Button variant="outline" size="sm" disabled={rows.length === 0} onClick={() => addMany(rows.map((r) => r.id))}>
+                                      {rows.length < suggested.length ? `Add all shown (${rows.length})` : 'Add all'}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    {picked.length > 0 && <Button variant="outline" size="sm" onClick={() => removeMany(picked)}>Remove selected ({picked.length})</Button>}
+                                    <Button variant="outline" size="sm" disabled={keywords.length === 0} onClick={() => removeMany(keywords)}>Clear all</Button>
+                                  </>
                                 )}
-                                <Button variant="outline" size="sm" disabled={suggested.length === 0} onClick={() => addMany(suggested)}>Add all</Button>
                               </div>
                             </div>
-                            <div className="max-h-72 overflow-y-auto rounded-md border">
+                            <FilterBar
+                              hideSearch
+                              filters={[
+                                { name: 'Volume', options: levelOptions, selectedValues: keywordVolumeFilter, onChange: setKeywordVolumeFilter },
+                                { name: 'Competition', options: levelOptions, selectedValues: keywordCompetitionFilter, onChange: setKeywordCompetitionFilter },
+                              ]}
+                            />
+                            <div className="max-h-80 overflow-y-auto rounded-md border">
                               <Table
                                 columns={[
                                   { key: 'keyword', header: 'Keyword' },
                                   { key: 'searches', header: 'Searches / month', render: (row) => row.searches.toLocaleString('en-GB') },
-                                  { key: 'volume', header: 'Volume', render: (row) => spLevelBadge(row.volume, 'supply') },
-                                  { key: 'competition', header: 'Competition', render: (row) => spLevelBadge(row.competition, 'risk') },
+                                  { key: 'volume', header: 'Volume', render: (row) => <LevelMeter label={null} tone="supply" level={row.volume} /> },
+                                  { key: 'competition', header: 'Competition', render: (row) => <LevelMeter label={null} tone="risk" level={row.competition} /> },
                                 ]}
-                                data={suggested.map((k) => ({ id: k, keyword: k, ...spKeywordDetail(k) }))}
+                                data={rows}
                                 rowKey={(row) => row.id}
-                                rowSelection={{ selectedKeys: selectedSuggestionRows, onChange: setSelectedSuggestionRows, getKey: (row) => row.id }}
-                                rowActions={(row) => (
-                                  <Button variant="outline" size="sm" onClick={() => addMany([row.id])}>Add</Button>
-                                )}
-                                emptyState={<p className="p-4 text-sm text-muted-foreground">{q ? `Nothing suggested matches "${q}" — press Enter to add it.` : 'Every suggestion is in the booking.'}</p>}
+                                rowSelection={{ selectedKeys: selectedKeywordRows, onChange: setSelectedKeywordRows, getKey: (row) => row.id }}
+                                rowActions={(row) => keywordView === 'suggested'
+                                  ? <Button variant="outline" size="sm" onClick={() => addMany([row.id])}>Add</Button>
+                                  : <Button variant="ghost" size="sm" onClick={() => removeMany([row.id])}>Remove</Button>}
+                                emptyState={
+                                  <p className="p-4 text-sm text-muted-foreground">
+                                    {keywordView === 'suggested'
+                                      ? (q ? `Nothing suggested matches "${q}" — press Enter to add it.` : suggested.length === 0 ? 'Every suggestion is in the booking.' : 'Nothing matches these filters.')
+                                      : (keywords.length === 0 ? 'No keywords yet — add suggestions or type your own above.' : 'Nothing matches.')}
+                                  </p>
+                                }
                               />
                             </div>
                           </div>

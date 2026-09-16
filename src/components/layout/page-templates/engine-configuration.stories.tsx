@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,9 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
-import type { EngineId } from '@/lib/db';
+import { useDb, useInboxState, deriveMessages, workflowFor, walkSteps, type EngineId } from '@/lib/db';
+import { Inbox } from '@/components/ui/inbox';
+import { ArrowRight, Bell, GitBranch, LayoutTemplate, SlidersHorizontal } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -190,8 +193,41 @@ const createEngineConfigurationStory = (
     const [selectedRules, setSelectedRules] = useState<any[]>([]);
     const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
 
+    // ── The dashboard widgets read the store: the proposition's workflow,
+    //    and the open messages about this proposition. ──
+    const db = useDb();
+    const engine = engineType as EngineId;
+    const workflow = workflowFor(db, engine);
+    const workflowSteps = workflow ? walkSteps(workflow) : [];
+    const workflowStages = workflowSteps.filter((st) => st.kind === 'stage');
+    const setupSteps = workflowSteps.filter((st) => !!st.setup);
+    const inboxStatus = useInboxState();
+    const engineMessages = deriveMessages(db, { engine }).filter((m) => (inboxStatus[m.id] ?? 'unread') !== 'done');
+    const engineInboxItems = engineMessages.slice(0, 4).map((m) => ({
+      id: m.id, kind: m.kind, subject: m.subject, preview: m.preview,
+      context: m.context, level: m.level, severity: m.severity,
+    }));
+    const activeRules = configurationRulesData.filter((r) => r.status === 'Active').length;
+    const activeTemplates = configurationTemplatesData.filter((t) => t.status === 'Active').length;
+    /** A widget's button opens its tab and brings the card into view. */
+    const openTab = (tab: string) => {
+      setActiveTab(tab);
+      if (typeof document !== 'undefined') document.getElementById('config-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    const viewAll = (label: string, onClick: () => void) => (
+      <button
+        type="button"
+        onClick={onClick}
+        className="mt-4 inline-flex items-center justify-center gap-1 self-center text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        {label}
+        <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    );
+
     // One filter row, shared by the two lists.
-    const filterBar = (      <FilterBar
+    const filterBar = (
+      <FilterBar
         filters={[
           {
             name: "Status",
@@ -239,9 +275,118 @@ const createEngineConfigurationStory = (
         }}
       >
         <div className="space-y-6">
+          {/* The dashboard, in the home page's shape: widgets first, each
+              one a door into the configuration behind it — the workflow the
+              proposition follows, its rules and templates, and what is
+              waiting on it. The tables and the board sit underneath. */}
+          <section className="space-y-4">
+            <Card>
+              <CardContent className="flex h-full flex-col p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <GitBranch className="h-5 w-5 text-primary" />
+                    Workflow
+                  </h3>
+                  {workflow && (
+                    <Badge variant={workflow.status === 'published' ? 'success' : 'outline'}>
+                      {workflow.status === 'published' ? 'Published' : 'Draft'}
+                    </Badge>
+                  )}
+                </div>
+                {workflow ? (
+                  <>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {workflow.name} — {workflowStages.length} stages, {workflowSteps.length - workflowStages.length} steps between them, {setupSteps.length} of which are setup steps Edge ticks off from the data.
+                    </p>
+                    <ol className="mt-4 flex flex-wrap items-center gap-y-2">
+                      {workflowStages.map((st, i) => (
+                        <li key={st.id} className="flex items-center">
+                          <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium" title={st.description}>
+                            {st.name}
+                          </span>
+                          {i < workflowStages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
+                        </li>
+                      ))}
+                    </ol>
+                    <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                      {setupSteps.map((st) => (
+                        <li key={st.id} className="rounded-md border border-border px-3 py-2">
+                          <span className="block font-medium">{st.name}</span>
+                          <span className="block text-xs text-muted-foreground">Setup · {st.owner}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">No workflow yet — open the board to draw one.</p>
+                )}
+                {viewAll('Open the workflow board', () => openTab('workflow'))}
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <Card className="flex flex-col">
+                <CardContent className="flex h-full flex-col p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <SlidersHorizontal className="h-5 w-5 text-primary" />
+                    Configuration rules
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">How this proposition targets, prioritises and spends.</p>
+                  <p className="mt-4 text-3xl font-semibold tabular-nums">{activeRules}<span className="ml-2 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></p>
+                  <ul className="mt-3 flex-1 space-y-1 text-sm">
+                    {configurationRulesData.slice(0, 3).map((r) => (
+                      <li key={r.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">{r.name}</span>
+                        <Badge variant={r.status === 'Active' ? 'success' : 'secondary'}>{r.status}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                  {viewAll('Manage rules', () => openTab('rules'))}
+                </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                <CardContent className="flex h-full flex-col p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <LayoutTemplate className="h-5 w-5 text-primary" />
+                    Templates
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">The shapes a booking or campaign starts from.</p>
+                  <p className="mt-4 text-3xl font-semibold tabular-nums">{activeTemplates}<span className="ml-2 text-sm font-normal text-muted-foreground">of {configurationTemplatesData.length} active</span></p>
+                  <ul className="mt-3 flex-1 space-y-1 text-sm">
+                    {configurationTemplatesData.slice(0, 3).map((t) => (
+                      <li key={t.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">{t.name}</span>
+                        <span className="text-xs text-muted-foreground">{t.category}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {viewAll('Manage templates', () => openTab('templates'))}
+                </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                <CardContent className="flex h-full flex-col p-5">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Bell className={cn('h-5 w-5', engineMessages.length > 0 ? 'text-primary' : 'text-muted-foreground')} />
+                    <h3 className="text-lg font-semibold">Notifications</h3>
+                    <span className="text-sm text-muted-foreground">{engineMessages.length} open</span>
+                  </div>
+                  <Inbox
+                    items={engineInboxItems}
+                    status={inboxStatus}
+                    showFilters={false}
+                    emptyMessage="Nothing is waiting on this proposition."
+                    onOpen={() => { if (typeof window !== 'undefined') window.location.href = '/notifications'; }}
+                  />
+                  {viewAll('View all notifications', () => { if (typeof window !== 'undefined') window.location.href = '/notifications'; })}
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
           {/* The tab strip sits above the card, left, the way every campaign
               and booking page is built — the card is the open tab's body. */}
           <CardWithTabs
+            id="config-tabs"
             className="w-full"
             tabs={[
               {
@@ -475,6 +620,45 @@ export const DigitalInstore: Story = createEngineConfigurationStory(
 export const OfflineInstore: Story = createEngineConfigurationStory(
   'offline-instore',
   'Offline In-store',
+  [
+    {
+      id: 'configurations',
+      label: 'Active Configurations',
+      value: '19',
+      subMetric: 'Rules: 14',
+      badgeValue: '+2',
+      badgeVariant: 'success' as const,
+    },
+    {
+      id: 'rules',
+      label: 'Configuration Rules',
+      value: '14',
+      subMetric: 'Templates: 9',
+      badgeValue: '+1',
+      badgeVariant: 'success' as const,
+    },
+    {
+      id: 'performance',
+      label: 'Config Performance',
+      value: '89.7%',
+      subMetric: 'Uptime: 98.8%',
+      badgeValue: '-0.3%',
+      badgeVariant: 'destructive' as const,
+    },
+    {
+      id: 'updated',
+      label: 'Last Updated',
+      value: '4h ago',
+      subMetric: 'Auto-sync: On',
+      badgeValue: 'Live',
+      badgeVariant: 'secondary' as const,
+    },
+  ]
+);
+
+export const Offsite: Story = createEngineConfigurationStory(
+  'offsite',
+  'Offsite',
   [
     {
       id: 'configurations',

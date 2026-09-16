@@ -5,7 +5,6 @@ import { Bell, Check, CheckCircle2, ChevronDown, Circle, Flag, GitBranch, Shield
 import { cn } from '@/lib/utils';
 import { useDb, setupStepDone, setupStepDoneForBooking, walkSteps, workflowFor, type Booking, type Campaign, type EngineId, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
 import { LIFECYCLE_LABEL, PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
-import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 /**
@@ -116,41 +115,19 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     return false;
   };
 
+  /** The steps that belong to a stage, with what the data says about each. */
+  const stepsOf = (stageIndex: number) =>
+    order.filter((st) => st.kind !== 'stage' && stageOf.get(st.id) === stageIndex).map((st) => ({ step: st, done: stepDone(st) }));
+
   const work = order.filter((s) => s.kind !== 'stage' && stageOf.get(s.id) === currentIndex);
   const next = order.filter((s) => s.kind !== 'stage' && stageOf.get(s.id) === currentIndex + 1);
   const items = (work.length ? work : next).map((s) => ({ step: s, done: stepDone(s) }));
   const open = items.filter((i) => !i.done);
   const heading = work.length ? `To get past ${stages[currentIndex]?.name ?? 'this stage'}` : `Before ${stages[currentIndex + 1]?.name ?? 'the next stage'}`;
 
-  const stageBar = (
-    <ol className="flex flex-wrap items-center gap-y-2">
-      {stages.map((s, i) => {
-        const state = i < currentIndex ? 'past' : i === currentIndex ? 'current' : 'next';
-        return (
-          <li key={s.id} className="flex items-center">
-            <span
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
-                state === 'current' && 'border-foreground bg-foreground text-background',
-                state === 'past' && 'border-success-200 bg-success-50 text-success-700',
-                state === 'next' && 'border-border bg-background text-muted-foreground',
-              )}
-              title={s.description}
-            >
-              {state === 'past' ? <Check className="h-3 w-3" /> : state === 'current' ? <Circle className="h-2 w-2 fill-current" /> : null}
-              {s.name}
-              {s.dueDaysBeforeStart ? <span className="opacity-70">X-{s.dueDaysBeforeStart}</span> : null}
-            </span>
-            {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
-          </li>
-        );
-      })}
-    </ol>
-  );
-
-  const todoList = (
+  const renderList = (list: { step: WorkflowStep; done: boolean }[]) => (
     <ul className="divide-y">
-      {items.map(({ step, done }) => {
+      {list.map(({ step, done }) => {
         const Icon = KIND_ICON[step.kind];
         return (
           <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', done && 'text-muted-foreground')}>
@@ -171,6 +148,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
       })}
     </ul>
   );
+  const todoList = renderList(items);
 
   const source = (
     <>
@@ -180,37 +158,92 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     </>
   );
 
+  /** One stage chip; in the bar it is the trigger for that stage's steps. */
+  const chip = (st: WorkflowStep, i: number, clickable: boolean) => {
+    const state = i < currentIndex ? 'past' : i === currentIndex ? 'current' : 'next';
+    const openHere = clickable && state === 'current' ? stepsOf(i).filter((x) => !x.done).length : 0;
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+          state === 'current' && 'border-foreground bg-foreground text-background',
+          state === 'past' && 'border-success-200 bg-success-50 text-success-700',
+          state === 'next' && 'border-border bg-background text-muted-foreground',
+          clickable && 'cursor-pointer hover:opacity-80',
+        )}
+        title={st.description}
+      >
+        {state === 'past' ? <Check className="h-3 w-3" /> : state === 'current' ? <Circle className="h-2 w-2 fill-current" /> : null}
+        {st.name}
+        {st.dueDaysBeforeStart ? <span className="opacity-70">X-{st.dueDaysBeforeStart}</span> : null}
+        {openHere > 0 && <span className="rounded-full bg-background/20 px-1.5 text-[10px] tabular-nums">{openHere}</span>}
+        {clickable && <ChevronDown className="h-3 w-3 opacity-60" />}
+      </span>
+    );
+  };
+
+  const stageBar = (
+    <ol className="flex flex-wrap items-center gap-y-2">
+      {stages.map((st, i) => (
+        <li key={st.id} className="flex items-center">
+          {chip(st, i, false)}
+          {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
+        </li>
+      ))}
+    </ol>
+  );
+
+  /** The bar's stage row: each chip opens what that stage asks for. */
+  const stageBarWithSteps = (
+    <ol className="flex flex-wrap items-center gap-y-2">
+      {stages.map((st, i) => {
+        const list = stepsOf(i);
+        const openCount = list.filter((x) => !x.done).length;
+        return (
+          <li key={st.id} className="flex items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  {chip(st, i, true)}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-96 p-0">
+                <div className="flex items-center justify-between border-b px-3 py-2">
+                  <span className="text-sm font-medium">{i === currentIndex ? `To get past ${st.name}` : i < currentIndex ? `${st.name} — done` : `Before ${st.name} is left`}</span>
+                  {list.length > 0 && <span className="text-xs text-muted-foreground">{openCount} open · {list.length - openCount} done</span>}
+                </div>
+                {list.length > 0 ? renderList(list) : (
+                  <p className="px-3 py-3 text-sm text-muted-foreground">{st.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
+                )}
+                <p className="border-t px-3 py-2 text-xs text-muted-foreground">{source}</p>
+              </PopoverContent>
+            </Popover>
+            {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
+          </li>
+        );
+      })}
+    </ol>
+  );
+
+
+
   if (variant === 'bar') {
     const nextOpen = open[0];
     return (
       <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2', className)}>
-        {stageBar}
-        {/* The next open step, then the whole list behind one button. */}
+        {stageBarWithSteps}
         {items.length > 0 && (
-          <div className="ml-auto flex min-w-0 items-center gap-3">
+          <span className="ml-auto min-w-0 truncate text-sm">
             {nextOpen ? (
-              <span className="min-w-0 truncate text-sm">
+              <>
                 <span className="text-muted-foreground">Next: </span>
                 <span className="font-medium">{nextOpen.step.name}</span>
                 <span className="text-muted-foreground"> · {OWNER_LABEL[nextOpen.step.owner]}</span>
-              </span>
+              </>
             ) : (
-              <span className="text-sm text-muted-foreground">Nothing open</span>
+              <span className="text-muted-foreground">Nothing open in this stage</span>
             )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 whitespace-nowrap">
-                  {open.length} open · {items.length - open.length} done
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-96 p-0">
-                <div className="border-b px-3 py-2 text-sm font-medium">{heading}</div>
-                {todoList}
-                <p className="border-t px-3 py-2 text-xs text-muted-foreground">{source}</p>
-              </PopoverContent>
-            </Popover>
-          </div>
+          </span>
         )}
       </div>
     );

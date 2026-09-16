@@ -221,7 +221,6 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "MonitorSpeaker" },
     url: "/configuration/display",
-    disabled: true,
   },
   {
     id: 10,
@@ -229,7 +228,6 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "ListStart" },
     url: "/configuration/sponsored-products",
-    disabled: true,
   },
   {
     id: 11,
@@ -237,7 +235,6 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "MonitorPlay" },
     url: "/configuration/digital-instore",
-    disabled: true,
   },
   {
     id: 12,
@@ -245,7 +242,13 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "Store" },
     url: "/configuration/offline-instore",
-    disabled: true,
+  },
+  {
+    id: 17,
+    name: "Offsite config",
+    type: "single" as const,
+    icon: { lucide: "Globe" },
+    url: "/configuration/offsite",
   },
   {
     id: 13,

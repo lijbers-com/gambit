@@ -21,11 +21,13 @@ import { PieChartComponent } from '@/components/ui/pie-chart';
 import { MapChart } from '@/components/ui/map-chart';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info, AlertTriangle } from 'lucide-react';
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, X, Triangle, Check, Info, AlertTriangle, ScanBarcode } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { FormSection } from '../../ui/form-section';
-import { ObjectiveKpiSelect, type ObjectiveKpiValue } from '../../ui/objective-kpi-select';
+import { type ObjectiveKpiValue } from '../../ui/objective-kpi-select';
 import { Input } from '../../ui/input';
+import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
+import { SearchSelectList } from '@/components/ui/search-select-list';
 import { SearchableSelect } from '../../ui/searchable-select';
 import { Switch } from '../../ui/switch';
 import { Label } from '../../ui/label';
@@ -38,6 +40,16 @@ import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImageFor } from '@/lib/product-images';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+
+/** Retail products the details form offers — the wizard's list. */
+const detailsRetailProductOptions = [
+  { value: 'RP-001', label: 'Coca-Cola Zero 1.5L', description: 'RP-001' },
+  { value: 'RP-002', label: 'Coca-Cola Original 330ml (6-pack)', description: 'RP-002' },
+  { value: 'RP-003', label: 'Fanta Orange 1.5L', description: 'RP-003' },
+  { value: 'RP-004', label: 'Sprite 1.5L', description: 'RP-004' },
+  { value: 'RP-005', label: 'Coca-Cola Cherry 330ml', description: 'RP-005' },
+  { value: 'RP-006', label: 'Fuze Tea Peach 1L', description: 'RP-006' },
+];
 import React, { useState } from 'react';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { AddButton } from '@/components/ui/add-button';
@@ -347,6 +359,8 @@ export const DigitalInstoreInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -757,6 +771,11 @@ const updatedForecastMetrics = [
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -781,7 +800,18 @@ const updatedForecastMetrics = [
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -828,25 +858,6 @@ const updatedForecastMetrics = [
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
@@ -1120,6 +1131,8 @@ export const DigitalInstoreRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -1256,6 +1269,11 @@ export const DigitalInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -1280,7 +1298,18 @@ export const DigitalInstoreRunning: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1327,25 +1356,6 @@ export const DigitalInstoreRunning: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
                   <div className="space-y-4">
@@ -1618,6 +1628,8 @@ export const OfflineInstoreRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -1715,10 +1727,6 @@ export const OfflineInstoreRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
-                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -1743,7 +1751,18 @@ export const OfflineInstoreRunning: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1790,25 +1809,6 @@ export const OfflineInstoreRunning: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -2067,6 +2067,8 @@ export const DisplayRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -2190,9 +2192,10 @@ export const DisplayRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
                     </div>
                   </div>
                 </FormSection>
@@ -2218,7 +2221,18 @@ export const DisplayRunning: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2265,25 +2279,6 @@ export const DisplayRunning: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -2536,6 +2531,8 @@ export const OfflineInstoreInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -2662,10 +2659,6 @@ export const OfflineInstoreInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
-                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -2690,7 +2683,18 @@ export const OfflineInstoreInOption: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2737,25 +2741,6 @@ export const OfflineInstoreInOption: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -2997,6 +2982,8 @@ export const DisplayInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -3123,9 +3110,10 @@ export const DisplayInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
                     </div>
                   </div>
                 </FormSection>
@@ -3151,7 +3139,18 @@ export const DisplayInOption: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3198,25 +3197,6 @@ export const DisplayInOption: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -3542,6 +3522,8 @@ export const SponsoredProductsInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -3910,9 +3892,10 @@ export const SponsoredProductsInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
                     </div>
                   </div>
                 </FormSection>
@@ -3938,7 +3921,18 @@ export const SponsoredProductsInOption: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3984,26 +3978,14 @@ export const SponsoredProductsInOption: Story = {
                         );
                       })()}
                     </div>
-                  </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                      <label className="block text-sm font-medium mb-1">Bidding (CPC)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                        <Input type="number" placeholder="e.g. 0.50" value={detailsCPC} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)} className="pl-7" />
+                      </div>
                     </div>
                   </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -4486,6 +4468,8 @@ export const SponsoredProductsRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('15000');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -4643,9 +4627,10 @@ export const SponsoredProductsRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
+                    <div className="md:col-span-2">
+                      {/* How the campaign buys is part of what it is — the wizard asks it
+                          with the name, so it sits here too. */}
+                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
                     </div>
                   </div>
                 </FormSection>
@@ -4671,7 +4656,18 @@ export const SponsoredProductsRunning: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4717,26 +4713,14 @@ export const SponsoredProductsRunning: Story = {
                         );
                       })()}
                     </div>
-                  </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
+                      <label className="block text-sm font-medium mb-1">Bidding (CPC)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                        <Input type="number" placeholder="e.g. 0.50" value={detailsCPC} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetailsCPC(e.target.value)} className="pl-7" />
+                      </div>
                     </div>
                   </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -5144,6 +5128,8 @@ export const OffsiteRunning: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -5241,10 +5227,6 @@ export const OffsiteRunning: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
-                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -5269,7 +5251,18 @@ export const OffsiteRunning: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5316,25 +5309,6 @@ export const OffsiteRunning: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>
@@ -5620,6 +5594,8 @@ export const OffsiteInOption: Story = {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date('2024-06-30'));
     const [detailsTotalBudget, setDetailsTotalBudget] = useState<string>('');
     const [detailsMediaPlan, setDetailsMediaPlan] = useState<string>('C-001');
+    const [detailsBuyingType, setDetailsBuyingType] = useState<'auction' | 'guaranteed'>('auction');
+    const [detailsRetailProducts, setDetailsRetailProducts] = useState<string[]>([]);
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign');
     const routeCampaign = useRouteCampaign();
@@ -5716,10 +5692,6 @@ export const OffsiteInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Evaluation ID</label>
-                      <Input placeholder="Enter evaluation ID" />
-                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -5744,7 +5716,18 @@ export const OffsiteInOption: Story = {
                         searchPlaceholder="Search brands..."
                       />
                     </div>
-                  </div>
+                                      <div className="md:col-span-2">
+                      <SearchSelectList
+                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
+                        placeholder="Select product by name or ID…"
+                        icon={<ScanBarcode className="w-4 h-4" />}
+                        options={detailsRetailProductOptions}
+                        value={detailsRetailProducts}
+                        onChange={setDetailsRetailProducts}
+                        maxVisibleSelected={5}
+                      />
+                    </div>
+</div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5791,25 +5774,6 @@ export const OffsiteInOption: Story = {
                       })()}
                     </div>
                   </div>
-                </FormSection>
-                <FormSection bordered title="Objective & KPIs" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Campaign Goal</label>
-                      <Input
-                        dropdown
-                        options={[
-                          { label: 'Awareness', value: 'awareness' },
-                          { label: 'Engagement', value: 'engagement' },
-                          { label: 'Conversion', value: 'conversion' },
-                        ]}
-                        value={detailsTotalBudget}
-                        onChange={setDetailsTotalBudget}
-                        placeholder="Select goal"
-                      />
-                    </div>
-                  </div>
-                  <ObjectiveKpiSelect value={detailsObjectiveKpi} onChange={setDetailsObjectiveKpi} />
                 </FormSection>
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">Save</button>
               </form>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bell, Check, CheckCircle2, ChevronDown, Circle, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
+import { Bell, Check, CheckCircle2, ChevronDown, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDb, setupStepDone, setupStepDoneForBooking, walkSteps, workflowFor, type Booking, type Campaign, type EngineId, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
 import { LIFECYCLE_LABEL, PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
@@ -175,7 +175,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
         )}
         title={st.description}
       >
-        {state === 'past' ? <Check className="h-3 w-3" /> : state === 'current' ? <Circle className="h-2 w-2 fill-current" /> : null}
+        {state === 'past' && <Check className="h-3 w-3" />}
         {st.name}
         {st.dueDaysBeforeStart ? <span className="opacity-70">X-{st.dueDaysBeforeStart}</span> : null}
         {openHere > 0 && <span className="rounded-full bg-background/20 px-1.5 text-[10px] tabular-nums">{openHere}</span>}

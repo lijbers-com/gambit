@@ -62,8 +62,8 @@ import {
  * is what bookings on this proposition follow.
  */
 
-const NODE_W = 232;
-const NODE_H = 76;
+const NODE_W = 260;
+const NODE_H = 100;
 const GRID = 20;
 
 const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React.ComponentType<{ className?: string }>; tone: string }> = {
@@ -298,7 +298,7 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
     const w = list.reduce((m, st) => Math.max(m, st.x + NODE_W), 0) + 40;
     const h = list.reduce((m, st) => Math.max(m, st.y + NODE_H), 0) + 40;
     const k = Math.min(1, (el.clientWidth - 24) / w, (el.clientHeight - 24) / h);
-    setView({ k, x: Math.max(12, (el.clientWidth - w * k) / 2), y: 12 });
+    setView({ k, x: Math.max(12, (el.clientWidth - w * k) / 2), y: Math.max(12, (el.clientHeight - h * k) / 2) });
   }, []);
   const onBoardPointerDown = (e: React.PointerEvent) => {
     // The background pans; tiles and ports have their own handlers.
@@ -591,18 +591,21 @@ export const WorkflowBuilder: React.FC<{ engine: EngineId; className?: string }>
                   onPointerUp={(e) => onTilePointerUp(e, s)}
                   onClick={(e) => { e.stopPropagation(); if (!drag.current) { setSelectedStep(s.id); setSelectedEdge(null); } }}
                 >
-                  <div className="flex h-full items-center gap-2.5 p-2.5">
+                  <div className="flex h-full items-start gap-3 p-3">
                     <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-md', tone)}><Icon className="h-4 w-4" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{s.name}</span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
+                      <span className="block truncate text-xs text-muted-foreground">
                         {label} · {OWNERS[s.owner]}
                         {s.dueDaysBeforeStart ? ` · X-${s.dueDaysBeforeStart}` : ''}
                       </span>
-                      <span className="mt-0.5 flex gap-1">
-                        {s.mandatory && <span className="rounded-sm bg-neutral-100 px-1 text-[9px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
-                        {s.slaDays ? <span className="rounded-sm bg-neutral-100 px-1 text-[9px] uppercase tracking-wide text-neutral-600">SLA {s.slaDays}d</span> : null}
-                        {s.actions.length > 0 && <span className="rounded-sm bg-neutral-100 px-1 text-[9px] uppercase tracking-wide text-neutral-600">{s.actions.length} action{s.actions.length === 1 ? '' : 's'}</span>}
+                      {/* What governs the step, as badges — the same badges the
+                          rest of the app wears, readable at board zoom. */}
+                      <span className="mt-1.5 flex flex-wrap gap-1">
+                        {s.mandatory && <Badge variant="outline" className="px-1.5 py-0 text-[10px]">Mandatory</Badge>}
+                        {s.slaDays ? <Badge variant="outline" className="px-1.5 py-0 text-[10px]">SLA {s.slaDays}d</Badge> : null}
+                        {s.setup && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">Setup</Badge>}
+                        {s.actions.length > 0 && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{s.actions.length} action{s.actions.length === 1 ? '' : 's'}</Badge>}
                       </span>
                     </span>
                   </div>

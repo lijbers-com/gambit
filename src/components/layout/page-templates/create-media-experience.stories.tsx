@@ -1078,6 +1078,7 @@ export const GoalSelection: Story = {
                         <RetailProductSelect
                           value={selectedRetailProducts}
                           onChange={setSelectedRetailProducts}
+                          brands={selectedBrands}
                           optional
                           showCount
                         />

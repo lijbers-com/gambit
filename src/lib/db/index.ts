@@ -31,6 +31,7 @@ export {
   deletePricingRule,
 } from './store';
 export * from './pricing';
+export * from './retail-products';
 export { login, logout, getCurrentUser, subscribeSession } from './session';
 export { setupStepsForCampaign, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, setupWorkflowSteps, workflowFor, walkSteps, SETUP_STEP_DEFAULTS, type SetupStep } from './setup-steps';
 export {

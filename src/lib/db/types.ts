@@ -60,6 +60,25 @@ export interface Advertiser {
   brands: Brand[];
 }
 
+/**
+ * A retail product: what the store sells and what a booking advertises. It
+ * belongs to a brand, and the brand to an organisation (the advertiser, or
+ * media partner) — the way the retailer's SAP master data has it. Every flow
+ * that picks retail products picks them from the brands in play.
+ */
+export interface RetailProduct {
+  id: string;
+  brandId: string;
+  name: string;
+  /** Global trade item number — the barcode. */
+  gtin: string;
+  /** Further barcodes of the same product (other pack sizes, multipacks). */
+  upcs?: string[];
+  image: string;
+  category: string;
+  packSize?: string;
+}
+
 // ── Media plan → campaign → booking ────────────────────────────────────
 
 /**
@@ -537,6 +556,7 @@ export interface DbData {
   engines: Engine[];
   users: DbUser[];
   advertisers: Advertiser[];
+  retailProducts: RetailProduct[];
   mediaPlans: MediaPlan[];
   campaigns: Campaign[];
   bookings: Booking[];

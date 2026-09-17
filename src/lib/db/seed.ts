@@ -1,3 +1,4 @@
+import { productImages } from '@/lib/product-images';
 import type { DbData } from './types';
 
 /**
@@ -11,7 +12,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 26;
+export const SEED_VERSION = 27;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -88,6 +89,33 @@ export const seedData: DbData = {
         { id: 'br-nescafe', name: 'Nescafé', hasRetailProducts: true },
       ],
     },
+  ],
+
+  // ── Retail products (SAP master data: product → brand → organisation) ──
+  retailProducts: [
+    { id: '606983', brandId: 'br-coca-cola', name: 'Coca-Cola - coca-cola zero - 1 liter', gtin: '5449000131805', upcs: ['5449000131805', '5449000131812', '5449000131824'], image: productImages[0], category: 'Soft drinks', packSize: '1 l' },
+    { id: '606984', brandId: 'br-coca-cola', name: 'Coca-Cola - coca-cola original - 6x330ml', gtin: '5449000000996', image: productImages[1], category: 'Soft drinks', packSize: '6 × 330 ml' },
+    { id: '606985', brandId: 'br-coca-cola', name: 'Coca-Cola - fanta orange - 1.5 liter', gtin: '5449000011527', upcs: ['5449000011527', '5449000011534', '5449000011546'], image: productImages[2], category: 'Soft drinks', packSize: '1.5 l' },
+    { id: '609782', brandId: 'br-heineken', name: 'Heineken - premium lager beer - 6x330ml', gtin: '8712000030179', image: productImages[0], category: 'Beer', packSize: '6 × 330 ml' },
+    { id: '609783', brandId: 'br-heineken', name: 'Heineken - 0.0 alcohol free - 6x330ml', gtin: '8712000042394', upcs: ['8712000042394', '8712000042401', '8712000042413'], image: productImages[1], category: 'Beer', packSize: '6 × 330 ml' },
+    { id: '609784', brandId: 'br-heineken', name: 'Heineken - silver - 12x250ml', gtin: '8712000047856', image: productImages[2], category: 'Beer', packSize: '12 × 250 ml' },
+    { id: '614038', brandId: 'br-nutella', name: 'Nutella - hazelnut spread - 750g', gtin: '8000500035832', upcs: ['8000500035832', '8000500035839', '8000500035851'], image: productImages[0], category: 'Spreads', packSize: '750 g' },
+    { id: '614039', brandId: 'br-nutella', name: 'Nutella - hazelnut spread - 400g', gtin: '8000500023877', image: productImages[1], category: 'Spreads', packSize: '400 g' },
+    { id: '615201', brandId: 'br-knorr', name: 'Knorr - wereldgerecht nasi - 288g', gtin: '8712100850317', upcs: ['8712100850317', '8712100850324', '8712100850336'], image: productImages[2], category: 'Meal kits', packSize: '288 g' },
+    { id: '615202', brandId: 'br-knorr', name: 'Knorr - bouillon groente - 8 tabletten', gtin: '8712100563966', image: productImages[0], category: 'Soups & stock', packSize: '80 g' },
+    { id: '615203', brandId: 'br-knorr', name: 'Knorr - mix bami - 47g', gtin: '8712100664045', upcs: ['8712100664045', '8712100664052', '8712100664064'], image: productImages[1], category: 'Meal kits', packSize: '47 g' },
+    { id: '607124', brandId: 'br-pepsi', name: 'Pepsi - pepsi max - 1.5 liter', gtin: '8712100571336', image: productImages[2], category: 'Soft drinks', packSize: '1.5 l' },
+    { id: '607125', brandId: 'br-pepsi', name: 'Pepsi - pepsi max - 6x330ml', gtin: '8712100571343', upcs: ['8712100571343', '8712100571350', '8712100571362'], image: productImages[0], category: 'Soft drinks', packSize: '6 × 330 ml' },
+    { id: '608456', brandId: 'br-redbull', name: 'Red Bull - energy drink original - 250ml', gtin: '9002490100070', image: productImages[1], category: 'Energy drinks', packSize: '250 ml' },
+    { id: '608457', brandId: 'br-redbull', name: 'Red Bull - sugarfree - 4x250ml', gtin: '9002490205997', upcs: ['9002490205997', '9002490206004', '9002490206016'], image: productImages[2], category: 'Energy drinks', packSize: '4 × 250 ml' },
+    { id: '616301', brandId: 'br-magnum', name: 'Magnum - classic - 4x110ml', gtin: '8711327369276', image: productImages[0], category: 'Ice cream', packSize: '4 × 110 ml' },
+    { id: '616302', brandId: 'br-magnum', name: 'Magnum - almond - 4x110ml', gtin: '8711327369283', upcs: ['8711327369283', '8711327369290', '8711327369302'], image: productImages[1], category: 'Ice cream', packSize: '4 × 110 ml' },
+    { id: '616401', brandId: 'br-lipton', name: 'Lipton - ice tea sparkling - 1.5 liter', gtin: '8712100001284', image: productImages[2], category: 'Soft drinks', packSize: '1.5 l' },
+    { id: '616402', brandId: 'br-lipton', name: 'Lipton - yellow label thee - 100 zakjes', gtin: '8722700055471', upcs: ['8722700055471', '8722700055478', '8722700055490'], image: productImages[0], category: 'Tea', packSize: '100 bags' },
+    { id: '617501', brandId: 'br-kitkat', name: 'KitKat - 4 finger - 41.5g', gtin: '7613035415164', image: productImages[1], category: 'Chocolate', packSize: '41.5 g' },
+    { id: '617502', brandId: 'br-kitkat', name: 'KitKat - chunky - 40g', gtin: '7613034624629', upcs: ['7613034624629', '7613034624636', '7613034624648'], image: productImages[2], category: 'Chocolate', packSize: '40 g' },
+    { id: '617601', brandId: 'br-nescafe', name: 'Nescafé - gold - 200g', gtin: '7613036884594', image: productImages[0], category: 'Coffee', packSize: '200 g' },
+    { id: '617602', brandId: 'br-nescafe', name: 'Nescafé - dolce gusto lungo - 16 capsules', gtin: '7613031526369', upcs: ['7613031526369', '7613031526376', '7613031526388'], image: productImages[1], category: 'Coffee', packSize: '16 caps' },
   ],
 
   // ── Media plans ──────────────────────────────────────────────────────

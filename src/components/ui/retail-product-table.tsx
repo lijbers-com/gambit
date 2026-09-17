@@ -9,7 +9,9 @@ import { Table } from './table';
 import { FilterBar } from './filter-bar';
 import { LevelMeter, LEVEL_LABELS, type Level } from './level-meter';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
-import { RetailProductSelect, defaultRetailProducts, type RetailProduct } from './retail-product-select';
+import { RetailProductSelect, type RetailProduct } from './retail-product-select';
+import { useDb } from '@/lib/db/hooks';
+import { productsForBrands, productsForAdvertiser, brandOfProduct } from '@/lib/db/retail-products';
 import { retailProductPerformance } from '@/lib/sp-retail-products';
 
 /**
@@ -24,15 +26,23 @@ export interface RetailProductTableProps {
   /** Ids of the products in the booking. */
   value: string[];
   onChange: (ids: string[]) => void;
-  /** The catalogue to add from. */
+  /** The catalogue to add from; by default the store's, narrowed by `brands` / `advertiser`. */
   catalogue?: RetailProduct[];
+  brands?: string[];
+  advertiser?: string;
   className?: string;
 }
 
 const money = (n: number) => `€${n.toLocaleString('en-GB')}`;
 const num = (n: number) => n.toLocaleString('en-GB');
 
-export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, onChange, catalogue = defaultRetailProducts, className }) => {
+export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, onChange, catalogue: catalogueProp, brands, advertiser, className }) => {
+  const db = useDb();
+  const catalogue = React.useMemo<RetailProduct[]>(() => {
+    if (catalogueProp) return catalogueProp;
+    const rows = brands && brands.length > 0 ? productsForBrands(db, brands) : advertiser ? productsForAdvertiser(db, advertiser) : db.retailProducts;
+    return rows.map((p) => ({ id: p.id, name: p.name, brand: brandOfProduct(db, p).brand?.name, gtin: p.gtin, image: p.image }));
+  }, [db, catalogueProp, brands, advertiser]);
   const [search, setSearch] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
   const [volumeFilter, setVolumeFilter] = React.useState<string[]>([]);
@@ -45,12 +55,15 @@ export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, o
   const q = search.trim().toLowerCase();
   const rows = value
     .map((id) => {
-      const product = catalogue.find((p) => p.id === id) ?? { id, name: id };
+      const dbProduct = db.retailProducts.find((p) => p.id === id);
+      const product = catalogue.find((p) => p.id === id) ?? (dbProduct ? { id, name: dbProduct.name, brand: brandOfProduct(db, dbProduct).brand?.name, gtin: dbProduct.gtin, image: dbProduct.image } : { id, name: id });
       const perf = retailProductPerformance(id);
+      // The barcode is the product's own; the derived extras stand in for other pack sizes.
+      const upcs = dbProduct ? [dbProduct.gtin, ...(dbProduct.upcs ?? []).filter((u) => u !== dbProduct.gtin)] : perf.upcs;
       const status: 'active' | 'paused' = paused.has(id) ? 'paused' : perf.status === 'paused' && !paused.has(`on:${id}`) ? 'paused' : 'active';
-      return { ...perf, id, name: product.name, status };
+      return { ...perf, upcs, id, name: product.name, brandName: product.brand ?? '—', image: product.image, status };
     })
-    .filter((r) => !q || r.name.toLowerCase().includes(q) || r.podId.includes(q) || r.upcs.some((u) => u.includes(q)))
+    .filter((r) => !q || r.name.toLowerCase().includes(q) || r.brandName.toLowerCase().includes(q) || r.podId.includes(q) || r.upcs.some((u) => u.includes(q)))
     .filter((r) => statusFilter.length === 0 || statusFilter.includes(r.status))
     .filter((r) => volumeFilter.length === 0 || volumeFilter.includes(String(r.searchVolume)))
     .filter((r) => competitiveFilter.length === 0 || competitiveFilter.includes(String(r.competitive)));
@@ -109,10 +122,11 @@ export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, o
             { key: 'upc', header: 'UPC', render: (r) => (
               <span className="flex items-center gap-1.5 tabular-nums">{r.upcs[0]}{r.upcs.length > 1 && <Badge variant="outline" className="font-normal">+{r.upcs.length - 1}</Badge>}</span>
             ) },
-            { key: 'image', header: 'Image', render: (r) => (
-              <span className="flex h-8 w-8 items-center justify-center rounded bg-muted text-xs font-medium text-muted-foreground" aria-hidden>{r.name.slice(0, 1)}</span>
-            ) },
+            { key: 'image', header: 'Image', render: (r) => r.image
+              ? <img src={r.image} alt="" className="h-8 w-8 rounded object-cover" />
+              : <span className="flex h-8 w-8 items-center justify-center rounded bg-muted text-xs font-medium text-muted-foreground" aria-hidden>{r.name.slice(0, 1)}</span> },
             { key: 'name', header: 'Product title', render: (r) => <span className="whitespace-nowrap">{r.name}</span> },
+            { key: 'brandName', header: 'Brand', render: (r) => r.brandName },
             { key: 'impressions', header: 'Impressions', render: (r) => num(r.impressions) },
             { key: 'clicks', header: 'Clicks', render: (r) => num(r.clicks) },
             { key: 'spend', header: 'Spend', render: (r) => money(r.spend) },

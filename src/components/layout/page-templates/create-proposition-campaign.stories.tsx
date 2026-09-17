@@ -9,6 +9,7 @@ import { SuggestionList } from '@/components/ui/suggestion-list';
 import { GoalCard } from '@/components/ui/goal-card';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { KeywordTable } from '@/components/ui/keyword-table';
+import { RetailProductSelect } from '@/components/ui/retail-product-select';
 import { LevelMeter, LEVEL_LABELS, type Level } from '@/components/ui/level-meter';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
@@ -3292,14 +3293,14 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       <div className="text-xs text-muted-foreground mt-1">Choose the brand this campaign will advertise for</div>
                     </div>
                     <div className="space-y-2">
-                      <SearchSelectList
-                        label={<>Retail products <span className="text-muted-foreground font-normal">(optional)</span></>}
-                        placeholder="Select product by name or ID…"
-                        icon={<ScanBarcode className="w-4 h-4" />}
-                        options={retailProducts.map((r) => ({ value: r.id, label: r.name, description: r.id }))}
+                      {/* Products come from the chosen brand — the same picker
+                          as everywhere else, narrowed to that brand's shelf. */}
+                      <RetailProductSelect
                         value={spRetailProducts}
                         onChange={setSpRetailProducts}
-                        maxVisibleSelected={5}
+                        brands={spBrand ? [spBrand] : []}
+                        advertiser={selectedAdvertiser}
+                        optional
                       />
                       <div className="text-xs text-muted-foreground">Search and select retail products to target for this campaign</div>
                     </div>

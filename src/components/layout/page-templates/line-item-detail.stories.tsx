@@ -1856,7 +1856,6 @@ export const DigitalInStore: Story = {
                             brandOptions={dInstoreBrandOptions}
                             products={selectedRetailProducts}
                             onProductsChange={setSelectedRetailProducts}
-                            productCatalog={retailProducts}
                           />
                         </div>
                       </FormSection>
@@ -3150,7 +3149,7 @@ export const OfflineInStore: Story = {
                           <RetailProductSelect
                             value={selectedRetailProducts}
                             onChange={setSelectedRetailProducts}
-                            products={retailProducts}
+                            advertiser={bookingAdvertiser}
                           />
                         </div>
                       </FormSection>
@@ -3906,7 +3905,7 @@ export const SponsoredProducts: Story = {
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     // The products already in the booking — the table has something to show.
-    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>(['606983', '607124', '608456', '609782', '614038', '614649']);
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>(['606983', '606984', '606985', '609782', '609783', '614038']);
     // What a sponsored-products booking is actually bought with.
     const [keywords, setKeywords] = React.useState<string[]>(['beer', 'heineken', 'craft beer']);
     const [selectedCategories, setSelectedCategories] = React.useState<string[]>(['cat-primary']);
@@ -4186,7 +4185,7 @@ export const SponsoredProducts: Story = {
                           each performs, straight in the card. The wizard keeps
                           the picker; here it opens from the Add button. */}
                       <section className={cn(bookingTab !== 'products' && "hidden")}>
-                        <RetailProductTable value={selectedRetailProducts} onChange={setSelectedRetailProducts} catalogue={retailProducts} />
+                        <RetailProductTable value={selectedRetailProducts} onChange={setSelectedRetailProducts} advertiser={bookingAdvertiser} />
                       </section>
 
                       {/* The keywords ARE the tab: the table sits straight in
@@ -4715,7 +4714,7 @@ export const OffsiteDisplay: Story = {
                     <RetailProductSelect
                       value={selectedRetailProducts}
                       onChange={setSelectedRetailProducts}
-                      products={retailProducts}
+                      advertiser={bookingAdvertiser}
                       label={null}
                       showCount
                     />

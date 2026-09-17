@@ -23,7 +23,8 @@ export interface AdvertiserBrandProductsProps {
   brandOptions: { label: string; value: string }[];
   products: React.ComponentProps<typeof RetailProductSelect>['value'];
   onProductsChange: React.ComponentProps<typeof RetailProductSelect>['onChange'];
-  productCatalog: React.ComponentProps<typeof RetailProductSelect>['products'];
+  /** Optional: a fixed catalogue. Without it the store's catalogue narrows to the chosen brands. */
+  productCatalog?: React.ComponentProps<typeof RetailProductSelect>['products'];
   className?: string;
 }
 
@@ -50,6 +51,6 @@ export const AdvertiserBrandProducts: React.FC<AdvertiserBrandProductsProps> = (
       value={brands}
       onChange={onBrandsChange}
     />
-    <RetailProductSelect value={products} onChange={onProductsChange} products={productCatalog} />
+    <RetailProductSelect value={products} onChange={onProductsChange} products={productCatalog} brands={brands} advertiser={advertiser} />
   </div>
 );

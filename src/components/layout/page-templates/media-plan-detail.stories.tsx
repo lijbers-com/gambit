@@ -1295,7 +1295,7 @@ export const MediaPlanDetail: Story = {
 
                         {/* Retail products — only for a selected advertiser + brand carried in-store. */}
                         {advertiser && brands.length > 0 && brandsHaveRetailProducts && (
-                          <RetailProductSelect value={retailProducts} onChange={setRetailProducts} optional showCount />
+                          <RetailProductSelect value={retailProducts} onChange={setRetailProducts} brands={brands} optional showCount />
                         )}
                       </div>
                     </FormSection>

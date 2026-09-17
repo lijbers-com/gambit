@@ -106,13 +106,6 @@ export const defaultRoutes: Route[] = [
     ],
   },
   {
-    id: 19,
-    name: "Media products",
-    type: "single" as const,
-    icon: { lucide: "Package" },
-    url: "/media-products",
-  },
-  {
     id: 1,
     name: "Creatives",
     type: "single" as const,
@@ -263,6 +256,13 @@ export const defaultRoutes: Route[] = [
     type: "single" as const,
     icon: { lucide: "Globe" },
     url: "/configuration/offsite",
+  },
+  {
+    id: 19,
+    name: "Media products",
+    type: "single" as const,
+    icon: { lucide: "Package" },
+    url: "/media-products",
   },
   {
     id: 13,

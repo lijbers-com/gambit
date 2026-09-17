@@ -108,7 +108,7 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onChange, 
             { name: 'Competition', options: levelOptions, selectedValues: competitionFilter, onChange: setCompetitionFilter },
           ]}
         />
-        <div className={`${maxHeightClassName} overflow-y-auto rounded-md border`}>
+        <div className={`${maxHeightClassName} overflow-y-auto`}>
           <Table
             columns={[
               { key: 'keyword', header: 'Keyword' },

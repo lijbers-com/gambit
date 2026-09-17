@@ -9,6 +9,7 @@ import { formatYAxisTick } from "./chart-types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 import { TabActionGroup, TAB_LABEL } from "./tab-actions"
 import { NotificationDot } from "./notification-dot"
+import { TabStrip } from "./tab-strip"
 
 const cardVariants = cva(
   "group/card rounded-xl border bg-card text-card-foreground",
@@ -74,34 +75,7 @@ export function CardWithTabs({
   return (
     <div className={className} {...props}>
       <div className="flex items-end justify-between w-full mb-0" style={{ minHeight: 56 }}>
-        <div className="flex gap-0 flex-1 min-w-0">
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              // A tab label always stays on one line: `min-w-0` lets the button
-              // shrink below its text width and `truncate` ends it with an
-              // ellipsis, so a long label never pushes the row to two lines.
-              className={cn(
-                // inline-flex so the unread badge sits beside the label and
-                // centres with it, rather than floating in the corner.
-                'inline-flex items-center gap-2 px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                activeTab === tab.value
-                  ? 'font-medium bg-white text-card-foreground border-border z-10'
-                  : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground'
-              )}
-              style={{ position: 'relative', top: 1 }}
-              onClick={() => setActiveTab(tab.value)}
-              // The full label stays reachable on hover once it is cut off.
-              title={typeof tab.label === 'string' ? tab.label : undefined}
-              type="button"
-            >
-              <span data-tab-label className={TAB_LABEL}>{tab.label}</span>
-              {!!tab.badgeCount && tab.badgeCount > 0 && (
-                <NotificationDot count={tab.badgeCount} />
-              )}
-            </button>
-          ))}
-        </div>
+        <TabStrip className="flex-1" tabs={tabs} value={activeTab ?? ''} onChange={setActiveTab} />
         {/* Actions collapse to icons when the tabs need the room. */}
         {action && <TabActionGroup className="mb-2">{action}</TabActionGroup>}
       </div>

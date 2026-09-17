@@ -63,6 +63,7 @@ export const TabActionGroup: React.FC<{ children: React.ReactNode; className?: s
       // everything already fits.
       let natural = 0;
       for (const b of Array.from(tabs.children) as HTMLElement[]) {
+        if (b.hasAttribute('data-tab-measure')) continue;
         const label = b.querySelector<HTMLElement>('[data-tab-label]') ?? b.querySelector('span');
         natural += b.offsetWidth + (label ? label.scrollWidth - label.clientWidth : 0);
       }

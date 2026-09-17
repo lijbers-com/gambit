@@ -43,13 +43,14 @@ import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { KeywordTable } from '@/components/ui/keyword-table';
+import { TabStrip } from '@/components/ui/tab-strip';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
 import { FilterBar } from '../../ui/filter-bar';
 import { Filter } from '../../ui/filter';
 import { DialogFooter } from '../../ui/dialog';
-import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw, MoreHorizontal, Copy, ClipboardPaste } from 'lucide-react';
+import { X, Trash2, Shuffle, Store, Users, ScanBarcode, LayoutDashboard, Calendar, MapPin, Download, Upload, ChevronDown, Search, Info, MonitorPlay, RotateCcw, MoreHorizontal, Copy, ClipboardPaste, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip';
 import { Switch } from '../../ui/switch';
 import { useDb } from '@/lib/db';
@@ -552,6 +553,8 @@ export const Display: Story = {
     // 2. Targeting (audience targets + delivery behaviour + objectives + pricing)
     // 3. Creatives (link / upload creatives — placeholder for now)
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    // The summary column folds away when the form needs the width.
+    const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -730,48 +733,39 @@ export const Display: Story = {
               <div>
               {/* Tabs: split the form into Booking details / Targeting / Creatives */}
               <div className="flex items-end justify-between gap-4">
-              <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
-                {[
+              <TabStrip
+                className={cn('flex-1', summaryOpen && TAB_STRIP_FORM_COLUMN)}
+                tabs={[
                   { value: 'details',    label: 'Booking details' },
                   { value: 'targeting',  label: 'Targeting' },
                   { value: 'creatives',  label: 'Creatives' },
                   { value: 'actions',    label: 'Recommendations' },
                   { value: 'evaluation', label: 'Evaluation' },
                   { value: 'logs',       label: 'Logs' },
-                ].map((t) => (
-                  <button
-                    key={t.value}
-                    role="tab"
-                    aria-selected={bookingTab === t.value}
-                    onClick={() => setBookingTab(t.value as typeof bookingTab)}
-                    className={cn(
-                      'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                      bookingTab === t.value
-                        ? 'font-medium bg-white text-card-foreground border-border z-10'
-                        : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
-                    )}
-                    style={{ position: 'relative', top: '1px' }}
-                    title={t.label}
-                  >
-                    <span className="inline-flex min-w-0 items-center gap-2">
-                      <span data-tab-label className={TAB_LABEL}>{t.label}</span>
-                      {t.value === 'actions' && bookingUnread > 0 && (
-                        <NotificationDot count={bookingUnread} />
-                      )}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                ]}
+                value={bookingTab}
+                onChange={(v) => setBookingTab(v as typeof bookingTab)}
+                badgeCounts={{ actions: bookingUnread }}
+              />
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
                 <AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
+                <Button
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 p-0"
+                  title={summaryOpen ? 'Hide summary' : 'Show summary'}
+                  aria-pressed={!summaryOpen}
+                  onClick={() => setSummaryOpen((o) => !o)}
+                >
+                  {summaryOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                </Button>
               </TabActionGroup>
               </div>
 
               {/* The tab card holds the form only; the summary cards sit beside
                   it, outside the card, so the tab reads as one form. */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-2 min-w-0 space-y-6">
+              <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen && 'lg:grid-cols-3')}>
+              <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
               <div
                 className={cn(
                   // gap, not space-y: sections for the other tabs are still in
@@ -1101,6 +1095,7 @@ export const Display: Story = {
                   sidebar, the active card first and white, the rest muted in
                   hierarchy order. */}
               <HierarchySidebar
+                className={cn(!summaryOpen && 'hidden')}
                 active="booking"
                 booking={
                   <>
@@ -1154,6 +1149,8 @@ export const DigitalInStore: Story = {
     // in the evaluation environment.
     const [evaluationEnabled, setEvaluationEnabled] = React.useState(false);
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    // The summary column folds away when the form needs the width.
+    const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -1801,46 +1798,37 @@ export const DigitalInStore: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
-                    {[
+                  <TabStrip
+                className={cn('flex-1', summaryOpen && TAB_STRIP_FORM_COLUMN)}
+                tabs={[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
                       { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
-                    ].map((t) => (
-                      <button
-                        key={t.value}
-                        role="tab"
-                        aria-selected={bookingTab === t.value}
-                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
-                        className={cn(
-                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                          bookingTab === t.value
-                            ? 'font-medium bg-white text-card-foreground border-border z-10'
-                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
-                        )}
-                        style={{ position: 'relative', top: '1px' }}
-                    title={t.label}
-                      >
-                        <span className="inline-flex min-w-0 items-center gap-2">
-                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
-                          {t.value === 'actions' && bookingUnread > 0 && (
-                            <NotificationDot count={bookingUnread} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                ]}
+                value={bookingTab}
+                onChange={(v) => setBookingTab(v as typeof bookingTab)}
+                badgeCounts={{ actions: bookingUnread }}
+              />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
-                  </TabActionGroup>
+                    <Button
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 p-0"
+                  title={summaryOpen ? 'Hide summary' : 'Show summary'}
+                  aria-pressed={!summaryOpen}
+                  onClick={() => setSummaryOpen((o) => !o)}
+                >
+                  {summaryOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                </Button>
+              </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen && 'lg:grid-cols-3')}>
+                  <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
@@ -2440,6 +2428,7 @@ export const DigitalInStore: Story = {
                       sidebar, the active card first and white, the rest muted in
                       hierarchy order. */}
                   <HierarchySidebar
+                className={cn(!summaryOpen && 'hidden')}
                     active="booking"
                     booking={
                       <>
@@ -2540,6 +2529,8 @@ export const OfflineInStore: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [bookingName, setBookingName] = React.useState('Offline in-store · Summer Launch · Shelf Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    // The summary column folds away when the form needs the width.
+    const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -3081,46 +3072,37 @@ export const OfflineInStore: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
-                    {[
+                  <TabStrip
+                className={cn('flex-1', summaryOpen && TAB_STRIP_FORM_COLUMN)}
+                tabs={[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
                       { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
-                    ].map((t) => (
-                      <button
-                        key={t.value}
-                        role="tab"
-                        aria-selected={bookingTab === t.value}
-                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
-                        className={cn(
-                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                          bookingTab === t.value
-                            ? 'font-medium bg-white text-card-foreground border-border z-10'
-                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
-                        )}
-                        style={{ position: 'relative', top: '1px' }}
-                    title={t.label}
-                      >
-                        <span className="inline-flex min-w-0 items-center gap-2">
-                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
-                          {t.value === 'actions' && bookingUnread > 0 && (
-                            <NotificationDot count={bookingUnread} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                ]}
+                value={bookingTab}
+                onChange={(v) => setBookingTab(v as typeof bookingTab)}
+                badgeCounts={{ actions: bookingUnread }}
+              />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
-                  </TabActionGroup>
+                    <Button
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 p-0"
+                  title={summaryOpen ? 'Hide summary' : 'Show summary'}
+                  aria-pressed={!summaryOpen}
+                  onClick={() => setSummaryOpen((o) => !o)}
+                >
+                  {summaryOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                </Button>
+              </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen && 'lg:grid-cols-3')}>
+                  <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
@@ -3786,6 +3768,7 @@ export const OfflineInStore: Story = {
                       sidebar, the active card first and white, the rest muted in
                       hierarchy order. */}
                   <HierarchySidebar
+                className={cn(!summaryOpen && 'hidden')}
                     active="booking"
                     booking={
                       <>
@@ -3877,6 +3860,8 @@ export const SponsoredProducts: Story = {
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'products' | 'keywords' | 'categories' | 'other' | 'actions' | 'evaluation' | 'logs'>('details');
+    // The summary column folds away when the form needs the width.
+    const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -4094,8 +4079,9 @@ export const SponsoredProducts: Story = {
               <div>
                 <div className="min-w-0">
                   <div className="flex items-end justify-between gap-4">
-                  <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
-                    {[
+                  <TabStrip
+                className={cn('flex-1', summaryOpen && TAB_STRIP_FORM_COLUMN)}
+                tabs={[
                       // Targeting is what a sponsored products booking is
                       // made of, so each part has a tab — the same tabs the
                       // campaign page used to carry.
@@ -4107,38 +4093,28 @@ export const SponsoredProducts: Story = {
                       { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
-                    ].map((t) => (
-                      <button
-                        key={t.value}
-                        role="tab"
-                        aria-selected={bookingTab === t.value}
-                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
-                        className={cn(
-                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                          bookingTab === t.value
-                            ? 'font-medium bg-white text-card-foreground border-border z-10'
-                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
-                        )}
-                        style={{ position: 'relative', top: '1px' }}
-                    title={t.label}
-                      >
-                        <span className="inline-flex min-w-0 items-center gap-2">
-                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
-                          {t.value === 'actions' && bookingUnread > 0 && (
-                            <NotificationDot count={bookingUnread} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                ]}
+                value={bookingTab}
+                onChange={(v) => setBookingTab(v as typeof bookingTab)}
+                badgeCounts={{ actions: bookingUnread }}
+              />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
-                  </TabActionGroup>
+                    <Button
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 p-0"
+                  title={summaryOpen ? 'Hide summary' : 'Show summary'}
+                  aria-pressed={!summaryOpen}
+                  onClick={() => setSummaryOpen((o) => !o)}
+                >
+                  {summaryOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                </Button>
+              </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                  <div className="lg:col-span-2 min-w-0 space-y-6">
+                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen && 'lg:grid-cols-3')}>
+                  <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
@@ -4401,6 +4377,7 @@ export const SponsoredProducts: Story = {
                       sidebar, the active card first and white, the rest muted in
                       hierarchy order. */}
                   <HierarchySidebar
+                className={cn(!summaryOpen && 'hidden')}
                     active="booking"
                     booking={
                       <>
@@ -4481,6 +4458,8 @@ export const OffsiteDisplay: Story = {
 
     const [bookingName, setBookingName] = React.useState('Offsite · Summer Launch · Open Web Display');
     const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'creatives' | 'evaluation' | 'logs'>('details');
+    // The summary column folds away when the form needs the width.
+    const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -4645,46 +4624,37 @@ export const OffsiteDisplay: Story = {
           <div>
             <div className="min-w-0">
               <div className="flex items-end justify-between gap-4">
-              <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
-                    {[
+              <TabStrip
+                className={cn('flex-1', summaryOpen && TAB_STRIP_FORM_COLUMN)}
+                tabs={[
                       { value: 'details',    label: 'Booking details' },
                       { value: 'targeting',  label: 'Targeting' },
                       { value: 'creatives',  label: 'Creatives' },
                       { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
-                    ].map((t) => (
-                      <button
-                        key={t.value}
-                        role="tab"
-                        aria-selected={bookingTab === t.value}
-                        onClick={() => setBookingTab(t.value as typeof bookingTab)}
-                        className={cn(
-                          'inline-flex items-center px-6 py-3 text-sm border border-b-0 rounded-t-lg focus:outline-none transition-colors min-w-0',
-                          bookingTab === t.value
-                            ? 'font-medium bg-white text-card-foreground border-border z-10'
-                            : 'font-normal bg-transparent text-muted-foreground border-transparent hover:text-card-foreground',
-                        )}
-                        style={{ position: 'relative', top: '1px' }}
-                    title={t.label}
-                      >
-                        <span className="inline-flex min-w-0 items-center gap-2">
-                          <span data-tab-label className={TAB_LABEL}>{t.label}</span>
-                          {t.value === 'actions' && bookingUnread > 0 && (
-                            <NotificationDot count={bookingUnread} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                ]}
+                value={bookingTab}
+                onChange={(v) => setBookingTab(v as typeof bookingTab)}
+                badgeCounts={{ actions: bookingUnread }}
+              />
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
                 <AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
+                <Button
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 p-0"
+                  title={summaryOpen ? 'Hide summary' : 'Show summary'}
+                  aria-pressed={!summaryOpen}
+                  onClick={() => setSummaryOpen((o) => !o)}
+                >
+                  {summaryOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                </Button>
               </TabActionGroup>
               </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-2 min-w-0 space-y-6">
+              <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen && 'lg:grid-cols-3')}>
+              <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
@@ -4920,6 +4890,7 @@ export const OffsiteDisplay: Story = {
                   sidebar, the active card first and white, the rest muted in
                   hierarchy order. */}
               <HierarchySidebar
+                className={cn(!summaryOpen && 'hidden')}
                 active="booking"
                 booking={
                   <>

@@ -76,7 +76,7 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
       : key === 'link-creatives' ? (missing ? `/create/${seg}?bookingId=${missing.id}&step=creatives${back}` : `/create/${seg}?campaignId=${c.id}${back}`)
       : `/create/${seg}?campaignId=${c.id}${back}`;
     return (
-      <span className="flex shrink-0 items-center gap-3">
+      <span className="flex shrink-0 items-center gap-inline">
         {waiting > 0 && <span className="text-xs text-muted-foreground">{waiting} of {bookings.length} booking{bookings.length === 1 ? '' : 's'}</span>}
         <Button size="sm" onClick={() => go(href)}>Start</Button>
       </span>
@@ -94,7 +94,7 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
         bookingId={level === 'booking' ? entityId : undefined}
         renderStepExtra={stepExtra}
         trailing={(
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-inline">
             {actions}
             <LifecycleActions
               level={level}

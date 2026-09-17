@@ -96,7 +96,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         if (c === act || c.dataset.spacer) continue;
         rest += c.scrollWidth;
       }
-      const gaps = 16 * (bar.children.length - 1) + 16;
+      const gaps = 8 * (bar.children.length - 1) + 16;
       const needed = rest + fullWidth.current + gaps;
       const next = compactRef.current ? needed + 24 > bar.clientWidth : needed > bar.clientWidth;
       if (next !== compactRef.current) { compactRef.current = next; setCompact(next); }
@@ -114,8 +114,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const TriggerIcon = activeOption?.icon ?? ViewIcon;
 
   return (
-    <div ref={barRef} className={cn("flex flex-wrap items-center gap-row w-full", className)}>
-      <div className="flex flex-wrap items-center gap-row">
+    <div ref={barRef} className={cn("flex flex-wrap items-center gap-inline w-full", className)}>
+      <div className="flex flex-wrap items-center gap-inline">
         {filters.map((filter) => (
           <Filter
             key={filter.name}
@@ -134,7 +134,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           {/* The search gives way before anything overflows: it shrinks to a
               usable minimum, and the whole group drops to its own line when
               even that does not fit. */}
-          <div className="flex min-w-0 flex-1 basis-[240px] items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-1 basis-[240px] items-center justify-end gap-inline">
             {!hideSearch && (
               <div className="w-full min-w-[160px] max-w-[300px]">
                 <SearchInput
@@ -200,7 +200,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div
                 ref={actionRef}
                 data-compact={compact ? 'true' : undefined}
-                className={cn('group/tab-actions flex shrink-0 items-center gap-2', compact && '[&_button]:aspect-square [&_button]:px-0 [&_button]:gap-0')}
+                className={cn('group/tab-actions flex shrink-0 items-center gap-inline', compact && '[&_button]:aspect-square [&_button]:px-0 [&_button]:gap-0')}
               >
                 {action}
               </div>

@@ -271,7 +271,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
               )}
             </span>
           )}
-          {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
+          {trailing && <div className="ml-auto flex items-center gap-inline">{trailing}</div>}
         </div>
         {/* Expanded: the stage's steps in view, not behind the chip. */}
         {expanded && items.length > 0 && (

@@ -64,14 +64,14 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onChange, 
     <div className={className}>
       <div className="space-y-3">
         {/* One table, two views; the filters narrow whichever is open. */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-inline">
           <Tabs value={view} onValueChange={(v) => { setView(v as 'suggested' | 'added'); setSelected([]); }}>
             <TabsList>
               <TabsTrigger value="suggested">Suggested · {suggested.length}</TabsTrigger>
               <TabsTrigger value="added">In booking · {keywords.length}</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-inline">
             {view === 'suggested' ? (
               <>
                 {picked.length > 0 && <Button size="sm" onClick={() => addMany(picked)}>Add selected ({picked.length})</Button>}

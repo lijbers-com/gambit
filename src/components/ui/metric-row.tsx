@@ -226,14 +226,14 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
         // One row of controls, right-aligned: the date range and the page's
         // filters first, then Edit metrics — all the same outlined button, so
         // the row reads as one toolbar. A filter note sits left, on its own.
-        <div className="flex items-center justify-between gap-row">
+        <div className="flex items-center justify-between gap-inline">
           {filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
               <ListFilter className="h-3.5 w-3.5" />
               {filterNote}
             </span>
           ) : <span />}
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-inline">
             {!hideDateRange && <SessionDateRange />}
             {headerLeft}
             {hasDialogContent && !hideEditButton && (

@@ -64,7 +64,7 @@ export const BudgetPopover: React.FC<{
           )}
         </div>
         {hint && <FieldHint>{hint}</FieldHint>}
-        <div className="flex justify-end gap-2 border-t pt-3">
+        <div className="flex justify-end gap-inline border-t pt-3">
           <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
           <Button size="sm" onClick={() => { onApply(next); setOpen(false); }}>Apply</Button>
         </div>

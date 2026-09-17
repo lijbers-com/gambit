@@ -11,8 +11,10 @@ module.exports = {
       // The two distances a page is built from. `section` sits between the
       // big rows — page header, control panel, metric row, the card with its
       // tabs; `row` sits between the things inside a row — metric cards, the
-      // columns of the main card, buttons and filters on one line.
+      // columns of the main card; `inline` between buttons, filters and
+      // chips that stand next to each other on one line.
       spacing: {
+        inline: '0.5rem',
         row: '1rem',
         section: '2rem',
       },

@@ -96,7 +96,7 @@ export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, o
   return (
     <div className={className}>
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-inline">
           <p className="text-xs text-muted-foreground">{value.length} of 500 retail products. Switch one off to keep it in the booking without serving it.</p>
           {picked.length > 0 && <Button variant="outline" size="sm" onClick={() => remove(picked)}>Remove selected ({picked.length})</Button>}
         </div>

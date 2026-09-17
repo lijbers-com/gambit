@@ -121,7 +121,7 @@ export const LifecycleActions: React.FC<LifecycleActionsProps> = ({
   return (
     <>
       <div className={className}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-inline">
           <Button
             variant={toggle === 'play' && status !== 'paused' ? 'default' : 'outline'}
             // Starting is safe and reversible, so it acts immediately.

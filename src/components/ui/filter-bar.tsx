@@ -55,6 +55,12 @@ export interface FilterBarProps {
   onViewChange?: (value: string) => void;
   /** Optional icon for the view dropdown. Defaults to BarChart3. */
   viewIcon?: React.ComponentType<{ className?: string; size?: number }>;
+  /** An action beside the search — "Add retail products". Give it an
+   *  AddButton: when the bar runs out of room its label gives way to the
+   *  bare +, the same as the actions beside a tab strip. */
+  action?: React.ReactNode;
+  /** Enter in the search box — for bars where typing also adds. */
+  onSearchSubmit?: () => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -68,7 +74,38 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   activeView,
   onViewChange,
   viewIcon: ViewIcon = BarChart3,
+  action,
+  onSearchSubmit,
 }) => {
+  // The bar watches its own width: filters, search and the action at full
+  // width have to fit, or the action drops its label. Full width is cached
+  // while expanded so collapsing cannot argue itself back open.
+  const barRef = React.useRef<HTMLDivElement>(null);
+  const actionRef = React.useRef<HTMLDivElement>(null);
+  const [compact, setCompact] = React.useState(false);
+  const compactRef = React.useRef(false);
+  const fullWidth = React.useRef(0);
+  React.useLayoutEffect(() => {
+    const bar = barRef.current;
+    const act = actionRef.current;
+    if (!bar || !act) return;
+    const measure = () => {
+      if (!compactRef.current) fullWidth.current = act.offsetWidth;
+      let rest = 0;
+      for (const c of Array.from(bar.children) as HTMLElement[]) {
+        if (c === act || c.dataset.spacer) continue;
+        rest += c.scrollWidth;
+      }
+      const gaps = 12 * (bar.children.length - 1) + 16;
+      const needed = rest + fullWidth.current + gaps;
+      const next = compactRef.current ? needed + 24 > bar.clientWidth : needed > bar.clientWidth;
+      if (next !== compactRef.current) { compactRef.current = next; setCompact(next); }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, [action]);
   const activeOption = viewOptions?.find((o) => o.value === activeView);
   const showViewDropdown = !!viewOptions && viewOptions.length > 0;
   // Prefer the active option's own icon (so the trigger shows €€€ for
@@ -77,7 +114,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const TriggerIcon = activeOption?.icon ?? ViewIcon;
 
   return (
-    <div className={cn("flex items-center gap-3 w-full", className)}>
+    <div ref={barRef} className={cn("flex items-center gap-3 w-full", className)}>
       <div className="flex items-center gap-3">
         {filters.map((filter) => (
           <Filter
@@ -91,16 +128,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           />
         ))}
       </div>
-      {(!hideSearch || showViewDropdown) && (
+      {(!hideSearch || showViewDropdown || action) && (
         <>
-          <div className="flex-1" />
+          <div className="flex-1" data-spacer />
           <div className="flex items-center gap-2">
             {!hideSearch && (
-              <div className="w-[300px]">
+              <div className="w-[300px] max-w-full">
                 <SearchInput
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}
                   placeholder={searchPlaceholder}
+                  onKeyDown={onSearchSubmit ? (e) => { if (e.key === 'Enter') { e.preventDefault(); onSearchSubmit(); } } : undefined}
                 />
               </div>
             )}
@@ -154,6 +192,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   })}
                 </DropdownMenuContent>
               </DropdownMenu>
+            )}
+            {action && (
+              <div
+                ref={actionRef}
+                data-compact={compact ? 'true' : undefined}
+                className={cn('group/tab-actions flex shrink-0 items-center gap-2', compact && '[&_button]:aspect-square [&_button]:px-0 [&_button]:gap-0')}
+              >
+                {action}
+              </div>
             )}
           </div>
         </>

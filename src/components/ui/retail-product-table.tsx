@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
 import { Button } from './button';
+import { AddButton } from './add-button';
 import { Badge } from './badge';
 import { Switch } from './switch';
 import { Table } from './table';
@@ -98,12 +98,10 @@ export const RetailProductTable: React.FC<RetailProductTableProps> = ({ value, o
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">{value.length} of 500 retail products. Switch one off to keep it in the booking without serving it.</p>
-          <div className="flex items-center gap-2">
-            {picked.length > 0 && <Button variant="outline" size="sm" onClick={() => remove(picked)}>Remove selected ({picked.length})</Button>}
-            <Button size="sm" className="gap-1.5" onClick={() => { setDraft(value); setAddOpen(true); }}><Plus className="h-4 w-4" />Add retail products</Button>
-          </div>
+          {picked.length > 0 && <Button variant="outline" size="sm" onClick={() => remove(picked)}>Remove selected ({picked.length})</Button>}
         </div>
         <FilterBar
+          action={<AddButton onClick={() => { setDraft(value); setAddOpen(true); }}>Add retail products</AddButton>}
           filters={[
             { name: 'Status', options: [{ label: 'Active', value: 'active' }, { label: 'Paused', value: 'paused' }], selectedValues: statusFilter, onChange: setStatusFilter },
             { name: 'Search volume', options: levelOptions, selectedValues: volumeFilter, onChange: setVolumeFilter },

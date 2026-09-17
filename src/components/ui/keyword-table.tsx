@@ -1,9 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Search } from 'lucide-react';
 import { Button } from './button';
-import { Input } from './input';
+import { AddButton } from './add-button';
 import { Table } from './table';
 import { FilterBar } from './filter-bar';
 import { Tabs, TabsList, TabsTrigger } from './tabs';
@@ -52,31 +51,18 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onChange, 
   const picked = selected.map(String);
   const addMany = (list: string[]) => { onChange([...keywords, ...list.filter((k) => !keywords.includes(k))]); setSelected([]); };
   const removeMany = (list: string[]) => { onChange(keywords.filter((k) => !list.includes(k))); setSelected([]); };
+  const addTyped = () => {
+    const k = query.trim().toLowerCase();
+    if (!k) return;
+    if (!keywords.includes(k)) onChange([...keywords, k]);
+    setQuery('');
+    setView('added');
+  };
   const withBids = !!bids && !!onBidChange;
 
   return (
     <div className={className}>
       <div className="space-y-3">
-        {/* Type a keyword and press Enter to add it; the same box filters the table. */}
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search or type a keyword and press Enter…"
-            value={query}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key !== 'Enter') return;
-              e.preventDefault();
-              const k = query.trim().toLowerCase();
-              if (!k) return;
-              if (!keywords.includes(k)) onChange([...keywords, k]);
-              setQuery('');
-              setView('added');
-            }}
-          />
-        </div>
-
         {/* One table, two views; the filters narrow whichever is open. */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Tabs value={view} onValueChange={(v) => { setView(v as 'suggested' | 'added'); setSelected([]); }}>
@@ -101,12 +87,18 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onChange, 
             )}
           </div>
         </div>
+        {/* The search box is also where a keyword of your own is typed:
+            Enter or the + beside it adds what you typed to the booking. */}
         <FilterBar
-          hideSearch
           filters={[
             { name: 'Volume', options: levelOptions, selectedValues: volumeFilter, onChange: setVolumeFilter },
             { name: 'Competition', options: levelOptions, selectedValues: competitionFilter, onChange: setCompetitionFilter },
           ]}
+          searchValue={query}
+          onSearchChange={setQuery}
+          searchPlaceholder="Search or type a keyword…"
+          onSearchSubmit={addTyped}
+          action={<AddButton disabled={!q} onClick={addTyped}>Add keyword</AddButton>}
         />
         <div className={`${maxHeightClassName} overflow-y-auto`}>
           <Table

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Bell, Check, CheckCircle2, ChevronDown, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TabActionGroup } from './tab-actions';
 import { useDb, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, walkSteps, workflowFor, type Booking, type Campaign, type MediaPlan, type WorkflowScope, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
 import { LIFECYCLE_LABEL, PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -256,7 +257,9 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     return (
       <div className={cn('flex flex-col gap-3', className)}>
         {/* The stage row: chips left, the next step or the controls right. */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        {/* One line, always: the controls give up their labels before the
+            row gives up its shape — the chips wrap inside their own list. */}
+        <div className="flex flex-nowrap items-center gap-x-6 gap-y-2">
           {stageBarWithSteps}
           {items.length > 0 && !hideNext && (
             <span className="ml-auto min-w-0 truncate text-sm">
@@ -271,7 +274,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
               )}
             </span>
           )}
-          {trailing && <div className="ml-auto flex items-center gap-inline">{trailing}</div>}
+          {trailing && <TabActionGroup className="ml-auto">{trailing}</TabActionGroup>}
         </div>
         {/* Expanded: the stage's steps in view, not behind the chip. */}
         {expanded && items.length > 0 && (

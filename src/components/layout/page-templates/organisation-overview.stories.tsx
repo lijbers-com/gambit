@@ -101,7 +101,7 @@ export const OrganisationOverview: Story = {
             onSettings: () => alert('Settings clicked'),
           }}
         >
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-row mb-6">
             <Card className="flex flex-col">
               <CardContent className="flex flex-col items-center justify-center flex-1 py-8 px-6 text-center gap-4">
                 <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">

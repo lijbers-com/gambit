@@ -60,7 +60,7 @@ export const HierarchySidebar: React.FC<HierarchySidebarProps> = ({ active, clas
   const present = order.filter((e) => !!slots[SLOT_KEY[e]]);
   if (collapsed) {
     return (
-      <aside className={cn('flex w-9 flex-col gap-2', className)} aria-label="Summary">
+      <aside className={cn('flex w-9 flex-col gap-row', className)} aria-label="Summary">
         {present.map((entity) => {
           const Icon = entityIcon[entity];
           return (
@@ -85,7 +85,7 @@ export const HierarchySidebar: React.FC<HierarchySidebarProps> = ({ active, clas
     );
   }
   return (
-    <aside className={cn('space-y-4', className)}>
+    <aside className={cn('space-y-row', className)}>
       {order.map((entity) => (
         <React.Fragment key={entity}>{slots[SLOT_KEY[entity]]}</React.Fragment>
       ))}

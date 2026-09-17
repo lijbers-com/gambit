@@ -118,12 +118,12 @@ const RuleDialog: React.FC<{ open: boolean; onClose: () => void; rule?: PricingR
           <DialogTitle>{rule ? 'Edit pricing rule' : 'New pricing rule'}</DialogTitle>
           <DialogDescription>An index on the list price, for the dates or the demand it applies to.</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+        <div className="grid gap-row">
           <div className="grid gap-1.5">
             <Label>Name</Label>
             <Input value={draft.name} onChange={(e) => set('name', e.target.value)} placeholder="Q4 season" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-row">
             <div className="grid gap-1.5">
               <Label>Kind</Label>
               <Select value={draft.kind} onValueChange={(v) => set('kind', v as PricingRuleKind)}>
@@ -144,7 +144,7 @@ const RuleDialog: React.FC<{ open: boolean; onClose: () => void; rule?: PricingR
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-row">
             <div className="grid gap-1.5">
               <Label>Index</Label>
               <Input type="number" step="0.01" min="0.1" value={draft.index} onChange={(e) => set('index', Number(e.target.value))} hint={`${indexLabel(draft.index)} on the list price`} />
@@ -155,7 +155,7 @@ const RuleDialog: React.FC<{ open: boolean; onClose: () => void; rule?: PricingR
             </div>
           </div>
           {(draft.kind === 'seasonality' || draft.kind === 'moment') && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-row">
               <div className="grid gap-1.5"><Label>From</Label><Input type="date" value={draft.from ?? ''} onChange={(e) => set('from', e.target.value)} /></div>
               <div className="grid gap-1.5"><Label>To</Label><Input type="date" value={draft.to ?? ''} onChange={(e) => set('to', e.target.value)} /></div>
             </div>
@@ -222,8 +222,8 @@ const ProductDialog: React.FC<{ open: boolean; onClose: () => void; product?: Me
           <DialogTitle>{product ? 'Edit media product' : 'New media product'}</DialogTitle>
           <DialogDescription>The sellable template: what it is, how it is bought, what it costs and what it comes with. Placements and positions are added on the product page.</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-row">
+          <div className="grid grid-cols-2 gap-row">
             <div className="grid gap-1.5">
               <Label>Name</Label>
               <Input value={draft.name} onChange={(e) => set('name', e.target.value)} placeholder="Homepage takeover" />
@@ -248,7 +248,7 @@ const ProductDialog: React.FC<{ open: boolean; onClose: () => void; product?: Me
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-row">
             <div className="grid gap-1.5">
               <Label>Price basis</Label>
               <Select value={draft.pricingBasis} onValueChange={(v) => set('pricingBasis', v as PricingBasis)}>
@@ -265,7 +265,7 @@ const ProductDialog: React.FC<{ open: boolean; onClose: () => void; product?: Me
               <Input type="number" step="0.01" value={draft.floorPrice ?? ''} onChange={(e) => set('floorPrice', e.target.value === '' ? undefined : Number(e.target.value))} placeholder="Auction only" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-row">
             <div className="grid gap-1.5">
               <Label>Hold days</Label>
               <Input type="number" value={draft.holdDays ?? 5} onChange={(e) => set('holdDays', Number(e.target.value))} hint="How long a booking in review keeps its inventory and price" />
@@ -320,8 +320,8 @@ const PriceBuildUpCard: React.FC<{ product: MediaProduct; position?: Position; c
         <CardTitle className="text-base">Price build-up</CardTitle>
         <p className="text-sm text-muted-foreground">What {position ? position.name : 'this product'} costs for a run time — the list price with every rule that applies on top.</p>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]">
+      <CardContent className="grid gap-row">
+        <div className="grid gap-row sm:grid-cols-[minmax(0,1fr)_10rem]">
           <div className="grid gap-1.5">
             <Label>Run time</Label>
             <DateRangePicker dateRange={range} onDateRangeChange={setRange} showPresets={false} />
@@ -439,7 +439,7 @@ const OverviewPage: React.FC = () => {
           headerRight: <Button className="gap-1.5" onClick={() => setProductDialog(true)}><Plus className="h-4 w-4" />New media product</Button>,
         }}
       >
-        <div className="space-y-6">
+        <div className="space-y-section">
           <MetricRow
             metrics={metrics}
             selectedKeys={metricKeys}
@@ -669,7 +669,7 @@ const ProductPage: React.FC = () => {
       >
         <div className="space-y-6">
           {/* The facts: the rate card and where the product stands. */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-row sm:grid-cols-2 lg:grid-cols-5">
             <MetricCard label="List price" value={product.listPrice !== undefined ? formatPrice(product.listPrice, basis) : '—'} subMetric={`${BASIS_LABEL[basis]}${product.floorPrice !== undefined ? ` · floor ${formatPrice(product.floorPrice, basis)}` : ''}`} />
             <MetricCard label="Buying models" value={(product.buyingModels ?? []).map((m) => m[0].toUpperCase() + m.slice(1)).join(' + ') || '—'} subMetric={`Hold ${product.holdDays ?? 5} days`} />
             <MetricCard label="Positions" value={String(positions.length)} subMetric={placements.length ? `in ${placements.length} placements` : 'directly under the product'} />
@@ -738,7 +738,7 @@ const ProductPage: React.FC = () => {
                 value: 'pricing',
                 label: 'Pricing',
                 content: (
-                  <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                  <div className="mt-6 grid gap-row lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                     <PriceBuildUpCard product={product} position={position} />
                     <div className="space-y-4">
                       <Card>
@@ -839,7 +839,7 @@ const ProductPage: React.FC = () => {
                 value: 'rules',
                 label: 'Rules & constraints',
                 content: (
-                  <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                  <div className="mt-6 grid gap-row lg:grid-cols-2">
                     <Card>
                       <CardHeader><CardTitle className="text-base">What the product comes with</CardTitle></CardHeader>
                       <CardContent>
@@ -874,7 +874,7 @@ const ProductPage: React.FC = () => {
         <Dialog open={placementDialog} onOpenChange={(o) => !o && setPlacementDialog(false)}>
           <DialogContent>
             <DialogHeader><DialogTitle>New placement</DialogTitle><DialogDescription>A group of positions inside {product.name}.</DialogDescription></DialogHeader>
-            <div className="grid gap-4">
+            <div className="grid gap-row">
               <div className="grid gap-1.5"><Label>Name</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Above the fold" /></div>
               <div className="grid gap-1.5"><Label>Description</Label><Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} /></div>
             </div>
@@ -888,10 +888,10 @@ const ProductPage: React.FC = () => {
         <Dialog open={positionDialog.open} onOpenChange={(o) => !o && setPositionDialog({ open: false })}>
           <DialogContent>
             <DialogHeader><DialogTitle>New position</DialogTitle><DialogDescription>A slot the ad server fills{positionDialog.placementId ? ` in ${placements.find((p) => p.id === positionDialog.placementId)?.name}` : ''}. It inherits the product&apos;s rate card unless priced on its own.</DialogDescription></DialogHeader>
-            <div className="grid gap-4">
+            <div className="grid gap-row">
               <div className="grid gap-1.5"><Label>Name</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Hero banner" /></div>
               <div className="grid gap-1.5"><Label>Description</Label><Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-row">
                 <div className="grid gap-1.5"><Label>Format</Label><Input value={newFormat} onChange={(e) => setNewFormat(e.target.value)} placeholder="970×250" /></div>
                 <div className="grid gap-1.5"><Label>Daily capacity</Label><Input type="number" value={newCapacity} onChange={(e) => setNewCapacity(Number(e.target.value))} /></div>
               </div>

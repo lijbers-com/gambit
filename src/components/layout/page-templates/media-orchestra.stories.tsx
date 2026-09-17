@@ -175,7 +175,7 @@ export const StrategyAllocation = {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Marketing</label>
@@ -258,7 +258,7 @@ export const StrategyAllocation = {
           </Card>
 
           {/* Performance Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-row">
             <Card>
               <CardHeader>
                 <CardTitle>Conversion & Profit</CardTitle>
@@ -569,7 +569,7 @@ export const Overview = {
       >
         <div className="flex flex-col gap-6">
           {/* Top Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-row">
             {performanceMetrics.map((metric) => (
               <MetricCard
                 key={metric.id}
@@ -601,7 +601,7 @@ export const Overview = {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="max-h-[500px] overflow-y-auto p-4">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-row">
                     {additionalMetrics.map((metric) => (
                       <MetricCard
                         key={metric.id}

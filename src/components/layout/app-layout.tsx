@@ -112,11 +112,11 @@ export function AppLayout({
           />
           {/* Page Content Area */}
           {fullHeightContent ? (
-            <div className="min-h-0 w-full flex-1 overflow-hidden px-6 pt-4">
+            <div className="min-h-0 w-full flex-1 overflow-hidden px-6 pt-section">
               {children}
             </div>
           ) : (
-            <div className="w-full p-6 pb-24 min-h-screen overflow-x-hidden">
+            <div className="w-full px-6 pt-section pb-24 min-h-screen overflow-x-hidden">
                 <div className="max-w-full">
                   {children}
                 </div>

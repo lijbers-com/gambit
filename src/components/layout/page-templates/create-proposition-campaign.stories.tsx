@@ -1192,7 +1192,7 @@ const PropositionWizard = ({
           headerRight: null,
         }}
       >
-        <div className="space-y-3">
+        <div className="space-y-section">
           {/* Metric cards */}
           <MetricRow
             hideDateRange
@@ -1260,7 +1260,7 @@ const PropositionWizard = ({
             removable={false}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0">
 
@@ -3208,7 +3208,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
           headerRight: null,
         }}
       >
-        <div className="mb-3">
+        <div className="mb-section">
           <MetricRow
             hideDateRange
             hideMeasurement
@@ -3220,7 +3220,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
           />
         </div>
         <div className="space-y-3">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0 space-y-4">
 

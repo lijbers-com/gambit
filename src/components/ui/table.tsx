@@ -624,7 +624,7 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
   const allColKeysStr = allColKeys.join(',');
   const fixedKeysStr = fixedColumnKeys.join(',');
   const hasMeasured = React.useRef(false);
-  React.useLayoutEffect(() => {
+  const measureHeader = React.useCallback(() => {
     if (!headerRowRef.current) return;
     const cells = headerRowRef.current.querySelectorAll('th');
     const widths: Record<string, number> = {};
@@ -633,18 +633,33 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
         widths[allColKeys[index]] = Math.round(cell.getBoundingClientRect().width);
       }
     });
+    // A table in a hidden tab measures every cell at zero; keep the last
+    // real widths until it is shown.
+    if (!Object.values(widths).some((w) => w > 0)) return;
     const prev = measuredWidthsRef.current;
     const changed = allColKeys.some((k) => Math.abs((widths[k] || 0) - (prev[k] || 0)) > 1);
     if (changed) {
       measuredWidthsRef.current = widths;
-      // Only force re-render on first measurement or significant changes
-      if (!hasMeasured.current || changed) {
-        hasMeasured.current = true;
-        forceUpdate();
-      }
+      hasMeasured.current = true;
+      forceUpdate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allColKeysStr, data.length, fixedKeysStr]);
+  }, [allColKeysStr]);
+  React.useLayoutEffect(() => {
+    measureHeader();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measureHeader, data.length, fixedKeysStr]);
+  // The sticky offsets follow the real widths, so re-measure whenever the
+  // header changes size — a tab that opens, a column that resizes, a
+  // window that narrows. Without this a table born in a hidden tab keeps
+  // its zero-width guesses and the fixed columns pile up on the left.
+  React.useLayoutEffect(() => {
+    const row = headerRowRef.current;
+    if (!row || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measureHeader());
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [measureHeader]);
 
   // Sort data if needed
   let sortedData = [...data];

@@ -222,7 +222,7 @@ const UserProfileContent = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
       {/* Left column - Tabbed content */}
       <div className="lg:col-span-2">
         <CardWithTabs
@@ -230,7 +230,7 @@ const UserProfileContent = () => {
           header={
             activeTab === 'details' ? (
               <div className="space-y-6 w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First name</Label>
                     <Input

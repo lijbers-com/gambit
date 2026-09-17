@@ -716,10 +716,10 @@ export const Display: Story = {
             entityId={routeBooking?.id ?? 'demo-booking'}
             name={routeBooking?.name ?? bookingName}
             status={routeBooking?.status ?? 'running'}
-            className="mb-4"
+            className="mb-section"
             actions={<AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>}
           />
-          <div className="mb-3">
+          <div className="mb-section">
             <MetricRow
               metrics={getPropositionMetrics('display', 'booking')}
               maxVisible={5}
@@ -765,7 +765,7 @@ export const Display: Story = {
 
               {/* The tab card holds the form only; the summary cards sit beside
                   it, outside the card, so the tab reads as one form. */}
-              <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
+              <div className={cn('grid gap-row items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
               <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
               <div
                 className={cn(
@@ -935,7 +935,7 @@ export const Display: Story = {
                     <Label className="block">Priority</Label>
                     <MiniSelect value={priorityValue} options={['Inherited from campaign', 'Highest', 'High', 'Normal', 'Low']} onChange={setPriorityValue} />
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-row md:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="block">Reach unit</Label>
                       <MiniSelect value={reachUnit} options={['Impressions', 'Unique users', 'Clicks']} onChange={setReachUnit} />
@@ -945,7 +945,7 @@ export const Display: Story = {
                       <Input type="number" value={reachAmount} onChange={(e) => setReachAmount(e.target.value)} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-row md:grid-cols-3">
                     <div className="space-y-2">
                       <Label className="block">Delivery limit</Label>
                       <Input type="number" value={limitAmount} onChange={(e) => setLimitAmount(e.target.value)} placeholder="No limit" />
@@ -972,7 +972,7 @@ export const Display: Story = {
                 onCheckedChange={setPricingEnabled}
               >
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-row md:grid-cols-3">
                     <div className="space-y-2">
                       <Label className="block">Pricing type</Label>
                       <MiniSelect value={pricingType} options={['CPM', 'CPC', 'Fixed fee']} onChange={setPricingType} />
@@ -1783,10 +1783,10 @@ export const DigitalInStore: Story = {
           entityId={routeBooking?.id ?? 'demo-booking'}
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
           actions={<AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <MetricRow
             metrics={getPropositionMetrics('digital-instore', 'booking')}
             maxVisible={5}
@@ -1829,7 +1829,7 @@ export const DigitalInStore: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-row items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -3057,10 +3057,10 @@ export const OfflineInStore: Story = {
           entityId={routeBooking?.id ?? 'demo-booking'}
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
           actions={<AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <MetricRow
             metrics={getPropositionMetrics('offline-instore', 'booking')}
             maxVisible={5}
@@ -3103,7 +3103,7 @@ export const OfflineInStore: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-row items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -4066,10 +4066,10 @@ export const SponsoredProducts: Story = {
           entityId={routeBooking?.id ?? 'demo-booking'}
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
           actions={<AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <MetricRow
             metrics={getPropositionMetrics('sponsored-products', 'booking')}
             maxVisible={5}
@@ -4117,7 +4117,7 @@ export const SponsoredProducts: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-row items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -4614,10 +4614,10 @@ export const OffsiteDisplay: Story = {
             entityId={routeBooking?.id ?? 'demo-booking'}
             name={routeBooking?.name ?? bookingName}
             status={routeBooking?.status ?? 'running'}
-            className="mb-4"
+            className="mb-section"
             actions={<AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>}
           />
-          <div className="mb-3">
+          <div className="mb-section">
             <MetricRow
               metrics={getPropositionMetrics('offsite', 'booking')}
               maxVisible={5}
@@ -4658,7 +4658,7 @@ export const OffsiteDisplay: Story = {
               </TabActionGroup>
               </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
-              <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
+              <div className={cn('grid gap-row items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
               <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">

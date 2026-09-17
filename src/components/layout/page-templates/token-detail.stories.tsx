@@ -107,7 +107,7 @@ const TokenDetailContent = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
       <div className="lg:col-span-2">
         <CardWithTabs
           className="w-full"
@@ -117,7 +117,7 @@ const TokenDetailContent = () => {
           header={
             activeTab === 'details' ? (
               <div className="space-y-6 w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                   <div>
                     <label className="block text-sm font-medium mb-1">Name</label>
                     <Input defaultValue="Test token" placeholder="Enter token name" />

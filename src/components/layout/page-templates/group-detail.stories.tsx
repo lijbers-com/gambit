@@ -53,7 +53,7 @@ const GroupDetailContent = () => {
   const [status, setStatus] = React.useState('active');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
       <div className="lg:col-span-2">
         <CardWithTabs
           className="w-full"
@@ -65,7 +65,7 @@ const GroupDetailContent = () => {
           }
           header={
             activeTab === 'details' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-row w-full">
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
                   <Input defaultValue="Sponsored products team" placeholder="Enter group name" />

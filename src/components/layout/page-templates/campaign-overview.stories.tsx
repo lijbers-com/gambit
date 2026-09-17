@@ -325,7 +325,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           ),
         }}
       >
-        <div className="space-y-6">
+        <div className="space-y-section">
         <MetricRow
           // The cards describe the rows below them, so they follow the same
           // filters: a date range that hides half the campaigns has to move
@@ -349,7 +349,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection title="Details" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Media plan name</label>
                       <Input defaultValue={mediaPlanName} placeholder="Enter media plan name" />
@@ -361,7 +361,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   </div>
                 </FormSection>
                 <FormSection title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <Input
@@ -395,7 +395,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   </div>
                 </FormSection>
                 <FormSection title="Campaign">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Campaign goal</label>
                       <Input
@@ -417,7 +417,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-1">Flight dates</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                       <div>
                         <DatePicker placeholder="Start date" date={mediaPlanStartDate} onDateChange={setMediaPlanStartDate} />
                       </div>

@@ -604,7 +604,7 @@ export const GeneralInsights: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 <div>
                   <label className="block text-sm font-medium mb-2">Advertiser</label>
                   <Input
@@ -680,7 +680,7 @@ export const GeneralInsights: Story = {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col space-y-6">
                 {/* Revenue, Spend and IROAS Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                   <MetricCard
                     label="Total Revenue"
                     value="€2.4M"
@@ -751,7 +751,7 @@ export const GeneralInsights: Story = {
 
           {/* Dashboard Report Cards */}
           {/* Top Row - Product Report and Performance Ecom */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-row mb-6">
             {/* Product Report Card */}
             <Card className="h-full flex flex-col">
               <CardHeader>
@@ -883,7 +883,7 @@ export const GeneralInsights: Story = {
                 {/* Column-based Funnel Structure */}
                 <div className="space-y-6">
                   {/* Top Row - Column Headers and Values */}
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-4 gap-row">
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground mb-2">Impressions</div>
                       <div className="text-2xl font-bold">54,740</div>
@@ -960,7 +960,7 @@ export const GeneralInsights: Story = {
           </div>
 
           {/* Bottom Row - Audience Report and Goal Report */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-row mb-6">
             {/* Audience Report Card */}
             <Card className="h-full flex flex-col">
               <CardHeader>
@@ -1071,7 +1071,7 @@ export const GeneralInsights: Story = {
               <CardContent className="flex-1 flex flex-col p-6">
                 {/* Goal Contribution Radar Charts */}
                 <h4 className="text-sm font-medium mb-4 text-muted-foreground">Engine Performance by Goal</h4>
-                <div className="grid grid-cols-2 gap-6 h-full">
+                <div className="grid grid-cols-2 gap-row h-full">
                   {/* Sponsored Products Radar */}
                   <div className="flex flex-col">
                     <h5 className="text-sm font-medium mb-3 text-center">Sponsored Products</h5>
@@ -1282,7 +1282,7 @@ export const DisplayPerformance: Story = {
         <div className="space-y-6">
           <Card>
             <CardContent className="flex flex-col h-full space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {displayMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1584,7 +1584,7 @@ export const DigitalInstorePerformance: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                 <div>
                   <label className="block text-sm font-medium mb-2">Advertiser</label>
                   <Input
@@ -1641,7 +1641,7 @@ export const DigitalInstorePerformance: Story = {
               <CardTitle className="text-lg font-semibold">Plays Report</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                 <MetricCard
                   label="Stores"
                   value="1,247"
@@ -1701,7 +1701,7 @@ export const DigitalInstorePerformance: Story = {
 
 
           {/* ROAS Report */}
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-row">
             {/* ROAS Report Card */}
             <Card className="h-full flex flex-col">
               <CardHeader>
@@ -1709,7 +1709,7 @@ export const DigitalInstorePerformance: Story = {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col space-y-4">
                 {/* ROAS metrics grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                   <MetricCard
                     label="Overall ROAS"
                     value="425%"
@@ -1797,7 +1797,7 @@ export const DigitalInstorePerformance: Story = {
           </div>
 
           {/* Digital In-store Specific Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-row">
             {/* Netherlands Map Card */}
             <Card>
               <CardHeader>
@@ -1951,7 +1951,7 @@ export const OfflineInstorePerformance: Story = {
         <div className="space-y-6">
           <Card className="h-full flex flex-col">
             <CardContent className="flex-1 flex flex-col space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {offlineInstoreMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1991,7 +1991,7 @@ export const OfflineInstorePerformance: Story = {
               <CardTitle className="text-lg font-semibold">Audience Report</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-row">
                 {/* Audience Breakdown Pie Chart */}
                 <div>
                   <h4 className="text-sm font-medium mb-3 text-muted-foreground">Audience Distribution</h4>
@@ -2427,7 +2427,7 @@ export const FullReportView: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-row">
                 <div>
                   <label className="block text-sm font-medium mb-2">Advertiser</label>
                   <Input
@@ -2815,7 +2815,7 @@ export const ProductReportView: Story = {
                 content: (
                   <div>
                     {/* Charts above filter + table */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-row mt-6">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">Buyers by product</CardTitle>
@@ -2962,7 +2962,7 @@ export const ProductReportView: Story = {
                 content: (
                   <div>
                     {/* Charts above filter + table */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-row mt-6">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">Audience share</CardTitle>
@@ -3089,7 +3089,7 @@ export const ProductReportView: Story = {
                 content: (
                   <div>
                     {/* Charts above filter + table */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-row mt-6">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">IROAS by engine</CardTitle>
@@ -3826,7 +3826,7 @@ export const FunnelView: Story = {
           headerRight: null,
         }}
       >
-        <div className="space-y-6">
+        <div className="space-y-section">
           {/* Top Metric Cards — the dashboard's filters sit in the row's header,
               beside Edit metrics: what the numbers cover and which numbers show. */}
           <MetricRow
@@ -4092,7 +4092,7 @@ export const FunnelView: Story = {
                 </Card>
 
                 {/* Row 2 - Share of Voice + Type of Buyer side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                   {/* Share of Voice */}
                   <Card>
                     <CardHeader>
@@ -4278,7 +4278,7 @@ export const FunnelView: Story = {
                 </Card>
 
                 {/* Row 2 - CTR and PDP Views side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                   {/* Total CTR */}
                   <Card>
                     <CardHeader>
@@ -4654,7 +4654,7 @@ export const FunnelView: Story = {
                       </Button>
                     </div>
                     {!buyerReachDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                       <ChartFrame
                         title={`Retention Rate ${loyaltyData[loyaltyData.length - 1].retentionRate}%`}
                         chartHeight={120}

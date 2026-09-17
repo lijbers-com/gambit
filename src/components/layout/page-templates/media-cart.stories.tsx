@@ -163,13 +163,13 @@ export const MediaCart: Story = {
           <div className="flex flex-1 flex-col">
             <div className="flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 md:gap-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
                   <div className="lg:col-span-2 min-w-0">
                     <Card className="min-w-0">
                       <CardHeader className="space-y-8">
                         <FormSection title="Campaign details">
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <label className="block text-sm font-medium mb-2">Goal*</label>
                                 <Input
@@ -210,7 +210,7 @@ export const MediaCart: Story = {
                         {/* Display Engine Card */}
                         <FormSection title="Display Engine">
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <div className="text-sm text-muted-foreground">Budget</div>
                                 <div className="text-lg font-semibold">$9,000</div>
@@ -262,7 +262,7 @@ export const MediaCart: Story = {
                         {/* Sponsored Products Engine Card */}
                         <FormSection title="Sponsored Products Engine">
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <div className="text-sm text-muted-foreground">Budget</div>
                                 <div className="text-lg font-semibold">$9,000</div>

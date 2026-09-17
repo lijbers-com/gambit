@@ -107,7 +107,7 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
     setPerms(p => p.map(x => x.id === id ? { ...x, enabled: !x.enabled } : x));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
       <div className="lg:col-span-2">
         <CardWithTabs
           className="w-full"
@@ -120,7 +120,7 @@ const ContractDetailContent = ({ contractName, advertiser, partners, brands }: C
           }
           header={
             activeTab === 'details' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-row w-full">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-1">Contract name</label>
                   <Input defaultValue={contractName} placeholder="Enter contract name" />

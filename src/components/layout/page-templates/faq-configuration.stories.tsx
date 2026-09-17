@@ -300,7 +300,7 @@ const NewsTab: React.FC<{ mayEdit: boolean }> = ({ mayEdit }) => {
             <DialogDescription>Shown on the homepage What&apos;s new feed and here in Help.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-row">
               <div>
                 <Label className="mb-2 block">Version</Label>
                 <Input value={draft.version} onChange={(e) => setDraft({ ...draft, version: e.target.value })} placeholder="v1.7" />
@@ -447,7 +447,7 @@ export const HelpCentre = {
                   hint="Leave a blank line between paragraphs."
                 />
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-row sm:grid-cols-3">
                 {surface.sections.length > 0 && (
                   <div>
                     <Label className="mb-2 block">Step or tab</Label>

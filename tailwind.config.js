@@ -8,6 +8,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // The two distances a page is built from. `section` sits between the
+      // big rows — page header, control panel, metric row, the card with its
+      // tabs; `row` sits between the things inside a row — metric cards, the
+      // columns of the main card, buttons and filters on one line.
+      spacing: {
+        row: '1rem',
+        section: '2rem',
+      },
       colors: {
         // The page canvas each theme sits on (Edge cream, retailers off-white).
         'page': 'var(--brand-page-bg-hex, #fafafa)',

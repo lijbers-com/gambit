@@ -221,12 +221,12 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       : null
 
     return (
-      <div ref={ref} className={cn("space-y-3", className)} {...props}>
+      <div ref={ref} className={cn("space-y-row", className)} {...props}>
       {(!hideDateRange || headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
         // One row of controls, right-aligned: the date range and the page's
         // filters first, then Edit metrics — all the same outlined button, so
         // the row reads as one toolbar. A filter note sits left, on its own.
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-row">
           {filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
               <ListFilter className="h-3.5 w-3.5" />
@@ -255,7 +255,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
           // pb-3 clears the selected card's arrow, which hangs 8px below the
           // card: overflow-x-auto also clips vertically, so anything the
           // padding doesn't cover gets cut off.
-          "flex items-stretch gap-4 overflow-x-auto pb-3",
+          "flex items-stretch gap-row overflow-x-auto pb-3",
           // bleedEdges makes the carousel scroll edge-to-edge of the
           // page column: the box widens by -mx-6 and re-insets via px-6
           // so the first card stays aligned with the page header.

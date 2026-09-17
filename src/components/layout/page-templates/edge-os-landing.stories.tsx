@@ -185,7 +185,7 @@ export const EdgeOsLanding = () => (
               </MarketingButton>
             </div>
 
-            <div className="grid max-w-[620px] gap-4 sm:grid-cols-3">
+            <div className="grid max-w-[620px] gap-row sm:grid-cols-3">
               {HERO_STATS.map((stat) => (
                 <MarketingStat key={stat.label} {...stat} />
               ))}
@@ -240,7 +240,7 @@ export const EdgeOsLanding = () => (
           title="Solutions for modern retail media"
           body="Build, manage, optimise, and measure campaigns with a platform designed for retailers, advertisers, and media teams."
         />
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-row md:grid-cols-3">
           {SOLUTIONS.map((card) => (
             <MarketingFeatureCard key={card.number} {...card} />
           ))}
@@ -284,7 +284,7 @@ export const EdgeOsLanding = () => (
           </div>
 
           <Card className="rounded-[28px] border-edge-line bg-white/90 shadow-[0_20px_45px_rgba(0,85,85,0.12)]">
-            <CardContent className="grid gap-4 p-7">
+            <CardContent className="grid gap-row p-7">
               {PLATFORM_FEATURES.map((feature) => (
                 <MarketingFeatureRow key={feature.title} {...feature} />
               ))}
@@ -305,7 +305,7 @@ export const EdgeOsLanding = () => (
           title="Built for the retail media ecosystem"
           body="Support every stakeholder with tools that connect commercial goals, shopper relevance, and measurable impact."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-row sm:grid-cols-2 lg:grid-cols-4">
           {ECOSYSTEM.map((card) => (
             <MarketingAudienceCard key={card.who} {...card} />
           ))}

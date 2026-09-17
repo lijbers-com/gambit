@@ -439,7 +439,7 @@ export const Default: Story = {
                 className="w-[280px]"
               />
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-row">
               <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => console.log('Navigate to: Audience Distribution')}>
                 <CardHeader>
                   <CardTitle>Audience Distribution</CardTitle>

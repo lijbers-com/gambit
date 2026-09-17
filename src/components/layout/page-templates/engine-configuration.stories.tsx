@@ -339,7 +339,7 @@ const createEngineConfigurationStories = (
                   )}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">The workflow its campaigns follow and the rules this proposition runs by.</p>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="mt-4 grid gap-row sm:grid-cols-2">
                   <button type="button" onClick={() => go(settingsHref('rules'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
                     <span className="flex items-center gap-2 text-sm font-medium"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" />Configuration rules</span>
                     <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeRules}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></span>
@@ -363,7 +363,7 @@ const createEngineConfigurationStories = (
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-row lg:grid-cols-2">
               <Card className="flex flex-col">
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -533,7 +533,7 @@ const createEngineConfigurationStories = (
                 content: (
                   <div className="mt-6 space-y-6">
                     <p className="max-w-3xl text-base">{rule.summary}</p>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-row md:grid-cols-2">
                       <div className="rounded-xl border border-border p-5">
                         <div className="flex items-center gap-2 text-sm font-semibold"><Zap className="h-4 w-4 text-primary" />When</div>
                         <p className="mt-2 text-sm text-muted-foreground">{rule.when}</p>
@@ -551,7 +551,7 @@ const createEngineConfigurationStories = (
                         <p className="mt-2 text-sm text-muted-foreground">{rule.why}</p>
                       </div>
                     </div>
-                    <dl className="grid gap-4 rounded-xl border border-border p-5 sm:grid-cols-5">
+                    <dl className="grid gap-row rounded-xl border border-border p-5 sm:grid-cols-5">
                       <div><dt className="text-xs text-muted-foreground">Status</dt><dd className="mt-1"><Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge></dd></div>
                       <div><dt className="text-xs text-muted-foreground">Priority</dt><dd className="mt-1"><Badge variant={rule.priority === 'High' ? 'destructive' : rule.priority === 'Medium' ? 'secondary' : 'outline'}>{rule.priority}</Badge></dd></div>
                       <div><dt className="text-xs text-muted-foreground">Performance</dt><dd className="mt-1 text-sm font-medium tabular-nums">{rule.performance}</dd></div>

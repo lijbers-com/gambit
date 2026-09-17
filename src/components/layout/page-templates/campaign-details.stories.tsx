@@ -481,7 +481,7 @@ const updatedForecastMetrics = [
     ];
 
     const ForecastSection = () => (
-      <div className="space-y-6">
+      <div className="space-y-section">
         <MetricRow
           metrics={updatedForecastMetrics.map(m => ({ ...m, key: m.id }))}
           selectedKeys={updatedForecastMetrics.map(m => m.id)}
@@ -740,9 +740,9 @@ const updatedForecastMetrics = [
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -752,7 +752,7 @@ const updatedForecastMetrics = [
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -779,7 +779,7 @@ const updatedForecastMetrics = [
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -814,7 +814,7 @@ const updatedForecastMetrics = [
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -1238,9 +1238,9 @@ export const DigitalInstoreRunning: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -1250,7 +1250,7 @@ export const DigitalInstoreRunning: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -1277,7 +1277,7 @@ export const DigitalInstoreRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -1312,7 +1312,7 @@ export const DigitalInstoreRunning: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -1696,9 +1696,9 @@ export const OfflineInstoreRunning: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -1708,7 +1708,7 @@ export const OfflineInstoreRunning: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -1730,7 +1730,7 @@ export const OfflineInstoreRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -1765,7 +1765,7 @@ export const OfflineInstoreRunning: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -2161,9 +2161,9 @@ export const DisplayRunning: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -2173,7 +2173,7 @@ export const DisplayRunning: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -2200,7 +2200,7 @@ export const DisplayRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -2235,7 +2235,7 @@ export const DisplayRunning: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -2628,9 +2628,9 @@ export const OfflineInstoreInOption: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -2640,7 +2640,7 @@ export const OfflineInstoreInOption: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -2662,7 +2662,7 @@ export const OfflineInstoreInOption: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -2697,7 +2697,7 @@ export const OfflineInstoreInOption: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -3079,9 +3079,9 @@ export const DisplayInOption: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -3091,7 +3091,7 @@ export const DisplayInOption: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -3118,7 +3118,7 @@ export const DisplayInOption: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -3153,7 +3153,7 @@ export const DisplayInOption: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -3654,7 +3654,7 @@ export const SponsoredProductsInOption: Story = {
     ];
 
     const ForecastSection = () => (
-      <div className="space-y-6">
+      <div className="space-y-section">
         <MetricRow
           metrics={updatedForecastMetrics.map(m => ({ ...m, key: m.id }))}
           selectedKeys={updatedForecastMetrics.map(m => m.id)}
@@ -3811,7 +3811,7 @@ export const SponsoredProductsInOption: Story = {
             <div className="relative bg-white border rounded-lg p-6">
               <div className="space-y-4">
                 {/* Competitive analysis table with triangles */}
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-row">
                 {[
                   { category: 'Organic Foods', competition: 'Low', level: 1, color: 'text-green-600' },
                   { category: 'Beverages', competition: 'Medium', level: 2, color: 'text-yellow-600' },
@@ -3869,9 +3869,9 @@ export const SponsoredProductsInOption: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
         
@@ -3881,7 +3881,7 @@ export const SponsoredProductsInOption: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -3908,7 +3908,7 @@ export const SponsoredProductsInOption: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -3943,7 +3943,7 @@ export const SponsoredProductsInOption: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -4452,9 +4452,9 @@ export const SponsoredProductsRunning: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
         
@@ -4464,7 +4464,7 @@ export const SponsoredProductsRunning: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -4491,7 +4491,7 @@ export const SponsoredProductsRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -4526,7 +4526,7 @@ export const SponsoredProductsRunning: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -4881,9 +4881,9 @@ export const OffsiteRunning: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -4893,7 +4893,7 @@ export const OffsiteRunning: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -4915,7 +4915,7 @@ export const OffsiteRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -4950,7 +4950,7 @@ export const OffsiteRunning: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's
@@ -5346,9 +5346,9 @@ export const OffsiteInOption: Story = {
           entityId={routeCampaign?.id ?? 'demo-campaign'}
           name={routeCampaign?.name}
           status={routeCampaign?.status ?? 'running'}
-          className="mb-4"
+          className="mb-section"
         />
-        <div className="mb-3">
+        <div className="mb-section">
           <ForecastSection />
         </div>
 
@@ -5358,7 +5358,7 @@ export const OffsiteInOption: Story = {
             activeTab === 'details' ? (
               <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
                 <FormSection bordered title="Setup" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Media plan</label>
                       <SearchableSelect
@@ -5380,7 +5380,7 @@ export const OffsiteInOption: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div>
                       <label className="block text-sm font-medium mb-1">Advertiser</label>
                       <SearchableSelect
@@ -5415,7 +5415,7 @@ export const OffsiteInOption: Story = {
 </div>
                 </FormSection>
                 <FormSection bordered title="Run time & budget" className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Run time</label>
                     {/* One field for the whole span, with the retailer's

@@ -235,7 +235,7 @@ export const Home: Story = {
               {/* Notifications for this user on the left, the latest insight
                   with its chart on the right. Both read the same derived
                   messages the Notifications page does. */}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-row lg:grid-cols-2">
                 <Card className="flex flex-col">
                   <CardContent className="flex h-full flex-col p-5">
                     <div className="mb-3 flex items-center gap-2">

@@ -84,7 +84,7 @@ const OrganisationDetailContent = ({ orgName, orgType }: OrganisationDetailProps
   const brands = ['Unox', 'Dove', 'Axe', 'Magnum'];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
       <div className="lg:col-span-2">
         <CardWithTabs
           className="w-full"

@@ -1173,7 +1173,7 @@ export const YieldDashboard: Story = {
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 <div>
                   <label className="block text-sm font-medium mb-2">Engine</label>
                   <Input
@@ -1256,7 +1256,7 @@ export const YieldDashboard: Story = {
               <CardTitle className="text-lg font-semibold">Fill Rate Report</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-row">
                 {filteredFillRateMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1330,7 +1330,7 @@ export const YieldDashboard: Story = {
           </Card>
 
           {/* Channel and Retail Media Product Reports - Side by Side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-row">
             {/* Inventory Report */}
             <Card>
               <CardHeader>
@@ -1418,7 +1418,7 @@ export const YieldDashboard: Story = {
               <CardTitle className="text-lg font-semibold">Revenue Report</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
                 {revenueReportMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1505,7 +1505,7 @@ export const SponsoredProductsYield: Story = {
         <div className="space-y-6">
           <Card>
             <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {sponsoredProductsYieldMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1662,7 +1662,7 @@ export const DisplayYield: Story = {
         <div className="space-y-6">
           <Card>
             <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {displayYieldMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1819,7 +1819,7 @@ export const DigitalInstoreYield: Story = {
         <div className="space-y-6">
           <Card>
             <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {digitalInstoreYieldMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}
@@ -1976,7 +1976,7 @@ export const OfflineInstoreYield: Story = {
         <div className="space-y-6">
           <Card>
             <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-row">
                 {offlineInstoreYieldMetrics.map((metric) => (
                   <MetricCard
                     key={metric.id}

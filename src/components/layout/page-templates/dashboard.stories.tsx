@@ -144,7 +144,7 @@ const ChatInterfaceWithSpendAnalysis = () => {
       <p className="text-sm mb-4">Based on your campaign performance, I recommend increasing your spend. Here's why:</p>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-row mb-4">
         <MetricCard
           label="ROAS Performance"
           value="420%"

@@ -986,7 +986,7 @@ export const GoalSelection: Story = {
                 );
               })()}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0">
 
@@ -2011,7 +2011,7 @@ export const NoGoalTargeting: Story = {
             headerRight: null,
           }}
         >
-          <div className="space-y-6">
+          <div className="space-y-section">
             {/* Metric cards */}
               <MetricRow
                 hideDateRange
@@ -2075,7 +2075,7 @@ export const NoGoalTargeting: Story = {
                 removable={false}
               />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-row">
             {/* Main content */}
             <div className="lg:col-span-2 min-w-0">
 

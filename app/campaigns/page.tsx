@@ -201,7 +201,7 @@ function AllCampaignsPage() {
         {/* The metric row every overview opens with: the numbers for the
             plans the session's date range keeps, with the range picker in
             the row so the range and the figures it applies to read together. */}
-        <div className="mb-3">
+        <div className="mb-section">
           <MetricRow
             metrics={scaleMetricsToSelection(getPropositionMetrics('all', 'overview'), {
               spend: visibleSpend,

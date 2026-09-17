@@ -215,7 +215,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
             ),
           }}
         >
-          <div className="space-y-6">
+          <div className="space-y-section">
             <MetricRow
               // Same rule as the campaign overview: the cards follow the rows.
               metrics={scaleMetricsToSelection(getPropositionMetrics(engineType, 'overview'), {

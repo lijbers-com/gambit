@@ -1124,7 +1124,7 @@ export const MediaPlanDetail: Story = {
               the plan approved, so the steps sit in view, each with what is
               left and a way to start it. */}
           <ControlBar
-            className="mb-4"
+            className="mb-section"
             // Where the plan stands in its own workflow — each stage a chip that opens its steps.
             // The workflow row, the same as on campaigns and bookings: the
             // stages left, each a chip that opens its steps, and the run
@@ -1208,7 +1208,7 @@ export const MediaPlanDetail: Story = {
 
           {/* The row's own pb-3 plus this mb-1 makes the same 16px the cards
               keep between themselves — the whole column shares one gap. */}
-          <div className="mb-1">
+          <div className="mb-section">
             {/* showCharts lets a card expand in place to the per-proposition
                 breakdown below the row; the cards themselves stay numbers. */}
             <MetricRow

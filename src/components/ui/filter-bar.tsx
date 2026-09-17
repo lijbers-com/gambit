@@ -96,7 +96,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         if (c === act || c.dataset.spacer) continue;
         rest += c.scrollWidth;
       }
-      const gaps = 12 * (bar.children.length - 1) + 16;
+      const gaps = 16 * (bar.children.length - 1) + 16;
       const needed = rest + fullWidth.current + gaps;
       const next = compactRef.current ? needed + 24 > bar.clientWidth : needed > bar.clientWidth;
       if (next !== compactRef.current) { compactRef.current = next; setCompact(next); }
@@ -114,8 +114,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const TriggerIcon = activeOption?.icon ?? ViewIcon;
 
   return (
-    <div ref={barRef} className={cn("flex items-center gap-3 w-full", className)}>
-      <div className="flex items-center gap-3">
+    <div ref={barRef} className={cn("flex flex-wrap items-center gap-row w-full", className)}>
+      <div className="flex flex-wrap items-center gap-row">
         {filters.map((filter) => (
           <Filter
             key={filter.name}
@@ -131,9 +131,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {(!hideSearch || showViewDropdown || action) && (
         <>
           <div className="flex-1" data-spacer />
-          <div className="flex items-center gap-2">
+          {/* The search gives way before anything overflows: it shrinks to a
+              usable minimum, and the whole group drops to its own line when
+              even that does not fit. */}
+          <div className="flex min-w-0 flex-1 basis-[240px] items-center justify-end gap-2">
             {!hideSearch && (
-              <div className="w-[300px] max-w-full">
+              <div className="w-full min-w-[160px] max-w-[300px]">
                 <SearchInput
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}

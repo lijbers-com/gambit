@@ -23,7 +23,10 @@ export const SessionDateRange: React.FC<{ className?: string }> = ({ className }
 
   return (
     <DateRangePicker
-      className={cn('w-auto max-w-[260px]', className)}
+      // A quiet control, like the tab strip beside it: no box, tab-grey text
+      // that darkens on hover and once a range is set.
+      variant="ghost"
+      className={cn('w-auto max-w-[260px] hover:text-foreground', value ? 'text-foreground' : 'text-muted-foreground', className)}
       dateRange={value}
       placeholder="All dates"
       // The way back to everything lives in the picker, under the calendar.

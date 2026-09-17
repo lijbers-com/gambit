@@ -224,8 +224,8 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       <div ref={ref} className={cn("space-y-row", className)} {...props}>
       {(!hideDateRange || headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
         // One row of controls, right-aligned: the date range and the page's
-        // filters first, then Edit metrics — all the same outlined button, so
-        // the row reads as one toolbar. A filter note sits left, on its own.
+        // filters first, then Edit metrics — all quiet ghost controls in the
+        // tab strip's grey, so the row reads as one toolbar. A filter note sits left, on its own.
         <div className="flex items-center justify-between gap-inline">
           {filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
@@ -239,9 +239,9 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             {hasDialogContent && !hideEditButton && (
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setDialogOpen(true)}
-                className="gap-1.5"
+                className="gap-1.5 text-muted-foreground hover:text-foreground"
               >
                 <Settings2 className="h-4 w-4" />
                 Edit metrics

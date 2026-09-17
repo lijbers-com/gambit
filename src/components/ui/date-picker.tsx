@@ -41,6 +41,8 @@ export interface DatePickerProps {
 // Range date picker props
 export interface DateRangePickerProps {
   dateRange?: DateRange
+  /** Button style of the trigger; `ghost` for a quiet control in a toolbar. */
+  variant?: 'outline' | 'ghost'
   onDateRangeChange?: (dateRange: DateRange | undefined) => void
   placeholder?: string
   disabled?: boolean
@@ -322,6 +324,7 @@ export function DatePicker({
 export function DateRangePicker({
   dateRange,
   onDateRangeChange,
+  variant = 'outline',
   placeholder = "Pick a date range",
   disabled = false,
   className,
@@ -465,7 +468,7 @@ export function DateRangePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant={variant}
           className={cn(
             "w-full justify-start text-left font-normal",
             className

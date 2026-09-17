@@ -752,8 +752,8 @@ export const Display: Story = {
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
                 <Button
-                  variant="outline"
-                  className="h-9 w-9 shrink-0 p-0"
+                  variant="ghost"
+                  className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                   title={summaryOpen ? 'Hide summary' : 'Show summary'}
                   aria-pressed={!summaryOpen}
                   onClick={() => setSummaryOpen((o) => !o)}
@@ -1818,8 +1818,8 @@ export const DigitalInStore: Story = {
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <Button
-                  variant="outline"
-                  className="h-9 w-9 shrink-0 p-0"
+                  variant="ghost"
+                  className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                   title={summaryOpen ? 'Hide summary' : 'Show summary'}
                   aria-pressed={!summaryOpen}
                   onClick={() => setSummaryOpen((o) => !o)}
@@ -3092,8 +3092,8 @@ export const OfflineInStore: Story = {
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <Button
-                  variant="outline"
-                  className="h-9 w-9 shrink-0 p-0"
+                  variant="ghost"
+                  className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                   title={summaryOpen ? 'Hide summary' : 'Show summary'}
                   aria-pressed={!summaryOpen}
                   onClick={() => setSummaryOpen((o) => !o)}
@@ -4106,8 +4106,8 @@ export const SponsoredProducts: Story = {
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
                     <Button
-                  variant="outline"
-                  className="h-9 w-9 shrink-0 p-0"
+                  variant="ghost"
+                  className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                   title={summaryOpen ? 'Hide summary' : 'Show summary'}
                   aria-pressed={!summaryOpen}
                   onClick={() => setSummaryOpen((o) => !o)}
@@ -4647,8 +4647,8 @@ export const OffsiteDisplay: Story = {
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
                 <Button
-                  variant="outline"
-                  className="h-9 w-9 shrink-0 p-0"
+                  variant="ghost"
+                  className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                   title={summaryOpen ? 'Hide summary' : 'Show summary'}
                   aria-pressed={!summaryOpen}
                   onClick={() => setSummaryOpen((o) => !o)}

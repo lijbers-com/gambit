@@ -223,36 +223,31 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     return (
       <div ref={ref} className={cn("space-y-3", className)} {...props}>
       {(!hideDateRange || headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
+        // One row of controls, right-aligned: the date range and the page's
+        // filters first, then Edit metrics — all the same outlined button, so
+        // the row reads as one toolbar. A filter note sits left, on its own.
         <div className="flex items-center justify-between gap-3">
-          {(!hideDateRange || headerLeft) ? (
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
-              {!hideDateRange && <SessionDateRange />}
-              {headerLeft}
-              {filterNote && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
-                  <ListFilter className="h-3.5 w-3.5" />
-                  {filterNote}
-                </span>
-              )}
-            </div>
-          ) : filterNote ? (
+          {filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
               <ListFilter className="h-3.5 w-3.5" />
               {filterNote}
             </span>
           ) : <span />}
-          {hasDialogContent && !hideEditButton && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setDialogOpen(true)}
-            className="text-muted-foreground hover:text-foreground gap-1.5"
-          >
-            <Settings2 className="h-4 w-4" />
-            Edit metrics
-          </Button>
-          )}
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            {!hideDateRange && <SessionDateRange />}
+            {headerLeft}
+            {hasDialogContent && !hideEditButton && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(true)}
+                className="gap-1.5"
+              >
+                <Settings2 className="h-4 w-4" />
+                Edit metrics
+              </Button>
+            )}
+          </div>
         </div>
       )}
       <div

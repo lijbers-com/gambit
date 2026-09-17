@@ -60,7 +60,7 @@ export const HierarchySidebar: React.FC<HierarchySidebarProps> = ({ active, clas
   const present = order.filter((e) => !!slots[SLOT_KEY[e]]);
   if (collapsed) {
     return (
-      <aside className={cn('flex w-12 flex-col items-center gap-2 rounded-xl border border-border bg-card py-2', className)} aria-label="Summary">
+      <aside className={cn('flex w-9 flex-col gap-2', className)} aria-label="Summary">
         {present.map((entity) => {
           const Icon = entityIcon[entity];
           return (
@@ -70,9 +70,11 @@ export const HierarchySidebar: React.FC<HierarchySidebarProps> = ({ active, clas
               title={ENTITY_LABEL[entity]}
               aria-label={`Show ${ENTITY_LABEL[entity].toLowerCase()} summary`}
               onClick={() => onExpand?.(entity)}
+              // One square per card, drawn like the card it stands for: the
+              // active one white, the others on the page background.
               className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-accent',
-                entity === active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                'flex h-9 w-9 items-center justify-center rounded-md border border-border transition-colors',
+                entity === active ? 'bg-card text-foreground' : 'bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
               <Icon className="h-4 w-4" />

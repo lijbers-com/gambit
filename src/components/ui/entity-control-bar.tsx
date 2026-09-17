@@ -36,10 +36,12 @@ export interface EntityControlBarProps {
   /** Fallbacks for a demo entity the store does not hold. */
   name?: string;
   status?: PlanStatus;
+  /** Extra controls beside the run controls — "Add booking" on a booking page. */
+  actions?: React.ReactNode;
   className?: string;
 }
 
-export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engine, entityId, name, status, className }) => {
+export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engine, entityId, name, status, actions, className }) => {
   const db = useDb();
   const entity = level === 'campaign' ? db.campaigns.find((c) => c.id === entityId) : db.bookings.find((b) => b.id === entityId);
   // A blocking to-do keeps the launch button off, and says so on it.
@@ -92,14 +94,17 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
         bookingId={level === 'booking' ? entityId : undefined}
         renderStepExtra={stepExtra}
         trailing={(
-          <LifecycleActions
-            level={level}
-            entityId={entityId}
-            status={entity?.status ?? status ?? 'running'}
-            name={entity?.name ?? name ?? entityId}
-            playDisabled={blockers.length > 0}
-            playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
-          />
+          <span className="flex items-center gap-2">
+            {actions}
+            <LifecycleActions
+              level={level}
+              entityId={entityId}
+              status={entity?.status ?? status ?? 'running'}
+              name={entity?.name ?? name ?? entityId}
+              playDisabled={blockers.length > 0}
+              playDisabledReason={`${blockers.length} blocker${blockers.length === 1 ? '' : 's'} to clear first — see Notifications`}
+            />
+          </span>
         )}
       />
     </section>

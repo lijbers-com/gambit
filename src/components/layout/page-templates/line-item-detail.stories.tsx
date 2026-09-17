@@ -716,6 +716,7 @@ export const Display: Story = {
             name={routeBooking?.name ?? bookingName}
             status={routeBooking?.status ?? 'running'}
             className="mb-4"
+            actions={<AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>}
           />
           <div className="mb-3">
             <MetricRow
@@ -749,7 +750,6 @@ export const Display: Story = {
               />
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
-                <AddButton variant="outline" onClick={() => addBooking('display', routeBooking?.campaignId)}>Add booking</AddButton>
                 <Button
                   variant="outline"
                   className="h-9 w-9 shrink-0 p-0"
@@ -1783,6 +1783,7 @@ export const DigitalInStore: Story = {
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
           className="mb-4"
+          actions={<AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
         <div className="mb-3">
           <MetricRow
@@ -1815,7 +1816,6 @@ export const DigitalInStore: Story = {
               />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <AddButton variant="outline" onClick={() => addBooking('digital-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                     <Button
                   variant="outline"
                   className="h-9 w-9 shrink-0 p-0"
@@ -3058,6 +3058,7 @@ export const OfflineInStore: Story = {
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
           className="mb-4"
+          actions={<AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
         <div className="mb-3">
           <MetricRow
@@ -3090,7 +3091,6 @@ export const OfflineInStore: Story = {
               />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <AddButton variant="outline" onClick={() => addBooking('offline-instore', routeBooking?.campaignId)}>Add booking</AddButton>
                     <Button
                   variant="outline"
                   className="h-9 w-9 shrink-0 p-0"
@@ -4066,6 +4066,7 @@ export const SponsoredProducts: Story = {
           name={routeBooking?.name ?? bookingName}
           status={routeBooking?.status ?? 'running'}
           className="mb-4"
+          actions={<AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>}
         />
         <div className="mb-3">
           <MetricRow
@@ -4103,7 +4104,6 @@ export const SponsoredProducts: Story = {
               />
                   {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
                   <TabActionGroup className="pb-2">
-                    <AddButton variant="outline" onClick={() => addBooking('sponsored-products', routeBooking?.campaignId)}>Add booking</AddButton>
                     <Button
                   variant="outline"
                   className="h-9 w-9 shrink-0 p-0"
@@ -4189,18 +4189,20 @@ export const SponsoredProducts: Story = {
                         />
                       </FormSection>
 
-                      <FormSection bordered title={`Add keywords (${keywords.length}/1000)`} className={cn(bookingTab !== 'keywords' && "hidden")}>
+                      {/* The keywords ARE the tab: the table sits straight in
+                          the card, no inner card around it. */}
+                      <section className={cn(bookingTab !== 'keywords' && "hidden")}>
                         <div className="space-y-3">
-                          <p className="-mt-2 text-xs text-muted-foreground">Keywords target shoppers searching for relevant products. Switch between what we suggest and what the booking has; set a bid per keyword in the booking.</p>
+                          <p className="text-xs text-muted-foreground">{keywords.length} of 1,000 keywords. Switch between what we suggest and what the booking has; set a bid per keyword in the booking.</p>
                           <KeywordTable
                             keywords={keywords}
                             onChange={setKeywords}
                             bids={spBids}
                             onBidChange={(k, v) => setSpBids((prev) => ({ ...prev, [k]: v }))}
-                            maxHeightClassName="max-h-[32rem]"
+                            maxHeightClassName="max-h-[40rem]"
                           />
                         </div>
-                      </FormSection>
+                      </section>
 
                       <FormSection
                         bordered
@@ -4614,6 +4616,7 @@ export const OffsiteDisplay: Story = {
             name={routeBooking?.name ?? bookingName}
             status={routeBooking?.status ?? 'running'}
             className="mb-4"
+            actions={<AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>}
           />
           <div className="mb-3">
             <MetricRow
@@ -4644,7 +4647,6 @@ export const OffsiteDisplay: Story = {
               />
               {/* Run controls sit with the tabs, top-right, and reach this booking only. */}
               <TabActionGroup className="pb-2">
-                <AddButton variant="outline" onClick={() => addBooking('offsite', routeBooking?.campaignId)}>Add booking</AddButton>
                 <Button
                   variant="outline"
                   className="h-9 w-9 shrink-0 p-0"

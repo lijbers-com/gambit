@@ -45,11 +45,14 @@ export const TabStrip: React.FC<TabStripProps> = ({ tabs, value, onChange, class
   const [visibleCount, setVisibleCount] = React.useState(tabs.length);
   const count = (t: TabStripTab) => t.badgeCount ?? badgeCounts?.[t.value] ?? 0;
 
-  React.useLayoutEffect(() => {
+  // Measured under a ResizeObserver, and again on every render and window
+  // resize: a parent that folds a column re-renders the strip before the
+  // observer gets a frame, and the strip should already be right by then.
+  const measure = React.useCallback(() => {
     const el = ref.current;
     const m = measureRef.current;
     if (!el || !m) return;
-    const measure = () => {
+    {
       const kids = Array.from(m.children) as HTMLElement[];
       const more = kids[kids.length - 1]?.offsetWidth ?? 0;
       const widths = kids.slice(0, -1).map((k) => k.offsetWidth);
@@ -65,13 +68,21 @@ export const TabStrip: React.FC<TabStripProps> = ({ tabs, value, onChange, class
       // Everything fits, or at least one tab and the "+N" tab.
       const next = fit >= widths.length ? widths.length : Math.max(1, fit);
       setVisibleCount((prev) => (prev === next ? prev : next));
-    };
-    measure();
+    }
+  }, []);
+
+  React.useLayoutEffect(measure);
+
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    const m = measureRef.current;
+    if (!el || !m) return;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     ro.observe(m);
-    return () => ro.disconnect();
-  }, [tabs.length]);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [measure]);
 
   // The active tab always shows: when it is folded away, it takes the last
   // visible place and that tab folds instead.

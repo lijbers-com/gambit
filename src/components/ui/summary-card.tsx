@@ -15,7 +15,7 @@ export type SummaryCardVariant = "details" | "process" | "order"
  *  inbox, so the same thing looks the same everywhere in the app. */
 export type SummaryEntity = "media-plan" | "campaign" | "booking" | "creative"
 
-const entityIcon: Record<SummaryEntity, React.ComponentType<{ className?: string }>> = {
+export const entityIcon: Record<SummaryEntity, React.ComponentType<{ className?: string }>> = {
   "media-plan": WalletCards,
   campaign: Rows3,
   booking: LayoutList,

@@ -18,6 +18,7 @@ import {
 import { useBreadcrumbOptional } from '@/contexts/breadcrumb-context';
 import { extendedRoutes } from '@/components/layout/default-routes';
 import { Route } from './side-navigation';
+import { useDb } from '@/lib/db/hooks';
 
 type ReadonlyURLSearchParams = {
   get: (key: string) => string | null;
@@ -44,6 +45,7 @@ const SmartBreadcrumbsInner = ({
   const pathName = usePathname();
   const searchParams = useSearchParams();
   const breadcrumbContext = useBreadcrumbOptional();
+  const db = useDb();
 
   // Handle cases where hooks return null (like in Storybook)
   const pathNames = pathName ? pathName.split('/').filter(Boolean) : [];
@@ -54,6 +56,11 @@ const SmartBreadcrumbsInner = ({
 
   // Function to get proper name from routes configuration
   const getRouteLabel = (path: string, fullPath: string): string => {
+    // Media product pages: the product's name, from the store.
+    if (fullPath.match(/^\/media-products\/[^/]+$/)) {
+      return db.mediaProducts.find((m) => m.id === path)?.name ?? 'Media product';
+    }
+
     // Handle dynamic routes with breadcrumb context
     if (breadcrumbContext) {
       // Campaign detail pages

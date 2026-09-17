@@ -184,7 +184,21 @@ export interface MetricDefinition {
 // Media and Digital Out Of Home — where for Social Media the positions are the
 // platforms themselves (Meta, TikTok, Pinterest, YouTube).
 
-/** A channel within an engine (aka media product / platform — naming TBD). */
+// ── Media products, placements, positions ──────────────────────────────
+//
+// What the retailer sells. A media product is the sellable thing — composed
+// by the retailer (today in AdCRM, from here on in Edge) with its rate card,
+// its buying models and the rules it comes with. Inside it sit placements,
+// and inside those the positions the ad server fills. How deep that goes
+// differs per proposition: display and offsite group positions into
+// placements; sponsored products and the in-store engines put positions
+// straight under the product.
+
+export type BuyingModel = 'guaranteed' | 'auction';
+/** What the list price is a price of. */
+export type PricingBasis = 'cpm' | 'cpc' | 'per-day' | 'flat';
+export type MediaProductStatus = 'draft' | 'active' | 'archived';
+
 export interface MediaProduct {
   id: string;
   engine: EngineId;
@@ -192,11 +206,92 @@ export interface MediaProduct {
   description?: string;
   /** Executing partner behind this channel (e.g. Epsilon, Chicory, Vistar). */
   partner?: string;
+  status?: MediaProductStatus;
+  /** How it can be bought; a product can offer both. */
+  buyingModels?: BuyingModel[];
+  /** The rate card: what the list price is a price of, and the price itself. */
+  pricingBasis?: PricingBasis;
+  listPrice?: number;
+  /** Auction: the lowest bid accepted. */
+  floorPrice?: number;
+  /** How long a booking in review holds inventory — and its price — before
+   *  the hold is released. */
+  holdDays?: number;
+  /** The rules the product comes with: minimum run time, formats, share caps. */
+  constraints?: string[];
+  owner?: string;
+}
+
+/** A grouping of positions inside a media product — "Above the fold". */
+export interface Placement {
+  id: string;
+  mediaProductId: string;
+  name: string;
+  description?: string;
+}
+
+// ── Pricing rules ───────────────────────────────────────────────────────
+//
+// How the list price moves. Each rule is an index on the price for the
+// dates or the demand it applies to: seasonality (Q4, retail moments), the
+// market (what the category commands), demand (fill rate), and the booking
+// itself (early, or big). The rules stack in priority order; the build-up
+// is shown wherever a price is.
+
+export type PricingRuleKind = 'seasonality' | 'moment' | 'market' | 'demand' | 'early-booking' | 'volume';
+
+export interface PricingRule {
+  id: string;
+  name: string;
+  kind: PricingRuleKind;
+  /** The proposition it applies to, or every one. */
+  engine: EngineId | 'all';
+  /** Only these products; empty means every product of the engine. */
+  mediaProductIds?: string[];
+  /** Multiplier on the price: 1.25 is +25%, 0.9 is −10%. */
+  index: number;
+  /** Seasonality and moments: the dates the index holds for. */
+  from?: string;
+  to?: string;
+  /** Demand: applies when the position's fill rate is at least this share. */
+  minFillRate?: number;
+  /** Early booking: applies when booked at least this many days ahead. */
+  minDaysAhead?: number;
+  /** Volume: applies from this booking budget. */
+  minBudget?: number;
+  /** What it is for, in the retailer's words. */
+  description?: string;
+  priority: number;
+  status: 'active' | 'draft' | 'paused';
+  updatedAt: string;
+}
+
+// ── Inventory holds ─────────────────────────────────────────────────────
+//
+// A booking in review holds inventory: units on a position for its run
+// time, at the price that stood when it was booked. The hold expires after
+// the product's hold days unless the booking is confirmed, and is released
+// when the booking is cancelled.
+
+export interface InventoryHold {
+  id: string;
+  bookingId: string;
+  positionId: string;
+  from: string;
+  to: string;
+  units: number;
+  /** The price locked with the hold, in the product's basis. */
+  priceLocked: number;
+  heldAt: string;
+  expiresAt: string;
+  status: 'held' | 'confirmed' | 'released' | 'expired';
 }
 
 export interface Position {
   id: string;
   mediaProductId: string;
+  /** The placement it sits in, where the proposition groups positions. */
+  placementId?: string;
   name: string;
   description?: string;
   /** Bookable slots per day (capacity model kept deliberately simple). */
@@ -447,7 +542,10 @@ export interface DbData {
   bookings: Booking[];
   metricDefinitions: MetricDefinition[];
   mediaProducts: MediaProduct[];
+  placements: Placement[];
   positions: Position[];
+  pricingRules: PricingRule[];
+  inventoryHolds: InventoryHold[];
   availability: AvailabilityEntry[];
   faqs: FaqEntry[];
   terms: TermEntry[];

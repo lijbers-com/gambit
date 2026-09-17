@@ -1,4 +1,5 @@
-import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, MediaPlan, TermEntry, ReleaseNote, Workflow } from './types';
+import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, InventoryHold, MediaPlan, MediaProduct, Placement, Position, PricingRule, TermEntry, ReleaseNote, Workflow } from './types';
+import { fillRateFor, priceFor } from './pricing';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
 
@@ -152,8 +153,115 @@ export function createBooking(input: Omit<Booking, 'id' | 'createdAt' | 'updated
   const db = load();
   const booking: Booking = { ...input, id: nextId('B', db.bookings), createdAt: timestamp(), updatedAt: timestamp() };
   db.bookings.push(booking);
+  holdInventory(db, booking);
   notify();
   return booking;
+}
+
+/**
+ * A new booking holds its positions for its run time, at today's price —
+ * the price stays locked for the product's hold days, so a reviewer's
+ * pause does not cost the advertiser the rate they were quoted.
+ */
+function holdInventory(db: DbData, booking: Booking) {
+  const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - Date.now()) / 86400000));
+  for (const positionId of booking.positionIds) {
+    const position = db.positions.find((p) => p.id === positionId);
+    const product = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
+    if (!position || !product) continue;
+    const build = priceFor(db, position, { from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget, fillRate: fillRateFor(db, position, booking.startDate, booking.endDate) });
+    const heldAt = new Date();
+    const expiresAt = new Date(heldAt.getTime() + (product.holdDays ?? 5) * 86400000);
+    db.inventoryHolds.push({
+      id: nextId('IH', db.inventoryHolds),
+      bookingId: booking.id,
+      positionId,
+      from: booking.startDate,
+      to: booking.endDate,
+      units: 1,
+      priceLocked: build?.price ?? position.listPrice ?? product.listPrice ?? 0,
+      heldAt: heldAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      status: 'held',
+    });
+  }
+}
+
+export function setHoldStatus(id: string, status: InventoryHold['status']) {
+  const db = load();
+  const hold = db.inventoryHolds.find((h) => h.id === id);
+  if (!hold) return;
+  hold.status = status;
+  notify();
+}
+
+// ── Media products, placements, positions ──────────────────────────────
+
+export function createMediaProduct(input: Omit<MediaProduct, 'id'>): MediaProduct {
+  const db = load();
+  const product: MediaProduct = { ...input, id: nextId('mprod', db.mediaProducts) };
+  db.mediaProducts.push(product);
+  notify();
+  return product;
+}
+
+export function updateMediaProduct(id: string, patch: Partial<Omit<MediaProduct, 'id'>>): MediaProduct | undefined {
+  const db = load();
+  const product = db.mediaProducts.find((p) => p.id === id);
+  if (!product) return undefined;
+  Object.assign(product, patch);
+  notify();
+  return product;
+}
+
+export function createPlacement(input: Omit<Placement, 'id'>): Placement {
+  const db = load();
+  const placement: Placement = { ...input, id: nextId('plc', db.placements) };
+  db.placements.push(placement);
+  notify();
+  return placement;
+}
+
+export function createPosition(input: Omit<Position, 'id'>): Position {
+  const db = load();
+  const position: Position = { ...input, id: nextId('pos', db.positions) };
+  db.positions.push(position);
+  notify();
+  return position;
+}
+
+export function updatePosition(id: string, patch: Partial<Omit<Position, 'id'>>): Position | undefined {
+  const db = load();
+  const position = db.positions.find((p) => p.id === id);
+  if (!position) return undefined;
+  Object.assign(position, patch);
+  notify();
+  return position;
+}
+
+// ── Pricing rules ──────────────────────────────────────────────────────
+
+export function createPricingRule(input: Omit<PricingRule, 'id' | 'updatedAt'>): PricingRule {
+  const db = load();
+  const rule: PricingRule = { ...input, id: nextId('PR', db.pricingRules), updatedAt: timestamp() };
+  db.pricingRules.push(rule);
+  notify();
+  return rule;
+}
+
+export function updatePricingRule(id: string, patch: Partial<Omit<PricingRule, 'id'>>): PricingRule | undefined {
+  const db = load();
+  const rule = db.pricingRules.find((r) => r.id === id);
+  if (!rule) return undefined;
+  Object.assign(rule, patch, { updatedAt: timestamp() });
+  notify();
+  return rule;
+}
+
+export function deletePricingRule(id: string) {
+  const db = load();
+  db.pricingRules = db.pricingRules.filter((r) => r.id !== id);
+  notify();
 }
 
 export function updateBooking(id: string, patch: Partial<Omit<Booking, 'id' | 'createdAt'>>): Booking | undefined {

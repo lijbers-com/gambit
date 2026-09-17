@@ -101,6 +101,13 @@ export const advertiserRoutes: Route[] = [
     ]
   },
   {
+    id: 19,
+    name: "Media products",
+    type: "single" as const,
+    icon: { lucide: "Package" },
+    url: "/media-products",
+  },
+  {
     id: 1,
     name: "Creatives",
     type: "parent" as const,

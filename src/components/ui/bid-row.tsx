@@ -31,14 +31,17 @@ export const BidRow = ({
   value,
   onChange,
   className,
+  hideLabel,
 }: {
   id: string;
   value: string;
   onChange: (v: string) => void;
   className?: string;
+  /** In a table column the header already says "Bid (CPC)". */
+  hideLabel?: boolean;
 }) => (
   <div className={cn('flex flex-wrap items-center gap-2', className ?? 'mt-2')} onClick={(e) => e.stopPropagation()}>
-    <span className="text-xs text-muted-foreground">Bid (CPC)</span>
+    {!hideLabel && <span className="text-xs text-muted-foreground">Bid (CPC)</span>}
     <div className="relative w-24">
       <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
       <Input

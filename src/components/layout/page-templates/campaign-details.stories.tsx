@@ -3380,9 +3380,17 @@ export const SponsoredProductsInOption: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('products');
-    const [searchVolume, setSearchVolume] = useState<string[]>([]);
-    const [competitive, setCompetitive] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('bookings');
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
+    const [bookingPosition, setBookingPosition] = useState<string[]>([]);
+    // The bookings under this campaign: one per position, each with its own
+    // keywords, products and bids — the campaign itself only groups them.
+    const spBookingData = [
+      { id: 'LI-101', status: 'Live',      name: 'Top of Search · Summer Launch', position: 'Top of search', start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Increase Spend',  keywords: 124, products: 18, dailyBudget: '€50', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversions: '412', sales: '€4,234', spent: '€3,391', roas: '125%' },
+      { id: 'LI-102', status: 'Live',      name: 'In-grid · Summer Launch',       position: 'In-grid',       start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Optimize Budget', keywords: 86,  products: 18, dailyBudget: '€35', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversions: '198', sales: '€2,156', spent: '€1,918', roas: '112%' },
+      { id: 'LI-103', status: 'In review', name: 'Category page · Beer',          position: 'Category page', start: '2024-09-01', end: '2024-09-30', aiRecommendation: 'Increase Spend',  keywords: 42,  products: 9,  dailyBudget: '€25', impressions: '—',       clicks: '—',     avgCPC: '—',     ctr: '—',    conversions: '—',   sales: '—',      spent: '—',      roas: '—' },
+      { id: 'LI-104', status: 'Paused',    name: 'Product page · Heineken 0.0',   position: 'Product page',  start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', keywords: 31,  products: 4,  dailyBudget: '€20', impressions: '89,234',  clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversions: '96',  sales: '€1,234', spent: '€549',   roas: '225%' },
+    ];
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
@@ -3998,233 +4006,73 @@ export const SponsoredProductsInOption: Story = {
               content: null,
             },
             {
-              label: 'Products',
-              value: 'products',
+              label: 'Recommendations',
+              value: 'actions',
+              badgeCount: campaignUnread,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
+            },
+            {
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
                     filters={[
                       {
-                        name: 'Search Volume',
+                        name: 'Status',
                         options: [
-                          { label: 'High', value: 'High' },
-                          { label: 'Medium', value: 'Medium' },
-                          { label: 'Low', value: 'Low' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: searchVolume,
-                        onChange: setSearchVolume,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
-                        name: 'Competitive',
+                        name: 'Position',
                         options: [
-                          { label: 'High', value: 'High' },
-                          { label: 'Medium', value: 'Medium' },
-                          { label: 'Low', value: 'Low' },
+                          { label: 'Top of search', value: 'Top of search' },
+                          { label: 'In-grid', value: 'In-grid' },
+                          { label: 'Category page', value: 'Category page' },
+                          { label: 'Product page', value: 'Product page' },
                         ],
-                        selectedValues: competitive,
-                        onChange: setCompetitive,
+                        selectedValues: bookingPosition,
+                        onChange: setBookingPosition,
                       },
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search products..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'productId', header: 'Product ID' },
-                      { key: 'gtin', header: 'GTIN' },
-                      { key: 'image', header: 'Retail products', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
-                      { key: 'productTitle', header: 'Product Title' },
-                      { key: 'budget', header: 'Budget' },
+                      { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'position', header: 'Position' },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
+                      { key: 'keywords', header: 'Keywords' },
+                      { key: 'products', header: 'Products' },
+                      { key: 'dailyBudget', header: 'Daily budget' },
+                      { key: 'impressions', header: 'Impressions' },
+                      { key: 'clicks', header: 'Clicks' },
+                      { key: 'avgCPC', header: 'Avg CPC' },
+                      { key: 'ctr', header: 'CTR' },
+                      { key: 'conversions', header: 'Conversions' },
+                      { key: 'sales', header: 'Sales' },
                       { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
+                      { key: 'roas', header: 'ROAS' },
                     ]}
-                    data={productData.filter(row => {
-                      const searchVolumeMatch = searchVolume.length === 0 || searchVolume.includes(row.searchVolume);
-                      const competitiveMatch = competitive.length === 0 || competitive.includes(row.competitive);
-                      return searchVolumeMatch && competitiveMatch;
+                    data={spBookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
+                      const positionMatch = bookingPosition.length === 0 || bookingPosition.includes(row.position);
+                      return statusMatch && positionMatch;
                     })}
-                    rowKey={row => row.productId}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Keywords',
-              value: 'keywords',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Match Type',
-                        options: [
-                          { label: 'Exact', value: 'Exact' },
-                          { label: 'Phrase', value: 'Phrase' },
-                          { label: 'Broad', value: 'Broad' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Paused', value: 'Paused' },
-                          { label: 'Negative', value: 'Negative' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search keywords..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'keyword', header: 'Keyword' },
-                      { key: 'matchType', header: 'Match Type', render: row => <Badge variant="outline">{row.matchType}</Badge> },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
-                    ]}
-                    data={[
-                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', searchVolume: 'High', competitive: 'Medium' },
-                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€150', spent: '€0', budgetLeft: '€150', roas: '-', searchVolume: 'Medium', competitive: 'High' },
-                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€100', spent: '€0', budgetLeft: '€100', roas: '-', searchVolume: 'Low', competitive: 'Low' },
-                    ]}
-                    rowKey={row => row.keyword}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Categories',
-              value: 'categories',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Category Level',
-                        options: [
-                          { label: 'Level 1', value: 'Level 1' },
-                          { label: 'Level 2', value: 'Level 2' },
-                          { label: 'Level 3', value: 'Level 3' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Paused', value: 'Paused' },
-                          { label: 'Excluded', value: 'Excluded' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search categories..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'category', header: 'Category' },
-                      { key: 'level', header: 'Level', render: row => <Badge variant="secondary">{row.level}</Badge> },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
-                    ]}
-                    data={[
-                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€300', spent: '€0', budgetLeft: '€300', roas: '-', searchVolume: 'High', competitive: 'Medium' },
-                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', searchVolume: 'Medium', competitive: 'High' },
-                      { category: 'Organic Products', level: 'Level 1', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€250', spent: '€0', budgetLeft: '€250', roas: '-', searchVolume: 'Medium', competitive: 'Low' },
-                    ]}
-                    rowKey={row => row.category}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Other',
-              value: 'other',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Setting Type',
-                        options: [
-                          { label: 'Targeting', value: 'Targeting' },
-                          { label: 'Bidding', value: 'Bidding' },
-                          { label: 'Schedule', value: 'Schedule' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Inactive', value: 'Inactive' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search settings..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'setting', header: 'Setting' },
-                      { key: 'type', header: 'Type', render: row => <Badge variant="outline">{row.type}</Badge> },
-                      { key: 'value', header: 'Value' },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
-                    ]}
-                    data={[
-                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€400', spent: '€0', budgetLeft: '€400', roas: '-', status: 'Active' },
-                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€300', spent: '€0', budgetLeft: '€300', roas: '-', status: 'Active' },
-                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '-', clicks: '-', avgCPC: '-', ctr: '-', conversion: '-', sales: '-', budget: '€200', spent: '€0', budgetLeft: '€200', roas: '-', status: 'Active' },
-                    ]}
-                    rowKey={row => row.setting}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/sponsored-products/booking/${row.id}`}
                   />
                 </div>
               ),
@@ -4325,10 +4173,18 @@ export const SponsoredProductsRunning: Story = {
     const { theme: storybookTheme } = useStorybookTheme();
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
-    const [activeTab, setActiveTab] = useState('products');
+    const [activeTab, setActiveTab] = useState('bookings');
     const [selectedMetric, setSelectedMetric] = useState('impressions');
-    const [searchVolume, setSearchVolume] = useState<string[]>([]);
-    const [competitive, setCompetitive] = useState<string[]>([]);
+    const [bookingStatus, setBookingStatus] = useState<string[]>([]);
+    const [bookingPosition, setBookingPosition] = useState<string[]>([]);
+    // The bookings under this campaign: one per position, each with its own
+    // keywords, products and bids — the campaign itself only groups them.
+    const spBookingData = [
+      { id: 'LI-101', status: 'Live',      name: 'Top of Search · Summer Launch', position: 'Top of search', start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Increase Spend',  keywords: 124, products: 18, dailyBudget: '€50', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversions: '412', sales: '€4,234', spent: '€3,391', roas: '125%' },
+      { id: 'LI-102', status: 'Live',      name: 'In-grid · Summer Launch',       position: 'In-grid',       start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Optimize Budget', keywords: 86,  products: 18, dailyBudget: '€35', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversions: '198', sales: '€2,156', spent: '€1,918', roas: '112%' },
+      { id: 'LI-103', status: 'In review', name: 'Category page · Beer',          position: 'Category page', start: '2024-09-01', end: '2024-09-30', aiRecommendation: 'Increase Spend',  keywords: 42,  products: 9,  dailyBudget: '€25', impressions: '—',       clicks: '—',     avgCPC: '—',     ctr: '—',    conversions: '—',   sales: '—',      spent: '—',      roas: '—' },
+      { id: 'LI-104', status: 'Paused',    name: 'Product page · Heineken 0.0',   position: 'Product page',  start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', keywords: 31,  products: 4,  dailyBudget: '€20', impressions: '89,234',  clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversions: '96',  sales: '€1,234', spent: '€549',   roas: '225%' },
+    ];
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
@@ -4733,244 +4589,73 @@ export const SponsoredProductsRunning: Story = {
               content: null,
             },
             {
-              label: 'Products',
-              value: 'products',
+              label: 'Recommendations',
+              value: 'actions',
+              badgeCount: campaignUnread,
+              content: <InboxPanel scope="campaign" kinds={['recommendation']} className="mt-6" />,
+            },
+            {
+              label: 'Bookings',
+              value: 'bookings',
               content: (
                 <div className="space-y-6 mt-6">
                   <FilterBar
                     filters={[
                       {
-                        name: 'Search Volume',
+                        name: 'Status',
                         options: [
-                          { label: 'High', value: 'High' },
-                          { label: 'Medium', value: 'Medium' },
-                          { label: 'Low', value: 'Low' },
+                          { label: 'In review', value: 'In review' },
+                          { label: 'Live', value: 'Live' },
+                          { label: 'Paused', value: 'Paused' },
+                          { label: 'Stopped', value: 'Stopped' },
+                          { label: 'Ready', value: 'Ready' },
                         ],
-                        selectedValues: searchVolume,
-                        onChange: setSearchVolume,
+                        selectedValues: bookingStatus,
+                        onChange: setBookingStatus,
                       },
                       {
-                        name: 'Competitive',
+                        name: 'Position',
                         options: [
-                          { label: 'High', value: 'High' },
-                          { label: 'Medium', value: 'Medium' },
-                          { label: 'Low', value: 'Low' },
+                          { label: 'Top of search', value: 'Top of search' },
+                          { label: 'In-grid', value: 'In-grid' },
+                          { label: 'Category page', value: 'Category page' },
+                          { label: 'Product page', value: 'Product page' },
                         ],
-                        selectedValues: competitive,
-                        onChange: setCompetitive,
+                        selectedValues: bookingPosition,
+                        onChange: setBookingPosition,
                       },
                     ]}
                     searchValue={''}
                     onSearchChange={() => {}}
-                    searchPlaceholder="Search products..."
+                    searchPlaceholder="Search bookings..."
                   />
                   <Table
                     columns={[
-                      { key: 'productId', header: 'Product ID' },
-                      { key: 'gtin', header: 'GTIN' },
-                      { key: 'image', header: 'Retail products', render: row => <img src={row.image} alt="Product" className="w-8 h-8 rounded object-cover" /> },
-                      { key: 'productTitle', header: 'Product Title' },
+                      { key: 'name', header: 'Name' },
+                      { key: 'id', header: 'ID' },
+                      { key: 'status', header: 'Status', render: row => <Badge variant={bookingStatusVariant(row.status)}>{row.status}</Badge> },
+                      { key: 'position', header: 'Position' },
+                      { key: 'aiRecommendation', header: 'Notifications', render: row => <Badge variant={row.aiRecommendation === 'Optimize Budget' ? 'warning' : 'info'}>{row.aiRecommendation}</Badge> },
+                      { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
+                      { key: 'keywords', header: 'Keywords' },
+                      { key: 'products', header: 'Products' },
+                      { key: 'dailyBudget', header: 'Daily budget' },
                       { key: 'impressions', header: 'Impressions' },
                       { key: 'clicks', header: 'Clicks' },
-                      { key: 'addToCart', header: 'Add to Cart' },
                       { key: 'avgCPC', header: 'Avg CPC' },
                       { key: 'ctr', header: 'CTR' },
-                      { key: 'atc', header: 'ATC' },
-                      { key: 'conversion', header: 'Conversion' },
+                      { key: 'conversions', header: 'Conversions' },
                       { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
                       { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
                       { key: 'roas', header: 'ROAS' },
-                      { key: 'extROAS', header: 'Ext. ROAS' },
-                      { key: 'iROAS', header: 'IROAS' },
-                      { key: 'startTime', header: 'Start Time', render: row => new Date(row.startTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'endTime', header: 'End Time', render: row => new Date(row.endTime).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
                     ]}
-                    data={productData.filter(row => {
-                      const searchVolumeMatch = searchVolume.length === 0 || searchVolume.includes(row.searchVolume);
-                      const competitiveMatch = competitive.length === 0 || competitive.includes(row.competitive);
-                      return searchVolumeMatch && competitiveMatch;
+                    data={spBookingData.filter(row => {
+                      const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
+                      const positionMatch = bookingPosition.length === 0 || bookingPosition.includes(row.position);
+                      return statusMatch && positionMatch;
                     })}
-                    rowKey={row => row.productId}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Keywords',
-              value: 'keywords',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Match Type',
-                        options: [
-                          { label: 'Exact', value: 'Exact' },
-                          { label: 'Phrase', value: 'Phrase' },
-                          { label: 'Broad', value: 'Broad' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Paused', value: 'Paused' },
-                          { label: 'Negative', value: 'Negative' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search keywords..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'keyword', header: 'Keyword' },
-                      { key: 'matchType', header: 'Match Type', render: row => <Badge variant="outline">{row.matchType}</Badge> },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
-                    ]}
-                    data={[
-                      { keyword: 'premium coffee beans', matchType: 'Exact', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversion: '1.8%', sales: '€4,234', budget: '€200', spent: '€187', budgetLeft: '€13', roas: '280%', searchVolume: 'High', competitive: 'Medium' },
-                      { keyword: 'organic coffee', matchType: 'Phrase', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversion: '1.5%', sales: '€2,156', budget: '€150', spent: '€143', budgetLeft: '€7', roas: '210%', searchVolume: 'Medium', competitive: 'High' },
-                      { keyword: 'coffee beans 500g', matchType: 'Broad', impressions: '89,234', clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversion: '2.2%', sales: '€1,234', budget: '€100', spent: '€95', budgetLeft: '€5', roas: '310%', searchVolume: 'Low', competitive: 'Low' },
-                    ]}
-                    rowKey={row => row.keyword}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Categories',
-              value: 'categories',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Category Level',
-                        options: [
-                          { label: 'Level 1', value: 'Level 1' },
-                          { label: 'Level 2', value: 'Level 2' },
-                          { label: 'Level 3', value: 'Level 3' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Paused', value: 'Paused' },
-                          { label: 'Excluded', value: 'Excluded' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search categories..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'category', header: 'Category' },
-                      { key: 'level', header: 'Level', render: row => <Badge variant="secondary">{row.level}</Badge> },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'searchVolume', header: 'Search Volume', render: row => <Badge variant={row.searchVolume === 'High' ? 'success' : row.searchVolume === 'Medium' ? 'warning' : 'secondary'}>{row.searchVolume}</Badge> },
-                      { key: 'competitive', header: 'Competitive', render: row => <Badge variant={row.competitive === 'High' ? 'destructive' : row.competitive === 'Medium' ? 'warning' : 'success'}>{row.competitive}</Badge> },
-                    ]}
-                    data={[
-                      { category: 'Food & Beverages > Coffee & Tea', level: 'Level 2', impressions: '456,789', clicks: '12,345', avgCPC: '€0.35', ctr: '2.7%', conversion: '1.9%', sales: '€5,678', budget: '€300', spent: '€278', budgetLeft: '€22', roas: '320%', searchVolume: 'High', competitive: 'Medium' },
-                      { category: 'Food & Beverages > Snacks', level: 'Level 2', impressions: '234,567', clicks: '6,789', avgCPC: '€0.41', ctr: '2.9%', conversion: '1.6%', sales: '€3,456', budget: '€200', spent: '€189', budgetLeft: '€11', roas: '280%', searchVolume: 'Medium', competitive: 'High' },
-                      { category: 'Organic Products', level: 'Level 1', impressions: '345,678', clicks: '8,912', avgCPC: '€0.33', ctr: '2.6%', conversion: '2.1%', sales: '€4,567', budget: '€250', spent: '€234', budgetLeft: '€16', roas: '350%', searchVolume: 'Medium', competitive: 'Low' },
-                    ]}
-                    rowKey={row => row.category}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Other',
-              value: 'other',
-              content: (
-                <div className="space-y-6 mt-6">
-                  <FilterBar
-                    filters={[
-                      {
-                        name: 'Setting Type',
-                        options: [
-                          { label: 'Targeting', value: 'Targeting' },
-                          { label: 'Bidding', value: 'Bidding' },
-                          { label: 'Schedule', value: 'Schedule' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                      {
-                        name: 'Status',
-                        options: [
-                          { label: 'Active', value: 'Active' },
-                          { label: 'Inactive', value: 'Inactive' },
-                        ],
-                        selectedValues: [],
-                        onChange: () => {},
-                      },
-                    ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search settings..."
-                  />
-                  <Table
-                    columns={[
-                      { key: 'setting', header: 'Setting' },
-                      { key: 'type', header: 'Type', render: row => <Badge variant="outline">{row.type}</Badge> },
-                      { key: 'value', header: 'Value' },
-                      { key: 'impressions', header: 'Impressions' },
-                      { key: 'clicks', header: 'Clicks' },
-                      { key: 'avgCPC', header: 'Avg CPC' },
-                      { key: 'ctr', header: 'CTR' },
-                      { key: 'conversion', header: 'Conversion' },
-                      { key: 'sales', header: 'Sales' },
-                      { key: 'budget', header: 'Budget' },
-                      { key: 'spent', header: 'Spent' },
-                      { key: 'budgetLeft', header: 'Budget Left' },
-                      { key: 'roas', header: 'ROAS' },
-                      { key: 'status', header: 'Status', render: row => <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>{row.status}</Badge> },
-                    ]}
-                    data={[
-                      { setting: 'Age: 25-54', type: 'Targeting', value: 'Included', impressions: '567,890', clicks: '14,567', avgCPC: '€0.36', ctr: '2.6%', conversion: '1.8%', sales: '€6,789', budget: '€400', spent: '€387', budgetLeft: '€13', roas: '310%', status: 'Active' },
-                      { setting: 'Gender: All', type: 'Targeting', value: 'Included', impressions: '456,789', clicks: '11,234', avgCPC: '€0.39', ctr: '2.5%', conversion: '1.7%', sales: '€5,234', budget: '€300', spent: '€289', budgetLeft: '€11', roas: '290%', status: 'Active' },
-                      { setting: 'Schedule: Weekdays 9-17', type: 'Schedule', value: 'Active', impressions: '234,567', clicks: '6,789', avgCPC: '€0.34', ctr: '2.9%', conversion: '2.0%', sales: '€3,456', budget: '€200', spent: '€192', budgetLeft: '€8', roas: '340%', status: 'Active' },
-                    ]}
-                    rowKey={row => row.setting}
+                    rowKey={row => row.id}
+                    onRowClick={(row) => window.location.href = `/campaigns/sponsored-products/booking/${row.id}`}
                   />
                 </div>
               ),

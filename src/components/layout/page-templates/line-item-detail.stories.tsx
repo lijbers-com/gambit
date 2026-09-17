@@ -42,6 +42,7 @@ import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
 import { SuggestionList } from '@/components/ui/suggestion-list';
+import { KeywordTable } from '@/components/ui/keyword-table';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
 import { SplitButton } from '@/components/ui/split-button';
@@ -3875,7 +3876,7 @@ export const SponsoredProducts: Story = {
       { label: 'Eindhoven', value: 'eindhoven' }
     ];
     const [bookingName, setBookingName] = React.useState('Sponsored products · Summer Launch · Top of Search');
-    const [bookingTab, setBookingTab] = React.useState<'details' | 'actions' | 'targeting' | 'evaluation' | 'logs'>('details');
+    const [bookingTab, setBookingTab] = React.useState<'details' | 'products' | 'keywords' | 'categories' | 'other' | 'actions' | 'evaluation' | 'logs'>('details');
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const routeEntityId = useRouteEntityId();
@@ -4095,8 +4096,14 @@ export const SponsoredProducts: Story = {
                   <div className="flex items-end justify-between gap-4">
                   <div className={cn('flex gap-0', TAB_STRIP_FORM_COLUMN)} role="tablist">
                     {[
+                      // Targeting is what a sponsored products booking is
+                      // made of, so each part has a tab — the same tabs the
+                      // campaign page used to carry.
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'targeting',  label: 'Targeting' },
+                      { value: 'products',   label: 'Products' },
+                      { value: 'keywords',   label: 'Keywords' },
+                      { value: 'categories', label: 'Categories' },
+                      { value: 'other',      label: 'Other' },
                       { value: 'actions',    label: 'Recommendations' },
                       { value: 'evaluation', label: 'Evaluation' },
                       { value: 'logs',       label: 'Logs' },
@@ -4194,7 +4201,7 @@ export const SponsoredProducts: Story = {
                       {/* Targeting is products, keywords and categories — the
                           same three blocks the create flow builds, in the same
                           order, so editing a booking looks like making one. */}
-                      <FormSection bordered title={`Add products (${selectedRetailProducts.length}/500)`} className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection bordered title={`Add products (${selectedRetailProducts.length}/500)`} className={cn(bookingTab !== 'products' && "hidden")}>
                         <RetailProductSelect
                           value={selectedRetailProducts}
                           onChange={setSelectedRetailProducts}
@@ -4203,53 +4210,15 @@ export const SponsoredProducts: Story = {
                         />
                       </FormSection>
 
-                      <FormSection bordered title={`Add keywords (${keywords.length}/1000)`} className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection bordered title={`Add keywords (${keywords.length}/1000)`} className={cn(bookingTab !== 'keywords' && "hidden")}>
                         <div className="space-y-3">
-                          <p className="-mt-2 text-xs text-muted-foreground">Add keywords to target shoppers searching for relevant products.</p>
-                          <SearchSelectList
-                            label={null}
-                            placeholder="Search or type a keyword…"
-                            allowCreate
-                            maxVisibleSelected={5}
-                            options={Array.from(new Set([...spKeywordSuggestions, ...keywords])).map((k) => ({
-                              value: k,
-                              label: k,
-                              description: spKeywordDescription(k),
-                            }))}
-                            value={keywords}
+                          <p className="-mt-2 text-xs text-muted-foreground">Keywords target shoppers searching for relevant products. Switch between what we suggest and what the booking has; set a bid per keyword in the booking.</p>
+                          <KeywordTable
+                            keywords={keywords}
                             onChange={setKeywords}
-                            // The card carries what the keyword is worth: its
-                            // bid first, then volume and competition — the same
-                            // card the wizard builds.
-                            hideSelectedDescription
-                            renderSelectedExtra={(opt) => {
-                              const detail = spKeywordDetail(opt.value);
-                              return (
-                                <div className="space-y-2">
-                                  <BidRow
-                                    id={opt.value}
-                                    className="mt-1"
-                                    value={spBids[opt.value] ?? ''}
-                                    onChange={(v) => setSpBids((prev) => ({ ...prev, [opt.value]: v }))}
-                                  />
-                                  <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
-                                    <LevelMeter label="Volume" tone="supply" level={detail.volume} />
-                                    <LevelMeter label="Competition" tone="risk" level={detail.competition} />
-                                  </div>
-                                </div>
-                              );
-                            }}
-                          />
-                          <SuggestionList
-                            items={spKeywordSuggestions
-                              .filter(k => !keywords.includes(k))
-                              .map(k => ({ value: k, meta: spKeywordDescription(k) }))}
-                            onAdd={(k) => setKeywords(prev => [...prev, k])}
-                            onAddAll={() => setKeywords(prev => [
-                              ...prev,
-                              ...spKeywordSuggestions.filter(k => !prev.includes(k)),
-                            ])}
-                            label="Suggested keywords"
+                            bids={spBids}
+                            onBidChange={(k, v) => setSpBids((prev) => ({ ...prev, [k]: v }))}
+                            maxHeightClassName="max-h-[32rem]"
                           />
                         </div>
                       </FormSection>
@@ -4257,7 +4226,7 @@ export const SponsoredProducts: Story = {
                       <FormSection
                         bordered
                         title="Enable categories"
-                        className={cn(bookingTab !== 'targeting' && "hidden")}
+                        className={cn(bookingTab !== 'categories' && "hidden")}
                         action={
                           <Button
                             variant="outline"
@@ -4307,7 +4276,7 @@ export const SponsoredProducts: Story = {
                         </div>
                       </FormSection>
 
-                      <FormSection bordered title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
+                      <FormSection bordered title="Local brands" className={cn(bookingTab !== 'other' && "hidden")}>
                         <div className="space-y-2">
                           <p className="-mt-2 mb-2 text-xs text-muted-foreground">Which local brands should this booking target?</p>
                           {localBrands.map((brand) => {

@@ -764,7 +764,7 @@ export const Display: Story = {
 
               {/* The tab card holds the form only; the summary cards sit beside
                   it, outside the card, so the tab reads as one form. */}
-              <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-[minmax(0,1fr)_auto]')}>
+              <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
               <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
               <div
                 className={cn(
@@ -1828,7 +1828,7 @@ export const DigitalInStore: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -3103,7 +3103,7 @@ export const OfflineInStore: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -4116,7 +4116,7 @@ export const SponsoredProducts: Story = {
               </TabActionGroup>
                   </div>
                   {/* Form in the tab card, summary cards beside it — outside the card. */}
-                  <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-[minmax(0,1fr)_auto]')}>
+                  <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
                   <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
@@ -4659,7 +4659,7 @@ export const OffsiteDisplay: Story = {
               </TabActionGroup>
               </div>
               {/* Form in the tab card, summary cards beside it — outside the card. */}
-              <div className={cn('grid grid-cols-1 gap-6 items-start', summaryOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-[minmax(0,1fr)_auto]')}>
+              <div className={cn('grid gap-6 items-start', summaryOpen ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-[minmax(0,1fr)_auto]')}>
               <div className={cn('min-w-0 space-y-6', summaryOpen && 'lg:col-span-2')}>
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">

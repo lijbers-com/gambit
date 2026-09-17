@@ -15,7 +15,7 @@ module.exports = {
       // chips that stand next to each other on one line.
       spacing: {
         inline: '0.5rem',
-        row: '1rem',
+        row: '0.5rem',
         section: '2rem',
       },
       colors: {

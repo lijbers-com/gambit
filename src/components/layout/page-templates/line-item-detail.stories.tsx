@@ -43,6 +43,7 @@ import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
 import { SuggestionList } from '@/components/ui/suggestion-list';
 import { KeywordTable } from '@/components/ui/keyword-table';
+import { RetailProductTable } from '@/components/ui/retail-product-table';
 import { TabStrip } from '@/components/ui/tab-strip';
 import { NotificationDot } from '@/components/ui/notification-dot';
 import { spKeywordSuggestions, spKeywordDescription, spKeywordDetail, spCategoryOptions, localBrands } from '@/lib/sp-keywords';
@@ -3904,7 +3905,8 @@ export const SponsoredProducts: Story = {
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
-    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
+    // The products already in the booking — the table has something to show.
+    const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>(['606983', '607124', '608456', '609782', '614038', '614649']);
     // What a sponsored-products booking is actually bought with.
     const [keywords, setKeywords] = React.useState<string[]>(['beer', 'heineken', 'craft beer']);
     const [selectedCategories, setSelectedCategories] = React.useState<string[]>(['cat-primary']);
@@ -4090,7 +4092,7 @@ export const SponsoredProducts: Story = {
                       // made of, so each part has a tab — the same tabs the
                       // campaign page used to carry.
                       { value: 'details',    label: 'Booking details' },
-                      { value: 'products',   label: 'Products' },
+                      { value: 'products',   label: 'Retail products' },
                       { value: 'keywords',   label: 'Keywords' },
                       { value: 'categories', label: 'Categories' },
                       { value: 'other',      label: 'Other' },
@@ -4180,14 +4182,12 @@ export const SponsoredProducts: Story = {
                       {/* Targeting is products, keywords and categories — the
                           same three blocks the create flow builds, in the same
                           order, so editing a booking looks like making one. */}
-                      <FormSection bordered title={`Add products (${selectedRetailProducts.length}/500)`} className={cn(bookingTab !== 'products' && "hidden")}>
-                        <RetailProductSelect
-                          value={selectedRetailProducts}
-                          onChange={setSelectedRetailProducts}
-                          products={retailProducts}
-                          label={null}
-                        />
-                      </FormSection>
+                      {/* The retail products ARE the tab: a table with how
+                          each performs, straight in the card. The wizard keeps
+                          the picker; here it opens from the Add button. */}
+                      <section className={cn(bookingTab !== 'products' && "hidden")}>
+                        <RetailProductTable value={selectedRetailProducts} onChange={setSelectedRetailProducts} catalogue={retailProducts} />
+                      </section>
 
                       {/* The keywords ARE the tab: the table sits straight in
                           the card, no inner card around it. */}

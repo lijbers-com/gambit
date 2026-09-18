@@ -125,6 +125,17 @@ const unitsCardInsights: CardInsight[] = [
   },
 ];
 
+const ctrCardInsights: CardInsight[] = [
+  {
+    id: 'INS-ctr-pace',
+    kind: 'insight',
+    subject: 'CTR is pacing 15% ahead of plan',
+    preview: 'The flight is running at 2.3% CTR against a 2% target, running 15% ahead of where it should be at this point.',
+    context: 'Sponsored products · Display',
+    caseData: volumePacingCase({ delivered: '2.3%', target: '2%', pacePct: 115, topChannel: 'Sponsored products', unit: 'CTR' }),
+  },
+];
+
 const buyerCardInsights: CardInsight[] = [
   {
     id: 'INS-buyer-new',
@@ -3624,6 +3635,18 @@ export const FunnelView: Story = {
       Object.entries(roasEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
     );
 
+    const ctrLabels: Record<string, string> = {
+      spaCtr: 'Sponsored Products',
+      displayCtr: 'Display',
+    };
+    const ctrEngines: Record<string, EngineId> = {
+      spaCtr: 'sponsored-products',
+      displayCtr: 'display',
+    };
+    const ctrColors: Record<string, string> = Object.fromEntries(
+      Object.entries(ctrEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
+
     const channelSovTooltips: Record<string, string> = {
       spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
       impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
@@ -4176,6 +4199,7 @@ export const FunnelView: Story = {
                         revenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
+                      totalLabel="Total impressions"
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
@@ -4241,6 +4265,7 @@ export const FunnelView: Story = {
                         revenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
+                      totalLabel="Total engagements"
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
@@ -4269,35 +4294,31 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
-                    </div>
+                    {/* The per-channel breakdown used to sit here as a row of
+                        badges — now it only shows on hover, in the chart's
+                        own tooltip, which already carries the same pattern
+                        swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
-                    <LineChartComponent
+                    <AreaChartComponent
                       data={considerationData}
                       config={{
-                        totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
+                        spaCtr: { label: ctrLabels.spaCtr, color: ctrColors.spaCtr, engine: ctrEngines.spaCtr, format: (v: number) => `${v}%` },
+                        displayCtr: { label: ctrLabels.displayCtr, color: ctrColors.displayCtr, engine: ctrEngines.displayCtr, format: (v: number) => `${v}%` },
                       }}
+                      // CTR is a rate, not a volume — each engine's own line
+                      // overlaid rather than stacked, same as ROAS below.
+                      stacked={false}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
                       benchmark={{ value: 2, label: "Target 2%" }}
-                      showDots={true}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      tooltipKeys={{
-                        spaCtr: { label: 'SPA CTR %', color: 'transparent' },
-                        displayCtr: { label: 'Display CTR %', color: 'transparent' },
-                      }}
+                      className="h-[320px] w-full"
                     />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+56%</Badge>
-                    </div>
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={ctrCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
               </div>
@@ -4310,11 +4331,11 @@ export const FunnelView: Story = {
           <>
             <CardContent>
               <div className="flex flex-col gap-6">
-                {/* Row 1 - Total Units Sold */}
+                {/* Row 1 - Total Conversions */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Units Sold {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}
+                      Total Conversions {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4340,6 +4361,7 @@ export const FunnelView: Story = {
                         totalRevenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
+                      totalLabel="Total conversions"
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}

@@ -4193,7 +4193,6 @@ export const SponsoredProducts: Story = {
                           the card, no inner card around it. */}
                       <section className={cn(bookingTab !== 'keywords' && "hidden")}>
                         <div className="space-y-3">
-                          <p className="text-xs text-muted-foreground">{keywords.length} of 1,000 keywords in the booking. Suggestions sit in the same table; set a bid per keyword once it is in.</p>
                           <KeywordTable
                             keywords={keywords}
                             onChange={setKeywords}

@@ -10,6 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import type { EngineId } from '@/lib/db';
 import { PROPOSITION_PATTERNS, PropositionSwatch } from '@/lib/proposition-patterns';
+import type { ChartConfig } from '@/components/ui/chart-types';
+
+/** Bottom-to-top / declaration order for a proposition split — the same
+ *  order the funnel's bands and the pattern system use. */
+const ENGINE_ORDER = Object.keys(PROPOSITION_PATTERNS) as EngineId[];
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { ConversionFunnelComponent } from '@/components/ui/conversion-funnel';
 import { LineChartComponent } from '@/components/ui/line-chart';
@@ -33,6 +38,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
+import { SessionDateRange } from '@/components/ui/session-date-range';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
 import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
@@ -3408,17 +3414,21 @@ export const FunnelView: Story = {
     const impressionKeys = ['spaImpressions', 'impressions', 'omiDots', 'doohSpots', 'offsiteImpressions'] as const;
     const selectedImpressionKeys = impressionKeys.filter(k => awarenessMetrics.includes(k));
 
-    // Flighted, not smooth: a campaign is either running or it isn't, so the
-    // series should show that — a spike while it delivers, a drop to near
-    // nothing between flights — rather than one steady ramp. Sponsored
-    // products stays close to always-on; the others start and stop.
+    // A flight, start to finish: two quiet months before it opens, one climb
+    // to a single peak, two quiet months after it closes — so both ends read
+    // as genuinely flat at zero, not just a single low point either side of
+    // the ramp. Each channel still has its own shape within that window (an
+    // early riser, a late one, a channel that only runs mid-flight) so the
+    // stack keeps its texture.
     const awarenessDataRaw = [
-      { month: 'Jan', spend: 14200, spaImpressions: 95000,  impressions: 150000, sov: 28, salesUplift: 12, omiDots: 3000,   doohSpots: 90000, offsiteImpressions: 35000 },
-      { month: 'Feb', spend: 19800, spaImpressions: 100000, impressions: 172000, sov: 38, salesUplift: 15, omiDots: 4000,   doohSpots: 6000,  offsiteImpressions: 80000 },
-      { month: 'Mar', spend: 17600, spaImpressions: 108000, impressions: 9000,   sov: 35, salesUplift: 18, omiDots: 3000,   doohSpots: 98000, offsiteImpressions: 16000 },
-      { month: 'Apr', spend: 25400, spaImpressions: 115000, impressions: 65000,  sov: 42, salesUplift: 21, omiDots: 195000, doohSpots: 7000,  offsiteImpressions: 92000 },
-      { month: 'May', spend: 30100, spaImpressions: 122000, impressions: 150000, sov: 44, salesUplift: 24, omiDots: 180000, doohSpots: 125000, offsiteImpressions: 138000 },
-      { month: 'Jun', spend: 34200, spaImpressions: 130000, impressions: 210000, sov: 47, salesUplift: 27, omiDots: 10000,  doohSpots: 170000, offsiteImpressions: 165000 }
+      { month: 'Dec', spend: 400,   spaImpressions: 2000,   impressions: 1500,   sov: 2,  salesUplift: 0,  omiDots: 1000,   doohSpots: 1500,   offsiteImpressions: 1500 },
+      { month: 'Jan', spend: 600,   spaImpressions: 3000,   impressions: 2000,   sov: 3,  salesUplift: 1,  omiDots: 1500,   doohSpots: 2000,   offsiteImpressions: 2000 },
+      { month: 'Feb', spend: 12600, spaImpressions: 40000,  impressions: 30000,  sov: 18, salesUplift: 8,  omiDots: 3000,   doohSpots: 60000,  offsiteImpressions: 35000 },
+      { month: 'Mar', spend: 24800, spaImpressions: 110000, impressions: 150000, sov: 32, salesUplift: 16, omiDots: 3000,   doohSpots: 25000,  offsiteImpressions: 90000 },
+      { month: 'Apr', spend: 34500, spaImpressions: 150000, impressions: 210000, sov: 44, salesUplift: 24, omiDots: 195000, doohSpots: 7000,   offsiteImpressions: 160000 },
+      { month: 'May', spend: 22100, spaImpressions: 70000,  impressions: 90000,  sov: 30, salesUplift: 15, omiDots: 150000, doohSpots: 100000, offsiteImpressions: 110000 },
+      { month: 'Jun', spend: 1300,  spaImpressions: 8000,   impressions: 6000,   sov: 5,  salesUplift: 2,  omiDots: 5000,   doohSpots: 4000,   offsiteImpressions: 7000 },
+      { month: 'Jul', spend: 400,   spaImpressions: 2000,   impressions: 1500,   sov: 2,  salesUplift: 0,  omiDots: 1000,   doohSpots: 1500,   offsiteImpressions: 1500 }
     ];
 
     const awarenessData = awarenessDataRaw.map(d => ({
@@ -3426,7 +3436,10 @@ export const FunnelView: Story = {
       totalVolume: selectedImpressionKeys.reduce((sum, key) => sum + (d[key] as number), 0)
     }));
 
-    const totalVolumeLabel = `${Math.round(awarenessData[awarenessData.length - 1].totalVolume / 1000)}K`;
+    // A flighted campaign ends near zero by design, so "the number" for the
+    // period is what it delivered start to finish, not a snapshot of
+    // whichever month happens to be last.
+    const totalVolumeLabel = `${Math.round(awarenessData.reduce((sum, d) => sum + d.totalVolume, 0) / 1000)}K`;
 
     const buyerReachData = [
       { month: 'Jan', newToBrand: 12500, lapsed: 8200, existing: 15800 },
@@ -3750,17 +3763,33 @@ export const FunnelView: Story = {
       sov: { label: "SOV %", color: "hsl(var(--chart-3))" }
     };
 
-    // Share of Voice pie chart data
+    // Share of Voice pie chart data — the 45% "Your Brand" wins split across
+    // the propositions that won it, each in its own pattern, so the donut
+    // shows the same composition the volume chart above it does. Reads the
+    // period's impression mix, the same numbers Total Volume is built from.
+    const engineLabel: Record<EngineId, string> = Object.fromEntries(
+      Object.entries(channelEngines).map(([key, engine]) => [engine, channelLabels[key]]),
+    ) as Record<EngineId, string>;
+    const sovEngineTotals = Object.fromEntries(
+      Object.entries(channelEngines).map(([key, engine]) => [
+        engine,
+        awarenessDataRaw.reduce((sum, d) => sum + ((d as any)[key] ?? 0), 0),
+      ]),
+    ) as Record<EngineId, number>;
+    const sovEngineGrandTotal = Object.values(sovEngineTotals).reduce((s, v) => s + v, 0) || 1;
+    const sovBrandShare = 45;
     const sovPieData = [
-      { name: "Your Brand", value: 45 },
-      { name: "Competitors", value: 55 }
+      ...ENGINE_ORDER.map((engine) => ({
+        name: engineLabel[engine],
+        value: Math.round(sovBrandShare * (sovEngineTotals[engine] / sovEngineGrandTotal) * 10) / 10,
+      })),
+      { name: "Competitors", value: 100 - sovBrandShare },
     ];
 
-    const sovPieConfig = {
-      "Your Brand": {
-        label: "Your Brand",
-        color: "hsl(var(--chart-1))"
-      },
+    const sovPieConfig: ChartConfig = {
+      ...Object.fromEntries(
+        ENGINE_ORDER.map((engine) => [engineLabel[engine], { label: engineLabel[engine], engine }]),
+      ),
       "Competitors": {
         label: "Competitors",
         color: "hsl(0, 0%, 85%)"
@@ -3799,7 +3828,13 @@ export const FunnelView: Story = {
       for (const [key, engine] of Object.entries(engines)) out[engine] = (out[engine] ?? 0) + (row[key] ?? 0);
       return out;
     };
-    const awarenessBreakdown = breakdownFrom(awarenessDataRaw[awarenessDataRaw.length - 1] as any, channelEngines);
+    // Awareness reads near zero at both ends of the flight by design, so its
+    // breakdown is what the whole period delivered, summed — the same
+    // change the Total Volume card's own number just made.
+    const awarenessTotalsRow = Object.fromEntries(
+      Object.keys(channelEngines).map((key) => [key, awarenessDataRaw.reduce((sum, d) => sum + ((d as any)[key] ?? 0), 0)]),
+    );
+    const awarenessBreakdown = breakdownFrom(awarenessTotalsRow, channelEngines);
     const considerationBreakdown = breakdownFrom(considerationDataRaw[considerationDataRaw.length - 1] as any, engagementEngines);
     const purchaseBreakdown = breakdownFrom(purchaseDataRaw[purchaseDataRaw.length - 1] as any, unitEngines);
     // Loyalty has no per-channel field of its own — repeat buyers carry
@@ -3814,7 +3849,7 @@ export const FunnelView: Story = {
       {
         key: 'awareness',
         label: 'Awareness',
-        value: awarenessData[awarenessData.length - 1].totalVolume,
+        value: awarenessData.reduce((sum, d) => sum + d.totalVolume, 0),
         breakdown: awarenessBreakdown,
       },
       {
@@ -3855,8 +3890,13 @@ export const FunnelView: Story = {
           {/* Top Metric Cards — the dashboard's filters sit in the row's header,
               beside Edit metrics: what the numbers cover and which numbers show. */}
           <MetricRow
+            hideDateRange
             headerLeft={
               <>
+              {/* This row already carries outlined filters (Proposition,
+                  Brand…) rather than sitting beside the quiet tab strip, so
+                  the date range matches them instead of its usual ghost. */}
+              <SessionDateRange variant="outline" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">
@@ -3975,14 +4015,15 @@ export const FunnelView: Story = {
               </>
             }
             metrics={[
+              // No inline chart on a metric card — the number leads; a chart
+              // opens when the card itself is clicked, like every other
+              // metric row.
               ...Object.entries(metricDefinitions).map(([key, metric]) => ({
                 key,
                 label: metric.label,
                 value: metric.value,
                 badgeValue: metric.badge,
                 badgeVariant: metric.badgeVariant,
-                graphData: topMetricsData.map(d => ({ value: d[metric.dataKey as keyof typeof d] as number })),
-                graphColor: metric.graphColor,
               })),
               ...revenueChartMetrics,
             ]}
@@ -4100,6 +4141,7 @@ export const FunnelView: Story = {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-1.5">
                         Share of Voice 45%
+                        <Badge variant="success" className="text-xs">+41%</Badge>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -4131,11 +4173,8 @@ export const FunnelView: Story = {
                         startAngle={90}
                         endAngle={-270}
                       />
-                      <div className="flex justify-end mt-2">
-                        <Badge variant="success" className="text-xs">+41%</Badge>
-                      </div>
                       {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={sovCardInsights} className="mt-3" />
+                      <CardInsightList insights={sovCardInsights} variant="compact" className="mt-3" />
                     </CardContent>
                   </Card>
 
@@ -4195,7 +4234,7 @@ export const FunnelView: Story = {
                         endAngle={-270}
                       />
                       {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={buyerCardInsights} className="mt-3" />
+                      <CardInsightList insights={buyerCardInsights} variant="compact" className="mt-3" />
                     </CardContent>
                   </Card>
                 </div>

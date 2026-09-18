@@ -47,11 +47,8 @@ const formatPercent = (n: number) => {
   return `${Math.round(n)}%`
 }
 
-/** Drawing units: each stage is 100 wide; the flow's full height is 100. */
-const W = 100
-const H = 100
 /** The last stage never thins to nothing — a line still reads as flow. */
-const MIN_HALF = 3
+const MIN_HALF = 4
 /** Room above the flow for each stage's label, share and volume. */
 const LABEL_H = 76
 
@@ -67,10 +64,31 @@ export function ConversionFunnelComponent({
 }: ConversionFunnelProps) {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
+  // Drawing units are real pixels, one to one with the box on screen — not
+  // an abstract 100-wide/100-tall grid stretched to fit. A pattern (its
+  // dots, its diagonals) is defined in the same units everywhere it is
+  // used, so it has to render at the same density here as it does on an
+  // area chart; a stretched coordinate system would distort it unevenly on
+  // each axis and the same texture would read as a different shade.
+  const svgRef = React.useRef<SVGSVGElement>(null)
+  const [measuredWidth, setMeasuredWidth] = React.useState(0)
+  React.useLayoutEffect(() => {
+    const el = svgRef.current
+    if (!el || typeof ResizeObserver === "undefined") return
+    const measure = () => setMeasuredWidth(el.clientWidth)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   const firstValue = stages[0]?.value ?? 0
   const maxValue = Math.max(...stages.map((s) => s.value), 1)
   const isInteractive = typeof onStageClick === "function"
   const n = stages.length
+  const H = barHeight
+  const W = n > 0 ? (measuredWidth || 800) / n : 100
+  const mid = H / 2
 
   const handleSelect = (key: string) => {
     if (onStageClick) onStageClick(key)
@@ -90,11 +108,16 @@ export function ConversionFunnelComponent({
    * into the next stage's edge" curve the whole flow uses. The outer shape
    * is `buildRibbon(edge => mid - half, edge => mid + half)`; a sub-band is
    * the same call with edges cut from the stack instead of the full width.
+   *
+   * The very first stage also eases IN, from a single point on the
+   * centreline — the flow starts at nothing, same as it ends at next to
+   * nothing, rather than snapping straight to full width at the left edge.
    */
   const buildRibbon = React.useCallback((topEdges: number[], bottomEdges: number[]) => {
     const top: string[] = []
     const bottom: string[] = []
     const HOLD = 0.6
+    const LEAD = 0.3
     for (let i = 0; i < n; i++) {
       const x0 = i * W
       const x1 = x0 + W * HOLD
@@ -103,7 +126,21 @@ export function ConversionFunnelComponent({
       const bTop = i < n - 1 ? topEdges[i + 1] : topEdges[i]
       const aBot = bottomEdges[i]
       const bBot = i < n - 1 ? bottomEdges[i + 1] : bottomEdges[i]
-      if (i === 0) top.push(`M ${x0} ${aTop}`)
+      if (i === 0) {
+        const leadX = x0 + W * LEAD
+        const leadCx = (x0 + leadX) / 2
+        top.push(`M ${x0} ${mid}`)
+        top.push(`C ${leadCx} ${mid}, ${leadCx} ${aTop}, ${leadX} ${aTop}`)
+        top.push(`L ${x1} ${aTop}`)
+        const cx = (x1 + x2) / 2
+        top.push(`C ${cx} ${aTop}, ${cx} ${bTop}, ${x2} ${bTop}`)
+        bottom.unshift(
+          `C ${cx} ${bBot}, ${cx} ${aBot}, ${x1} ${aBot}`,
+          `L ${leadX} ${aBot}`,
+          `C ${leadCx} ${aBot}, ${leadCx} ${mid}, ${x0} ${mid}`,
+        )
+        continue
+      }
       top.push(`L ${x1} ${aTop}`)
       const cx = (x1 + x2) / 2
       top.push(`C ${cx} ${aTop}, ${cx} ${bTop}, ${x2} ${bTop}`)
@@ -111,9 +148,8 @@ export function ConversionFunnelComponent({
       if (i === n - 1) bottom.unshift(`L ${x2} ${bBot}`)
     }
     return `${top.join(" ")} ${bottom.join(" ")} Z`
-  }, [n])
+  }, [n, mid])
 
-  const mid = H / 2
   const path = React.useMemo(
     () => (n === 0 ? "" : buildRibbon(halves.map((h) => mid - h), halves.map((h) => mid + h))),
     [halves, n, buildRibbon, mid],
@@ -149,9 +185,12 @@ export function ConversionFunnelComponent({
           column, the flow runs beneath them — the numbers ride the shape. */}
       <div className="relative" style={{ height: barHeight + LABEL_H }}>
         <svg
+          ref={svgRef}
           className="absolute inset-x-0 bottom-0 w-full"
           style={{ height: barHeight }}
-          preserveAspectRatio="none"
+          // The viewBox is the element's own measured pixel size, so one
+          // unit is one screen pixel on both axes — no stretch for
+          // `preserveAspectRatio="none"` to introduce.
           viewBox={`0 0 ${n * W} ${H}`}
         >
           <defs>

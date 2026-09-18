@@ -13,7 +13,14 @@ import { useSessionFilters, setSessionFilters } from '@/lib/session-filters';
  * the range the user picked on campaigns is still applied when they open
  * bookings. See lib/session-filters for why it is session state.
  */
-export const SessionDateRange: React.FC<{ className?: string }> = ({ className }) => {
+export const SessionDateRange: React.FC<{
+  className?: string;
+  /** 'ghost' (default): a quiet control, like the tab strip beside it — no
+   *  box, tab-grey text. 'outline': the normal bordered button, for a row
+   *  that already carries other outlined filters (Proposition, Brand…) and
+   *  needs to match them rather than the tabs. */
+  variant?: 'ghost' | 'outline';
+}> = ({ className, variant = 'ghost' }) => {
   const filters = useSessionFilters();
 
   const value: DateRange | undefined =
@@ -23,10 +30,12 @@ export const SessionDateRange: React.FC<{ className?: string }> = ({ className }
 
   return (
     <DateRangePicker
-      // A quiet control, like the tab strip beside it: no box, tab-grey text
-      // that darkens on hover and once a range is set.
-      variant="ghost"
-      className={cn('w-auto max-w-[260px] hover:text-foreground', value ? 'text-foreground' : 'text-muted-foreground', className)}
+      variant={variant}
+      className={cn(
+        'w-auto max-w-[260px]',
+        variant === 'ghost' && cn('hover:text-foreground', value ? 'text-foreground' : 'text-muted-foreground'),
+        className,
+      )}
       dateRange={value}
       placeholder="All dates"
       // The way back to everything lives in the picker, under the calendar.

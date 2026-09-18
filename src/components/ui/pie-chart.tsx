@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { ChartDataPoint, ChartConfig } from "./chart-types"
+import { PropositionPatternDefs, patternFill } from "@/lib/proposition-patterns"
 
 export interface PieChartProps {
   data: ChartDataPoint[]
@@ -50,9 +51,19 @@ export function PieChartComponent({
     return entry[nameKey] ? `${entry[nameKey]} ${entry[dataKey]}%` : `${entry[dataKey]}%`;
   };
 
+  const hasPatternedSlice = data.some((entry, index) => {
+    const key = String(entry[nameKey] || entry.name || `item-${index}`)
+    return !!config[key]?.engine
+  })
+
   return (
     <ChartContainer config={config} className={className}>
       <PieChart>
+        {hasPatternedSlice && (
+          <defs>
+            <PropositionPatternDefs />
+          </defs>
+        )}
         <Pie
           data={data}
           cx="50%"
@@ -68,7 +79,11 @@ export function PieChartComponent({
         >
           {data.map((entry, index) => {
             const key = String(entry[nameKey] || entry.name || `item-${index}`)
-            const color = config[key]?.color || `hsl(${index * 45}, 70%, 50%)`
+            const engine = config[key]?.engine
+            // A slice standing for a proposition wears its pattern, like
+            // every other chart; a plain slice (competitors, a total) keeps
+            // its flat colour.
+            const color = engine ? patternFill(engine) : config[key]?.color || `hsl(${index * 45}, 70%, 50%)`
             return <Cell key={`cell-${index}`} fill={color} />
           })}
         </Pie>

@@ -170,8 +170,15 @@ export function AreaChartComponent({
               type={curved ? "monotone" : "linear"}
               fill={engine ? patternFill(engine) : `var(--color-${key})`}
               fillOpacity={engine ? (stacked ? 1 : 0.55) : 0.4}
+              // A full-strength stroke reads fine around a thick band, but
+              // where a flighted series tapers to a sliver it becomes most
+              // of what's visible — the outline, not the fill — and that
+              // sliver reads as a different, darker shade than the same
+              // band does at its thickest. Softened so the fill still leads
+              // at every thickness.
               stroke={engine ? patternFor(engine).ink : `var(--color-${key})`}
-              strokeWidth={engine ? 0.75 : undefined}
+              strokeOpacity={engine ? 0.4 : undefined}
+              strokeWidth={engine ? 0.5 : undefined}
               stackId={stacked ? "a" : undefined}
               yAxisId={showRightYAxis && rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
             />

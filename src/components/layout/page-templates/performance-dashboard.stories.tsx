@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { AreaChartComponent } from '@/components/ui/area-chart';
 import type { EngineId } from '@/lib/db';
 import { PROPOSITION_PATTERNS, PropositionSwatch } from '@/lib/proposition-patterns';
+import { propositionColor } from '@/lib/proposition-colors';
 import type { ChartConfig } from '@/components/ui/chart-types';
 
 /** Bottom-to-top / declaration order for a proposition split — the same
@@ -135,6 +136,30 @@ const ctrCardInsights: CardInsight[] = [
     caseData: volumePacingCase({ delivered: '2.3%', target: '2%', pacePct: 115, topChannel: 'Sponsored products', unit: 'CTR' }),
   },
 ];
+
+const revenueCardInsights: CardInsight[] = [
+  {
+    id: 'INS-revenue-pace',
+    kind: 'insight',
+    subject: 'Revenue is pacing 13% ahead of plan',
+    preview: 'The flight has brought in €170K against a €150K target, running 13% ahead of where it should be at this point.',
+    context: 'All propositions · this flight',
+    caseData: volumePacingCase({ delivered: '€170K', target: '€150K', pacePct: 113, topChannel: 'Sponsored products', unit: 'revenue' }),
+  },
+];
+
+/** Revenue by product SKU — named products, each tagged with the
+ *  proposition that drove the sale. Sums to the Sales SKU (14 days) figure
+ *  shown at the top of the dashboard, so the two never disagree. */
+const revenueByProductData: { name: string; value: number; engine: EngineId; color: string }[] = (
+  [
+    { name: 'Irish Spring 3C Soap', value: 18200, engine: 'sponsored-products' as EngineId },
+    { name: 'SS AB Cln Prt Liq HD', value: 15050, engine: 'sponsored-products' as EngineId },
+    { name: 'SFTSP Coco Btr Scrb', value: 14600, engine: 'display' as EngineId },
+    { name: 'SFTSP Ktchn Frsh Hnd', value: 13950, engine: 'sponsored-products' as EngineId },
+    { name: 'SFTSP Frsh Sprs Wtr', value: 8200, engine: 'display' as EngineId },
+  ]
+).map((p) => ({ ...p, color: propositionColor(p.engine) }));
 
 const buyerCardInsights: CardInsight[] = [
   {
@@ -3647,6 +3672,25 @@ export const FunnelView: Story = {
       Object.entries(ctrEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
     );
 
+    const revenueLabels: Record<string, string> = {
+      spaRevenue: 'Sponsored Products',
+      displayRevenue: 'Display',
+      dmiRevenue: 'Digital Media In-store',
+      omiRevenue: 'Offline Media In-store',
+      offsiteRevenue: 'Display Offsite',
+    };
+    const revenueEngines: Record<string, EngineId> = {
+      spaRevenue: 'sponsored-products',
+      displayRevenue: 'display',
+      dmiRevenue: 'digital-instore',
+      omiRevenue: 'offline-instore',
+      offsiteRevenue: 'offsite',
+    };
+    const revenueColors: Record<string, string> = Object.fromEntries(
+      Object.entries(revenueEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
+    const revenueKeys = Object.keys(revenueLabels) as (keyof typeof revenueLabels)[];
+
     const channelSovTooltips: Record<string, string> = {
       spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
       impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
@@ -4376,6 +4420,74 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
+                {/* Row 1.5 - Revenue by Proposition */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Revenue by Proposition {totalRevenueLabel}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>Purchase revenue attributed to each proposition — Sponsored Products, Display, Digital Media In-store, Offline Media In-store and Display Offsite.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AreaChartComponent
+                      data={purchaseData}
+                      config={Object.fromEntries(
+                        revenueKeys.map(k => [k, { label: revenueLabels[k], color: revenueColors[k], engine: revenueEngines[k], format: (v: number) => `€${Math.round(v / 1000)}K` }])
+                      )}
+                      stacked={true}
+                      totalLabel="Total revenue"
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      benchmark={{ value: 150000, label: "Target 150K" }}
+                      className="h-[320px] w-full"
+                    />
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={revenueCardInsights} variant="compact" className="mt-4" />
+                  </CardContent>
+                </Card>
+
+                {/* Row 1.6 - Revenue by Product SKU */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Revenue by Product SKU (14 days) {formatEur(revenueByProductData.reduce((sum, p) => sum + p.value, 0))}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>The named products behind Sales SKU (14 days) — the products a shopper interacted with via Sponsored Products, or bought after a Display impression.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartComponent
+                      data={revenueByProductData}
+                      config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
+                      horizontal
+                      colorByPoint="color"
+                      xAxisDataKey="name"
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      className="h-[220px] w-full"
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Row 2 - ROAS */}
                 <Card>
                   <CardHeader>
@@ -4453,6 +4565,13 @@ export const FunnelView: Story = {
                       <Badge variant="secondary" className="text-xs">Lapsed {purchaseData[purchaseData.length - 1].lapsedBuyers.toLocaleString()}</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
                       <Badge variant="secondary" className="text-xs">Existing {purchaseData[purchaseData.length - 1].existingBuyers.toLocaleString()}</Badge>
+                    </div>
+                    {/* New-to-brand's own share of revenue — buyer count alone
+                        doesn't say whether new customers are worth reaching. */}
+                    <div className="mt-1">
+                      <Badge variant="success" className="text-xs">
+                        New-to-brand revenue {formatEur(Math.round((purchaseData[purchaseData.length - 1].newBuyers / purchaseData[purchaseData.length - 1].totalBuyers) * purchaseData[purchaseData.length - 1].totalRevenue))}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>

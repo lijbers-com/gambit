@@ -3352,6 +3352,11 @@ export const FunnelView: Story = {
       { name: 'Loyal', value: 23 }
     ];
 
+    // Which of the nine top metrics show by default — the rest wait in the
+    // Edit metrics picker. Impressions and Spend, then a Sales/ROAS pair at
+    // the same (SKU) granularity so the default four read as one story.
+    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['impressions', 'spend', 'salesSku', 'roasSku']);
+
     // Custom Report Dialog state
     const [customReportOpen, setCustomReportOpen] = useState(false);
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
@@ -3406,9 +3411,14 @@ export const FunnelView: Story = {
       { month: 'Jul', spend: 400,   spaImpressions: 2000,   impressions: 1500,   sov: 2,  salesUplift: 0,  omiDots: 1000,   doohSpots: 1500,   offsiteImpressions: 1500 }
     ];
 
+    // Sales rides the same chart as a second euro line, next to Spend — read
+    // off the campaign's own blended ROAS (420%, the figure already shown
+    // elsewhere on this page) rather than a separate, disagreeing number.
+    const AWARENESS_ROAS = 4.2;
     const awarenessData = awarenessDataRaw.map(d => ({
       ...d,
-      totalVolume: selectedImpressionKeys.reduce((sum, key) => sum + (d[key] as number), 0)
+      totalVolume: selectedImpressionKeys.reduce((sum, key) => sum + (d[key] as number), 0),
+      revenue: Math.round(d.spend * AWARENESS_ROAS),
     }));
 
     // A flighted campaign ends near zero by design, so "the number" for the
@@ -3659,13 +3669,14 @@ export const FunnelView: Story = {
     ];
 
     // Metric definitions for top cards
-    // The eight cards this dashboard always shows, at a locked 14-day
-    // attribution window — no picker, no other metrics to choose from.
-    // Sponsored Products (spa*) is the proposition that targets specific
-    // SKUs, so it stands in for SKU-level reporting; the blended totals
-    // across every proposition stand in for brand-level. Both the headline
-    // number and the chart a click opens read the same months of
-    // purchaseData, so the two never disagree.
+    // The nine metrics this dashboard tracks, at a locked 14-day
+    // attribution window — the picker below only adds among these, it
+    // never offers a different window. Sponsored Products (spa*) is the
+    // proposition that targets specific SKUs, so it stands in for
+    // SKU-level reporting; the blended totals across every proposition
+    // stand in for brand-level. Both the headline number and the chart a
+    // click opens read the same months of purchaseData, so the two never
+    // disagree.
     const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
     const formatCount = (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString());
     const pctChange = (first: number, last: number) => Math.round(((last - first) / first) * 100);
@@ -3674,6 +3685,9 @@ export const FunnelView: Story = {
     const firstTotalUnits = purchaseUnitKeys.reduce((sum, key) => sum + firstPurchase[key], 0);
     const firstTotalRevenue = firstPurchase.spaRevenue + firstPurchase.displayRevenue + firstPurchase.dmiRevenue + firstPurchase.omiRevenue + firstPurchase.offsiteRevenue;
     const impressionsTotal = awarenessData.reduce((sum, d) => sum + d.totalVolume, 0);
+    const lastConsideration = considerationDataRaw[considerationDataRaw.length - 1];
+    const firstConsideration = considerationDataRaw[0];
+    const displaySpaClicks = (d: typeof lastConsideration) => d.spaClicks + d.displayClicks;
 
     const topMetrics: MetricDefinition[] = [
       {
@@ -3681,6 +3695,14 @@ export const FunnelView: Story = {
         label: 'Impressions',
         value: formatCount(impressionsTotal),
         chartData: awarenessData.map(d => ({ day: d.month, value: d.totalVolume })),
+      },
+      {
+        key: 'clicks',
+        label: 'Clicks (Display & SPA)',
+        value: formatCount(displaySpaClicks(lastConsideration)),
+        badgeValue: `+${pctChange(displaySpaClicks(firstConsideration), displaySpaClicks(lastConsideration))}%`,
+        badgeVariant: 'success',
+        chartData: considerationDataRaw.map(d => ({ day: d.month, value: displaySpaClicks(d) })),
       },
       {
         key: 'spend',
@@ -3849,12 +3871,7 @@ export const FunnelView: Story = {
         value: purchaseData[purchaseData.length - 1].totalUnitsSold,
         breakdown: purchaseBreakdown,
       },
-      {
-        key: 'loyalty',
-        label: 'Loyalty',
-        value: loyaltyData[loyaltyData.length - 1].existingBuyers,
-        breakdown: loyaltyBreakdown,
-      },
+      // Loyalty is hidden for now — there's no real reporting behind it yet.
     ];
 
     return (
@@ -3998,7 +4015,6 @@ export const FunnelView: Story = {
                         { label: 'Awareness', value: 'awareness' },
                         { label: 'Consideration', value: 'consideration' },
                         { label: 'Purchase', value: 'purchase' },
-                        { label: 'Loyalty', value: 'loyalty' }
                       ],
                       selectedValues: goalFilter,
                       onChange: setGoalFilter
@@ -4013,11 +4029,9 @@ export const FunnelView: Story = {
             // itself is clicked, like every other metric row.
             metrics={topMetrics}
             showCharts
-            maxVisible={8}
-            maxSelectable={8}
-            hideEditButton
-            hideMeasurement
-            removable={false}
+            selectedKeys={selectedTopMetrics}
+            onSelectionChange={setSelectedTopMetrics}
+            maxSelectable={topMetrics.length}
           />
 
           {/* Conversion Funnel Breakdown + selected stage section */}
@@ -4105,8 +4119,10 @@ export const FunnelView: Story = {
                         ...Object.fromEntries(
                           selectedImpressionKeys.map(k => [k, { label: channelLabels[k], color: channelColors[k], engine: channelEngines[k] }])
                         ),
-                        // Spend rides the volume as a dashed line on its own euro axis.
+                        // Spend and Sales both ride the volume as dashed
+                        // lines on the same euro axis.
                         spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        revenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}
@@ -4122,111 +4138,6 @@ export const FunnelView: Story = {
                     <CardInsightList insights={volumeCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
-
-                {/* Row 2 - Share of Voice + Type of Buyer side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Share of Voice */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-1.5">
-                        Share of Voice 45%
-                        <Badge variant="success" className="text-xs">+41%</Badge>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>{titleTooltips.totalSov}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </CardTitle>
-                      <div className="flex items-center gap-1 flex-wrap mt-1">
-                        <Badge variant="secondary" className="text-xs">Your Brand 45%</Badge>
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                        <Badge variant="secondary" className="text-xs">Competitors 55%</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <PieChartComponent
-                        data={sovPieData}
-                        config={sovPieConfig}
-                        showLegend={false}
-                        showTooltip={true}
-                        className="h-[200px] w-full"
-                        nameKey="name"
-                        dataKey="value"
-                        innerRadius={55}
-                        outerRadius={90}
-                        showLabels={true}
-                        labelPosition="inside"
-                        startAngle={90}
-                        endAngle={-270}
-                      />
-                      {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={sovCardInsights} variant="compact" className="mt-3" />
-                    </CardContent>
-                  </Card>
-
-                  {/* Type of Buyer */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-1.5">
-                        Type of Buyer
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>{titleTooltips.totalBuyerReach}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </CardTitle>
-                      <div className="flex items-center gap-1 flex-wrap mt-1">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span><Badge variant="secondary" className="text-xs cursor-help">New-to-brand</Badge></span>
-                            </TooltipTrigger>
-                            <TooltipContent>Customer that did not have an impression, but now interacted with an ad</TooltipContent>
-                          </Tooltip>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span><Badge variant="secondary" className="text-xs cursor-help">Lapsed</Badge></span>
-                            </TooltipTrigger>
-                            <TooltipContent>Customer that had impressions, but not between x time and now interacted again</TooltipContent>
-                          </Tooltip>
-                          <Plus className="w-3 h-3 text-muted-foreground" />
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span><Badge variant="secondary" className="text-xs cursor-help">Existing</Badge></span>
-                            </TooltipTrigger>
-                            <TooltipContent>Customer that has an impression before and already had this within x time</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <PieChartComponent
-                        data={buyerReachPieData}
-                        config={buyerReachPieConfig}
-                        showLegend={false}
-                        showTooltip={true}
-                        className="h-[200px] w-full"
-                        nameKey="name"
-                        dataKey="value"
-                        innerRadius={55}
-                        outerRadius={90}
-                        showLabels={true}
-                        labelPosition="inside"
-                        startAngle={90}
-                        endAngle={-270}
-                      />
-                      {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={buyerCardInsights} variant="compact" className="mt-3" />
-                    </CardContent>
-                  </Card>
-                </div>
 
                 <Button
                   variant="outline"
@@ -4617,169 +4528,6 @@ export const FunnelView: Story = {
                     />
                     <div className="flex justify-end mt-2">
                       <Badge variant="success" className="text-xs">+99%</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </>
-          )}
-
-          {/* Loyalty section */}
-          {selectedStage === 'loyalty' && (
-          <>
-            <CardContent>
-              <div className="flex flex-col gap-6">
-                {/* Row 1 - Retained Customers */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Retained Customers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>Unique existing buyers who made repeat purchases. Is retail media contributing to repeating purchases.</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">Existing buyers {(loyaltyData[loyaltyData.length - 1].existingBuyers / 1000).toFixed(1)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Lapsed buyers {loyaltyData[loyaltyData.length - 1].lapsedBuyers}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <LineChartComponent
-                      data={loyaltyData}
-                      config={{
-                        existingBuyers: { label: "Retained Customers", color: "hsl(var(--chart-4))" },
-                        spend: { label: 'Spend', color: 'hsl(var(--foreground))' },
-                      }}
-                      secondaryYAxis={{ dataKey: 'spend', format: (v: number) => `€${Math.round(v / 1000)}K` }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      benchmark={{ value: 4000, label: "Target 4K" }}
-                      showDots={true}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      tooltipKeys={{
-                        lapsedBuyers: { label: 'Lapsed buyers', color: 'transparent' },
-                      }}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+38%</Badge>
-                    </div>
-                    <div className="flex justify-center mt-2 mb-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setBuyerReachDetailsCollapsed(!buyerReachDetailsCollapsed)}
-                      >
-                        {buyerReachDetailsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {!buyerReachDetailsCollapsed && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-row">
-                      <ChartFrame
-                        title={`Retention Rate ${loyaltyData[loyaltyData.length - 1].retentionRate}%`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={loyaltyData}
-                          config={{ retentionRate: { label: "Retention Rate %", color: "hsl(var(--chart-2))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Churn Rate ${loyaltyData[loyaltyData.length - 1].churnRate}%`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={loyaltyData}
-                          config={{ churnRate: { label: "Churn Rate %", color: "hsl(var(--chart-1))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                      <ChartFrame
-                        title={`Frequency ${loyaltyData[loyaltyData.length - 1].frequency}x`}
-                        chartHeight={120}
-                      >
-                        <LineChartComponent
-                          data={loyaltyData}
-                          config={{ frequency: { label: "Frequency", color: "hsl(var(--chart-3))" } }}
-                          showLegend={false}
-                          showGrid={true}
-                          showTooltip={true}
-                          showXAxis={true}
-                          showYAxis={false}
-                          className="h-full w-full"
-                          xAxisDataKey="month"
-                        />
-                      </ChartFrame>
-                    </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Row 2 - Customer Lifetime Value */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Customer Lifetime Value €{loyaltyData[loyaltyData.length - 1].clv}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>Average projected customer lifetime value based on purchase behavior and retention</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">CLV €{loyaltyData[loyaltyData.length - 1].clv}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Frequency {loyaltyData[loyaltyData.length - 1].frequency}x</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <LineChartComponent
-                      data={loyaltyData}
-                      config={{
-                        clv: { label: "CLV (€)", color: "hsl(var(--chart-1))" }
-                      }}
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      benchmark={{ value: 300, label: "Target €300" }}
-                      showDots={true}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      tooltipKeys={{
-                        frequency: { label: 'Frequency', color: 'transparent' },
-                        retentionRate: { label: 'Retention Rate %', color: 'transparent' },
-                      }}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+42%</Badge>
                     </div>
                   </CardContent>
                 </Card>

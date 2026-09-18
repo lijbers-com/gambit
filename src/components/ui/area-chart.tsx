@@ -62,6 +62,8 @@ export function AreaChartComponent({
 }: AreaChartProps) {
   const allKeys = Object.keys(config).filter(key => config[key].label)
   // Lines ride the right axis when one is shown; the areas own the left.
+  // Several lines can share it (Spend and Revenue are both euros) — the
+  // axis's own tick format just needs one of them to read from.
   const dataKeys = allKeys.filter(key => config[key].kind !== 'line')
   const lineKeys = allKeys.filter(key => config[key].kind === 'line')
   const rightKey = rightAxisDataKey ?? lineKeys[0]
@@ -194,7 +196,9 @@ export function AreaChartComponent({
             strokeDasharray="6 4"
             dot={false}
             activeDot={{ r: 4 }}
-            yAxisId={showRightYAxis && key === rightKey ? "right" : "left"}
+            // Every line-kind series rides the same right axis — Spend and
+            // Revenue are both euros, not two different secondary scales.
+            yAxisId={showRightYAxis ? "right" : "left"}
           />
         ))}
         {benchmark != null && (

@@ -149,7 +149,7 @@ export function ConversionFunnelComponent({
       bottom.unshift(...segs)
     }
     return `${top.join(" ")} ${bottom.join(" ")} Z`
-  }, [n, mid])
+  }, [n, mid, W])
 
   const path = React.useMemo(
     () => (n === 0 ? "" : buildRibbon(halves.map((h) => mid - h), halves.map((h) => mid + h))),

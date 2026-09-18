@@ -52,19 +52,20 @@ export const MiniSelect: React.FC<{ value: string; options: string[]; onChange: 
 export const ToggleRow: React.FC<{
   label: string; hint?: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: string; rightText?: string;
 }> = ({ label, hint, checked, onCheckedChange, info, rightText }) => (
-  // The switch leads, like the checkbox of a field: switch and title on one
-  // line, the explanation under the title.
-  <label className="flex cursor-pointer items-start gap-3 py-2">
-    <Switch checked={checked} onCheckedChange={onCheckedChange} className="mt-px shrink-0" aria-label={label} />
-    <span className="min-w-0 flex-1">
-      <span className="flex items-center gap-1.5 text-sm font-medium">
+  // The switch leads, like the checkbox of a field: switch and title centred
+  // on one line, the explanation under both. No padding of its own — the
+  // form's field spacing keeps the rows apart.
+  <div>
+    <label className="flex cursor-pointer items-center gap-3">
+      <Switch checked={checked} onCheckedChange={onCheckedChange} className="shrink-0" aria-label={label} />
+      <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium">
         {label}
         {info && <InfoTip text={info} />}
       </span>
-      {hint && <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>}
-    </span>
-    {rightText && <span className="shrink-0 text-sm text-muted-foreground">{rightText}</span>}
-  </label>
+      {rightText && <span className="shrink-0 text-sm text-muted-foreground">{rightText}</span>}
+    </label>
+    {hint && <span className="mt-2 block text-xs text-muted-foreground">{hint}</span>}
+  </div>
 );
 
 /**
@@ -119,7 +120,7 @@ export const DeliveryBehaviorFields: React.FC<{
 }> = ({ value, onChange }) => {
   const set = <K extends keyof DeliveryBehaviorValue>(key: K, v: DeliveryBehaviorValue[K]) => onChange({ ...value, [key]: v });
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <ToggleRow
         label="Optimise for cost per click"
         hint="Spend shifts toward the placements winning clicks most cheaply."

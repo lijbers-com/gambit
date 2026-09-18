@@ -166,7 +166,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
 }) => (
   <FormSection bordered={bordered} title="Run time & budget" className={className}>
     <div className="space-y-4 min-w-0">
-      <div className="min-w-0 space-y-3">
+      <div className="min-w-0 space-y-4">
         <div className="min-w-0">
           <label className="block text-sm font-medium mb-2">Run time*</label>
           <DateRangePicker
@@ -185,14 +185,14 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
           <div className="min-w-0">
-            <label className="block text-sm text-muted-foreground mb-1">Start time</label>
+            <label className="block text-sm text-muted-foreground mb-2">Start time</label>
             <div className="relative">
               <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={startTime} onChange={(e) => onStartTimeChange(e.target.value)} className="pl-9" placeholder="00:00" />
             </div>
           </div>
           <div className="min-w-0">
-            <label className="block text-sm text-muted-foreground mb-1">End time</label>
+            <label className="block text-sm text-muted-foreground mb-2">End time</label>
             <div className="relative">
               <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={endTime} onChange={(e) => onEndTimeChange(e.target.value)} className="pl-9" placeholder="23:59" />
@@ -214,7 +214,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
               min="0"
             />
             {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
-            {budgetExtra}
+            {budgetExtra && <div className="mt-4">{budgetExtra}</div>}
           </div>
         );
         return pacing ? pacing(budgetField) : budgetField;

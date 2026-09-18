@@ -322,7 +322,7 @@ const OverrideRow: React.FC<{
         <DateRangePicker
           dateRange={range}
           onDateRangeChange={setRange}
-          className="h-8 w-full min-w-0 bg-transparent"
+          className="h-8 w-full min-w-0 bg-background"
           showWeekNumbers
           events={retailMoments}
           disabledDays={disabledDays}
@@ -399,7 +399,7 @@ const OverrideDraftRow: React.FC<{
         <DateRangePicker
           dateRange={draft}
           onDateRangeChange={setDraft}
-          className="h-8 w-full min-w-0 bg-transparent"
+          className="h-8 w-full min-w-0 bg-background"
           placeholder="Select dates"
           showWeekNumbers
           events={retailMoments}
